@@ -175,7 +175,7 @@ class CommentRoomFragment : Fragment() {
         val url = commentRoomWebSocketList.get(listPosition)
         val thread = commentRoomThreadList.get(listPosition)
         val room = commentRoomList.get(listPosition)
-        System.out.println(room)
+        //System.out.println(room)
         val uri = URI(url)
         val protocol = Draft_6455(
             Collections.emptyList(),
@@ -183,7 +183,7 @@ class CommentRoomFragment : Fragment() {
         )
         webSocketClient = object : WebSocketClient(uri, protocol) {
             override fun onOpen(handshakedata: ServerHandshake?) {
-                System.out.println("コメントサーバー接続")
+                //System.out.println("コメントサーバー接続")
                 //スレッド番号、過去コメントなど必要なものを最初に送る
                 val sendJSONObject = JSONObject()
                 val jsonObject = JSONObject()

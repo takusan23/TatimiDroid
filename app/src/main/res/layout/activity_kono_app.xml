@@ -17,6 +17,7 @@
 
         <LinearLayout
                 android:padding="10dp"
+                android:gravity="center"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -45,6 +46,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     />
+
+            <Button
+                    android:text="@string/sourcecode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/kono_app_sourcecode"/>
+
+
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 

@@ -75,4 +75,5 @@
     <string name="nicolive_app">Nico Nico Live Broadcasting</string>
     <string name="delete">Delete</string>
     <string name="delete_message">Do you want to delete it?</string>
+    <string name="sourcecode">source code</string>
 </resources>

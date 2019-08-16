@@ -71,8 +71,8 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
     override fun onDestroy() {
         super.onDestroy()
         //IMEを閉じる
-        val imm = context!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(bottom_fragment_post_edittext.windowToken, 0)
+        //val imm = context!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        //imm.hideSoftInputFromWindow(bottom_fragment_post_edittext.windowToken, 0)
     }
 
 }

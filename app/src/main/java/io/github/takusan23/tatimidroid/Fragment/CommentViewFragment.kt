@@ -181,7 +181,7 @@ class CommentViewFragment : Fragment() {
         val webSocketClient = object : WebSocketClient(uri, protocol) {
             override fun onOpen(handshakedata: ServerHandshake?) {
 
-                System.out.println("接続しました $room")
+                //System.out.println("接続しました $room")
                 connectingRoomName += "$room "
                 activity?.runOnUiThread {
                     Snackbar.make(
@@ -205,7 +205,7 @@ class CommentViewFragment : Fragment() {
             }
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                System.out.println("接続を終了しました。$reason")
+                //System.out.println("接続を終了しました。$reason")
             }
 
             override fun onMessage(message: String?) {
@@ -257,7 +257,7 @@ class CommentViewFragment : Fragment() {
             }
 
             override fun onError(ex: Exception?) {
-                System.out.println("$room えらー")
+                //System.out.println("$room えらー")
             }
         }
         //接続

@@ -73,6 +73,8 @@ class CommentActivity : AppCompatActivity() {
     var commentCommand = "184"
     //視聴モード（コメント投稿機能付き）かどうか
     var isWatchingMode = false
+    //hls
+    var hls_address = ""
 
     //TTS使うか
     var isTTS = false
@@ -95,7 +97,8 @@ class CommentActivity : AppCompatActivity() {
         setContentView(R.layout.activity_comment)
 
         //ダークモード対応
-        activity_comment_bottom_navigation_bar.backgroundTintList = ColorStateList.valueOf(darkModeSupport.getThemeColor())
+        activity_comment_bottom_navigation_bar.backgroundTintList =
+            ColorStateList.valueOf(darkModeSupport.getThemeColor())
         if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
             supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
         }
@@ -320,7 +323,7 @@ class CommentActivity : AppCompatActivity() {
         val uri = URI(url)
         connectionNicoLiveWebSocket = object : WebSocketClient(uri) {
             override fun onOpen(handshakedata: ServerHandshake?) {
-                System.out.println("ニコ生視聴セッションWebSocket接続開始")
+                //System.out.println("ニコ生視聴セッションWebSocket接続開始")
                 //最初にクライアント側からサーバーにメッセージを送る必要がある
                 val jsonObject = JSONObject()
                 jsonObject.put("type", "watch")
@@ -366,17 +369,22 @@ class CommentActivity : AppCompatActivity() {
             }
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                System.out.println(reason)
+                //System.out.println(reason)
             }
 
             override fun onMessage(message: String?) {
                 //HLSのアドレスとか
                 if (message?.contains("currentStream") ?: false) {
                     val jsonObject = JSONObject(message)
-                    val hls_address = jsonObject.getJSONObject("body").getJSONObject("currentStream").getString("uri")
-                    System.out.println("HLSアドレス ${hls_address}")
+                    hls_address = jsonObject.getJSONObject("body").getJSONObject("currentStream").getString("uri")
+                    //System.out.println("HLSアドレス ${hls_address}")
                     //生放送再生
-                    setPlayVideoView(hls_address)
+                    if (pref_setting.getBoolean("setting_watch_live", false)) {
+                        setPlayVideoView()
+                    } else {
+                        //レイアウト消す
+                        live_framelayout.visibility = View.GONE
+                    }
                 }
 
                 //threadId、WebSocketURL受信
@@ -390,7 +398,7 @@ class CommentActivity : AppCompatActivity() {
                     //コメント投稿時に必要なpostKeyを取得するために使う
                     getPostKeyThreadId = threadId
 
-                    System.out.println("コメントWebSocket情報 ${threadId} ${messageServerUri}")
+                    //System.out.println("コメントWebSocket情報 ${threadId} ${messageServerUri}")
 
                     //コメント投稿時に使うWebSocketに接続する
                     connectionCommentPOSTWebSocket(messageServerUri, threadId)
@@ -426,7 +434,7 @@ class CommentActivity : AppCompatActivity() {
                         chatObject.put("user_id", userId)
                         jsonObject.put("chat", chatObject)
 
-                        System.out.println(jsonObject.toString())
+                        //System.out.println(jsonObject.toString())
 
                         //送信
                         commentPOSTWebSocketClient.send(jsonObject.toString())
@@ -449,7 +457,7 @@ class CommentActivity : AppCompatActivity() {
 
             override fun onError(ex: Exception?) {
                 ex?.printStackTrace()
-                System.out.println("ニコ生視聴セッションWebSocket　えらー")
+                //System.out.println("ニコ生視聴セッションWebSocket　えらー")
             }
         }
 
@@ -480,7 +488,7 @@ class CommentActivity : AppCompatActivity() {
                 //なお他の環境と同時に視聴すると片方切断される（片方の画面に同じ番組を開くとだめ的なメッセージ出る）
                 connectionNicoLiveWebSocket.send(jsonObject.toString())
                 connectionNicoLiveWebSocket.send(secondJSONObject.toString())
-                System.out.println(jsonObject.toString())
+                //System.out.println(jsonObject.toString())
             }
         }
         //接続
@@ -497,7 +505,7 @@ class CommentActivity : AppCompatActivity() {
         )
         commentPOSTWebSocketClient = object : WebSocketClient(uri, protocol) {
             override fun onOpen(handshakedata: ServerHandshake?) {
-                System.out.println("コメント送信用WebSocket接続開始")
+                //System.out.println("コメント送信用WebSocket接続開始")
 
                 //スレッド番号、過去コメントなど必要なものを最初に送る
                 val sendJSONObject = JSONObject()
@@ -562,63 +570,62 @@ class CommentActivity : AppCompatActivity() {
     }
 
     //視聴モード
-    fun setPlayVideoView(hls: String) {
+    fun setPlayVideoView() {
         //設定で読み込むかどうか
-        if (pref_setting.getBoolean("setting_watch_live", false)) {
-            runOnUiThread {
-                //ウィンドウの半分ぐらいの大きさに設定
-                val display = getWindowManager().getDefaultDisplay()
-                val point = Point()
-                display.getSize(point)
-                val layoutParams = live_video_view.layoutParams
+        runOnUiThread {
+            //ウィンドウの半分ぐらいの大きさに設定
+            val display = getWindowManager().getDefaultDisplay()
+            val point = Point()
+            display.getSize(point)
+            val layoutParams = live_video_view.layoutParams
 
+            //横画面のときの対応
+            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                //横画面
+                layoutParams.width = point.x / 2
+                layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                live_video_view.layoutParams = layoutParams
+            } else {
+                //縦画面
+                layoutParams.height = point.y / 3
+                layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                live_video_view.layoutParams = layoutParams
+            }
+
+            val tree = live_video_view.viewTreeObserver
+            tree.addOnGlobalLayoutListener {
                 //横画面のときの対応
+                val layoutParams = live_framelayout.layoutParams
                 if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     //横画面
-                    layoutParams.width = point.x / 2
+                    layoutParams.width = live_video_view.width
                     layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                    live_video_view.layoutParams = layoutParams
+                    live_framelayout.layoutParams = layoutParams
+
+                    //コメントキャンバス
+                    val commentCanvasLayout = comment_canvas.layoutParams as FrameLayout.LayoutParams
+                    commentCanvasLayout.width = live_video_view.width
+                    commentCanvasLayout.height = live_video_view.height
+                    commentCanvasLayout.gravity = Gravity.CENTER
+                    comment_canvas.layoutParams = commentCanvasLayout
+
                 } else {
                     //縦画面
-                    layoutParams.height = point.y / 3
+                    layoutParams.height = live_video_view.height
                     layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                    live_video_view.layoutParams = layoutParams
+                    live_framelayout.layoutParams = layoutParams
                 }
+            }
 
-                val tree = live_video_view.viewTreeObserver
-                tree.addOnGlobalLayoutListener {
-                    //横画面のときの対応
-                    val layoutParams = live_framelayout.layoutParams
-                    if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        //横画面
-                        layoutParams.width = live_video_view.width
-                        layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                        live_framelayout.layoutParams = layoutParams
-
-                        //コメントキャンバス
-                        val commentCanvasLayout = comment_canvas.layoutParams as FrameLayout.LayoutParams
-                        commentCanvasLayout.width = live_video_view.width
-                        commentCanvasLayout.height = live_video_view.height
-                        commentCanvasLayout.gravity = Gravity.CENTER
-                        comment_canvas.layoutParams = commentCanvasLayout
-
-                    } else {
-                        //縦画面
-                        layoutParams.height = live_video_view.height
-                        layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                        live_framelayout.layoutParams = layoutParams
-                    }
-                }
-
-                //再生
-                live_video_view.setVideoURI(hls.toUri())
+            //再生
+            live_video_view.setVideoURI(hls_address.toUri())
+            live_video_view.start()
+            live_video_view.setOnClickListener {
                 live_video_view.start()
-                live_video_view.setOnClickListener {
-                    live_video_view.start()
-                }
             }
         }
     }
+
 
     //コメント投稿用
     fun sendComment(comment: String) {
@@ -667,7 +674,7 @@ class CommentActivity : AppCompatActivity() {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    System.out.println(response.body?.string())
+                    //System.out.println(response.body?.string())
                     if (response.isSuccessful) {
                         //成功
                         val snackbar =
@@ -701,7 +708,7 @@ class CommentActivity : AppCompatActivity() {
                     live_video_view.stopPlayback()
                 } else {
                     live_framelayout.visibility = View.VISIBLE
-                    live_video_view.start()
+                    setPlayVideoView()
                 }
             }
             R.id.comment_activity_menu_open_browser -> {

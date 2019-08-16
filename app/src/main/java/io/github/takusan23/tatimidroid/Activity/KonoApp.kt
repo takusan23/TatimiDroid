@@ -33,7 +33,7 @@ class KonoApp : AppCompatActivity() {
     * */
     val twitterLink = "https://twitter.com/takusan__23"
     val mastodonLink = "https://best-friends.chat/@takusan_23"
-
+    val source = "https://github.com/takusan23/TatimiDroid"
     /*
     * バージョンとか
     * */
@@ -57,6 +57,9 @@ class KonoApp : AppCompatActivity() {
         }
         kono_app_mastodon.setOnClickListener {
             startBrowser(mastodonLink)
+        }
+        kono_app_sourcecode.setOnClickListener {
+            startBrowser(source)
         }
 
         kono_app_imageview.setOnLongClickListener {
