@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/bottom_fragment_post_linearlayout"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:padding="5dp"
+              android:layout_height="wrap_content">
+
+    <TextView
+            android:text="@string/comment_post"
+            android:textSize="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    <LinearLayout
+            android:padding="10dp"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/bottom_fragment_post_layout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+            <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/bottom_fragment_post_edittext"
+                    android:inputType="text"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="@string/comment_post"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Space
+                android:layout_width="10dp"
+                android:layout_height="match_parent"/>
+
+        <Button
+                android:text="@string/post"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/bottom_fragment_post_button"/>
+
+    </LinearLayout>
+
+
+</LinearLayout>

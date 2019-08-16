@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <SwitchPreference
+            android:title="@string/setting_watch_view_title"
+            android:key="setting_watch_live"
+            android:summary="@string/setting_watch_view_description"
+            android:defaultValue="false"
+            />
+
+    <Preference
+            android:title="@string/auto_admission_stop"
+            android:key="auto_admission_stop_preference"/>
+
+
+    <PreferenceCategory
+            android:title="@string/sonta">
+
+        <Preference
+                android:title="@string/licence"
+                android:icon="@drawable/ic_outline_info_24px"
+                android:key="licence_preference"/>
+
+        <Preference
+                android:title="@string/kono_app"
+                android:icon="@drawable/ic_outline_android_24px"
+                android:key="konoapp_preference"/>
+
+    </PreferenceCategory>
+
+    <!--
+        <SwitchPreference
+                android:title="@string/watching_mode_title"
+                android:key="setting_watching_mode"
+                android:summary="@string/watching_mode_description"
+                android:defaultValue="false"
+                />
+    -->
+
+
+</PreferenceScreen>

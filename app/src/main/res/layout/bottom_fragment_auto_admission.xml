@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:padding="10sp"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+            android:text="@string/auto_admission"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView6"/>
+
+    <TextView
+            android:text="@string/auto_admission_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView7"/>
+
+    <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <Button
+                android:text="@android:string/cancel"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/auto_admission_cancel"
+                android:layout_weight="1"/>
+
+
+        <Space
+                android:layout_width="10sp"
+                android:layout_height="wrap_content"/>
+
+        <Button
+                android:text="@string/open_tatimi_droid"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/auto_admission_tatimi_droid"
+                android:layout_weight="1"/>
+
+        <Space
+                android:layout_width="10sp"
+                android:layout_height="wrap_content"/>
+
+        <Button
+                android:text="@string/open_nicolive_app"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/auto_admission_nicocas"
+                android:layout_weight="1"/>
+    </LinearLayout>
+</LinearLayout>
