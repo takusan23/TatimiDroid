@@ -67,7 +67,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
         Timer().schedule(10, 10) {
             for (i in 0..(xList.size - 1)) {
-                val x = xList.get(i) - 5
+                //文字数が多い場合はもっと早く流す
+                val minus = 5 + (textList.get(i).length / 2)
+                val x = xList.get(i) - minus
                 if (x > -2000) {
                     xList.set(i, x)
                 }
@@ -139,7 +141,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
         //コメント感覚。<--->
         //値が大きければどんどん下に表示される
-        val timeSpace = 2000
+        val timeSpace = 1000
 
 
         for (index in 0 until commentPositionList.size) {

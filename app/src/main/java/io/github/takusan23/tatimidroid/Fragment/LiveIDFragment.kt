@@ -1,5 +1,7 @@
 package io.github.takusan23.tatimidroid.Fragment
 
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -11,9 +13,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SnackbarProgress
+import kotlinx.android.synthetic.main.activity_comment.*
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 import kotlinx.android.synthetic.main.fragment_liveid.*
 import java.util.regex.Pattern
 
@@ -29,7 +36,10 @@ class LiveIDFragment : Fragment() {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
         //タイトル
-        (activity as AppCompatActivity).supportActionBar?.subtitle = ""
+        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.liveid_fragment)
+
+        //クリップボードに番組IDが含まれてればテキストボックスに自動で入れる
+        setClipBoardProgramID()
 
         main_activity_button.setOnClickListener {
             //liveIdを取る。「https://live2.nicovideo.jp/watch/」をからの文字に置き換えてもいいんだけど後ろにパラメーターあるかもだし
@@ -59,6 +69,31 @@ class LiveIDFragment : Fragment() {
                 Toast.makeText(context, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
             }
 
+        }
+    }
+
+
+    //クリップボードから番組ID取り出し
+    private fun setClipBoardProgramID() {
+        val clipboard = context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipdata = clipboard.primaryClip
+        if (clipdata != null) {
+            //正規表現で取り出す
+            val nicoID_Matcher = Pattern.compile("(lv)([0-9]+)")
+                .matcher(SpannableString(clipdata.getItemAt(0)?.text ?: ""))
+            if (nicoID_Matcher.find()) {
+                //取り出してEditTextに入れる
+                val liveId = nicoID_Matcher.group()
+                main_activity_liveid_inputedittext.setText(liveId)
+            }
+            //テキスト入れたよSnackbar
+            val snackbar = Snackbar.make(
+                main_activity_liveid_inputedittext,
+                getString(R.string.set_clipbord_programid),
+                Snackbar.LENGTH_SHORT
+            )
+            snackbar.setAnchorView((activity as MainActivity).main_activity_bottom_navigationview)
+            snackbar.show()
         }
     }
 }

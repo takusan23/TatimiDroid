@@ -76,4 +76,8 @@
     <string name="delete">Delete</string>
     <string name="delete_message">Do you want to delete it?</string>
     <string name="sourcecode">source code</string>
+    <string name="set_clipbord_programid">Since the live broadcast ID was found in the copied content, it was automatically pasted.</string>
+    <string name="open_comment_viewer">Open Comment Viewer</string>
+    <string name="auto_admission_one_minute_notification">Reservation frame automatic admission start notification</string>
+    <string name="auto_admission_one_minute_notification_description">About 1 minute later, you will automatically enter the reserved space.</string>
 </resources>
