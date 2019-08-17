@@ -80,4 +80,6 @@
     <string name="open_comment_viewer">Open Comment Viewer</string>
     <string name="auto_admission_one_minute_notification">Reservation frame automatic admission start notification</string>
     <string name="auto_admission_one_minute_notification_description">About 1 minute later, you will automatically enter the reserved space.</string>
+    <string name="setting_oidashi_comment_title">Hide eviction comments</string>
+    <string name="setting_oidashi_comment_description">Hide eviction comment (hb ifseetno)</string>
 </resources>

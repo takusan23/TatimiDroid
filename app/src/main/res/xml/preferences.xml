@@ -10,6 +10,14 @@
             android:defaultValue="false"
             />
 
+    <SwitchPreference
+            android:title="@string/setting_oidashi_comment_title"
+            android:key="setting_hidden_oidashi_comment"
+            android:summary="@string/setting_oidashi_comment_description"
+            android:defaultValue="true"
+            />
+
+
     <Preference
             android:title="@string/auto_admission_stop"
             android:key="auto_admission_stop_preference"/>

@@ -217,13 +217,28 @@ class CommentViewFragment : Fragment() {
 
                     niconicoComment(commentJSONParse.comment)
 
-                    if (commentJSONParse.premium.contains("運営")) {
-                        //運営コメントはアリーナだけ
-                        if (!room.contains(getString(R.string.arena))) {
-                            addItemRecyclerView(message, room)
+                    //追い出しコメントを非表示
+                    if (pref_setting.getBoolean("setting_hidden_oidashi_comment", true)) {
+                        //追い出しコメントを非表示
+                        if (!commentJSONParse.comment.contains("/hb ifseetno")) {
+                            if (commentJSONParse.premium.contains("運営")) {
+                                //運営コメントはアリーナだけ
+                                if (!room.contains(getString(R.string.arena))) {
+                                    addItemRecyclerView(message, room)
+                                }
+                            } else {
+                                addItemRecyclerView(message, room)
+                            }
                         }
                     } else {
-                        addItemRecyclerView(message, room)
+                        if (commentJSONParse.premium.contains("運営")) {
+                            //運営コメントはアリーナだけ
+                            if (!room.contains(getString(R.string.arena))) {
+                                addItemRecyclerView(message, room)
+                            }
+                        } else {
+                            addItemRecyclerView(message, room)
+                        }
                     }
 
                     //Toast / TTS

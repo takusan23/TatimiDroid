@@ -72,7 +72,7 @@ class AutoAdmissionService : Service() {
             }
             //Service再起動
             stopSelf()
-            startService(Intent(applicationContext,AutoAdmissionService::class.java))
+            startService(Intent(applicationContext, AutoAdmissionService::class.java))
             //該当の番組をデータベースから消す
             sqLiteDatabase.delete("auto_admission", "liveid=?", arrayOf(liveid))
 
@@ -141,7 +141,7 @@ class AutoAdmissionService : Service() {
         }
     }
 
-    fun showForegroundNotification(){
+    fun showForegroundNotification() {
         var programList = ""
         //SQLite読み出し
         val cursor = sqLiteDatabase.query(
@@ -169,7 +169,7 @@ class AutoAdmissionService : Service() {
                 val hour = calendar.get(Calendar.HOUR_OF_DAY)
                 val minute = calendar.get(Calendar.MINUTE)
 
-                val program = "${programName }- ${liveId} (${month + 1}/$date $hour:$minute)"
+                val program = "${programName}- ${liveId} (${month + 1}/$date $hour:$minute)"
                 programList = programList + "\n" + program
             }
             cursor.moveToNext()

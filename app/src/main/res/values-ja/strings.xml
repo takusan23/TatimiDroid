@@ -80,4 +80,6 @@
     <string name="open_comment_viewer">コメントビューワーで開く</string>
     <string name="auto_admission_one_minute_notification">予約枠自動入場開始通知</string>
     <string name="auto_admission_one_minute_notification_description">約1分後に予約枠に自動入場します。</string>
+    <string name="setting_oidashi_comment_description">追い出しコメント(hb ifseetno)を非表示</string>
+    <string name="setting_oidashi_comment_title">追い出しコメントを非表示</string>
 </resources>
