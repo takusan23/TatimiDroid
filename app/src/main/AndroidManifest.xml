@@ -12,8 +12,10 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <service
-                android:name=".AutoAdmissionService">
+        <activity android:name=".Activity.NGListActivity">
+        </activity>
+
+        <service android:name=".AutoAdmissionService">
         </service>
 
         <activity android:name=".Activity.KonoApp">
@@ -27,13 +29,14 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <!--共有を受け取る labelが共有するときのアプリの名前になる（TwitterとかだとTwiiterじゃなくてツイートになってる部分。あれ）-->
+            <!-- 共有を受け取る labelが共有するときのアプリの名前になる（TwitterとかだとTwiiterじゃなくてツイートになってる部分。あれ） -->
             <intent-filter android:label="@string/open_comment_viewer">
                 <action android:name="android.intent.action.SEND"/>
+
                 <category android:name="android.intent.category.DEFAULT"/>
+
                 <data android:mimeType="text/*"/>
             </intent-filter>
-
         </activity>
     </application>
 

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.database.sqlite.SQLiteDatabase
 import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
@@ -42,6 +43,7 @@ import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import android.widget.ListPopupWindow
 import io.github.takusan23.tatimidroid.Fragment.*
+import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
@@ -75,6 +77,8 @@ class CommentActivity : AppCompatActivity() {
     var isWatchingMode = false
     //hls
     var hls_address = ""
+    //こてはん（固定ハンドルネーム　配列
+    val kotehanMap = mutableMapOf<String, String>()
 
     //TTS使うか
     var isTTS = false
@@ -87,6 +91,14 @@ class CommentActivity : AppCompatActivity() {
 
     //番組ID
     var liveId = ""
+
+    //NGデータベース
+    lateinit var ngListSQLiteHelper: NGListSQLiteHelper
+    lateinit var sqLiteDatabase: SQLiteDatabase
+    //コメントNG配列
+    val commentNGList = arrayListOf<String>()
+    //ユーザーNG配列
+    val userNGList = arrayListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -125,6 +137,8 @@ class CommentActivity : AppCompatActivity() {
         fragmentTransaction.replace(R.id.activity_comment_linearlayout, CommentViewFragment())
         fragmentTransaction.commit()
 
+        //NGデータベース読み込み
+        loadNGDataBase()
 
         //コメント投稿モード、nicocas式コメント投稿モード以外でFAB非表示
         val watchingmode = pref_setting.getBoolean("setting_watching_mode", false)
@@ -216,6 +230,33 @@ class CommentActivity : AppCompatActivity() {
             finish()
             //startActivity(Intent(this@CommentActivity, MainActivity::class.java))
         }
+    }
+
+    fun loadNGDataBase() {
+        //NGデータベース
+        if (!this@CommentActivity::ngListSQLiteHelper.isInitialized) {
+            //データベース
+            ngListSQLiteHelper = NGListSQLiteHelper(this)
+            sqLiteDatabase = ngListSQLiteHelper.writableDatabase
+            ngListSQLiteHelper.setWriteAheadLoggingEnabled(false)
+        }
+        setNGList("user", userNGList)
+        setNGList("comment", commentNGList)
+    }
+
+    fun setNGList(name: String, list: ArrayList<String>) {
+        //コメントNG読み込み
+        val cursor = sqLiteDatabase.query(
+            "ng_list",
+            arrayOf("type", "value"),
+            "type=?", arrayOf(name), null, null, null
+        )
+        cursor.moveToFirst()
+        for (i in 0 until cursor.count) {
+            list.add(cursor.getString(1))
+            cursor.moveToNext()
+        }
+        cursor.close()
     }
 
     //getplayerstatus
@@ -742,6 +783,10 @@ class CommentActivity : AppCompatActivity() {
                     item.isChecked = true
                     isToast = true
                 }
+            }
+            R.id.comment_activity_menu_ng_list -> {
+                val intent = Intent(this, NGListActivity::class.java)
+                startActivity(intent)
             }
         }
         return super.onOptionsItemSelected(item)

@@ -13,6 +13,10 @@
             android:title="@string/open_browser"
             android:icon="@drawable/ic_outline_live_tv_24px"
             android:id="@+id/comment_activity_menu_open_browser"/>
+    <item
+            android:title="@string/ng_list"
+            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:id="@+id/comment_activity_menu_ng_list"/>
 
     <item
             android:title="@string/iyayo_comment"

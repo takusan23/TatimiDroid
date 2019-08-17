@@ -6,6 +6,7 @@
     <SwitchPreference
             android:title="@string/setting_watch_view_title"
             android:key="setting_watch_live"
+            android:icon="@drawable/ic_outline_live_tv_24px_black"
             android:summary="@string/setting_watch_view_description"
             android:defaultValue="false"
             />
@@ -14,14 +15,27 @@
             android:title="@string/setting_oidashi_comment_title"
             android:key="setting_hidden_oidashi_comment"
             android:summary="@string/setting_oidashi_comment_description"
+            android:icon="@drawable/ic_outline_pan_tool_24px"
             android:defaultValue="true"
             />
 
 
     <Preference
             android:title="@string/auto_admission_stop"
+            android:icon="@drawable/ic_outline_stop_24px"
             android:key="auto_admission_stop_preference"/>
 
+
+    <Preference
+            android:title="@string/ng_list"
+            android:icon="@drawable/ic_outline_block_24px"
+            android:key="ng_list_activity">
+        <!--Activity起動-->
+        <intent
+                android:action="android.intent.action.MAIN"
+                android:targetPackage="io.github.takusan23.tatimidroid"
+                android:targetClass="io.github.takusan23.tatimidroid.Activity.NGListActivity"/>
+    </Preference>
 
     <PreferenceCategory
             android:title="@string/sonta">

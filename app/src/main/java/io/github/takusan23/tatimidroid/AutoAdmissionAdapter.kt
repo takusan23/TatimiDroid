@@ -9,11 +9,10 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Fragment.CommunityListFragment
+import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import java.util.*
 
 class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
@@ -47,7 +46,8 @@ class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayLis
 
             //初期化したか
             if (!this@AutoAdmissionAdapter::autoAdmissionSQLiteSQLite.isInitialized) {
-                autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(content)
+                autoAdmissionSQLiteSQLite =
+                    AutoAdmissionSQLiteSQLite(content)
                 sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
                 autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
             }

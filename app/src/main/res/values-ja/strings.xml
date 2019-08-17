@@ -82,4 +82,15 @@
     <string name="auto_admission_one_minute_notification_description">約1分後に予約枠に自動入場します。</string>
     <string name="setting_oidashi_comment_description">追い出しコメント(hb ifseetno)を非表示</string>
     <string name="setting_oidashi_comment_title">追い出しコメントを非表示</string>
+    <string name="auto_admission_empty">番組が登録されてません。</string>
+    <string name="add_kotehan">コテハン登録しました。</string>
+    <string name="kotehan">コテハン</string>
+    <string name="add_kotehan_button">コテハン追加</string>
+    <string name="add_ng_comment_message">NGコメントに追加しました。</string>
+    <string name="add_ng_user_message">NGユーザーに追加しました。</string>
+    <string name="long_click">長押しで登録</string>
+    <string name="ng_user">NGユーザー</string>
+    <string name="ng_comment">NGコメント</string>
+    <string name="delete_successful">削除しました</string>
+    <string name="ng_list">NG一覧</string>
 </resources>

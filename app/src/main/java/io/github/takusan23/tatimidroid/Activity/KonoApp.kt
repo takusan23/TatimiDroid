@@ -5,20 +5,16 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.SpannableString
-import android.view.MenuItem
-import android.widget.Toast
 import androidx.core.net.toUri
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.AutoAdmissionSQLiteSQLite
+import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import io.github.takusan23.tatimidroid.AutoAdmissionService
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_kono_app.*
-import kotlinx.android.synthetic.main.fragment_liveid.*
 import java.util.*
 import java.util.regex.Pattern
 
@@ -37,7 +33,7 @@ class KonoApp : AppCompatActivity() {
     /*
     * バージョンとか
     * */
-    val version = 1.0
+    val version = "1.1.0"
     val codeName1 = "（仮）"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,7 +93,8 @@ class KonoApp : AppCompatActivity() {
                 //初期化済みか
                 if (!this@KonoApp::autoAdmissionSQLiteSQLite.isInitialized) {
                     //初期化
-                    autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(this)
+                    autoAdmissionSQLiteSQLite =
+                        AutoAdmissionSQLiteSQLite(this)
                     sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
                     //読み込む速度が上がる機能？データベースファイル以外の謎ファイルが生成されるので無効化。
                     autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)

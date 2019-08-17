@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
-import android.provider.ContactsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,12 +16,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.*
-import kotlinx.android.synthetic.main.fragment_commentview.*
+import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import okhttp3.*
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -30,7 +27,6 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.concurrent.thread
 
 class CommunityListFragment : Fragment() {
 
@@ -259,7 +255,8 @@ class CommunityListFragment : Fragment() {
 
         //初期化したか
         if (!this@CommunityListFragment::autoAdmissionSQLiteSQLite.isInitialized) {
-            autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(context!!)
+            autoAdmissionSQLiteSQLite =
+                AutoAdmissionSQLiteSQLite(context!!)
             sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
             autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
         }

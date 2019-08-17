@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -9,12 +8,11 @@ import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.IBinder
-import android.renderscript.RenderScript
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
-import org.jsoup.safety.Cleaner
+import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -33,7 +31,8 @@ class AutoAdmissionService : Service() {
         //データベース読み込み
         //初期化したか
         if (!this@AutoAdmissionService::autoAdmissionSQLiteSQLite.isInitialized) {
-            autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(applicationContext)
+            autoAdmissionSQLiteSQLite =
+                AutoAdmissionSQLiteSQLite(applicationContext)
             sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
             autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
         }
@@ -116,7 +115,7 @@ class AutoAdmissionService : Service() {
             //通知作成
             val notification = NotificationCompat.Builder(applicationContext, "auto_admission_one_minute_notification")
                 .setContentTitle(getString(R.string.auto_admission_one_minute_notification))
-                .setSmallIcon(R.drawable.ic_icon_large)
+                .setSmallIcon(R.drawable.ic_auto_admission_start_icon)
                 .setContentTitle(getString(R.string.auto_admission_one_minute_notification_description))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(programInfo))
                 .setVibrate(longArrayOf(100, 0, 100, 0))    //バイブ
@@ -176,6 +175,10 @@ class AutoAdmissionService : Service() {
         }
         cursor.close()
 
+        //予約無い時
+        if (programList.isEmpty()) {
+            programList = getString(R.string.auto_admission_empty)
+        }
 
         //Oreo以降は通知チャンネルいる
         //Oreo以降はサービス実行中です通知を出す必要がある。

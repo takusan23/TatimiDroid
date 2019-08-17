@@ -8,9 +8,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.AutoAdmissionSQLiteSQLite
+import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import io.github.takusan23.tatimidroid.AutoAdmissionService
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_auto_admission.*
@@ -29,7 +28,8 @@ class AutoAdmissionBottomFragment : BottomSheetDialogFragment() {
         //初期化済みか
         if (!this@AutoAdmissionBottomFragment::autoAdmissionSQLiteSQLite.isInitialized) {
             //初期化
-            autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(context!!)
+            autoAdmissionSQLiteSQLite =
+                AutoAdmissionSQLiteSQLite(context!!)
             sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
             //読み込む速度が上がる機能？データベースファイル以外の謎ファイルが生成されるので無効化。
             autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)

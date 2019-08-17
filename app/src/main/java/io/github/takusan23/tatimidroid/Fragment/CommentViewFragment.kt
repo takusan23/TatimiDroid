@@ -215,7 +215,10 @@ class CommentViewFragment : Fragment() {
                     //運営コメントはアリーナだけ表示する
                     val commentJSONParse = CommentJSONParse(message, room)
 
-                    niconicoComment(commentJSONParse.comment)
+                    niconicoComment(commentJSONParse.comment, commentJSONParse.userId)
+
+                    //コテハン登録
+                    registerKotehan(commentJSONParse)
 
                     //追い出しコメントを非表示
                     if (pref_setting.getBoolean("setting_hidden_oidashi_comment", true)) {
@@ -278,6 +281,27 @@ class CommentViewFragment : Fragment() {
         //接続
         webSocketClient.connect()
         websocketList.add(webSocketClient)
+    }
+
+    //コテハン登録
+    private fun registerKotehan(commentJSONParse: CommentJSONParse) {
+        //@マーク検索
+        var pos = 0
+        val comment = commentJSONParse.comment
+        if (comment.contains("@") || comment.contains("＠")) {
+            if (comment.contains("@")) {
+                pos = comment.indexOf("@")
+            }
+            if (comment.contains("＠")) {
+                pos = comment.indexOf("＠")
+            }
+            //切り取る
+            val kotehan = comment.subSequence(pos + 1, comment.length)
+            //追加
+            if (activity is CommentActivity) {
+                (activity as CommentActivity).kotehanMap.put(commentJSONParse.userId, kotehan.toString())
+            }
+        }
     }
 
     fun showToast(message: String) {
@@ -393,13 +417,19 @@ class CommentViewFragment : Fragment() {
     }
 
     //コメント流す
-    fun niconicoComment(message: String) {
-        //追い出しコメントは流さない
-        if (!message.contains("/hb ifseetno")) {
-            if (activity is CommentActivity) {
-                //UIスレッドで呼んだら遅延せずに表示されました！
-                activity?.runOnUiThread {
-                    activity?.comment_canvas?.postComment(message)
+    fun niconicoComment(message: String, userId: String) {
+        //NGコメントは流さない
+        val userNGList = (activity as CommentActivity).userNGList
+        val commentNGList = (activity as CommentActivity).commentNGList
+        //-1で存在しない
+        if (userNGList.indexOf(userId) == -1 && commentNGList.indexOf(message) == -1) {
+            //追い出しコメントは流さない
+            if (!message.contains("/hb ifseetno")) {
+                if (activity is CommentActivity) {
+                    //UIスレッドで呼んだら遅延せずに表示されました！
+                    activity?.runOnUiThread {
+                        activity?.comment_canvas?.postComment(message)
+                    }
                 }
             }
         }

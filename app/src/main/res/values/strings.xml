@@ -82,4 +82,15 @@
     <string name="auto_admission_one_minute_notification_description">About 1 minute later, you will automatically enter the reserved space.</string>
     <string name="setting_oidashi_comment_title">Hide eviction comments</string>
     <string name="setting_oidashi_comment_description">Hide eviction comment (hb ifseetno)</string>
+    <string name="auto_admission_empty">The program is not registered.</string>
+    <string name="add_kotehan">I registered for KOTEHAN.</string>
+    <string name="kotehan">KOTEHAN</string>
+    <string name="add_kotehan_button">Kotehan added</string>
+    <string name="add_ng_comment_message">Added to NG comments.</string>
+    <string name="add_ng_user_message">Added to NG users.</string>
+    <string name="long_click">Long press to register</string>
+    <string name="ng_user">NG user</string>
+    <string name="ng_comment">NG comment</string>
+    <string name="delete_successful">It has been deleted</string>
+    <string name="ng_list">NG list</string>
 </resources>
