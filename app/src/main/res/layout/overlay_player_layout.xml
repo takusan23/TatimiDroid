@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        <VideoView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/overlay_videoview"/>
+
+        <io.github.takusan23.tatimidroid.CommentCanvas
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/overlay_commentCanvas"/>
+
+        <LinearLayout
+                android:id="@+id/overlay_button_layout"
+                android:background="#80000000"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:tint="#ffffff"
+                    android:padding="10sp"
+                    android:background="@android:color/transparent"
+                    android:layout_gravity="end"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_do_not_disturb_alt_black_24dp"
+                    android:id="@+id/overlay_close_button"/>
+
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</LinearLayout>

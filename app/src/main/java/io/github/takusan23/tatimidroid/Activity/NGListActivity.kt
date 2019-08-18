@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
+import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NGListRecyclerView
 import io.github.takusan23.tatimidroid.R
@@ -24,6 +25,9 @@ class NGListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //ダークモード
+        val darkModeSupport = DarkModeSupport(this)
+        darkModeSupport.setActivityTheme(this)
         setContentView(R.layout.activity_nglist)
 
         supportActionBar?.title = getString(R.string.ng_list)

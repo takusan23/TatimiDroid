@@ -215,6 +215,7 @@ class CommentViewFragment : Fragment() {
                     //運営コメントはアリーナだけ表示する
                     val commentJSONParse = CommentJSONParse(message, room)
 
+                    //コメント流す
                     niconicoComment(commentJSONParse.comment, commentJSONParse.userId)
 
                     //コテハン登録
@@ -429,6 +430,10 @@ class CommentViewFragment : Fragment() {
                     //UIスレッドで呼んだら遅延せずに表示されました！
                     activity?.runOnUiThread {
                         activity?.comment_canvas?.postComment(message)
+                        //ポップアップ再生
+                        if ((activity as CommentActivity).overlay_commentcamvas != null) {
+                            (activity as CommentActivity).overlay_commentcamvas!!.postComment(message)
+                        }
                     }
                 }
             }

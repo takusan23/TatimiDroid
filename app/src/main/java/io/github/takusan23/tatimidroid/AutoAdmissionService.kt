@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -78,7 +79,10 @@ class AutoAdmissionService : Service() {
         }, calendar.time)
 
 
-        /*　予約枠自動入場1分前に通知を送信する　*/
+        /*　予約枠自動入場1分前に通知を送信する　
+        *   Android Q 以降でバックグラウンドからActivityを起動しようとすとブロックされて起動できないので、通知にアプリ起動アクションを置くことにした（通知からはおｋらしい）。
+        *   ちなみにアプリが起動していればバックグラウンドからきどうできるので履歴から消さなければおっけー？
+        * */
 
         val notificationCalender = calendar
         notificationCalender.add(Calendar.MINUTE, -1)//1分前に
@@ -112,16 +116,30 @@ class AutoAdmissionService : Service() {
             }
             val time = "${calendar.get(Calendar.HOUR_OF_DAY)}:${calendar.get(Calendar.MINUTE)}"
             val programInfo = "${programName} - ${liveid}\n${time}"
+
             //通知作成
-            val notification = NotificationCompat.Builder(applicationContext, "auto_admission_one_minute_notification")
-                .setContentTitle(getString(R.string.auto_admission_one_minute_notification))
+            var notification = NotificationCompat.Builder(applicationContext, "auto_admission_one_minute_notification")
                 .setSmallIcon(R.drawable.ic_auto_admission_start_icon)
                 .setContentTitle(getString(R.string.auto_admission_one_minute_notification_description))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(programInfo))
                 .setVibrate(longArrayOf(100, 0, 100, 0))    //バイブ
-                .build()
+
+            //Action付き通知作成
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val intent = Intent(applicationContext, MainActivity::class.java)
+                notification.setContentTitle(getString(R.string.auto_admission_one_minute_notification))
+                notification.setContentText(getString(R.string.auto_admission_one_minute_notification_description_androidq))
+                notification.addAction(
+                    R.drawable.ic_auto_admission_start_icon, getString(R.string.lunch_app), PendingIntent.getActivity(
+                        applicationContext, 45, intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                    )
+                )
+            }
+
+
             //表示
-            notificationManager.notify(2525, notification)
+            notificationManager.notify(2525, notification.build())
         } else {
             //Nougat
             val time = "${calendar.get(Calendar.HOUR_OF_DAY)}:${calendar.get(Calendar.MINUTE)}"

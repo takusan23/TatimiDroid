@@ -93,4 +93,7 @@
     <string name="ng_comment">NG comment</string>
     <string name="delete_successful">It has been deleted</string>
     <string name="ng_list">NG list</string>
+    <string name="auto_admission_one_minute_notification_description_androidq">Since the auto-start function is not available in your version, please start the app.</string>
+    <string name="lunch_app">Launch app</string>
+    <string name="notification_background_play">Program background playback</string>
 </resources>

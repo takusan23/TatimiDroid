@@ -2,8 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="io.github.takusan23.tatimidroid">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>           <!--インターネット-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>     <!--予約枠自動入場のServiceよう-->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>    <!--オーバーレイ-->
 
     <application
             android:allowBackup="true"
@@ -20,7 +21,11 @@
 
         <activity android:name=".Activity.KonoApp">
         </activity>
-        <activity android:name=".Activity.CommentActivity"/>
+        <activity
+                android:name=".Activity.CommentActivity"
+                android:resizeableActivity="true"
+                android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+                android:supportsPictureInPicture="true"/>
         <activity android:name=".Activity.LicenceActivity"/>
         <activity android:name=".MainActivity">
             <intent-filter>

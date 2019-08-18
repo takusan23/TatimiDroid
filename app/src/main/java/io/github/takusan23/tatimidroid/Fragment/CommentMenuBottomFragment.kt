@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,10 +10,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.bottom_fragment_comment_menu_layout.*
+import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
 
 class CommentMenuBottomFragment : BottomSheetDialogFragment() {
 
@@ -30,6 +33,9 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        //ダークモード
+        val darkModeSupport = DarkModeSupport(context!!)
+        bottom_fragment_comment_menu_parent_linearlayout.background = ColorDrawable(darkModeSupport.getThemeColor())
         //Map
         kotehanMap = (activity as CommentActivity).kotehanMap
         //取り出す

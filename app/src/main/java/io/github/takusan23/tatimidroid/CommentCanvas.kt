@@ -115,6 +115,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             weight = point.x
         }
 
+        weight = this@CommentCanvas.width
+
         textList.add(comment)
         xList.add(weight)
         yList.add(getCommentPosition(comment))
