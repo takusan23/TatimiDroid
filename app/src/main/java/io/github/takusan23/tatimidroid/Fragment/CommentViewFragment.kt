@@ -221,6 +221,9 @@ class CommentViewFragment : Fragment() {
                     //コテハン登録
                     registerKotehan(commentJSONParse)
 
+                    //アクティブ人数計算
+                    calcActiveCount(commentJSONParse)
+
                     //追い出しコメントを非表示
                     if (pref_setting.getBoolean("setting_hidden_oidashi_comment", true)) {
                         //追い出しコメントを非表示
@@ -282,6 +285,15 @@ class CommentViewFragment : Fragment() {
         //接続
         webSocketClient.connect()
         websocketList.add(webSocketClient)
+    }
+
+    //アクティブ人数計算（１分間IDをカウントする）
+    private fun calcActiveCount(commentJSONParse: CommentJSONParse) {
+        val id = commentJSONParse.userId
+        //ID入れる
+        if ((activity as CommentActivity).activeList.indexOf(id) == -1) {
+            (activity as CommentActivity).activeList.add(id)
+        }
     }
 
     //コテハン登録

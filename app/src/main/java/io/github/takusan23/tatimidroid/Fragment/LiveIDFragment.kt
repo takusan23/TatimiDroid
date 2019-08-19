@@ -85,15 +85,15 @@ class LiveIDFragment : Fragment() {
                 //取り出してEditTextに入れる
                 val liveId = nicoID_Matcher.group()
                 main_activity_liveid_inputedittext.setText(liveId)
+                //テキスト入れたよSnackbar
+                val snackbar = Snackbar.make(
+                    main_activity_liveid_inputedittext,
+                    getString(R.string.set_clipbord_programid),
+                    Snackbar.LENGTH_SHORT
+                )
+                snackbar.setAnchorView((activity as MainActivity).main_activity_bottom_navigationview)
+                snackbar.show()
             }
-            //テキスト入れたよSnackbar
-            val snackbar = Snackbar.make(
-                main_activity_liveid_inputedittext,
-                getString(R.string.set_clipbord_programid),
-                Snackbar.LENGTH_SHORT
-            )
-            snackbar.setAnchorView((activity as MainActivity).main_activity_bottom_navigationview)
-            snackbar.show()
         }
     }
 }

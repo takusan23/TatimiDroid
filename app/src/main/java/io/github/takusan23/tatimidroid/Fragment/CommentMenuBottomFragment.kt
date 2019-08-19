@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.Fragment
 
-import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -16,6 +15,16 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.bottom_fragment_comment_menu_layout.*
 import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
+import android.R.attr.label
+import android.content.*
+import android.content.Context.CLIPBOARD_SERVICE
+import androidx.core.content.ContextCompat.getSystemService
+import android.opengl.Visibility
+import android.text.SpannableString
+import android.widget.Button
+import androidx.core.net.toUri
+import java.util.regex.Pattern
+
 
 class CommentMenuBottomFragment : BottomSheetDialogFragment() {
 
@@ -57,6 +66,35 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         //NG関係
         setNGClick()
 
+        //コピー
+        setCopy()
+
+        //URL取り出し
+        regexURL()
+    }
+
+    //URL正規表現
+    private fun regexURL() {
+        //正規表現で取り出す
+        val urlRegex = Pattern.compile("(http://|https://){1}[\\w\\.\\-/:\\#\\?\\=\\&\\;\\%\\~\\+]+")
+            .matcher(SpannableString(comment))
+        if (urlRegex.find()) {
+            bottom_fragment_comment_menu_comment_url.visibility = View.VISIBLE
+            bottom_fragment_comment_menu_comment_url.setOnClickListener {
+                val uri = urlRegex.group().toUri()
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                startActivity(intent)
+            }
+        }
+    }
+
+    fun setCopy() {
+        bottom_fragment_comment_menu_comment_copy.setOnClickListener {
+            // コピーする
+            val clipboardManager = context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboardManager.setPrimaryClip(ClipData.newPlainText("", comment))
+            Toast.makeText(context, getString(R.string.copy_successful), Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun setNGClick() {

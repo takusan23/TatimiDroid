@@ -53,16 +53,30 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         val timeshift = item.get(5)
         val liveId = item.get(6)
         val datetime = item.get(7)
+        val liveNow = item.get(8)
+
+        //時間を文字列に
+        val calender = Calendar.getInstance(TimeZone.getDefault())
+        calender.timeInMillis = live_time.toLong()
+
+        val month = calender.get(Calendar.MONTH)
+        val date = calender.get(Calendar.DATE)
+        val hour = calender.get(Calendar.HOUR_OF_DAY)
+        val minute = calender.get(Calendar.MINUTE)
+
+        val time = "${month + 1}/${date} ${hour}:${minute}"
+
+
 
         holder.titleTextView.text = "${title}\n[${name}]"
 
-        if (live_time.isNotEmpty()) {
+        if (liveNow.contains("Begun")) {
             //放送中
-            holder.timeTextView.text = "${live} ${live_time}"
+            holder.timeTextView.text = "${time}"
             holder.timeTextView.setTextColor(Color.RED)
         } else {
             //予約枠
-            holder.timeTextView.text = "${timeshift}"
+            holder.timeTextView.text = "${time}"
             if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
                 holder.timeTextView.setTextColor(Color.parseColor("#ffffff"))
             } else {
@@ -72,7 +86,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
 
         //Cardを選択したらコメントビューワーに
         holder.communityCard.setOnClickListener {
-            if (live_time.isNotEmpty()) {
+            if (liveNow.contains("Begun")) {
                 //ダイアログ
                 val bundle = Bundle()
                 bundle.putString("liveId", liveId)
@@ -88,9 +102,9 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
                         ) {
 
                             //文字列（時間）->ミリ秒
-                            val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                            val date = simpleDateFormat.parse(datetime)
-                            val startTime = (date.time).toString()
+                            val calender = Calendar.getInstance(TimeZone.getDefault())
+                            calender.timeInMillis = live_time.toLong()
+                            val startTime = (calender.time.time).toString()
 
                             //追加BottomSheet
                             val bundle = Bundle()

@@ -2,8 +2,11 @@ package io.github.takusan23.tatimidroid
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import okhttp3.*
+import org.json.JSONObject
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -34,6 +37,18 @@ class NicoLogin(val context: Context, val liveId: String) {
                     if (!response.isSuccessful) {
                         //エラーなのでユーザーセッション取得
                         getUserSession()
+                    } else {
+                        //そもそも番組が終わってる可能性があるのでチェック
+                        val response_string = response.body?.string()
+                        val jsonObject = JSONObject(response_string)
+                        val status = jsonObject.getJSONObject("data").getString("status")
+                        if (!status.contains("onAir")) {
+                            (context as AppCompatActivity).runOnUiThread{
+                                //おわってる　か　まだ
+                                context.finish()
+                                Toast.makeText(context, "番組が終わっている、まだ開場していない場合があります。", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
                 }
             })

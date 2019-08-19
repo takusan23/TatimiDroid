@@ -96,4 +96,27 @@
     <string name="auto_admission_one_minute_notification_description_androidq">Since the auto-start function is not available in your version, please start the app.</string>
     <string name="lunch_app">Launch app</string>
     <string name="notification_background_play">Program background playback</string>
+    <string name="popup_player">Pop-up playback</string>
+    <string name="background_play">Background playback</string>
+    <string name="background_play_finish">Finish</string>
+    <string name="background_play_pause">pause</string>
+    <string name="background_play_play">Regeneration</string>
+    <string name="popup_notification_title">Program Pop-up Playback</string>
+    <string name="popup_notification_description">The program is playing in a pop-up.</string>
+    <string name="finish">finish</string>
+    <string name="lunch_app_close_popup">Pop-up playback has ended because the app has started.</string>
+    <string name="lunch_app_close_background">Background playback has ended because the app has started.</string>
+    <string name="leave_app">When away from the app</string>
+    <string name="leave_background_description">Play background when you leave the app.</string>
+    <string name="leave_popup_description">Pop-up playback when leaving the app.</string>
+    <string name="one_person">One person</string>
+    <string name="person">person</string>
+    <string name="add_comment_ng">Add comment NG</string>
+    <string name="add_user_ng">Add user NG</string>
+    <string name="comment_copy">Copy comment</string>
+    <string name="copy_successful">Copied comment.</string>
+    <string name="open_url">Open URL</string>
+    <string name="one_minute">1 minute</string>
+    <string name="active">Number of active people (number of comments per minute)</string>
+    <string name="livetime">elapsed time</string>
 </resources>

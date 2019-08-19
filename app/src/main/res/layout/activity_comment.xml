@@ -56,12 +56,33 @@
                     <ImageView
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
+                            app:srcCompat="@drawable/ic_outline_query_builder_24px"
+                            />
+
+                    <TextView
+                            android:text="00:00"
+                            android:gravity="center"
+                            android:maxLines="1"
+                            android:tooltipText="@string/livetime"
+                            android:layout_width="match_parent"
+                            android:textSize="18sp"
+                            android:layout_height="match_parent"
+                            android:id="@+id/activity_comment_comment_time"
+                            android:layout_weight="1"
+                            />
+
+
+                    <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
                             app:srcCompat="@drawable/ic_outline_account_circle_24px"
                             />
 
                     <TextView
                             android:text=""
                             android:gravity="center"
+                            android:tooltipText="@string/watch_count"
+                            android:maxLines="1"
                             android:layout_width="match_parent"
                             android:textSize="18sp"
                             android:layout_height="match_parent"
@@ -72,13 +93,34 @@
                     <ImageView
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
+                            app:srcCompat="@drawable/ic_active_icon"
+                            />
+
+                    <TextView
+                            android:text="計算中"
+                            android:tooltipText="@string/active"
+                            android:gravity="center"
+                            android:maxLines="1"
+                            android:layout_width="match_parent"
+                            android:textSize="18sp"
+                            android:layout_height="match_parent"
+                            android:id="@+id/activity_comment_comment_active_text"
+                            android:layout_weight="1"
+                            />
+
+
+                    <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
                             app:srcCompat="@drawable/ic_outline_comment_24px"
                             />
 
                     <TextView
                             android:text=""
+                            android:maxLines="1"
                             android:gravity="center"
                             android:layout_width="match_parent"
+                            android:tooltipText="@string/comment_count"
                             android:textSize="18sp"
                             android:layout_height="match_parent"
                             android:id="@+id/activity_comment_comment_count"

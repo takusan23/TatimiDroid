@@ -47,7 +47,7 @@
             android:layout_height="wrap_content">
 
         <Button
-                android:text="コメントをNG登録"
+                android:text="@string/add_comment_ng"
                 android:layout_weight="1"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
@@ -55,12 +55,37 @@
                 android:id="@+id/bottom_fragment_comment_menu_comment_ng_button"/>
 
         <Button
-                android:text="ユーザーをNG登録"
+                android:text="@string/add_user_ng"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:id="@+id/bottom_fragment_comment_menu_user_ng_button"/>
+    </LinearLayout>
+
+    <LinearLayout
+            android:id="@+id/bottom_fragment_comment_menu_button_linearlayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <Button
+                android:text="@string/comment_copy"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:id="@+id/bottom_fragment_comment_menu_comment_copy"
+                android:layout_weight="1"/>
+
+        <Button
+                android:text="@string/open_url"
+                android:visibility="gone"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:id="@+id/bottom_fragment_comment_menu_comment_url"
+                android:layout_weight="1"/>
+
     </LinearLayout>
 
 </LinearLayout>

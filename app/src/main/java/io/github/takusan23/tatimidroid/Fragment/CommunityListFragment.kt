@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +25,7 @@ import okhttp3.*
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
+import java.net.URLDecoder
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -105,77 +107,59 @@ class CommunityListFragment : Fragment() {
 
     //参加中コミュニティから放送中、予約枠を取得する。
     //APIが見つからなかったのでスマホ版Webページからスクレイピングすることにした。
+    //headerのScriptの中にJSONっぽいのが！？！？
     fun getFavouriteCommunity() {
         recyclerViewList.clear()
-        val request = Request.Builder()
-            .url("https://sp.live.nicovideo.jp/favorites")
-            .header("Cookie", "user_session=${user_session}")
-            .get()
-            .build()
-        val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                showToast(getString(R.string.error))
+        GlobalScope.launch {
+            val document =
+                Jsoup.connect("https://sp.live.nicovideo.jp/favorites").cookie("user_session", user_session)
+                    .get()
+
+            //JSONっぽいのがあるので取り出す
+            val json = document.head().getElementsByTag("script").get(3)
+            var json_string = json.html().replace("window.__initial_state__ = \"", "")
+            json_string =
+                json_string.replace("window.__public_path__ = \"https://nicolive.cdn.nimg.jp/relive/sp/\";", "")
+            json_string =
+                json_string.replace("}}\";", "")
+
+            //URLデコードする
+            json_string = URLDecoder.decode(json_string, "UTF-8")
+            val jsonObject = JSONObject(json_string)
+
+
+            //JSON解析
+            val programs =
+                jsonObject.getJSONObject("pageContents").getJSONObject("favorites").getJSONObject("favoritePrograms")
+                    .getJSONArray("programs")
+            //for
+            for (i in 0 until programs.length()) {
+                val jsonObject = programs.getJSONObject(i)
+                val programId = jsonObject.getString("id")
+                val title = jsonObject.getString("title")
+                val beginAt = jsonObject.getString("beginAt")
+                val communityName = jsonObject.getString("socialGroupName")
+                val liveNow = jsonObject.getString("liveCycle") //放送中か？
+                //RecyclerView追加
+                val item = arrayListOf<String>()
+                item.add("")
+                item.add(title)
+                item.add(communityName)
+                item.add(title)
+                item.add(beginAt)
+                item.add(beginAt)
+                item.add(programId)
+                item.add(beginAt)
+                item.add(liveNow)
+                recyclerViewList.add(item)
+            }
+            //リスト更新
+            activity?.runOnUiThread {
+                communityRecyclerViewAdapter.notifyDataSetChanged()
+                community_recyclerview.adapter = communityRecyclerViewAdapter
             }
 
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    val response_string = response.body?.string()
-                    val document = Jsoup.parse(response_string)
-                    val list =
-                        document.getElementById("app").select("div.___page___lyKFH")
-                            .select("div.___favorites___2coLw.___favorites-skin___2LMgt")
-                            .select("div.___program-list-section___pxzaS.___program-list-section-base___2CsOR")
-                            .select("ul.___program-card-list___38cBA.___program-card-list___3iNW_.___list___XtHoI.___program-card-list-skin___1Ihyl")
-                    val li = list.select("li.___item___2Ygdh.___item___2UWvK.___item-skin___3B9Gi")
-
-                    for (i in 0..(li.size - 1)) {
-                        val title =
-                            li.get(i).select("div").select("a").select("div.___program-detail___3Uk6B").select("h2")
-                                .text()
-                        val name =
-                            li.get(i).select("div").select("a").select("div.___program-detail___3Uk6B").select("h3")
-                                .select("span").text()
-                        val live =
-                            li.get(i).select("div").select("a").select("div.___state___2LXNP.___state-skin___nxppX")
-                                .select("span.___status____1aVL.___status-skin___3saHk.___label-local___C6kvB").text()
-                        val time =
-                            li.get(i).select("div").select("a").select("div.___state___2LXNP.___state-skin___nxppX")
-                                .select("span.___duration___12X8D.___duration-skin___2Ew_Z.___label-local___C6kvB")
-                                .text()
-                        val timeshift = li.get(i).select("div").select("a")
-                            .select("div.___program-preview___3IGR8.___program-preview-base___2dy_9.___program-preview-skin___38pdd")
-                            .select("div.___state___2LXNP.___state-skin___nxppX")
-                            .select("time.___start-at___3HOBx.___start-at-skin___1a4B3.___label-local___C6kvB").text()
-                        val liveId = li.get(i).select("div").select("a").attr("href").replace("/watch/", "")
-                        val datetime = li.get(i).select("div").select("a")
-                            .select("div.___program-preview___3IGR8.___program-preview-base___2dy_9.___program-preview-skin___38pdd")
-                            .select("div.___state___2LXNP.___state-skin___nxppX")
-                            .select("time.___start-at___3HOBx.___start-at-skin___1a4B3.___label-local___C6kvB")
-                            .attr("datetime")
-                        //RecyclerView追加
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(title)
-                        item.add(name)
-                        item.add(live)
-                        item.add(time)
-                        item.add(timeshift)
-                        item.add(liveId)
-                        item.add(datetime)
-                        recyclerViewList.add(item)
-                    }
-                    //リスト更新
-                    activity?.runOnUiThread {
-                        communityRecyclerViewAdapter.notifyDataSetChanged()
-                        community_recyclerview.adapter = communityRecyclerViewAdapter
-                    }
-                } else {
-                    showToast(getString(R.string.error) + "\n" + response.code)
-                }
-            }
-
-        })
+        }
     }
 
     //ニコレポ取得
@@ -200,25 +184,35 @@ class CommunityListFragment : Fragment() {
                         val nicorepoObject = data.getJSONObject(i)
                         //番組開始だけ取得
                         if (nicorepoObject.has("program")) {
-                            val program = nicorepoObject.getJSONObject("program")
-                            val community = nicorepoObject.getJSONObject("community")
-                            val title = program.getString("title")
-                            val name = community.getString("name")
-                            val live = parseTime(program.getString("beginAt"))
-                            val time = getString(R.string.nicorepo)
-                            val timeshift = parseTime(program.getString("beginAt"))
-                            val liveId = program.getString("id")
-                            //RecyclerView追加
-                            val item = arrayListOf<String>()
-                            item.add("")
-                            item.add(title)
-                            item.add(name)
-                            item.add(live)
-                            item.add(time)
-                            item.add(timeshift)
-                            item.add(liveId)
-                            item.add("")
-                            recyclerViewList.add(item)
+                            if (nicorepoObject.has("community")) {
+                                val program = nicorepoObject.getJSONObject("program")
+                                val community = nicorepoObject.getJSONObject("community")
+                                val title = program.getString("title")
+                                val name = community.getString("name")
+                                val live = parseTime(program.getString("beginAt"))
+                                val time = getString(R.string.nicorepo)
+                                val timeshift = parseTime(program.getString("beginAt"))
+                                val liveId = program.getString("id")
+
+                                //変換
+                                val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:SS.sssX")
+                                val date_calender = simpleDateFormat.parse(program.getString("beginAt"))
+                                val calender = Calendar.getInstance(TimeZone.getDefault())
+                                calender.time = date_calender
+
+                                //RecyclerView追加
+                                val item = arrayListOf<String>()
+                                item.add("")
+                                item.add(title)
+                                item.add(name)
+                                item.add(calender.time.time.toString())
+                                item.add(calender.time.time.toString())
+                                item.add(timeshift)
+                                item.add(liveId)
+                                item.add("")
+                                item.add("Begun")
+                                recyclerViewList.add(item)
+                            }
                         }
                     }
                     //リスト更新

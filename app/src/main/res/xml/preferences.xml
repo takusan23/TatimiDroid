@@ -38,6 +38,29 @@
     </Preference>
 
     <PreferenceCategory
+            android:title="@string/leave_app">
+
+
+        <SwitchPreference
+                android:title="@string/background_play"
+                android:key="setting_leave_background"
+                android:summary="@string/leave_background_description"
+                android:icon="@drawable/ic_background_icon_black"
+                android:defaultValue="false"
+                />
+
+        <SwitchPreference
+                android:title="@string/popup_player"
+                android:key="setting_leave_popup"
+                android:summary="@string/leave_popup_description"
+                android:icon="@drawable/ic_popup_icon_black"
+                android:defaultValue="false"
+                />
+
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
             android:title="@string/sonta">
 
         <Preference

@@ -4,16 +4,20 @@
 
     <item
             android:title="@string/play_live_broadcast"
-            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:icon="@drawable/ic_icon_large"
             android:tooltipText="@string/play_live_broadcast"
             app:showAsAction="ifRoom"
             android:id="@+id/comment_activity_menu_watch_live"/>
 
     <item
-            android:title="ポップアップで再生"
+            android:title="@string/popup_player"
+            android:icon="@drawable/ic_popup_icon"
+            app:showAsAction="ifRoom"
             android:id="@+id/comment_activity_menu_overlay"/>
     <item
-            android:title="バックグラウンドで再生"
+            android:title="@string/background_play"
+            android:icon="@drawable/ic_background_icon"
+            app:showAsAction="ifRoom"
             android:id="@+id/comment_activity_menu_background"/>
 
     <item

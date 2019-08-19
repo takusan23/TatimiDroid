@@ -1,36 +1,27 @@
 package io.github.takusan23.tatimidroid.Activity
 
-import android.Manifest
 import android.app.*
 import android.content.*
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteDatabase
-import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
-import android.media.browse.MediaBrowser
-import android.media.session.MediaSession
 import android.net.Uri
-import android.opengl.Visibility
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.text.Layout
-import android.util.Rational
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
-import androidx.fragment.app.FragmentTransaction
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
 import kotlinx.android.synthetic.main.activity_comment.*
-import kotlinx.android.synthetic.main.fragment_commentview.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -49,15 +40,12 @@ import java.net.URI
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
-import kotlinx.android.synthetic.main.activity_comment.view.*
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import java.text.SimpleDateFormat
 
 
 class CommentActivity : AppCompatActivity() {
@@ -68,8 +56,10 @@ class CommentActivity : AppCompatActivity() {
     var usersession = ""
     //視聴に必要なデータ受信用WebSocket
     lateinit var connectionNicoLiveWebSocket: WebSocketClient
-    //放送開始時間
+    //放送開始時間？こっちは放送開始前まである。
     var programStartTime: Long = 0
+    //放送開始時間？こっちが正しい
+    var programLiveTime: Long = 0
     //コメント送信用WebSocket
     lateinit var commentPOSTWebSocketClient: WebSocketClient
     //コメント送信時に必要なpostKeyを払い出す時に必要なthreadId
@@ -101,6 +91,13 @@ class CommentActivity : AppCompatActivity() {
     //視聴続けてますよ送信用
     val timer = Timer()
 
+    //経過時間
+    val programTimer = Timer()
+
+    //アクティブ計算
+    val activeTimer = Timer()
+    val activeList = arrayListOf<String>()
+
     //番組ID
     var liveId = ""
     //番組名
@@ -116,10 +113,14 @@ class CommentActivity : AppCompatActivity() {
 
     //ポップアップ再生（オーバーレイ）
     var overlay_commentcamvas: CommentCanvas? = null
+    lateinit var popupView: View
 
     //バックグラウンド再生MediaPlayer
     lateinit var mediaPlayer: MediaPlayer
     lateinit var broadcastReceiver: BroadcastReceiver
+
+    //NotificationManager
+    lateinit var notificationManager: NotificationManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -136,6 +137,7 @@ class CommentActivity : AppCompatActivity() {
             supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
         }
 
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         //スリープにしない
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -252,6 +254,68 @@ class CommentActivity : AppCompatActivity() {
             finish()
             //startActivity(Intent(this@CommentActivity, MainActivity::class.java))
         }
+
+        //アクティブ人数クリアなど、追加部分はCommentViewFragmentです
+        activeUserClear()
+
+
+        /*
+        * ブロードキャスト
+        * */
+        val intentFilter = IntentFilter()
+        intentFilter.addAction("background_program_stop")
+        intentFilter.addAction("background_program_pause")
+        intentFilter.addAction("program_popup_close")
+        broadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(p0: Context?, p1: Intent?) {
+                when (p1?.action) {
+                    "program_popup_close" -> {
+                        //ポップアップ再生終了
+                        notificationManager.cancel(321)//削除
+                        val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                        windowManager.removeViewImmediate(popupView)
+                    }
+                    "background_program_stop" -> {
+                        //停止
+                        mediaPlayer.stop()
+                        mediaPlayer.release()
+                        notificationManager.cancel(123)//削除
+                    }
+                    "background_program_pause" -> {
+                        if (mediaPlayer.isPlaying) {
+                            //一時停止
+                            mediaPlayer.pause()
+                            //通知作成
+                            backgroundPlayNotification(getString(R.string.background_play_play))
+                        } else {
+                            //Liveで再生
+                            mediaPlayer = MediaPlayer.create(this@CommentActivity, hls_address.toUri())
+                            mediaPlayer.start()
+                            //通知作成
+                            backgroundPlayNotification(
+                                getString(R.string.background_play_pause)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        registerReceiver(broadcastReceiver, intentFilter)
+
+
+    }
+
+    /*
+    * アクティブ人数を1分ごとにクリア
+    * */
+    private fun activeUserClear() {
+        //1分でリセット
+        activeTimer.schedule(60000, 60000) {
+            //println(activeList)
+            activity_comment_comment_active_text.text =
+                "${activeList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
+            activeList.clear()
+        }
     }
 
     fun loadNGDataBase() {
@@ -319,9 +383,12 @@ class CommentActivity : AppCompatActivity() {
                     premium = user.select("is_premium").text().toInt()
                     //vpos
                     programStartTime = document.select("stream").select("base_time").text().toLong()
+                    programLiveTime = document.select("stream").select("start_time").text().toLong()
                     runOnUiThread {
                         supportActionBar?.subtitle = "$room - $seet"
                     }
+                    //経過時間計算
+                    setLiveTime()
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
@@ -329,9 +396,37 @@ class CommentActivity : AppCompatActivity() {
         })
     }
 
+    //経過時間計算
+    private fun setLiveTime() {
+        //1秒ごとに
+        programTimer.schedule(0, 1000) {
+
+            val unixtime = System.currentTimeMillis() / 1000L
+
+            val calc = unixtime - programLiveTime
+
+            //分、秒だけCalendar使う
+            //val cale = Calendar.getInstance()
+            //cale.timeInMillis = calc * 1000L
+
+            val date = Date(calc * 1000L)
+
+            //時間はUNIX時間から計算する
+            val hour = (calc / 60 / 60)
+
+            val simpleDateFormat = SimpleDateFormat("mm:ss")
+
+
+            runOnUiThread {
+                activity_comment_comment_time.text = "$hour:" + simpleDateFormat.format(date.time)
+            }
+        }
+
+    }
+
     //ニコ生の視聴用の情報を流してくれるWebSocketに接続する
-    //コメントに投稿したり、HLSのアドレスはWebSocketから取得する必要がある。
-    //で、WebSocketのアドレスはHTMLを解析する必要がある！？！？！？
+//コメントに投稿したり、HLSのアドレスはWebSocketから取得する必要がある。
+//で、WebSocketのアドレスはHTMLを解析する必要がある！？！？！？
     fun getNicoLiveWebPage() {
         //番組ID
         val id = intent?.getStringExtra("liveId") ?: ""
@@ -366,17 +461,19 @@ class CommentActivity : AppCompatActivity() {
                     val html = Jsoup.parse(response_string)
                     //謎のJSON取得
                     //この部分長すぎてChromeだとうまくコピーできないんだけど、Edgeだと完璧にコピーできたぞ！
-                    val json = html.getElementById("embedded-data").attr("data-props")
-                    val jsonObject = JSONObject(json)
-                    val site = jsonObject.getJSONObject("site")
-                    val relive = site.getJSONObject("relive")
-                    //WebSocketリンク
-                    val websocketUrl = relive.getString("webSocketUrl")
-                    //broadcastId取得
-                    val program = jsonObject.getJSONObject("program")
-                    //broadcastId
-                    val broadcastId = program.getString("broadcastId")
-                    connectionNicoLiveWebSocket(websocketUrl, broadcastId)
+                    if (html.getElementById("embedded-data") != null) {
+                        val json = html.getElementById("embedded-data").attr("data-props")
+                        val jsonObject = JSONObject(json)
+                        val site = jsonObject.getJSONObject("site")
+                        val relive = site.getJSONObject("relive")
+                        //WebSocketリンク
+                        val websocketUrl = relive.getString("webSocketUrl")
+                        //broadcastId取得
+                        val program = jsonObject.getJSONObject("program")
+                        //broadcastId
+                        val broadcastId = program.getString("broadcastId")
+                        connectionNicoLiveWebSocket(websocketUrl, broadcastId)
+                    }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
@@ -385,7 +482,7 @@ class CommentActivity : AppCompatActivity() {
     }
 
     //ニコ生の視聴に必要なデータを流してくれるWebSocket
-    //視聴セッションWebSocket
+//視聴セッションWebSocket
     fun connectionNicoLiveWebSocket(url: String, broadcastId: String) {
         val uri = URI(url)
         connectionNicoLiveWebSocket = object : WebSocketClient(uri) {
@@ -855,9 +952,13 @@ class CommentActivity : AppCompatActivity() {
     //Activity終了時に閉じる
     override fun onDestroy() {
         super.onDestroy()
-        connectionNicoLiveWebSocket.close()
-        commentPOSTWebSocketClient.close()
+        if (this@CommentActivity::commentPOSTWebSocketClient.isInitialized) {
+            connectionNicoLiveWebSocket.close()
+            commentPOSTWebSocketClient.close()
+        }
         timer.cancel()
+        programTimer.cancel()
+        activeTimer.cancel()
         if (this@CommentActivity::mediaPlayer.isInitialized) {
             //MediaPlayer初期化済みなら止める
             //mediaPlayer.stop()
@@ -867,53 +968,63 @@ class CommentActivity : AppCompatActivity() {
             //中野ブロードキャスト終了
             unregisterReceiver(broadcastReceiver)
         }
-    }
-
-    //ホームボタンおした
-    override fun onUserLeaveHint() {
-        //ポップアップで生放送再生
-        //startOverlayPlayer()
+        //通知消す
+        notificationManager.cancel(123)
     }
 
     /*オーバーレイ*/
     private fun startOverlayPlayer() {
 
-        val isButtonsShow = false
-
         //レイアウト読み込み
         val layoutInflater = LayoutInflater.from(this)
         // オーバーレイViewの設定をする
-        val params = WindowManager.LayoutParams(
-            400,
-            200,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-            PixelFormat.TRANSLUCENT
-        )
-        val view = layoutInflater.inflate(R.layout.overlay_player_layout, null)
+        val params = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams(
+                400,
+                200,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT
+            )
+        } else {
+            WindowManager.LayoutParams(
+                400,
+                200,
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT
+            )
+        }
+        popupView = layoutInflater.inflate(R.layout.overlay_player_layout, null)
 
 
         //表示
-        windowManager.addView(view, params)
+        windowManager.addView(popupView, params)
+
+        //通知表示
+        showPopUpPlayerNotification()
 
         //VideoView再生。
-        view.overlay_videoview.setVideoURI(hls_address.toUri())
+        popupView.overlay_videoview.setVideoURI(hls_address.toUri())
         //再生
-        view.overlay_videoview.start()
+        popupView.overlay_videoview.start()
         //あと再生できたらサイズ調整
-        view.overlay_videoview.setOnPreparedListener {
+        popupView.overlay_videoview.setOnPreparedListener {
             //高さ、幅取得
             params.width = it.videoWidth
             params.height = it.videoHeight
-            windowManager.updateViewLayout(view, params)
+            windowManager.updateViewLayout(popupView, params)
         }
 
         //閉じる
-        view.overlay_close_button.setOnClickListener {
-            windowManager.removeViewImmediate(view)
+        popupView.overlay_close_button.setOnClickListener {
+            windowManager.removeViewImmediate(popupView)
         }
         //画面サイズ
         val displaySize: Point by lazy {
@@ -924,14 +1035,14 @@ class CommentActivity : AppCompatActivity() {
         }
 
         //コメント流し
-        overlay_commentcamvas = view.findViewById(R.id.overlay_commentCanvas)
+        overlay_commentcamvas = popupView.findViewById(R.id.overlay_commentCanvas)
 
         //移動
         //https://qiita.com/farman0629/items/ce547821dd2e16e4399e
-        view.setOnLongClickListener {
+        popupView.setOnLongClickListener {
             val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
             //長押し判定
-            view.setOnTouchListener { view, motionEvent ->
+            popupView.setOnTouchListener { view, motionEvent ->
                 // タップした位置を取得する
                 val x = motionEvent.rawX.toInt()
                 val y = motionEvent.rawY.toInt()
@@ -958,68 +1069,104 @@ class CommentActivity : AppCompatActivity() {
 
 
         //ボタン表示
-        view.setOnClickListener {
-            if (view.overlay_button_layout.visibility == View.GONE) {
+        popupView.setOnClickListener {
+            if (popupView.overlay_button_layout.visibility == View.GONE) {
                 //表示
-                view.overlay_button_layout.visibility = View.VISIBLE
+                popupView.overlay_button_layout.visibility = View.VISIBLE
             } else {
                 //非表示
-                view.overlay_button_layout.visibility = View.GONE
+                popupView.overlay_button_layout.visibility = View.GONE
             }
         }
 
     }
 
-    /*バックグラウンド再生*/
-    fun setBackgroundProgramPlay() {
-        mediaPlayer = MediaPlayer.create(this, hls_address.toUri())
-        mediaPlayer.start()
+    /*ポップアップ再生通知*/
+    fun showPopUpPlayerNotification() {
 
-        //音楽アプリにあるある通知で音楽コントロールできるやつ実装する
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val stopPopupIntent = Intent("program_popup_close")
 
-        //Nougatと分岐
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannelId = "program_background"
+            val notificationChannelId = "program_popup"
             val notificationChannel = NotificationChannel(
-                notificationChannelId, getString(R.string.notification_background_play),
-                NotificationCompat.PRIORITY_DEFAULT
+                notificationChannelId, getString(R.string.popup_notification_description),
+                NotificationManager.IMPORTANCE_HIGH
             )
 
             //通知チャンネル登録
             if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
+            val programNotification = NotificationCompat.Builder(this, notificationChannelId)
+                .setContentTitle(getString(R.string.popup_notification_description))
+                .setContentText(programTitle)
+                .setSmallIcon(R.drawable.ic_popup_icon)
+                .addAction(
+                    NotificationCompat.Action(
+                        R.drawable.ic_outline_stop_24px,
+                        getString(R.string.finish),
+                        PendingIntent.getBroadcast(this, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                    )
+                )
+                .build()
 
-            //音楽コントロールブロードキャスト
-            val stopIntent = Intent("background_program_stop")
-            val pauseIntent = Intent("background_program_pause")
-            val intentFilter = IntentFilter()
-            intentFilter.addAction("background_program_stop")
-            intentFilter.addAction("background_program_pause")
-            broadcastReceiver = object : BroadcastReceiver() {
-                override fun onReceive(p0: Context?, p1: Intent?) {
-                    when (p1?.action) {
-                        "background_program_stop" -> {
-                            //停止
-                            mediaPlayer.stop()
-                            mediaPlayer.release()
-                            notificationManager.cancel(123)//削除
-                        }
-                        "background_program_pause" -> {
-                            //一時停止
-                            if (mediaPlayer.isPlaying) {
-                                mediaPlayer.pause()
-                            } else {
-                                mediaPlayer.start()
-                            }
-                        }
-                    }
-                }
+            //消せないようにする
+            programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
+
+            notificationManager.notify(321, programNotification)
+        } else {
+            val programNotification = NotificationCompat.Builder(this)
+                .setContentTitle(getString(R.string.notification_background_play))
+                .setContentText(programTitle)
+                .setSmallIcon(R.drawable.ic_popup_icon)
+                .addAction(
+                    NotificationCompat.Action(
+                        R.drawable.ic_outline_stop_24px,
+                        getString(R.string.finish),
+                        PendingIntent.getBroadcast(this, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                    )
+                ).build()
+
+            //消せないようにする
+            programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
+
+            notificationManager.notify(321, programNotification)
+        }
+    }
+
+
+    /*バックグラウンド再生*/
+    fun setBackgroundProgramPlay() {
+        mediaPlayer = MediaPlayer.create(this, hls_address.toUri())
+        mediaPlayer.start()
+
+        //Nougatと分岐
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationChannelId = "program_background"
+            val notificationChannel = NotificationChannel(
+                notificationChannelId, getString(R.string.notification_background_play),
+                NotificationManager.IMPORTANCE_HIGH
+            )
+
+            //通知チャンネル登録
+            if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
+                notificationManager.createNotificationChannel(notificationChannel)
             }
-            registerReceiver(broadcastReceiver, intentFilter)
+            //通知作成
+            backgroundPlayNotification(getString(R.string.background_play_pause))
+        } else {
+            //通知作成
+            backgroundPlayNotification(getString(R.string.background_play_pause))
+        }
+    }
 
+    fun backgroundPlayNotification(pausePlayString: String) {
+        //音楽コントロールブロードキャスト
+        val stopIntent = Intent("background_program_stop")
+        val pauseIntent = Intent("background_program_pause")
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationChannelId = "program_background"
             val programNotification = NotificationCompat.Builder(this, notificationChannelId)
                 .setContentTitle(getString(R.string.notification_background_play))
                 .setContentText(programTitle)
@@ -1027,23 +1174,88 @@ class CommentActivity : AppCompatActivity() {
                 .addAction(
                     NotificationCompat.Action(
                         R.drawable.ic_outline_stop_24px,
-                        "一時停止・再生",
+                        pausePlayString,
                         PendingIntent.getBroadcast(this, 12, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                     )
                 )
                 .addAction(
                     NotificationCompat.Action(
                         R.drawable.ic_outline_stop_24px,
-                        "停止",
+                        getString(R.string.background_play_finish),
                         PendingIntent.getBroadcast(this, 12, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                     )
                 ).build()
 
+            //消せないようにする
+            programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
+
             notificationManager.notify(123, programNotification)
         } else {
-            Toast.makeText(this, "未実装", Toast.LENGTH_SHORT).show()
-        }
+            val programNotification = NotificationCompat.Builder(this)
+                .setContentTitle(getString(R.string.notification_background_play))
+                .setContentText(programTitle)
+                .setSmallIcon(R.drawable.ic_background_icon)
+                .addAction(
+                    NotificationCompat.Action(
+                        R.drawable.ic_outline_stop_24px,
+                        pausePlayString,
+                        PendingIntent.getBroadcast(this, 12, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                    )
+                )
+                .addAction(
+                    NotificationCompat.Action(
+                        R.drawable.ic_outline_stop_24px,
+                        getString(R.string.background_play_finish),
+                        PendingIntent.getBroadcast(this, 12, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                    )
+                ).build()
 
+            //消せないようにする
+            programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
+
+            notificationManager.notify(123, programNotification)
+        }
     }
+
+    //Activity復帰した時に呼ばれる
+    override fun onStart() {
+        super.onStart()
+        //アプリ戻ってきたらバックグラウンド再生、ポップアップ再生を止める。
+        //バックグラウンド再生
+        if (this@CommentActivity::mediaPlayer.isInitialized) {
+            mediaPlayer.release()   //リソース開放
+            notificationManager.cancel(123) //通知削除
+            Toast.makeText(this, getString(R.string.lunch_app_close_background), Toast.LENGTH_SHORT).show()
+        }
+        //ポップアップ再生止める
+        if (this@CommentActivity::popupView.isInitialized) {
+            windowManager.removeViewImmediate(popupView)
+            notificationManager.cancel(321) //通知削除
+            Toast.makeText(this, getString(R.string.lunch_app_close_popup), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    //ホームボタンおした
+    override fun onUserLeaveHint() {
+        //別アプリを開いた時の処理
+        if (pref_setting.getBoolean("setting_leave_background", false)) {
+            //バックグラウンド再生
+            setBackgroundProgramPlay()
+        }
+        if (pref_setting.getBoolean("setting_leave_popup", false)) {
+            //ポップアップ再生
+            if (!Settings.canDrawOverlays(this)) {
+                //RuntimePermissionに対応させる
+                // 権限取得
+                val intent =
+                    Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${getPackageName()}"));
+                this.startActivityForResult(intent, 114)
+            } else {
+                startOverlayPlayer()
+            }
+        }
+    }
+
 
 }

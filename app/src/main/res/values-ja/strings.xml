@@ -96,4 +96,27 @@
     <string name="auto_admission_one_minute_notification_description_androidq">ご利用のバージョンでは自動起動機能が利用できないのでアプリを起動しておいてください。</string>
     <string name="lunch_app">アプリ起動</string>
     <string name="notification_background_play">番組バックグラウンド再生</string>
+    <string name="popup_player">ポップアップ再生</string>
+    <string name="background_play">バックグラウンド再生</string>
+    <string name="background_play_pause">一時停止</string>
+    <string name="background_play_finish">終了</string>
+    <string name="background_play_play">再生</string>
+    <string name="popup_notification_title">番組ポップアップ再生</string>
+    <string name="popup_notification_description">番組をポップアップで再生中です。</string>
+    <string name="finish">終了</string>
+    <string name="lunch_app_close_popup">アプリが起動したためポップアップ再生を終了しました。</string>
+    <string name="lunch_app_close_background">アプリが起動したためバックグラウンド再生を終了しました。</string>
+    <string name="leave_app">アプリから離れた時</string>
+    <string name="leave_background_description">アプリから離れた時にバックグラウンド再生をします。</string>
+    <string name="leave_popup_description">アプリから離れた時にポップアップ再生をします。</string>
+    <string name="one_person">1人</string>
+    <string name="person">人</string>
+    <string name="add_comment_ng">コメントをNG追加</string>
+    <string name="add_user_ng">ユーザーをNG追加</string>
+    <string name="comment_copy">コメントをコピー</string>
+    <string name="copy_successful">コメントをコピーしました。</string>
+    <string name="open_url">URLを開く</string>
+    <string name="one_minute">1分</string>
+    <string name="active">アクティブ人数（1分毎のコメント人数）</string>
+    <string name="livetime">経過時間</string>
 </resources>
