@@ -1,79 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto">
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
 
     <SwitchPreference
-            android:title="@string/setting_watch_view_title"
-            android:key="setting_watch_live"
-            android:icon="@drawable/ic_outline_live_tv_24px_black"
-            android:summary="@string/setting_watch_view_description"
             android:defaultValue="false"
-            />
+            android:icon="@drawable/ic_outline_live_tv_24px_black"
+            android:key="setting_watch_live"
+            android:summary="@string/setting_watch_view_description"
+            android:title="@string/setting_watch_view_title" />
 
     <SwitchPreference
-            android:title="@string/setting_oidashi_comment_title"
+            android:defaultValue="true"
+            android:icon="@drawable/ic_outline_pan_tool_24px"
             android:key="setting_hidden_oidashi_comment"
             android:summary="@string/setting_oidashi_comment_description"
-            android:icon="@drawable/ic_outline_pan_tool_24px"
+            android:title="@string/setting_oidashi_comment_title" />
+
+
+    <SwitchPreference
             android:defaultValue="true"
-            />
-
+            android:icon="@drawable/ic_outline_format_color_fill_24px"
+            android:key="setting_room_color"
+            android:summary="@string/room_color_description"
+            android:title="@string/room_color_title" />
 
     <Preference
-            android:title="@string/auto_admission_stop"
             android:icon="@drawable/ic_outline_stop_24px"
-            android:key="auto_admission_stop_preference"/>
+            android:key="auto_admission_stop_preference"
+            android:title="@string/auto_admission_stop" />
 
 
     <Preference
-            android:title="@string/ng_list"
             android:icon="@drawable/ic_outline_block_24px"
-            android:key="ng_list_activity">
+            android:key="ng_list_activity"
+            android:title="@string/ng_list">
         <!--Activity起動-->
         <intent
                 android:action="android.intent.action.MAIN"
-                android:targetPackage="io.github.takusan23.tatimidroid"
-                android:targetClass="io.github.takusan23.tatimidroid.Activity.NGListActivity"/>
+                android:targetClass="io.github.takusan23.tatimidroid.Activity.NGListActivity"
+                android:targetPackage="io.github.takusan23.tatimidroid" />
     </Preference>
 
-    <PreferenceCategory
-            android:title="@string/leave_app">
+
+    <Preference
+            android:icon="@drawable/ic_outline_comment_24px"
+            android:key="comment_list_activity"
+            android:title="@string/comment_post_list">
+        <!--Activity起動-->
+        <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="io.github.takusan23.tatimidroid.Activity.CommentPOSTList"
+                android:targetPackage="io.github.takusan23.tatimidroid" />
+    </Preference>
+
+
+    <PreferenceCategory android:title="@string/leave_app">
 
 
         <SwitchPreference
-                android:title="@string/background_play"
+                android:defaultValue="false"
+                android:icon="@drawable/ic_background_icon_black"
                 android:key="setting_leave_background"
                 android:summary="@string/leave_background_description"
-                android:icon="@drawable/ic_background_icon_black"
-                android:defaultValue="false"
-                />
+                android:title="@string/background_play" />
 
         <SwitchPreference
-                android:title="@string/popup_player"
+                android:defaultValue="false"
+                android:icon="@drawable/ic_popup_icon_black"
                 android:key="setting_leave_popup"
                 android:summary="@string/leave_popup_description"
-                android:icon="@drawable/ic_popup_icon_black"
-                android:defaultValue="false"
-                />
+                android:title="@string/popup_player" />
 
 
     </PreferenceCategory>
 
-    <PreferenceCategory
-            android:title="@string/sonta">
+    <PreferenceCategory android:title="@string/sonta">
 
         <Preference
-                android:title="@string/licence"
                 android:icon="@drawable/ic_outline_info_24px"
-                android:key="licence_preference"/>
+                android:key="licence_preference"
+                android:title="@string/licence" />
 
         <Preference
-                android:title="@string/kono_app"
                 android:icon="@drawable/ic_outline_android_24px"
-                android:key="konoapp_preference"/>
+                android:key="konoapp_preference"
+                android:title="@string/kono_app" />
 
     </PreferenceCategory>
+
 
     <!--
         <SwitchPreference

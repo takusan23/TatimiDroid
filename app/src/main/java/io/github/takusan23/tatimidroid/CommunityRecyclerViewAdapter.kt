@@ -33,7 +33,8 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
     RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_community_layout, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.adapter_community_layout, parent, false)
         return ViewHolder(view)
     }
 
@@ -96,7 +97,11 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
             } else {
                 if (datetime.isNotEmpty()) {
                     //予約枠自動入場機能つかうか？
-                    Snackbar.make(holder.timeTextView, content.getText(R.string.timeshift_wait), Snackbar.LENGTH_SHORT)
+                    Snackbar.make(
+                        holder.timeTextView,
+                        content.getText(R.string.timeshift_wait),
+                        Snackbar.LENGTH_SHORT
+                    )
                         .setAction(
                             content.getText(R.string.auto_admission)
                         ) {

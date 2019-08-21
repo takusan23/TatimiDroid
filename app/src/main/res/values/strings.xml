@@ -119,4 +119,9 @@
     <string name="one_minute">1 minute</string>
     <string name="active">Number of active people (number of comments per minute)</string>
     <string name="livetime">elapsed time</string>
+    <string name="comment_hidden">Hide comments</string>
+    <string name="room_color_title">Color the room</string>
+    <string name="room_color_description">Follow the NCV and color the arena and standing. (Supports up to 10 standings.)</string>
+    <string name="add">Add</string>
+    <string name="comment_post_list">Comment posting list</string>
 </resources>

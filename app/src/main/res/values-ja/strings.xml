@@ -119,4 +119,9 @@
     <string name="one_minute">1分</string>
     <string name="active">アクティブ人数（1分毎のコメント人数）</string>
     <string name="livetime">経過時間</string>
+    <string name="comment_hidden">コメントを非表示</string>
+    <string name="room_color_title">部屋に色を付ける</string>
+    <string name="room_color_description">NCVに追従してアリーナ、立ち見の色を付けます。（立ち見１０まで対応。）</string>
+    <string name="add">追加</string>
+    <string name="comment_post_list">コメント投稿リスト</string>
 </resources>

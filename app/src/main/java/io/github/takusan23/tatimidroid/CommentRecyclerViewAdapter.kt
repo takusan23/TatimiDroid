@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid
 
 import android.annotation.TargetApi
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Build
@@ -13,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Fragment.CommentMenuBottomFragment
@@ -27,15 +29,18 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
 
     //UserIDの配列。初コメを太字表示する
     val userList = arrayListOf<String>()
+    lateinit var pref_setting: SharedPreferences
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_comment_layout, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.adapter_comment_layout, parent, false)
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item: ArrayList<String> = arrayListArrayAdapter[position] as ArrayList<String>
         val context = holder.cardView.context
+        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         //NG配列
         val userNGList = (context as CommentActivity).userNGList
         val commentNGList = (context as CommentActivity).commentNGList
@@ -68,7 +73,9 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
             val minute = calendar.get(Calendar.MINUTE)
             val second = calendar.get(Calendar.SECOND)
             time =
-                "${calendar.get(Calendar.HOUR_OF_DAY)}:${calendar.get(Calendar.MINUTE)}:${calendar.get(Calendar.SECOND)}"
+                "${calendar.get(Calendar.HOUR_OF_DAY)}:${calendar.get(Calendar.MINUTE)}:${calendar.get(
+                    Calendar.SECOND
+                )}"
         }
 
         //コテハン
@@ -118,7 +125,15 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
             bundle.putString("user_id", commentJSONParse.userId)
             val commentMenuBottomFragment = CommentMenuBottomFragment()
             commentMenuBottomFragment.arguments = bundle
-            commentMenuBottomFragment.show((context as AppCompatActivity).supportFragmentManager, "comment_menu")
+            commentMenuBottomFragment.show(
+                (context as AppCompatActivity).supportFragmentManager,
+                "comment_menu"
+            )
+        }
+
+        //部屋の色
+        if (pref_setting.getBoolean("setting_room_color", true)) {
+            holder.roomNameTextView.setTextColor(getRoomColor(roomName))
         }
 
     }
@@ -139,4 +154,45 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
             cardView = itemView.findViewById(R.id.adapter_room_name_cardview)
         }
     }
+
+    //コメビュの部屋の色。NCVに追従する
+    fun getRoomColor(room: String): Int {
+        when (room) {
+            "アリーナ" -> {
+                return Color.argb(255, 0, 153, 229)
+            }
+            "立ち見1" -> {
+                return Color.argb(255, 234, 90, 61)
+            }
+            "立ち見2" -> {
+                return Color.argb(255, 172, 209, 94)
+            }
+            "立ち見3" -> {
+                return Color.argb(255, 0, 217, 181)
+            }
+            "立ち見4" -> {
+                return Color.argb(255, 229, 191, 0)
+            }
+            "立ち見5" -> {
+                return Color.argb(255, 235, 103, 169)
+            }
+            "立ち見6" -> {
+                return Color.argb(255, 181, 89, 217)
+            }
+            "立ち見7" -> {
+                return Color.argb(255, 20, 109, 199)
+            }
+            "立ち見8" -> {
+                return Color.argb(255, 226, 64, 33)
+            }
+            "立ち見9" -> {
+                return Color.argb(255, 142, 193, 51)
+            }
+            "立ち見10" -> {
+                return Color.argb(255, 0, 189, 120)
+            }
+        }
+        return Color.argb(255, 0, 0, 0)
+    }
+
 }

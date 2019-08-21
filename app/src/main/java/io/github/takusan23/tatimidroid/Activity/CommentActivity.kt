@@ -43,6 +43,7 @@ import kotlin.concurrent.schedule
 import androidx.core.app.NotificationCompat
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
+import kotlinx.android.synthetic.main.overlay_player_layout.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import java.text.SimpleDateFormat
@@ -121,6 +122,9 @@ class CommentActivity : AppCompatActivity() {
 
     //NotificationManager
     lateinit var notificationManager: NotificationManager
+
+    //コメント非表示？
+    var isCommentHidden = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -219,31 +223,46 @@ class CommentActivity : AppCompatActivity() {
                     R.id.comment_view_menu_comment_view -> {
                         //コメント
                         val fragmentTransaction = supportFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(R.id.activity_comment_linearlayout, CommentViewFragment())
+                        fragmentTransaction.replace(
+                            R.id.activity_comment_linearlayout,
+                            CommentViewFragment()
+                        )
                         fragmentTransaction.commit()
                     }
                     R.id.comment_view_menu_room -> {
                         //ギフト
                         val fragmentTransaction = supportFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(R.id.activity_comment_linearlayout, CommentRoomFragment())
+                        fragmentTransaction.replace(
+                            R.id.activity_comment_linearlayout,
+                            CommentRoomFragment()
+                        )
                         fragmentTransaction.commit()
                     }
                     R.id.comment_view_menu_gift -> {
                         //ギフト
                         val fragmentTransaction = supportFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(R.id.activity_comment_linearlayout, GiftFragment())
+                        fragmentTransaction.replace(
+                            R.id.activity_comment_linearlayout,
+                            GiftFragment()
+                        )
                         fragmentTransaction.commit()
                     }
                     R.id.comment_view_menu_nicoad -> {
                         //広告
                         val fragmentTransaction = supportFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(R.id.activity_comment_linearlayout, NicoAdFragment())
+                        fragmentTransaction.replace(
+                            R.id.activity_comment_linearlayout,
+                            NicoAdFragment()
+                        )
                         fragmentTransaction.commit()
                     }
                     R.id.comment_view_menu_info -> {
                         //番組情報
                         val fragmentTransaction = supportFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(R.id.activity_comment_linearlayout, ProgramInfoFragment())
+                        fragmentTransaction.replace(
+                            R.id.activity_comment_linearlayout,
+                            ProgramInfoFragment()
+                        )
                         fragmentTransaction.commit()
                     }
                 }
@@ -272,7 +291,8 @@ class CommentActivity : AppCompatActivity() {
                     "program_popup_close" -> {
                         //ポップアップ再生終了
                         notificationManager.cancel(321)//削除
-                        val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                        val windowManager =
+                            applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
                         windowManager.removeViewImmediate(popupView)
                     }
                     "background_program_stop" -> {
@@ -289,7 +309,8 @@ class CommentActivity : AppCompatActivity() {
                             backgroundPlayNotification(getString(R.string.background_play_play))
                         } else {
                             //Liveで再生
-                            mediaPlayer = MediaPlayer.create(this@CommentActivity, hls_address.toUri())
+                            mediaPlayer =
+                                MediaPlayer.create(this@CommentActivity, hls_address.toUri())
                             mediaPlayer.start()
                             //通知作成
                             backgroundPlayNotification(
@@ -540,7 +561,8 @@ class CommentActivity : AppCompatActivity() {
                 //HLSのアドレスとか
                 if (message?.contains("currentStream") ?: false) {
                     val jsonObject = JSONObject(message)
-                    hls_address = jsonObject.getJSONObject("body").getJSONObject("currentStream").getString("uri")
+                    hls_address = jsonObject.getJSONObject("body").getJSONObject("currentStream")
+                        .getString("uri")
                     //System.out.println("HLSアドレス ${hls_address}")
                     //生放送再生
                     if (pref_setting.getBoolean("setting_watch_live", false)) {
@@ -585,7 +607,10 @@ class CommentActivity : AppCompatActivity() {
                         val jsonObject = JSONObject()
                         val chatObject = JSONObject()
                         chatObject.put("thread", getPostKeyThreadId)    //視聴用セッションWebSocketからとれる
-                        chatObject.put("vpos", vpos)     //番組情報取得で取得した値 - = System.currentTimeMillis() UNIX時間
+                        chatObject.put(
+                            "vpos",
+                            vpos
+                        )     //番組情報取得で取得した値 - = System.currentTimeMillis() UNIX時間
                         chatObject.put("mail", "184")
                         chatObject.put(
                             "ticket",
@@ -767,7 +792,8 @@ class CommentActivity : AppCompatActivity() {
                     live_framelayout.layoutParams = layoutParams
 
                     //コメントキャンバス
-                    val commentCanvasLayout = comment_canvas.layoutParams as FrameLayout.LayoutParams
+                    val commentCanvasLayout =
+                        comment_canvas.layoutParams as FrameLayout.LayoutParams
                     commentCanvasLayout.width = live_video_view.width
                     commentCanvasLayout.height = live_video_view.height
                     commentCanvasLayout.gravity = Gravity.CENTER
@@ -842,7 +868,11 @@ class CommentActivity : AppCompatActivity() {
                     if (response.isSuccessful) {
                         //成功
                         val snackbar =
-                            Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT)
+                            Snackbar.make(
+                                fab,
+                                getString(R.string.comment_post_success),
+                                Snackbar.LENGTH_SHORT
+                            )
                         snackbar.anchorView = fab
                         snackbar.show()
                     } else {
@@ -918,7 +948,10 @@ class CommentActivity : AppCompatActivity() {
                     //RuntimePermissionに対応させる
                     // 権限取得
                     val intent =
-                        Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${getPackageName()}"));
+                        Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:${getPackageName()}")
+                        );
                     this.startActivityForResult(intent, 114)
                 } else {
                     startOverlayPlayer()
@@ -927,6 +960,9 @@ class CommentActivity : AppCompatActivity() {
             R.id.comment_activity_menu_background -> {
                 //バックグラウンド再生
                 setBackgroundProgramPlay()
+            }
+            R.id.comment_activity_menu_comment_hidden -> {
+                isCommentHidden = item.isChecked
             }
         }
         return super.onOptionsItemSelected(item)
@@ -952,6 +988,8 @@ class CommentActivity : AppCompatActivity() {
     //Activity終了時に閉じる
     override fun onDestroy() {
         super.onDestroy()
+        notificationManager =
+            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (this@CommentActivity::commentPOSTWebSocketClient.isInitialized) {
             connectionNicoLiveWebSocket.close()
             commentPOSTWebSocketClient.close()
@@ -959,17 +997,26 @@ class CommentActivity : AppCompatActivity() {
         timer.cancel()
         programTimer.cancel()
         activeTimer.cancel()
+        //バックグラウンド再生止める
         if (this@CommentActivity::mediaPlayer.isInitialized) {
             //MediaPlayer初期化済みなら止める
-            //mediaPlayer.stop()
+            mediaPlayer.stop()
             mediaPlayer.release()
+            notificationManager.cancel(123)
+        }
+        //ポップアップ再生とめる
+        if (this@CommentActivity::popupView.isInitialized) {
+            if (!this.isFinishing) {
+                val windowManager =
+                    applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                windowManager.removeViewImmediate(popupView)
+            }
+            notificationManager.cancel(321)
         }
         if (this@CommentActivity::broadcastReceiver.isInitialized) {
             //中野ブロードキャスト終了
             unregisterReceiver(broadcastReceiver)
         }
-        //通知消す
-        notificationManager.cancel(123)
     }
 
     /*オーバーレイ*/
@@ -1040,7 +1087,8 @@ class CommentActivity : AppCompatActivity() {
         //移動
         //https://qiita.com/farman0629/items/ce547821dd2e16e4399e
         popupView.setOnLongClickListener {
-            val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val windowManager =
+                applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
             //長押し判定
             popupView.setOnTouchListener { view, motionEvent ->
                 // タップした位置を取得する
@@ -1089,7 +1137,7 @@ class CommentActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannelId = "program_popup"
             val notificationChannel = NotificationChannel(
-                notificationChannelId, getString(R.string.popup_notification_description),
+                notificationChannelId, getString(R.string.popup_notification_title),
                 NotificationManager.IMPORTANCE_HIGH
             )
 
@@ -1105,7 +1153,12 @@ class CommentActivity : AppCompatActivity() {
                     NotificationCompat.Action(
                         R.drawable.ic_outline_stop_24px,
                         getString(R.string.finish),
-                        PendingIntent.getBroadcast(this, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                        PendingIntent.getBroadcast(
+                            this,
+                            24,
+                            stopPopupIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
                     )
                 )
                 .build()
@@ -1123,7 +1176,12 @@ class CommentActivity : AppCompatActivity() {
                     NotificationCompat.Action(
                         R.drawable.ic_outline_stop_24px,
                         getString(R.string.finish),
-                        PendingIntent.getBroadcast(this, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                        PendingIntent.getBroadcast(
+                            this,
+                            24,
+                            stopPopupIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
                     )
                 ).build()
 
@@ -1175,14 +1233,24 @@ class CommentActivity : AppCompatActivity() {
                     NotificationCompat.Action(
                         R.drawable.ic_outline_stop_24px,
                         pausePlayString,
-                        PendingIntent.getBroadcast(this, 12, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                        PendingIntent.getBroadcast(
+                            this,
+                            12,
+                            pauseIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
                     )
                 )
                 .addAction(
                     NotificationCompat.Action(
                         R.drawable.ic_outline_stop_24px,
                         getString(R.string.background_play_finish),
-                        PendingIntent.getBroadcast(this, 12, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                        PendingIntent.getBroadcast(
+                            this,
+                            12,
+                            stopIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
                     )
                 ).build()
 
@@ -1199,14 +1267,24 @@ class CommentActivity : AppCompatActivity() {
                     NotificationCompat.Action(
                         R.drawable.ic_outline_stop_24px,
                         pausePlayString,
-                        PendingIntent.getBroadcast(this, 12, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                        PendingIntent.getBroadcast(
+                            this,
+                            12,
+                            pauseIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
                     )
                 )
                 .addAction(
                     NotificationCompat.Action(
                         R.drawable.ic_outline_stop_24px,
                         getString(R.string.background_play_finish),
-                        PendingIntent.getBroadcast(this, 12, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                        PendingIntent.getBroadcast(
+                            this,
+                            12,
+                            stopIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
                     )
                 ).build()
 
@@ -1225,13 +1303,15 @@ class CommentActivity : AppCompatActivity() {
         if (this@CommentActivity::mediaPlayer.isInitialized) {
             mediaPlayer.release()   //リソース開放
             notificationManager.cancel(123) //通知削除
-            Toast.makeText(this, getString(R.string.lunch_app_close_background), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.lunch_app_close_background), Toast.LENGTH_SHORT)
+                .show()
         }
         //ポップアップ再生止める
         if (this@CommentActivity::popupView.isInitialized) {
             windowManager.removeViewImmediate(popupView)
             notificationManager.cancel(321) //通知削除
-            Toast.makeText(this, getString(R.string.lunch_app_close_popup), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.lunch_app_close_popup), Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -1249,7 +1329,10 @@ class CommentActivity : AppCompatActivity() {
                 //RuntimePermissionに対応させる
                 // 権限取得
                 val intent =
-                    Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${getPackageName()}"));
+                    Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:${getPackageName()}")
+                    );
                 this.startActivityForResult(intent, 114)
             } else {
                 startOverlayPlayer()

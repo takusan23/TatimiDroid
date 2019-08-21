@@ -22,6 +22,7 @@ import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.*
+import org.json.JSONException
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
@@ -125,40 +126,43 @@ class CommunityListFragment : Fragment() {
 
             //URLデコードする
             json_string = URLDecoder.decode(json_string, "UTF-8")
-            val jsonObject = JSONObject(json_string)
+            try{
+                val jsonObject = JSONObject(json_string)
 
 
-            //JSON解析
-            val programs =
-                jsonObject.getJSONObject("pageContents").getJSONObject("favorites").getJSONObject("favoritePrograms")
-                    .getJSONArray("programs")
-            //for
-            for (i in 0 until programs.length()) {
-                val jsonObject = programs.getJSONObject(i)
-                val programId = jsonObject.getString("id")
-                val title = jsonObject.getString("title")
-                val beginAt = jsonObject.getString("beginAt")
-                val communityName = jsonObject.getString("socialGroupName")
-                val liveNow = jsonObject.getString("liveCycle") //放送中か？
-                //RecyclerView追加
-                val item = arrayListOf<String>()
-                item.add("")
-                item.add(title)
-                item.add(communityName)
-                item.add(title)
-                item.add(beginAt)
-                item.add(beginAt)
-                item.add(programId)
-                item.add(beginAt)
-                item.add(liveNow)
-                recyclerViewList.add(item)
+                //JSON解析
+                val programs =
+                    jsonObject.getJSONObject("pageContents").getJSONObject("favorites").getJSONObject("favoritePrograms")
+                        .getJSONArray("programs")
+                //for
+                for (i in 0 until programs.length()) {
+                    val jsonObject = programs.getJSONObject(i)
+                    val programId = jsonObject.getString("id")
+                    val title = jsonObject.getString("title")
+                    val beginAt = jsonObject.getString("beginAt")
+                    val communityName = jsonObject.getString("socialGroupName")
+                    val liveNow = jsonObject.getString("liveCycle") //放送中か？
+                    //RecyclerView追加
+                    val item = arrayListOf<String>()
+                    item.add("")
+                    item.add(title)
+                    item.add(communityName)
+                    item.add(title)
+                    item.add(beginAt)
+                    item.add(beginAt)
+                    item.add(programId)
+                    item.add(beginAt)
+                    item.add(liveNow)
+                    recyclerViewList.add(item)
+                }
+                //リスト更新
+                activity?.runOnUiThread {
+                    communityRecyclerViewAdapter.notifyDataSetChanged()
+                    community_recyclerview.adapter = communityRecyclerViewAdapter
+                }
+            }catch (e:JSONException){
+                e.printStackTrace()
             }
-            //リスト更新
-            activity?.runOnUiThread {
-                communityRecyclerViewAdapter.notifyDataSetChanged()
-                community_recyclerview.adapter = communityRecyclerViewAdapter
-            }
-
         }
     }
 

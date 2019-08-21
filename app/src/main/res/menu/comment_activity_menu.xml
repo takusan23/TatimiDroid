@@ -1,50 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto">
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-            android:title="@string/play_live_broadcast"
+            android:id="@+id/comment_activity_menu_watch_live"
             android:icon="@drawable/ic_icon_large"
+            android:title="@string/play_live_broadcast"
             android:tooltipText="@string/play_live_broadcast"
-            app:showAsAction="ifRoom"
-            android:id="@+id/comment_activity_menu_watch_live"/>
+            app:showAsAction="ifRoom" />
 
     <item
-            android:title="@string/popup_player"
+            android:id="@+id/comment_activity_menu_overlay"
             android:icon="@drawable/ic_popup_icon"
-            app:showAsAction="ifRoom"
-            android:id="@+id/comment_activity_menu_overlay"/>
+            android:title="@string/popup_player"
+            app:showAsAction="ifRoom" />
     <item
-            android:title="@string/background_play"
+            android:id="@+id/comment_activity_menu_background"
             android:icon="@drawable/ic_background_icon"
-            app:showAsAction="ifRoom"
-            android:id="@+id/comment_activity_menu_background"/>
+            android:title="@string/background_play"
+            app:showAsAction="ifRoom" />
 
     <item
-            android:title="@string/open_browser"
+            android:id="@+id/comment_activity_menu_comment_hidden"
+            android:checkable="true"
+            android:checked="false"
             android:icon="@drawable/ic_outline_live_tv_24px"
-            android:id="@+id/comment_activity_menu_open_browser"/>
-    <item
-            android:title="@string/ng_list"
-            android:icon="@drawable/ic_outline_live_tv_24px"
-            android:id="@+id/comment_activity_menu_ng_list"/>
+            android:title="@string/comment_hidden" />
 
     <item
-            android:title="@string/iyayo_comment"
+            android:id="@+id/comment_activity_menu_open_browser"
+            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:title="@string/open_browser" />
+    <item
+            android:id="@+id/comment_activity_menu_ng_list"
+            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:title="@string/ng_list" />
+
+    <item
+            android:id="@+id/comment_activity_menu_iyayo"
             android:checkable="true"
             android:checked="true"
-            android:id="@+id/comment_activity_menu_iyayo"/>
+            android:title="@string/iyayo_comment" />
 
     <item
-            android:title="@string/tts"
+            android:id="@+id/comment_activity_menu_tts"
             android:checkable="true"
             android:checked="false"
-            android:id="@+id/comment_activity_menu_tts"/>
+            android:title="@string/tts" />
 
     <item
-            android:title="@string/comment_toast"
+            android:id="@+id/comment_activity_menu_toast"
             android:checkable="true"
             android:checked="false"
-            android:id="@+id/comment_activity_menu_toast"/>
+            android:title="@string/comment_toast" />
 
 </menu>

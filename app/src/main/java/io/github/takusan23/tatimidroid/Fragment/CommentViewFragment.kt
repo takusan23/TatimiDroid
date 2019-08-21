@@ -67,7 +67,11 @@ class CommentViewFragment : Fragment() {
     //TTS
     lateinit var tts: TextToSpeech
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_commentview, container, false)
     }
@@ -84,7 +88,7 @@ class CommentViewFragment : Fragment() {
         recyclerViewList = ArrayList()
         fragment_comment_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
-        fragment_comment_recyclerview.layoutManager = mLayoutManager
+        fragment_comment_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
         commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
         fragment_comment_recyclerview.adapter = commentRecyclerViewAdapter
         recyclerViewLayoutManager = fragment_comment_recyclerview.layoutManager!!
@@ -253,7 +257,11 @@ class CommentViewFragment : Fragment() {
                         //Toast
                         if ((activity as CommentActivity).isToast) {
                             activity?.runOnUiThread {
-                                Toast.makeText(context, commentJSONParse.comment, Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    commentJSONParse.comment,
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
                         //TTS
@@ -312,7 +320,10 @@ class CommentViewFragment : Fragment() {
             val kotehan = comment.subSequence(pos + 1, comment.length)
             //追加
             if (activity is CommentActivity) {
-                (activity as CommentActivity).kotehanMap.put(commentJSONParse.userId, kotehan.toString())
+                (activity as CommentActivity).kotehanMap.put(
+                    commentJSONParse.userId,
+                    kotehan.toString()
+                )
             }
         }
     }
@@ -374,12 +385,13 @@ class CommentViewFragment : Fragment() {
                         if (connectionWebSocketAddressList.indexOf(webSocketUri) == -1) {
                             connectionWebSocketAddressList.add(webSocketUri)
                             //アリーナの場合は部屋名がコミュニティ番号なので直す
-                            if (roomName.contains("co")) {
+                            if (roomName.contains("co") || roomName.contains("ch")) {
                                 roomName = stringArena
                             }
                             //ActionBarに番組名を書く
                             activity?.runOnUiThread {
-                                (activity as AppCompatActivity).supportActionBar?.title = "$title - $id"
+                                (activity as AppCompatActivity).supportActionBar?.title =
+                                    "$title - $id"
                             }
                             //WebSocket接続
                             connectCommentServer(webSocketUri, threadId, roomName)
@@ -411,7 +423,8 @@ class CommentViewFragment : Fragment() {
                     commentRecyclerViewAdapter.notifyItemInserted(0)
                 }
                 // 画面上で最上部に表示されているビューのポジションとTopを記録しておく
-                val pos = (recyclerViewLayoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                val pos =
+                    (recyclerViewLayoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
                 var top = 0
                 if ((recyclerViewLayoutManager as LinearLayoutManager).childCount > 0) {
                     top = (recyclerViewLayoutManager as LinearLayoutManager).getChildAt(0)!!.top
@@ -422,7 +435,10 @@ class CommentViewFragment : Fragment() {
                     fragment_comment_recyclerview.scrollToPosition(0)
                 } else {
                     fragment_comment_recyclerview.post {
-                        (recyclerViewLayoutManager as LinearLayoutManager).scrollToPositionWithOffset(pos + 1, top)
+                        (recyclerViewLayoutManager as LinearLayoutManager).scrollToPositionWithOffset(
+                            pos + 1,
+                            top
+                        )
                     }
                 }
             }
@@ -431,20 +447,25 @@ class CommentViewFragment : Fragment() {
 
     //コメント流す
     fun niconicoComment(message: String, userId: String) {
-        //NGコメントは流さない
-        val userNGList = (activity as CommentActivity).userNGList
-        val commentNGList = (activity as CommentActivity).commentNGList
-        //-1で存在しない
-        if (userNGList.indexOf(userId) == -1 && commentNGList.indexOf(message) == -1) {
-            //追い出しコメントは流さない
-            if (!message.contains("/hb ifseetno")) {
-                if (activity is CommentActivity) {
-                    //UIスレッドで呼んだら遅延せずに表示されました！
-                    activity?.runOnUiThread {
-                        activity?.comment_canvas?.postComment(message)
-                        //ポップアップ再生
-                        if ((activity as CommentActivity).overlay_commentcamvas != null) {
-                            (activity as CommentActivity).overlay_commentcamvas!!.postComment(message)
+        //コメントを流さない設定？
+        if (activity is CommentActivity) {
+            if (!(activity as CommentActivity).isCommentHidden) {
+                //NGコメントは流さない
+                val userNGList = (activity as CommentActivity).userNGList
+                val commentNGList = (activity as CommentActivity).commentNGList
+                //-1で存在しない
+                if (userNGList.indexOf(userId) == -1 && commentNGList.indexOf(message) == -1) {
+                    //追い出しコメントは流さない
+                    if (!message.contains("/hb ifseetno")) {
+                        //UIスレッドで呼んだら遅延せずに表示されました！
+                        activity?.runOnUiThread {
+                            activity?.comment_canvas?.postComment(message)
+                            //ポップアップ再生
+                            if ((activity as? CommentActivity)?.overlay_commentcamvas != null) {
+                                (activity as CommentActivity).overlay_commentcamvas!!.postComment(
+                                    message
+                                )
+                            }
                         }
                     }
                 }

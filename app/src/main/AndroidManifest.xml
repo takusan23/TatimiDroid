@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="io.github.takusan23.tatimidroid">
+        package="io.github.takusan23.tatimidroid">
 
-    <uses-permission android:name="android.permission.INTERNET"/>           <!--インターネット-->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>     <!--予約枠自動入場のServiceよう-->
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>    <!--オーバーレイ-->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- インターネット -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- 予約枠自動入場のServiceよう -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
             android:allowBackup="true"
@@ -13,34 +13,32 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".Activity.NGListActivity">
-        </activity>
+        <activity android:name=".Activity.CommentPOSTList"></activity>
+        <activity android:name=".Activity.NGListActivity"></activity>
 
-        <service android:name=".AutoAdmissionService">
-        </service>
+        <service android:name=".AutoAdmissionService"></service>
 
-        <activity android:name=".Activity.KonoApp">
-        </activity>
+        <activity android:name=".Activity.KonoApp"></activity>
         <activity
                 android:name=".Activity.CommentActivity"
-                android:resizeableActivity="true"
                 android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-                android:supportsPictureInPicture="true"/>
-        <activity android:name=".Activity.LicenceActivity"/>
+                android:resizeableActivity="true"
+                android:supportsPictureInPicture="true" />
+        <activity android:name=".Activity.LicenceActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
             <!-- 共有を受け取る labelが共有するときのアプリの名前になる（TwitterとかだとTwiiterじゃなくてツイートになってる部分。あれ） -->
             <intent-filter android:label="@string/open_comment_viewer">
-                <action android:name="android.intent.action.SEND"/>
+                <action android:name="android.intent.action.SEND" />
 
-                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.DEFAULT" />
 
-                <data android:mimeType="text/*"/>
+                <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
     </application>

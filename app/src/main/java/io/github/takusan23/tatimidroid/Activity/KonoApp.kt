@@ -33,8 +33,8 @@ class KonoApp : AppCompatActivity() {
     /*
     * バージョンとか
     * */
-    val version = "1.1.0"
-    val codeName1 = "（仮）"
+    val version = "2.0"
+    val codeName1 = "（β）"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +46,7 @@ class KonoApp : AppCompatActivity() {
 
         title = getString(R.string.kono_app)
 
-        kono_app_codename.text = codeName1
+        kono_app_codename.text = "$version $codeName1"
 
         kono_app_twitter.setOnClickListener {
             startBrowser(twitterLink)
@@ -113,7 +113,8 @@ class KonoApp : AppCompatActivity() {
                 contentValues.put("description", "")
 
                 sqLiteDatabase.insert("auto_admission", null, contentValues)
-                Snackbar.make(kono_app_imageview, "10秒後にコピーした番組へ移動します！", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(kono_app_imageview, "10秒後にコピーした番組へ移動します！", Snackbar.LENGTH_SHORT)
+                    .show()
                 //Service再起動
                 val intent = Intent(this, AutoAdmissionService::class.java)
                 stopService(intent)
