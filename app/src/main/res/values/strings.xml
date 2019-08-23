@@ -124,4 +124,7 @@
     <string name="room_color_description">Follow the NCV and color the arena and standing. (Supports up to 10 standings.)</string>
     <string name="add">Add</string>
     <string name="comment_post_list">Comment posting list</string>
+    <string name="enquate">questionnaire</string>
+    <string name="enquate_result">Questionnaire results</string>
+    <string name="share">Share</string>
 </resources>

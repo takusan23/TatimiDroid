@@ -1,5 +1,7 @@
 package io.github.takusan23.tatimidroid
 
+import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -26,10 +28,16 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         //ダークモード対応
-        main_activity_bottom_navigationview.backgroundTintList = ColorStateList.valueOf(darkModeSupport.getThemeColor())
+        main_activity_bottom_navigationview.backgroundTintList =
+            ColorStateList.valueOf(darkModeSupport.getThemeColor())
         if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
             supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
         }
+
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(1234)
+
 
         //共有から起動した
         lunchShareIntent()
@@ -54,7 +62,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.menu_community -> {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(R.id.main_activity_linearlayout, CommunityListFragment())
+                    fragmentTransaction.replace(
+                        R.id.main_activity_linearlayout,
+                        CommunityListFragment()
+                    )
                     fragmentTransaction.commit()
                 }
                 R.id.menu_setting -> {

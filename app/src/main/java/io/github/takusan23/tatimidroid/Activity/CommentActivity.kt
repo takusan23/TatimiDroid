@@ -41,12 +41,18 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ShareCompat
+import androidx.core.view.size
+import com.google.android.material.button.MaterialButton
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
+import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.overlay_player_layout.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import java.lang.StringBuilder
 import java.text.SimpleDateFormat
+import kotlin.concurrent.timerTask
 
 
 class CommentActivity : AppCompatActivity() {
@@ -115,16 +121,27 @@ class CommentActivity : AppCompatActivity() {
     //ポップアップ再生（オーバーレイ）
     var overlay_commentcamvas: CommentCanvas? = null
     lateinit var popupView: View
+    //オーバーレイ再生中かどうか。
+    var isPopupPlay = false
+    //オーバーレイ再生の通知ID
+    val overlayNotificationID = 5678
 
     //バックグラウンド再生MediaPlayer
     lateinit var mediaPlayer: MediaPlayer
     lateinit var broadcastReceiver: BroadcastReceiver
+    //バックグラウンド再生できてるか
+    var isBackgroundPlay = false
+    //バックグラウンド再生の通知ID
+    val backgroundNotificationID = 1234
 
     //NotificationManager
     lateinit var notificationManager: NotificationManager
 
     //コメント非表示？
     var isCommentHidden = false
+
+    //アンケート内容いれとく
+    var enquateJSONArray = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,7 +158,8 @@ class CommentActivity : AppCompatActivity() {
             supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
         }
 
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         //スリープにしない
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -159,7 +177,6 @@ class CommentActivity : AppCompatActivity() {
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
 
-
         //とりあえずコメントViewFragmentへ
         val fragmentTransaction = supportFragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.activity_comment_linearlayout, CommentViewFragment())
@@ -175,13 +192,14 @@ class CommentActivity : AppCompatActivity() {
             fab.hide()
         }
 
+        //アンケートテスト
+        //testEnquate()
 
         //コメント投稿画面開く
         fab.setOnClickListener {
             val commentPOSTBottomFragment = CommentPOSTBottomFragment()
             commentPOSTBottomFragment.show(supportFragmentManager, "comment")
         }
-
 
         //視聴モードならtrue
         isWatchingMode = pref_setting.getBoolean("setting_watching_mode", false)
@@ -289,24 +307,32 @@ class CommentActivity : AppCompatActivity() {
             override fun onReceive(p0: Context?, p1: Intent?) {
                 when (p1?.action) {
                     "program_popup_close" -> {
-                        //ポップアップ再生終了
-                        notificationManager.cancel(321)//削除
-                        val windowManager =
-                            applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                        windowManager.removeViewImmediate(popupView)
+                        if (isPopupPlay) {
+                            //ポップアップ再生終了
+                            notificationManager.cancel(overlayNotificationID)//削除
+                            val windowManager =
+                                applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                            windowManager.removeView(popupView)
+                            isPopupPlay = false
+                        }
                     }
                     "background_program_stop" -> {
                         //停止
+                        isBackgroundPlay = false
                         mediaPlayer.stop()
                         mediaPlayer.release()
-                        notificationManager.cancel(123)//削除
+                        notificationManager.cancel(backgroundNotificationID)//削除
                     }
                     "background_program_pause" -> {
+                        isBackgroundPlay = true
                         if (mediaPlayer.isPlaying) {
                             //一時停止
                             mediaPlayer.pause()
                             //通知作成
-                            backgroundPlayNotification(getString(R.string.background_play_play))
+                            backgroundPlayNotification(
+                                getString(R.string.background_play_play),
+                                NotificationCompat.FLAG_ONGOING_EVENT
+                            )
                         } else {
                             //Liveで再生
                             mediaPlayer =
@@ -314,7 +340,8 @@ class CommentActivity : AppCompatActivity() {
                             mediaPlayer.start()
                             //通知作成
                             backgroundPlayNotification(
-                                getString(R.string.background_play_pause)
+                                getString(R.string.background_play_pause),
+                                NotificationCompat.FLAG_ONGOING_EVENT
                             )
                         }
                     }
@@ -324,6 +351,21 @@ class CommentActivity : AppCompatActivity() {
         registerReceiver(broadcastReceiver, intentFilter)
 
 
+    }
+
+    private fun testEnquate() {
+        setEnquetePOSTLayout(
+            "/vote start 今日の番組はいかがでしたか？ とても良かった まぁまぁ良かった ふつうだった あまり良くなかった 良くなかった",
+            "start"
+        )
+        Timer().schedule(timerTask {
+            runOnUiThread {
+                setEnquetePOSTLayout(
+                    "/vote showresult per 538 168 132 82 80",
+                    "result"
+                )
+            }
+        }, 5000)
     }
 
     /*
@@ -745,7 +787,30 @@ class CommentActivity : AppCompatActivity() {
                                     .setAnchorView(fab).show()
                             }
                         }
+                    }
 
+                    // /voteが流れてきたとき（アンケート）
+                    if (message.contains("/vote")) {
+                        //コメント取得
+                        val jsonObject = JSONObject(message)
+                        val chatObject = jsonObject.getJSONObject("chat")
+                        val content = chatObject.getString("content")
+                        val premium = chatObject.getInt("premium")
+                        if (premium == 3) {
+                            //運営コメント
+                            //アンケ開始
+                            if (content.contains("/vote start")) {
+                                setEnquetePOSTLayout(content, "start")
+                            }
+                            //アンケ結果
+                            if (content.contains("/vote showresult")) {
+                                setEnquetePOSTLayout(content, "showresult")
+                            }
+                            //アンケ終了
+                            if (content.contains("/vote stop")) {
+                                live_framelayout.removeViewAt(live_framelayout.childCount - 1)
+                            }
+                        }
                     }
                 }
             }
@@ -985,11 +1050,7 @@ class CommentActivity : AppCompatActivity() {
         }
     }
 
-    //Activity終了時に閉じる
-    override fun onDestroy() {
-        super.onDestroy()
-        notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    fun destroyCode() {
         if (this@CommentActivity::commentPOSTWebSocketClient.isInitialized) {
             connectionNicoLiveWebSocket.close()
             commentPOSTWebSocketClient.close()
@@ -998,25 +1059,35 @@ class CommentActivity : AppCompatActivity() {
         programTimer.cancel()
         activeTimer.cancel()
         //バックグラウンド再生止める
-        if (this@CommentActivity::mediaPlayer.isInitialized) {
-            //MediaPlayer初期化済みなら止める
-            mediaPlayer.stop()
-            mediaPlayer.release()
-            notificationManager.cancel(123)
+        notificationManager.cancel(backgroundNotificationID)
+        if (isBackgroundPlay) {
+            if (this@CommentActivity::mediaPlayer.isInitialized) {
+                //MediaPlayer初期化済みなら止める
+                mediaPlayer.stop()
+                mediaPlayer.release()
+                isBackgroundPlay = false
+            }
         }
         //ポップアップ再生とめる
         if (this@CommentActivity::popupView.isInitialized) {
-            if (!this.isFinishing) {
+            if (isPopupPlay) {
+                notificationManager.cancel(overlayNotificationID)
                 val windowManager =
                     applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                windowManager.removeViewImmediate(popupView)
+                windowManager.removeView(popupView)
+                isPopupPlay = false
             }
-            notificationManager.cancel(321)
         }
         if (this@CommentActivity::broadcastReceiver.isInitialized) {
             //中野ブロードキャスト終了
             unregisterReceiver(broadcastReceiver)
         }
+    }
+
+    //Activity終了時に閉じる
+    override fun onDestroy() {
+        super.onDestroy()
+        destroyCode()
     }
 
     /*オーバーレイ*/
@@ -1053,6 +1124,7 @@ class CommentActivity : AppCompatActivity() {
 
         //表示
         windowManager.addView(popupView, params)
+        isPopupPlay = true
 
         //通知表示
         showPopUpPlayerNotification()
@@ -1071,7 +1143,9 @@ class CommentActivity : AppCompatActivity() {
 
         //閉じる
         popupView.overlay_close_button.setOnClickListener {
-            windowManager.removeViewImmediate(popupView)
+            isPopupPlay = false
+            windowManager.removeView(popupView)
+            notificationManager.cancel(overlayNotificationID)
         }
         //画面サイズ
         val displaySize: Point by lazy {
@@ -1166,7 +1240,7 @@ class CommentActivity : AppCompatActivity() {
             //消せないようにする
             programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
 
-            notificationManager.notify(321, programNotification)
+            notificationManager.notify(overlayNotificationID, programNotification)
         } else {
             val programNotification = NotificationCompat.Builder(this)
                 .setContentTitle(getString(R.string.notification_background_play))
@@ -1188,7 +1262,7 @@ class CommentActivity : AppCompatActivity() {
             //消せないようにする
             programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
 
-            notificationManager.notify(321, programNotification)
+            notificationManager.notify(overlayNotificationID, programNotification)
         }
     }
 
@@ -1197,7 +1271,7 @@ class CommentActivity : AppCompatActivity() {
     fun setBackgroundProgramPlay() {
         mediaPlayer = MediaPlayer.create(this, hls_address.toUri())
         mediaPlayer.start()
-
+        isBackgroundPlay = true
         //Nougatと分岐
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannelId = "program_background"
@@ -1211,14 +1285,20 @@ class CommentActivity : AppCompatActivity() {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
             //通知作成
-            backgroundPlayNotification(getString(R.string.background_play_pause))
+            backgroundPlayNotification(
+                getString(R.string.background_play_pause),
+                NotificationCompat.FLAG_ONGOING_EVENT
+            )
         } else {
             //通知作成
-            backgroundPlayNotification(getString(R.string.background_play_pause))
+            backgroundPlayNotification(
+                getString(R.string.background_play_pause),
+                NotificationCompat.FLAG_ONGOING_EVENT
+            )
         }
     }
 
-    fun backgroundPlayNotification(pausePlayString: String) {
+    fun backgroundPlayNotification(pausePlayString: String, flag: Int) {
         //音楽コントロールブロードキャスト
         val stopIntent = Intent("background_program_stop")
         val pauseIntent = Intent("background_program_pause")
@@ -1253,11 +1333,10 @@ class CommentActivity : AppCompatActivity() {
                         )
                     )
                 ).build()
-
             //消せないようにする
-            programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
+            programNotification.flags = flag
 
-            notificationManager.notify(123, programNotification)
+            notificationManager.notify(backgroundNotificationID, programNotification)
         } else {
             val programNotification = NotificationCompat.Builder(this)
                 .setContentTitle(getString(R.string.notification_background_play))
@@ -1289,9 +1368,9 @@ class CommentActivity : AppCompatActivity() {
                 ).build()
 
             //消せないようにする
-            programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
+            programNotification.flags = flag
 
-            notificationManager.notify(123, programNotification)
+            notificationManager.notify(backgroundNotificationID, programNotification)
         }
     }
 
@@ -1300,18 +1379,33 @@ class CommentActivity : AppCompatActivity() {
         super.onStart()
         //アプリ戻ってきたらバックグラウンド再生、ポップアップ再生を止める。
         //バックグラウンド再生
+        val windowManager =
+            applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         if (this@CommentActivity::mediaPlayer.isInitialized) {
-            mediaPlayer.release()   //リソース開放
-            notificationManager.cancel(123) //通知削除
-            Toast.makeText(this, getString(R.string.lunch_app_close_background), Toast.LENGTH_SHORT)
-                .show()
+            if (isBackgroundPlay) {
+                mediaPlayer.release()   //リソース開放
+                notificationManager.cancel(backgroundNotificationID) //通知削除
+                Toast.makeText(
+                    this,
+                    getString(R.string.lunch_app_close_background),
+                    Toast.LENGTH_SHORT
+                )
+                    .show()
+                isBackgroundPlay = false
+            }
         }
         //ポップアップ再生止める
         if (this@CommentActivity::popupView.isInitialized) {
-            windowManager.removeViewImmediate(popupView)
-            notificationManager.cancel(321) //通知削除
-            Toast.makeText(this, getString(R.string.lunch_app_close_popup), Toast.LENGTH_SHORT)
-                .show()
+            if (isPopupPlay) {
+                isPopupPlay = false
+                windowManager.removeView(popupView)
+                notificationManager.cancel(overlayNotificationID) //通知削除
+                Toast.makeText(
+                    this@CommentActivity,
+                    getString(R.string.lunch_app_close_popup),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
     }
 
@@ -1338,6 +1432,154 @@ class CommentActivity : AppCompatActivity() {
                 startOverlayPlayer()
             }
         }
+    }
+
+    fun setEnquetePOSTLayout(message: String, type: String) {
+        val view = layoutInflater.inflate(R.layout.bottom_fragment_enquate_layout, null, false)
+        if (type.contains("start")) {
+            //アンケ開始
+            live_framelayout.addView(view)
+            val jsonArray = JSONArray(enquateStartMessageToJSONArray(message))
+            //アンケ内容保存
+            enquateJSONArray = jsonArray.toString()
+            //０個目はタイトル
+            val title = jsonArray[0]
+            view.enquate_title.text = title.toString()
+            //１個めから質問
+            for (i in 1 until jsonArray.length()) {
+                val button = MaterialButton(this)
+                button.text = jsonArray[i].toString()
+                button.setOnClickListener {
+                    //投票
+                    enquatePOST(i - 1)
+                    //アンケ画面消す
+                    live_framelayout.removeView(view)
+                    //Snackbar
+                    Snackbar.make(
+                        activity_comment_linearlayout,
+                        getString(R.string.enquate) + " : " + jsonArray[i].toString(),
+                        Snackbar.LENGTH_SHORT
+                    )
+                        .show()
+                }
+                val layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                )
+                layoutParams.weight = 1F
+                layoutParams.setMargins(10, 10, 10, 10)
+                button.layoutParams = layoutParams
+                //1～3は一段目
+                if (i in 1..3) {
+                    view.enquate_linearlayout_1.addView(button)
+                }
+                //4～6は一段目
+                if (i in 4..6) {
+                    view.enquate_linearlayout_2.addView(button)
+                }
+                //7～9は一段目
+                if (i in 7..9) {
+                    view.enquate_linearlayout_3.addView(button)
+                }
+            }
+        } else {
+            //アンケ結果
+            if (live_framelayout.childCount == 3) {
+                live_framelayout.removeViewAt(live_framelayout.childCount - 1)
+            }
+            live_framelayout.addView(view)
+            val jsonArray = JSONArray(enquateResultMessageToJSONArray(message))
+            val questionJsonArray = JSONArray(enquateJSONArray)
+            //０個目はタイトル
+            val title = questionJsonArray.getString(0)
+            view.enquate_title.text = title
+            //共有で使う文字
+            var shareText = ""
+            //結果は０個めから
+            for (i in 1 until questionJsonArray.length()) {
+                val result = jsonArray.getString(i - 1)
+                val question = questionJsonArray.getString(i)
+                val text = question + "\n" + enquatePerText(result)
+                val button = MaterialButton(this)
+                button.text = text
+                val layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                )
+                layoutParams.weight = 1F
+                layoutParams.setMargins(10, 10, 10, 10)
+                button.layoutParams = layoutParams
+                //1～3は一段目
+                if (i in 1..3) {
+                    view.enquate_linearlayout_1.addView(button)
+                }
+                //4～6は一段目
+                if (i in 4..6) {
+                    view.enquate_linearlayout_2.addView(button)
+                }
+                //7～9は一段目
+                if (i in 7..9) {
+                    view.enquate_linearlayout_3.addView(button)
+                }
+                //共有の文字
+                shareText += "$question : ${enquatePerText(result)}\n"
+            }
+            //アンケ結果を共有
+            Snackbar.make(
+                activity_comment_linearlayout,
+                getString(R.string.enquate_result),
+                Snackbar.LENGTH_LONG
+            ).setAction(getString(R.string.share)) {
+                //共有する
+                share(shareText, "$title($programTitle-$liveId)")
+            }.show()
+        }
+    }
+
+    fun enquateStartMessageToJSONArray(message: String): String {
+        //無理やりJSON配列にする
+        var comment = message
+        comment = comment.replace("/vote start ", "[")
+        comment += "]"
+        comment = comment.replace("\\s".toRegex(), ",")  //正規表現でスペースを,にする
+        return comment
+    }
+
+    fun enquateResultMessageToJSONArray(message: String): String {
+        //無理やりJSON配列にする
+        var comment = message
+        comment = comment.replace("/vote showresult per ", "[")
+        comment += "]"
+        comment = comment.replace("\\s".toRegex(), ",")  //正規表現でスペースを,にする
+        return comment
+    }
+
+    //アンケートの結果を％表示
+    fun enquatePerText(per: String): StringBuilder {
+        val result = StringBuilder(per).insert(per.length - 1, ".").append("%")
+        return result
+    }
+
+    //アンケートへ応答。0が１番目？
+    fun enquatePOST(pos: Int) {
+        val jsonArray = JSONArray()
+        jsonArray.put(pos)
+        val bodyObject = JSONObject()
+        bodyObject.put("command", "answerenquete")
+        bodyObject.put("params", jsonArray)
+        val jsonObject = JSONObject()
+        jsonObject.put("type", "watch")
+        jsonObject.put("body", bodyObject)
+        connectionNicoLiveWebSocket.send(jsonObject.toString())
+    }
+
+    fun share(shareText: String, shareTitle: String) {
+        val builder = ShareCompat.IntentBuilder.from(this)
+        builder.setChooserTitle(shareTitle)
+        builder.setSubject(shareTitle)
+        builder.setText(shareText)
+        builder.setType("text/plain")
+        builder.startChooser()
     }
 
 

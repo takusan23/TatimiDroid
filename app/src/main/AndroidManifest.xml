@@ -19,11 +19,7 @@
         <service android:name=".AutoAdmissionService"></service>
 
         <activity android:name=".Activity.KonoApp"></activity>
-        <activity
-                android:name=".Activity.CommentActivity"
-                android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-                android:resizeableActivity="true"
-                android:supportsPictureInPicture="true" />
+        <activity android:name=".Activity.CommentActivity" />
         <activity android:name=".Activity.LicenceActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
