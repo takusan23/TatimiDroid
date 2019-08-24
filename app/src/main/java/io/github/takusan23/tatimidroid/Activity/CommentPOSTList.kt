@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentPOSTListRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
@@ -29,6 +30,10 @@ class CommentPOSTList : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_comment_postlist)
+
+        val darkModeSupport = DarkModeSupport(this)
+        darkModeSupport.setActivityTheme(this)
+
 
         supportActionBar?.title = getString(R.string.comment_post_list)
 

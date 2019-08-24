@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
-import android.provider.DocumentsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +18,8 @@ import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
+import kotlinx.android.synthetic.main.fragment_community_list_layout.*
+import kotlinx.android.synthetic.main.fragment_community_list_layout.community_recyclerview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.*
@@ -31,8 +32,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class CommunityListFragment : Fragment() {
 
+class CommunityListFragment : Fragment() {
     var user_session = ""
     lateinit var pref_setting: SharedPreferences
     var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
@@ -43,17 +44,21 @@ class CommunityListFragment : Fragment() {
     lateinit var autoAdmissionSQLiteSQLite: AutoAdmissionSQLiteSQLite
     lateinit var sqLiteDatabase: SQLiteDatabase
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_commnunity_list_layout, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
         val darkModeSupport = DarkModeSupport(context!!)
-        program_tablayout.backgroundTintList = ColorStateList.valueOf(darkModeSupport.getThemeColor())
+        program_tablayout.backgroundTintList =
+            ColorStateList.valueOf(darkModeSupport.getThemeColor())
 
         (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.follow_program)
 
@@ -68,7 +73,11 @@ class CommunityListFragment : Fragment() {
 
         user_session = pref_setting.getString("user_session", "") ?: ""
 
+        (activity as AppCompatActivity).supportActionBar?.title =
+            getString(R.string.follow_program)
+
         getFavouriteCommunity()
+
         program_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
 
@@ -78,31 +87,181 @@ class CommunityListFragment : Fragment() {
             }
 
             override fun onTabSelected(tab: TabLayout.Tab?) {
+                //クリア
+                recyclerViewList.clear()
+                community_recyclerview.adapter?.notifyDataSetChanged()
+
                 when (tab?.text ?: "") {
                     getString(R.string.follow_program) -> {
                         GlobalScope.launch {
                             getFavouriteCommunity()
                         }
-                        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.follow_program)
+                        (activity as AppCompatActivity).supportActionBar?.title =
+                            getString(R.string.follow_program)
                     }
                     getString(R.string.nicorepo) -> {
                         GlobalScope.launch {
                             getNicorepo()
                         }
-                        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.nicorepo)
+                        (activity as AppCompatActivity).supportActionBar?.title =
+                            getString(R.string.nicorepo)
                     }
                     getString(R.string.auto_admission) -> {
                         getAutoAdmissionList()
-                        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.auto_admission)
+                        (activity as AppCompatActivity).supportActionBar?.title =
+                            getString(R.string.auto_admission)
                         //Service再起動
                         val intent = Intent(context, AutoAdmissionService::class.java)
                         context?.stopService(intent)
                         context?.startService(intent)
                     }
+                    getString(R.string.osusume) -> {
+                        GlobalScope.launch {
+                            getRecommend()
+                        }
+                        (activity as AppCompatActivity).supportActionBar?.title =
+                            getString(R.string.osusume)
+                    }
+                    getString(R.string.ranking) -> {
+                        GlobalScope.launch {
+                            getRanking()
+                        }
+                        (activity as AppCompatActivity).supportActionBar?.title =
+                            getString(R.string.ranking)
+                    }
                 }
             }
         })
 
+
+    }
+
+    fun setTitle(title: String) {
+        activity?.runOnUiThread {
+            (activity as AppCompatActivity).supportActionBar?.title = title
+        }
+    }
+
+    //ランキング取得
+    fun getRanking() {
+        recyclerViewList.clear()
+        GlobalScope.launch {
+            val document =
+                Jsoup.connect("https://sp.live.nicovideo.jp/ranking")
+                    .cookie("user_session", user_session)
+                    .get()
+
+            //JSONっぽいのがあるので取り出す
+            val json = document.head().getElementsByTag("script").get(3)
+            var json_string = URLDecoder.decode(json.html(), "utf-8")
+
+            json_string = json_string.replace("window.__initial_state__ = \"", "")
+            json_string =
+                json_string.replace(
+                    "window.__public_path__ = \"https://nicolive.cdn.nimg.jp/relive/sp/\";",
+                    ""
+                )
+            json_string =
+                json_string.replace("\";", "")
+
+            try {
+                val jsonObject = JSONObject(json_string)
+
+
+                //JSON解析
+                val programs =
+                    jsonObject.getJSONObject("pageContents").getJSONObject("ranking")
+                        .getJSONObject("rankingPrograms")
+                        .getJSONArray("rankingPrograms")
+
+                //for
+                for (i in 0 until programs.length()) {
+                    val jsonObject = programs.getJSONObject(i)
+                    val programId = jsonObject.getString("id")
+                    val title = jsonObject.getString("title")
+                    val beginAt = jsonObject.getString("beginAt")
+                    val communityName = jsonObject.getString("socialGroupName")
+                    val liveNow = jsonObject.getString("liveCycle") //放送中か？
+                    val rank = jsonObject.getString("rank")
+                    //RecyclerView追加
+                    val item = arrayListOf<String>()
+                    item.add("")
+                    item.add(title)
+                    item.add(communityName)
+                    item.add(title)
+                    item.add(beginAt)
+                    item.add(beginAt)
+                    item.add(programId)
+                    item.add(beginAt)
+                    item.add(liveNow)
+                    recyclerViewList.add(item)
+                }
+                //リスト更新
+                activity?.runOnUiThread {
+                    communityRecyclerViewAdapter.notifyDataSetChanged()
+                    community_recyclerview.adapter = communityRecyclerViewAdapter
+                }
+
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    //おすすめの番組
+    fun getRecommend() {
+        recyclerViewList.clear()
+        GlobalScope.launch {
+            val document =
+                Jsoup.connect("https://live.nicovideo.jp/?header")
+                    .cookie("user_session", user_session)
+                    .get()
+
+            //JSONっぽいのがあるので取り出す
+            val json = document.getElementById("embedded-data").getElementsByAttribute("data-props")
+
+
+            val json_string = json.attr("data-props")
+
+            try {
+                val jsonObject = JSONObject(json_string)
+
+                //JSON解析
+                val programs =
+                    jsonObject.getJSONObject("view").getJSONObject("recommendedProgramListState")
+                        .getJSONArray("programList")
+
+                //for
+                for (i in 0 until programs.length()) {
+                    val jsonObject = programs.getJSONObject(i)
+                    val programId = jsonObject.getString("id")
+                    val title = jsonObject.getString("title")
+                    val beginAt = jsonObject.getString("beginAt")
+                    val communityName = jsonObject.getJSONObject("socialGroup").getString("name")
+                    val liveNow = jsonObject.getString("liveCycle") //放送中か？
+                    //RecyclerView追加
+                    val item = arrayListOf<String>()
+                    item.add("")
+                    item.add(title)
+                    item.add(communityName)
+                    item.add(title)
+                    item.add(beginAt)
+                    item.add(beginAt)
+                    item.add(programId)
+                    item.add(beginAt)
+                    item.add("Begun")
+                    recyclerViewList.add(item)
+                }
+                //リスト更新
+                activity?.runOnUiThread {
+                    communityRecyclerViewAdapter.notifyDataSetChanged()
+                    community_recyclerview.adapter = communityRecyclerViewAdapter
+                }
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+
+        }
     }
 
 
@@ -113,26 +272,31 @@ class CommunityListFragment : Fragment() {
         recyclerViewList.clear()
         GlobalScope.launch {
             val document =
-                Jsoup.connect("https://sp.live.nicovideo.jp/favorites").cookie("user_session", user_session)
+                Jsoup.connect("https://sp.live.nicovideo.jp/favorites")
+                    .cookie("user_session", user_session)
                     .get()
 
             //JSONっぽいのがあるので取り出す
             val json = document.head().getElementsByTag("script").get(3)
             var json_string = json.html().replace("window.__initial_state__ = \"", "")
             json_string =
-                json_string.replace("window.__public_path__ = \"https://nicolive.cdn.nimg.jp/relive/sp/\";", "")
+                json_string.replace(
+                    "window.__public_path__ = \"https://nicolive.cdn.nimg.jp/relive/sp/\";",
+                    ""
+                )
             json_string =
                 json_string.replace("}}\";", "")
 
             //URLデコードする
             json_string = URLDecoder.decode(json_string, "UTF-8")
-            try{
+            try {
                 val jsonObject = JSONObject(json_string)
 
 
                 //JSON解析
                 val programs =
-                    jsonObject.getJSONObject("pageContents").getJSONObject("favorites").getJSONObject("favoritePrograms")
+                    jsonObject.getJSONObject("pageContents").getJSONObject("favorites")
+                        .getJSONObject("favoritePrograms")
                         .getJSONArray("programs")
                 //for
                 for (i in 0 until programs.length()) {
@@ -160,7 +324,7 @@ class CommunityListFragment : Fragment() {
                     communityRecyclerViewAdapter.notifyDataSetChanged()
                     community_recyclerview.adapter = communityRecyclerViewAdapter
                 }
-            }catch (e:JSONException){
+            } catch (e: JSONException) {
                 e.printStackTrace()
             }
         }
@@ -199,8 +363,10 @@ class CommunityListFragment : Fragment() {
                                 val liveId = program.getString("id")
 
                                 //変換
-                                val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:SS.sssX")
-                                val date_calender = simpleDateFormat.parse(program.getString("beginAt"))
+                                val simpleDateFormat =
+                                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:SS.sssX")
+                                val date_calender =
+                                    simpleDateFormat.parse(program.getString("beginAt"))
                                 val calender = Calendar.getInstance(TimeZone.getDefault())
                                 calender.time = date_calender
 

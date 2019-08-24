@@ -33,7 +33,7 @@ class KonoApp : AppCompatActivity() {
     /*
     * バージョンとか
     * */
-    val version = "2.0"
+    val version = "2.1.0 2019/08/24"
     val codeName1 = "（β）"
 
     override fun onCreate(savedInstanceState: Bundle?) {

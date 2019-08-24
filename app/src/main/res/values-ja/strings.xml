@@ -127,4 +127,7 @@
     <string name="enquate">アンケート</string>
     <string name="enquate_result">アンケート結果</string>
     <string name="share">共有</string>
+    <string name="program_search">番組検索</string>
+    <string name="osusume">あなたにおすすめの番組</string>
+    <string name="ranking">ランキング</string>
 </resources>
