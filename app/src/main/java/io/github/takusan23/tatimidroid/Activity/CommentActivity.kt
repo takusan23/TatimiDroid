@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.*
+import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
@@ -42,12 +43,12 @@ import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ShareCompat
-import androidx.core.view.size
 import com.google.android.material.button.MaterialButton
 import io.github.takusan23.tatimidroid.Fragment.*
+import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
-import kotlinx.android.synthetic.main.overlay_player_layout.*
+import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import java.lang.StringBuilder
@@ -88,6 +89,9 @@ class CommentActivity : AppCompatActivity() {
     var hls_address = ""
     //こてはん（固定ハンドルネーム　配列
     val kotehanMap = mutableMapOf<String, String>()
+
+    //生放送を見る場合はtrue
+    var watchLive = false
 
     //TTS使うか
     var isTTS = false
@@ -177,6 +181,12 @@ class CommentActivity : AppCompatActivity() {
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
 
+        //視聴モードならtrue
+        isWatchingMode = pref_setting.getBoolean("setting_watching_mode", false)
+
+        //生放送を視聴する場合はtrue
+        watchLive = pref_setting.getBoolean("setting_watch_live", false)
+
         //とりあえずコメントViewFragmentへ
         val fragmentTransaction = supportFragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.activity_comment_linearlayout, CommentViewFragment())
@@ -195,14 +205,30 @@ class CommentActivity : AppCompatActivity() {
         //アンケートテスト
         //testEnquate()
 
-        //コメント投稿画面開く
-        fab.setOnClickListener {
-            val commentPOSTBottomFragment = CommentPOSTBottomFragment()
-            commentPOSTBottomFragment.show(supportFragmentManager, "comment")
+        //視聴しない場合は非表示
+        if (!watchLive) {
+            live_framelayout.visibility = View.GONE
         }
 
-        //視聴モードならtrue
-        isWatchingMode = pref_setting.getBoolean("setting_watching_mode", false)
+        //コメント投稿画面開く
+        fab.setOnClickListener {
+            //新しいコメント投稿画面を利用するか？
+            if (pref_setting.getBoolean("setting_new_comment", false)) {
+                //表示アニメーションに挑戦した。
+                val showAnimation =
+                    AnimationUtils.loadAnimation(this, R.anim.comment_cardview_show_animation);
+                //表示
+                comment_activity_comment_cardview.startAnimation(showAnimation)
+                comment_activity_comment_cardview.visibility = View.VISIBLE
+                fab.hide()
+                //コメント投稿など
+                commentCardView()
+            } else {
+                //旧式
+                val commentPOSTBottomFragment = CommentPOSTBottomFragment()
+                commentPOSTBottomFragment.show(supportFragmentManager, "comment")
+            }
+        }
 
         //ログイン情報がなければ戻す
         if (pref_setting.getString("mail", "")?.contains("") != false) {
@@ -813,7 +839,7 @@ class CommentActivity : AppCompatActivity() {
                             //アンケ終了
                             if (content.contains("/vote stop")) {
                                 if (live_framelayout.childCount <= 3) {
-                                    runOnUiThread{
+                                    runOnUiThread {
                                         for (i in 2 until live_framelayout.childCount) {
                                             live_framelayout.removeViewAt(i)
                                         }
@@ -926,6 +952,7 @@ class CommentActivity : AppCompatActivity() {
                 "application/json; charset=utf-8".toMediaTypeOrNull(),
                 jsonObject.toString()
             )
+            println(jsonObject.toString())
 
             val request = Request.Builder()
                 .url("https://api.cas.nicovideo.jp/v1/services/live/programs/${liveId}/comments")
@@ -1599,6 +1626,77 @@ class CommentActivity : AppCompatActivity() {
         builder.setText(shareText)
         builder.setType("text/plain")
         builder.startChooser()
+    }
+
+    //新しいコメント投稿画面
+    fun commentCardView() {
+        //投稿ボタンを押したら投稿
+        comment_cardview_comment_send_button.setOnClickListener {
+            val comment = comment_cardview_comment_textinputlayout.text.toString()
+            sendComment(comment)
+            comment_cardview_comment_textinputlayout.setText("")
+        }
+        //Enterキーを押したら投稿する
+        comment_cardview_comment_textinputlayout.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
+            if (i == KeyEvent.KEYCODE_ENTER) {
+                if (comment_cardview_comment_textinputlayout.text.toString().isNotEmpty()) {
+                    //コメント投稿
+                    sendComment(comment_cardview_comment_textinputlayout.text.toString())
+                    comment_cardview_comment_textinputlayout.setText("")
+                }
+            }
+            false
+        }
+        //コメント投稿リスト読み込み
+        loadCommentPOSTList()
+        //閉じるボタン
+        comment_cardview_close_button.setOnClickListener {
+            //非表示アニメーションに挑戦した。
+            val hideAnimation =
+                AnimationUtils.loadAnimation(this, R.anim.comment_cardview_hide_animation);
+            //表示
+            comment_activity_comment_cardview.startAnimation(hideAnimation)
+            comment_activity_comment_cardview.visibility = View.GONE
+            fab.show()
+        }
+    }
+
+
+    fun loadCommentPOSTList() {
+
+        //データベース
+        val commentPOSTList = CommentPOSTListSQLiteHelper(this)
+        val sqLiteDatabase = commentPOSTList.writableDatabase
+        commentPOSTList.setWriteAheadLoggingEnabled(false)
+        //データ読み出し
+        val cursor = sqLiteDatabase.query(
+            "comment_post_list",
+            arrayOf("comment", "description"),
+            null, null, null, null, null
+        )
+        cursor.moveToFirst()
+        //ポップアップメニュー
+        val popup = PopupMenu(this, comment_cardview_comment_list_button);
+
+        for (i in 0 until cursor.count) {
+            //コメント
+            val comment = cursor.getString(0)
+            //メニュー追加
+            popup.menu.add(comment)
+            cursor.moveToNext()
+        }
+        //閉じる
+        cursor.close()
+        //ポップアップメニュー押したとき
+        popup.setOnMenuItemClickListener {
+            bottom_fragment_post_edittext.text?.append(it.title)
+            true
+        }
+        //表示
+        comment_cardview_comment_list_button.setOnClickListener {
+            popup.show()
+        }
+
     }
 
 

@@ -130,4 +130,6 @@
     <string name="program_search">番組検索</string>
     <string name="osusume">あなたにおすすめの番組</string>
     <string name="ranking">ランキング</string>
+    <string name="setting_new_comment_area_title">新しいコメント投稿画面を利用する</string>
+    <string name="setting_new_comment_area_description">新しいコメント投稿では、常に下の方にコメント投稿ができるように表示されています。</string>
 </resources>

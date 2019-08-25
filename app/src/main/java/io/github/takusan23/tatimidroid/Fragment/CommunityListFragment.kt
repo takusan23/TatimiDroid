@@ -76,7 +76,9 @@ class CommunityListFragment : Fragment() {
         (activity as AppCompatActivity).supportActionBar?.title =
             getString(R.string.follow_program)
 
+        //参加中のコミュニティ読み込み
         getFavouriteCommunity()
+        community_swipe.isRefreshing = true
 
         program_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
@@ -90,50 +92,61 @@ class CommunityListFragment : Fragment() {
                 //クリア
                 recyclerViewList.clear()
                 community_recyclerview.adapter?.notifyDataSetChanged()
-
-                when (tab?.text ?: "") {
-                    getString(R.string.follow_program) -> {
-                        GlobalScope.launch {
-                            getFavouriteCommunity()
-                        }
-                        (activity as AppCompatActivity).supportActionBar?.title =
-                            getString(R.string.follow_program)
-                    }
-                    getString(R.string.nicorepo) -> {
-                        GlobalScope.launch {
-                            getNicorepo()
-                        }
-                        (activity as AppCompatActivity).supportActionBar?.title =
-                            getString(R.string.nicorepo)
-                    }
-                    getString(R.string.auto_admission) -> {
-                        getAutoAdmissionList()
-                        (activity as AppCompatActivity).supportActionBar?.title =
-                            getString(R.string.auto_admission)
-                        //Service再起動
-                        val intent = Intent(context, AutoAdmissionService::class.java)
-                        context?.stopService(intent)
-                        context?.startService(intent)
-                    }
-                    getString(R.string.osusume) -> {
-                        GlobalScope.launch {
-                            getRecommend()
-                        }
-                        (activity as AppCompatActivity).supportActionBar?.title =
-                            getString(R.string.osusume)
-                    }
-                    getString(R.string.ranking) -> {
-                        GlobalScope.launch {
-                            getRanking()
-                        }
-                        (activity as AppCompatActivity).supportActionBar?.title =
-                            getString(R.string.ranking)
-                    }
-                }
+                setNicoLoad(tab?.text.toString() ?: getString(R.string.follow_program))
             }
         })
 
+        community_swipe.setOnRefreshListener {
+            val pos = program_tablayout.selectedTabPosition
+            val text = program_tablayout.getTabAt(pos)?.text ?: getString(R.string.follow_program)
+            setNicoLoad(text.toString())
+        }
 
+
+    }
+
+    fun setNicoLoad(text: String) {
+        //くるくる
+        community_swipe.isRefreshing = true
+        when (text) {
+            getString(R.string.follow_program) -> {
+                GlobalScope.launch {
+                    getFavouriteCommunity()
+                }
+                (activity as AppCompatActivity).supportActionBar?.title =
+                    getString(R.string.follow_program)
+            }
+            getString(R.string.nicorepo) -> {
+                GlobalScope.launch {
+                    getNicorepo()
+                }
+                (activity as AppCompatActivity).supportActionBar?.title =
+                    getString(R.string.nicorepo)
+            }
+            getString(R.string.auto_admission) -> {
+                getAutoAdmissionList()
+                (activity as AppCompatActivity).supportActionBar?.title =
+                    getString(R.string.auto_admission)
+                //Service再起動
+                val intent = Intent(context, AutoAdmissionService::class.java)
+                context?.stopService(intent)
+                context?.startService(intent)
+            }
+            getString(R.string.osusume) -> {
+                GlobalScope.launch {
+                    getRecommend()
+                }
+                (activity as AppCompatActivity).supportActionBar?.title =
+                    getString(R.string.osusume)
+            }
+            getString(R.string.ranking) -> {
+                GlobalScope.launch {
+                    getRanking()
+                }
+                (activity as AppCompatActivity).supportActionBar?.title =
+                    getString(R.string.ranking)
+            }
+        }
     }
 
     fun setTitle(title: String) {
@@ -200,6 +213,7 @@ class CommunityListFragment : Fragment() {
                 activity?.runOnUiThread {
                     communityRecyclerViewAdapter.notifyDataSetChanged()
                     community_recyclerview.adapter = communityRecyclerViewAdapter
+                    community_swipe.isRefreshing = false
                 }
 
             } catch (e: JSONException) {
@@ -256,6 +270,7 @@ class CommunityListFragment : Fragment() {
                 activity?.runOnUiThread {
                     communityRecyclerViewAdapter.notifyDataSetChanged()
                     community_recyclerview.adapter = communityRecyclerViewAdapter
+                    community_swipe.isRefreshing = false
                 }
             } catch (e: JSONException) {
                 e.printStackTrace()
@@ -323,6 +338,7 @@ class CommunityListFragment : Fragment() {
                 activity?.runOnUiThread {
                     communityRecyclerViewAdapter.notifyDataSetChanged()
                     community_recyclerview.adapter = communityRecyclerViewAdapter
+                    community_swipe.isRefreshing = false
                 }
             } catch (e: JSONException) {
                 e.printStackTrace()
@@ -389,6 +405,7 @@ class CommunityListFragment : Fragment() {
                     activity?.runOnUiThread {
                         communityRecyclerViewAdapter.notifyDataSetChanged()
                         community_recyclerview.adapter = communityRecyclerViewAdapter
+                        community_swipe.isRefreshing = false
                     }
                 } else {
                     showToast(getString(R.string.error) + "\n" + response.code)
@@ -458,6 +475,7 @@ class CommunityListFragment : Fragment() {
         activity?.runOnUiThread {
             autoAdmissionAdapter.notifyDataSetChanged()
             community_recyclerview.adapter = autoAdmissionAdapter
+            community_swipe.isRefreshing = false
         }
     }
 

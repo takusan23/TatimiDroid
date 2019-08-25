@@ -25,6 +25,13 @@
             android:summary="@string/room_color_description"
             android:title="@string/room_color_title" />
 
+    <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_new_comment_icon"
+            android:key="setting_new_comment"
+            android:summary="@string/setting_new_comment_area_description"
+            android:title="@string/setting_new_comment_area_title" />
+
     <Preference
             android:icon="@drawable/ic_outline_stop_24px"
             android:key="auto_admission_stop_preference"

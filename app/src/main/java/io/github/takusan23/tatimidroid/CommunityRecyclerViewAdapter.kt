@@ -24,6 +24,8 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Fragment.AutoAdmissionBottomFragment
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
+import io.github.takusan23.tatimidroid.Fragment.CommunityListFragment
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_liveid.*
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
@@ -44,6 +46,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val content = holder.timeTextView.context
+        val activity = (content as MainActivity)
         val darkModeSupport = DarkModeSupport(content)
 
         val item = arrayListArrayAdapter[position] as ArrayList<String>
@@ -124,7 +127,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
                                 (content as AppCompatActivity).supportFragmentManager,
                                 "auto_admission"
                             )
-                        }.show()
+                        }.setAnchorView(activity.main_activity_bottom_navigationview).show()
                     //Toast.makeText(content, content.getText(R.string.timeshift_wait), Toast.LENGTH_SHORT).show()
                 }
             }

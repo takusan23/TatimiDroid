@@ -130,4 +130,6 @@
     <string name="program_search">Program search</string>
     <string name="osusume">Recommended programs for you</string>
     <string name="ranking">Ranking</string>
+    <string name="setting_new_comment_area_title">Use the new comment posting screen.</string>
+    <string name="setting_new_comment_area_description">New comment posts are always displayed at the bottom so you can post comments.</string>
 </resources>

@@ -115,7 +115,7 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
 
             //クリック
             chip.setOnClickListener {
-                bottom_fragment_post_edittext.setText(comment)
+                bottom_fragment_post_edittext.append(comment)
             }
 
             cursor.moveToNext()
