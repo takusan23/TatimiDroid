@@ -1528,57 +1528,57 @@ class CommentActivity : AppCompatActivity() {
                 }
             }
         } else {
-            println(enquateJSONArray)
-            // //アンケ結果
-            // if (live_framelayout.childCount == 3) {
-            //     live_framelayout.removeViewAt(live_framelayout.childCount - 1)
-            // }
-            // live_framelayout.addView(view)
-            // val jsonArray = JSONArray(enquateResultMessageToJSONArray(message))
-            // val questionJsonArray = JSONArray(enquateJSONArray)
-            // //０個目はタイトル
-            // val title = questionJsonArray.getString(0)
-            // view.enquate_title.text = title
-            // //共有で使う文字
-            // var shareText = ""
-            // //結果は０個めから
-            // for (i in 0 until jsonArray.length()) {
-            //     val result = jsonArray.getString(i)
-            //     val question = questionJsonArray.getString(i + 1)
-            //     val text = question + "\n" + enquatePerText(result)
-            //     val button = MaterialButton(this)
-            //     button.text = text
-            //     val layoutParams = LinearLayout.LayoutParams(
-            //         LinearLayout.LayoutParams.MATCH_PARENT,
-            //         LinearLayout.LayoutParams.MATCH_PARENT
-            //     )
-            //     layoutParams.weight = 1F
-            //     layoutParams.setMargins(10, 10, 10, 10)
-            //     button.layoutParams = layoutParams
-            //     //1～3は一段目
-            //     if (i in 0..2) {
-            //         view.enquate_linearlayout_1.addView(button)
-            //     }
-            //     //4～6は一段目
-            //     if (i in 3..5) {
-            //         view.enquate_linearlayout_2.addView(button)
-            //     }
-            //     //7～9は一段目
-            //     if (i in 6..8) {
-            //         view.enquate_linearlayout_3.addView(button)
-            //     }
-            //     //共有の文字
-            //     shareText += "$question : ${enquatePerText(result)}\n"
-            // }
-            // //アンケ結果を共有
-            // Snackbar.make(
-            //     activity_comment_linearlayout,
-            //     getString(R.string.enquate_result),
-            //     Snackbar.LENGTH_LONG
-            // ).setAction(getString(R.string.share)) {
-            //     //共有する
-            //     share(shareText, "$title($programTitle-$liveId)")
-            // }.show()
+            //println(enquateJSONArray)
+            //アンケ結果
+            if (live_framelayout.childCount == 3) {
+                live_framelayout.removeViewAt(live_framelayout.childCount - 1)
+            }
+            live_framelayout.addView(view)
+            val jsonArray = JSONArray(enquateResultMessageToJSONArray(message))
+            val questionJsonArray = JSONArray(enquateJSONArray)
+            //０個目はタイトル
+            val title = questionJsonArray.getString(0)
+            view.enquate_title.text = title
+            //共有で使う文字
+            var shareText = ""
+            //結果は０個めから
+            for (i in 0 until jsonArray.length()) {
+                val result = jsonArray.getString(i)
+                val question = questionJsonArray.getString(i + 1)
+                val text = question + "\n" + enquatePerText(result)
+                val button = MaterialButton(this)
+                button.text = text
+                val layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                )
+                layoutParams.weight = 1F
+                layoutParams.setMargins(10, 10, 10, 10)
+                button.layoutParams = layoutParams
+                //1～3は一段目
+                if (i in 0..2) {
+                    view.enquate_linearlayout_1.addView(button)
+                }
+                //4～6は一段目
+                if (i in 3..5) {
+                    view.enquate_linearlayout_2.addView(button)
+                }
+                //7～9は一段目
+                if (i in 6..8) {
+                    view.enquate_linearlayout_3.addView(button)
+                }
+                //共有の文字
+                shareText += "$question : ${enquatePerText(result)}\n"
+            }
+            //アンケ結果を共有
+            Snackbar.make(
+                activity_comment_linearlayout,
+                getString(R.string.enquate_result),
+                Snackbar.LENGTH_LONG
+            ).setAction(getString(R.string.share)) {
+                //共有する
+                share(shareText, "$title($programTitle-$liveId)")
+            }.show()
         }
     }
 
