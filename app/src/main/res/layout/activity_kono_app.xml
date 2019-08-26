@@ -53,6 +53,12 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/kono_app_sourcecode"/>
 
+            <Button
+                    android:id="@+id/kono_app_privacy_policy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/privacy_policy" />
+
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
