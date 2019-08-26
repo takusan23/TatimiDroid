@@ -30,7 +30,7 @@ class KonoApp : AppCompatActivity() {
     val twitterLink = "https://twitter.com/takusan__23"
     val mastodonLink = "https://best-friends.chat/@takusan_23"
     val source = "https://github.com/takusan23/TatimiDroid"
-    val privacy_policy = "https://github.com/takusan23/TatimiDroid"
+    val privacy_policy = "https://github.com/takusan23/TatimiDroid/blob/master/privacy_policy.md"
     /*
     * バージョンとか
     * */
@@ -73,7 +73,7 @@ class KonoApp : AppCompatActivity() {
 
         kono_app_privacy_policy.setOnClickListener {
             //プライバシーポリシー
-
+            startBrowser(privacy_policy)
         }
     }
 

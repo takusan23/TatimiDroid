@@ -94,6 +94,11 @@
                 android:key="konoapp_preference"
                 android:title="@string/kono_app" />
 
+        <Preference
+                android:icon="@drawable/ic_policy_black"
+                android:key="konoapp_privacy"
+                android:title="@string/privacy_policy" />
+
     </PreferenceCategory>
 
 
