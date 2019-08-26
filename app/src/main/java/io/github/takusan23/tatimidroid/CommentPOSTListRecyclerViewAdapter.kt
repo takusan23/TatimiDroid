@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid
 
+import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.view.LayoutInflater
 import android.view.View
@@ -9,15 +10,18 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.Activity.CommentPOSTList
+import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.Activity.CommentCollectionListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
+import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
+import kotlinx.android.synthetic.main.activity_comment_postlist.*
 import java.util.ArrayList
 
 class CommentPOSTListRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
     RecyclerView.Adapter<CommentPOSTListRecyclerViewAdapter.ViewHolder>() {
 
-    lateinit var commentPOSTList: CommentPOSTListSQLiteHelper
+    lateinit var commentCollectionSQLiteHelper: CommentCollectionSQLiteHelper
     lateinit var sqLiteDatabase: SQLiteDatabase
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -34,16 +38,23 @@ class CommentPOSTListRecyclerViewAdapter(private val arrayListArrayAdapter: Arra
 
         val item = arrayListArrayAdapter[position] as ArrayList<String>
         val title = item.get(1)
+        val yomi = item.get(2)
 
-        if (!this@CommentPOSTListRecyclerViewAdapter::commentPOSTList.isInitialized) {
+        val context = holder.textview.context
+        val commentActivity = context as CommentCollectionListActivity
+
+        if (!this@CommentPOSTListRecyclerViewAdapter::commentCollectionSQLiteHelper.isInitialized) {
             //データベース
-            commentPOSTList = CommentPOSTListSQLiteHelper(holder.textview.context)
-            sqLiteDatabase = commentPOSTList.writableDatabase
-            commentPOSTList.setWriteAheadLoggingEnabled(false)
+            commentCollectionSQLiteHelper = CommentCollectionSQLiteHelper(context)
+            sqLiteDatabase = commentCollectionSQLiteHelper.writableDatabase
+            commentCollectionSQLiteHelper.setWriteAheadLoggingEnabled(false)
         }
 
+        //入れる
         holder.textview.text = title
-        val context = holder.textview.context
+        holder.yomitextview.text = yomi
+
+        //削除
         holder.deletebutton.setOnClickListener {
             //Snackbar
             Snackbar.make(
@@ -54,14 +65,13 @@ class CommentPOSTListRecyclerViewAdapter(private val arrayListArrayAdapter: Arra
                 .setAction(context.getText(R.string.delete)) {
                     //削除
                     sqLiteDatabase.delete(
-                        "comment_post_list",
+                        "comment_collection_db",
                         "comment=?",
-                        arrayOf(holder.textview.text.toString())
+                        arrayOf(title)
                     )
                     //再読み込み
-                    if (context is CommentPOSTList) {
-                        context.loadList()
-                    }
+                    context.loadList()
+
                     //消したメッセージ
                     Snackbar.make(
                         holder.textview,
@@ -71,16 +81,27 @@ class CommentPOSTListRecyclerViewAdapter(private val arrayListArrayAdapter: Arra
                 }.show()
         }
 
+        //編集
+        holder.editbutton.setOnClickListener {
+            //ActivityのEditTextに入れる
+            commentActivity.activity_comment_post_list_comment_inputedittext.setText(title)
+            commentActivity.activity_comment_post_list_yomi_inputedittext.setText(yomi)
+        }
+
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         var textview: TextView
+        var yomitextview: TextView
         var deletebutton: ImageButton
+        var editbutton: ImageButton
 
         init {
             textview = itemView.findViewById(R.id.adapter_comment_post_list_textview)
+            yomitextview = itemView.findViewById(R.id.adapter_comment_post_list_yomi_textview)
             deletebutton = itemView.findViewById(R.id.adapter_comment_post_list_delete_button)
+            editbutton = itemView.findViewById(R.id.adapter_comment_post_list_edit_button)
         }
     }
 }

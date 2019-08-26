@@ -6,7 +6,14 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:visibility="visible"
-        tools:context=".Activity.CommentPOSTList">
+        tools:context=".Activity.CommentCollectionListActivity">
+
+    <TextView
+            android:id="@+id/textView8"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="@string/comment_collection_yomi_message" />
 
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/activity_comment_post_list_recyclerview"
@@ -17,23 +24,49 @@
     </androidx.recyclerview.widget.RecyclerView>
 
     <LinearLayout
-            android:padding="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="10dp">
 
-        <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/activity_comment_post_list_inputedittext"
+            <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/comment" />
-        </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_weight="1">
+
+                <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/activity_comment_post_list_comment_inputedittext"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/comment" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/activity_comment_post_list_yomi_inputedittext"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/yomi" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+        </LinearLayout>
+
+        <Space
+                android:layout_width="10dp"
+                android:layout_height="match_parent" />
 
         <Button
                 android:id="@+id/activity_comment_post_list_add"

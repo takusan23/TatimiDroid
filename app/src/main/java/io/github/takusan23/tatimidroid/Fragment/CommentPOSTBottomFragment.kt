@@ -18,12 +18,13 @@ import com.google.android.material.chip.Chip
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
 
 class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
-    lateinit var commentPOSTList: CommentPOSTListSQLiteHelper
+    lateinit var commentCollectionSQLiteHelper: CommentCollectionSQLiteHelper
     lateinit var sqLiteDatabase: SQLiteDatabase
 
     override fun onCreateView(
@@ -41,9 +42,9 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
             ColorDrawable(darkModeSupport.getThemeColor())
 
         //データベース
-        commentPOSTList = CommentPOSTListSQLiteHelper(context!!)
-        sqLiteDatabase = commentPOSTList.writableDatabase
-        commentPOSTList.setWriteAheadLoggingEnabled(false)
+        commentCollectionSQLiteHelper = CommentCollectionSQLiteHelper(context!!)
+        sqLiteDatabase = commentCollectionSQLiteHelper.writableDatabase
+        commentCollectionSQLiteHelper.setWriteAheadLoggingEnabled(false)
 
         val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         val nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
@@ -99,7 +100,7 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
 
     fun loadCommentPOSTList() {
         val cursor = sqLiteDatabase.query(
-            "comment_post_list",
+            "comment_collection_db",
             arrayOf("comment", "description"),
             null, null, null, null, null
         )

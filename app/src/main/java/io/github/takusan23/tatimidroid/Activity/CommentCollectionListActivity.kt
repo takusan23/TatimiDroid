@@ -1,31 +1,30 @@
 package io.github.takusan23.tatimidroid.Activity
 
-import android.content.ContentResolver
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentPOSTListRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.DarkModeSupport
-import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
-import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
-import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
+import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment_postlist.*
-import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
-import kotlinx.android.synthetic.main.fragment_gift_layout.*
 
-class CommentPOSTList : AppCompatActivity() {
+class CommentCollectionListActivity : AppCompatActivity() {
 
-    lateinit var commentPOSTList: CommentPOSTListSQLiteHelper
+    lateinit var commentCollection: CommentCollectionSQLiteHelper
     lateinit var sqLiteDatabase: SQLiteDatabase
+
+    //コメントコレクションにすでに登録されていれば上書きする
+    val commentCollectionYomiList = arrayListOf<String>()
 
     var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
     lateinit var commentPOSTListRecyclerViewAdapter: CommentPOSTListRecyclerViewAdapter
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,16 +46,43 @@ class CommentPOSTList : AppCompatActivity() {
         recyclerViewLayoutManager = activity_comment_post_list_recyclerview.layoutManager!!
 
         //データベース
-        commentPOSTList = CommentPOSTListSQLiteHelper(this)
-        sqLiteDatabase = commentPOSTList.writableDatabase
-        commentPOSTList.setWriteAheadLoggingEnabled(false)
+        commentCollection = CommentCollectionSQLiteHelper(this)
+        sqLiteDatabase = commentCollection.writableDatabase
+        commentCollection.setWriteAheadLoggingEnabled(false)
 
         //登録
         activity_comment_post_list_add.setOnClickListener {
+            val comment = activity_comment_post_list_comment_inputedittext.text.toString()
+            val yomi = activity_comment_post_list_yomi_inputedittext.text.toString()
             val contentValues = ContentValues()
-            contentValues.put("comment", activity_comment_post_list_inputedittext.text.toString())
+            contentValues.put("comment", comment)
+            contentValues.put("yomi", yomi)
             contentValues.put("description", "")
-            sqLiteDatabase.insert("comment_post_list", null, contentValues)
+            //上書きするか新規で入れるか。読みがかぶったら上書き。
+            if (commentCollectionYomiList.contains(yomi)) {
+                //上書き
+                sqLiteDatabase.update(
+                    "comment_collection_db",
+                    contentValues,
+                    "yomi=?",
+                    arrayOf(yomi)
+                )
+                //Toast
+                Toast.makeText(
+                    this,
+                    getString(R.string.comment_collection_change_successful),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                //新規
+                sqLiteDatabase.insert("comment_collection_db", null, contentValues)
+                //Toast
+                Toast.makeText(
+                    this,
+                    getString(R.string.comment_collection_add_successful),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             //読み込み
             loadList()
         }
@@ -68,18 +94,23 @@ class CommentPOSTList : AppCompatActivity() {
     fun loadList() {
         recyclerViewList.clear()
         val cursor = sqLiteDatabase.query(
-            "comment_post_list",
-            arrayOf("comment", "description"),
+            "comment_collection_db",
+            arrayOf("comment", "yomi", "description"),
             null, null, null, null, null
         )
         cursor.moveToFirst()
         for (i in 0 until cursor.count) {
             val comment = cursor.getString(0)
+            val yomi = cursor.getString(1)
             //RecyclerView追加
             val item = arrayListOf<String>()
             item.add("")
             item.add(comment)
+            item.add(yomi)
             recyclerViewList.add(item)
+            //上書きか新規か確認できるように配列に入れておく
+            commentCollectionYomiList.add(yomi)
+            //つぎへ
             cursor.moveToNext()
         }
         cursor.close()

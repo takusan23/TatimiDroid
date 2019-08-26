@@ -53,11 +53,11 @@
     <Preference
             android:icon="@drawable/ic_outline_comment_24px"
             android:key="comment_list_activity"
-            android:title="@string/comment_post_list">
+            android:title="@string/comment_collection">
         <!--Activity起動-->
         <intent
                 android:action="android.intent.action.MAIN"
-                android:targetClass="io.github.takusan23.tatimidroid.Activity.CommentPOSTList"
+                android:targetClass="io.github.takusan23.tatimidroid.Activity.CommentCollectionListActivity"
                 android:targetPackage="io.github.takusan23.tatimidroid" />
     </Preference>
 

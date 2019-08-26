@@ -133,4 +133,13 @@
     <string name="setting_new_comment_area_title">新しいコメント投稿画面を利用する</string>
     <string name="setting_new_comment_area_description">新しいコメント投稿では、常に下の方にコメント投稿ができるように表示されています。</string>
     <string name="privacy_policy">プライバシーポリシー</string>
+    <string name="yomi">よみ</string>
+    <string name="comment_collection_change_successful">変更しました。</string>
+    <string name="comment_collection_add_successful">追加しました。</string>
+    <string name="comment_collection_yomi_message">同じ読みを追加する場合は上書きされます。</string>
+    <string name="comment_collection">コメントコレクション</string>
+    <string name="program_disconnect">この番組は終了しました。</string>
+    <string name="end">終了</string>
+    <string name="back_dialog">終了しますか？</string>
+    <string name="back_dialog_description">おつおつ</string>
 </resources>

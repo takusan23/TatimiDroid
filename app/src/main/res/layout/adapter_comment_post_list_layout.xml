@@ -17,14 +17,38 @@
                 android:orientation="horizontal"
                 android:padding="10dp">
 
-            <TextView
-                    android:layout_gravity="center"
-                    android:id="@+id/adapter_comment_post_list_textview"
+            <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="読み込み中"
-                    android:textSize="14dp" />
+                    android:orientation="vertical">
+
+                <TextView
+                        android:id="@+id/adapter_comment_post_list_textview"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:layout_weight="1"
+                        android:text="読み込み中"
+                        android:textSize="18sp" />
+
+                <TextView
+                        android:id="@+id/adapter_comment_post_list_yomi_textview"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="@string/yomi" />
+            </LinearLayout>
+
+            <ImageButton
+                    android:id="@+id/adapter_comment_post_list_edit_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="5dp"
+                    app:srcCompat="@drawable/ic_outline_create_24px" />
 
             <ImageButton
                     android:id="@+id/adapter_comment_post_list_delete_button"
@@ -35,6 +59,7 @@
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="5dp"
                     app:srcCompat="@drawable/ic_outline_delete_24px" />
+
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

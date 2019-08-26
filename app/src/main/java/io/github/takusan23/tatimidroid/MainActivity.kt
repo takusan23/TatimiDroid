@@ -1,16 +1,20 @@
 package io.github.takusan23.tatimidroid
 
 import android.app.NotificationManager
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.database.sqlite.SQLiteDatabase
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.SpannableString
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import io.github.takusan23.tatimidroid.Fragment.*
+import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
+import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.regex.Pattern
 
@@ -74,6 +78,10 @@ class MainActivity : AppCompatActivity() {
             }
             true
         }
+
+        //データベース移行
+        convertCommentPOSTListToCommentCollection()
+
     }
 
     //共有から起動した場合
@@ -100,4 +108,50 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    //コメント投稿リストからコメントコメントコレクションにデータベース移動
+    //移動理由は単純に名前がわかりにくいってだけです。
+    fun convertCommentPOSTListToCommentCollection() {
+        //コメント投稿リスト
+        val commentPOSTListSQLiteHelper = CommentPOSTListSQLiteHelper(this)
+        val commentPOSTListSqLiteDatabase = commentPOSTListSQLiteHelper.writableDatabase
+        commentPOSTListSQLiteHelper.setWriteAheadLoggingEnabled(false)
+
+        //コメントコレクション
+        val commentCollection = CommentCollectionSQLiteHelper(this)
+        val commentCollectionSqLiteDatabase = commentCollection.writableDatabase
+        commentCollection.setWriteAheadLoggingEnabled(false)
+
+        //コメント投稿リストの内容を読み込む
+        val cursor = commentPOSTListSqLiteDatabase.query(
+            "comment_post_list",
+            arrayOf("comment"),
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+        //リストがある・ない
+        if (cursor.moveToFirst()) {
+            //あるのでコメントコレクションへ移行
+            for (i in 0 until cursor.count) {
+                val comment = cursor.getString(0)
+                val yomi = cursor.getString(0)
+                //移行
+                val contentValues = ContentValues()
+                contentValues.put("comment", comment)
+                contentValues.put("yomi", yomi)
+                commentCollectionSqLiteDatabase.insert("comment_collection_db", null, contentValues)
+                //次へ行こう
+                cursor.moveToNext()
+            }
+            cursor.close()
+            //移行完了後、コメント投稿リストの内容を全消去
+            commentPOSTListSqLiteDatabase.delete("comment_post_list", null, null)
+        } else {
+            println("新データベース（コメントコレクション）へ移行済みです。")
+        }
+    }
+
 }

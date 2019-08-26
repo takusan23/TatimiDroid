@@ -133,4 +133,13 @@
     <string name="setting_new_comment_area_title">Use the new comment posting screen.</string>
     <string name="setting_new_comment_area_description">New comment posts are always displayed at the bottom so you can post comments.</string>
     <string name="privacy_policy">privacy policy</string>
+    <string name="yomi">yomi kana</string>
+    <string name="comment_collection_change_successful">it changed.</string>
+    <string name="comment_collection_add_successful">Added.</string>
+    <string name="comment_collection_yomi_message">If you add the same reading, it will be overwritten.</string>
+    <string name="comment_collection">Comment Collection</string>
+    <string name="program_disconnect">This program has ended.</string>
+    <string name="end">End</string>
+    <string name="back_dialog">Do you want to exit?</string>
+    <string name="back_dialog_description">Otsutsu</string>
 </resources>
