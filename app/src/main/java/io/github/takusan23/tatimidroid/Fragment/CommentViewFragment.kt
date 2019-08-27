@@ -283,6 +283,21 @@ class CommentViewFragment : Fragment() {
                             }
                         }
                     }
+
+                    //disconnectを検知
+                    if (commentJSONParse.comment.contains("/disconnect")) {
+                        val commentActivity = activity as CommentActivity
+                        if (commentJSONParse.premium.contains("運営")) {
+                            Snackbar.make(
+                                fragment_comment_recyclerview,
+                                getString(R.string.program_disconnect),
+                                Snackbar.LENGTH_SHORT
+                            ).setAction(getString(R.string.end)) {
+                                //終了
+                                commentActivity.finish()
+                            }.setAnchorView(commentActivity.getSnackbarAnchorView()).show()
+                        }
+                    }
                 }
             }
 

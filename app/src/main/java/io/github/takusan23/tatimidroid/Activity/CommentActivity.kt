@@ -14,10 +14,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
@@ -44,7 +48,9 @@ import kotlin.concurrent.schedule
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ShareCompat
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
 import io.github.takusan23.tatimidroid.Fragment.*
+import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
@@ -146,6 +152,10 @@ class CommentActivity : AppCompatActivity() {
 
     //アンケート内容いれとく
     var enquateJSONArray = ""
+
+    //コメントコレクション
+    val commentCollectionList = arrayListOf<String>()
+    val commentCollectionYomiList = arrayListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -802,7 +812,7 @@ class CommentActivity : AppCompatActivity() {
                                     getString(R.string.comment_post_success),
                                     Snackbar.LENGTH_SHORT
                                 )
-                                    .setAnchorView(fab)
+                                    .setAnchorView(getSnackbarAnchorView())
                                     .show()
                             } else {
                                 Snackbar.make(
@@ -810,7 +820,7 @@ class CommentActivity : AppCompatActivity() {
                                     "${getString(R.string.comment_post_error)}：${status}",
                                     Snackbar.LENGTH_SHORT
                                 )
-                                    .setAnchorView(fab).show()
+                                    .setAnchorView(getSnackbarAnchorView()).show()
                             }
                         }
                     }
@@ -921,67 +931,69 @@ class CommentActivity : AppCompatActivity() {
     //コメント投稿用
     fun sendComment(comment: String) {
         commentValue = comment
-        //コメント投稿モード（コメントWebSocketに送信）
-        val watchmode = pref_setting.getBoolean("setting_watching_mode", false)
-        //nicocas式コメント投稿モード
-        val nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
-        if (watchmode) {
-            //postKeyを視聴用セッションWebSocketに払い出してもらう
-            //PC版ニコ生だとコメントを投稿のたびに取得してるので
-            val postKeyObject = JSONObject()
-            postKeyObject.put("type", "watch")
-            val bodyObject = JSONObject()
-            bodyObject.put("command", "getpostkey")
-            val paramsArray = JSONArray()
-            paramsArray.put(getPostKeyThreadId)
-            bodyObject.put("params", paramsArray)
-            postKeyObject.put("body", bodyObject)
-            //送信する
-            //この後の処理は視聴用セッションWebSocketでpostKeyを受け取る処理に行きます。
-            connectionNicoLiveWebSocket.send(postKeyObject.toString())
-        }
-        if (nicocasmode) {
-            //コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
-            val vpos = System.currentTimeMillis() - programStartTime
-            val jsonObject = JSONObject()
-            jsonObject.put("message", commentValue)
-            jsonObject.put("command", commentCommand)
-            jsonObject.put("vpos", vpos.toString())
+        if (!comment.equals("\n")) {
+            //コメント投稿モード（コメントWebSocketに送信）
+            val watchmode = pref_setting.getBoolean("setting_watching_mode", false)
+            //nicocas式コメント投稿モード
+            val nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
+            if (watchmode) {
+                //postKeyを視聴用セッションWebSocketに払い出してもらう
+                //PC版ニコ生だとコメントを投稿のたびに取得してるので
+                val postKeyObject = JSONObject()
+                postKeyObject.put("type", "watch")
+                val bodyObject = JSONObject()
+                bodyObject.put("command", "getpostkey")
+                val paramsArray = JSONArray()
+                paramsArray.put(getPostKeyThreadId)
+                bodyObject.put("params", paramsArray)
+                postKeyObject.put("body", bodyObject)
+                //送信する
+                //この後の処理は視聴用セッションWebSocketでpostKeyを受け取る処理に行きます。
+                connectionNicoLiveWebSocket.send(postKeyObject.toString())
+            }
+            if (nicocasmode) {
+                //コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
+                val vpos = System.currentTimeMillis() - programStartTime
+                val jsonObject = JSONObject()
+                jsonObject.put("message", commentValue)
+                jsonObject.put("command", commentCommand)
+                jsonObject.put("vpos", vpos.toString())
 
-            val requestBodyJSON = RequestBody.Companion.create(
-                "application/json; charset=utf-8".toMediaTypeOrNull(),
-                jsonObject.toString()
-            )
-            println(jsonObject.toString())
+                val requestBodyJSON = RequestBody.Companion.create(
+                    "application/json; charset=utf-8".toMediaTypeOrNull(),
+                    jsonObject.toString()
+                )
+                //println(jsonObject.toString())
 
-            val request = Request.Builder()
-                .url("https://api.cas.nicovideo.jp/v1/services/live/programs/${liveId}/comments")
-                .header("Cookie", "user_session=${usersession}")
-                .post(requestBodyJSON)
-                .build()
-            val okHttpClient = OkHttpClient()
-            okHttpClient.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    showToast("${getString(R.string.error)}")
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    //System.out.println(response.body?.string())
-                    if (response.isSuccessful) {
-                        //成功
-                        val snackbar =
-                            Snackbar.make(
-                                fab,
-                                getString(R.string.comment_post_success),
-                                Snackbar.LENGTH_SHORT
-                            )
-                        snackbar.anchorView = fab
-                        snackbar.show()
-                    } else {
-                        showToast("${getString(R.string.error)}\n${response.code}")
+                val request = Request.Builder()
+                    .url("https://api.cas.nicovideo.jp/v1/services/live/programs/${liveId}/comments")
+                    .header("Cookie", "user_session=${usersession}")
+                    .post(requestBodyJSON)
+                    .build()
+                val okHttpClient = OkHttpClient()
+                okHttpClient.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        showToast("${getString(R.string.error)}")
                     }
-                }
-            })
+
+                    override fun onResponse(call: Call, response: Response) {
+                        //System.out.println(response.body?.string())
+                        if (response.isSuccessful) {
+                            //成功
+                            val snackbar =
+                                Snackbar.make(
+                                    fab,
+                                    getString(R.string.comment_post_success),
+                                    Snackbar.LENGTH_SHORT
+                                )
+                            snackbar.anchorView = getSnackbarAnchorView()
+                            snackbar.show()
+                        } else {
+                            showToast("${getString(R.string.error)}\n${response.code}")
+                        }
+                    }
+                })
+            }
         }
     }
 
@@ -1659,44 +1671,105 @@ class CommentActivity : AppCompatActivity() {
             comment_activity_comment_cardview.visibility = View.GONE
             fab.show()
         }
+
+        //コメントコレクション補充機能
+        comment_cardview_comment_textinputlayout.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+            }
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                comment_cardview_chipgroup.removeAllViews()
+                //コメントコレクション読み込み
+                if (p0?.length ?: 0 >= 1) {
+                    commentCollectionYomiList.forEach {
+                        //文字列完全一致
+                        if (it.equals(p0.toString())) {
+                            val yomi = it
+                            val pos = commentCollectionYomiList.indexOf(it)
+                            val comment = commentCollectionList[pos]
+                            //Chip
+                            val chip = Chip(this@CommentActivity)
+                            chip.text = comment
+                            //押したとき
+                            chip.setOnClickListener {
+                                //置き換える
+                                var text = p0.toString()
+                                text = text.replace(yomi, comment)
+                                comment_cardview_comment_textinputlayout.setText(text)
+                                //カーソル移動
+                                comment_cardview_comment_textinputlayout.setSelection(text.length)
+                                //消す
+                                comment_cardview_chipgroup.removeAllViews()
+                            }
+                            comment_cardview_chipgroup.addView(chip)
+                        }
+                    }
+                }
+            }
+        })
     }
 
 
     fun loadCommentPOSTList() {
-
         //データベース
-        val commentPOSTList = CommentPOSTListSQLiteHelper(this)
-        val sqLiteDatabase = commentPOSTList.writableDatabase
-        commentPOSTList.setWriteAheadLoggingEnabled(false)
-        //データ読み出し
+        val commentCollection = CommentCollectionSQLiteHelper(this)
+        val sqLiteDatabase = commentCollection.writableDatabase
+        commentCollection.setWriteAheadLoggingEnabled(false)
         val cursor = sqLiteDatabase.query(
-            "comment_post_list",
-            arrayOf("comment", "description"),
+            "comment_collection_db",
+            arrayOf("comment", "yomi", "description"),
             null, null, null, null, null
         )
         cursor.moveToFirst()
         //ポップアップメニュー
         val popup = PopupMenu(this, comment_cardview_comment_list_button);
-
         for (i in 0 until cursor.count) {
             //コメント
             val comment = cursor.getString(0)
+            val yomi = cursor.getString(1)
             //メニュー追加
             popup.menu.add(comment)
+            //追加
+            commentCollectionList.add(comment)
+            commentCollectionYomiList.add(yomi)
             cursor.moveToNext()
         }
         //閉じる
         cursor.close()
         //ポップアップメニュー押したとき
         popup.setOnMenuItemClickListener {
-            bottom_fragment_post_edittext.text?.append(it.title)
+            comment_cardview_comment_textinputlayout.text?.append(it.title)
             true
         }
         //表示
         comment_cardview_comment_list_button.setOnClickListener {
             popup.show()
         }
+    }
 
+    override fun onBackPressed() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.back_dialog))
+            .setMessage(getString(R.string.back_dialog_description))
+            .setPositiveButton(getString(R.string.end)) { dialogInterface: DialogInterface, i: Int ->
+                finish()
+                super.onBackPressed()
+            }
+            .setNegativeButton(getString(android.R.string.cancel)) { dialogInterface: DialogInterface, i: Int ->
+                dialogInterface.dismiss()
+            }
+            .show()
+    }
+
+    fun getSnackbarAnchorView(): View? {
+        if (fab.isShown) {
+            return fab
+        } else {
+            return comment_activity_comment_cardview
+        }
     }
 
 

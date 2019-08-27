@@ -138,19 +138,24 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom"
                     android:layout_margin="16dp"
-                    app:cardCornerRadius="10dp"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                    app:cardCornerRadius="10dp">
 
                 <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="5dp">
 
 
+                    <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/comment_cardview_chipgroup"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+
                     <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="horizontal">
 
                         <ImageButton
@@ -175,7 +180,7 @@
                             <com.google.android.material.textfield.TextInputEditText
                                     android:id="@+id/comment_cardview_comment_textinputlayout"
                                     android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
+                                    android:layout_height="wrap_content"
                                     android:hint="@string/comment"
                                     android:maxLines="1" />
 
