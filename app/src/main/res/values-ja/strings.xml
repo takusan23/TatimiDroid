@@ -144,4 +144,5 @@
     <string name="back_dialog_description">おつおつ</string>
     <string name="setting_comment_collection_assist">コメントコレクション補充機能</string>
     <string name="setting_comment_collection_assist_description">コメント入力中に読みがあった時に表示する機能です。</string>
+    <string name="auto_next_program">次枠自動移動</string>
 </resources>

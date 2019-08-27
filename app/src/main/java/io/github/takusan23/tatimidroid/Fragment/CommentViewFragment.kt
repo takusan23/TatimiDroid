@@ -176,12 +176,17 @@ class CommentViewFragment : Fragment() {
      * @param room 部屋の名前
      * */
     fun connectCommentServer(address: String, thread: String, room: String) {
-        val uri = URI(address)
+        //過去コメントか流れてきたコメントか
+        var historyComment = 0
+        //過去コメントだとtrue
+        var isHistoryComment = true
 
+        val uri = URI(address)
         val protocol = Draft_6455(
             Collections.emptyList(),
             Collections.singletonList(Protocol("msg.nicovideo.jp#json")) as List<IProtocol>?
         )
+        val commentActivity = activity as CommentActivity
         val webSocketClient = object : WebSocketClient(uri, protocol) {
             override fun onOpen(handshakedata: ServerHandshake?) {
 
@@ -227,6 +232,14 @@ class CommentViewFragment : Fragment() {
 
                     //アクティブ人数計算
                     calcActiveCount(commentJSONParse)
+
+                    //過去コメントかな？
+                    if (message.contains("content: \"pf:0\"")) {
+                        historyComment++
+                        if (historyComment == 2) {
+                            isHistoryComment = false
+                        }
+                    }
 
                     //追い出しコメントを非表示
                     if (pref_setting.getBoolean("setting_hidden_oidashi_comment", true)) {
@@ -286,7 +299,6 @@ class CommentViewFragment : Fragment() {
 
                     //disconnectを検知
                     if (commentJSONParse.comment.contains("/disconnect")) {
-                        val commentActivity = activity as CommentActivity
                         if (commentJSONParse.premium.contains("運営")) {
                             Snackbar.make(
                                 fragment_comment_recyclerview,
@@ -296,8 +308,27 @@ class CommentViewFragment : Fragment() {
                                 //終了
                                 commentActivity.finish()
                             }.setAnchorView(commentActivity.getSnackbarAnchorView()).show()
+                            //自動次枠移動が有効なら使う
+                            if (commentActivity.isAutoNextProgram) {
+                                commentActivity.checkNextProgram()
+                            }
                         }
                     }
+
+                    //運営コメント
+                    if (commentJSONParse.comment.contains("/perm")) {
+                        if (!isHistoryComment) {
+                            val text = commentJSONParse.comment.replace("/perm ", "")
+                            commentActivity.setUnneiComment(text)
+                        }
+                    }
+                    //運営コメントけす
+                    if (commentJSONParse.comment.contains("/clear")) {
+                        if (!isHistoryComment) {
+                            commentActivity.removeUnneiComment()
+                        }
+                    }
+
                 }
             }
 

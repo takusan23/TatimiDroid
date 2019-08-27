@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteDatabase
+import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
@@ -119,6 +120,8 @@ class CommentActivity : AppCompatActivity() {
     var liveId = ""
     //番組名
     var programTitle = ""
+    //コミュニティID
+    var communityID = ""
 
     //NGデータベース
     lateinit var ngListSQLiteHelper: NGListSQLiteHelper
@@ -156,6 +159,15 @@ class CommentActivity : AppCompatActivity() {
     //コメントコレクション
     val commentCollectionList = arrayListOf<String>()
     val commentCollectionYomiList = arrayListOf<String>()
+
+    //アンケートView
+    lateinit var enquateView: View
+    //運営コメント
+    lateinit var uncomeTextView: TextView
+
+    //自動次枠移動
+    var isAutoNextProgram = false
+    var autoNextProgramTimer = Timer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -476,7 +488,8 @@ class CommentActivity : AppCompatActivity() {
                     //番組名もほしい
                     val stream = document.select("stream")
                     programTitle = stream.select("title").text()
-
+                    //コミュニティID
+                    communityID = stream.select("default_community").text()
                     //コメント投稿に必須なゆーざーID、プレミアム会員かどうか
                     userId = user.select("user_id").text()
                     premium = user.select("is_premium").text().toInt()
@@ -764,6 +777,11 @@ class CommentActivity : AppCompatActivity() {
 
     //コメント送信用WebSocket。今の部屋に繋がってる（アリーナならアリーナ）
     fun connectionCommentPOSTWebSocket(url: String, threadId: String) {
+        //過去コメントか流れてきたコメントか
+        var historyComment = 0
+        //過去コメントだとtrue
+        var isHistoryComment = true
+        //
         val uri = URI(url)
         //これはプロトコルの設定が必要
         val protocol = Draft_6455(
@@ -782,7 +800,7 @@ class CommentActivity : AppCompatActivity() {
                 jsonObject.put("service", "LIVE")
                 jsonObject.put("score", 1)
                 jsonObject.put("user_id", userId)
-                jsonObject.put("res_from", -500)
+                jsonObject.put("res_from", -1000)
                 sendJSONObject.put("thread", jsonObject)
                 commentPOSTWebSocketClient.send(sendJSONObject.toString())
             }
@@ -794,6 +812,13 @@ class CommentActivity : AppCompatActivity() {
             override fun onMessage(message: String?) {
                 //コメント送信に使うticketを取得する
                 if (message != null) {
+                    //過去コメントかな？
+                    if (message.contains("content: \"pf:0\"")) {
+                        historyComment++
+                        if (historyComment == 2) {
+                            isHistoryComment = false
+                        }
+                    }
                     //thread
                     if (message.contains("ticket")) {
                         val jsonObject = JSONObject(message)
@@ -826,33 +851,32 @@ class CommentActivity : AppCompatActivity() {
                     }
 
                     // /voteが流れてきたとき（アンケート）
+                    // だたし過去コメントには反応しないようにする
                     if (message.contains("/vote")) {
-                        //コメント取得
-                        val jsonObject = JSONObject(message)
-                        val chatObject = jsonObject.getJSONObject("chat")
-                        val content = chatObject.getString("content")
-                        val premium = chatObject.getInt("premium")
-                        if (premium == 3) {
-                            //運営コメント
-                            //アンケ開始
-                            if (content.contains("/vote start")) {
-                                runOnUiThread {
-                                    setEnquetePOSTLayout(content, "start")
-                                }
-                            }
-                            //アンケ結果
-                            if (content.contains("/vote showresult")) {
-                                runOnUiThread {
-                                    setEnquetePOSTLayout(content, "showresult")
-                                }
-                            }
-                            //アンケ終了
-                            if (content.contains("/vote stop")) {
-                                if (live_framelayout.childCount <= 3) {
+                        if (!isHistoryComment) {
+                            //コメント取得
+                            val jsonObject = JSONObject(message)
+                            val chatObject = jsonObject.getJSONObject("chat")
+                            val content = chatObject.getString("content")
+                            val premium = chatObject.getInt("premium")
+                            if (premium == 3) {
+                                //運営コメント
+                                //アンケ開始
+                                if (content.contains("/vote start")) {
                                     runOnUiThread {
-                                        for (i in 2 until live_framelayout.childCount) {
-                                            live_framelayout.removeViewAt(i)
-                                        }
+                                        setEnquetePOSTLayout(content, "start")
+                                    }
+                                }
+                                //アンケ結果
+                                if (content.contains("/vote showresult")) {
+                                    runOnUiThread {
+                                        setEnquetePOSTLayout(content, "showresult")
+                                    }
+                                }
+                                //アンケ終了
+                                if (content.contains("/vote stop")) {
+                                    runOnUiThread {
+                                        live_framelayout.removeView(enquateView)
                                     }
                                 }
                             }
@@ -1078,6 +1102,16 @@ class CommentActivity : AppCompatActivity() {
             R.id.comment_activity_menu_comment_hidden -> {
                 isCommentHidden = item.isChecked
             }
+            R.id.comment_activity_menu_auto_next_program -> {
+                //自動次枠移動
+                if (item.isChecked) {
+                    item.isChecked = false
+                    isAutoNextProgram = false
+                } else {
+                    item.isChecked = true
+                    isAutoNextProgram = true
+                }
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -1131,6 +1165,7 @@ class CommentActivity : AppCompatActivity() {
             //中野ブロードキャスト終了
             unregisterReceiver(broadcastReceiver)
         }
+        autoNextProgramTimer.cancel()
     }
 
     //Activity終了時に閉じる
@@ -1488,10 +1523,10 @@ class CommentActivity : AppCompatActivity() {
     }
 
     fun setEnquetePOSTLayout(message: String, type: String) {
-        val view = layoutInflater.inflate(R.layout.bottom_fragment_enquate_layout, null, false)
+        enquateView = layoutInflater.inflate(R.layout.bottom_fragment_enquate_layout, null, false)
         if (type.contains("start")) {
             //アンケ開始
-            live_framelayout.addView(view)
+            live_framelayout.addView(enquateView)
             val jsonArray = JSONArray(enquateStartMessageToJSONArray(message))
             //println(enquateStartMessageToJSONArray(message))
             //アンケ内容保存
@@ -1499,7 +1534,7 @@ class CommentActivity : AppCompatActivity() {
 
             //０個目はタイトル
             val title = jsonArray[0]
-            view.enquate_title.text = title.toString()
+            enquateView.enquate_title.text = title.toString()
 
             //１個めから質問
             for (i in 0 until jsonArray.length()) {
@@ -1510,7 +1545,7 @@ class CommentActivity : AppCompatActivity() {
                     //投票
                     //enquatePOST(i - 1)
                     //アンケ画面消す
-                    live_framelayout.removeView(view)
+                    live_framelayout.removeView(enquateView)
                     //Snackbar
                     Snackbar.make(
                         activity_comment_linearlayout,
@@ -1528,29 +1563,28 @@ class CommentActivity : AppCompatActivity() {
                 button.layoutParams = layoutParams
                 //1～3は一段目
                 if (i in 1..3) {
-                    view.enquate_linearlayout_1.addView(button)
+                    enquateView.enquate_linearlayout_1.addView(button)
                 }
                 //4～6は一段目
                 if (i in 4..6) {
-                    view.enquate_linearlayout_2.addView(button)
+                    enquateView.enquate_linearlayout_2.addView(button)
                 }
                 //7～9は一段目
                 if (i in 7..9) {
-                    view.enquate_linearlayout_3.addView(button)
+                    enquateView.enquate_linearlayout_3.addView(button)
                 }
             }
         } else {
             //println(enquateJSONArray)
             //アンケ結果
-            if (live_framelayout.childCount == 3) {
-                live_framelayout.removeViewAt(live_framelayout.childCount - 1)
-            }
-            live_framelayout.addView(view)
+            live_framelayout.removeView(enquateView)
+
+            live_framelayout.addView(enquateView)
             val jsonArray = JSONArray(enquateResultMessageToJSONArray(message))
             val questionJsonArray = JSONArray(enquateJSONArray)
             //０個目はタイトル
             val title = questionJsonArray.getString(0)
-            view.enquate_title.text = title
+            enquateView.enquate_title.text = title
             //共有で使う文字
             var shareText = ""
             //結果は０個めから
@@ -1569,15 +1603,15 @@ class CommentActivity : AppCompatActivity() {
                 button.layoutParams = layoutParams
                 //1～3は一段目
                 if (i in 0..2) {
-                    view.enquate_linearlayout_1.addView(button)
+                    enquateView.enquate_linearlayout_1.addView(button)
                 }
                 //4～6は一段目
                 if (i in 3..5) {
-                    view.enquate_linearlayout_2.addView(button)
+                    enquateView.enquate_linearlayout_2.addView(button)
                 }
                 //7～9は一段目
                 if (i in 6..8) {
-                    view.enquate_linearlayout_3.addView(button)
+                    enquateView.enquate_linearlayout_3.addView(button)
                 }
                 //共有の文字
                 shareText += "$question : ${enquatePerText(result)}\n"
@@ -1774,5 +1808,84 @@ class CommentActivity : AppCompatActivity() {
         }
     }
 
+    //運営コメント
+    fun setUnneiComment(comment: String) {
+        uncomeTextView = TextView(this)
+        //テキスト、背景色
+        uncomeTextView.text = comment
+        uncomeTextView.textSize = 30F
+        uncomeTextView.setTextColor(Color.WHITE)
+        uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))
+        //追加
+        val layoutParams = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        layoutParams.gravity = Gravity.TOP
+        uncomeTextView.layoutParams = layoutParams
+        uncomeTextView.gravity = Gravity.CENTER
+        //表示アニメーション
+        val showAnimation =
+            AnimationUtils.loadAnimation(this, R.anim.unnei_comment_show_animation);
+        //表示
+        uncomeTextView.startAnimation(showAnimation)
+
+        live_framelayout.addView(uncomeTextView)
+    }
+
+    //運営コメント消す
+    fun removeUnneiComment() {
+        runOnUiThread {
+            if (this@CommentActivity::uncomeTextView.isInitialized) {
+                //表示アニメーション
+                val hideAnimation =
+                    AnimationUtils.loadAnimation(this, R.anim.comment_cardview_hide_animation);
+                //表示
+                uncomeTextView.startAnimation(hideAnimation)
+                //初期化済みなら
+                live_framelayout.removeView(uncomeTextView)
+            }
+        }
+    }
+
+    //次枠移動機能
+    fun checkNextProgram() {
+        //getplayerstatusは番組ID以外にも放送開始していればコミュIDを入力すれば利用可能
+        //1時間ぐらい？
+        autoNextProgramTimer.schedule(timerTask {
+            val request = Request.Builder()
+                .url("https://live.nicovideo.jp/api/getplayerstatus/$liveId")   //getplayerstatus、httpsでつながる？
+                .header("Cookie", "user_session=$usersession")
+                .get()
+                .build()
+            val okHttpClient = OkHttpClient()
+
+
+            okHttpClient.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    showToast("${getString(R.string.error)}")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val response_string = response.body?.string()
+                    if (response.isSuccessful) {
+                        //HTMLパース
+                        val document = Jsoup.parse(response_string)
+                        //ひつようなやつ
+                        val stream = document.select("stream")
+                        val liveId = stream.select("id")
+                        //成功
+                        //Activity再起動
+                        finish()
+                        val intent = Intent(this@CommentActivity, CommentActivity::class.java)
+                        intent.putExtra("liveId", liveId)
+                        startActivity(intent)
+                    } else {
+                        showToast("${getString(R.string.error)}\n${response.code}")
+                    }
+                }
+            })
+        }, 60000)
+    }
 
 }
