@@ -142,4 +142,6 @@
     <string name="end">End</string>
     <string name="back_dialog">Do you want to exit?</string>
     <string name="back_dialog_description">Otsutsu</string>
+    <string name="setting_comment_collection_assist">Comment collection replenishment function</string>
+    <string name="setting_comment_collection_assist_description">This function is displayed when there is a reading while inputting a comment.</string>
 </resources>

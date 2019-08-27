@@ -32,6 +32,14 @@
             android:summary="@string/setting_new_comment_area_description"
             android:title="@string/setting_new_comment_area_title" />
 
+    <SwitchPreference
+            android:dependency="setting_new_comment"
+            android:defaultValue="false"
+            android:icon="@drawable/ic_outline_comment_24px"
+            android:key="setting_comment_collection_assist"
+            android:summary="@string/setting_comment_collection_assist_description"
+            android:title="@string/setting_comment_collection_assist" />
+
     <Preference
             android:icon="@drawable/ic_outline_stop_24px"
             android:key="auto_admission_stop_preference"
