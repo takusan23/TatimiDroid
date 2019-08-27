@@ -1851,8 +1851,8 @@ class CommentActivity : AppCompatActivity() {
     //次枠移動機能
     fun checkNextProgram() {
         //getplayerstatusは番組ID以外にも放送開始していればコミュIDを入力すれば利用可能
-        //1時間ぐらい？
-        autoNextProgramTimer.schedule(timerTask {
+        //１分ぐらいで取りに行く
+        autoNextProgramTimer.schedule(0, 60000) {
             val request = Request.Builder()
                 .url("https://live.nicovideo.jp/api/getplayerstatus/$liveId")   //getplayerstatus、httpsでつながる？
                 .header("Cookie", "user_session=$usersession")
@@ -1885,7 +1885,12 @@ class CommentActivity : AppCompatActivity() {
                     }
                 }
             })
-        }, 60000)
+        }
+        //１時間経ったら止める
+        Timer().schedule(timerTask {
+            this.cancel()
+            autoNextProgramTimer.cancel()
+        }, 3600000)
     }
 
 }
