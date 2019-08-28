@@ -962,12 +962,6 @@ class CommentActivity : AppCompatActivity() {
             live_video_view.setOnClickListener {
                 live_video_view.start()
             }
-            //エラー出たら再試行
-            live_video_view.setOnErrorListener { mediaPlayer, i, i2 ->
-                live_video_view.setVideoURI(hls_address.toUri())
-                live_video_view.start()
-                false
-            }
         }
     }
 
