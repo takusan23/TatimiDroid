@@ -145,4 +145,6 @@
     <string name="setting_comment_collection_assist">Comment collection replenishment function</string>
     <string name="setting_comment_collection_assist_description">This function is displayed when there is a reading while inputting a comment.</string>
     <string name="auto_next_program">Automatic next frame move</string>
+    <string name="setting_darkmode_title">Set to dark mode</string>
+    <string name="setting_darkmode_description">If you want to use dark mode on Android 8 or earlier devices, please enable. For Android 9 or later, set the dark mode from the main unit settings.</string>
 </resources>

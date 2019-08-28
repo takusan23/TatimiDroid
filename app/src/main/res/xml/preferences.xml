@@ -2,6 +2,13 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_paint_black"
+            android:key="setting_darkmode"
+            android:summary="@string/setting_darkmode_description"
+            android:title="@string/setting_darkmode_title"
+            app:isPreferenceVisible="false" />
 
     <SwitchPreference
             android:defaultValue="false"
@@ -33,12 +40,13 @@
             android:title="@string/setting_new_comment_area_title" />
 
     <SwitchPreference
-            android:dependency="setting_new_comment"
             android:defaultValue="false"
+            android:dependency="setting_new_comment"
             android:icon="@drawable/ic_outline_comment_24px"
             android:key="setting_comment_collection_assist"
             android:summary="@string/setting_comment_collection_assist_description"
             android:title="@string/setting_comment_collection_assist" />
+
 
     <Preference
             android:icon="@drawable/ic_outline_stop_24px"

@@ -36,9 +36,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         //ダークモード対応
-        main_activity_bottom_navigationview.backgroundTintList =
-            ColorStateList.valueOf(darkModeSupport.getThemeColor())
         if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            main_activity_bottom_navigationview.backgroundTintList =
+                ColorStateList.valueOf(darkModeSupport.getThemeColor())
             supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
         }
 

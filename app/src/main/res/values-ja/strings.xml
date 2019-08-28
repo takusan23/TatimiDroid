@@ -145,4 +145,6 @@
     <string name="setting_comment_collection_assist">コメントコレクション補充機能</string>
     <string name="setting_comment_collection_assist_description">コメント入力中に読みがあった時に表示する機能です。</string>
     <string name="auto_next_program">次枠自動移動</string>
+    <string name="setting_darkmode_title">ダークモードにする</string>
+    <string name="setting_darkmode_description">Android 8以前の端末でダークモードにする場合は有効にして下さい。 Android 9以降の場合は本体の設定からダークモードにしてください。</string>
 </resources>

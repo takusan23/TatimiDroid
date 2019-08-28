@@ -436,10 +436,12 @@ class CommentActivity : AppCompatActivity() {
     private fun activeUserClear() {
         //1分でリセット
         activeTimer.schedule(60000, 60000) {
-            //println(activeList)
-            activity_comment_comment_active_text.text =
-                "${activeList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
-            activeList.clear()
+            runOnUiThread {
+                //println(activeList)
+                activity_comment_comment_active_text.text =
+                    "${activeList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
+                activeList.clear()
+            }
         }
     }
 
@@ -1189,7 +1191,7 @@ class CommentActivity : AppCompatActivity() {
     /*オーバーレイ*/
     private fun startOverlayPlayer() {
         val width = 400
-        var height = 200
+        val height = 200
         //レイアウト読み込み
         val layoutInflater = LayoutInflater.from(this)
         // オーバーレイViewの設定をする
@@ -1842,6 +1844,7 @@ class CommentActivity : AppCompatActivity() {
         //表示
         uncomeTextView.startAnimation(showAnimation)
 
+        live_framelayout.removeView(uncomeTextView)
         live_framelayout.addView(uncomeTextView)
 
         Timer().schedule(timerTask {
@@ -1885,6 +1888,7 @@ class CommentActivity : AppCompatActivity() {
         //表示
         infoTextView.startAnimation(showAnimation)
 
+        live_framelayout.removeView(infoTextView)
         live_framelayout.addView(infoTextView)
         //５秒後ぐらいで消す？
         Timer().schedule(timerTask {
