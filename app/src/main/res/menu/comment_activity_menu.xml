@@ -14,11 +14,13 @@
             android:icon="@drawable/ic_popup_icon"
             android:title="@string/popup_player"
             app:showAsAction="ifRoom" />
+
     <item
             android:id="@+id/comment_activity_menu_background"
             android:icon="@drawable/ic_background_icon"
             android:title="@string/background_play"
             app:showAsAction="ifRoom" />
+
 
     <item
             android:id="@+id/comment_activity_menu_auto_next_program"

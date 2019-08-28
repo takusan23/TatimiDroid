@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteDatabase
@@ -12,6 +13,7 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
@@ -21,8 +23,12 @@ import java.util.regex.Pattern
 
 class MainActivity : AppCompatActivity() {
 
+    lateinit var pref_setting: SharedPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
 
         val darkModeSupport = DarkModeSupport(this)
         darkModeSupport.setActivityTheme(this)
@@ -63,12 +69,22 @@ class MainActivity : AppCompatActivity() {
                     fragmentTransaction.commit()
                 }
                 R.id.menu_community -> {
-                    val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(
-                        R.id.main_activity_linearlayout,
-                        CommunityListFragment()
-                    )
-                    fragmentTransaction.commit()
+                    //ログイン情報がない場合は押させない
+                    if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
+                        val fragmentTransaction = supportFragmentManager.beginTransaction()
+                        fragmentTransaction.replace(
+                            R.id.main_activity_linearlayout,
+                            CommunityListFragment()
+                        )
+                        fragmentTransaction.commit()
+                    } else {
+                        //メアド設定してね！
+                        Toast.makeText(
+                            this,
+                            getString(R.string.mail_pass_error),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
                 R.id.menu_setting -> {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()

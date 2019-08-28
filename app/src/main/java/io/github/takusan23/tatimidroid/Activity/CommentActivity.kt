@@ -16,12 +16,14 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.Editable
+import android.text.Html
 import android.text.TextWatcher
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.arch.core.executor.TaskExecutor
 import androidx.cardview.widget.CardView
 import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
@@ -60,6 +62,7 @@ import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import java.lang.StringBuilder
 import java.text.SimpleDateFormat
+import kotlin.concurrent.thread
 import kotlin.concurrent.timerTask
 
 
@@ -134,6 +137,8 @@ class CommentActivity : AppCompatActivity() {
     //ポップアップ再生（オーバーレイ）
     var overlay_commentcamvas: CommentCanvas? = null
     lateinit var popupView: View
+    lateinit var overlay_commentTextView: TextView
+
     //オーバーレイ再生中かどうか。
     var isPopupPlay = false
     //オーバーレイ再生の通知ID
@@ -164,6 +169,8 @@ class CommentActivity : AppCompatActivity() {
     lateinit var enquateView: View
     //運営コメント
     lateinit var uncomeTextView: TextView
+    //下のコメント（広告貢献、ランクイン等）
+    lateinit var infoTextView: TextView
 
     //自動次枠移動
     var isAutoNextProgram = false
@@ -224,8 +231,15 @@ class CommentActivity : AppCompatActivity() {
             fab.hide()
         }
 
+        //運営コメント、InfoコメントのTextView初期化
+        uncomeTextView = TextView(this)
+        infoTextView = TextView(this)
+
         //アンケートテスト
         //testEnquate()
+        //showInfoComment("！！！！！！！！！！！！！！！！！！！！！！！！！")
+        //setUnneiComment("\uD83D\uDC4C\uD83D\uDC7D\uD83D\uDC4C sm34995245 037_ヨーグルトプリン【オリメ】 投稿さ 対馬  残リク数 12件 1時間59分21秒")
+
 
         //視聴しない場合は非表示
         if (!watchLive) {
@@ -778,7 +792,7 @@ class CommentActivity : AppCompatActivity() {
     //コメント送信用WebSocket。今の部屋に繋がってる（アリーナならアリーナ）
     fun connectionCommentPOSTWebSocket(url: String, threadId: String) {
         //過去コメントか流れてきたコメントか
-        var historyComment = 0
+        var historyComment = -100
         //過去コメントだとtrue
         var isHistoryComment = true
         //
@@ -800,7 +814,7 @@ class CommentActivity : AppCompatActivity() {
                 jsonObject.put("service", "LIVE")
                 jsonObject.put("score", 1)
                 jsonObject.put("user_id", userId)
-                jsonObject.put("res_from", -1000)
+                jsonObject.put("res_from", isHistoryComment)
                 sendJSONObject.put("thread", jsonObject)
                 commentPOSTWebSocketClient.send(sendJSONObject.toString())
             }
@@ -813,11 +827,10 @@ class CommentActivity : AppCompatActivity() {
                 //コメント送信に使うticketを取得する
                 if (message != null) {
                     //過去コメントかな？
-                    if (message.contains("content: \"pf:0\"")) {
+                    if (historyComment < 0) {
                         historyComment++
-                        if (historyComment == 2) {
-                            isHistoryComment = false
-                        }
+                    } else {
+                        isHistoryComment = false
                     }
                     //thread
                     if (message.contains("ticket")) {
@@ -941,7 +954,6 @@ class CommentActivity : AppCompatActivity() {
                     live_framelayout.layoutParams = layoutParams
                 }
             }
-
             //再生
             live_video_view.setVideoURI(hls_address.toUri())
             live_video_view.start()
@@ -1081,7 +1093,7 @@ class CommentActivity : AppCompatActivity() {
             }
 
             R.id.comment_activity_menu_overlay -> {
-                //ポップアップ再生
+                //ポップアップ再生。コメント付き
                 if (!Settings.canDrawOverlays(this)) {
                     //RuntimePermissionに対応させる
                     // 権限取得
@@ -1176,14 +1188,15 @@ class CommentActivity : AppCompatActivity() {
 
     /*オーバーレイ*/
     private fun startOverlayPlayer() {
-
+        val width = 400
+        var height = 200
         //レイアウト読み込み
         val layoutInflater = LayoutInflater.from(this)
         // オーバーレイViewの設定をする
         val params = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams(
-                400,
-                200,
+                width,
+                height,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                         WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
@@ -1193,8 +1206,8 @@ class CommentActivity : AppCompatActivity() {
             )
         } else {
             WindowManager.LayoutParams(
-                400,
-                200,
+                width,
+                height,
                 WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                         WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
@@ -1810,10 +1823,9 @@ class CommentActivity : AppCompatActivity() {
 
     //運営コメント
     fun setUnneiComment(comment: String) {
-        uncomeTextView = TextView(this)
         //テキスト、背景色
-        uncomeTextView.text = comment
-        uncomeTextView.textSize = 30F
+        uncomeTextView.text = Html.fromHtml(comment, Html.FROM_HTML_MODE_COMPACT)
+        uncomeTextView.textSize = 20F
         uncomeTextView.setTextColor(Color.WHITE)
         uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))
         //追加
@@ -1831,6 +1843,10 @@ class CommentActivity : AppCompatActivity() {
         uncomeTextView.startAnimation(showAnimation)
 
         live_framelayout.addView(uncomeTextView)
+
+        Timer().schedule(timerTask {
+            removeUnneiComment()
+        }, 5000)
     }
 
     //運営コメント消す
@@ -1839,7 +1855,7 @@ class CommentActivity : AppCompatActivity() {
             if (this@CommentActivity::uncomeTextView.isInitialized) {
                 //表示アニメーション
                 val hideAnimation =
-                    AnimationUtils.loadAnimation(this, R.anim.comment_cardview_hide_animation);
+                    AnimationUtils.loadAnimation(this, R.anim.unnei_comment_close_animation);
                 //表示
                 uncomeTextView.startAnimation(hideAnimation)
                 //初期化済みなら
@@ -1847,6 +1863,49 @@ class CommentActivity : AppCompatActivity() {
             }
         }
     }
+
+    //infoコメント
+    fun showInfoComment(comment: String) {
+        //テキスト、背景色
+        infoTextView.text = comment
+        infoTextView.textSize = 20F
+        infoTextView.setTextColor(Color.WHITE)
+        //infoTextView.background = ColorDrawable(Color.parseColor("#80000000"))
+        //追加
+        val layoutParams = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        layoutParams.gravity = Gravity.BOTTOM
+        infoTextView.layoutParams = layoutParams
+        infoTextView.gravity = Gravity.CENTER
+        //表示アニメーション
+        val showAnimation =
+            AnimationUtils.loadAnimation(this, R.anim.comment_cardview_show_animation);
+        //表示
+        infoTextView.startAnimation(showAnimation)
+
+        live_framelayout.addView(infoTextView)
+        //５秒後ぐらいで消す？
+        Timer().schedule(timerTask {
+            removeInfoComment()
+        }, 5000)
+    }
+
+    //Infoコメント消す
+    fun removeInfoComment() {
+        runOnUiThread {
+            //非表示アニメーション
+            val hideAnimation =
+                AnimationUtils.loadAnimation(
+                    this@CommentActivity,
+                    R.anim.comment_cardview_hide_animation
+                );
+            infoTextView.startAnimation(hideAnimation)
+            live_framelayout.removeView(infoTextView)
+        }
+    }
+
 
     //次枠移動機能
     fun checkNextProgram() {

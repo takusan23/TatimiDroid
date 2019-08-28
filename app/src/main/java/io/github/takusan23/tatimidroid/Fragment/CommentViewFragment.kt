@@ -1,31 +1,24 @@
 package io.github.takusan23.tatimidroid.Fragment
 
-import android.content.Intent
 import android.content.SharedPreferences
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
 import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.SimpleItemAnimator
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_commentview.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.android.synthetic.main.overlay_player_layout.*
+import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.runBlocking
 import okhttp3.*
 import org.java_websocket.client.WebSocketClient
@@ -33,7 +26,6 @@ import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
 import org.java_websocket.protocols.IProtocol
 import org.java_websocket.protocols.Protocol
-import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
@@ -42,7 +34,6 @@ import java.net.URI
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
-import kotlin.concurrent.thread
 
 class CommentViewFragment : Fragment() {
     //接続中の部屋名
@@ -177,7 +168,7 @@ class CommentViewFragment : Fragment() {
      * */
     fun connectCommentServer(address: String, thread: String, room: String) {
         //過去コメントか流れてきたコメントか
-        var historyComment = 0
+        var historyComment = -100
         //過去コメントだとtrue
         var isHistoryComment = true
 
@@ -208,7 +199,7 @@ class CommentViewFragment : Fragment() {
                 jsonObject.put("thread", thread)
                 jsonObject.put("service", "LIVE")
                 jsonObject.put("score", 1)
-                jsonObject.put("res_from", -100)
+                jsonObject.put("res_from", historyComment)
                 sendJSONObject.put("thread", jsonObject)
                 this.send(sendJSONObject.toString())
             }
@@ -234,11 +225,10 @@ class CommentViewFragment : Fragment() {
                     calcActiveCount(commentJSONParse)
 
                     //過去コメントかな？
-                    if (message.contains("content: \"pf:0\"")) {
+                    if (historyComment < 0) {
                         historyComment++
-                        if (historyComment == 2) {
-                            isHistoryComment = false
-                        }
+                    } else {
+                        isHistoryComment = false
                     }
 
                     //追い出しコメントを非表示
@@ -329,6 +319,29 @@ class CommentViewFragment : Fragment() {
                         }
                     }
 
+                    //infoコメントを表示
+                    if (commentJSONParse.comment.contains("/nicoad")) {
+                        if (!isHistoryComment) {
+                            commentActivity.runOnUiThread {
+                                val json =
+                                    JSONObject(commentJSONParse.comment.replace("/nicoad ", ""))
+                                val comment = json.getString("message")
+                                commentActivity.showInfoComment(comment)
+                            }
+                        }
+                    }
+                    if (commentJSONParse.comment.contains("/info")) {
+                        if (!isHistoryComment) {
+                            commentActivity.runOnUiThread {
+                                commentActivity.showInfoComment(
+                                    commentJSONParse.comment.replace(
+                                        "/info ",
+                                        ""
+                                    )
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
@@ -511,6 +524,11 @@ class CommentViewFragment : Fragment() {
                                 (activity as CommentActivity).overlay_commentcamvas!!.postComment(
                                     message
                                 )
+                                //コメント
+                                val textView =
+                                    (activity as CommentActivity).popupView.overlay_comment_textview
+                                textView.text =
+                                    "$message\n${textView.text}"
                             }
                         }
                     }
