@@ -177,7 +177,6 @@ class CommentViewFragment : Fragment() {
             Collections.emptyList(),
             Collections.singletonList(Protocol("msg.nicovideo.jp#json")) as List<IProtocol>?
         )
-        val commentActivity = activity as CommentActivity
         val webSocketClient = object : WebSocketClient(uri, protocol) {
             override fun onOpen(handshakedata: ServerHandshake?) {
 
@@ -211,6 +210,8 @@ class CommentViewFragment : Fragment() {
             override fun onMessage(message: String?) {
                 //Adaprer
                 if (message != null) {
+
+                    val commentActivity = activity as CommentActivity
 
                     //運営コメントはアリーナだけ表示する
                     val commentJSONParse = CommentJSONParse(message, room)
