@@ -62,6 +62,7 @@ import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import java.lang.StringBuilder
 import java.text.SimpleDateFormat
+import java.time.Instant
 import kotlin.concurrent.thread
 import kotlin.concurrent.timerTask
 
@@ -665,6 +666,7 @@ class CommentActivity : AppCompatActivity() {
             }
 
             override fun onMessage(message: String?) {
+
                 //HLSのアドレスとか
                 if (message?.contains("currentStream") ?: false) {
                     val jsonObject = JSONObject(message)
@@ -710,7 +712,7 @@ class CommentActivity : AppCompatActivity() {
                         val paramsArray = jsonObject.getJSONObject("body").getJSONArray("params")
                         val postkey = paramsArray.getString(0)
                         //コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
-                        val vpos = System.currentTimeMillis() - programStartTime
+                        val vpos = (System.currentTimeMillis() / 1000L) - programStartTime
                         val jsonObject = JSONObject()
                         val chatObject = JSONObject()
                         chatObject.put("thread", getPostKeyThreadId)    //視聴用セッションWebSocketからとれる
@@ -733,6 +735,7 @@ class CommentActivity : AppCompatActivity() {
                         //System.out.println(jsonObject.toString())
 
                         //送信
+                        //println(jsonObject.toString())
                         commentPOSTWebSocketClient.send(jsonObject.toString())
                     }
                 }
@@ -794,7 +797,7 @@ class CommentActivity : AppCompatActivity() {
     //コメント送信用WebSocket。今の部屋に繋がってる（アリーナならアリーナ）
     fun connectionCommentPOSTWebSocket(url: String, threadId: String) {
         //過去コメントか流れてきたコメントか
-        var historyComment = -100
+        var historyComment = -1000
         //過去コメントだとtrue
         var isHistoryComment = true
         //
@@ -813,10 +816,13 @@ class CommentActivity : AppCompatActivity() {
                 val jsonObject = JSONObject()
                 jsonObject.put("version", "20061206")
                 jsonObject.put("thread", threadId)
-                jsonObject.put("service", "LIVE")
+                //jsonObject.put("service", "LIVE")
                 jsonObject.put("score", 1)
+                jsonObject.put("nicoru", 0)
+                jsonObject.put("with_global", 1)
+                jsonObject.put("fork", 0)
                 jsonObject.put("user_id", userId)
-                jsonObject.put("res_from", isHistoryComment)
+                jsonObject.put("res_from", historyComment)
                 sendJSONObject.put("thread", jsonObject)
                 commentPOSTWebSocketClient.send(sendJSONObject.toString())
             }
@@ -988,10 +994,9 @@ class CommentActivity : AppCompatActivity() {
                 //送信する
                 //この後の処理は視聴用セッションWebSocketでpostKeyを受け取る処理に行きます。
                 connectionNicoLiveWebSocket.send(postKeyObject.toString())
-            }
-            if (nicocasmode) {
+            } else if (nicocasmode) {
                 //コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
-                val vpos = System.currentTimeMillis() - programStartTime
+                val vpos = (System.currentTimeMillis() / 1000L) - programStartTime
                 val jsonObject = JSONObject()
                 jsonObject.put("message", commentValue)
                 jsonObject.put("command", commentCommand)
