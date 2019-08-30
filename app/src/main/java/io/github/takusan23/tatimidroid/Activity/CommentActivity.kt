@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.Activity
 
 import android.app.*
 import android.content.*
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -1101,18 +1102,24 @@ class CommentActivity : AppCompatActivity() {
 
             R.id.comment_activity_menu_overlay -> {
                 //ポップアップ再生。コメント付き
-                if (!Settings.canDrawOverlays(this)) {
-                    //RuntimePermissionに対応させる
-                    // 権限取得
-                    val intent =
-                        Intent(
-                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:${getPackageName()}")
-                        );
-                    this.startActivityForResult(intent, 114)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!Settings.canDrawOverlays(this)) {
+                        //RuntimePermissionに対応させる
+                        // 権限取得
+                        val intent =
+                            Intent(
+                                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                Uri.parse("package:${getPackageName()}")
+                            );
+                        this.startActivityForResult(intent, 114)
+                    } else {
+                        startOverlayPlayer()
+                    }
                 } else {
+                    //ろりぽっぷ
                     startOverlayPlayer()
                 }
+
             }
             R.id.comment_activity_menu_background -> {
                 //バックグラウンド再生
@@ -1131,8 +1138,46 @@ class CommentActivity : AppCompatActivity() {
                     isAutoNextProgram = true
                 }
             }
+            R.id.comment_activity_menu_landscape_portrait -> {
+                //縦画面、横画面変更
+                if (item.isChecked) {
+                    item.isChecked = false
+                    //りせっと
+                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                } else {
+                    item.isChecked = true
+                    //ちぇっく
+                    setLandscapePortrait()
+                }
+            }
+            R.id.comment_activity_menu_copy_programid -> {
+                //番組IDコピー
+                copyProgramId()
+            }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    fun setLandscapePortrait() {
+        val conf = resources.configuration
+        when (conf.orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> {
+                //縦画面
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            }
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                //横画面
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
+        }
+    }
+
+    fun copyProgramId() {
+        val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboardManager.setPrimaryClip(ClipData.newPlainText("liveid", liveId))
+        //コピーしました！
+        Toast.makeText(this, "${getString(R.string.copy_program_id)} : $liveId", Toast.LENGTH_SHORT)
+            .show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -1527,16 +1572,21 @@ class CommentActivity : AppCompatActivity() {
         }
         if (pref_setting.getBoolean("setting_leave_popup", false)) {
             //ポップアップ再生
-            if (!Settings.canDrawOverlays(this)) {
-                //RuntimePermissionに対応させる
-                // 権限取得
-                val intent =
-                    Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:${getPackageName()}")
-                    );
-                this.startActivityForResult(intent, 114)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!Settings.canDrawOverlays(this)) {
+                    //RuntimePermissionに対応させる
+                    // 権限取得
+                    val intent =
+                        Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:${getPackageName()}")
+                        );
+                    this.startActivityForResult(intent, 114)
+                } else {
+                    startOverlayPlayer()
+                }
             } else {
+                //ろりぽっぷ
                 startOverlayPlayer()
             }
         }
@@ -1831,7 +1881,11 @@ class CommentActivity : AppCompatActivity() {
     //運営コメント
     fun setUnneiComment(comment: String) {
         //テキスト、背景色
-        uncomeTextView.text = Html.fromHtml(comment, Html.FROM_HTML_MODE_COMPACT)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            uncomeTextView.text = Html.fromHtml(comment, Html.FROM_HTML_MODE_COMPACT)
+        } else {
+            uncomeTextView.text = Html.fromHtml(comment)
+        }
         uncomeTextView.textSize = 20F
         uncomeTextView.setTextColor(Color.WHITE)
         uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))

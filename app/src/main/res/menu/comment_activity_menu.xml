@@ -37,6 +37,16 @@
             android:title="@string/comment_hidden" />
 
     <item
+            android:id="@+id/comment_activity_menu_landscape_portrait"
+            android:checkable="true"
+            android:checked="false"
+            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:title="@string/landscape_portrait" />
+    <item
+            android:id="@+id/comment_activity_menu_copy_programid"
+            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:title="@string/copy_program_id" />
+    <item
             android:id="@+id/comment_activity_menu_open_browser"
             android:icon="@drawable/ic_outline_live_tv_24px"
             android:title="@string/open_browser" />
