@@ -149,4 +149,9 @@
     <string name="setting_darkmode_description">Android 8以前の端末でダークモードにする場合は有効にして下さい。 Android 9以降の場合は本体の設定からダークモードにしてください。</string>
     <string name="landscape_portrait">縦画面・横画面強制変更</string>
     <string name="copy_program_id">番組IDコピー</string>
+    <string name="hide_info_perm">infoコメント、運営コメントを非表示</string>
+    <string name="mute">ミュート</string>
+    <string name="next_program_message">次枠自動移動機能は有効です。1分間隔で枠の確認をします。</string>
+    <string name="bitmap_error">変換に失敗しました</string>
+    <string name="share_attach_image">画像添付して共有</string>
 </resources>

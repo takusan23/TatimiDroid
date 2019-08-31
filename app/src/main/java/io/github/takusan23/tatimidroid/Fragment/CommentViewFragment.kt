@@ -291,55 +291,65 @@ class CommentViewFragment : Fragment() {
                     //disconnectを検知
                     if (commentJSONParse.comment.contains("/disconnect")) {
                         if (commentJSONParse.premium.contains("運営")) {
-                            Snackbar.make(
-                                fragment_comment_recyclerview,
-                                getString(R.string.program_disconnect),
-                                Snackbar.LENGTH_SHORT
-                            ).setAction(getString(R.string.end)) {
-                                //終了
-                                commentActivity.finish()
-                            }.setAnchorView(commentActivity.getSnackbarAnchorView()).show()
                             //自動次枠移動が有効なら使う
                             if (commentActivity.isAutoNextProgram) {
                                 commentActivity.checkNextProgram()
+                                Snackbar.make(
+                                    fragment_comment_recyclerview,
+                                    getString(R.string.next_program_message),
+                                    Snackbar.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                //終了メッセージ
+                                Snackbar.make(
+                                    fragment_comment_recyclerview,
+                                    getString(R.string.program_disconnect),
+                                    Snackbar.LENGTH_SHORT
+                                ).setAction(getString(R.string.end)) {
+                                    //終了
+                                    commentActivity.finish()
+                                }.setAnchorView(commentActivity.getSnackbarAnchorView()).show()
                             }
                         }
                     }
 
-                    //運営コメント
-                    if (commentJSONParse.comment.contains("/perm")) {
-                        if (!isHistoryComment) {
-                            val text = commentJSONParse.comment.replace("/perm ", "")
-                            commentActivity.setUnneiComment(text)
-                        }
-                    }
-                    //運営コメントけす
-                    if (commentJSONParse.comment.contains("/clear")) {
-                        if (!isHistoryComment) {
-                            commentActivity.removeUnneiComment()
-                        }
-                    }
-
-                    //infoコメントを表示
-                    if (commentJSONParse.comment.contains("/nicoad")) {
-                        if (!isHistoryComment) {
-                            commentActivity.runOnUiThread {
-                                val json =
-                                    JSONObject(commentJSONParse.comment.replace("/nicoad ", ""))
-                                val comment = json.getString("message")
-                                commentActivity.showInfoComment(comment)
+                    //運営コメント、Infoコメント　表示・非表示
+                    if (!commentActivity.hideInfoUnnkome) {
+                        //運営コメント
+                        if (commentJSONParse.comment.contains("/perm")) {
+                            if (!isHistoryComment) {
+                                val text = commentJSONParse.comment.replace("/perm ", "")
+                                commentActivity.setUnneiComment(text)
                             }
                         }
-                    }
-                    if (commentJSONParse.comment.contains("/info")) {
-                        if (!isHistoryComment) {
-                            commentActivity.runOnUiThread {
-                                commentActivity.showInfoComment(
-                                    commentJSONParse.comment.replace(
-                                        "/info ",
-                                        ""
+                        //運営コメントけす
+                        if (commentJSONParse.comment.contains("/clear")) {
+                            if (!isHistoryComment) {
+                                commentActivity.removeUnneiComment()
+                            }
+                        }
+
+                        //infoコメントを表示
+                        if (commentJSONParse.comment.contains("/nicoad")) {
+                            if (!isHistoryComment) {
+                                commentActivity.runOnUiThread {
+                                    val json =
+                                        JSONObject(commentJSONParse.comment.replace("/nicoad ", ""))
+                                    val comment = json.getString("message")
+                                    commentActivity.showInfoComment(comment)
+                                }
+                            }
+                        }
+                        if (commentJSONParse.comment.contains("/info")) {
+                            if (!isHistoryComment) {
+                                commentActivity.runOnUiThread {
+                                    commentActivity.showInfoComment(
+                                        commentJSONParse.comment.replace(
+                                            "/info ",
+                                            ""
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                     }

@@ -149,4 +149,9 @@
     <string name="setting_darkmode_description">If you want to use dark mode on Android 8 or earlier devices, please enable. For Android 9 or later, set the dark mode from the main unit settings.</string>
     <string name="landscape_portrait">Forcibly change vertical / horizontal screen</string>
     <string name="copy_program_id">Copy program ID</string>
+    <string name="hide_info_perm">Hide info comments and management comments</string>
+    <string name="mute">mute</string>
+    <string name="next_program_message">The next frame automatic movement function is effective. Check the frame at 1 minute intervals.</string>
+    <string name="bitmap_error">Conversion failed</string>
+    <string name="share_attach_image">Share with image attachment</string>
 </resources>

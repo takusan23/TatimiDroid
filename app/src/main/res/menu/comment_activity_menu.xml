@@ -21,56 +21,83 @@
             android:title="@string/background_play"
             app:showAsAction="ifRoom" />
 
+    <item
+            android:id="@+id/comment_activity_menu_share_menu"
+            android:icon="@drawable/ic_share"
+            android:title="@string/share">
+        <menu>
+            <item
+                    android:id="@+id/comment_activity_menu_share_attach_image"
+                    android:icon="@drawable/ic_attach_file"
+                    android:title="@string/share_attach_image" />
+            <item
+                    android:id="@+id/comment_activity_menu_share"
+                    android:icon="@drawable/ic_send_black"
+                    android:title="@string/share" />
+        </menu>
+    </item>
 
     <item
             android:id="@+id/comment_activity_menu_auto_next_program"
             android:checkable="true"
             android:checked="false"
-            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:icon="@drawable/ic_outline_live_tv_24px_black"
             android:title="@string/auto_next_program" />
 
     <item
             android:id="@+id/comment_activity_menu_comment_hidden"
             android:checkable="true"
             android:checked="false"
-            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:icon="@drawable/ic_outline_comment_24px"
             android:title="@string/comment_hidden" />
-
     <item
-            android:id="@+id/comment_activity_menu_landscape_portrait"
+            android:id="@+id/comment_activity_menu_hide_info_unkome"
             android:checkable="true"
             android:checked="false"
-            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:icon="@drawable/ic_outline_comment_24px"
+            android:title="@string/hide_info_perm" />
+    <item
+            android:id="@+id/comment_activity_menu_landscape_portrait"
+            android:icon="@drawable/ic_screen_lock_rotation"
             android:title="@string/landscape_portrait" />
     <item
+            android:id="@+id/comment_activity_menu_mute"
+            android:checkable="true"
+            android:checked="false"
+            android:icon="@drawable/ic_mute"
+            android:title="@string/mute" />
+    <item
             android:id="@+id/comment_activity_menu_copy_programid"
-            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:icon="@drawable/ic_content_paste_black_24dp"
             android:title="@string/copy_program_id" />
     <item
             android:id="@+id/comment_activity_menu_open_browser"
-            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:icon="@drawable/ic_outline_open_in_browser_24px"
             android:title="@string/open_browser" />
     <item
             android:id="@+id/comment_activity_menu_ng_list"
-            android:icon="@drawable/ic_outline_live_tv_24px"
+            android:icon="@drawable/ic_do_not_disturb_alt_black_24dp"
             android:title="@string/ng_list" />
 
     <item
             android:id="@+id/comment_activity_menu_iyayo"
             android:checkable="true"
             android:checked="true"
+            android:icon="@drawable/ic_security"
             android:title="@string/iyayo_comment" />
 
     <item
             android:id="@+id/comment_activity_menu_tts"
             android:checkable="true"
             android:checked="false"
+            android:icon="@drawable/ic_phone_in_talk"
             android:title="@string/tts" />
 
     <item
             android:id="@+id/comment_activity_menu_toast"
             android:checkable="true"
             android:checked="false"
+            android:icon="@drawable/ic_outline_comment_24px"
             android:title="@string/comment_toast" />
 
 </menu>

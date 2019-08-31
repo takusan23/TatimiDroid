@@ -11,6 +11,7 @@ import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
@@ -24,6 +25,7 @@ import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuBuilder
 import androidx.arch.core.executor.TaskExecutor
 import androidx.cardview.widget.CardView
 import androidx.core.net.toUri
@@ -178,6 +180,16 @@ class CommentActivity : AppCompatActivity() {
     var isAutoNextProgram = false
     var autoNextProgramTimer = Timer()
 
+    //ミュート用
+    lateinit var audioManager: AudioManager
+    var volume = 0
+
+    //運コメ・infoコメント非表示
+    var hideInfoUnnkome = false
+
+    //共有
+    lateinit var programShare: ProgramShare
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -185,6 +197,10 @@ class CommentActivity : AppCompatActivity() {
         darkModeSupport.setActivityTheme(this)
 
         setContentView(R.layout.activity_comment)
+
+        //起動時の音量を保存しておく
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
         //ダークモード対応
         activity_comment_bottom_navigation_bar.backgroundTintList =
@@ -235,7 +251,12 @@ class CommentActivity : AppCompatActivity() {
 
         //運営コメント、InfoコメントのTextView初期化
         uncomeTextView = TextView(this)
+        live_framelayout.addView(uncomeTextView)
+        uncomeTextView.visibility = View.GONE
+        //infoコメント
         infoTextView = TextView(this)
+        live_framelayout.addView(infoTextView)
+        infoTextView.visibility = View.GONE
 
         //アンケートテスト
         //testEnquate()
@@ -898,7 +919,9 @@ class CommentActivity : AppCompatActivity() {
                                 //アンケ終了
                                 if (content.contains("/vote stop")) {
                                     runOnUiThread {
-                                        live_framelayout.removeView(enquateView)
+                                        if (this@CommentActivity::enquateView.isInitialized) {
+                                            live_framelayout.removeView(enquateView)
+                                        }
                                     }
                                 }
                             }
@@ -965,7 +988,9 @@ class CommentActivity : AppCompatActivity() {
             }
             //再生
             live_video_view.setVideoURI(hls_address.toUri())
-            live_video_view.start()
+            live_video_view.setOnPreparedListener {
+                live_video_view.start()
+            }
             live_video_view.setOnClickListener {
                 live_video_view.start()
             }
@@ -1048,7 +1073,10 @@ class CommentActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.comment_activity_menu, menu);
+        menuInflater.inflate(R.menu.comment_activity_menu, menu)
+        if (menu is MenuBuilder) {
+            menu.setOptionalIconsVisible(true)
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -1140,19 +1168,39 @@ class CommentActivity : AppCompatActivity() {
             }
             R.id.comment_activity_menu_landscape_portrait -> {
                 //縦画面、横画面変更
-                if (item.isChecked) {
-                    item.isChecked = false
-                    //りせっと
-                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                } else {
-                    item.isChecked = true
-                    //ちぇっく
-                    setLandscapePortrait()
-                }
+                setLandscapePortrait()
             }
             R.id.comment_activity_menu_copy_programid -> {
                 //番組IDコピー
                 copyProgramId()
+            }
+            R.id.comment_activity_menu_mute -> {
+                //ミュート
+                if (item.isChecked) {
+                    item.isChecked = false
+                    setSound(volume)
+                } else {
+                    item.isChecked = true
+                    setSound(0)
+                }
+            }
+            R.id.comment_activity_menu_hide_info_unkome -> {
+                //運営コメント・infoコメント非表示
+                if (item.isChecked) {
+                    item.isChecked = false
+                    hideInfoUnnkome = false
+                } else {
+                    item.isChecked = true
+                    hideInfoUnnkome = true
+                }
+            }
+            R.id.comment_activity_menu_share_attach_image -> {
+                //共有
+                programShare = ProgramShare(this, live_video_view, programTitle, programTitle)
+                programShare.shareAttacgImage()
+            }
+            R.id.comment_activity_menu_share -> {
+                programShare.showShareScreen()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -1180,8 +1228,13 @@ class CommentActivity : AppCompatActivity() {
             .show()
     }
 
+    fun setSound(volume: Int) {
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        println(requestCode)
         when (requestCode) {
             114 -> {
                 if (resultCode == PackageManager.PERMISSION_GRANTED) {
@@ -1192,6 +1245,16 @@ class CommentActivity : AppCompatActivity() {
                 } else {
                     //何もできない。
                     Toast.makeText(this, "権限取得に失敗しました。", Toast.LENGTH_SHORT).show()
+                }
+            }
+            ProgramShare.requestCode -> {
+                //画像共有
+                if (resultCode == Activity.RESULT_OK) {
+                    if (data?.data != null) {
+                        val uri: Uri = data.data!!
+                        //保存＆共有画面表示
+                        programShare.saveActivityResult(uri)
+                    }
                 }
             }
         }
@@ -1881,6 +1944,7 @@ class CommentActivity : AppCompatActivity() {
     //運営コメント
     fun setUnneiComment(comment: String) {
         //テキスト、背景色
+        uncomeTextView.visibility = View.VISIBLE
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             uncomeTextView.text = Html.fromHtml(comment, Html.FROM_HTML_MODE_COMPACT)
         } else {
@@ -1902,10 +1966,6 @@ class CommentActivity : AppCompatActivity() {
             AnimationUtils.loadAnimation(this, R.anim.unnei_comment_show_animation);
         //表示
         uncomeTextView.startAnimation(showAnimation)
-
-        live_framelayout.removeView(uncomeTextView)
-        live_framelayout.addView(uncomeTextView)
-
         Timer().schedule(timerTask {
             removeUnneiComment()
         }, 5000)
@@ -1921,7 +1981,7 @@ class CommentActivity : AppCompatActivity() {
                 //表示
                 uncomeTextView.startAnimation(hideAnimation)
                 //初期化済みなら
-                live_framelayout.removeView(uncomeTextView)
+                uncomeTextView.visibility = View.GONE
             }
         }
     }
@@ -1946,9 +2006,7 @@ class CommentActivity : AppCompatActivity() {
             AnimationUtils.loadAnimation(this, R.anim.comment_cardview_show_animation);
         //表示
         infoTextView.startAnimation(showAnimation)
-
-        live_framelayout.removeView(infoTextView)
-        live_framelayout.addView(infoTextView)
+        infoTextView.visibility = View.VISIBLE
         //５秒後ぐらいで消す？
         Timer().schedule(timerTask {
             removeInfoComment()
@@ -1965,7 +2023,7 @@ class CommentActivity : AppCompatActivity() {
                     R.anim.comment_cardview_hide_animation
                 );
             infoTextView.startAnimation(hideAnimation)
-            live_framelayout.removeView(infoTextView)
+            infoTextView.visibility = View.GONE
         }
     }
 
