@@ -2,6 +2,23 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <PreferenceCategory android:title="@string/comment_viewer_setting">
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_outline_people_outline_24px"
+                android:key="setting_id_hidden"
+                android:title="@string/setting_hidden_id" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_looks_one"
+                android:key="setting_one_line"
+                android:title="@string/setting_one_line" />
+
+    </PreferenceCategory>
+
+
     <SwitchPreference
             android:defaultValue="false"
             android:icon="@drawable/ic_paint_black"

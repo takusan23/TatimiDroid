@@ -37,7 +37,7 @@
     <string name="comment_toast">コメントをToastで表示する</string>
     <string name="tts_init">TTS準備完了</string>
     <string name="watchmode_select">モード選択</string>
-    <string name="comment_viewer_mode">コメントビューワーモード</string>
+    <string name="comment_viewer_mode">コメントビューアーモード</string>
     <string name="commentviewer_merit">すべての部屋のコメント・ギフト・ニコニ広告が取得できます。</string>
     <string name="commentviewer_mode_demerit">コメントの投稿ができません。</string>
     <string name="comment_post_mode">コメント投稿モード</string>
@@ -77,7 +77,7 @@
     <string name="delete_message">削除しますか？</string>
     <string name="sourcecode">ソースコード</string>
     <string name="set_clipbord_programid">コピーした内容に生放送IDが見つかったので自動的に貼り付けました。</string>
-    <string name="open_comment_viewer">コメントビューワーで開く</string>
+    <string name="open_comment_viewer">コメントビューアーで開く</string>
     <string name="auto_admission_one_minute_notification">予約枠自動入場開始通知</string>
     <string name="auto_admission_one_minute_notification_description">約1分後に予約枠に自動入場します。</string>
     <string name="setting_oidashi_comment_description">追い出しコメント(hb ifseetno)を非表示</string>
@@ -121,7 +121,7 @@
     <string name="livetime">経過時間</string>
     <string name="comment_hidden">コメントを非表示</string>
     <string name="room_color_title">部屋に色を付ける</string>
-    <string name="room_color_description">NCVに追従してアリーナ、立ち見の色を付けます。（立ち見１０まで対応。）</string>
+    <string name="room_color_description">NCVに追従してアリーナ、立ち見の文字に色を付けます。（立ち見１０まで対応。）\nID非表示モードの場合はコメントに色を付けます。</string>
     <string name="add">追加</string>
     <string name="comment_post_list">コメント投稿リスト</string>
     <string name="enquate">アンケート</string>
@@ -154,4 +154,7 @@
     <string name="next_program_message">次枠自動移動機能は有効です。1分間隔で枠の確認をします。</string>
     <string name="bitmap_error">変換に失敗しました</string>
     <string name="share_attach_image">画像添付して共有</string>
+    <string name="setting_hidden_id">IDを非表示にする</string>
+    <string name="setting_one_line">一行で表示する</string>
+    <string name="comment_viewer_setting">コメントビューアーの設定</string>
 </resources>

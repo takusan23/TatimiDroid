@@ -136,6 +136,20 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
             holder.roomNameTextView.setTextColor(getRoomColor(roomName))
         }
 
+        //ID非表示
+        if (pref_setting.getBoolean("setting_id_hidden", false)) {
+            //非表示
+            holder.roomNameTextView.visibility = View.GONE
+            //部屋の色をつける設定有効時はコメントのTextViewに色を付ける
+            if (pref_setting.getBoolean("setting_room_color", true)) {
+                holder.commentTextView.setTextColor(getRoomColor(roomName))
+            }
+        }
+        //一行表示とか
+        if (pref_setting.getBoolean("setting_one_line", false)) {
+            holder.commentTextView.maxLines = 1
+        }
+
     }
 
     override fun getItemCount(): Int {

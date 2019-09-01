@@ -121,7 +121,7 @@
     <string name="livetime">elapsed time</string>
     <string name="comment_hidden">Hide comments</string>
     <string name="room_color_title">Color the room</string>
-    <string name="room_color_description">Follow the NCV and color the arena and standing. (Supports up to 10 standings.)</string>
+    <string name="room_color_description">Follow the NCV and color the arena and standing characters. (Supports up to 10). \nIn the ID non-display mode, color the comment.</string>
     <string name="add">Add</string>
     <string name="comment_post_list">Comment posting list</string>
     <string name="enquate">questionnaire</string>
@@ -154,4 +154,7 @@
     <string name="next_program_message">The next frame automatic movement function is effective. Check the frame at 1 minute intervals.</string>
     <string name="bitmap_error">Conversion failed</string>
     <string name="share_attach_image">Share with image attachment</string>
+    <string name="setting_hidden_id">Hide ID</string>
+    <string name="setting_one_line">Display in one line</string>
+    <string name="comment_viewer_setting">Setting the comment viewer</string>
 </resources>
