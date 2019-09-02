@@ -157,4 +157,10 @@
     <string name="setting_hidden_id">IDを非表示にする</string>
     <string name="setting_one_line">一行で表示する</string>
     <string name="comment_viewer_setting">コメントビューアーの設定</string>
+    <string name="volume">音量</string>
+    <string name="volume_control">音量調節</string>
+    <string name="quality">画質変更</string>
+    <string name="quality_auto">自動選択</string>
+    <string name="quality_audio">音声のみ</string>
+    <string name="successful_quality">画質変更しました。</string>
 </resources>

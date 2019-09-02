@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.text.HtmlCompat
+import androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.R
@@ -86,7 +88,7 @@ class ProgramInfoFragment : Fragment() {
                         fragment_program_info_broadcaster_name.text = "${getString(R.string.broadcaster)} : $name"
                         fragment_program_info_start.text = time
                         fragment_program_info_title.text = title
-                        fragment_program_info_description.text = Html.fromHtml(description, Html.FROM_HTML_MODE_COMPACT)
+                        fragment_program_info_description.text = HtmlCompat.fromHtml(description, FROM_HTML_MODE_COMPACT)
                         fragment_program_info_community_name.text =
                             "${getString(R.string.community_name)} : $community_name"
                         fragment_program_info_community_level.text =

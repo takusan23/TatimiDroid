@@ -53,6 +53,8 @@ import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ShareCompat
+import androidx.core.text.HtmlCompat
+import androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import io.github.takusan23.tatimidroid.Fragment.*
@@ -189,6 +191,11 @@ class CommentActivity : AppCompatActivity() {
 
     //共有
     lateinit var programShare: ProgramShare
+
+    //画質変更BottomSheetFragment
+    lateinit var qualitySelectBottomSheet: QualitySelectBottomSheet
+    //最初の画質
+    var start_quality = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -689,11 +696,12 @@ class CommentActivity : AppCompatActivity() {
 
             override fun onMessage(message: String?) {
 
-                //HLSのアドレスとか
+                //HLSのアドレス　と　変更可能な画質一覧取る
                 if (message?.contains("currentStream") ?: false) {
                     val jsonObject = JSONObject(message)
-                    hls_address = jsonObject.getJSONObject("body").getJSONObject("currentStream")
-                        .getString("uri")
+                    val currentObject =
+                        jsonObject.getJSONObject("body").getJSONObject("currentStream")
+                    hls_address = currentObject.getString("uri")
                     //System.out.println("HLSアドレス ${hls_address}")
                     //生放送再生
                     if (pref_setting.getBoolean("setting_watch_live", false)) {
@@ -701,6 +709,36 @@ class CommentActivity : AppCompatActivity() {
                     } else {
                         //レイアウト消す
                         live_framelayout.visibility = View.GONE
+                    }
+                    //画質変更一覧
+                    val qualityTypesJSONArray = currentObject.getJSONArray("qualityTypes")
+                    val selectQuality = currentObject.getString("quality")
+                    // 画質変更BottomFragmentに詰める
+                    val bundle = Bundle()
+                    bundle.putString("select_quality", selectQuality)
+                    bundle.putString("quality_list", qualityTypesJSONArray.toString())
+                    qualitySelectBottomSheet = QualitySelectBottomSheet()
+                    qualitySelectBottomSheet.arguments = bundle
+                    //画質変更成功？
+                    if (start_quality.isEmpty()) {
+                        //最初の読み込みは入れるだけ
+                        start_quality = selectQuality
+                    } else {
+                        //画質変更した。Snackbarでユーザーに教える
+                        val oldQuality = QualitySelectBottomSheet.getQualityText(
+                            start_quality,
+                            this@CommentActivity
+                        )
+                        val newQuality = QualitySelectBottomSheet.getQualityText(
+                            selectQuality,
+                            this@CommentActivity
+                        )
+                        Snackbar.make(
+                            live_video_view,
+                            "${getString(R.string.successful_quality)}\n${oldQuality}→${newQuality}",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                        start_quality = selectQuality
                     }
                 }
 
@@ -720,6 +758,7 @@ class CommentActivity : AppCompatActivity() {
                     //コメント投稿時に使うWebSocketに接続する
                     connectionCommentPOSTWebSocket(messageServerUri, threadId)
                 }
+
 
                 //postKey受信
                 //今回は受信してpostKeyが取得できたらコメントを送信する仕様にします。
@@ -1000,8 +1039,8 @@ class CommentActivity : AppCompatActivity() {
 
     //コメント投稿用
     fun sendComment(comment: String) {
-        commentValue = comment
-        if (!comment.equals("\n")) {
+        if (comment != "\n") {
+            commentValue = comment
             //コメント投稿モード（コメントWebSocketに送信）
             val watchmode = pref_setting.getBoolean("setting_watching_mode", false)
             //nicocas式コメント投稿モード
@@ -1184,6 +1223,14 @@ class CommentActivity : AppCompatActivity() {
                     setSound(0)
                 }
             }
+            R.id.comment_activity_menu_volume_control -> {
+                //音量調節UIを出す。
+                audioManager.adjustStreamVolume(
+                    AudioManager.STREAM_MUSIC,
+                    AudioManager.ADJUST_SAME,
+                    AudioManager.FLAG_SHOW_UI
+                )
+            }
             R.id.comment_activity_menu_hide_info_unkome -> {
                 //運営コメント・infoコメント非表示
                 if (item.isChecked) {
@@ -1200,7 +1247,14 @@ class CommentActivity : AppCompatActivity() {
                 programShare.shareAttacgImage()
             }
             R.id.comment_activity_menu_share -> {
+                programShare = ProgramShare(this, live_video_view, programTitle, programTitle)
                 programShare.showShareScreen()
+            }
+            R.id.comment_activity_menu_quality -> {
+                //画質変更
+                if (this@CommentActivity::qualitySelectBottomSheet.isInitialized) {
+                    qualitySelectBottomSheet.show(supportFragmentManager, "quality_bottom")
+                }
             }
         }
         return super.onOptionsItemSelected(item)
@@ -1818,9 +1872,10 @@ class CommentActivity : AppCompatActivity() {
         //Enterキーを押したら投稿する
         comment_cardview_comment_textinputlayout.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
             if (i == KeyEvent.KEYCODE_ENTER) {
-                if (comment_cardview_comment_textinputlayout.text.toString().isNotEmpty()) {
+                val text = comment_cardview_comment_textinputlayout.text.toString()
+                if (text.isNotEmpty()) {
                     //コメント投稿
-                    sendComment(comment_cardview_comment_textinputlayout.text.toString())
+                    sendComment(text)
                     comment_cardview_comment_textinputlayout.setText("")
                 }
             }
@@ -1945,11 +2000,14 @@ class CommentActivity : AppCompatActivity() {
     fun setUnneiComment(comment: String) {
         //テキスト、背景色
         uncomeTextView.visibility = View.VISIBLE
+/*
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             uncomeTextView.text = Html.fromHtml(comment, Html.FROM_HTML_MODE_COMPACT)
         } else {
             uncomeTextView.text = Html.fromHtml(comment)
         }
+*/
+        uncomeTextView.text = HtmlCompat.fromHtml(comment, FROM_HTML_MODE_COMPACT)
         uncomeTextView.textSize = 20F
         uncomeTextView.setTextColor(Color.WHITE)
         uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))
@@ -2071,6 +2129,27 @@ class CommentActivity : AppCompatActivity() {
             this.cancel()
             autoNextProgramTimer.cancel()
         }, 3600000)
+    }
+
+    /**
+     * 画質変更メッセージ送信
+     * */
+    fun sendQualityMessage(quality: String) {
+        val jsonObject = JSONObject()
+        jsonObject.put("type", "watch")
+        //body
+        val bodyObject = JSONObject()
+        bodyObject.put("command", "getstream")
+        //requirement
+        val requirementObjects = JSONObject()
+        requirementObjects.put("protocol", "hls")
+        requirementObjects.put("quality", quality)
+        requirementObjects.put("isLowLatency", true)
+        requirementObjects.put("isChasePlay", false)
+        bodyObject.put("requirement", requirementObjects)
+        jsonObject.put("body", bodyObject)
+        //送信
+        connectionNicoLiveWebSocket.send(jsonObject.toString())
     }
 
 }

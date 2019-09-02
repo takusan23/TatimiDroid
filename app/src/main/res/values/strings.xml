@@ -157,4 +157,10 @@
     <string name="setting_hidden_id">Hide ID</string>
     <string name="setting_one_line">Display in one line</string>
     <string name="comment_viewer_setting">Setting the comment viewer</string>
+    <string name="volume">volume</string>
+    <string name="volume_control">Volume control</string>
+    <string name="quality">Change image quality</string>
+    <string name="quality_auto">Automatic</string>
+    <string name="quality_audio">Audio only</string>
+    <string name="successful_quality">The image quality has changed.</string>
 </resources>
