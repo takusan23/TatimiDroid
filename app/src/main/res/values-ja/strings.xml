@@ -163,4 +163,5 @@
     <string name="quality_auto">自動選択</string>
     <string name="quality_audio">音声のみ</string>
     <string name="successful_quality">画質変更しました。</string>
+    <string name="program_end">番組が終わってます。</string>
 </resources>

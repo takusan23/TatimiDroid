@@ -163,4 +163,5 @@
     <string name="quality_auto">Automatic</string>
     <string name="quality_audio">Audio only</string>
     <string name="successful_quality">The image quality has changed.</string>
+    <string name="program_end">The program is over.</string>
 </resources>
