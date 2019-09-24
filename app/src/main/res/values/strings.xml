@@ -164,4 +164,6 @@
     <string name="quality_audio">Audio only</string>
     <string name="successful_quality">The image quality has changed.</string>
     <string name="program_end">The program is over.</string>
+    <string name="setting_mobiledata_quality">Minimum quality for mobile data</string>
+    <string name="setting_mobiledata_quality_description">When using mobile data, it automatically switches to the lowest image quality.</string>
 </resources>

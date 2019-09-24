@@ -61,6 +61,7 @@ class QualitySelectBottomSheet : BottomSheetDialogFragment() {
                 if (activity is CommentActivity) {
                     //送信
                     (activity as CommentActivity).sendQualityMessage(text)
+                    println(text)
                     dismiss()
                 }
             }

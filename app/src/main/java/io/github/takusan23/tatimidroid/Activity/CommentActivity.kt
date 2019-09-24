@@ -13,6 +13,8 @@ import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -65,6 +67,7 @@ import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.lang.StringBuilder
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -196,6 +199,8 @@ class CommentActivity : AppCompatActivity() {
     lateinit var qualitySelectBottomSheet: QualitySelectBottomSheet
     //最初の画質
     var start_quality = ""
+    //モバイルデータなら最低画質の設定で一度だけ動かすように
+    var mobileDataQualityCheck = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -282,7 +287,7 @@ class CommentActivity : AppCompatActivity() {
             if (pref_setting.getBoolean("setting_new_comment", false)) {
                 //表示アニメーションに挑戦した。
                 val showAnimation =
-                    AnimationUtils.loadAnimation(this, R.anim.comment_cardview_show_animation);
+                    AnimationUtils.loadAnimation(this, R.anim.comment_cardview_show_animation)
                 //表示
                 comment_activity_comment_cardview.startAnimation(showAnimation)
                 comment_activity_comment_cardview.visibility = View.VISIBLE
@@ -697,7 +702,7 @@ class CommentActivity : AppCompatActivity() {
             override fun onMessage(message: String?) {
 
                 //HLSのアドレス　と　変更可能な画質一覧取る
-                if (message?.contains("currentStream") ?: false) {
+                if (message?.contains("currentStream") == true) {
                     val jsonObject = JSONObject(message)
                     val currentObject =
                         jsonObject.getJSONObject("body").getJSONObject("currentStream")
@@ -705,6 +710,8 @@ class CommentActivity : AppCompatActivity() {
                     //System.out.println("HLSアドレス ${hls_address}")
                     //生放送再生
                     if (pref_setting.getBoolean("setting_watch_live", false)) {
+                        //モバイルデータは最低画質で読み込む設定　
+                        sendMobileDataQuality()
                         setPlayVideoView()
                     } else {
                         //レイアウト消す
@@ -744,7 +751,7 @@ class CommentActivity : AppCompatActivity() {
 
                 //threadId、WebSocketURL受信
                 //コメント投稿時に使う。
-                if (message?.contains("threadId") ?: false) {
+                if (message?.contains("threadId") == true) {
                     val jsonObject = JSONObject(message)
                     val room = jsonObject.getJSONObject("body").getJSONObject("room")
                     val threadId = room.getString("threadId")
@@ -763,7 +770,7 @@ class CommentActivity : AppCompatActivity() {
                 //postKey受信
                 //今回は受信してpostKeyが取得できたらコメントを送信する仕様にします。
                 //postKeyをもらう イコール　コメントを送信する
-                if (message?.contains("postkey") ?: false) {
+                if (message?.contains("postkey") == true) {
                     val jsonObject = JSONObject(message)
                     val command = jsonObject.getJSONObject("body").getString("command")
                     //コメント送信なので２重チェック
@@ -802,7 +809,7 @@ class CommentActivity : AppCompatActivity() {
                 }
 
                 //総来場者数、コメント数
-                if (message?.contains("statistics") ?: false) {
+                if (message?.contains("statistics") == true) {
                     val jsonObject = JSONObject(message)
                     val params = jsonObject.getJSONObject("body").getJSONArray("params")
                     val watchCount = params[0]
@@ -982,7 +989,7 @@ class CommentActivity : AppCompatActivity() {
         //設定で読み込むかどうか
         runOnUiThread {
             //ウィンドウの半分ぐらいの大きさに設定
-            val display = getWindowManager().getDefaultDisplay()
+            val display = windowManager.defaultDisplay
             val point = Point()
             display.getSize(point)
             val layoutParams = live_video_view.layoutParams
@@ -1067,10 +1074,8 @@ class CommentActivity : AppCompatActivity() {
                 jsonObject.put("command", commentCommand)
                 jsonObject.put("vpos", vpos.toString())
 
-                val requestBodyJSON = RequestBody.Companion.create(
-                    "application/json; charset=utf-8".toMediaTypeOrNull(),
-                    jsonObject.toString()
-                )
+                val requestBodyJSON = jsonObject.toString()
+                    .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
                 //println(jsonObject.toString())
 
                 val request = Request.Builder()
@@ -1116,7 +1121,7 @@ class CommentActivity : AppCompatActivity() {
         if (menu is MenuBuilder) {
             menu.setOptionalIconsVisible(true)
         }
-        return super.onCreateOptionsMenu(menu);
+        return super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -1176,8 +1181,8 @@ class CommentActivity : AppCompatActivity() {
                         val intent =
                             Intent(
                                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                Uri.parse("package:${getPackageName()}")
-                            );
+                                Uri.parse("package:${packageName}")
+                            )
                         this.startActivityForResult(intent, 114)
                     } else {
                         startOverlayPlayer()
@@ -1696,8 +1701,8 @@ class CommentActivity : AppCompatActivity() {
                     val intent =
                         Intent(
                             Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:${getPackageName()}")
-                        );
+                            Uri.parse("package:${packageName}")
+                        )
                     this.startActivityForResult(intent, 114)
                 } else {
                     startOverlayPlayer()
@@ -1887,7 +1892,7 @@ class CommentActivity : AppCompatActivity() {
         comment_cardview_close_button.setOnClickListener {
             //非表示アニメーションに挑戦した。
             val hideAnimation =
-                AnimationUtils.loadAnimation(this, R.anim.comment_cardview_hide_animation);
+                AnimationUtils.loadAnimation(this, R.anim.comment_cardview_hide_animation)
             //表示
             comment_activity_comment_cardview.startAnimation(hideAnimation)
             comment_activity_comment_cardview.visibility = View.GONE
@@ -1949,7 +1954,7 @@ class CommentActivity : AppCompatActivity() {
         )
         cursor.moveToFirst()
         //ポップアップメニュー
-        val popup = PopupMenu(this, comment_cardview_comment_list_button);
+        val popup = PopupMenu(this, comment_cardview_comment_list_button)
         for (i in 0 until cursor.count) {
             //コメント
             val comment = cursor.getString(0)
@@ -2021,7 +2026,7 @@ class CommentActivity : AppCompatActivity() {
         uncomeTextView.gravity = Gravity.CENTER
         //表示アニメーション
         val showAnimation =
-            AnimationUtils.loadAnimation(this, R.anim.unnei_comment_show_animation);
+            AnimationUtils.loadAnimation(this, R.anim.unnei_comment_show_animation)
         //表示
         uncomeTextView.startAnimation(showAnimation)
         Timer().schedule(timerTask {
@@ -2035,7 +2040,7 @@ class CommentActivity : AppCompatActivity() {
             if (this@CommentActivity::uncomeTextView.isInitialized) {
                 //表示アニメーション
                 val hideAnimation =
-                    AnimationUtils.loadAnimation(this, R.anim.unnei_comment_close_animation);
+                    AnimationUtils.loadAnimation(this, R.anim.unnei_comment_close_animation)
                 //表示
                 uncomeTextView.startAnimation(hideAnimation)
                 //初期化済みなら
@@ -2061,7 +2066,7 @@ class CommentActivity : AppCompatActivity() {
         infoTextView.gravity = Gravity.CENTER
         //表示アニメーション
         val showAnimation =
-            AnimationUtils.loadAnimation(this, R.anim.comment_cardview_show_animation);
+            AnimationUtils.loadAnimation(this, R.anim.comment_cardview_show_animation)
         //表示
         infoTextView.startAnimation(showAnimation)
         infoTextView.visibility = View.VISIBLE
@@ -2079,7 +2084,7 @@ class CommentActivity : AppCompatActivity() {
                 AnimationUtils.loadAnimation(
                     this@CommentActivity,
                     R.anim.comment_cardview_hide_animation
-                );
+                )
             infoTextView.startAnimation(hideAnimation)
             infoTextView.visibility = View.GONE
         }
@@ -2150,6 +2155,34 @@ class CommentActivity : AppCompatActivity() {
         jsonObject.put("body", bodyObject)
         //送信
         connectionNicoLiveWebSocket.send(jsonObject.toString())
+    }
+
+    fun sendMobileDataQuality() {
+        if (!mobileDataQualityCheck) {
+            //モバイルデータのときは最低画質で再生する設定
+            if (pref_setting.getBoolean("setting_mobiledata_quality_low", false)) {
+                //今の接続状態を取得
+                val connectivityManager =
+                    getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                //ろりぽっぷとましゅまろ以上で分岐
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)?.hasTransport(
+                            NetworkCapabilities.TRANSPORT_CELLULAR
+                        ) == true
+                    ) {
+                        //モバイルデータ通信なら画質変更メッセージ送信
+                        sendQualityMessage("super_low")
+
+                    }
+                } else {
+                    if (connectivityManager.activeNetworkInfo.type == ConnectivityManager.TYPE_MOBILE) {
+                        //モバイルデータ通信なら画質変更メッセージ送信
+                        sendQualityMessage("super_low")
+                    }
+                }
+            }
+        }
+        mobileDataQualityCheck = true
     }
 
 }

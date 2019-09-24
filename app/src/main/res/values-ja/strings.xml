@@ -164,4 +164,6 @@
     <string name="quality_audio">音声のみ</string>
     <string name="successful_quality">画質変更しました。</string>
     <string name="program_end">番組が終わってます。</string>
+    <string name="setting_mobiledata_quality_description">モバイルデータのときは自動で最低画質に切り替えます。</string>
+    <string name="setting_mobiledata_quality">モバイルデータのときは最低画質で再生</string>
 </resources>
