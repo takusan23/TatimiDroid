@@ -28,6 +28,7 @@ import org.java_websocket.protocols.IProtocol
 import org.java_websocket.protocols.Protocol
 import org.json.JSONObject
 import org.jsoup.Jsoup
+import org.w3c.dom.Comment
 import java.io.IOException
 import java.lang.Exception
 import java.net.URI
@@ -38,7 +39,7 @@ import kotlin.concurrent.schedule
 class CommentViewFragment : Fragment() {
     //接続中の部屋名
     var connectingRoomName = ""
-    var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
+    var recyclerViewList: ArrayList<ArrayList<String>> = arrayListOf()
     lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
 
@@ -83,7 +84,15 @@ class CommentViewFragment : Fragment() {
         commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
         fragment_comment_recyclerview.adapter = commentRecyclerViewAdapter
         recyclerViewLayoutManager = fragment_comment_recyclerview.layoutManager!!
+
         fragment_comment_recyclerview.setItemAnimator(null);
+
+        if (activity is CommentActivity) {
+            (activity as CommentActivity).lockOnCommentList.clear()
+            (activity as CommentActivity).lockOnUserList.clear()
+            (activity as CommentActivity).lockOnRoomList.clear()
+        }
+
         //val viewPool = fragment_comment_recyclerview.recycledViewPool
         //viewPool.setMaxRecycledViews(1, 128)
 
@@ -215,6 +224,8 @@ class CommentViewFragment : Fragment() {
 
                     //運営コメントはアリーナだけ表示する
                     val commentJSONParse = CommentJSONParse(message, room)
+                    //ID
+                    val userId = commentJSONParse.userId
 
                     //コメント流す
                     niconicoComment(commentJSONParse.comment, commentJSONParse.userId)
@@ -239,20 +250,20 @@ class CommentViewFragment : Fragment() {
                             if (commentJSONParse.premium.contains("運営")) {
                                 //運営コメントはアリーナだけ
                                 if (!room.contains(getString(R.string.arena))) {
-                                    addItemRecyclerView(message, room)
+                                    addItemRecyclerView(message, room, userId)
                                 }
                             } else {
-                                addItemRecyclerView(message, room)
+                                addItemRecyclerView(message, room, userId)
                             }
                         }
                     } else {
                         if (commentJSONParse.premium.contains("運営")) {
                             //運営コメントはアリーナだけ
                             if (!room.contains(getString(R.string.arena))) {
-                                addItemRecyclerView(message, room)
+                                addItemRecyclerView(message, room, userId)
                             }
                         } else {
-                            addItemRecyclerView(message, room)
+                            addItemRecyclerView(message, room, userId)
                         }
                     }
 
@@ -478,14 +489,33 @@ class CommentViewFragment : Fragment() {
 
 
     /*RecyclerViewについかする*/
-    fun addItemRecyclerView(json: String, roomName: String) {
+    fun addItemRecyclerView(json: String, roomName: String, userId: String) {
         //同じのが追加されないように
         val size = recyclerViewList.size
         val item = arrayListOf<String>()
         item.add("")
         item.add(json)
         item.add(roomName)
+        item.add(userId)
         recyclerViewList.add(0, item)
+
+        //ロックオンできるように
+        if (activity is CommentActivity) {
+            (activity as CommentActivity).lockOnCommentList.add(json)
+            (activity as CommentActivity).lockOnUserList.add(userId)
+            (activity as CommentActivity).lockOnRoomList.add(roomName)
+
+            //ロックオン中は自動更新できるようにする
+            val fragment = fragmentManager?.findFragmentByTag("comment_menu")
+            if (fragment != null) {
+                if (fragment is CommentMenuBottomFragment) {
+                    //更新する
+                    fragment.setLockOnComment()
+                }
+            }
+
+        }
+
         //RecyclerView更新
         activity?.runOnUiThread {
             if (fragment_comment_recyclerview != null) {

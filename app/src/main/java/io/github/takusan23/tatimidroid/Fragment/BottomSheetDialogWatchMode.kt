@@ -12,8 +12,11 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.NicoLogin
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
@@ -35,6 +38,11 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
         dialog_watchmode_parent_linearlayout.background =
             ColorDrawable(darkModeSupport.getThemeColor())
 
+        getProgram()
+
+    }
+
+    fun getProgram() {
         val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         val editor = pref_setting.edit()
         //LiveID
@@ -117,11 +125,39 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                         }
                     }
                 } else {
-                    //エラーなので閉じる
-                    activity?.runOnUiThread {
-                        dismiss()
-                        Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT)
-                            .show()
+                    //ニコニコにログインをし直す
+                    if (context != null) {
+                        //４０１エラーのときはuser_sessionが切れた
+                        if (response.code == 401) {
+                            val nicoLogin = NicoLogin(context!!, liveId ?: "lv322223022")
+                            //こるーちん？
+                            //再ログインする
+                            activity?.runOnUiThread {
+                                dismiss()
+                                Toast.makeText(
+                                    context,
+                                    getString(R.string.re_login),
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
+                            }
+                            //ログインしてから再度取得すr
+                            GlobalScope.launch {
+                                nicoLogin.getUserSession()
+                                getProgram()
+                            }
+                        } else {
+                            //エラーなので閉じる
+                            activity?.runOnUiThread {
+                                dismiss()
+                                Toast.makeText(
+                                    context,
+                                    getString(R.string.error),
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
+                            }
+                        }
                     }
                 }
             }

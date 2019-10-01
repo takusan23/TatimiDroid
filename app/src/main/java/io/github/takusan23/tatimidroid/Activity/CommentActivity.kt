@@ -202,6 +202,11 @@ class CommentActivity : AppCompatActivity() {
     //モバイルデータなら最低画質の設定で一度だけ動かすように
     var mobileDataQualityCheck = false
 
+    //ロックオンできるように？
+    val lockOnCommentList = arrayListOf<String>()
+    val lockOnUserList = arrayListOf<String>()
+    val lockOnRoomList = arrayListOf<String>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -2097,7 +2102,7 @@ class CommentActivity : AppCompatActivity() {
         //１分ぐらいで取りに行く
         autoNextProgramTimer.schedule(0, 60000) {
             val request = Request.Builder()
-                .url("https://live.nicovideo.jp/api/getplayerstatus/$liveId")   //getplayerstatus、httpsでつながる？
+                .url("https://live.nicovideo.jp/api/getplayerstatus/$communityID")   //getplayerstatus、httpsでつながる？
                 .header("Cookie", "user_session=$usersession")
                 .get()
                 .build()

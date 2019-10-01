@@ -23,6 +23,11 @@ import android.opengl.Visibility
 import android.text.SpannableString
 import android.widget.Button
 import androidx.core.net.toUri
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import io.github.takusan23.tatimidroid.CommentRecyclerViewAdapter
+import kotlinx.android.synthetic.main.fragment_commentview.*
+import okhttp3.internal.notify
 import java.util.regex.Pattern
 
 
@@ -37,14 +42,34 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
     lateinit var ngListSQLiteHelper: NGListSQLiteHelper
     lateinit var sqLiteDatabase: SQLiteDatabase
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    //RecyclerView
+    lateinit var recyclerViewList: ArrayList<ArrayList<String>>
+    lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.bottom_fragment_comment_menu_layout, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         //ダークモード
         val darkModeSupport = DarkModeSupport(context!!)
-        bottom_fragment_comment_menu_parent_linearlayout.background = ColorDrawable(darkModeSupport.getThemeColor())
+        bottom_fragment_comment_menu_parent_linearlayout.background =
+            ColorDrawable(darkModeSupport.getThemeColor())
+
+        //RecyclerView
+        recyclerViewList = arrayListOf()
+        bottom_fragment_comment_menu_recyclerview.setHasFixedSize(true)
+        val mLayoutManager = LinearLayoutManager(context)
+        bottom_fragment_comment_menu_recyclerview.layoutManager =
+            mLayoutManager as RecyclerView.LayoutManager?
+        commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
+        bottom_fragment_comment_menu_recyclerview.adapter = commentRecyclerViewAdapter
+
+
         //Map
         kotehanMap = (activity as CommentActivity).kotehanMap
         //取り出す
@@ -71,13 +96,56 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
 
         //URL取り出し
         regexURL()
+
+        //ロックオンできるようにする
+        //ロックオンとはある一人のユーザーのコメントだけ見ることである
+        //生主が効いたときによくある
+        setLockOnComment()
+
     }
+
+    fun setLockOnComment() {
+        recyclerViewList.clear()
+        activity?.runOnUiThread {
+            commentRecyclerViewAdapter.notifyDataSetChanged()
+        }
+        if (activity is CommentActivity) {
+            //探す
+            val lockOnUserList = (activity as CommentActivity).lockOnUserList
+            val lockOnCommentList = (activity as CommentActivity).lockOnCommentList
+            val lockOnRoomList = (activity as CommentActivity).lockOnRoomList
+            println(lockOnRoomList)
+            for (i in 0 until lockOnUserList.size) {
+                val user = lockOnUserList[i]
+                val comment = lockOnCommentList[i]
+                var room = "不明"
+                if (lockOnRoomList[i] != null || lockOnRoomList.size != i) {
+                    room = lockOnRoomList[i]
+                }
+                if (user == userId) {
+                    val item = arrayListOf<String>()
+                    item.add("")
+                    item.add(comment)
+                    item.add(room)
+                    item.add(userId)
+                    println(item)
+                    activity?.runOnUiThread {
+                        recyclerViewList.add(0, item)
+                        commentRecyclerViewAdapter.notifyDataSetChanged()
+                    }
+                }
+            }
+        }
+
+    }
+
 
     //URL正規表現
     private fun regexURL() {
         //正規表現で取り出す
-        val urlRegex = Pattern.compile("(http://|https://){1}[\\w\\.\\-/:\\#\\?\\=\\&\\;\\%\\~\\+]+")
-            .matcher(SpannableString(comment))
+        val urlRegex =
+            Pattern.compile("(http://|https://){1}[\\w\\.\\-/:\\#\\?\\=\\&\\;\\%\\~\\+]+")
+                .matcher(SpannableString(comment))
         if (urlRegex.find()) {
             bottom_fragment_comment_menu_comment_url.visibility = View.VISIBLE
             bottom_fragment_comment_menu_comment_url.setOnClickListener {
@@ -91,7 +159,8 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
     fun setCopy() {
         bottom_fragment_comment_menu_comment_copy.setOnClickListener {
             // コピーする
-            val clipboardManager = context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipboardManager =
+                context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboardManager.setPrimaryClip(ClipData.newPlainText("", comment))
             Toast.makeText(context, getString(R.string.copy_successful), Toast.LENGTH_SHORT).show()
         }
@@ -124,7 +193,11 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         if (kotehan.isNotEmpty()) {
             kotehanMap.put(userId, kotehan)
             //登録しました！
-            Toast.makeText(context, "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}", Toast.LENGTH_SHORT)
+            Toast.makeText(
+                context,
+                "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}",
+                Toast.LENGTH_SHORT
+            )
                 .show()
         }
     }

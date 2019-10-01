@@ -46,7 +46,7 @@ class NicoLogin(val context: Context, val liveId: String) {
                             (context as AppCompatActivity).runOnUiThread{
                                 //おわってる　か　まだ
                                 context.finish()
-                                Toast.makeText(context, "番組が終わっている、まだ開場していない場合があります。", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.program_end), Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -56,8 +56,6 @@ class NicoLogin(val context: Context, val liveId: String) {
             //初回
             getUserSession()
         }
-
-
     }
 
     fun getUserSession() {

@@ -37,7 +37,7 @@ class CommentRoomFragment : Fragment() {
     lateinit var pref_setting: SharedPreferences
 
     //接続中の部屋名
-    var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
+    var recyclerViewList: ArrayList<ArrayList<String>> = arrayListOf()
     lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
 

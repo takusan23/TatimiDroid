@@ -24,7 +24,7 @@ import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.*
 
-class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
+class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :
     RecyclerView.Adapter<CommentRecyclerViewAdapter.ViewHolder>() {
 
     //UserIDの配列。初コメを太字表示する
@@ -38,118 +38,121 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item: ArrayList<String> = arrayListArrayAdapter[position] as ArrayList<String>
-        val context = holder.cardView.context
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-        //NG配列
-        val userNGList = (context as CommentActivity).userNGList
-        val commentNGList = (context as CommentActivity).commentNGList
-        //コテハンMAP
-        val kotehanMap = (context as CommentActivity).kotehanMap
-        //NGチェック
-        var isNGUser = false
-        var isNGComment = false
+        val item: ArrayList<String>? = arrayListArrayAdapter[position]
+        if (item != null) {
+            val context = holder.cardView.context
+            pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
-        val json: String = item[1]
-        val roomName: String = item[2]
+            //NGチェック
+            var isNGUser = false
+            var isNGComment = false
 
-        val commentJSONParse = CommentJSONParse(json, roomName)
+            val json: String = item[1]
+            val roomName: String = item[2]
 
-        //NGコメント、ユーザーか
-        if (userNGList.indexOf(commentJSONParse.userId) != -1) {
-            isNGUser = true
-        }
-        if (commentNGList.indexOf(commentJSONParse.comment) != -1) {
-            isNGComment = true
-        }
+            val commentJSONParse = CommentJSONParse(json, roomName)
 
+            var userId: String = commentJSONParse.userId
 
-        //UnixTime -> Minute
-        var time = ""
-        if (commentJSONParse.date.isNotEmpty()) {
-            val calendar = Calendar.getInstance(TimeZone.getDefault())
-            calendar.timeInMillis = commentJSONParse.date.toLong() * 1000L
-            val hour = calendar.get(Calendar.HOUR_OF_DAY)
-            val minute = calendar.get(Calendar.MINUTE)
-            val second = calendar.get(Calendar.SECOND)
-            time =
-                "${calendar.get(Calendar.HOUR_OF_DAY)}:${calendar.get(Calendar.MINUTE)}:${calendar.get(
-                    Calendar.SECOND
-                )}"
-        }
-
-        //コテハン
-        var userId: String
-        if (kotehanMap.containsKey(commentJSONParse.userId)) {
-            userId = kotehanMap.get(commentJSONParse.userId) ?: ""
-        } else {
-            userId = commentJSONParse.userId
-        }
+            if (context is CommentActivity) {
+                //NG配列
+                val userNGList = (context as CommentActivity).userNGList
+                val commentNGList = (context as CommentActivity).commentNGList
+                //コテハンMAP
+                val kotehanMap = (context as CommentActivity).kotehanMap
+                //NGコメント、ユーザーか
+                if (userNGList.indexOf(commentJSONParse.userId) != -1) {
+                    isNGUser = true
+                }
+                if (commentNGList.indexOf(commentJSONParse.comment) != -1) {
+                    isNGComment = true
+                }
+                //コテハン
+                if (kotehanMap.containsKey(commentJSONParse.userId)) {
+                    userId = kotehanMap.get(commentJSONParse.userId) ?: ""
+                } else {
+                    userId = commentJSONParse.userId
+                }
+            }
 
 
-        var info = "${commentJSONParse.roomName} | $time | ${userId}"
-        var comment = "${commentJSONParse.commentNo} : ${commentJSONParse.comment}"
+            //UnixTime -> Minute
+            var time = ""
+            if (commentJSONParse.date.isNotEmpty()) {
+                val calendar = Calendar.getInstance(TimeZone.getDefault())
+                calendar.timeInMillis = commentJSONParse.date.toLong() * 1000L
+                val hour = calendar.get(Calendar.HOUR_OF_DAY)
+                val minute = calendar.get(Calendar.MINUTE)
+                val second = calendar.get(Calendar.SECOND)
+                time =
+                    "${calendar.get(Calendar.HOUR_OF_DAY)}:${calendar.get(Calendar.MINUTE)}:${calendar.get(
+                        Calendar.SECOND
+                    )}"
+            }
 
-        //プレ垢
-        if (commentJSONParse.premium.isNotEmpty()) {
-            info = "$info | ${commentJSONParse.premium}"
-        }
+            var info = "${commentJSONParse.roomName} | $time | ${userId}"
+            var comment = "${commentJSONParse.commentNo} : ${commentJSONParse.comment}"
 
-        //NGの場合は置き換える
-        if (isNGUser) {
-            info = ""
-            comment = context.getString(R.string.ng_user)
-        }
-        if (isNGComment) {
-            info = ""
-            comment = context.getString(R.string.ng_comment)
-        }
+            //プレ垢
+            if (commentJSONParse.premium.isNotEmpty()) {
+                info = "$info | ${commentJSONParse.premium}"
+            }
 
-        //UserIDの配列になければ配列に入れる。初コメ
-        if (userList.indexOf(commentJSONParse.userId) == -1) {
-            userList.add(commentJSONParse.userId)
-            //初コメは太字にする
-            holder.commentTextView.typeface = Typeface.DEFAULT_BOLD
-        } else {
-            holder.commentTextView.typeface = Typeface.DEFAULT
-        }
+            //NGの場合は置き換える
+            if (isNGUser) {
+                info = ""
+                comment = context.getString(R.string.ng_user)
+            }
+            if (isNGComment) {
+                info = ""
+                comment = context.getString(R.string.ng_comment)
+            }
 
-        holder.commentTextView.text = comment
-        holder.roomNameTextView.text = info
+            //UserIDの配列になければ配列に入れる。初コメ
+            if (userList.indexOf(commentJSONParse.userId) == -1) {
+                userList.add(commentJSONParse.userId)
+                //初コメは太字にする
+                holder.commentTextView.typeface = Typeface.DEFAULT_BOLD
+            } else {
+                holder.commentTextView.typeface = Typeface.DEFAULT
+            }
+
+            holder.commentTextView.text = comment
+            holder.roomNameTextView.text = info
 
 
-        //詳細画面出す
-        holder.cardView.setOnClickListener {
-            val bundle = Bundle()
-            bundle.putString("comment", commentJSONParse.comment)
-            bundle.putString("user_id", commentJSONParse.userId)
-            val commentMenuBottomFragment = CommentMenuBottomFragment()
-            commentMenuBottomFragment.arguments = bundle
-            commentMenuBottomFragment.show(
-                (context as AppCompatActivity).supportFragmentManager,
-                "comment_menu"
-            )
-        }
+            //詳細画面出す
+            holder.cardView.setOnClickListener {
+                val bundle = Bundle()
+                bundle.putString("comment", commentJSONParse.comment)
+                bundle.putString("user_id", commentJSONParse.userId)
+                val commentMenuBottomFragment = CommentMenuBottomFragment()
+                commentMenuBottomFragment.arguments = bundle
+                commentMenuBottomFragment.show(
+                    (context as AppCompatActivity).supportFragmentManager,
+                    "comment_menu"
+                )
+            }
 
-        //部屋の色
-        if (pref_setting.getBoolean("setting_room_color", true)) {
-            holder.roomNameTextView.setTextColor(getRoomColor(roomName))
-        }
-
-        //ID非表示
-        if (pref_setting.getBoolean("setting_id_hidden", false)) {
-            //非表示
-            holder.roomNameTextView.visibility = View.GONE
-            //部屋の色をつける設定有効時はコメントのTextViewに色を付ける
+            //部屋の色
             if (pref_setting.getBoolean("setting_room_color", true)) {
-                holder.commentTextView.setTextColor(getRoomColor(roomName))
+                holder.roomNameTextView.setTextColor(getRoomColor(roomName))
+            }
+
+            //ID非表示
+            if (pref_setting.getBoolean("setting_id_hidden", false)) {
+                //非表示
+                holder.roomNameTextView.visibility = View.GONE
+                //部屋の色をつける設定有効時はコメントのTextViewに色を付ける
+                if (pref_setting.getBoolean("setting_room_color", true)) {
+                    holder.commentTextView.setTextColor(getRoomColor(roomName))
+                }
+            }
+            //一行表示とか
+            if (pref_setting.getBoolean("setting_one_line", false)) {
+                holder.commentTextView.maxLines = 1
             }
         }
-        //一行表示とか
-        if (pref_setting.getBoolean("setting_one_line", false)) {
-            holder.commentTextView.maxLines = 1
-        }
-
     }
 
     override fun getItemCount(): Int {
