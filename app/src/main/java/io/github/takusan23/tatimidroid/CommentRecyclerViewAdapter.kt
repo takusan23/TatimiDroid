@@ -39,7 +39,7 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item: ArrayList<String>? = arrayListArrayAdapter[position]
-        if (item != null) {
+        if (item != null && item.size > 0) {
             val context = holder.cardView.context
             pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -128,10 +128,12 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
                 bundle.putString("user_id", commentJSONParse.userId)
                 val commentMenuBottomFragment = CommentMenuBottomFragment()
                 commentMenuBottomFragment.arguments = bundle
-                commentMenuBottomFragment.show(
-                    (context as AppCompatActivity).supportFragmentManager,
-                    "comment_menu"
-                )
+                if (context is AppCompatActivity) {
+                    commentMenuBottomFragment.show(
+                        context.supportFragmentManager,
+                        "comment_menu"
+                    )
+                }
             }
 
             //部屋の色

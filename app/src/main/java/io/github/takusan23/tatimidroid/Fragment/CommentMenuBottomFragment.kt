@@ -106,21 +106,18 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
 
     fun setLockOnComment() {
         recyclerViewList.clear()
-        activity?.runOnUiThread {
-            commentRecyclerViewAdapter.notifyDataSetChanged()
-        }
         if (activity is CommentActivity) {
             //探す
             val lockOnUserList = (activity as CommentActivity).lockOnUserList
             val lockOnCommentList = (activity as CommentActivity).lockOnCommentList
-            val lockOnRoomList = (activity as CommentActivity).lockOnRoomList
+            val lockOnRoomList: ArrayList<String>? = (activity as CommentActivity).lockOnRoomList
             println(lockOnRoomList)
             for (i in 0 until lockOnUserList.size) {
                 val user = lockOnUserList[i]
                 val comment = lockOnCommentList[i]
                 var room = "不明"
-                if (lockOnRoomList[i] != null || lockOnRoomList.size != i) {
-                    room = lockOnRoomList[i]
+                if (lockOnRoomList?.size != i) {
+                    room = lockOnRoomList?.get(i) ?: "不明"
                 }
                 if (user == userId) {
                     val item = arrayListOf<String>()
