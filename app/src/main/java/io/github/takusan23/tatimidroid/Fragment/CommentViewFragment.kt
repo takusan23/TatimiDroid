@@ -87,12 +87,6 @@ class CommentViewFragment : Fragment() {
 
         fragment_comment_recyclerview.setItemAnimator(null);
 
-        if (activity is CommentActivity) {
-            (activity as CommentActivity).lockOnCommentList.clear()
-            (activity as CommentActivity).lockOnUserList.clear()
-            (activity as CommentActivity).lockOnRoomList.clear()
-        }
-
         //val viewPool = fragment_comment_recyclerview.recycledViewPool
         //viewPool.setMaxRecycledViews(1, 128)
 
@@ -250,20 +244,20 @@ class CommentViewFragment : Fragment() {
                             if (commentJSONParse.premium.contains("運営")) {
                                 //運営コメントはアリーナだけ
                                 if (!room.contains(getString(R.string.arena))) {
-                                    addItemRecyclerView(message, room, userId)
+                                    addItemRecyclerView(message, room, userId, commentJSONParse)
                                 }
                             } else {
-                                addItemRecyclerView(message, room, userId)
+                                addItemRecyclerView(message, room, userId, commentJSONParse)
                             }
                         }
                     } else {
                         if (commentJSONParse.premium.contains("運営")) {
                             //運営コメントはアリーナだけ
                             if (!room.contains(getString(R.string.arena))) {
-                                addItemRecyclerView(message, room, userId)
+                                addItemRecyclerView(message, room, userId, commentJSONParse)
                             }
                         } else {
-                            addItemRecyclerView(message, room, userId)
+                            addItemRecyclerView(message, room, userId, commentJSONParse)
                         }
                     }
 
@@ -489,7 +483,12 @@ class CommentViewFragment : Fragment() {
 
 
     /*RecyclerViewについかする*/
-    fun addItemRecyclerView(json: String, roomName: String, userId: String) {
+    fun addItemRecyclerView(
+        json: String,
+        roomName: String,
+        userId: String,
+        commentJSONParse: CommentJSONParse
+    ) {
         //同じのが追加されないように
         val size = recyclerViewList.size
         val item = arrayListOf<String>()
@@ -501,19 +500,16 @@ class CommentViewFragment : Fragment() {
 
         //ロックオンできるように
         if (activity is CommentActivity) {
-            (activity as CommentActivity).lockOnCommentList.add(json)
-            (activity as CommentActivity).lockOnUserList.add(userId)
-            (activity as CommentActivity).lockOnRoomList.add(roomName)
-
             //ロックオン中は自動更新できるようにする
             val fragment = fragmentManager?.findFragmentByTag("comment_menu")
             if (fragment != null) {
                 if (fragment is CommentMenuBottomFragment) {
-                    //更新する
-                    fragment.setLockOnComment()
+                    if (fragment.userId == commentJSONParse.userId) {
+                        //更新する
+                        fragment.setLockOnComment()
+                    }
                 }
             }
-
         }
 
         //RecyclerView更新

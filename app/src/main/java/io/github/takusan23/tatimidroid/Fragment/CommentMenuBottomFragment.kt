@@ -25,9 +25,11 @@ import android.widget.Button
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.CommentRecyclerViewAdapter
 import kotlinx.android.synthetic.main.fragment_commentview.*
 import okhttp3.internal.notify
+import java.lang.NullPointerException
 import java.util.regex.Pattern
 
 
@@ -100,40 +102,43 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         //ロックオンできるようにする
         //ロックオンとはある一人のユーザーのコメントだけ見ることである
         //生主が効いたときによくある
-        setLockOnComment()
-
+        try {
+            setLockOnComment()
+        } catch (e: NullPointerException) {
+            e.printStackTrace()
+        }
     }
 
     fun setLockOnComment() {
         recyclerViewList.clear()
         if (activity is CommentActivity) {
-            //探す
-            val lockOnUserList = (activity as CommentActivity).lockOnUserList
-            val lockOnCommentList = (activity as CommentActivity).lockOnCommentList
-            val lockOnRoomList: ArrayList<String>? = (activity as CommentActivity).lockOnRoomList
-            println(lockOnRoomList)
-            for (i in 0 until lockOnUserList.size) {
-                val user = lockOnUserList[i]
-                val comment = lockOnCommentList[i]
-                var room = "不明"
-                if (lockOnRoomList?.size != i) {
-                    room = lockOnRoomList?.get(i) ?: "不明"
-                }
-                if (user == userId) {
-                    val item = arrayListOf<String>()
-                    item.add("")
-                    item.add(comment)
-                    item.add(room)
-                    item.add(userId)
-                    println(item)
-                    activity?.runOnUiThread {
-                        recyclerViewList.add(0, item)
-                        commentRecyclerViewAdapter.notifyDataSetChanged()
+            val fragment =
+                activity?.supportFragmentManager?.findFragmentById(R.id.activity_comment_linearlayout)
+            if (fragment is CommentViewFragment) {
+                //全部屋コメントRecyclerViewを取得
+                val adapterList: ArrayList<ArrayList<String>> = fragment.recyclerViewList
+                adapterList.forEach {
+                    val commentJson: String = it[1]
+                    val roomName: String = it[2]
+                    val commentJSONParse = CommentJSONParse(commentJson, roomName)
+                    //IDを比較
+                    if (commentJSONParse.userId == userId) {
+                        //ロックオンコメント取得
+                        val item = arrayListOf<String>()
+                        item.add("")
+                        item.add(commentJson)
+                        item.add(roomName)
+                        item.add(commentJSONParse.userId)
+                        activity?.runOnUiThread {
+                            recyclerViewList.add(item)
+                            commentRecyclerViewAdapter.notifyDataSetChanged()
+                        }
                     }
                 }
+            } else {
+                bottom_fragment_comment_menu_recyclerview.visibility = View.GONE
             }
         }
-
     }
 
 
