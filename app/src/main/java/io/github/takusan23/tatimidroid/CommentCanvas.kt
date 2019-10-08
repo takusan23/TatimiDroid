@@ -19,8 +19,11 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     //白色テキストの下に描画する黒色テキストPaint
     var blackPaint: Paint
     val textList = arrayListOf<String>()
+    //座標？
     val xList = arrayListOf<Int>()
     val yList = arrayListOf<Int>()
+    //色とか
+    val commandList = arrayListOf<String>()
 
     //いまコメントが流れてる座標を保存する
     val commentFlowingXList = arrayListOf<Int>()
@@ -87,20 +90,65 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             val text = textList.get(i)
             val x = xList.get(i)
             val y = yList.get(i)
+            val command = commandList.get(i)
             if (x > -1000) {
                 commentFlowingXList.add(x)
                 commentFlowingYList.add(y)
                 canvas?.drawText(text, x.toFloat(), y.toFloat(), blackPaint)
-                canvas?.drawText(text, x.toFloat(), y.toFloat(), paint)
+                canvas?.drawText(text, x.toFloat(), y.toFloat(), getCommentTextPaint(command))
             }
         }
+    }
+
+
+    //色の変更
+    fun getCommentTextPaint(command: String): Paint {
+        //白色テキスト
+        val paint = Paint()
+        paint.isAntiAlias = true
+        paint.textSize = fontsize
+        paint.style = Paint.Style.FILL
+        paint.color = Color.parseColor(getColor(command))
+        return paint
+    }
+
+    //色
+    fun getColor(command: String): String {
+        if (command.contains("red")) {
+            return "#FF0000"
+        }
+        if (command.contains("pink")) {
+            return "#FF8080"
+        }
+        if (command.contains("orange")) {
+            return "#FFC000"
+        }
+        if (command.contains("yellow")) {
+            return "#FFFF00"
+        }
+        if (command.contains("green")) {
+            return "#00FF00"
+        }
+        if (command.contains("cyan")) {
+            return "#00FFFF"
+        }
+        if(command.contains("blue")){
+            return "#0000FF"
+        }
+        if(command.contains("purple")){
+            return "#C000FF"
+        }
+        if(command.contains("black")){
+            return "#000000"
+        }
+        return "#FFFFFF"
     }
 
     /*
     * コメント投稿
     * */
 
-    fun postComment(comment: String) {
+    fun postComment(comment: String, command: String) {
         val display = (context as AppCompatActivity).getWindowManager().getDefaultDisplay()
         val point = Point()
         display.getSize(point)
@@ -120,6 +168,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         textList.add(comment)
         xList.add(weight)
         yList.add(getCommentPosition(comment))
+        commandList.add(command)
     }
 
     fun getCommentPosition(comment: String): Int {

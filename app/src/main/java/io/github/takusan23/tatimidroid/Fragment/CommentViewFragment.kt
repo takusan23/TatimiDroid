@@ -228,7 +228,7 @@ class CommentViewFragment : Fragment() {
                     val userId = commentJSONParse.userId
 
                     //コメント流す
-                    niconicoComment(commentJSONParse.comment, commentJSONParse.userId)
+                    niconicoComment(commentJSONParse.comment, commentJSONParse.userId,commentJSONParse.mail)
 
                     //コテハン登録
                     registerKotehan(commentJSONParse)
@@ -546,7 +546,7 @@ class CommentViewFragment : Fragment() {
     }
 
     //コメント流す
-    fun niconicoComment(message: String, userId: String) {
+    fun niconicoComment(message: String, userId: String,command:String) {
         //コメントを流さない設定？
         if (activity is CommentActivity) {
             if (!(activity as CommentActivity).isCommentHidden) {
@@ -559,11 +559,11 @@ class CommentViewFragment : Fragment() {
                     if (!message.contains("/hb ifseetno")) {
                         //UIスレッドで呼んだら遅延せずに表示されました！
                         activity?.runOnUiThread {
-                            activity?.comment_canvas?.postComment(message)
+                            activity?.comment_canvas?.postComment(message,command)
                             //ポップアップ再生
                             if ((activity as? CommentActivity)?.overlay_commentcamvas != null) {
                                 (activity as CommentActivity).overlay_commentcamvas!!.postComment(
-                                    message
+                                    message,command
                                 )
                                 //コメント
                                 val textView =

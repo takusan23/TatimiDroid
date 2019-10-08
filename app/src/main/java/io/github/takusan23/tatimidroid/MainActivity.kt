@@ -18,6 +18,7 @@ import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_liveid.*
 import java.util.regex.Pattern
 
 
@@ -110,6 +111,8 @@ class MainActivity : AppCompatActivity() {
             //正規表現で取り出す
             val nicoID_Matcher = Pattern.compile("(lv)([0-9]+)")
                 .matcher(SpannableString(url ?: ""))
+            val communityID_Matcher = Pattern.compile("(co|ch)([0-9]+)")
+                .matcher(SpannableString(url?:""))
             if (nicoID_Matcher.find()) {
                 //ダイアログ
                 val liveId = nicoID_Matcher.group()
@@ -118,7 +121,15 @@ class MainActivity : AppCompatActivity() {
                 val dialog = BottomSheetDialogWatchMode()
                 dialog.arguments = bundle
                 dialog.show(supportFragmentManager, "watchmode")
-            } else {
+            } else if(communityID_Matcher.find()) {
+                //ダイアログ
+                val liveId = communityID_Matcher.group()
+                val bundle = Bundle()
+                bundle.putString("liveId", liveId)
+                val dialog = BottomSheetDialogWatchMode()
+                dialog.arguments = bundle
+                dialog.show(supportFragmentManager, "watchmode")
+            }else {
                 //なかった。
                 Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
             }

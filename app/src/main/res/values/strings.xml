@@ -167,4 +167,6 @@
     <string name="setting_mobiledata_quality">Minimum quality for mobile data</string>
     <string name="setting_mobiledata_quality_description">When using mobile data, it automatically switches to the lowest image quality.</string>
     <string name="re_login">Log in again</string>
+    <string name="program_id_from_community_id">Getting program ID from community ID</string>
+    <string name="liveid_or_communityid">Program ID or community ID</string>
 </resources>

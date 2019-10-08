@@ -9,6 +9,7 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
     var userId = ""
     var date = ""
     var premium = ""
+    var mail = ""
 
     init {
         val jsonObject = JSONObject(commentJson)
@@ -25,6 +26,7 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
                     2 -> premium = "運営"
                 }
             }
+            mail = chatObject.getString("mail")
         }
     }
 }

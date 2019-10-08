@@ -167,4 +167,6 @@
     <string name="setting_mobiledata_quality_description">モバイルデータのときは自動で最低画質に切り替えます。</string>
     <string name="setting_mobiledata_quality">モバイルデータのときは最低画質で再生</string>
     <string name="re_login">再ログインします</string>
+    <string name="program_id_from_community_id">コミュニティIDから番組IDを取得中</string>
+    <string name="liveid_or_communityid">番組IDかコミュID</string>
 </resources>
