@@ -82,6 +82,7 @@ class LiveIDFragment : Fragment() {
             } else if (communityID_Matcher.find()) {
                 //コニュニティIDから生放送IDを出す。
                 //getPlayerStatusで放送中の場合はコミュニティIDを入れれば使える
+                Toast.makeText(context,getString(R.string.program_id_from_community_id),Toast.LENGTH_SHORT).show()
                 GlobalScope.launch {
                     var liveId = ""
                     async {
@@ -148,7 +149,6 @@ class LiveIDFragment : Fragment() {
     //コニュニティIDから
     fun getProgramIDfromCommunityID(): String? {
         //取得中
-        Toast.makeText(context,getString(R.string.program_id_from_community_id),Toast.LENGTH_SHORT).show()
         val user_session = pref_setting.getString("user_session", "")
         val request = Request.Builder()
             .url("https://live.nicovideo.jp/api/getplayerstatus/${main_activity_liveid_inputedittext.text.toString()}")   //getplayerstatus、httpsでつながる？

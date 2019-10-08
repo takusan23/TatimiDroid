@@ -16,7 +16,7 @@
                 android:inputType="text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/liveid"/>
+                android:hint="@string/liveid_or_communityid"/>
 
     </com.google.android.material.textfield.TextInputLayout>
 

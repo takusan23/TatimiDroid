@@ -15,9 +15,9 @@ import kotlin.concurrent.schedule
 class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     //白色テキストPaint
-    var paint: Paint
+    lateinit var paint: Paint
     //白色テキストの下に描画する黒色テキストPaint
-    var blackPaint: Paint
+    lateinit var blackPaint: Paint
     val textList = arrayListOf<String>()
     //座標？
     val xList = arrayListOf<Int>()
@@ -47,12 +47,25 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     val commentPositionListNine = arrayListOf<Long>()
     val commentPositionListTen = arrayListOf<Long>()
 
+    //コメントの描画改善
+    //別に配列にする意味なくね？
+    var commentPosition_1 = 0L
+    var commentPosition_2 = 0L
+    var commentPosition_3 = 0L
+    var commentPosition_4 = 0L
+    var commentPosition_5 = 0L
+    var commentPosition_6 = 0L
+    var commentPosition_7 = 0L
+    var commentPosition_8 = 0L
+    var commentPosition_9 = 0L
+    var commentPosition_10 = 0L
+
+    //フローティング表示
+    var isFloatingView = false
 
     init {
-
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
-
         //白色テキスト
         paint = Paint()
         paint.isAntiAlias = true
@@ -132,13 +145,13 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         if (command.contains("cyan")) {
             return "#00FFFF"
         }
-        if(command.contains("blue")){
+        if (command.contains("blue")) {
             return "#0000FF"
         }
-        if(command.contains("purple")){
+        if (command.contains("purple")) {
             return "#C000FF"
         }
-        if(command.contains("black")){
+        if (command.contains("black")) {
             return "#000000"
         }
         return "#FFFFFF"
@@ -149,42 +162,68 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     * */
 
     fun postComment(comment: String, command: String) {
-        val display = (context as AppCompatActivity).getWindowManager().getDefaultDisplay()
-        val point = Point()
-        display.getSize(point)
-
-        //縦、横で開始位置を調整
-        var weight = point.x
-        if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            //横。幅を割る2する
-            weight = point.x / 2
-        } else {
-            //縦。そのまま
-            weight = point.x
+        //フローティングモードのときは計算する
+        if(isFloatingView){
+            fontsize = (height / 10).toFloat()
+            paint.textSize = fontsize
+            blackPaint.textSize = fontsize
         }
+        if (this@CommentCanvas::paint.isInitialized) {
+            val display = (context as AppCompatActivity).getWindowManager().getDefaultDisplay()
+            val point = Point()
+            display.getSize(point)
 
-        weight = this@CommentCanvas.width
+            //縦、横で開始位置を調整
+            var weight = point.x
+            if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                //横。幅を割る2する
+                weight = point.x / 2
+            } else {
+                //縦。そのまま
+                weight = point.x
+            }
 
-        textList.add(comment)
-        xList.add(weight)
-        yList.add(getCommentPosition(comment))
-        commandList.add(command)
+            weight = this@CommentCanvas.width
+
+            textList.add(comment)
+            xList.add(weight)
+            yList.add(getCommentPosition(comment))
+            commandList.add(command)
+        }
     }
 
     fun getCommentPosition(comment: String): Int {
 
+        /*
+        *
+        * コメントの位置を取り出すやーつ
+        *
+        * コメントの流れた時間(UnixTime)を変数に入れておいて
+        * 使いやすいように配列に入れて
+        *
+        * 時間と今のUnixTimeを比較して今のほうが大きかったら
+        * 配列の位置のUnixTimeを置き換えます。
+        *
+        * あと配列→変数へ
+        *
+        * それと時間とUnixTimeを引いたときの値も配列に入れています。
+        * その配列から0以上の時間があいていればその場所にコメントが流れます。
+        *
+        * */
+
         //配列に入れる。
-        commentPositionList.clear()
-        commentPositionList.add(commentPositionListOne)
-        commentPositionList.add(commentPositionListTwo)
-        commentPositionList.add(commentPositionListThree)
-        commentPositionList.add(commentPositionListFour)
-        commentPositionList.add(commentPositionListFive)
-        commentPositionList.add(commentPositionListSix)
-        commentPositionList.add(commentPositionListSeven)
-        commentPositionList.add(commentPositionListEight)
-        commentPositionList.add(commentPositionListNine)
-        commentPositionList.add(commentPositionListTen)
+        val posList = arrayListOf(
+            commentPosition_1,
+            commentPosition_2,
+            commentPosition_3,
+            commentPosition_4,
+            commentPosition_5,
+            commentPosition_6,
+            commentPosition_7,
+            commentPosition_8,
+            commentPosition_9,
+            commentPosition_10
+        )
 
         var check = false
 
@@ -192,9 +231,50 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
         //コメント感覚。<--->
         //値が大きければどんどん下に表示される
-        val timeSpace = 1000
+        val timeSpace = 5000
 
+        val posMinusList = arrayListOf<Long>()
 
+        for (i in 0 until posList.size) {
+            //println(posList)
+            //UnixTimeで管理してるので。。
+            val nowUnixTime = System.currentTimeMillis() / 1000
+            val pos = posList[i]
+            val tmp = nowUnixTime - pos
+            posMinusList.add(tmp)
+            if (!check) {
+                if (pos < nowUnixTime) {
+                    check = true
+                    posList[i] = nowUnixTime
+                    commentPosition_1 = posList[0]
+                    commentPosition_2 = posList[1]
+                    commentPosition_3 = posList[2]
+                    commentPosition_4 = posList[3]
+                    commentPosition_5 = posList[4]
+                    commentPosition_6 = posList[5]
+                    commentPosition_7 = posList[6]
+                    commentPosition_8 = posList[7]
+                    commentPosition_9 = posList[8]
+                    commentPosition_10 = posList[9]
+                }
+            }
+        }
+
+        //コメントの位置を決定する
+        var tmpFindZero = 10L
+        var result = 0
+        for (l in 0 until posMinusList.size) {
+            val pos = posMinusList[l]
+            if (pos > 0L) {
+                if (tmpFindZero > pos) {
+                    tmpFindZero = pos
+                    result = l
+                }
+            }
+        }
+        commentY = returnNumberList(result)
+
+/*
         for (index in 0 until commentPositionList.size) {
 
             val list = commentPositionList.get(index)
@@ -218,6 +298,18 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                         commentY = 100
                         commentPositionListOne.clear()
                         //commentPositionListOne.add(System.currentTimeMillis())
+
+
+                        commentPosition_1 = 0
+                        commentPosition_2 = 0
+                        commentPosition_3 = 0
+                        commentPosition_4 = 0
+                        commentPosition_5 = 0
+                        commentPosition_6 = 0
+                        commentPosition_7 = 0
+                        commentPosition_8 = 0
+                        commentPosition_9 = 0
+                        commentPosition_10 = 0
 
                         //一定期間（5秒）コメントがなかったら配列の中身もクリアに
                         //理由は経過時間の計算がおかしくなるからです。
@@ -249,6 +341,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 }
             }
         }
+*/
         return commentY
     }
 

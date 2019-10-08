@@ -26,7 +26,10 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
                     2 -> premium = "運営"
                 }
             }
-            mail = chatObject.getString("mail")
+            //mailの中に色コメントの色の情報があったりする
+            if(chatObject.has("mail")){
+                mail = chatObject.getString("mail")
+            }
         }
     }
 }

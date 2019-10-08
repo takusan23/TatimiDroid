@@ -1401,6 +1401,7 @@ class CommentActivity : AppCompatActivity() {
         //表示
         windowManager.addView(popupView, params)
         isPopupPlay = true
+        popupView.overlay_commentCanvas.isFloatingView = true
 
         //通知表示
         showPopUpPlayerNotification()
@@ -2008,8 +2009,10 @@ class CommentActivity : AppCompatActivity() {
 
     //運営コメント
     fun setUnneiComment(comment: String) {
-        //テキスト、背景色
-        uncomeTextView.visibility = View.VISIBLE
+        //UIスレッドで呼ばないと動画止まる？
+        runOnUiThread {
+            //テキスト、背景色
+            uncomeTextView.visibility = View.VISIBLE
 /*
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             uncomeTextView.text = Html.fromHtml(comment, Html.FROM_HTML_MODE_COMPACT)
@@ -2017,26 +2020,27 @@ class CommentActivity : AppCompatActivity() {
             uncomeTextView.text = Html.fromHtml(comment)
         }
 */
-        uncomeTextView.text = HtmlCompat.fromHtml(comment, FROM_HTML_MODE_COMPACT)
-        uncomeTextView.textSize = 20F
-        uncomeTextView.setTextColor(Color.WHITE)
-        uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))
-        //追加
-        val layoutParams = FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-        layoutParams.gravity = Gravity.TOP
-        uncomeTextView.layoutParams = layoutParams
-        uncomeTextView.gravity = Gravity.CENTER
-        //表示アニメーション
-        val showAnimation =
-            AnimationUtils.loadAnimation(this, R.anim.unnei_comment_show_animation)
-        //表示
-        uncomeTextView.startAnimation(showAnimation)
-        Timer().schedule(timerTask {
-            removeUnneiComment()
-        }, 5000)
+            uncomeTextView.text = HtmlCompat.fromHtml(comment, FROM_HTML_MODE_COMPACT)
+            uncomeTextView.textSize = 20F
+            uncomeTextView.setTextColor(Color.WHITE)
+            uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))
+            //追加
+            val layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            layoutParams.gravity = Gravity.TOP
+            uncomeTextView.layoutParams = layoutParams
+            uncomeTextView.gravity = Gravity.CENTER
+            //表示アニメーション
+            val showAnimation =
+                AnimationUtils.loadAnimation(this, R.anim.unnei_comment_show_animation)
+            //表示
+            uncomeTextView.startAnimation(showAnimation)
+            Timer().schedule(timerTask {
+                removeUnneiComment()
+            }, 5000)
+        }
     }
 
     //運営コメント消す
