@@ -203,9 +203,9 @@ class CommentActivity : AppCompatActivity() {
     var mobileDataQualityCheck = false
 
     //ロックオンできるように？
-    val lockOnCommentList = arrayListOf<String>()
-    val lockOnUserList = arrayListOf<String>()
-    val lockOnRoomList = arrayListOf<String>()
+    // val lockOnCommentList = arrayListOf<String>()
+    // val lockOnUserList = arrayListOf<String>()
+    // val lockOnRoomList = arrayListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
