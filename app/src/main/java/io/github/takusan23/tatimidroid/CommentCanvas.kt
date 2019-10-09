@@ -11,6 +11,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import java.util.*
 import kotlin.concurrent.schedule
+import kotlin.random.Random
 
 class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
@@ -163,7 +164,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     fun postComment(comment: String, command: String) {
         //フローティングモードのときは計算する
-        if(isFloatingView){
+        if (isFloatingView) {
             fontsize = (height / 10).toFloat()
             paint.textSize = fontsize
             blackPaint.textSize = fontsize
@@ -270,6 +271,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     tmpFindZero = pos
                     result = l
                 }
+            } else {
+                //少しでも被らないように？
+                result = Random.nextInt(1, 10)
             }
         }
         commentY = returnNumberList(result)
