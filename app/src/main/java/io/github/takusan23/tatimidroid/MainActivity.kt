@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.database.sqlite.SQLiteDatabase
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.SpannableString
@@ -19,6 +18,12 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelpe
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_liveid.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.jsoup.Jsoup
 import java.util.regex.Pattern
 
 
@@ -112,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             val nicoID_Matcher = Pattern.compile("(lv)([0-9]+)")
                 .matcher(SpannableString(url ?: ""))
             val communityID_Matcher = Pattern.compile("(co|ch)([0-9]+)")
-                .matcher(SpannableString(url?:""))
+                .matcher(SpannableString(url ?: ""))
             if (nicoID_Matcher.find()) {
                 //ダイアログ
                 val liveId = nicoID_Matcher.group()
@@ -121,15 +126,37 @@ class MainActivity : AppCompatActivity() {
                 val dialog = BottomSheetDialogWatchMode()
                 dialog.arguments = bundle
                 dialog.show(supportFragmentManager, "watchmode")
-            } else if(communityID_Matcher.find()) {
-                //ダイアログ
-                val liveId = communityID_Matcher.group()
-                val bundle = Bundle()
-                bundle.putString("liveId", liveId)
-                val dialog = BottomSheetDialogWatchMode()
-                dialog.arguments = bundle
-                dialog.show(supportFragmentManager, "watchmode")
-            }else {
+            } else {
+                //なかった。
+                Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
+            }
+            if (communityID_Matcher.find()) {
+                //コミュIDから
+                val communityID = communityID_Matcher.group()
+                //getPlayerStatusで放送中の場合はコミュニティIDを入れれば使える
+                Toast.makeText(
+                    this,
+                    getString(R.string.program_id_from_community_id),
+                    Toast.LENGTH_SHORT
+                ).show()
+                GlobalScope.launch {
+                    var liveId = ""
+                    async {
+                        liveId = getProgramIDfromCommunityID(communityID) ?: ""
+                    }.await()
+                    if (liveId.isNotEmpty()) {
+                        //ダイアログ
+                        val bundle = Bundle()
+                        bundle.putString("liveId", liveId)
+                        val dialog = BottomSheetDialogWatchMode()
+                        dialog.arguments = bundle
+                        dialog.show(
+                            supportFragmentManager,
+                            "watchmode"
+                        )
+                    }
+                }
+            } else {
                 //なかった。
                 Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
             }
@@ -180,5 +207,37 @@ class MainActivity : AppCompatActivity() {
             println("新データベース（コメントコレクション）へ移行済みです。")
         }
     }
+
+    //コニュニティIDから
+    fun getProgramIDfromCommunityID(communityID: String): String? {
+        //取得中
+        val user_session = pref_setting.getString("user_session", "")
+        val request = Request.Builder()
+            .url("https://live.nicovideo.jp/api/getplayerstatus/${communityID}")   //getplayerstatus、httpsでつながる？
+            .addHeader("Cookie", "user_session=$user_session")
+            .get()
+            .build()
+        val okHttpClient = OkHttpClient()
+        //同期処理
+        val response = okHttpClient.newCall(request).execute()
+        if (response.isSuccessful) {
+            //成功
+            val response_string = response.body?.string()
+            val document = Jsoup.parse(response_string)
+            //番組ID取得
+            val id = document.getElementsByTag("id").text()
+            return id
+        } else {
+            runOnUiThread {
+                Toast.makeText(
+                    this,
+                    "${getString(R.string.error)}\n${response.code}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        return ""
+    }
+
 
 }

@@ -48,6 +48,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
         //LiveID
         val liveId = arguments?.getString("liveId")
 
+
         //番組が終わってる場合は落ちちゃうので修正。
         val programInfo = "https://live2.nicovideo.jp/watch/${liveId}/programinfo";
         val request = Request.Builder()

@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
@@ -471,9 +472,17 @@ class CommentViewFragment : Fragment() {
                             activity?.runOnUiThread {
                                 (activity as AppCompatActivity).supportActionBar?.title =
                                     "$title - $id"
+                                //BottomNavbarにバッジを表示させる
+                                activity?.activity_comment_bottom_navigation_bar?.getOrCreateBadge(
+                                    R.id.comment_view_menu_room
+                                ).let {
+                                    it?.number = connectionWebSocketAddressList.size
+                                }
                             }
                             //WebSocket接続
                             connectCommentServer(webSocketUri, threadId, roomName)
+
+
                         }
                     }
                 } else {
@@ -493,13 +502,15 @@ class CommentViewFragment : Fragment() {
         userId: String,
         commentJSONParse: CommentJSONParse
     ) {
-        //同じのが追加されないように
+
+
         val size = recyclerViewList.size
         val item = arrayListOf<String>()
         item.add("")
         item.add(json)
         item.add(roomName)
         item.add(userId)
+
         recyclerViewList.add(0, item)
 
         //ロックオンできるように
@@ -543,6 +554,57 @@ class CommentViewFragment : Fragment() {
                 }
             }
         }
+
+
+/*
+        if (arenaDoubleComment[commentJSONParse.date] != commentJSONParse.userId) {
+            arenaDoubleComment[commentJSONParse.date] = commentJSONParse.userId
+            recyclerViewList.add(0, item)
+            //ロックオンできるように
+            if (activity is CommentActivity) {
+                //ロックオン中は自動更新できるようにする
+                val fragment = fragmentManager?.findFragmentByTag("comment_menu")
+                if (fragment != null) {
+                    if (fragment is CommentMenuBottomFragment) {
+                        if (fragment.userId == commentJSONParse.userId) {
+                            //更新する
+                            fragment.setLockOnComment()
+                        }
+                    }
+                }
+            }
+
+            //RecyclerView更新
+            activity?.runOnUiThread {
+                if (fragment_comment_recyclerview != null) {
+                    if (recyclerViewList.size <= size + 1) {
+                        commentRecyclerViewAdapter.notifyItemInserted(0)
+                    }
+                    // 画面上で最上部に表示されているビューのポジションとTopを記録しておく
+                    val pos =
+                        (recyclerViewLayoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                    var top = 0
+                    if ((recyclerViewLayoutManager as LinearLayoutManager).childCount > 0) {
+                        top = (recyclerViewLayoutManager as LinearLayoutManager).getChildAt(0)!!.top
+                    }
+                    //一番上なら追いかける
+                    //System.out.println(pos)
+                    if (pos == 0 || pos == 1) {
+                        fragment_comment_recyclerview.scrollToPosition(0)
+                    } else {
+                        fragment_comment_recyclerview.post {
+                            (recyclerViewLayoutManager as LinearLayoutManager).scrollToPositionWithOffset(
+                                pos + 1,
+                                top
+                            )
+                        }
+                    }
+                }
+            }
+        }
+*/
+
+
     }
 
     //コメント流す

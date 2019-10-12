@@ -82,7 +82,11 @@ class LiveIDFragment : Fragment() {
             } else if (communityID_Matcher.find()) {
                 //コニュニティIDから生放送IDを出す。
                 //getPlayerStatusで放送中の場合はコミュニティIDを入れれば使える
-                Toast.makeText(context,getString(R.string.program_id_from_community_id),Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    getString(R.string.program_id_from_community_id),
+                    Toast.LENGTH_SHORT
+                ).show()
                 GlobalScope.launch {
                     var liveId = ""
                     async {
@@ -130,7 +134,8 @@ class LiveIDFragment : Fragment() {
                 )
                 snackbar.setAnchorView((activity as MainActivity).main_activity_bottom_navigationview)
                 snackbar.show()
-            }else if (communityID_Matcher.find()) {
+            }
+            if (communityID_Matcher.find()) {
                 //取り出してEditTextに入れる
                 val liveId = communityID_Matcher.group()
                 main_activity_liveid_inputedittext.setText(liveId)
