@@ -67,6 +67,14 @@
             android:defaultValue="false"
             android:dependency="setting_new_comment"
             android:icon="@drawable/ic_outline_comment_24px"
+            android:key="setting_comment_collection_useage"
+            android:summary="@string/setting_comment_collection_useage_description"
+            android:title="@string/setting_comment_collection_useage" />
+
+    <SwitchPreference
+            android:defaultValue="false"
+            android:dependency="setting_new_comment"
+            android:icon="@drawable/ic_outline_comment_24px"
             android:key="setting_comment_collection_assist"
             android:summary="@string/setting_comment_collection_assist_description"
             android:title="@string/setting_comment_collection_assist" />

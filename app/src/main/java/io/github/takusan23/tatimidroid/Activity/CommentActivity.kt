@@ -1892,8 +1892,6 @@ class CommentActivity : AppCompatActivity() {
             }
             false
         }
-        //コメント投稿リスト読み込み
-        loadCommentPOSTList()
         //閉じるボタン
         comment_cardview_close_button.setOnClickListener {
             //非表示アニメーションに挑戦した。
@@ -1905,45 +1903,52 @@ class CommentActivity : AppCompatActivity() {
             fab.show()
         }
 
-        //コメントコレクション補充機能
-        if (pref_setting.getBoolean("setting_comment_collection_assist", false)) {
-            comment_cardview_comment_textinputlayout.addTextChangedListener(object : TextWatcher {
-                override fun afterTextChanged(p0: Editable?) {
-                }
+        if (pref_setting.getBoolean("setting_comment_collection_useage", false)) {
+            //コメント投稿リスト読み込み
+            loadCommentPOSTList()
+            //コメントコレクション補充機能
+            if (pref_setting.getBoolean("setting_comment_collection_assist", false)) {
+                comment_cardview_comment_textinputlayout.addTextChangedListener(object :
+                    TextWatcher {
+                    override fun afterTextChanged(p0: Editable?) {
+                    }
 
-                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                }
+                    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                    }
 
-                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                    comment_cardview_chipgroup.removeAllViews()
-                    //コメントコレクション読み込み
-                    if (p0?.length ?: 0 >= 1) {
-                        commentCollectionYomiList.forEach {
-                            //文字列完全一致
-                            if (it.equals(p0.toString())) {
-                                val yomi = it
-                                val pos = commentCollectionYomiList.indexOf(it)
-                                val comment = commentCollectionList[pos]
-                                //Chip
-                                val chip = Chip(this@CommentActivity)
-                                chip.text = comment
-                                //押したとき
-                                chip.setOnClickListener {
-                                    //置き換える
-                                    var text = p0.toString()
-                                    text = text.replace(yomi, comment)
-                                    comment_cardview_comment_textinputlayout.setText(text)
-                                    //カーソル移動
-                                    comment_cardview_comment_textinputlayout.setSelection(text.length)
-                                    //消す
-                                    comment_cardview_chipgroup.removeAllViews()
+                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                        comment_cardview_chipgroup.removeAllViews()
+                        //コメントコレクション読み込み
+                        if (p0?.length ?: 0 >= 1) {
+                            commentCollectionYomiList.forEach {
+                                //文字列完全一致
+                                if (it.equals(p0.toString())) {
+                                    val yomi = it
+                                    val pos = commentCollectionYomiList.indexOf(it)
+                                    val comment = commentCollectionList[pos]
+                                    //Chip
+                                    val chip = Chip(this@CommentActivity)
+                                    chip.text = comment
+                                    //押したとき
+                                    chip.setOnClickListener {
+                                        //置き換える
+                                        var text = p0.toString()
+                                        text = text.replace(yomi, comment)
+                                        comment_cardview_comment_textinputlayout.setText(text)
+                                        //カーソル移動
+                                        comment_cardview_comment_textinputlayout.setSelection(text.length)
+                                        //消す
+                                        comment_cardview_chipgroup.removeAllViews()
+                                    }
+                                    comment_cardview_chipgroup.addView(chip)
                                 }
-                                comment_cardview_chipgroup.addView(chip)
                             }
                         }
                     }
-                }
-            })
+                })
+            }
+        } else {
+            comment_cardview_comment_list_button.visibility = View.GONE
         }
     }
 

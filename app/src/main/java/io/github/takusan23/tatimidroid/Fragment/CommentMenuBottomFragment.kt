@@ -117,21 +117,26 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
             if (fragment is CommentViewFragment) {
                 //全部屋コメントRecyclerViewを取得
                 val adapterList: ArrayList<ArrayList<String>> = fragment.recyclerViewList
-                adapterList.forEach {
-                    val commentJson: String = it[1]
-                    val roomName: String = it[2]
-                    val commentJSONParse = CommentJSONParse(commentJson, roomName)
-                    //IDを比較
-                    if (commentJSONParse.userId == userId) {
-                        //ロックオンコメント取得
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(commentJson)
-                        item.add(roomName)
-                        item.add(commentJSONParse.userId)
-                        activity?.runOnUiThread {
-                            recyclerViewList.add(item)
-                            commentRecyclerViewAdapter.notifyDataSetChanged()
+                //ConcurrentModificationExceptionが発生する。forEachはやめようね！
+                val tmp = adapterList
+                for (i in 0 until tmp.size) {
+                    if (tmp[i] != null) {
+                        val item = tmp[i]
+                        val commentJson: String = item[1]
+                        val roomName: String = item[2]
+                        val commentJSONParse = CommentJSONParse(commentJson, roomName)
+                        //IDを比較
+                        if (commentJSONParse.userId == userId) {
+                            //ロックオンコメント取得
+                            val item = arrayListOf<String>()
+                            item.add("")
+                            item.add(commentJson)
+                            item.add(roomName)
+                            item.add(commentJSONParse.userId)
+                            activity?.runOnUiThread {
+                                recyclerViewList.add(item)
+                                commentRecyclerViewAdapter.notifyDataSetChanged()
+                            }
                         }
                     }
                 }

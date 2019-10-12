@@ -169,4 +169,6 @@
     <string name="re_login">再ログインします</string>
     <string name="program_id_from_community_id">コミュニティIDから番組IDを取得中</string>
     <string name="liveid_or_communityid">番組IDかコミュID</string>
+    <string name="setting_comment_collection_useage_description">よく入力するコメントを登録しておけます。</string>
+    <string name="setting_comment_collection_useage">コメントコレクションを利用する</string>
 </resources>
