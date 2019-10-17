@@ -11,6 +11,7 @@ import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Icon
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.ConnectivityManager
@@ -1266,9 +1267,67 @@ class CommentActivity : AppCompatActivity() {
                     qualitySelectBottomSheet.show(supportFragmentManager, "quality_bottom")
                 }
             }
+            R.id.comment_activity_menu_floating_commentviewer -> {
+                //Bubblesで表示。
+                showBubbles()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
+
+    private fun showBubbles() {
+        //Android Q以降で利用可能
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            //Activity終了
+            finishAndRemoveTask()
+            val intent = Intent(this, CommentActivity::class.java)
+            intent.putExtra("liveid", liveId)
+            val bubbleIntent = PendingIntent.getActivity(this, 0, intent, 0)
+            //通知作成？
+            val bubbleData = Notification.BubbleMetadata.Builder()
+                .setDesiredHeight(600)
+                .setIcon(Icon.createWithResource(this, R.drawable.ic_library_books_24px))
+                .setIntent(bubbleIntent)
+                .build()
+            val timelineBot = Person.Builder()
+                .setBot(true)
+                .setName(getString(R.string.floating_comment_viewer))
+                .setImportant(true)
+                .build()
+
+            //通知送信
+            val notificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            //通知チャンネル作成
+            val notificationId = "floating_comment_viewer"
+            if (notificationManager.getNotificationChannel(notificationId) == null) {
+                //作成
+                val notificationChannel = NotificationChannel(
+                    notificationId, getString(R.string.floating_comment_viewer),
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
+                notificationManager.createNotificationChannel(notificationChannel)
+            }
+            //通知作成
+            val notification = Notification.Builder(this, notificationId)
+                .setContentText(getString(R.string.floating_comment_viewer_description))
+                .setContentTitle(getString(R.string.floating_comment_viewer))
+                .setSmallIcon(R.drawable.ic_library_books_24px)
+                .setBubbleMetadata(bubbleData)
+                .addPerson(timelineBot)
+                .build()
+            //送信
+            notificationManager.notify(5, notification)
+        } else {
+            //Android Pieなので..
+            Toast.makeText(
+                this,
+                getString(R.string.floating_comment_viewer_version),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
 
     fun setLandscapePortrait() {
         val conf = resources.configuration

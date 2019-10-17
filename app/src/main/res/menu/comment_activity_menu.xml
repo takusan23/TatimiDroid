@@ -22,6 +22,11 @@
             app:showAsAction="ifRoom" />
 
     <item
+            android:id="@+id/comment_activity_menu_floating_commentviewer"
+            android:icon="@drawable/ic_library_books_24px"
+            android:title="@string/floating_comment_viewer" />
+
+    <item
             android:id="@+id/comment_activity_menu_share_menu"
             android:icon="@drawable/ic_share"
             android:title="@string/share">
@@ -41,28 +46,28 @@
             android:id="@+id/comment_activity_menu_quality"
             android:icon="@drawable/ic_photo_filter"
             android:title="@string/quality">
-<!--
-        <menu>
-            <item
-                    android:id="@+id/comment_activity_menu_quality_auto"
-                    android:title="@string/quality_auto" />
-            <item
-                    android:id="@+id/comment_activity_menu_quality_super_high"
-                    android:title="3Mbps" />
-            <item
-                    android:id="@+id/comment_activity_menu_quality_high"
-                    android:title="2Mbps" />
-            <item
-                    android:id="@+id/comment_activity_menu_quality_normal"
-                    android:title="1Mbps" />
-            <item
-                    android:id="@+id/comment_activity_menu_quality_low"
-                    android:title="384kbps" />
-            <item
-                    android:id="@+id/comment_activity_menu_quality_super_low"
-                    android:title="192kbps" />
-        </menu>
--->
+        <!--
+                <menu>
+                    <item
+                            android:id="@+id/comment_activity_menu_quality_auto"
+                            android:title="@string/quality_auto" />
+                    <item
+                            android:id="@+id/comment_activity_menu_quality_super_high"
+                            android:title="3Mbps" />
+                    <item
+                            android:id="@+id/comment_activity_menu_quality_high"
+                            android:title="2Mbps" />
+                    <item
+                            android:id="@+id/comment_activity_menu_quality_normal"
+                            android:title="1Mbps" />
+                    <item
+                            android:id="@+id/comment_activity_menu_quality_low"
+                            android:title="384kbps" />
+                    <item
+                            android:id="@+id/comment_activity_menu_quality_super_low"
+                            android:title="192kbps" />
+                </menu>
+        -->
     </item>
     <item
             android:id="@+id/comment_activity_menu_volume"
