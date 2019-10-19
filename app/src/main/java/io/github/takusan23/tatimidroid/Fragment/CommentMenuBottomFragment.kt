@@ -28,7 +28,10 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.CommentRecyclerViewAdapter
 import kotlinx.android.synthetic.main.fragment_commentview.*
+import okhttp3.*
 import okhttp3.internal.notify
+import org.json.JSONObject
+import java.io.IOException
 import java.lang.NullPointerException
 import java.util.regex.Pattern
 
@@ -98,6 +101,9 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
 
         //URL取り出し
         regexURL()
+
+        //ユーザー情報出す
+        getUserProfile()
 
         //ロックオンできるようにする
         //ロックオンとはある一人のユーザーのコメントだけ見ることである
@@ -252,6 +258,44 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
     fun showToast(message: String) {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun getUserProfile() {
+        val pattern = Pattern.compile("^[0-9]*$")
+        val matcher = pattern.matcher(userId)
+        if (matcher.find()) {
+            //数字だけということは生ID
+            //非公式APIを叩いてユーザー名・プロフィール画像を出す
+            val id = matcher.group()
+            val request = Request.Builder()
+                .url("https://api.ce.nicovideo.jp/api/v1/user.info?user_id=$id&__format=json")
+                .get()
+                .build()
+            val okHttpClient = OkHttpClient()
+            okHttpClient.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val response_string = response.body?.string()
+                    if (response.isSuccessful) {
+                        val jsonObject = JSONObject(response_string)
+                        if (jsonObject.has("nicovideo_user_response")) {
+                            if (jsonObject.getJSONObject("nicovideo_user_response").has("user")) {
+                                val user = jsonObject.getJSONObject("nicovideo_user_response")
+                                    .getJSONObject("user")
+                                val name = user.getString("nickname")
+                                val profileImage = user.getString("thumbnail_url")
+                                activity?.runOnUiThread {
+                                    bottom_fragment_comment_menu_user_id.append("\n$name")
+                                }
+                            }
+                        }
+                    }
+                }
+            })
         }
     }
 

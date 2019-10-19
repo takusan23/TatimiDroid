@@ -20,10 +20,7 @@
         <service android:name=".AutoAdmissionService"></service>
 
         <activity android:name=".Activity.KonoApp"></activity>
-        <activity
-                android:name=".Activity.CommentActivity"
-                android:allowEmbedded="true"
-                android:documentLaunchMode="always" />
+        <activity android:name=".Activity.CommentActivity" />
         <activity android:name=".Activity.LicenceActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
