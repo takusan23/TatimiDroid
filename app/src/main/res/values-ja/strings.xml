@@ -171,7 +171,7 @@
     <string name="liveid_or_communityid">番組IDかコミュID</string>
     <string name="setting_comment_collection_useage_description">よく入力するコメントを登録しておけます。</string>
     <string name="setting_comment_collection_useage">コメントコレクションを利用する</string>
-    <string name="floating_comment_viewer">フローティングコメントビューアー</string>
+    <string name="floating_comment_viewer">フローティングコメビュ</string>
     <string name="floating_comment_viewer_description">他のアプリを起動しながらコメントビューアを利用できます。</string>
     <string name="floating_comment_viewer_version">この機能を利用するためにはAndroidバージョンが10以降である必要があります。</string>
     <string name="floating_comment_viewer_finish">フローリングコメントビューアを終了</string>

@@ -4,8 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" /> <!-- インターネット -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- 予約枠自動入場のServiceよう -->
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /> <!--他のアプリに重ねて表示-->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!--ネットワークの状態を取得-->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /> <!-- 他のアプリに重ねて表示 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
             android:allowBackup="true"
@@ -14,12 +14,17 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".Activity.CommentCollectionListActivity"></activity>
-        <activity android:name=".Activity.NGListActivity"></activity>
+        <activity
+                android:name=".Activity.FloatingCommentViewer"
+                android:allowEmbedded="true"
+                android:documentLaunchMode="always"
+                android:resizeableActivity="true"></activity>
+        <activity android:name=".Activity.CommentCollectionListActivity" />
+        <activity android:name=".Activity.NGListActivity" />
 
-        <service android:name=".AutoAdmissionService"></service>
+        <service android:name=".AutoAdmissionService" />
 
-        <activity android:name=".Activity.KonoApp"></activity>
+        <activity android:name=".Activity.KonoApp" />
         <activity android:name=".Activity.CommentActivity" />
         <activity android:name=".Activity.LicenceActivity" />
         <activity android:name=".MainActivity">

@@ -215,6 +215,10 @@ class CommentActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        //ダークモード対応
+        val darkModeSupport = DarkModeSupport(this)
+        darkModeSupport.setActivityTheme(this)
+
         setContentView(R.layout.activity_comment_new)
 
         //LiveID
@@ -230,6 +234,55 @@ class CommentActivity : AppCompatActivity() {
         trans.replace(R.id.activity_comment_new_linearlayout, commentFragment, liveId)
         trans.commit()
 
+    }
+
+    //ホームボタンおした
+    //これはActivityじゃないと使えないと思う
+    override fun onUserLeaveHint() {
+        //CommentFragment取得
+        val commentFragment = supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
+        commentFragment.apply {
+            //別アプリを開いた時の処理
+            if (pref_setting.getBoolean("setting_leave_background", false)) {
+                //バックグラウンド再生
+                setBackgroundProgramPlay()
+            }
+            if (pref_setting.getBoolean("setting_leave_popup", false)) {
+                //ポップアップ再生
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!Settings.canDrawOverlays(context)) {
+                        //RuntimePermissionに対応させる
+                        // 権限取得
+                        val intent =
+                            Intent(
+                                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                Uri.parse("package:${packageName}")
+                            )
+                        this.startActivityForResult(intent, 114)
+                    } else {
+                        startOverlayPlayer()
+                    }
+                } else {
+                    //ろりぽっぷ
+                    startOverlayPlayer()
+                }
+            }
+        }
+    }
+
+    //戻るキーを押した時に本当に終わるか聞く
+    override fun onBackPressed() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.back_dialog))
+            .setMessage(getString(R.string.back_dialog_description))
+            .setPositiveButton(getString(R.string.end)) { dialogInterface: DialogInterface, i: Int ->
+                finish()
+                super.onBackPressed()
+            }
+            .setNegativeButton(getString(android.R.string.cancel)) { dialogInterface: DialogInterface, i: Int ->
+                dialogInterface.dismiss()
+            }
+            .show()
     }
 
 

@@ -148,6 +148,12 @@ class CommentMenuFragment : Fragment() {
             }
         }
 
+        //フローティングコメビュ
+        fragment_comment_fragment_menu_floating_button.setOnClickListener {
+            //Activity移動
+            commentFragment.showBubbles()
+        }
+
     }
 
     //CommentFragmentの値を貰う

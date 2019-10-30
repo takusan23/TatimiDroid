@@ -27,7 +27,7 @@
 
                     <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="horizontal">
 
                         <Button
@@ -36,7 +36,7 @@
                                 android:layout_height="match_parent"
                                 android:layout_margin="2sp"
                                 android:layout_weight="1"
-                                android:drawableTop="@drawable/ic_outline_live_tv_24px_black"
+                                android:drawableLeft="@drawable/ic_outline_live_tv_24px_black"
                                 android:drawableTint="#ffffff"
                                 android:text="@string/play_live_broadcast" />
 
@@ -46,9 +46,16 @@
                                 android:layout_height="match_parent"
                                 android:layout_margin="2sp"
                                 android:layout_weight="1"
-                                android:drawableTop="@drawable/ic_background_icon_black"
+                                android:drawableLeft="@drawable/ic_background_icon_black"
                                 android:drawableTint="#ffffff"
                                 android:text="@string/background_play" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
 
                         <Button
                                 android:id="@+id/fragment_comment_fragment_menu_popup_button"
@@ -56,9 +63,21 @@
                                 android:layout_height="match_parent"
                                 android:layout_margin="2sp"
                                 android:layout_weight="1"
-                                android:drawableTop="@drawable/ic_popup_icon_black"
+                                android:drawableLeft="@drawable/ic_popup_icon_black"
                                 android:drawableTint="#ffffff"
                                 android:text="@string/popup_player" />
+
+                        <Button
+                                android:id="@+id/fragment_comment_fragment_menu_floating_button"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_margin="2sp"
+                                android:layout_weight="1"
+                                android:drawableLeft="@drawable/ic_library_books_24px"
+                                android:drawableTint="#ffffff"
+                                android:maxLines="1"
+                                android:text="@string/floating_comment_viewer" />
+
 
                     </LinearLayout>
 

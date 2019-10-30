@@ -38,6 +38,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
@@ -227,7 +228,9 @@ class CommentFragment : Fragment() {
                     darkModeSupport.getThemeColor()
                 )
             )
+            activity_comment_tab_layout.background = ColorDrawable(darkModeSupport.getThemeColor())
         }
+
 
         notificationManager =
             context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -1437,14 +1440,13 @@ class CommentFragment : Fragment() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun showBubbles() {
+    fun showBubbles() {
         //Android Q以降で利用可能
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            //Activity終了
-            commentActivity.finishAndRemoveTask()
-            val intent = Intent(context, CommentActivity::class.java)
-            intent.putExtra("liveid", liveId)
-            val bubbleIntent = PendingIntent.getActivity(context, 0, intent, 0)
+            val intent = Intent(context, FloatingCommentViewer::class.java)
+            intent.putExtra("liveId", liveId)
+            val bubbleIntent =
+                PendingIntent.getActivity(context, 25, intent, PendingIntent.FLAG_UPDATE_CURRENT)
             //通知作成？
             val bubbleData = Notification.BubbleMetadata.Builder()
                 .setDesiredHeight(600)
