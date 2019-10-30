@@ -29,7 +29,7 @@ class NicoAdFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         //番組ID取得
-        liveId = activity?.intent?.getStringExtra("liveId") ?: ""
+        liveId = arguments?.getString("liveId") ?: ""
 
         recyclerViewList = ArrayList()
         nicoad_recyclerview.setHasFixedSize(true)

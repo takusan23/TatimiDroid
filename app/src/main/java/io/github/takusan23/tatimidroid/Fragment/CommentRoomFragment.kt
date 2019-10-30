@@ -34,7 +34,11 @@ import kotlin.concurrent.schedule
 
 class CommentRoomFragment : Fragment() {
 
+    lateinit var commentFragment: CommentFragment
+
     lateinit var pref_setting: SharedPreferences
+
+    var liveId = ""
 
     //接続中の部屋名
     var recyclerViewList: ArrayList<ArrayList<String>> = arrayListOf()
@@ -52,7 +56,11 @@ class CommentRoomFragment : Fragment() {
     //コメントWebSocket
     lateinit var webSocketClient: WebSocketClient
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_comment_room_layout, container, false)
     }
@@ -60,6 +68,8 @@ class CommentRoomFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+
+        liveId = arguments?.getString("liveId") ?: ""
 
         //ここから下三行必須
         recyclerViewList = ArrayList()
@@ -70,6 +80,11 @@ class CommentRoomFragment : Fragment() {
         comment_room_recycler_view.adapter = commentRecyclerViewAdapter
         recyclerViewLayoutManager = comment_room_recycler_view.layoutManager!!
         comment_room_recycler_view.setItemAnimator(null);
+
+        //CommentFragment取得
+        val fragment = activity?.supportFragmentManager?.findFragmentByTag(liveId)
+        commentFragment = fragment as CommentFragment
+
 
         //番組情報取得
         getProgramInfo()
@@ -105,9 +120,8 @@ class CommentRoomFragment : Fragment() {
     fun getProgramInfo() {
         //番組ID
         val usersession = pref_setting.getString("user_session", "") ?: ""
-        val id = activity?.intent?.getStringExtra("liveId") ?: ""
         val request = Request.Builder()
-            .url("https://live2.nicovideo.jp/watch/$id/programinfo")
+            .url("https://live2.nicovideo.jp/watch/$liveId/programinfo")
             .header("Cookie", "user_session=$usersession")
             .get()
             .build()
@@ -222,13 +236,17 @@ class CommentRoomFragment : Fragment() {
         item.add("")
         item.add(json)
         item.add(roomName)
+        item.add(liveId)
+        item.add(liveId) //CommentViewFragmentだと３番目まで使っているので
+
         recyclerViewList.add(0, item)
         //RecyclerView更新
         activity?.runOnUiThread {
             if (comment_room_recycler_view != null) {
                 commentRecyclerViewAdapter.notifyItemInserted(0)
                 // 画面上で最上部に表示されているビューのポジションとTopを記録しておく
-                val pos = (recyclerViewLayoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                val pos =
+                    (recyclerViewLayoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
                 var top = 0
                 if ((recyclerViewLayoutManager as LinearLayoutManager).childCount > 0) {
                     top = (recyclerViewLayoutManager as LinearLayoutManager).getChildAt(0)!!.top
@@ -239,7 +257,10 @@ class CommentRoomFragment : Fragment() {
                     comment_room_recycler_view.scrollToPosition(0)
                 } else {
                     comment_room_recycler_view.post {
-                        (recyclerViewLayoutManager as LinearLayoutManager).scrollToPositionWithOffset(pos + 1, top)
+                        (recyclerViewLayoutManager as LinearLayoutManager).scrollToPositionWithOffset(
+                            pos + 1,
+                            top
+                        )
                     }
                 }
             }

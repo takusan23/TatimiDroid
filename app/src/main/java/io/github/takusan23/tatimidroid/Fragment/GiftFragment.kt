@@ -31,7 +31,7 @@ class GiftFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         //番組ID取得
-        liveId = activity?.intent?.getStringExtra("liveId") ?: ""
+        liveId = arguments?.getString("liveId") ?: ""
 
         recyclerViewList = ArrayList()
         gift_recyclerview.setHasFixedSize(true)

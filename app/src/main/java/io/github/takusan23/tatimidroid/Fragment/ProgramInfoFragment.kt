@@ -34,7 +34,7 @@ class ProgramInfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         //番組ID取得
-        liveId = activity?.intent?.getStringExtra("liveId") ?: ""
+        liveId = arguments?.getString("liveId") ?: ""
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         usersession = pref_setting.getString("user_session", "") ?: ""
 

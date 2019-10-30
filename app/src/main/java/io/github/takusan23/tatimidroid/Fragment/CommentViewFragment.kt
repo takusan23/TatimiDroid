@@ -60,6 +60,10 @@ class CommentViewFragment : Fragment() {
     //TTS
     lateinit var tts: TextToSpeech
 
+    var liveId = ""
+
+    lateinit var commentFragment: CommentFragment
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -71,7 +75,9 @@ class CommentViewFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-        val liveId = activity?.intent?.getStringExtra("liveId") ?: ""
+
+        //LiveIDとる
+        liveId = arguments?.getString("liveId") ?: ""
 
         stringArena = getString(R.string.arena)
 
@@ -87,6 +93,10 @@ class CommentViewFragment : Fragment() {
         recyclerViewLayoutManager = fragment_comment_recyclerview.layoutManager!!
 
         fragment_comment_recyclerview.setItemAnimator(null);
+
+        //CommentFragment取得
+        val fragment = activity?.supportFragmentManager?.findFragmentByTag(liveId)
+        commentFragment = fragment as CommentFragment
 
         //val viewPool = fragment_comment_recyclerview.recycledViewPool
         //viewPool.setMaxRecycledViews(1, 128)
@@ -124,7 +134,6 @@ class CommentViewFragment : Fragment() {
     //getplayerstatus
     fun getplayerstatus() {
 
-        val liveId = activity?.intent?.getStringExtra("liveId") ?: ""
         val usersession = pref_setting.getString("user_session", "") ?: ""
 
         val request = Request.Builder()
@@ -191,7 +200,7 @@ class CommentViewFragment : Fragment() {
                         fragment_comment_recyclerview,
                         getString(R.string.connected) + ": $connectingRoomName",
                         Snackbar.LENGTH_LONG
-                    ).setAnchorView(activity?.fab)
+                    ).setAnchorView(commentFragment.fab)
                         .show()
                 }
 
@@ -215,7 +224,7 @@ class CommentViewFragment : Fragment() {
                 //Adaprer
                 if (message != null) {
 
-                    val commentActivity = activity as CommentActivity
+                    //val commentActivity = activity as CommentActivity
 
                     //運営コメントはアリーナだけ表示する
                     val commentJSONParse = CommentJSONParse(message, room)
@@ -269,7 +278,7 @@ class CommentViewFragment : Fragment() {
                     //Toast / TTS
                     if (activity is CommentActivity) {
                         //Toast
-                        if ((activity as CommentActivity).isToast) {
+                        if (commentFragment.isToast) {
                             activity?.runOnUiThread {
                                 Toast.makeText(
                                     context,
@@ -279,7 +288,7 @@ class CommentViewFragment : Fragment() {
                             }
                         }
                         //TTS
-                        if ((activity as CommentActivity).isTTS) {
+                        if (commentFragment.isTTS) {
                             //初期化済みか
                             if (!this@CommentViewFragment::tts.isInitialized) {
                                 tts = TextToSpeech(context, TextToSpeech.OnInitListener { p0 ->
@@ -302,8 +311,8 @@ class CommentViewFragment : Fragment() {
                     if (commentJSONParse.comment.contains("/disconnect")) {
                         if (commentJSONParse.premium.contains("運営")) {
                             //自動次枠移動が有効なら使う
-                            if (commentActivity.isAutoNextProgram) {
-                                commentActivity.checkNextProgram()
+                            if (commentFragment.isAutoNextProgram) {
+                                commentFragment.checkNextProgram()
                                 Snackbar.make(
                                     fragment_comment_recyclerview,
                                     getString(R.string.next_program_message),
@@ -317,43 +326,43 @@ class CommentViewFragment : Fragment() {
                                     Snackbar.LENGTH_SHORT
                                 ).setAction(getString(R.string.end)) {
                                     //終了
-                                    commentActivity.finish()
-                                }.setAnchorView(commentActivity.getSnackbarAnchorView()).show()
+                                    //commentActivity.finish()
+                                }.setAnchorView(commentFragment.getSnackbarAnchorView()).show()
                             }
                         }
                     }
 
                     //運営コメント、Infoコメント　表示・非表示
-                    if (!commentActivity.hideInfoUnnkome) {
+                    if (!commentFragment.hideInfoUnnkome) {
                         //運営コメント
                         if (commentJSONParse.comment.contains("/perm")) {
                             if (!isHistoryComment) {
                                 val text = commentJSONParse.comment.replace("/perm ", "")
-                                commentActivity.setUnneiComment(text)
+                                commentFragment.setUnneiComment(text)
                             }
                         }
                         //運営コメントけす
                         if (commentJSONParse.comment.contains("/clear")) {
                             if (!isHistoryComment) {
-                                commentActivity.removeUnneiComment()
+                                commentFragment.removeUnneiComment()
                             }
                         }
 
                         //infoコメントを表示
                         if (commentJSONParse.comment.contains("/nicoad")) {
                             if (!isHistoryComment) {
-                                commentActivity.runOnUiThread {
+                                activity?.runOnUiThread {
                                     val json =
                                         JSONObject(commentJSONParse.comment.replace("/nicoad ", ""))
                                     val comment = json.getString("message")
-                                    commentActivity.showInfoComment(comment)
+                                    commentFragment.showInfoComment(comment)
                                 }
                             }
                         }
                         if (commentJSONParse.comment.contains("/info")) {
                             if (!isHistoryComment) {
-                                commentActivity.runOnUiThread {
-                                    commentActivity.showInfoComment(
+                                activity?.runOnUiThread {
+                                    commentFragment.showInfoComment(
                                         commentJSONParse.comment.replace(
                                             "/info ",
                                             ""
@@ -379,8 +388,8 @@ class CommentViewFragment : Fragment() {
     private fun calcActiveCount(commentJSONParse: CommentJSONParse) {
         val id = commentJSONParse.userId
         //ID入れる
-        if ((activity as CommentActivity).activeList.indexOf(id) == -1) {
-            (activity as CommentActivity).activeList.add(id)
+        if (commentFragment.activeList.indexOf(id) == -1) {
+            commentFragment.activeList.add(id)
         }
     }
 
@@ -399,12 +408,10 @@ class CommentViewFragment : Fragment() {
             //切り取る
             val kotehan = comment.subSequence(pos + 1, comment.length)
             //追加
-            if (activity is CommentActivity) {
-                (activity as CommentActivity).kotehanMap.put(
-                    commentJSONParse.userId,
-                    kotehan.toString()
-                )
-            }
+            commentFragment.kotehanMap.put(
+                commentJSONParse.userId,
+                kotehan.toString()
+            )
         }
     }
 
@@ -430,9 +437,8 @@ class CommentViewFragment : Fragment() {
     fun getLiveInfo() {
         //番組ID
         val usersession = pref_setting.getString("user_session", "") ?: ""
-        val id = activity?.intent?.getStringExtra("liveId") ?: ""
         val request = Request.Builder()
-            .url("https://live2.nicovideo.jp/watch/$id/programinfo")
+            .url("https://live2.nicovideo.jp/watch/$liveId/programinfo")
             .header("Cookie", "user_session=$usersession")
             .get()
             .build()
@@ -472,12 +478,14 @@ class CommentViewFragment : Fragment() {
                             activity?.runOnUiThread {
                                 (activity as AppCompatActivity).supportActionBar?.title =
                                     "$title - $id"
+/*
                                 //BottomNavbarにバッジを表示させる
                                 activity?.activity_comment_bottom_navigation_bar?.getOrCreateBadge(
                                     R.id.comment_view_menu_room
                                 ).let {
                                     it?.number = connectionWebSocketAddressList.size
                                 }
+*/
                             }
                             //WebSocket接続
                             connectCommentServer(webSocketUri, threadId, roomName)
@@ -510,6 +518,7 @@ class CommentViewFragment : Fragment() {
         item.add(json)
         item.add(roomName)
         item.add(userId)
+        item.add(liveId)
 
         recyclerViewList.add(0, item)
 
@@ -610,29 +619,27 @@ class CommentViewFragment : Fragment() {
     //コメント流す
     fun niconicoComment(message: String, userId: String, command: String) {
         //コメントを流さない設定？
-        if (activity is CommentActivity) {
-            if (!(activity as CommentActivity).isCommentHidden) {
-                //NGコメントは流さない
-                val userNGList = (activity as CommentActivity).userNGList
-                val commentNGList = (activity as CommentActivity).commentNGList
-                //-1で存在しない
-                if (userNGList.indexOf(userId) == -1 && commentNGList.indexOf(message) == -1) {
-                    //追い出しコメントは流さない
-                    if (!message.contains("/hb ifseetno")) {
-                        //UIスレッドで呼んだら遅延せずに表示されました！
-                        activity?.runOnUiThread {
-                            activity?.comment_canvas?.postComment(message, command)
-                            //ポップアップ再生
-                            if ((activity as? CommentActivity)?.overlay_commentcamvas != null) {
-                                (activity as CommentActivity).overlay_commentcamvas!!.postComment(
-                                    message, command
-                                )
-                                //コメント
-                                val textView =
-                                    (activity as CommentActivity).popupView.overlay_comment_textview
-                                textView.text =
-                                    "$message\n${textView.text}"
-                            }
+        if (!commentFragment.isCommentHidden) {
+            //NGコメントは流さない
+            val userNGList = commentFragment.userNGList
+            val commentNGList = commentFragment.commentNGList
+            //-1で存在しない
+            if (userNGList.indexOf(userId) == -1 && commentNGList.indexOf(message) == -1) {
+                //追い出しコメントは流さない
+                if (!message.contains("/hb ifseetno")) {
+                    //UIスレッドで呼んだら遅延せずに表示されました！
+                    activity?.runOnUiThread {
+                        commentFragment.comment_canvas?.postComment(message, command)
+                        //ポップアップ再生
+                        if (commentFragment.overlay_commentcamvas != null) {
+                            commentFragment.overlay_commentcamvas!!.postComment(
+                                message, command
+                            )
+                            //コメント
+                            val textView =
+                                commentFragment.popupView.overlay_comment_textview
+                            textView.text =
+                                "$message\n${textView.text}"
                         }
                     }
                 }

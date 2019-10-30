@@ -1,27 +1,19 @@
 package io.github.takusan23.tatimidroid
 
-import android.annotation.TargetApi
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
-import android.os.Build
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import io.github.takusan23.tatimidroid.Fragment.CommentMenuBottomFragment
-import org.w3c.dom.Comment
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
 import java.util.*
 
 class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :
@@ -49,32 +41,34 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
 
             val json: String = item[1]
             val roomName: String = item[2]
+            val liveId: String = item[4]
 
             val commentJSONParse = CommentJSONParse(json, roomName)
 
             var userId: String = commentJSONParse.userId
 
-            if (context is CommentActivity) {
-                //NG配列
-                val userNGList = (context as CommentActivity).userNGList
-                val commentNGList = (context as CommentActivity).commentNGList
-                //コテハンMAP
-                val kotehanMap = (context as CommentActivity).kotehanMap
-                //NGコメント、ユーザーか
-                if (userNGList.indexOf(commentJSONParse.userId) != -1) {
-                    isNGUser = true
-                }
-                if (commentNGList.indexOf(commentJSONParse.comment) != -1) {
-                    isNGComment = true
-                }
-                //コテハン
-                if (kotehanMap.containsKey(commentJSONParse.userId)) {
-                    userId = kotehanMap.get(commentJSONParse.userId) ?: ""
-                } else {
-                    userId = commentJSONParse.userId
-                }
-            }
+            //CommentFragment取得
+            val commentFragment =
+                (context as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
 
+            //NG配列
+            val userNGList = commentFragment.userNGList
+            val commentNGList = commentFragment.commentNGList
+            //コテハンMAP
+            val kotehanMap = commentFragment.kotehanMap
+            //NGコメント、ユーザーか
+            if (userNGList.indexOf(commentJSONParse.userId) != -1) {
+                isNGUser = true
+            }
+            if (commentNGList.indexOf(commentJSONParse.comment) != -1) {
+                isNGComment = true
+            }
+            //コテハン
+            if (kotehanMap.containsKey(commentJSONParse.userId)) {
+                userId = kotehanMap.get(commentJSONParse.userId) ?: ""
+            } else {
+                userId = commentJSONParse.userId
+            }
 
             //UnixTime -> Minute
             var time = ""
