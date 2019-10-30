@@ -1605,7 +1605,7 @@ class CommentFragment : Fragment() {
     }
 
     /*オーバーレイ*/
-    private fun startOverlayPlayer() {
+    fun startOverlayPlayer() {
         val width = 400
         val height = 200
         //レイアウト読み込み

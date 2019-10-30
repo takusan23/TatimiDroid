@@ -1,7 +1,10 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -104,6 +107,47 @@ class CommentMenuFragment : Fragment() {
                 programShare.shareAttacgImage()
             }
         }
+        //生放送を再生ボタン
+        fragment_comment_fragment_menu_view_live_button.setOnClickListener {
+            commentFragment.apply {
+                if (live_framelayout.visibility == View.VISIBLE) {
+                    live_framelayout.visibility = View.GONE
+                    live_video_view.stopPlayback()
+                } else {
+                    live_framelayout.visibility = View.VISIBLE
+                    setPlayVideoView()
+                }
+            }
+        }
+        //バッググラウンド再生。調子悪いのでServiceなんかで実装し直したほうがいいと思ってるけどまず使ってないので直さないと思います。
+        fragment_comment_fragment_menu_background_button.setOnClickListener {
+            commentFragment.setBackgroundProgramPlay()
+        }
+
+        //ポップアップ再生。いつか怒られそう（プレ垢限定要素だし）
+        fragment_comment_fragment_menu_popup_button.setOnClickListener {
+            commentFragment.apply {
+                //ポップアップ再生。コメント付き
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!Settings.canDrawOverlays(context)) {
+                        //RuntimePermissionに対応させる
+                        // 権限取得
+                        val intent =
+                            Intent(
+                                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                Uri.parse("package:${context?.packageName}")
+                            )
+                        startActivityForResult(intent, 114)
+                    } else {
+                        startOverlayPlayer()
+                    }
+                } else {
+                    //ろりぽっぷ
+                    startOverlayPlayer()
+                }
+            }
+        }
+
     }
 
     //CommentFragmentの値を貰う

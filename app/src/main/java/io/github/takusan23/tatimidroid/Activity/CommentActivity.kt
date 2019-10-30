@@ -232,14 +232,6 @@ class CommentActivity : AppCompatActivity() {
 
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        //liveIDからCommentFragment
-
-
-    }
-
 
 /*
     override fun onCreate(savedInstanceState: Bundle?) {

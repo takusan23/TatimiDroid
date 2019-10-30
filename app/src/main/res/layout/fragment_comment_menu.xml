@@ -31,7 +31,7 @@
                             android:orientation="horizontal">
 
                         <Button
-                                android:id="@+id/button"
+                                android:id="@+id/fragment_comment_fragment_menu_view_live_button"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_margin="2sp"
@@ -41,7 +41,7 @@
                                 android:text="@string/play_live_broadcast" />
 
                         <Button
-                                android:id="@+id/button2"
+                                android:id="@+id/fragment_comment_fragment_menu_background_button"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_margin="2sp"
@@ -51,7 +51,7 @@
                                 android:text="@string/background_play" />
 
                         <Button
-                                android:id="@+id/button3"
+                                android:id="@+id/fragment_comment_fragment_menu_popup_button"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_margin="2sp"
