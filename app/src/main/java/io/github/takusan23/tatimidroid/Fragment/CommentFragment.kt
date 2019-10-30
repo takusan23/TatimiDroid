@@ -35,6 +35,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
@@ -110,10 +111,10 @@ class CommentFragment : Fragment() {
 
     //定期的に投稿するやつ
     //視聴続けてますよ送信用
-    val timer = Timer()
+    var timer = Timer()
 
     //経過時間
-    val programTimer = Timer()
+    var programTimer = Timer()
 
     //アクティブ計算
     val activeTimer = Timer()
@@ -182,6 +183,9 @@ class CommentFragment : Fragment() {
 
     //運コメ・infoコメント非表示
     var hideInfoUnnkome = false
+
+    //いやよ
+    var isTokumeiComment = true
 
     //共有
     lateinit var programShare: ProgramShare
@@ -338,6 +342,125 @@ class CommentFragment : Fragment() {
                 }
 
             }
+
+            //TabLayout選択
+            //標準でコメントの欄を選んでおく
+            activity_comment_tab_layout.selectTab(activity_comment_tab_layout.getTabAt(1))
+            activity_comment_tab_layout.addOnTabSelectedListener(object :
+                TabLayout.OnTabSelectedListener {
+                override fun onTabReselected(tab: TabLayout.Tab?) {
+
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab?) {
+
+                }
+
+                override fun onTabSelected(tab: TabLayout.Tab?) {
+                    when (tab?.text) {
+                        getString(R.string.menu) -> {
+                            //メニュー
+                            //コメント
+                            val fragmentTransaction =
+                                commentActivity.supportFragmentManager.beginTransaction()
+                            //LiveIDを詰める
+                            val bundle = Bundle()
+                            bundle.putString("liveId", liveId)
+                            //LiveID付きで
+                            val commentMenuFragment = CommentMenuFragment()
+                            commentMenuFragment.arguments = bundle
+                            fragmentTransaction.replace(
+                                R.id.activity_comment_linearlayout,
+                                commentMenuFragment
+                            )
+                            fragmentTransaction.commit()
+                        }
+                        getString(R.string.comment) -> {
+                            //コメント
+                            val fragmentTransaction =
+                                commentActivity.supportFragmentManager.beginTransaction()
+                            //LiveIDを詰める
+                            val bundle = Bundle()
+                            bundle.putString("liveId", liveId)
+                            //LiveID付きで
+                            val commentViewFragment = CommentViewFragment()
+                            commentViewFragment.arguments = bundle
+                            fragmentTransaction.replace(
+                                R.id.activity_comment_linearlayout,
+                                commentViewFragment
+                            )
+                            fragmentTransaction.commit()
+                        }
+                        getString(R.string.room_comment) -> {
+                            //部屋べつ
+                            val fragmentTransaction =
+                                commentActivity.supportFragmentManager.beginTransaction()
+                            //LiveIDを詰める
+                            val bundle = Bundle()
+                            bundle.putString("liveId", liveId)
+                            //LiveID付きで
+                            val commentRoomFragment = CommentRoomFragment()
+                            commentRoomFragment.arguments = bundle
+                            fragmentTransaction.replace(
+                                R.id.activity_comment_linearlayout,
+                                commentRoomFragment
+                            )
+                            fragmentTransaction.commit()
+
+                        }
+                        getString(R.string.gift) -> {
+                            //ギフト
+                            val fragmentTransaction =
+                                commentActivity.supportFragmentManager.beginTransaction()
+                            //LiveIDを詰める
+                            val bundle = Bundle()
+                            bundle.putString("liveId", liveId)
+                            //LiveID付きで
+                            val giftFragment = GiftFragment()
+                            giftFragment.arguments = bundle
+                            fragmentTransaction.replace(
+                                R.id.activity_comment_linearlayout,
+                                giftFragment
+                            )
+                            fragmentTransaction.commit()
+                        }
+                        getString(R.string.nicoads) -> {
+                            //広告
+                            val fragmentTransaction =
+                                commentActivity.supportFragmentManager.beginTransaction()
+                            //LiveIDを詰める
+                            val bundle = Bundle()
+                            bundle.putString("liveId", liveId)
+                            //LiveID付きで
+                            val nicoAdFragment = NicoAdFragment()
+                            nicoAdFragment.arguments = bundle
+                            fragmentTransaction.replace(
+                                R.id.activity_comment_linearlayout,
+                                nicoAdFragment
+                            )
+                            fragmentTransaction.commit()
+                        }
+                        getString(R.string.program_info) -> {
+                            //番組情報
+                            val fragmentTransaction =
+                                commentActivity.supportFragmentManager.beginTransaction()
+                            //LiveIDを詰める
+                            val bundle = Bundle()
+                            bundle.putString("liveId", liveId)
+                            //LiveIDを詰める
+                            val programInfoFragment = ProgramInfoFragment()
+                            programInfoFragment.arguments = bundle
+                            fragmentTransaction.replace(
+                                R.id.activity_comment_linearlayout,
+                                programInfoFragment
+                            )
+                            fragmentTransaction.commit()
+                        }
+                    }
+                }
+            })
+/*
+
             activity_comment_bottom_navigation_bar.setOnNavigationItemSelectedListener {
                 when (it.itemId) {
                     R.id.comment_view_menu_comment_view -> {
@@ -423,6 +546,7 @@ class CommentFragment : Fragment() {
                 }
                 true
             }
+*/
         } else {
             showToast(getString(R.string.mail_pass_error))
             commentActivity.finish()
@@ -601,6 +725,7 @@ class CommentFragment : Fragment() {
     //経過時間計算
     private fun setLiveTime() {
         //1秒ごとに
+        programTimer = Timer()
         programTimer.schedule(0, 1000) {
 
             val unixtime = System.currentTimeMillis() / 1000L
@@ -620,7 +745,10 @@ class CommentFragment : Fragment() {
 
 
             commentActivity.runOnUiThread {
-                activity_comment_comment_time.text = "$hour:" + simpleDateFormat.format(date.time)
+                if (activity_comment_comment_time != null) {
+                    activity_comment_comment_time.text =
+                        "$hour:" + simpleDateFormat.format(date.time)
+                }
             }
         }
 
@@ -855,8 +983,10 @@ class CommentFragment : Fragment() {
                     val watchCount = params[0]
                     val commentCount = params[1]
                     commentActivity.runOnUiThread {
-                        activity_comment_watch_count.text = watchCount.toString()
-                        activity_comment_comment_count.text = commentCount.toString()
+                        if (activity_comment_watch_count != null && activity_comment_comment_count != null) {
+                            activity_comment_watch_count.text = watchCount.toString()
+                            activity_comment_comment_count.text = commentCount.toString()
+                        }
                     }
                 }
 
@@ -869,6 +999,7 @@ class CommentFragment : Fragment() {
         }
 
         //それと別に30秒間隔で視聴を続けてますよメッセージを送信する必要がある模様
+        timer = Timer()
         timer.schedule(30000, 30000) {
             if (!connectionNicoLiveWebSocket.isClosed) {
                 //ひとつめ
@@ -1382,6 +1513,19 @@ class CommentFragment : Fragment() {
         Toast.makeText(
             context,
             "${getString(R.string.copy_program_id)} : $liveId",
+            Toast.LENGTH_SHORT
+        )
+            .show()
+    }
+
+    fun copyCommunityId() {
+        val clipboardManager =
+            context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboardManager.setPrimaryClip(ClipData.newPlainText("communityid", communityID))
+        //コピーしました！
+        Toast.makeText(
+            context,
+            "${getString(R.string.copy_communityid)} : $communityID",
             Toast.LENGTH_SHORT
         )
             .show()

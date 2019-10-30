@@ -76,7 +76,7 @@ class CommentViewFragment : Fragment() {
 
         //LiveIDとる
         liveId = arguments?.getString("liveId") ?: ""
-        println("なんでええええええええ$liveId")
+        //println("なんでええええええええ$liveId")
 
         stringArena = getString(R.string.arena)
 

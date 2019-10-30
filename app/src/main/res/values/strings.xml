@@ -175,4 +175,6 @@
     <string name="floating_comment_viewer_description">You can use the comment viewer while starting other apps.</string>
     <string name="floating_comment_viewer_version">To use this function, Android version must be 10 or later.</string>
     <string name="floating_comment_viewer_finish">Exit flooring comment viewer</string>
+    <string name="menu">Menu</string>
+    <string name="copy_communityid">Copy community ID</string>
 </resources>

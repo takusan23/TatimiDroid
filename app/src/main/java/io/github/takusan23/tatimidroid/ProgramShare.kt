@@ -24,6 +24,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
 import androidx.core.graphics.drawable.toDrawable
+import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import java.lang.Exception
 import java.net.URI
 import java.security.cert.Extension
@@ -163,7 +164,10 @@ class ProgramShare(
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
         intent.type = "image/*"
         intent.putExtra(Intent.EXTRA_TITLE, "$programId-$hour:$minute:$second.png")
-        activity.startActivityForResult(intent, requestCode)
+        //Fragmentにする
+        val commentFragment =
+            activity.supportFragmentManager.findFragmentByTag(programId) as CommentFragment
+        commentFragment.startActivityForResult(intent, requestCode)
     }
 
     //保存
@@ -185,7 +189,7 @@ class ProgramShare(
         if (saveBitmap != null && saveUri != null) {
             val builder = ShareCompat.IntentBuilder.from(activity)
             builder.setChooserTitle(programName)
-            builder.setText(programId)
+            builder.setText("$programName\n$programId")
             builder.setStream(saveUri)
             builder.setType("text/jpeg")
             builder.startChooser()
@@ -196,7 +200,7 @@ class ProgramShare(
     fun showShareScreen() {
         val builder = ShareCompat.IntentBuilder.from(activity)
         builder.setChooserTitle(programName)
-        builder.setText(programId)
+        builder.setText("$programName\n$programId")
         builder.setStream(saveUri)
         builder.setType("text/plain")
         builder.startChooser()

@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat.getSystemService
 import android.opengl.Visibility
 import android.text.SpannableString
 import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -81,7 +82,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
             mLayoutManager as RecyclerView.LayoutManager?
         commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
         bottom_fragment_comment_menu_recyclerview.adapter = commentRecyclerViewAdapter
-
+        commentRecyclerViewAdapter.setActivity((activity as AppCompatActivity?)!!)
 
         //Map
         kotehanMap = (activity as CommentActivity).kotehanMap
@@ -146,6 +147,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
                         item.add(commentJson)
                         item.add(roomName)
                         item.add(commentJSONParse.userId)
+                        item.add(liveId)
                         activity?.runOnUiThread {
                             recyclerViewList.add(item)
                             commentRecyclerViewAdapter.notifyDataSetChanged()

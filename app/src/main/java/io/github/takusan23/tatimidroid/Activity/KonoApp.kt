@@ -34,8 +34,8 @@ class KonoApp : AppCompatActivity() {
     /*
     * バージョンとか
     * */
-    val version = "3.2.1 2019/10/17"
-    val codeName1 = "（RC）"
+    val version = "Beta 4.0.0 2019/10/30"
+    val codeName1 = "（RC2）"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

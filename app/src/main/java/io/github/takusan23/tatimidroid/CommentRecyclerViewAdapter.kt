@@ -23,10 +23,16 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
     val userList = arrayListOf<String>()
     lateinit var pref_setting: SharedPreferences
 
+    lateinit var appCompatActivity: AppCompatActivity
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.adapter_comment_layout, parent, false)
         return ViewHolder(view)
+    }
+
+    fun setActivity(appCompatActivity: AppCompatActivity) {
+        this.appCompatActivity = appCompatActivity
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -48,8 +54,15 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
             var userId: String = commentJSONParse.userId
 
             //CommentFragment取得
+
+            //ロックオンだけcontextからActivityが取れないので。。
+            //共通化する
+            if (context is AppCompatActivity) {
+                this.appCompatActivity = context
+            }
+
             val commentFragment =
-                (context as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
+                this.appCompatActivity.supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
 
             //NG配列
             val userNGList = commentFragment.userNGList
