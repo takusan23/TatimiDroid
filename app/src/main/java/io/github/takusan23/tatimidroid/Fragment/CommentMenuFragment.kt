@@ -154,6 +154,12 @@ class CommentMenuFragment : Fragment() {
             commentFragment.showBubbles()
         }
 
+        //フローティングコメビュはAndroid10以降で利用可能
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            fragment_comment_fragment_menu_floating_button.isEnabled = false
+        }
+
+
     }
 
     //CommentFragmentの値を貰う
