@@ -38,11 +38,14 @@ import java.util.regex.Pattern
 
 class CommentMenuBottomFragment : BottomSheetDialogFragment() {
 
+    lateinit var commentFragment: CommentFragment
+
     //こてはん
     lateinit var kotehanMap: MutableMap<String, String>
     //それぞれ
     var comment = ""
     var userId = ""
+    var liveId = ""
     //NGデータベース
     lateinit var ngListSQLiteHelper: NGListSQLiteHelper
     lateinit var sqLiteDatabase: SQLiteDatabase
@@ -60,6 +63,11 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        liveId = arguments?.getString("liveId") ?: ""
+        commentFragment =
+            activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment
+
         //ダークモード
         val darkModeSupport = DarkModeSupport(context!!)
         bottom_fragment_comment_menu_parent_linearlayout.background =
@@ -117,37 +125,33 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
 
     fun setLockOnComment() {
         recyclerViewList.clear()
-        if (activity is CommentActivity) {
-            val fragment =
-                activity?.supportFragmentManager?.findFragmentById(R.id.activity_comment_linearlayout)
-            if (fragment is CommentViewFragment) {
-                //全部屋コメントRecyclerViewを取得
-                val adapterList: ArrayList<ArrayList<String>> = fragment.recyclerViewList
-                //ConcurrentModificationExceptionが発生する。forEachはやめようね！
-                val tmp = adapterList
-                for (i in 0 until tmp.size) {
-                    if (tmp[i] != null) {
-                        val item = tmp[i]
-                        val commentJson: String = item[1]
-                        val roomName: String = item[2]
-                        val commentJSONParse = CommentJSONParse(commentJson, roomName)
-                        //IDを比較
-                        if (commentJSONParse.userId == userId) {
-                            //ロックオンコメント取得
-                            val item = arrayListOf<String>()
-                            item.add("")
-                            item.add(commentJson)
-                            item.add(roomName)
-                            item.add(commentJSONParse.userId)
-                            activity?.runOnUiThread {
-                                recyclerViewList.add(item)
-                                commentRecyclerViewAdapter.notifyDataSetChanged()
-                            }
+        val fragment =
+            activity?.supportFragmentManager?.findFragmentById(R.id.activity_comment_linearlayout)
+        if (fragment is CommentViewFragment) {
+            //全部屋コメントRecyclerViewを取得
+            val adapterList: ArrayList<ArrayList<String>> = fragment.recyclerViewList
+            //ConcurrentModificationExceptionが発生する。forEachはやめようね！
+            val tmp = adapterList
+            for (i in 0 until tmp.size) {
+                if (tmp[i] != null) {
+                    val item = tmp[i]
+                    val commentJson: String = item[1]
+                    val roomName: String = item[2]
+                    val commentJSONParse = CommentJSONParse(commentJson, roomName)
+                    //IDを比較
+                    if (commentJSONParse.userId == userId) {
+                        //ロックオンコメント取得
+                        val item = arrayListOf<String>()
+                        item.add("")
+                        item.add(commentJson)
+                        item.add(roomName)
+                        item.add(commentJSONParse.userId)
+                        activity?.runOnUiThread {
+                            recyclerViewList.add(item)
+                            commentRecyclerViewAdapter.notifyDataSetChanged()
                         }
                     }
                 }
-            } else {
-                bottom_fragment_comment_menu_recyclerview.visibility = View.GONE
             }
         }
     }
@@ -235,9 +239,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         //とーすと
         showToast(getString(R.string.add_ng_comment_message))
         //リスト更新
-        if (activity is CommentActivity) {
-            (activity as CommentActivity).loadNGDataBase()
-        }
+        commentFragment.loadNGDataBase()
     }
 
     //NGユーザー追加
@@ -250,9 +252,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         //とーすと
         showToast(getString(R.string.add_ng_user_message))
         //リスト更新
-        if (activity is CommentActivity) {
-            (activity as CommentActivity).loadNGDataBase()
-        }
+        commentFragment.loadNGDataBase()
     }
 
     fun showToast(message: String) {

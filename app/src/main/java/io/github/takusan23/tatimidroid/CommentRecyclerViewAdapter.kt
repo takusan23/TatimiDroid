@@ -120,6 +120,7 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
                 val bundle = Bundle()
                 bundle.putString("comment", commentJSONParse.comment)
                 bundle.putString("user_id", commentJSONParse.userId)
+                bundle.putString("liveId", liveId)
                 val commentMenuBottomFragment = CommentMenuBottomFragment()
                 commentMenuBottomFragment.arguments = bundle
                 if (context is AppCompatActivity) {

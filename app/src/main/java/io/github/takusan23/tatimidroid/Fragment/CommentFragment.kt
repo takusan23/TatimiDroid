@@ -252,9 +252,14 @@ class CommentFragment : Fragment() {
         watchLive = pref_setting.getBoolean("setting_watch_live", false)
 
         //とりあえずコメントViewFragmentへ
+        //LiveIDを詰める
+        val bundle = Bundle()
+        bundle.putString("liveId", liveId)
+        val commentViewFragment = CommentViewFragment()
+        commentViewFragment.arguments = bundle
         val fragmentTransaction =
             commentActivity.supportFragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.activity_comment_linearlayout, CommentViewFragment())
+        fragmentTransaction.replace(R.id.activity_comment_linearlayout, commentViewFragment)
         fragmentTransaction.commit()
 
         //NGデータベース読み込み
@@ -289,22 +294,16 @@ class CommentFragment : Fragment() {
 
         //コメント投稿画面開く
         fab.setOnClickListener {
-            //新しいコメント投稿画面を利用するか？
-            if (pref_setting.getBoolean("setting_new_comment", false)) {
-                //表示アニメーションに挑戦した。
-                val showAnimation =
-                    AnimationUtils.loadAnimation(context!!, R.anim.comment_cardview_show_animation)
-                //表示
-                comment_activity_comment_cardview.startAnimation(showAnimation)
-                comment_activity_comment_cardview.visibility = View.VISIBLE
-                fab.hide()
-                //コメント投稿など
-                commentCardView()
-            } else {
-                //旧式
-                val commentPOSTBottomFragment = CommentPOSTBottomFragment()
-                commentPOSTBottomFragment.show(commentActivity.supportFragmentManager, "comment")
-            }
+            //表示アニメーションに挑戦した。
+            val showAnimation =
+                AnimationUtils.loadAnimation(context!!, R.anim.comment_cardview_show_animation)
+            //表示
+            comment_activity_comment_cardview.startAnimation(showAnimation)
+            comment_activity_comment_cardview.visibility = View.VISIBLE
+            fab.hide()
+            //コメント投稿など
+            commentCardView()
+            //旧式はサポート切ります！
         }
 
         //ログイン情報がなければ戻す
@@ -340,14 +339,14 @@ class CommentFragment : Fragment() {
 
             }
             activity_comment_bottom_navigation_bar.setOnNavigationItemSelectedListener {
-                //LiveIDを詰める
-                val bundle = Bundle()
-                bundle.putString("liveId", liveId)
                 when (it.itemId) {
                     R.id.comment_view_menu_comment_view -> {
                         //コメント
                         val fragmentTransaction =
                             commentActivity.supportFragmentManager.beginTransaction()
+                        //LiveIDを詰める
+                        val bundle = Bundle()
+                        bundle.putString("liveId", liveId)
                         //LiveID付きで
                         val commentViewFragment = CommentViewFragment()
                         commentViewFragment.arguments = bundle
@@ -361,6 +360,9 @@ class CommentFragment : Fragment() {
                         //ギフト
                         val fragmentTransaction =
                             commentActivity.supportFragmentManager.beginTransaction()
+                        //LiveIDを詰める
+                        val bundle = Bundle()
+                        bundle.putString("liveId", liveId)
                         //LiveID付きで
                         val commentRoomFragment = CommentRoomFragment()
                         commentRoomFragment.arguments = bundle
@@ -374,6 +376,9 @@ class CommentFragment : Fragment() {
                         //ギフト
                         val fragmentTransaction =
                             commentActivity.supportFragmentManager.beginTransaction()
+                        //LiveIDを詰める
+                        val bundle = Bundle()
+                        bundle.putString("liveId", liveId)
                         //LiveID付きで
                         val giftFragment = GiftFragment()
                         giftFragment.arguments = bundle
@@ -387,6 +392,9 @@ class CommentFragment : Fragment() {
                         //広告
                         val fragmentTransaction =
                             commentActivity.supportFragmentManager.beginTransaction()
+                        //LiveIDを詰める
+                        val bundle = Bundle()
+                        bundle.putString("liveId", liveId)
                         //LiveID付きで
                         val nicoAdFragment = NicoAdFragment()
                         nicoAdFragment.arguments = bundle
@@ -400,6 +408,10 @@ class CommentFragment : Fragment() {
                         //番組情報
                         val fragmentTransaction =
                             commentActivity.supportFragmentManager.beginTransaction()
+                        //LiveIDを詰める
+                        val bundle = Bundle()
+                        bundle.putString("liveId", liveId)
+                        //LiveIDを詰める
                         val programInfoFragment = ProgramInfoFragment()
                         programInfoFragment.arguments = bundle
                         fragmentTransaction.replace(
@@ -751,6 +763,7 @@ class CommentFragment : Fragment() {
                     val bundle = Bundle()
                     bundle.putString("select_quality", selectQuality)
                     bundle.putString("quality_list", qualityTypesJSONArray.toString())
+                    bundle.putString("liveId", liveId)
                     qualitySelectBottomSheet = QualitySelectBottomSheet()
                     qualitySelectBottomSheet.arguments = bundle
                     //画質変更成功？

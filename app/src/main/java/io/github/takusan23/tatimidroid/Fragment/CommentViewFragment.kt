@@ -12,13 +12,13 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.*
-import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.CommentRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.SnackbarProgress
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_commentview.*
-import kotlinx.android.synthetic.main.overlay_player_layout.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.runBlocking
 import okhttp3.*
@@ -29,9 +29,7 @@ import org.java_websocket.protocols.IProtocol
 import org.java_websocket.protocols.Protocol
 import org.json.JSONObject
 import org.jsoup.Jsoup
-import org.w3c.dom.Comment
 import java.io.IOException
-import java.lang.Exception
 import java.net.URI
 import java.util.*
 import kotlin.collections.ArrayList
@@ -78,6 +76,7 @@ class CommentViewFragment : Fragment() {
 
         //LiveIDとる
         liveId = arguments?.getString("liveId") ?: ""
+        println("なんでええええええええ$liveId")
 
         stringArena = getString(R.string.arena)
 
@@ -95,7 +94,8 @@ class CommentViewFragment : Fragment() {
         fragment_comment_recyclerview.setItemAnimator(null);
 
         //CommentFragment取得
-        val fragment = activity?.supportFragmentManager?.findFragmentByTag(liveId)
+        val fragment =
+            (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId)
         commentFragment = fragment as CommentFragment
 
         //val viewPool = fragment_comment_recyclerview.recycledViewPool
@@ -276,34 +276,32 @@ class CommentViewFragment : Fragment() {
                     }
 
                     //Toast / TTS
-                    if (activity is CommentActivity) {
-                        //Toast
-                        if (commentFragment.isToast) {
-                            activity?.runOnUiThread {
-                                Toast.makeText(
-                                    context,
-                                    commentJSONParse.comment,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                    //Toast
+                    if (commentFragment.isToast) {
+                        activity?.runOnUiThread {
+                            Toast.makeText(
+                                context,
+                                commentJSONParse.comment,
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-                        //TTS
-                        if (commentFragment.isTTS) {
-                            //初期化済みか
-                            if (!this@CommentViewFragment::tts.isInitialized) {
-                                tts = TextToSpeech(context, TextToSpeech.OnInitListener { p0 ->
-                                    if (p0 == TextToSpeech.SUCCESS) {
-                                        showToast(getString(R.string.tts_init))
-                                    } else {
-                                        showToast(getString(R.string.error))
-                                    }
-                                })
-                            }
-                            tts.speak(commentJSONParse.comment, TextToSpeech.QUEUE_ADD, null, null)
-                        } else {
-                            if (this@CommentViewFragment::tts.isInitialized) {
-                                tts.shutdown()
-                            }
+                    }
+                    //TTS
+                    if (commentFragment.isTTS) {
+                        //初期化済みか
+                        if (!this@CommentViewFragment::tts.isInitialized) {
+                            tts = TextToSpeech(context, TextToSpeech.OnInitListener { p0 ->
+                                if (p0 == TextToSpeech.SUCCESS) {
+                                    showToast(getString(R.string.tts_init))
+                                } else {
+                                    showToast(getString(R.string.error))
+                                }
+                            })
+                        }
+                        tts.speak(commentJSONParse.comment, TextToSpeech.QUEUE_ADD, null, null)
+                    } else {
+                        if (this@CommentViewFragment::tts.isInitialized) {
+                            tts.shutdown()
                         }
                     }
 
@@ -523,18 +521,17 @@ class CommentViewFragment : Fragment() {
         recyclerViewList.add(0, item)
 
         //ロックオンできるように
-        if (activity is CommentActivity) {
-            //ロックオン中は自動更新できるようにする
-            val fragment = fragmentManager?.findFragmentByTag("comment_menu")
-            if (fragment != null) {
-                if (fragment is CommentMenuBottomFragment) {
-                    if (fragment.userId == commentJSONParse.userId) {
-                        //更新する
-                        fragment.setLockOnComment()
-                    }
+        //ロックオン中は自動更新できるようにする
+        val fragment = fragmentManager?.findFragmentByTag("comment_menu")
+        if (fragment != null) {
+            if (fragment is CommentMenuBottomFragment) {
+                if (fragment.userId == commentJSONParse.userId) {
+                    //更新する
+                    fragment.setLockOnComment()
                 }
             }
         }
+
 
         //RecyclerView更新
         activity?.runOnUiThread {

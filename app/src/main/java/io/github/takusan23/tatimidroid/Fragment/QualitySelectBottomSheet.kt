@@ -15,8 +15,13 @@ import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_qulity_fragment_layout.*
 import org.json.JSONArray
+import org.w3c.dom.Comment
 
 class QualitySelectBottomSheet : BottomSheetDialogFragment() {
+
+    var liveId = ""
+    lateinit var commentFragment: CommentFragment
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -29,6 +34,11 @@ class QualitySelectBottomSheet : BottomSheetDialogFragment() {
         val quality_list = arguments?.getString("quality_list")
             ?: "[\"abr\",\"high\",\"normal\",\"low\",\"super_low\",\"audio_high\"]"
         val select_quality = arguments?.getString("select_quality") ?: "high"
+
+        liveId = arguments?.getString("liveId") ?: ""
+        commentFragment =
+            activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment
+
 
         //TextView回す
         val jsonArray = JSONArray(quality_list)
@@ -58,12 +68,10 @@ class QualitySelectBottomSheet : BottomSheetDialogFragment() {
             }
             //押したとき
             textView.setOnClickListener {
-                if (activity is CommentActivity) {
-                    //送信
-                    (activity as CommentActivity).sendQualityMessage(text)
-                    println(text)
-                    dismiss()
-                }
+                //送信
+                commentFragment.sendQualityMessage(text)
+                //println(text)
+                dismiss()
             }
 
             quality_parent_linearlayout.addView(textView)

@@ -60,7 +60,7 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_post_button.setOnClickListener {
             if (activity is CommentActivity) {
                 //コメント投稿
-                (activity as CommentActivity).sendComment(bottom_fragment_post_edittext.text.toString())
+                //(activity as CommentActivity).sendComment(bottom_fragment_post_edittext.text.toString())
                 //閉じる
                 this@CommentPOSTBottomFragment.dismiss()
             }
@@ -73,13 +73,11 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
         //Enderキーを押したら投稿する
         bottom_fragment_post_edittext.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
             if (i == KeyEvent.KEYCODE_ENTER) {
-                if (activity is CommentActivity) {
-                    if (bottom_fragment_post_edittext.text.toString().isNotEmpty()) {
-                        //コメント投稿
-                        (activity as CommentActivity).sendComment(bottom_fragment_post_edittext.text.toString())
-                        //閉じる
-                        this@CommentPOSTBottomFragment.dismiss()
-                    }
+                if (bottom_fragment_post_edittext.text.toString().isNotEmpty()) {
+                    //コメント投稿
+                    //(activity as CommentActivity).sendComment(bottom_fragment_post_edittext.text.toString())
+                    //閉じる
+                    this@CommentPOSTBottomFragment.dismiss()
                 }
             }
             false

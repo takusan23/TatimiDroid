@@ -1,16 +1,11 @@
 package io.github.takusan23.tatimidroid
 
-import android.content.Intent
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
-import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.Activity.CommentActivity
-import java.util.ArrayList
+import java.util.*
 
 class GiftRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
     RecyclerView.Adapter<GiftRecyclerViewAdapter.ViewHolder>() {

@@ -19,6 +19,7 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.provider.Settings
 import android.text.Editable
 import android.text.Html
@@ -64,11 +65,13 @@ import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
+import kotlinx.android.synthetic.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.w3c.dom.Comment
 import java.lang.StringBuilder
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -208,6 +211,29 @@ class CommentActivity : AppCompatActivity() {
     // val lockOnUserList = arrayListOf<String>()
     // val lockOnRoomList = arrayListOf<String>()
 
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setContentView(R.layout.activity_comment_new)
+
+        //LiveID
+        liveId = intent?.getStringExtra("liveId") ?: ""
+
+        //Fragment設置
+        val trans = supportFragmentManager.beginTransaction()
+        val commentFragment = CommentFragment()
+        //LiveID詰める
+        val bundle = Bundle()
+        bundle.putString("liveId", liveId)
+        commentFragment.arguments = bundle
+        trans.replace(R.id.activity_comment_new_linearlayout, commentFragment, liveId)
+        trans.commit()
+
+    }
+
+
+/*
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -399,9 +425,11 @@ class CommentActivity : AppCompatActivity() {
         activeUserClear()
 
 
-        /*
+        */
+/*
         * ブロードキャスト
-        * */
+        * *//*
+
         val intentFilter = IntentFilter()
         intentFilter.addAction("background_program_stop")
         intentFilter.addAction("background_program_pause")
@@ -471,9 +499,11 @@ class CommentActivity : AppCompatActivity() {
         }, 5000)
     }
 
-    /*
+    */
+/*
     * アクティブ人数を1分ごとにクリア
-    * */
+    * *//*
+
     private fun activeUserClear() {
         //1分でリセット
         activeTimer.schedule(60000, 60000) {
@@ -1424,7 +1454,9 @@ class CommentActivity : AppCompatActivity() {
         destroyCode()
     }
 
-    /*オーバーレイ*/
+    */
+/*オーバーレイ*//*
+
     private fun startOverlayPlayer() {
         val width = 400
         val height = 200
@@ -1539,7 +1571,9 @@ class CommentActivity : AppCompatActivity() {
 
     }
 
-    /*ポップアップ再生通知*/
+    */
+/*ポップアップ再生通知*//*
+
     fun showPopUpPlayerNotification() {
 
         val stopPopupIntent = Intent("program_popup_close")
@@ -1603,7 +1637,9 @@ class CommentActivity : AppCompatActivity() {
     }
 
 
-    /*バックグラウンド再生*/
+    */
+/*バックグラウンド再生*//*
+
     fun setBackgroundProgramPlay() {
         mediaPlayer = MediaPlayer.create(this, hls_address.toUri())
         mediaPlayer.start()
@@ -2077,13 +2113,15 @@ class CommentActivity : AppCompatActivity() {
         runOnUiThread {
             //テキスト、背景色
             uncomeTextView.visibility = View.VISIBLE
+*/
 /*
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             uncomeTextView.text = Html.fromHtml(comment, Html.FROM_HTML_MODE_COMPACT)
         } else {
             uncomeTextView.text = Html.fromHtml(comment)
         }
-*/
+*//*
+
             uncomeTextView.text = HtmlCompat.fromHtml(comment, FROM_HTML_MODE_COMPACT)
             uncomeTextView.textSize = 20F
             uncomeTextView.setTextColor(Color.WHITE)
@@ -2209,9 +2247,11 @@ class CommentActivity : AppCompatActivity() {
         }, 3600000)
     }
 
+    */
     /**
      * 画質変更メッセージ送信
-     * */
+     * *//*
+
     fun sendQualityMessage(quality: String) {
         val jsonObject = JSONObject()
         jsonObject.put("type", "watch")
@@ -2257,5 +2297,6 @@ class CommentActivity : AppCompatActivity() {
         }
         mobileDataQualityCheck = true
     }
+*/
 
 }

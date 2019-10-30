@@ -1,34 +1,19 @@
 package io.github.takusan23.tatimidroid
 
-import android.app.AlertDialog
-import android.app.Dialog
-import android.content.ContentValues
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Fragment.AutoAdmissionBottomFragment
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
-import io.github.takusan23.tatimidroid.Fragment.CommunityListFragment
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_liveid.*
-import java.sql.Timestamp
-import java.text.SimpleDateFormat
 import java.util.*
 
 class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :

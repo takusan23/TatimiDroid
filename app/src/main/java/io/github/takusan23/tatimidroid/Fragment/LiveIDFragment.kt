@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.SpannableString
@@ -14,21 +13,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SnackbarProgress
-import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 import kotlinx.android.synthetic.main.fragment_liveid.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import okhttp3.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.jsoup.Jsoup
-import org.w3c.dom.Document
-import java.io.IOException
 import java.util.regex.Pattern
 
 class LiveIDFragment : Fragment() {

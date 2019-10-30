@@ -1,22 +1,17 @@
 package io.github.takusan23.tatimidroid
 
-import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.CommentCollectionListActivity
-import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
-import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment_postlist.*
-import java.util.ArrayList
+import java.util.*
 
 class CommentPOSTListRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
     RecyclerView.Adapter<CommentPOSTListRecyclerViewAdapter.ViewHolder>() {
