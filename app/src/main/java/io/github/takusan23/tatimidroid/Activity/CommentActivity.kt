@@ -236,6 +236,13 @@ class CommentActivity : AppCompatActivity() {
 
     }
 
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+    }
+
+
     //ホームボタンおした
     //これはActivityじゃないと使えないと思う
     override fun onUserLeaveHint() {

@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
         val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
         fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, LiveIDFragment())
         fragmentTransitionSupport.commit()
+
         //画面切り替え
         main_activity_bottom_navigationview.setSelectedItemId(R.id.menu_liveid);
         main_activity_bottom_navigationview.setOnNavigationItemSelectedListener { item ->

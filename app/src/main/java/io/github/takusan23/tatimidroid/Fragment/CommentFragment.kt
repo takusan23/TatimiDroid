@@ -60,6 +60,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
+import java.lang.IllegalStateException
 import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
@@ -238,6 +239,7 @@ class CommentFragment : Fragment() {
         //スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+/*
         //横画面はLinearLayoutの向きを変える
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             //横画面
@@ -246,6 +248,7 @@ class CommentFragment : Fragment() {
             //縦画面
             activity_comment_main_linearlayout.orientation = LinearLayout.VERTICAL
         }
+*/
 
         //liveId = intent?.getStringExtra("liveId") ?: ""
         liveId = arguments?.getString("liveId") ?: ""
@@ -1170,7 +1173,7 @@ class CommentFragment : Fragment() {
 
             //横画面のときの対応
             if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                //横画面
+                //  //横画面
                 layoutParams.width = point.x / 2
                 layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
                 live_video_view.layoutParams = layoutParams
@@ -1180,6 +1183,7 @@ class CommentFragment : Fragment() {
                 layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
                 live_video_view.layoutParams = layoutParams
             }
+
 
             val tree = live_video_view.viewTreeObserver
             tree.addOnGlobalLayoutListener {
@@ -1206,6 +1210,8 @@ class CommentFragment : Fragment() {
                     live_framelayout.layoutParams = layoutParams
                 }
             }
+
+
             //再生
             live_video_view.setVideoURI(hls_address.toUri())
             live_video_view.setOnPreparedListener {
