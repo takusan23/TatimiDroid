@@ -79,6 +79,14 @@
             android:title="@string/setting_comment_collection_assist" />
 
 
+    <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_screen_rotation_24px"
+            android:key="setting_rotation_sensor"
+            android:summary="@string/setting_rotation_sensor_description"
+            android:title="@string/setting_rotation_sensor_title" />
+
+
     <Preference
             android:icon="@drawable/ic_outline_stop_24px"
             android:key="auto_admission_stop_preference"

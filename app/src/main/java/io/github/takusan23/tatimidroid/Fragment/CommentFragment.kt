@@ -204,6 +204,7 @@ class CommentFragment : Fragment() {
     lateinit var live_video_view: VideoView
     lateinit var commentCanvas: CommentCanvas
 
+    lateinit var rotationSensor: RotationSensor
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -262,6 +263,11 @@ class CommentFragment : Fragment() {
         liveId = arguments?.getString("liveId") ?: ""
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context!!)
+
+        //センサーによる画面回転
+        if (pref_setting.getBoolean("setting_rotation_sensor", false)) {
+            rotationSensor = RotationSensor(commentActivity)
+        }
 
         //視聴モードならtrue
         isWatchingMode = pref_setting.getBoolean("setting_watching_mode", false)
@@ -1233,12 +1239,14 @@ class CommentFragment : Fragment() {
                 live_video_view.start()
             }
 
+/*
             live_video_view.setOnErrorListener { mp, what, extra ->
                 println("error")
                 println(what)
                 println(extra)
                 false
             }
+*/
 
         }
     }
@@ -1624,6 +1632,10 @@ class CommentFragment : Fragment() {
             commentActivity.unregisterReceiver(broadcastReceiver)
         }
         autoNextProgramTimer.cancel()
+        //センサーによる画面回転が有効になってる場合は最後に
+        if (this@CommentFragment::rotationSensor.isInitialized) {
+            rotationSensor.destroy()
+        }
     }
 
     //Activity終了時に閉じる

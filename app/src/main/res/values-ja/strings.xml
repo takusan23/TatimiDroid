@@ -177,4 +177,6 @@
     <string name="floating_comment_viewer_finish">フローリングコメントビューアを終了</string>
     <string name="menu">メニュー</string>
     <string name="copy_communityid">コミュニティIDコピー</string>
+    <string name="setting_rotation_sensor_title">センサーを利用して強制画面回転（実験的）</string>
+    <string name="setting_rotation_sensor_description">画面回転無効時でもセンサーを利用して画面回転をします。</string>
 </resources>

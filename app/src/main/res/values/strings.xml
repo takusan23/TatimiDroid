@@ -177,4 +177,6 @@
     <string name="floating_comment_viewer_finish">Exit flooring comment viewer</string>
     <string name="menu">Menu</string>
     <string name="copy_communityid">Copy community ID</string>
+    <string name="setting_rotation_sensor_title">Forced screen rotation using sensor</string>
+    <string name="setting_rotation_sensor_description">The screen is rotated using the sensor even when the screen rotation is disabled.</string>
 </resources>

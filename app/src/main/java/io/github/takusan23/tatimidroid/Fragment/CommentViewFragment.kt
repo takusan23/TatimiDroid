@@ -474,8 +474,9 @@ class CommentViewFragment : Fragment() {
                             }
                             //ActionBarに番組名を書く
                             activity?.runOnUiThread {
-                                (activity as AppCompatActivity).supportActionBar?.title =
-                                    "$title - $id"
+                                if (activity is AppCompatActivity) {
+                                    (activity as AppCompatActivity).supportActionBar?.title =
+                                        "$title - $id"
 /*
                                 //BottomNavbarにバッジを表示させる
                                 activity?.activity_comment_bottom_navigation_bar?.getOrCreateBadge(
@@ -484,6 +485,7 @@ class CommentViewFragment : Fragment() {
                                     it?.number = connectionWebSocketAddressList.size
                                 }
 */
+                                }
                             }
                             //WebSocket接続
                             connectCommentServer(webSocketUri, threadId, roomName)
