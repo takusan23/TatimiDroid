@@ -16,8 +16,9 @@
 
         <FrameLayout
                 android:id="@+id/live_framelayout"
-                android:layout_width="1300px"
-                android:layout_height="match_parent">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
 
             <VideoView
                     android:id="@+id/live_video_view"
@@ -36,7 +37,8 @@
         <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:id="@+id/comment_activity_fragment_layout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_weight="1">
 
             <LinearLayout
                     android:id="@+id/activity_comment_linearlayout"

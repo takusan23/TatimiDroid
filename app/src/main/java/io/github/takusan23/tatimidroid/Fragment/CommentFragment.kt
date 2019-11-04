@@ -60,7 +60,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
-import java.lang.IllegalStateException
 import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
@@ -199,6 +198,12 @@ class CommentFragment : Fragment() {
     //モバイルデータなら最低画質の設定で一度だけ動かすように
     var mobileDataQualityCheck = false
 
+    /*
+    * 画面回転でこのふたつnullになるのでfindViewByIdを絶対使わないということはできなかった。
+    * */
+    lateinit var live_video_view: VideoView
+    lateinit var commentCanvas: CommentCanvas
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -210,6 +215,9 @@ class CommentFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        live_video_view = view.findViewById(R.id.live_video_view)
+        commentCanvas = view.findViewById(R.id.comment_canvas)
 
         commentActivity = activity as AppCompatActivity
 
@@ -869,13 +877,14 @@ class CommentFragment : Fragment() {
             }
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                //System.out.println(reason)
+                // System.out.println("ニコ生視聴セッション終了：$reason")
             }
 
             override fun onMessage(message: String?) {
 
                 //HLSのアドレス　と　変更可能な画質一覧取る
                 if (message?.contains("currentStream") == true) {
+                    //System.out.println("ニコ生視聴セッション：$message")
                     val jsonObject = JSONObject(message)
                     val currentObject =
                         jsonObject.getJSONObject("body").getJSONObject("currentStream")
@@ -885,7 +894,7 @@ class CommentFragment : Fragment() {
                     if (pref_setting.getBoolean("setting_watch_live", false)) {
                         //モバイルデータは最低画質で読み込む設定　
                         sendMobileDataQuality()
-                        setPlayVideoView()
+                        setPlayVideoView(currentObject.getString("uri"))
                     } else {
                         //レイアウト消す
                         live_framelayout.visibility = View.GONE
@@ -1162,44 +1171,48 @@ class CommentFragment : Fragment() {
     }
 
     //視聴モード
-    fun setPlayVideoView() {
+    fun setPlayVideoView(hlsAddress: String) {
+        //println("HLSアドレス : $hlsAddress")
         //設定で読み込むかどうか
         commentActivity.runOnUiThread {
+
+
             //ウィンドウの半分ぐらいの大きさに設定
             val display = commentActivity.windowManager.defaultDisplay
             val point = Point()
             display.getSize(point)
             val layoutParams = live_video_view.layoutParams
 
+
             //横画面のときの対応
-            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 //  //横画面
-                layoutParams.width = point.x / 2
-                layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                layoutParams?.width = point.x / 2
+                layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
                 live_video_view.layoutParams = layoutParams
             } else {
                 //縦画面
-                layoutParams.height = point.y / 3
-                layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                layoutParams?.height = point.y / 3
+                layoutParams?.width = ViewGroup.LayoutParams.MATCH_PARENT
                 live_video_view.layoutParams = layoutParams
             }
 
 
             val tree = live_video_view.viewTreeObserver
-            tree.addOnGlobalLayoutListener {
+            val addOnGlobalLayoutListener = tree?.addOnGlobalLayoutListener {
                 //横画面のときの対応
                 val layoutParams = live_framelayout.layoutParams
                 if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     //横画面
-                    layoutParams.width = live_video_view.width
-                    layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                    live_framelayout.layoutParams = layoutParams
+//                    layoutParams.width = live_video_view.width
+//                    layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+//                    live_framelayout.layoutParams = layoutParams
 
                     //コメントキャンバス
                     val commentCanvasLayout =
                         comment_canvas.layoutParams as FrameLayout.LayoutParams
-                    commentCanvasLayout.width = live_video_view.width
-                    commentCanvasLayout.height = live_video_view.height
+                    commentCanvasLayout.width = live_video_view.width ?: 0
+                    commentCanvasLayout.height = live_video_view.height ?: 0
                     commentCanvasLayout.gravity = Gravity.CENTER
                     comment_canvas.layoutParams = commentCanvasLayout
 
@@ -1211,7 +1224,6 @@ class CommentFragment : Fragment() {
                 }
             }
 
-
             //再生
             live_video_view.setVideoURI(hls_address.toUri())
             live_video_view.setOnPreparedListener {
@@ -1220,6 +1232,14 @@ class CommentFragment : Fragment() {
             live_video_view.setOnClickListener {
                 live_video_view.start()
             }
+
+            live_video_view.setOnErrorListener { mp, what, extra ->
+                println("error")
+                println(what)
+                println(extra)
+                false
+            }
+
         }
     }
 
@@ -1301,10 +1321,10 @@ class CommentFragment : Fragment() {
             R.id.comment_activity_menu_watch_live -> {
                 if (live_framelayout.visibility == View.VISIBLE) {
                     live_framelayout.visibility = View.GONE
-                    live_video_view.stopPlayback()
+                    //live_video_view.stopPlayback()
                 } else {
                     live_framelayout.visibility = View.VISIBLE
-                    setPlayVideoView()
+                    setPlayVideoView(hls_address)
                 }
             }
             R.id.comment_activity_menu_open_browser -> {
@@ -1933,7 +1953,7 @@ class CommentFragment : Fragment() {
         }
         //再生部分を作り直す
         if (hls_address.isNotEmpty()) {
-            setPlayVideoView()
+            setPlayVideoView(hls_address)
         }
     }
 

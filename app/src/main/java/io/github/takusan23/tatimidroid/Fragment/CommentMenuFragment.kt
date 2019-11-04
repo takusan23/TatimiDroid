@@ -115,7 +115,7 @@ class CommentMenuFragment : Fragment() {
                     live_video_view.stopPlayback()
                 } else {
                     live_framelayout.visibility = View.VISIBLE
-                    setPlayVideoView()
+                    setPlayVideoView(hls_address)
                 }
             }
         }
