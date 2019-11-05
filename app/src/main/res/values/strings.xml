@@ -179,4 +179,5 @@
     <string name="copy_communityid">Copy community ID</string>
     <string name="setting_rotation_sensor_title">Forced screen rotation using sensor</string>
     <string name="setting_rotation_sensor_description">The screen is rotated using the sensor even when the screen rotation is disabled.</string>
+    <string name="nimado">2-window comment view</string>
 </resources>

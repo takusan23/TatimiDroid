@@ -72,6 +72,8 @@ class CommentFragment : Fragment() {
 
     lateinit var pref_setting: SharedPreferences
 
+    lateinit var darkModeSupport: DarkModeSupport
+
     //ユーザーセッション
     var usersession = ""
     //視聴に必要なデータ受信用WebSocket
@@ -199,10 +201,11 @@ class CommentFragment : Fragment() {
     var mobileDataQualityCheck = false
 
     /*
-    * 画面回転でこのふたつnullになるのでfindViewByIdを絶対使わないということはできなかった。
+    * 画面回転でこの子たちnullになるのでfindViewByIdを絶対使わないということはできなかった。
     * */
     lateinit var live_video_view: VideoView
     lateinit var commentCanvas: CommentCanvas
+    lateinit var liveFrameLayout: FrameLayout
 
     lateinit var rotationSensor: RotationSensor
 
@@ -219,10 +222,11 @@ class CommentFragment : Fragment() {
 
         live_video_view = view.findViewById(R.id.live_video_view)
         commentCanvas = view.findViewById(R.id.comment_canvas)
+        liveFrameLayout = view.findViewById(R.id.live_framelayout)
 
         commentActivity = activity as AppCompatActivity
 
-        val darkModeSupport = DarkModeSupport(context!!)
+        darkModeSupport = DarkModeSupport(context!!)
         darkModeSupport.setActivityTheme(activity as AppCompatActivity)
 
         //起動時の音量を保存しておく
@@ -275,6 +279,13 @@ class CommentFragment : Fragment() {
         //生放送を視聴する場合はtrue
         watchLive = pref_setting.getBoolean("setting_watch_live", false)
 
+
+        /*
+        * ID同じだと２窓のときなぜか隣のFragmentが置き換わるなどするので
+        * IDを作り直す
+        * */
+        activity_comment_linearlayout.id = View.generateViewId()
+
         //とりあえずコメントViewFragmentへ
         //LiveIDを詰める
         val bundle = Bundle()
@@ -283,7 +294,7 @@ class CommentFragment : Fragment() {
         commentViewFragment.arguments = bundle
         val fragmentTransaction =
             commentActivity.supportFragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.activity_comment_linearlayout, commentViewFragment)
+        fragmentTransaction.replace(activity_comment_linearlayout.id, commentViewFragment)
         fragmentTransaction.commit()
 
         //NGデータベース読み込み
@@ -390,7 +401,7 @@ class CommentFragment : Fragment() {
                             val commentMenuFragment = CommentMenuFragment()
                             commentMenuFragment.arguments = bundle
                             fragmentTransaction.replace(
-                                R.id.activity_comment_linearlayout,
+                                activity_comment_linearlayout.id,
                                 commentMenuFragment
                             )
                             fragmentTransaction.commit()
@@ -406,7 +417,7 @@ class CommentFragment : Fragment() {
                             val commentViewFragment = CommentViewFragment()
                             commentViewFragment.arguments = bundle
                             fragmentTransaction.replace(
-                                R.id.activity_comment_linearlayout,
+                                activity_comment_linearlayout.id,
                                 commentViewFragment
                             )
                             fragmentTransaction.commit()
@@ -422,7 +433,7 @@ class CommentFragment : Fragment() {
                             val commentRoomFragment = CommentRoomFragment()
                             commentRoomFragment.arguments = bundle
                             fragmentTransaction.replace(
-                                R.id.activity_comment_linearlayout,
+                                activity_comment_linearlayout.id,
                                 commentRoomFragment
                             )
                             fragmentTransaction.commit()
@@ -439,7 +450,7 @@ class CommentFragment : Fragment() {
                             val giftFragment = GiftFragment()
                             giftFragment.arguments = bundle
                             fragmentTransaction.replace(
-                                R.id.activity_comment_linearlayout,
+                                activity_comment_linearlayout.id,
                                 giftFragment
                             )
                             fragmentTransaction.commit()
@@ -455,7 +466,7 @@ class CommentFragment : Fragment() {
                             val nicoAdFragment = NicoAdFragment()
                             nicoAdFragment.arguments = bundle
                             fragmentTransaction.replace(
-                                R.id.activity_comment_linearlayout,
+                                activity_comment_linearlayout.id,
                                 nicoAdFragment
                             )
                             fragmentTransaction.commit()
@@ -471,7 +482,7 @@ class CommentFragment : Fragment() {
                             val programInfoFragment = ProgramInfoFragment()
                             programInfoFragment.arguments = bundle
                             fragmentTransaction.replace(
-                                R.id.activity_comment_linearlayout,
+                                activity_comment_linearlayout.id,
                                 programInfoFragment
                             )
                             fragmentTransaction.commit()
@@ -1206,8 +1217,8 @@ class CommentFragment : Fragment() {
             val tree = live_video_view.viewTreeObserver
             val addOnGlobalLayoutListener = tree?.addOnGlobalLayoutListener {
                 //横画面のときの対応
-                val layoutParams = live_framelayout.layoutParams
-                if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                val layoutParams = liveFrameLayout.layoutParams
+                if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     //   //横画面
                     //   layoutParams.width = live_video_view.width
                     //   layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
@@ -1215,17 +1226,17 @@ class CommentFragment : Fragment() {
 
                     //コメントキャンバス
                     val commentCanvasLayout =
-                        comment_canvas.layoutParams as FrameLayout.LayoutParams
+                        commentCanvas.layoutParams as FrameLayout.LayoutParams
                     commentCanvasLayout.width = live_video_view.width ?: 0
                     commentCanvasLayout.height = live_video_view.height ?: 0
                     commentCanvasLayout.gravity = Gravity.CENTER
-                    comment_canvas.layoutParams = commentCanvasLayout
+                    commentCanvas.layoutParams = commentCanvasLayout
 
                 } else {
                     //縦画面
                     layoutParams.height = live_video_view.height
                     layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                    live_framelayout.layoutParams = layoutParams
+                    liveFrameLayout.layoutParams = layoutParams
                 }
             }
 

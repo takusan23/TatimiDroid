@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.SpannableString
@@ -13,7 +14,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_liveid.*
@@ -103,6 +106,15 @@ class LiveIDFragment : Fragment() {
                 Toast.makeText(context, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
             }
         }
+
+        /*
+        * 二窓コメビュ
+        * */
+        main_activity_nimado_button.setOnClickListener {
+            val intent = Intent(context, NimadoActivity::class.java)
+            activity?.startActivity(intent)
+        }
+
     }
 
 

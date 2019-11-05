@@ -14,11 +14,12 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
+        <activity android:name=".NimadoActivity"></activity>
         <activity
                 android:name=".Activity.FloatingCommentViewer"
                 android:allowEmbedded="true"
                 android:documentLaunchMode="always"
-                android:resizeableActivity="true"></activity>
+                android:resizeableActivity="true" />
         <activity android:name=".Activity.CommentCollectionListActivity" />
         <activity android:name=".Activity.NGListActivity" />
 

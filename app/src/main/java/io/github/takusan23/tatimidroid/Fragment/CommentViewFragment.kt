@@ -13,10 +13,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.CommentRecyclerViewAdapter
-import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SnackbarProgress
+import io.github.takusan23.tatimidroid.*
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_commentview.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
@@ -476,7 +473,7 @@ class CommentViewFragment : Fragment() {
                             activity?.runOnUiThread {
                                 if (activity is AppCompatActivity) {
                                     (activity as AppCompatActivity).supportActionBar?.title =
-                                        "$title - $id"
+                                        "$title - $liveId"
 /*
                                 //BottomNavbarにバッジを表示させる
                                 activity?.activity_comment_bottom_navigation_bar?.getOrCreateBadge(
@@ -628,7 +625,7 @@ class CommentViewFragment : Fragment() {
                 if (!message.contains("/hb ifseetno")) {
                     //UIスレッドで呼んだら遅延せずに表示されました！
                     activity?.runOnUiThread {
-                        commentFragment.comment_canvas?.postComment(message, command)
+                        commentFragment.commentCanvas.postComment(message, command)
                         //ポップアップ再生
                         if (commentFragment.overlay_commentcamvas != null) {
                             commentFragment.overlay_commentcamvas!!.postComment(

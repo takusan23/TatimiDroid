@@ -179,4 +179,5 @@
     <string name="copy_communityid">コミュニティIDコピー</string>
     <string name="setting_rotation_sensor_title">センサーを利用して強制画面回転（実験的）</string>
     <string name="setting_rotation_sensor_description">画面回転無効時でもセンサーを利用して画面回転をします。</string>
+    <string name="nimado">二窓コメビュ（実験的）</string>
 </resources>

@@ -1,6 +1,9 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.content.res.Configuration
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -55,6 +58,22 @@ class CommentMenuFragment : Fragment() {
         //クリックイベント
         setClick()
 
+        //OutlinedButtonのテキストの色
+        darkmode()
+
+    }
+
+    fun darkmode() {
+        if (commentFragment.darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            //ダークモード時ボタンのテキストの色が変わらないので
+            val color = ColorStateList.valueOf(Color.parseColor("#ffffff"))
+            fragment_comment_fragment_menu_rotation_button.setTextColor(color)
+            fragment_comment_fragment_menu_copy_liveid_button.setTextColor(color)
+            fragment_comment_fragment_menu_copy_communityid_button.setTextColor(color)
+            fragment_comment_fragment_menu_open_browser_button.setTextColor(color)
+            fragment_comment_fragment_menu_ng_list_button.setTextColor(color)
+            fragment_comment_fragment_menu_share_button.setTextColor(color)
+        }
     }
 
     //クリックイベント

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:gravity="center"
-              android:padding="10dp"
-              android:layout_height="match_parent">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="10dp">
 
     <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -13,19 +13,26 @@
 
         <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/main_activity_liveid_inputedittext"
-                android:inputType="text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/liveid_or_communityid"/>
+                android:hint="@string/liveid_or_communityid"
+                android:inputType="text" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
+            android:id="@+id/main_activity_button"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:padding="10dp"
-            android:text="@string/connection"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/main_activity_button"
-    />
+            android:padding="10dp"
+            android:text="@string/connection" />
+
+    <Button
+            android:id="@+id/main_activity_nimado_button"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_marginTop="80sp"
+            android:layout_height="wrap_content"
+            android:text="@string/nimado" />
 </LinearLayout>

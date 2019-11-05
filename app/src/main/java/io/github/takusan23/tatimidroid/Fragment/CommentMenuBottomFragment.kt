@@ -85,7 +85,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         commentRecyclerViewAdapter.setActivity((activity as AppCompatActivity?)!!)
 
         //Map
-        kotehanMap = (activity as CommentActivity).kotehanMap
+        kotehanMap = commentFragment.kotehanMap
         //取り出す
         comment = arguments?.getString("comment") ?: ""
         userId = arguments?.getString("user_id") ?: ""
