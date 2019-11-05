@@ -899,7 +899,7 @@ class CommentFragment : Fragment() {
                     //生放送再生
                     if (pref_setting.getBoolean("setting_watch_live", false)) {
                         //モバイルデータは最低画質で読み込む設定　
-                        //sendMobileDataQuality()
+                        sendMobileDataQuality()
                         setPlayVideoView()
                     } else {
                         //レイアウト消す
@@ -1245,8 +1245,8 @@ class CommentFragment : Fragment() {
             }
 */
             live_video_view.setVideoURI(hls_address.toUri())
+            live_video_view.start()
             live_video_view.setOnPreparedListener {
-                live_video_view.start()
             }
         }
 
@@ -1639,7 +1639,7 @@ class CommentFragment : Fragment() {
             rotationSensor.destroy()
         }
 
-        println("ライフサイクル：onDestroy")
+        //println("ライフサイクル：onDestroy")
 
         live_video_view.stopPlayback()
 
@@ -2479,7 +2479,6 @@ class CommentFragment : Fragment() {
                     ) {
                         //モバイルデータ通信なら画質変更メッセージ送信
                         sendQualityMessage("super_low")
-
                     }
                 } else {
                     if (connectivityManager.activeNetworkInfo.type == ConnectivityManager.TYPE_MOBILE) {

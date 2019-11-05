@@ -224,15 +224,22 @@ class CommentActivity : AppCompatActivity() {
         //LiveID
         liveId = intent?.getStringExtra("liveId") ?: ""
 
-        //Fragment設置
-        val trans = supportFragmentManager.beginTransaction()
-        val commentFragment = CommentFragment()
-        //LiveID詰める
-        val bundle = Bundle()
-        bundle.putString("liveId", liveId)
-        commentFragment.arguments = bundle
-        trans.replace(R.id.activity_comment_new_linearlayout, commentFragment, liveId)
-        trans.commit()
+        /*
+        * なんか知らんけどnullチェックすればうまく動いてるっぽい？
+        * */
+        if (savedInstanceState == null) {
+            //Fragment設置
+            val trans = supportFragmentManager.beginTransaction()
+            val commentFragment = CommentFragment()
+            //LiveID詰める
+            val bundle = Bundle()
+            bundle.putString("liveId", liveId)
+            commentFragment.arguments = bundle
+            trans.replace(R.id.activity_comment_new_linearlayout, commentFragment, liveId)
+            trans.commit()
+
+        }
+
 
     }
 
