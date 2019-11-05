@@ -16,6 +16,18 @@
         <item name="android:tint">#ffffff</item>
         <item name="android:colorBackground">@android:color/black</item>
         <item name="android:textColor">#ffffff</item>
+        <item name="materialButtonStyle">@style/ButtonStyle</item>
+        <item name="materialButtonOutlinedStyle">@style/OutlineButtonStyle</item>
     </style>
+
+    <!--ボタンのテキスト色-->
+    <style name="ButtonStyle" parent="@style/Widget.MaterialComponents.Button">
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
+    <style name="OutlineButtonStyle" parent="@style/Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
 
 </resources>
