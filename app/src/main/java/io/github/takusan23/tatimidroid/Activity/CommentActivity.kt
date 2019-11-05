@@ -109,7 +109,7 @@ class CommentActivity : AppCompatActivity() {
     //視聴モード（コメント投稿機能付き）かどうか
     var isWatchingMode = false
     //hls
-    var hls_address = ""
+    var hls_address_old = ""
     //こてはん（固定ハンドルネーム　配列
     val kotehanMap = mutableMapOf<String, String>()
 

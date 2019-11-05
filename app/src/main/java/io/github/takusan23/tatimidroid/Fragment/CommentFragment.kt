@@ -832,7 +832,7 @@ class CommentFragment : Fragment() {
     }
 
     //ニコ生の視聴に必要なデータを流してくれるWebSocket
-//視聴セッションWebSocket
+    //視聴セッションWebSocket
     fun connectionNicoLiveWebSocket(url: String, broadcastId: String) {
         val uri = URI(url)
         connectionNicoLiveWebSocket = object : WebSocketClient(uri) {
@@ -895,12 +895,12 @@ class CommentFragment : Fragment() {
                     val currentObject =
                         jsonObject.getJSONObject("body").getJSONObject("currentStream")
                     hls_address = currentObject.getString("uri")
-                    //System.out.println("HLSアドレス ${hls_address}")
+                    // System.out.println("HLSアドレス ${hls_address}")
                     //生放送再生
                     if (pref_setting.getBoolean("setting_watch_live", false)) {
                         //モバイルデータは最低画質で読み込む設定　
-                        sendMobileDataQuality()
-                        setPlayVideoView(currentObject.getString("uri"))
+                        //sendMobileDataQuality()
+                        setPlayVideoView()
                     } else {
                         //レイアウト消す
                         live_framelayout.visibility = View.GONE
@@ -1177,11 +1177,10 @@ class CommentFragment : Fragment() {
     }
 
     //視聴モード
-    fun setPlayVideoView(hlsAddress: String) {
-        //println("HLSアドレス : $hlsAddress")
+    fun setPlayVideoView() {
         //設定で読み込むかどうか
         commentActivity.runOnUiThread {
-
+            //println("生放送再生：HLSアドレス : $hls_address")
 
             //ウィンドウの半分ぐらいの大きさに設定
             val display = commentActivity.windowManager.defaultDisplay
@@ -1209,10 +1208,10 @@ class CommentFragment : Fragment() {
                 //横画面のときの対応
                 val layoutParams = live_framelayout.layoutParams
                 if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    //横画面
-//                    layoutParams.width = live_video_view.width
-//                    layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-//                    live_framelayout.layoutParams = layoutParams
+                    //   //横画面
+                    //   layoutParams.width = live_video_view.width
+                    //   layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                    //   live_framelayout.layoutParams = layoutParams
 
                     //コメントキャンバス
                     val commentCanvasLayout =
@@ -1230,25 +1229,27 @@ class CommentFragment : Fragment() {
                 }
             }
 
-            //再生
-            live_video_view.setVideoURI(hls_address.toUri())
-            live_video_view.setOnPreparedListener {
-                live_video_view.start()
-            }
-            live_video_view.setOnClickListener {
-                live_video_view.start()
-            }
 
-/*
+
             live_video_view.setOnErrorListener { mp, what, extra ->
                 println("error")
                 println(what)
                 println(extra)
                 false
             }
-*/
 
+/*
+            fab.setOnClickListener {
+                println("reload")
+                live_video_view.start()
+            }
+*/
+            live_video_view.setVideoURI(hls_address.toUri())
+            live_video_view.setOnPreparedListener {
+                live_video_view.start()
+            }
         }
+
     }
 
 
@@ -1332,7 +1333,7 @@ class CommentFragment : Fragment() {
                     //live_video_view.stopPlayback()
                 } else {
                     live_framelayout.visibility = View.VISIBLE
-                    setPlayVideoView(hls_address)
+                    setPlayVideoView()
                 }
             }
             R.id.comment_activity_menu_open_browser -> {
@@ -1529,6 +1530,7 @@ class CommentFragment : Fragment() {
 
     fun setLandscapePortrait() {
         val conf = resources.configuration
+        live_video_view.stopPlayback()
         when (conf.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> {
                 //縦画面
@@ -1636,6 +1638,12 @@ class CommentFragment : Fragment() {
         if (this@CommentFragment::rotationSensor.isInitialized) {
             rotationSensor.destroy()
         }
+
+        println("ライフサイクル：onDestroy")
+
+        live_video_view.stopPlayback()
+
+
     }
 
     //Activity終了時に閉じる
@@ -1965,7 +1973,7 @@ class CommentFragment : Fragment() {
         }
         //再生部分を作り直す
         if (hls_address.isNotEmpty()) {
-            setPlayVideoView(hls_address)
+            setPlayVideoView()
         }
     }
 
@@ -2376,14 +2384,16 @@ class CommentFragment : Fragment() {
     //Infoコメント消す
     fun removeInfoComment() {
         commentActivity.runOnUiThread {
-            //非表示アニメーション
-            val hideAnimation =
-                AnimationUtils.loadAnimation(
-                    context,
-                    R.anim.comment_cardview_hide_animation
-                )
-            infoTextView.startAnimation(hideAnimation)
-            infoTextView.visibility = View.GONE
+            if (context != null) {
+                //非表示アニメーション
+                val hideAnimation =
+                    AnimationUtils.loadAnimation(
+                        context,
+                        R.anim.comment_cardview_hide_animation
+                    )
+                infoTextView.startAnimation(hideAnimation)
+                infoTextView.visibility = View.GONE
+            }
         }
     }
 
