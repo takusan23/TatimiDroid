@@ -20,6 +20,32 @@
         <item name="materialButtonOutlinedStyle">@style/OutlineButtonStyle</item>
     </style>
 
+    <!--にまど用レイアウト。SupportActionBarを消すために-->
+    <style name="NimadoTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!--にまど用レイアウト。上記のダークモード版-->
+    <style name="NimadoOLEDTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="colorAccent">@color/colorPrimaryDark</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="android:tint">#ffffff</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:textColor">#ffffff</item>
+        <item name="materialButtonStyle">@style/ButtonStyle</item>
+        <item name="materialButtonOutlinedStyle">@style/OutlineButtonStyle</item>
+
+    </style>
+
     <!--ボタンのテキスト色-->
     <style name="ButtonStyle" parent="@style/Widget.MaterialComponents.Button">
         <item name="android:textColor">#ffffff</item>
