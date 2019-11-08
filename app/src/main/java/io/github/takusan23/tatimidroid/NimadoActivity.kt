@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid
 
 import android.content.DialogInterface
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Point
@@ -10,22 +11,29 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import kotlinx.android.synthetic.main.activity_nimado.*
 import kotlinx.android.synthetic.main.fragment_gift_layout.*
+import okhttp3.*
+import org.json.JSONObject
+import java.io.IOException
 
 
 /*
 * にまど！！！！
 * */
 class NimadoActivity : AppCompatActivity() {
+
+    lateinit var pref_setting:SharedPreferences
 
     lateinit var darkModeSupport: DarkModeSupport
 
@@ -44,6 +52,8 @@ class NimadoActivity : AppCompatActivity() {
         darkModeSupport = DarkModeSupport(this)
 
         setContentView(R.layout.activity_nimado)
+
+        pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
 
         //自作Toolbarを適用させる
         setSupportActionBar(nimado_activity_toolbar)
@@ -90,7 +100,7 @@ class NimadoActivity : AppCompatActivity() {
                     )
                     linearLayout.layoutParams = layoutParams
 
-                    linearLayout.setPadding(20,20,20,20)
+                    linearLayout.setPadding(20, 20, 20, 20)
 
                     linearLayout.orientation = LinearLayout.VERTICAL
 
@@ -108,23 +118,54 @@ class NimadoActivity : AppCompatActivity() {
                     trans.replace(linearLayout.id, commentFragment, liveId)
                     trans.commit()
 
-                    //RecyclerViewついか
-                    val item = arrayListOf<String>()
-                    item.add("")
-                    item.add(liveId)
-                    item.add(liveId)
-                    recyclerViewList.add(item)
-                    nimadoListRecyclerViewAdapter.notifyDataSetChanged()
 
                 }
                 .show()
         }
     }
 
+
+    fun addRecyclerViewItem(liveId: String) {
+        val user_session = pref_setting.getString("user_session", "") ?: ""
+        //API叩いてタイトルを取得する
+        //適当にAPI叩いて認証情報エラーだったら再ログインする
+        val request = Request.Builder()
+            .url("https://live2.nicovideo.jp/watch/${liveId}/programinfo")
+            .header("Cookie", "user_session=${user_session}")
+            .get()
+            .build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                //？
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    //そもそも番組が終わってる可能性があるのでチェック
+                    val response_string = response.body?.string()
+                    val jsonObject = JSONObject(response_string)
+                    val data = jsonObject.getJSONObject("data")
+                    val title = data.getString("title")
+                    //RecyclerViewついか
+                    val item = arrayListOf<String>()
+                    item.add("")
+                    item.add(title)
+                    item.add(liveId)
+                    recyclerViewList.add(item)
+                    runOnUiThread {
+                        nimadoListRecyclerViewAdapter.notifyDataSetChanged()
+                    }
+                }
+            }
+        })
+    }
+
     private fun initRecyclerView() {
         nimado_activity_list_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(this)
-        nimado_activity_list_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
+        nimado_activity_list_recyclerview.layoutManager =
+            mLayoutManager as RecyclerView.LayoutManager?
         nimadoListRecyclerViewAdapter = NimadoListRecyclerViewAdapter(recyclerViewList)
         nimado_activity_list_recyclerview.adapter = nimadoListRecyclerViewAdapter
         recyclerViewLayoutManager = gift_recyclerview.layoutManager!!
