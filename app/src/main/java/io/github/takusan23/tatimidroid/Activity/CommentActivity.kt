@@ -83,6 +83,7 @@ class CommentActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences
 
+/*
     //ユーザーセッション
     var usersession = ""
     //視聴に必要なデータ受信用WebSocket
@@ -210,6 +211,7 @@ class CommentActivity : AppCompatActivity() {
     // val lockOnCommentList = arrayListOf<String>()
     // val lockOnUserList = arrayListOf<String>()
     // val lockOnRoomList = arrayListOf<String>()
+*/
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -222,7 +224,7 @@ class CommentActivity : AppCompatActivity() {
         setContentView(R.layout.activity_comment_new)
 
         //LiveID
-        liveId = intent?.getStringExtra("liveId") ?: ""
+        val liveId = intent?.getStringExtra("liveId") ?: ""
 
         /*
         * なんか知らんけどnullチェックすればうまく動いてるっぽい？
@@ -253,6 +255,7 @@ class CommentActivity : AppCompatActivity() {
     //ホームボタンおした
     //これはActivityじゃないと使えないと思う
     override fun onUserLeaveHint() {
+        val liveId = intent?.getStringExtra("liveId") ?: ""
         //CommentFragment取得
         val commentFragment = supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
         commentFragment.apply {

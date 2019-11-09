@@ -51,6 +51,30 @@ class DarkModeSupport(val context: Context) {
     }
 
     /**
+     * 二窓Activity用ダークモード切り替えるやつ。setContentView()の前に書いてね
+     * */
+    fun setNimadoActivityTheme(activity: AppCompatActivity) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
+            //ダークモード
+            val pref_setting = PreferenceManager.getDefaultSharedPreferences(activity)
+            if (pref_setting.getBoolean("setting_darkmode", false)) {
+                activity.setTheme(R.style.NimadoOLEDTheme)
+            } else {
+                activity.setTheme(R.style.NimadoTheme)
+            }
+        } else {
+            when (nightMode) {
+                Configuration.UI_MODE_NIGHT_NO -> {
+                    activity.setTheme(R.style.NimadoTheme)
+                }
+                Configuration.UI_MODE_NIGHT_YES -> {
+                    activity.setTheme(R.style.NimadoOLEDTheme)
+                }
+            }
+        }
+    }
+
+    /**
      * 色を返す。白か黒か
      * ダークモード->黒
      * それ以外->白

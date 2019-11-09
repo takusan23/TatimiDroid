@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -23,6 +24,13 @@ import java.io.IOException
 
 class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
 
+    /*
+    * findViewById卒業できない
+    * */
+    lateinit var commentViewerModeButton: Button
+    lateinit var commentPostModeButton: Button
+    lateinit var nicocasModeButton: Button
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -33,6 +41,14 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        commentViewerModeButton =
+            view.findViewById(R.id.dialog_watchmode_comment_viewer_mode_button)
+        commentPostModeButton =
+            view.findViewById(R.id.dialog_watchmode_comment_post_mode_button)
+        nicocasModeButton =
+            view.findViewById(R.id.dialog_watchmode_nicocas_comment_mode_button)
+
         //ダークモード
         val darkModeSupport = DarkModeSupport(context!!)
         dialog_watchmode_parent_linearlayout.background =
@@ -75,7 +91,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                         //生放送中！
                         //コメントビューワーモード
                         //コメント投稿機能、視聴継続メッセージ送信機能なし
-                        dialog_watchmode_comment_viewer_mode_button.setOnClickListener {
+                        commentViewerModeButton.setOnClickListener {
                             //設定変更
                             editor.putBoolean("setting_watching_mode", false)
                             editor.putBoolean("setting_nicocas_mode", false)
@@ -89,7 +105,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
 
                         //コメント投稿モード
                         //書き込める
-                        dialog_watchmode_comment_post_mode_button.setOnClickListener {
+                        commentPostModeButton.setOnClickListener {
                             //設定変更
                             editor.putBoolean("setting_watching_mode", true)
                             editor.putBoolean("setting_nicocas_mode", false)
@@ -103,7 +119,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
 
                         //nicocas式コメント投稿モード
                         //nicocasのAPIでコメント投稿を行う
-                        dialog_watchmode_nicocas_comment_mode_button.setOnClickListener {
+                        nicocasModeButton.setOnClickListener {
                             //設定変更
                             editor.putBoolean("setting_watching_mode", false)
                             editor.putBoolean("setting_nicocas_mode", true)
@@ -130,7 +146,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                     if (context != null) {
                         //４０１エラーのときはuser_sessionが切れた
                         if (response.code == 401) {
-                            val nicoLogin = NicoLogin(context!!, liveId ?: "lv322223022")
+                            val nicoLogin = NicoLogin(context!!, liveId!!)
                             //こるーちん？
                             //再ログインする
                             activity?.runOnUiThread {

@@ -200,6 +200,9 @@ class CommentFragment : Fragment() {
     //モバイルデータなら最低画質の設定で一度だけ動かすように
     var mobileDataQualityCheck = false
 
+    //二窓モードになっている場合
+    var isNimadoMode = false
+
     /*
     * 画面回転でこの子たちnullになるのでfindViewByIdを絶対使わないということはできなかった。
     * */
@@ -223,6 +226,8 @@ class CommentFragment : Fragment() {
         live_video_view = view.findViewById(R.id.live_video_view)
         commentCanvas = view.findViewById(R.id.comment_canvas)
         liveFrameLayout = view.findViewById(R.id.live_framelayout)
+
+        isNimadoMode = activity is NimadoActivity
 
         commentActivity = activity as AppCompatActivity
 
@@ -279,7 +284,6 @@ class CommentFragment : Fragment() {
         //生放送を視聴する場合はtrue
         watchLive = pref_setting.getBoolean("setting_watch_live", false)
 
-
         /*
         * ID同じだと２窓のときなぜか隣のFragmentが置き換わるなどするので
         * IDを作り直す
@@ -293,7 +297,7 @@ class CommentFragment : Fragment() {
         val commentViewFragment = CommentViewFragment()
         commentViewFragment.arguments = bundle
         val fragmentTransaction =
-            commentActivity.supportFragmentManager.beginTransaction()
+            childFragmentManager.beginTransaction()
         fragmentTransaction.replace(activity_comment_linearlayout.id, commentViewFragment)
         fragmentTransaction.commit()
 
@@ -301,8 +305,19 @@ class CommentFragment : Fragment() {
         loadNGDataBase()
 
         //コメント投稿モード、nicocas式コメント投稿モード以外でFAB非表示
-        val watchingmode = pref_setting.getBoolean("setting_watching_mode", false)
-        val nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
+        var watchingmode = pref_setting.getBoolean("setting_watching_mode", false)
+        var nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
+
+        //二窓モードではPreferenceの値を利用しない
+        if (arguments?.getString("watch_mode")?.isNotEmpty() == true) {
+            watchingmode = false
+            nicocasmode = false
+            when (arguments?.getString("watch_mode")) {
+                "comment_post" -> watchingmode = true
+                "nicocas" -> nicocasmode = true
+            }
+        }
+
         if (!watchingmode && !nicocasmode) {
             fab.hide()
         }
@@ -393,7 +408,7 @@ class CommentFragment : Fragment() {
                             //メニュー
                             //コメント
                             val fragmentTransaction =
-                                commentActivity.supportFragmentManager.beginTransaction()
+                                childFragmentManager.beginTransaction()
                             //LiveIDを詰める
                             val bundle = Bundle()
                             bundle.putString("liveId", liveId)
@@ -409,7 +424,7 @@ class CommentFragment : Fragment() {
                         getString(R.string.comment) -> {
                             //コメント
                             val fragmentTransaction =
-                                commentActivity.supportFragmentManager.beginTransaction()
+                                childFragmentManager.beginTransaction()
                             //LiveIDを詰める
                             val bundle = Bundle()
                             bundle.putString("liveId", liveId)
@@ -425,7 +440,7 @@ class CommentFragment : Fragment() {
                         getString(R.string.room_comment) -> {
                             //部屋べつ
                             val fragmentTransaction =
-                                commentActivity.supportFragmentManager.beginTransaction()
+                                childFragmentManager.beginTransaction()
                             //LiveIDを詰める
                             val bundle = Bundle()
                             bundle.putString("liveId", liveId)
@@ -442,7 +457,7 @@ class CommentFragment : Fragment() {
                         getString(R.string.gift) -> {
                             //ギフト
                             val fragmentTransaction =
-                                commentActivity.supportFragmentManager.beginTransaction()
+                                childFragmentManager.beginTransaction()
                             //LiveIDを詰める
                             val bundle = Bundle()
                             bundle.putString("liveId", liveId)
@@ -458,7 +473,7 @@ class CommentFragment : Fragment() {
                         getString(R.string.nicoads) -> {
                             //広告
                             val fragmentTransaction =
-                                commentActivity.supportFragmentManager.beginTransaction()
+                                childFragmentManager.beginTransaction()
                             //LiveIDを詰める
                             val bundle = Bundle()
                             bundle.putString("liveId", liveId)
@@ -474,7 +489,7 @@ class CommentFragment : Fragment() {
                         getString(R.string.program_info) -> {
                             //番組情報
                             val fragmentTransaction =
-                                commentActivity.supportFragmentManager.beginTransaction()
+                                childFragmentManager.beginTransaction()
                             //LiveIDを詰める
                             val bundle = Bundle()
                             bundle.putString("liveId", liveId)
@@ -741,11 +756,15 @@ class CommentFragment : Fragment() {
                     //vpos
                     programStartTime = document.select("stream").select("base_time").text().toLong()
                     programLiveTime = document.select("stream").select("start_time").text().toLong()
-                    commentActivity.runOnUiThread {
-                        commentActivity.supportActionBar?.subtitle = "$room - $seet"
-                    }
                     //経過時間計算
                     setLiveTime()
+                    commentActivity.runOnUiThread {
+                        //二窓モードでは表示させない
+                        if (activity !is NimadoActivity) {
+                            (activity as AppCompatActivity).supportActionBar?.subtitle =
+                                "$room - $seet"
+                        }
+                    }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
@@ -977,13 +996,17 @@ class CommentFragment : Fragment() {
                     if (command.contains("postkey")) {
 
                         //JSON配列の０番目にpostkeyが入ってる。
-                        val paramsArray = jsonObject.getJSONObject("body").getJSONArray("params")
+                        val paramsArray =
+                            jsonObject.getJSONObject("body").getJSONArray("params")
                         val postkey = paramsArray.getString(0)
                         //コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
                         val vpos = (System.currentTimeMillis() / 1000L) - programStartTime
                         val jsonObject = JSONObject()
                         val chatObject = JSONObject()
-                        chatObject.put("thread", getPostKeyThreadId)    //視聴用セッションWebSocketからとれる
+                        chatObject.put(
+                            "thread",
+                            getPostKeyThreadId
+                        )    //視聴用セッションWebSocketからとれる
                         chatObject.put(
                             "vpos",
                             vpos
@@ -1121,7 +1144,8 @@ class CommentFragment : Fragment() {
                     //コメント送信できたか
                     if (message.contains("chat_result")) {
                         val jsonObject = JSONObject(message)
-                        val status = jsonObject.getJSONObject("chat_result").getString("status")
+                        val status =
+                            jsonObject.getJSONObject("chat_result").getString("status")
                         commentActivity.runOnUiThread {
                             if (status.toInt() == 0) {
                                 Snackbar.make(
@@ -1199,11 +1223,14 @@ class CommentFragment : Fragment() {
             display.getSize(point)
             val layoutParams = live_video_view.layoutParams
 
-
             //横画面のときの対応
             if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 //  //横画面
                 layoutParams?.width = point.x / 2
+                //二窓モードのときはとりあえず更に小さくしておく
+                if (isNimadoMode) {
+                    layoutParams?.width = point.x / 4
+                }
                 layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
                 live_video_view.layoutParams = layoutParams
             } else {
@@ -1220,15 +1247,19 @@ class CommentFragment : Fragment() {
                 val layoutParams = liveFrameLayout.layoutParams
                 if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     //   //横画面
-                    //   layoutParams.width = live_video_view.width
-                    //   layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                    //   live_framelayout.layoutParams = layoutParams
+                    layoutParams.width = live_video_view.width
+                    //に窓のときはなぜか半分になるので倍にする
+                    if (isNimadoMode) {
+                        layoutParams.width = live_video_view.width * 2
+                    }
+                    layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                    liveFrameLayout.layoutParams = layoutParams
 
                     //コメントキャンバス
                     val commentCanvasLayout =
                         commentCanvas.layoutParams as FrameLayout.LayoutParams
-                    commentCanvasLayout.width = live_video_view.width ?: 0
-                    commentCanvasLayout.height = live_video_view.height ?: 0
+                    commentCanvasLayout.width = live_video_view.width
+                    commentCanvasLayout.height = live_video_view.height
                     commentCanvasLayout.gravity = Gravity.CENTER
                     commentCanvas.layoutParams = commentCanvasLayout
 
@@ -1461,12 +1492,22 @@ class CommentFragment : Fragment() {
             R.id.comment_activity_menu_share_attach_image -> {
                 //共有
                 programShare =
-                    ProgramShare(commentActivity, live_video_view, programTitle, programTitle)
+                    ProgramShare(
+                        commentActivity,
+                        live_video_view,
+                        programTitle,
+                        programTitle
+                    )
                 programShare.shareAttacgImage()
             }
             R.id.comment_activity_menu_share -> {
                 programShare =
-                    ProgramShare(commentActivity, live_video_view, programTitle, programTitle)
+                    ProgramShare(
+                        commentActivity,
+                        live_video_view,
+                        programTitle,
+                        programTitle
+                    )
                 programShare.showShareScreen()
             }
             R.id.comment_activity_menu_quality -> {
@@ -1492,7 +1533,12 @@ class CommentFragment : Fragment() {
             val intent = Intent(context, FloatingCommentViewer::class.java)
             intent.putExtra("liveId", liveId)
             val bubbleIntent =
-                PendingIntent.getActivity(context, 25, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+                PendingIntent.getActivity(
+                    context,
+                    25,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT
+                )
             //通知作成？
             val bubbleData = Notification.BubbleMetadata.Builder()
                 .setDesiredHeight(600)
@@ -1545,11 +1591,13 @@ class CommentFragment : Fragment() {
         when (conf.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> {
                 //縦画面
-                commentActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                commentActivity.requestedOrientation =
+                    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             }
             Configuration.ORIENTATION_LANDSCAPE -> {
                 //横画面
-                commentActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                commentActivity.requestedOrientation =
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
         }
     }
@@ -1584,9 +1632,13 @@ class CommentFragment : Fragment() {
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
         super.onActivityResult(requestCode, resultCode, data)
-        println(requestCode)
+        //println(requestCode)
         when (requestCode) {
             114 -> {
                 if (resultCode == PackageManager.PERMISSION_GRANTED) {
@@ -1794,23 +1846,24 @@ class CommentFragment : Fragment() {
             if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
-            val programNotification = NotificationCompat.Builder(context!!, notificationChannelId)
-                .setContentTitle(getString(R.string.popup_notification_description))
-                .setContentText(programTitle)
-                .setSmallIcon(R.drawable.ic_popup_icon)
-                .addAction(
-                    NotificationCompat.Action(
-                        R.drawable.ic_outline_stop_24px,
-                        getString(R.string.finish),
-                        PendingIntent.getBroadcast(
-                            context,
-                            24,
-                            stopPopupIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT
+            val programNotification =
+                NotificationCompat.Builder(context!!, notificationChannelId)
+                    .setContentTitle(getString(R.string.popup_notification_description))
+                    .setContentText(programTitle)
+                    .setSmallIcon(R.drawable.ic_popup_icon)
+                    .addAction(
+                        NotificationCompat.Action(
+                            R.drawable.ic_outline_stop_24px,
+                            getString(R.string.finish),
+                            PendingIntent.getBroadcast(
+                                context,
+                                24,
+                                stopPopupIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT
+                            )
                         )
                     )
-                )
-                .build()
+                    .build()
 
             //消せないようにする
             programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
@@ -1880,34 +1933,35 @@ class CommentFragment : Fragment() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannelId = "program_background"
-            val programNotification = NotificationCompat.Builder(context!!, notificationChannelId)
-                .setContentTitle(getString(R.string.notification_background_play))
-                .setContentText(programTitle)
-                .setSmallIcon(R.drawable.ic_background_icon)
-                .addAction(
-                    NotificationCompat.Action(
-                        R.drawable.ic_outline_stop_24px,
-                        pausePlayString,
-                        PendingIntent.getBroadcast(
-                            context,
-                            12,
-                            pauseIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT
+            val programNotification =
+                NotificationCompat.Builder(context!!, notificationChannelId)
+                    .setContentTitle(getString(R.string.notification_background_play))
+                    .setContentText(programTitle)
+                    .setSmallIcon(R.drawable.ic_background_icon)
+                    .addAction(
+                        NotificationCompat.Action(
+                            R.drawable.ic_outline_stop_24px,
+                            pausePlayString,
+                            PendingIntent.getBroadcast(
+                                context,
+                                12,
+                                pauseIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT
+                            )
                         )
                     )
-                )
-                .addAction(
-                    NotificationCompat.Action(
-                        R.drawable.ic_outline_stop_24px,
-                        getString(R.string.background_play_finish),
-                        PendingIntent.getBroadcast(
-                            context,
-                            12,
-                            stopIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT
+                    .addAction(
+                        NotificationCompat.Action(
+                            R.drawable.ic_outline_stop_24px,
+                            getString(R.string.background_play_finish),
+                            PendingIntent.getBroadcast(
+                                context,
+                                12,
+                                stopIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT
+                            )
                         )
-                    )
-                ).build()
+                    ).build()
             //消せないようにする
             programNotification.flags = flag
 
@@ -2021,7 +2075,8 @@ class CommentFragment : Fragment() {
 */
 
     fun setEnquetePOSTLayout(message: String, type: String) {
-        enquateView = layoutInflater.inflate(R.layout.bottom_fragment_enquate_layout, null, false)
+        enquateView =
+            layoutInflater.inflate(R.layout.bottom_fragment_enquate_layout, null, false)
         if (type.contains("start")) {
             //アンケ開始
             live_framelayout.addView(enquateView)
@@ -2196,7 +2251,10 @@ class CommentFragment : Fragment() {
         comment_cardview_close_button.setOnClickListener {
             //非表示アニメーションに挑戦した。
             val hideAnimation =
-                AnimationUtils.loadAnimation(context!!, R.anim.comment_cardview_hide_animation)
+                AnimationUtils.loadAnimation(
+                    context!!,
+                    R.anim.comment_cardview_hide_animation
+                )
             //表示
             comment_activity_comment_cardview.startAnimation(hideAnimation)
             comment_activity_comment_cardview.visibility = View.GONE
@@ -2213,10 +2271,20 @@ class CommentFragment : Fragment() {
                     override fun afterTextChanged(p0: Editable?) {
                     }
 
-                    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                    override fun beforeTextChanged(
+                        p0: CharSequence?,
+                        p1: Int,
+                        p2: Int,
+                        p3: Int
+                    ) {
                     }
 
-                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                    override fun onTextChanged(
+                        p0: CharSequence?,
+                        p1: Int,
+                        p2: Int,
+                        p3: Int
+                    ) {
                         comment_cardview_chipgroup.removeAllViews()
                         //コメントコレクション読み込み
                         if (p0?.length ?: 0 >= 1) {
@@ -2234,9 +2302,13 @@ class CommentFragment : Fragment() {
                                         //置き換える
                                         var text = p0.toString()
                                         text = text.replace(yomi, comment)
-                                        comment_cardview_comment_textinputlayout.setText(text)
+                                        comment_cardview_comment_textinputlayout.setText(
+                                            text
+                                        )
                                         //カーソル移動
-                                        comment_cardview_comment_textinputlayout.setSelection(text.length)
+                                        comment_cardview_comment_textinputlayout.setSelection(
+                                            text.length
+                                        )
                                         //消す
                                         comment_cardview_chipgroup.removeAllViews()
                                     }
@@ -2327,7 +2399,8 @@ class CommentFragment : Fragment() {
             uncomeTextView.text = Html.fromHtml(comment)
         }
 */
-            uncomeTextView.text = HtmlCompat.fromHtml(comment, HtmlCompat.FROM_HTML_MODE_COMPACT)
+            uncomeTextView.text =
+                HtmlCompat.fromHtml(comment, HtmlCompat.FROM_HTML_MODE_COMPACT)
             uncomeTextView.textSize = 20F
             uncomeTextView.setTextColor(Color.WHITE)
             uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))
@@ -2356,7 +2429,10 @@ class CommentFragment : Fragment() {
             if (this@CommentFragment::uncomeTextView.isInitialized) {
                 //表示アニメーション
                 val hideAnimation =
-                    AnimationUtils.loadAnimation(context!!, R.anim.unnei_comment_close_animation)
+                    AnimationUtils.loadAnimation(
+                        context!!,
+                        R.anim.unnei_comment_close_animation
+                    )
                 //表示
                 uncomeTextView.startAnimation(hideAnimation)
                 //初期化済みなら
@@ -2500,6 +2576,13 @@ class CommentFragment : Fragment() {
             }
         }
         mobileDataQualityCheck = true
+    }
+
+    /**
+     * フラグメントが入るLinearLayoutのIDを返す。
+     * */
+    fun getFragmentLinearLayoutId(): Int {
+        return activity_comment_linearlayout.id
     }
 
 

@@ -17,7 +17,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="番組名"
-                android:textSize="20sp" />
+                android:textSize="18sp" />
 
         <TextView
                 android:id="@+id/adapter_nimado_list_program_id"
@@ -32,6 +32,9 @@
             android:id="@+id/adapter_nimado_list_close_button"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
             app:srcCompat="@drawable/ic_clear_black" />
 
 </LinearLayout>

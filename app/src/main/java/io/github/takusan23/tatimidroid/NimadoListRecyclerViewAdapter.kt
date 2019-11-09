@@ -30,7 +30,7 @@ class NimadoListRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList
         viewType: Int
     ): NimadoListRecyclerViewAdapter.ViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.adapter_auto_admission_layout, parent, false)
+            .inflate(R.layout.adapter_nimado_list, parent, false)
         return ViewHolder(view)
     }
 

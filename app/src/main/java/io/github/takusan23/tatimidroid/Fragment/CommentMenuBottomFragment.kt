@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.CommentRecyclerViewAdapter
+import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_commentview.*
 import okhttp3.*
 import okhttp3.internal.notify
@@ -126,11 +127,17 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
 
     fun setLockOnComment() {
         recyclerViewList.clear()
+        //まずCommentFragmentを取る。この上に全部屋、部屋別のFragmentが乗る。
         val fragment =
-            activity?.supportFragmentManager?.findFragmentById(R.id.activity_comment_linearlayout)
-        if (fragment is CommentViewFragment) {
+            activity?.supportFragmentManager?.findFragmentByTag(liveId)
+        //全部屋、部屋別のFragmentが表示されるレイアウトのIDを取る
+        val commentFragment = (fragment as CommentFragment)
+        //もう一回聞く。
+        val commentViewFragment =
+            activity?.supportFragmentManager?.findFragmentById(commentFragment.getFragmentLinearLayoutId())
+        if (commentViewFragment is CommentViewFragment) {
             //全部屋コメントRecyclerViewを取得
-            val adapterList: ArrayList<ArrayList<String>> = fragment.recyclerViewList
+            val adapterList: ArrayList<ArrayList<String>> = commentViewFragment.recyclerViewList
             //ConcurrentModificationExceptionが発生する。forEachはやめようね！
             val tmp = adapterList
             for (i in 0 until tmp.size) {
@@ -156,6 +163,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
                 }
             }
         }
+
     }
 
 

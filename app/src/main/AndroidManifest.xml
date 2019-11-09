@@ -14,7 +14,7 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".NimadoActivity" android:theme="@style/NimadoTheme"></activity>
+        <activity android:name=".NimadoActivity" android:label="@string/nimado" android:theme="@style/NimadoTheme"></activity>
         <activity
                 android:name=".Activity.FloatingCommentViewer"
                 android:allowEmbedded="true"
