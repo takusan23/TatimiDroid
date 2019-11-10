@@ -1065,6 +1065,9 @@ class CommentFragment : Fragment() {
                             Snackbar.make(live_video_view, message, Snackbar.LENGTH_LONG)
                                 .apply {
                                     anchorView = getSnackbarAnchorView()
+                                    //複数行へ
+                                    val textview = view.findViewById<TextView>(R.id.snackbar_text)
+                                    textview.isSingleLine = false
                                     show()
                                 }
                         }
