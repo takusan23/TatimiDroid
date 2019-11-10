@@ -39,6 +39,7 @@ import okhttp3.*
 import okhttp3.Callback
 import org.json.JSONObject
 import java.io.IOException
+import java.text.FieldPosition
 
 
 /*
@@ -58,6 +59,8 @@ class NimadoActivity : AppCompatActivity() {
     var programList = ArrayList<String>()
     //視聴モードの配列
     var watchModeList = ArrayList<String>()
+    //番組の名前
+    var programNameList = arrayListOf<String>()
 
     var fragmentList = arrayListOf<Fragment>()
 
@@ -103,28 +106,25 @@ class NimadoActivity : AppCompatActivity() {
             val nimadoLiveIDBottomFragment = NimadoLiveIDBottomFragment()
             nimadoLiveIDBottomFragment.show(supportFragmentManager, "nimado_liveid")
         }
-
     }
 
     /*
     * 画面回転に耐えるアプリを作る。
     * ここで画面開店前にやりたいことを書く
     * */
-    override fun onDestroy() {
-        super.onDestroy()
-        //値をonCreateの引数「savedInstanceState」に値を入れる
-        intent.putStringArrayListExtra("program_list", programList)
-        intent.putStringArrayListExtra("watch_mode_list", watchModeList)
-    }
-
     /*
-    * アプリから離れたらFragmentを終了させる
+    * アプリから離れたらFragment終了/Fragmentを置いたViewを消す/RecyclerViewのItemを消す
     * */
     override fun onPause() {
         super.onPause()
+        //値をonCreateの引数「savedInstanceState」に値を入れる
+        intent.putStringArrayListExtra("program_list", programList)
+        intent.putStringArrayListExtra("watch_mode_list", watchModeList)
         fragmentList.forEach {
             supportFragmentManager.beginTransaction().remove(it).commit()
         }
+        nimado_activity_linearlayout.removeAllViews()
+        recyclerViewList.clear()
     }
 
     /*
@@ -133,7 +133,7 @@ class NimadoActivity : AppCompatActivity() {
     * */
     override fun onResume() {
         super.onResume()
-
+        println("つうか")
         if (intent.getStringArrayListExtra("program_list") != null) {
             programList = intent.getStringArrayListExtra("program_list")
             watchModeList = intent.getStringArrayListExtra("watch_mode_list")
@@ -142,13 +142,13 @@ class NimadoActivity : AppCompatActivity() {
             for (index in 0 until programList.size) {
                 val liveID = programList[index]
                 val watchMode = watchModeList[index]
-                addNimado(liveID, watchMode)
+                addNimado(liveID, watchMode, true)
             }
         }
     }
 
 
-    fun addNimado(liveId: String, watchMode: String) {
+    fun addNimado(liveId: String, watchMode: String, isResume: Boolean = false) {
         //番組ID
         //二窓中の番組IDを入れる配列
         if (!programList.contains(liveId)) {
@@ -205,7 +205,23 @@ class NimadoActivity : AppCompatActivity() {
         fragmentList.add(commentFragment)
 
         //RecyclerViewへアイテム追加
-        addRecyclerViewItem(liveId)
+        //onResumeから来たときはAPIを叩かない（非同期処理は難しすぎる）
+        if (isResume) {
+            val pos = programList.indexOf(liveId)
+            //RecyclerViewついか
+            val item = arrayListOf<String>()
+            item.add("")
+            item.add(programNameList[pos])
+            item.add(liveId)
+            //非同期処理なので順番を合わせる
+            recyclerViewList.add(item)
+            runOnUiThread {
+                nimadoListRecyclerViewAdapter.notifyDataSetChanged()
+            }
+        } else {
+            addRecyclerViewItem(liveId)
+        }
+
     }
 
     fun addRecyclerViewItem(liveId: String) {
@@ -218,6 +234,7 @@ class NimadoActivity : AppCompatActivity() {
             .get()
             .build()
         val okHttpClient = OkHttpClient()
+
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 //？
@@ -235,7 +252,9 @@ class NimadoActivity : AppCompatActivity() {
                     item.add("")
                     item.add(title)
                     item.add(liveId)
+                    //非同期処理なので順番を合わせる
                     recyclerViewList.add(item)
+                    programNameList.add(title)
                     runOnUiThread {
                         nimadoListRecyclerViewAdapter.notifyDataSetChanged()
                     }
