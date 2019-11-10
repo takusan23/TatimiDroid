@@ -120,11 +120,13 @@ class NimadoActivity : AppCompatActivity() {
         //値をonCreateの引数「savedInstanceState」に値を入れる
         intent.putStringArrayListExtra("program_list", programList)
         intent.putStringArrayListExtra("watch_mode_list", watchModeList)
+        intent.putStringArrayListExtra("program_name", programNameList)
+        intent.putExtra("fragment_list", fragmentList)
+        nimado_activity_linearlayout.removeAllViews()
+        recyclerViewList.clear()
         fragmentList.forEach {
             supportFragmentManager.beginTransaction().remove(it).commit()
         }
-        nimado_activity_linearlayout.removeAllViews()
-        recyclerViewList.clear()
     }
 
     /*
@@ -133,9 +135,9 @@ class NimadoActivity : AppCompatActivity() {
     * */
     override fun onResume() {
         super.onResume()
-        println("つうか")
         if (intent.getStringArrayListExtra("program_list") != null) {
             programList = intent.getStringArrayListExtra("program_list")
+            programNameList = intent.getStringArrayListExtra("program_name")
             watchModeList = intent.getStringArrayListExtra("watch_mode_list")
 
             //復活させる
