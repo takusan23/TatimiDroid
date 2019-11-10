@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
+import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_comment.*
@@ -30,6 +31,7 @@ import kotlinx.android.synthetic.main.fragment_comment_menu.*
 class CommentMenuFragment : Fragment() {
 
     lateinit var commentFragment: CommentFragment
+    lateinit var darkModeSupport: DarkModeSupport
 
     var liveId = ""
 
@@ -43,6 +45,8 @@ class CommentMenuFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        darkModeSupport = DarkModeSupport(context!!)
 
         //CommentFragmentしゅとく～
         liveId = arguments?.getString("liveId") ?: ""
@@ -64,7 +68,7 @@ class CommentMenuFragment : Fragment() {
     }
 
     fun darkmode() {
-        if (commentFragment.darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+        if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
             //ダークモード時ボタンのテキストの色が変わらないので
             val color = ColorStateList.valueOf(Color.parseColor("#ffffff"))
             fragment_comment_fragment_menu_rotation_button.setTextColor(color)

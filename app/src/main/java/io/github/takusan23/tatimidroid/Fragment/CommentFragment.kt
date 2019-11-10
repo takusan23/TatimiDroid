@@ -45,9 +45,7 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -761,8 +759,10 @@ class CommentFragment : Fragment() {
                     commentActivity.runOnUiThread {
                         //二窓モードでは表示させない
                         if (activity !is NimadoActivity) {
-                            (activity as AppCompatActivity).supportActionBar?.subtitle =
-                                "$room - $seet"
+                            if (activity is AppCompatActivity) {
+                                (activity as AppCompatActivity).supportActionBar?.subtitle =
+                                    "$room - $seet"
+                            }
                         }
                     }
                 } else {
@@ -925,7 +925,6 @@ class CommentFragment : Fragment() {
                     val currentObject =
                         jsonObject.getJSONObject("body").getJSONObject("currentStream")
                     hls_address = currentObject.getString("uri")
-                    // System.out.println("HLSアドレス ${hls_address}")
                     //生放送再生
                     if (pref_setting.getBoolean("setting_watch_live", false)) {
                         //モバイルデータは最低画質で読み込む設定　
@@ -1215,7 +1214,7 @@ class CommentFragment : Fragment() {
     fun setPlayVideoView() {
         //設定で読み込むかどうか
         commentActivity.runOnUiThread {
-            //println("生放送再生：HLSアドレス : $hls_address")
+            //  println("生放送再生：HLSアドレス : $hls_address")
 
             //ウィンドウの半分ぐらいの大きさに設定
             val display = commentActivity.windowManager.defaultDisplay
@@ -1247,14 +1246,13 @@ class CommentFragment : Fragment() {
                 val layoutParams = liveFrameLayout.layoutParams
                 if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     //   //横画面
-                    layoutParams.width = live_video_view.width
-                    //に窓のときはなぜか半分になるので倍にする
                     if (isNimadoMode) {
+                        //layoutParams.width = live_video_view.width
+                        //に窓のときはなぜか半分になるので倍にする
                         layoutParams.width = live_video_view.width * 2
+                        layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                        liveFrameLayout.layoutParams = layoutParams
                     }
-                    layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                    liveFrameLayout.layoutParams = layoutParams
-
                     //コメントキャンバス
                     val commentCanvasLayout =
                         commentCanvas.layoutParams as FrameLayout.LayoutParams
@@ -1274,9 +1272,11 @@ class CommentFragment : Fragment() {
 
 
             live_video_view.setOnErrorListener { mp, what, extra ->
-                println("error")
-                println(what)
-                println(extra)
+                /*
+                                println("error")
+                                println(what)
+                                println(extra)
+                */
                 false
             }
 
@@ -1287,8 +1287,8 @@ class CommentFragment : Fragment() {
             }
 */
             live_video_view.setVideoURI(hls_address.toUri())
-            live_video_view.start()
             live_video_view.setOnPreparedListener {
+                live_video_view.start()
             }
         }
 
@@ -1717,117 +1717,118 @@ class CommentFragment : Fragment() {
 
     /*オーバーレイ*/
     fun startOverlayPlayer() {
-        val width = 400
-        val height = 200
-        //レイアウト読み込み
-        val layoutInflater = LayoutInflater.from(context)
-        // オーバーレイViewの設定をする
-        val params = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams(
-                width,
-                height,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT
-            )
-        } else {
-            WindowManager.LayoutParams(
-                width,
-                height,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT
-            )
-        }
-        popupView = layoutInflater.inflate(R.layout.overlay_player_layout, null)
-
-
-        //表示
-        commentActivity.windowManager.addView(popupView, params)
-        isPopupPlay = true
-        popupView.overlay_commentCanvas.isFloatingView = true
-
-        //通知表示
-        showPopUpPlayerNotification()
-
-        //VideoView再生。
-        popupView.overlay_videoview.setVideoURI(hls_address.toUri())
-        //再生
-        popupView.overlay_videoview.start()
-        //あと再生できたらサイズ調整
-        popupView.overlay_videoview.setOnPreparedListener {
-            //高さ、幅取得
-            params.width = it.videoWidth
-            params.height = it.videoHeight
-            commentActivity.windowManager.updateViewLayout(popupView, params)
-        }
-
-        //閉じる
-        popupView.overlay_close_button.setOnClickListener {
-            isPopupPlay = false
-            commentActivity.windowManager.removeView(popupView)
-            notificationManager.cancel(overlayNotificationID)
-        }
-        //画面サイズ
-        val displaySize: Point by lazy {
-            val display = commentActivity.windowManager.defaultDisplay
-            val size = Point()
-            display.getSize(size)
-            size
-        }
-
-        //コメント流し
-        overlay_commentcamvas = popupView.findViewById(R.id.overlay_commentCanvas)
-
-        //移動
-        //https://qiita.com/farman0629/items/ce547821dd2e16e4399e
-        popupView.setOnLongClickListener {
-            val windowManager =
-                context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-            //長押し判定
-            popupView.setOnTouchListener { view, motionEvent ->
-                // タップした位置を取得する
-                val x = motionEvent.rawX.toInt()
-                val y = motionEvent.rawY.toInt()
-
-                when (motionEvent.action) {
-                    // Viewを移動させてるときに呼ばれる
-                    MotionEvent.ACTION_MOVE -> {
-                        // 中心からの座標を計算する
-                        val centerX = x - (displaySize.x / 2)
-                        val centerY = y - (displaySize.y / 2)
-
-                        // オーバーレイ表示領域の座標を移動させる
-                        params.x = centerX
-                        params.y = centerY
-
-                        // 移動した分を更新する
-                        windowManager.updateViewLayout(view, params)
-                    }
-                }
-                false
-            }
-            true//OnclickListener呼ばないようにtrue
-        }
-
-
-        //ボタン表示
-        popupView.setOnClickListener {
-            if (popupView.overlay_button_layout.visibility == View.GONE) {
-                //表示
-                popupView.overlay_button_layout.visibility = View.VISIBLE
+        if (Settings.canDrawOverlays(context)) {
+            val width = 400
+            val height = 200
+            //レイアウト読み込み
+            val layoutInflater = LayoutInflater.from(context)
+            // オーバーレイViewの設定をする
+            val params = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                WindowManager.LayoutParams(
+                    width,
+                    height,
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                    PixelFormat.TRANSLUCENT
+                )
             } else {
-                //非表示
-                popupView.overlay_button_layout.visibility = View.GONE
+                WindowManager.LayoutParams(
+                    width,
+                    height,
+                    WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                    PixelFormat.TRANSLUCENT
+                )
+            }
+            popupView = layoutInflater.inflate(R.layout.overlay_player_layout, null)
+
+
+            //表示
+            commentActivity.windowManager.addView(popupView, params)
+            isPopupPlay = true
+            popupView.overlay_commentCanvas.isFloatingView = true
+
+            //通知表示
+            showPopUpPlayerNotification()
+
+            //VideoView再生。
+            popupView.overlay_videoview.setVideoURI(hls_address.toUri())
+            //再生
+            popupView.overlay_videoview.start()
+            //あと再生できたらサイズ調整
+            popupView.overlay_videoview.setOnPreparedListener {
+                //高さ、幅取得
+                params.width = it.videoWidth
+                params.height = it.videoHeight
+                commentActivity.windowManager.updateViewLayout(popupView, params)
+            }
+
+            //閉じる
+            popupView.overlay_close_button.setOnClickListener {
+                isPopupPlay = false
+                commentActivity.windowManager.removeView(popupView)
+                notificationManager.cancel(overlayNotificationID)
+            }
+            //画面サイズ
+            val displaySize: Point by lazy {
+                val display = commentActivity.windowManager.defaultDisplay
+                val size = Point()
+                display.getSize(size)
+                size
+            }
+
+            //コメント流し
+            overlay_commentcamvas = popupView.findViewById(R.id.overlay_commentCanvas)
+
+            //移動
+            //https://qiita.com/farman0629/items/ce547821dd2e16e4399e
+            popupView.setOnLongClickListener {
+                val windowManager =
+                    context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                //長押し判定
+                popupView.setOnTouchListener { view, motionEvent ->
+                    // タップした位置を取得する
+                    val x = motionEvent.rawX.toInt()
+                    val y = motionEvent.rawY.toInt()
+
+                    when (motionEvent.action) {
+                        // Viewを移動させてるときに呼ばれる
+                        MotionEvent.ACTION_MOVE -> {
+                            // 中心からの座標を計算する
+                            val centerX = x - (displaySize.x / 2)
+                            val centerY = y - (displaySize.y / 2)
+
+                            // オーバーレイ表示領域の座標を移動させる
+                            params.x = centerX
+                            params.y = centerY
+
+                            // 移動した分を更新する
+                            windowManager.updateViewLayout(view, params)
+                        }
+                    }
+                    false
+                }
+                true//OnclickListener呼ばないようにtrue
+            }
+
+
+            //ボタン表示
+            popupView.setOnClickListener {
+                if (popupView.overlay_button_layout.visibility == View.GONE) {
+                    //表示
+                    popupView.overlay_button_layout.visibility = View.VISIBLE
+                } else {
+                    //非表示
+                    popupView.overlay_button_layout.visibility = View.GONE
+                }
             }
         }
-
     }
 
     /*ポップアップ再生通知*/

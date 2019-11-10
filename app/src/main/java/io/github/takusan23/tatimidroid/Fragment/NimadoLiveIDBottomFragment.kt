@@ -122,6 +122,15 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
                                 this@NimadoLiveIDBottomFragment.dismiss()
                             }
                         }
+                    } else {
+                        //番組が終わっている
+                        (activity as NimadoActivity).runOnUiThread {
+                            Toast.makeText(
+                                context,
+                                getString(R.string.program_end),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 } else {
                     //ニコニコにログインをし直す

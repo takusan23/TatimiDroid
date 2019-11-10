@@ -162,7 +162,13 @@ class CommentViewFragment : Fragment() {
                     val stream = document.select("stream")
                     val title = stream.select("title").text()
                     activity?.runOnUiThread {
-                        (activity as AppCompatActivity).supportActionBar?.subtitle = "$room - $seet"
+                        //二窓モードでは表示させない
+                        if (activity !is NimadoActivity) {
+                            if (activity is AppCompatActivity) {
+                                (activity as AppCompatActivity).supportActionBar?.subtitle =
+                                    "$room - $seet"
+                            }
+                        }
                     }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
@@ -472,22 +478,15 @@ class CommentViewFragment : Fragment() {
                             //ActionBarに番組名を書く
                             activity?.runOnUiThread {
                                 if (activity is AppCompatActivity) {
-                                    (activity as AppCompatActivity).supportActionBar?.title =
-                                        "$title - $liveId"
-/*
-                                //BottomNavbarにバッジを表示させる
-                                activity?.activity_comment_bottom_navigation_bar?.getOrCreateBadge(
-                                    R.id.comment_view_menu_room
-                                ).let {
-                                    it?.number = connectionWebSocketAddressList.size
-                                }
-*/
+                                    //二窓モードでは表示させない
+                                    if (activity !is NimadoActivity) {
+                                        (activity as AppCompatActivity).supportActionBar?.title =
+                                            "$title - $liveId"
+                                    }
                                 }
                             }
                             //WebSocket接続
                             connectCommentServer(webSocketUri, threadId, roomName)
-
-
                         }
                     }
                 } else {

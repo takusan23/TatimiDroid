@@ -18,10 +18,15 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.view.forEach
+import androidx.core.view.get
 import androidx.core.view.marginBottom
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
@@ -31,6 +36,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_nimado.*
 import kotlinx.android.synthetic.main.fragment_gift_layout.*
 import okhttp3.*
+import okhttp3.Callback
 import org.json.JSONObject
 import java.io.IOException
 
@@ -53,6 +59,8 @@ class NimadoActivity : AppCompatActivity() {
     //視聴モードの配列
     var watchModeList = ArrayList<String>()
 
+    var fragmentList = arrayListOf<Fragment>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,18 +73,8 @@ class NimadoActivity : AppCompatActivity() {
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
 
-        if (savedInstanceState != null) {
-            programList = savedInstanceState.getStringArrayList("program_list") as ArrayList<String>
-            watchModeList =
-                savedInstanceState.getStringArrayList("watch_mode_list") as ArrayList<String>
+        println(savedInstanceState == null)
 
-            //復活させる
-            for (index in 0 until programList.size) {
-                val liveID = programList[index]
-                val watchMode = watchModeList[index]
-                addNimado(liveID, watchMode)
-            }
-        }
 
         //自作Toolbarを適用させる
         setSupportActionBar(nimado_activity_toolbar)
@@ -112,19 +110,51 @@ class NimadoActivity : AppCompatActivity() {
     * 画面回転に耐えるアプリを作る。
     * ここで画面開店前にやりたいことを書く
     * */
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
+    override fun onDestroy() {
+        super.onDestroy()
         //値をonCreateの引数「savedInstanceState」に値を入れる
-        outState.putStringArrayList("program_list", programList)
-        outState.putStringArrayList("watch_mode_list", watchModeList)
+        intent.putStringArrayListExtra("program_list", programList)
+        intent.putStringArrayListExtra("watch_mode_list", watchModeList)
+    }
+
+    /*
+    * アプリから離れたらFragmentを終了させる
+    * */
+    override fun onPause() {
+        super.onPause()
+        fragmentList.forEach {
+            supportFragmentManager.beginTransaction().remove(it).commit()
+        }
+    }
+
+    /*
+    * アプリへ戻ってきたらFragmentを再設置する
+    * 戻ってきた以外で画面回転時もここを --通過-- する
+    * */
+    override fun onResume() {
+        super.onResume()
+
+        if (intent.getStringArrayListExtra("program_list") != null) {
+            programList = intent.getStringArrayListExtra("program_list")
+            watchModeList = intent.getStringArrayListExtra("watch_mode_list")
+
+            //復活させる
+            for (index in 0 until programList.size) {
+                val liveID = programList[index]
+                val watchMode = watchModeList[index]
+                addNimado(liveID, watchMode)
+            }
+        }
     }
 
 
     fun addNimado(liveId: String, watchMode: String) {
         //番組ID
         //二窓中の番組IDを入れる配列
-        programList.add(liveId)
-        watchModeList.add(watchMode)
+        if (!programList.contains(liveId)) {
+            programList.add(liveId)
+            watchModeList.add(watchMode)
+        }
         //動的にView作成
         val disp = windowManager.defaultDisplay
         val size = Point()
@@ -171,6 +201,8 @@ class NimadoActivity : AppCompatActivity() {
         val trans = supportFragmentManager.beginTransaction()
         trans.replace(linearLayout.id, commentFragment, liveId)
         trans.commit()
+
+        fragmentList.add(commentFragment)
 
         //RecyclerViewへアイテム追加
         addRecyclerViewItem(liveId)
@@ -225,6 +257,80 @@ class NimadoActivity : AppCompatActivity() {
         //区切り線いれる
         val itemDecoration = DividerItemDecoration(this, DividerItemDecoration.VERTICAL)
         nimado_activity_list_recyclerview.addItemDecoration(itemDecoration)
+
+        //ドラッグできるようにする
+        val itemTouchHelper =
+            ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(UP or DOWN, 0) {
+                override fun onMove(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder
+                ): Boolean {
+                    val adapter = recyclerView.adapter as NimadoListRecyclerViewAdapter
+                    val old = viewHolder.adapterPosition
+                    val new = target.adapterPosition
+
+                    //移動させる
+                    adapter.notifyItemMoved(old, new)
+
+                    //配列の値も入れ替える
+                    //入れ替えて再設置する
+                    val liveID = programList[old]
+                    val watchMode = watchModeList[old]
+                    programList.removeAt(old)
+                    watchModeList.removeAt(old)
+                    programList.add(new, liveID)
+                    watchModeList.add(new, watchMode)
+                    //Fragmentが入るView再設置
+                    //全部消すのでは無く移動するところだけ消す
+                    val cardView = (nimado_activity_linearlayout[old] as CardView)
+                    val fragment = supportFragmentManager.findFragmentByTag(liveID)
+                    if (fragment != null) {
+                        supportFragmentManager.beginTransaction().remove(fragment).commit()
+                    }
+                    nimado_activity_linearlayout.removeView(cardView)
+                    nimado_activity_linearlayout.addView(cardView, new)
+                    //Fragment再設置
+                    val commentFragment = CommentFragment()
+                    val bundle = Bundle()
+                    bundle.putString("liveId", liveID)
+                    bundle.putString("watch_mode", watchMode)
+                    commentFragment.arguments = bundle
+                    val trans = supportFragmentManager.beginTransaction()
+                    //cardViewの0番目のViewがFragmentを入れるViewなので
+                    trans.replace(cardView[0].id, commentFragment, liveID)
+                    trans.commit()
+
+
+                    //これだけ！RecyclerViewに圧倒的感謝だな！！！！！！！
+                    return true
+                }
+
+                override fun onSelectedChanged(
+                    viewHolder: RecyclerView.ViewHolder?,
+                    actionState: Int
+                ) {
+                    super.onSelectedChanged(viewHolder, actionState)
+                    if (actionState == ACTION_STATE_DRAG) {
+                        //ドラッグ中はItemを半透明にする
+                        viewHolder?.itemView?.alpha = 0.5f
+                    }
+                }
+
+                override fun clearView(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder
+                ) {
+                    super.clearView(recyclerView, viewHolder)
+                    //半透明しゅーりょー
+                    viewHolder.itemView.alpha = 1f
+                }
+
+                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                    //スワイプしないのでいらない
+                }
+            })
+        itemTouchHelper.attachToRecyclerView(nimado_activity_list_recyclerview)
     }
 
     /*
