@@ -180,4 +180,8 @@
     <string name="setting_rotation_sensor_title">センサーを利用して強制画面回転（実験的）</string>
     <string name="setting_rotation_sensor_description">画面回転無効時でもセンサーを利用して画面回転をします。</string>
     <string name="nimado">二窓コメビュ（実験的）</string>
+    <string name="setting_comment_speed_description">デフォは5です</string>
+    <string name="setting_comment_speed_title">流れるコメントの速度</string>
+    <string name="entyou_message">延長を確認しました。</string>
+    <string name="end_time">終了時刻</string>
 </resources>

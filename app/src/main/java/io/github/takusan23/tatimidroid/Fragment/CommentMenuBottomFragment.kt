@@ -132,9 +132,11 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
             activity?.supportFragmentManager?.findFragmentByTag(liveId)
         //全部屋、部屋別のFragmentが表示されるレイアウトのIDを取る
         val commentFragment = (fragment as CommentFragment)
+
         //もう一回聞く。
         val commentViewFragment =
-            activity?.supportFragmentManager?.findFragmentById(commentFragment.getFragmentLinearLayoutId())
+            commentFragment.childFragmentManager.findFragmentById(commentFragment.getFragmentLinearLayoutId())
+
         if (commentViewFragment is CommentViewFragment) {
             //全部屋コメントRecyclerViewを取得
             val adapterList: ArrayList<ArrayList<String>> = commentViewFragment.recyclerViewList

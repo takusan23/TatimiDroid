@@ -1,6 +1,8 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
@@ -461,6 +463,7 @@ class CommentViewFragment : Fragment() {
                     val title = data.getString("title")
                     val description = data.getString("description")
                     val room = data.getJSONArray("rooms")
+
                     //アリーナ、立ち見のコメントサーバーへ接続
                     for (index in 0..(room.length() - 1)) {
                         val roomObject = room.getJSONObject(index)

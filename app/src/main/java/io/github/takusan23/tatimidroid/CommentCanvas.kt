@@ -9,6 +9,7 @@ import android.graphics.Point
 import android.util.AttributeSet
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.random.Random
@@ -82,10 +83,14 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         blackPaint.textSize = fontsize
         blackPaint.color = Color.parseColor("#000000")
 
+        //コメントの流れる速度
+        val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+        val speed = pref_setting.getString("setting_comment_speed", "5")?.toInt() ?: 5
+
         Timer().schedule(10, 10) {
             for (i in 0..(xList.size - 1)) {
                 //文字数が多い場合はもっと早く流す
-                val minus = 5 + (textList.get(i).length / 2)
+                val minus = speed + (textList.get(i).length / 2)
                 val x = xList.get(i) - minus
                 if (x > -2000) {
                     xList.set(i, x)

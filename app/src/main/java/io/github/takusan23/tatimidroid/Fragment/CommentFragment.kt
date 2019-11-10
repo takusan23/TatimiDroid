@@ -210,6 +210,9 @@ class CommentFragment : Fragment() {
 
     lateinit var rotationSensor: RotationSensor
 
+    //延長検知。視聴セッション接続後すぐに送られてくるので一回目はパス。
+    var isEntyouKenti = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -1041,6 +1044,32 @@ class CommentFragment : Fragment() {
                             activity_comment_watch_count.text = watchCount.toString()
                             activity_comment_comment_count.text = commentCount.toString()
                         }
+                    }
+                }
+
+                //延長を検知
+                if (message?.contains("schedule") == true) {
+                    //時間表示させる場所無かったわ、Snackbarで出すだけにする
+                    if (isEntyouKenti) {
+                        val jsonObject = JSONObject(message)
+                        val endTime =
+                            jsonObject.getJSONObject("body").getJSONObject("update")
+                                .getLong("endtime")
+                        //終了時刻計算
+                        val simpleDateFormat = SimpleDateFormat("dd/MM HH:mm:ss")
+                        val date = Date(endTime)
+                        val time = simpleDateFormat.format(date)
+                        val message =
+                            "${getString(R.string.entyou_message)}\n${getString(R.string.end_time)} $time"
+                        commentActivity.runOnUiThread {
+                            Snackbar.make(live_video_view, message, Snackbar.LENGTH_LONG)
+                                .apply {
+                                    anchorView = getSnackbarAnchorView()
+                                    show()
+                                }
+                        }
+                    } else {
+                        isEntyouKenti = true
                     }
                 }
 

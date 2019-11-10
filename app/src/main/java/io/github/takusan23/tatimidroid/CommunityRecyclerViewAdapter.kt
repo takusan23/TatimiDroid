@@ -1,5 +1,8 @@
 package io.github.takusan23.tatimidroid
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
@@ -7,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
@@ -117,6 +121,22 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
                 }
             }
         }
+
+        /*
+        * 番組IDコピー機能
+        * */
+        holder.communityCard.setOnLongClickListener {
+            Toast.makeText(
+                content, "${content.getString(R.string.copy_program_id)} : $liveId",
+                Toast.LENGTH_SHORT
+            )
+                .show()
+            val clipboardManager =
+                content.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboardManager.setPrimaryClip(ClipData.newPlainText("liveid", liveId))
+            true
+        }
+
     }
 
 

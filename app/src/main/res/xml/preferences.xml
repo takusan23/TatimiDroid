@@ -15,7 +15,6 @@
                 android:icon="@drawable/ic_looks_one"
                 android:key="setting_one_line"
                 android:title="@string/setting_one_line" />
-
     </PreferenceCategory>
 
 
@@ -86,6 +85,12 @@
             android:summary="@string/setting_rotation_sensor_description"
             android:title="@string/setting_rotation_sensor_title" />
 
+    <EditTextPreference
+            android:defaultValue="5"
+            android:icon="@drawable/ic_speed_24px"
+            android:key="setting_comment_speed"
+            android:summary="@string/setting_comment_speed_description"
+            android:title="@string/setting_comment_speed_title" />
 
     <Preference
             android:icon="@drawable/ic_outline_stop_24px"

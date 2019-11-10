@@ -180,4 +180,8 @@
     <string name="setting_rotation_sensor_title">Forced screen rotation using sensor</string>
     <string name="setting_rotation_sensor_description">The screen is rotated using the sensor even when the screen rotation is disabled.</string>
     <string name="nimado">2-window comment view</string>
+    <string name="setting_comment_speed_title">Comment flow speed</string>
+    <string name="setting_comment_speed_description">The default is 5</string>
+    <string name="entyou_message">I confirmed the extension.</string>
+    <string name="end_time">End time</string>
 </resources>
