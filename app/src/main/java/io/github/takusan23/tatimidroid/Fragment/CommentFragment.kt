@@ -213,6 +213,9 @@ class CommentFragment : Fragment() {
     //延長検知。視聴セッション接続後すぐに送られてくるので一回目はパス。
     var isEntyouKenti = false
 
+    //匿名コメント非表示機能。基本off
+    var isTokumeiHide = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
