@@ -105,6 +105,35 @@
                             android:padding="5sp"
                             android:text="@string/iyayo_comment" />
 
+<!--
+                    <Switch
+                            android:id="@+id/fragment_comment_fragment_menu_toast_switch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:padding="5sp"
+                            android:text="@string/comment_toast" />
+
+
+                    <Switch
+                            android:id="@+id/fragment_comment_fragment_menu_tts_switch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:padding="5sp"
+                            android:text="@string/tts" />
+
+-->
+
+                    <Switch
+                            android:id="@+id/fragment_comment_fragment_menu_iyayo_hidden_switch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:checked="false"
+                            android:padding="5sp"
+                            android:text="@string/iyayo_hidden" />
+
+
                     <Button
                             android:id="@+id/fragment_comment_fragment_menu_quality_button"
                             android:layout_width="match_parent"

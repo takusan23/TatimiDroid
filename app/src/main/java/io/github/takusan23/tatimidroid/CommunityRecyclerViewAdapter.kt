@@ -18,6 +18,7 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Fragment.AutoAdmissionBottomFragment
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
 import kotlinx.android.synthetic.main.activity_main.*
+import java.text.SimpleDateFormat
 import java.util.*
 
 class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
@@ -49,27 +50,18 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         val liveNow = item.get(8)
 
         //時間を文字列に
-        val calender = Calendar.getInstance(TimeZone.getDefault())
-        calender.timeInMillis = live_time.toLong()
-
-        val month = calender.get(Calendar.MONTH)
-        val date = calender.get(Calendar.DATE)
-        val hour = calender.get(Calendar.HOUR_OF_DAY)
-        val minute = calender.get(Calendar.MINUTE)
-
-        val time = "${month + 1}/${date} ${hour}:${minute}"
-
-
+        val simpleDateFormat = SimpleDateFormat("MM/dd HH:mm:ss")
+        val time = simpleDateFormat.format(live_time.toLong())
 
         holder.titleTextView.text = "${title}\n[${name}]"
 
         if (liveNow.contains("Begun")) {
             //放送中
-            holder.timeTextView.text = "${time}"
+            holder.timeTextView.text = time
             holder.timeTextView.setTextColor(Color.RED)
         } else {
             //予約枠
-            holder.timeTextView.text = "${time}"
+            holder.timeTextView.text = time
             if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
                 holder.timeTextView.setTextColor(Color.parseColor("#ffffff"))
             } else {

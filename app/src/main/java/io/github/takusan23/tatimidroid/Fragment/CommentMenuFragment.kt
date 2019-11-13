@@ -182,6 +182,11 @@ class CommentMenuFragment : Fragment() {
             fragment_comment_fragment_menu_floating_button.isEnabled = false
         }
 
+        //匿名非表示
+        fragment_comment_fragment_menu_iyayo_hidden_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            commentFragment.isTokumeiHide = isChecked
+        }
+
 
     }
 
@@ -196,6 +201,8 @@ class CommentMenuFragment : Fragment() {
         //匿名で投稿するか
         fragment_comment_fragment_menu_iyayo_comment_switch.isChecked =
             commentFragment.isTokumeiComment
+        //匿名コメントを非表示にするか
+        fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = commentFragment.isTokumeiHide
     }
 
     //CommentFragmentへ値を渡す

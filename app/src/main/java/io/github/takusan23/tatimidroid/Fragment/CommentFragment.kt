@@ -213,6 +213,9 @@ class CommentFragment : Fragment() {
     //延長検知。視聴セッション接続後すぐに送られてくるので一回目はパス。
     var isEntyouKenti = false
 
+    //匿名コメント非表示機能。基本off
+    var isTokumeiHide = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -1065,6 +1068,9 @@ class CommentFragment : Fragment() {
                             Snackbar.make(live_video_view, message, Snackbar.LENGTH_LONG)
                                 .apply {
                                     anchorView = getSnackbarAnchorView()
+                                    //複数行へ
+                                    val textview = view.findViewById<TextView>(R.id.snackbar_text)
+                                    textview.isSingleLine = false
                                     show()
                                 }
                         }
