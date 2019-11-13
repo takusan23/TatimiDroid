@@ -184,4 +184,5 @@
     <string name="setting_comment_speed_description">The default is 5</string>
     <string name="entyou_message">I confirmed the extension.</string>
     <string name="end_time">End time</string>
+    <string name="error_maintenance">May be under maintenance</string>
 </resources>

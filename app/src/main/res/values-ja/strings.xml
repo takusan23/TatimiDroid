@@ -184,4 +184,5 @@
     <string name="setting_comment_speed_title">流れるコメントの速度</string>
     <string name="entyou_message">延長を確認しました。</string>
     <string name="end_time">終了時刻</string>
+    <string name="error_maintenance">メンテナンスの可能性があります。</string>
 </resources>
