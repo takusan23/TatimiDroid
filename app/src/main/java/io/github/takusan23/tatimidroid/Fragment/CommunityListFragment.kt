@@ -159,83 +159,65 @@ class CommunityListFragment : Fragment() {
     fun getRanking() {
         recyclerViewList.clear()
         GlobalScope.launch {
-            val response =
+            val document =
                 Jsoup.connect("https://sp.live.nicovideo.jp/ranking")
                     .cookie("user_session", user_session)
-                    .execute()
+                    .get()
 
-            if (response.statusCode() == 200) {
-                val document = response.parse()
+            //JSONっぽいのがあるので取り出す
+            val json = document.head().getElementsByTag("script").get(3)
+            var json_string = URLDecoder.decode(json.html(), "utf-8")
 
-                //JSONっぽいのがあるので取り出す
-                val json = document.head().getElementsByTag("script").get(3)
-                var json_string = URLDecoder.decode(json.html(), "utf-8")
+            json_string = json_string.replace("window.__initial_state__ = \"", "")
+            json_string =
+                json_string.replace(
+                    "window.__public_path__ = \"https://nicolive.cdn.nimg.jp/relive/sp/\";",
+                    ""
+                )
+            json_string =
+                json_string.replace("\";", "")
 
-                json_string = json_string.replace("window.__initial_state__ = \"", "")
-                json_string =
-                    json_string.replace(
-                        "window.__public_path__ = \"https://nicolive.cdn.nimg.jp/relive/sp/\";",
-                        ""
-                    )
-                json_string =
-                    json_string.replace("\";", "")
-
-                try {
-                    val jsonObject = JSONObject(json_string)
+            try {
+                val jsonObject = JSONObject(json_string)
 
 
-                    //JSON解析
-                    val programs =
-                        jsonObject.getJSONObject("pageContents").getJSONObject("ranking")
-                            .getJSONObject("rankingPrograms")
-                            .getJSONArray("rankingPrograms")
+                //JSON解析
+                val programs =
+                    jsonObject.getJSONObject("pageContents").getJSONObject("ranking")
+                        .getJSONObject("rankingPrograms")
+                        .getJSONArray("rankingPrograms")
 
-                    //for
-                    for (i in 0 until programs.length()) {
-                        val jsonObject = programs.getJSONObject(i)
-                        val programId = jsonObject.getString("id")
-                        val title = jsonObject.getString("title")
-                        val beginAt = jsonObject.getString("beginAt")
-                        val communityName = jsonObject.getString("socialGroupName")
-                        val liveNow = jsonObject.getString("liveCycle") //放送中か？
-                        val rank = jsonObject.getString("rank")
-                        //RecyclerView追加
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(title)
-                        item.add(communityName)
-                        item.add(title)
-                        item.add(beginAt)
-                        item.add(beginAt)
-                        item.add(programId)
-                        item.add(beginAt)
-                        item.add(liveNow)
-                        recyclerViewList.add(item)
-                    }
-                    //リスト更新
-                    activity?.runOnUiThread {
-                        communityRecyclerViewAdapter.notifyDataSetChanged()
-                        community_recyclerview.adapter = communityRecyclerViewAdapter
-                        community_swipe.isRefreshing = false
-                    }
-
-                } catch (e: JSONException) {
-                    e.printStackTrace()
+                //for
+                for (i in 0 until programs.length()) {
+                    val jsonObject = programs.getJSONObject(i)
+                    val programId = jsonObject.getString("id")
+                    val title = jsonObject.getString("title")
+                    val beginAt = jsonObject.getString("beginAt")
+                    val communityName = jsonObject.getString("socialGroupName")
+                    val liveNow = jsonObject.getString("liveCycle") //放送中か？
+                    val rank = jsonObject.getString("rank")
+                    //RecyclerView追加
+                    val item = arrayListOf<String>()
+                    item.add("")
+                    item.add(title)
+                    item.add(communityName)
+                    item.add(title)
+                    item.add(beginAt)
+                    item.add(beginAt)
+                    item.add(programId)
+                    item.add(beginAt)
+                    item.add(liveNow)
+                    recyclerViewList.add(item)
                 }
-            } else if (response.statusCode() == 503) {
-                //メンテ
+                //リスト更新
                 activity?.runOnUiThread {
-                    Toast.makeText(
-                        context,
-                        getString(R.string.error_maintenance),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    communityRecyclerViewAdapter.notifyDataSetChanged()
+                    community_recyclerview.adapter = communityRecyclerViewAdapter
+                    community_swipe.isRefreshing = false
                 }
-            } else {
-                //エラー
-                activity?.runOnUiThread {
-                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
-                }
+
+            } catch (e: JSONException) {
+                e.printStackTrace()
             }
         }
     }
@@ -244,76 +226,56 @@ class CommunityListFragment : Fragment() {
     fun getRecommend() {
         recyclerViewList.clear()
         GlobalScope.launch {
-            val response =
+            val document =
                 Jsoup.connect("https://live.nicovideo.jp/?header")
                     .cookie("user_session", user_session)
-                    .execute()
+                    .get()
 
-            if (response.statusCode() == 200) {
-                val document = response.parse()
-
-                //JSONっぽいのがあるので取り出す
-                val json =
-                    document.getElementById("embedded-data").getElementsByAttribute("data-props")
+            //JSONっぽいのがあるので取り出す
+            val json = document.getElementById("embedded-data").getElementsByAttribute("data-props")
 
 
-                val json_string = json.attr("data-props")
+            val json_string = json.attr("data-props")
 
-                try {
-                    val jsonObject = JSONObject(json_string)
+            try {
+                val jsonObject = JSONObject(json_string)
 
-                    //JSON解析
-                    val programs =
-                        jsonObject.getJSONObject("view")
-                            .getJSONObject("recommendedProgramListState")
-                            .getJSONArray("programList")
+                //JSON解析
+                val programs =
+                    jsonObject.getJSONObject("view").getJSONObject("recommendedProgramListState")
+                        .getJSONArray("programList")
 
-                    //for
-                    for (i in 0 until programs.length()) {
-                        val jsonObject = programs.getJSONObject(i)
-                        val programId = jsonObject.getString("id")
-                        val title = jsonObject.getString("title")
-                        val beginAt = jsonObject.getString("beginAt")
-                        val communityName =
-                            jsonObject.getJSONObject("socialGroup").getString("name")
-                        val liveNow = jsonObject.getString("liveCycle") //放送中か？
-                        //RecyclerView追加
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(title)
-                        item.add(communityName)
-                        item.add(title)
-                        item.add(beginAt)
-                        item.add(beginAt)
-                        item.add(programId)
-                        item.add(beginAt)
-                        item.add("Begun")
-                        recyclerViewList.add(item)
-                    }
-                    //リスト更新
-                    activity?.runOnUiThread {
-                        communityRecyclerViewAdapter.notifyDataSetChanged()
-                        community_recyclerview.adapter = communityRecyclerViewAdapter
-                        community_swipe.isRefreshing = false
-                    }
-                } catch (e: JSONException) {
-                    e.printStackTrace()
+                //for
+                for (i in 0 until programs.length()) {
+                    val jsonObject = programs.getJSONObject(i)
+                    val programId = jsonObject.getString("id")
+                    val title = jsonObject.getString("title")
+                    val beginAt = jsonObject.getString("beginAt")
+                    val communityName = jsonObject.getJSONObject("socialGroup").getString("name")
+                    val liveNow = jsonObject.getString("liveCycle") //放送中か？
+                    //RecyclerView追加
+                    val item = arrayListOf<String>()
+                    item.add("")
+                    item.add(title)
+                    item.add(communityName)
+                    item.add(title)
+                    item.add(beginAt)
+                    item.add(beginAt)
+                    item.add(programId)
+                    item.add(beginAt)
+                    item.add("Begun")
+                    recyclerViewList.add(item)
                 }
-            } else if (response.statusCode() == 503) {
-                //メンテ
+                //リスト更新
                 activity?.runOnUiThread {
-                    Toast.makeText(
-                        context,
-                        getString(R.string.error_maintenance),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    communityRecyclerViewAdapter.notifyDataSetChanged()
+                    community_recyclerview.adapter = communityRecyclerViewAdapter
+                    community_swipe.isRefreshing = false
                 }
-            } else {
-                //エラー
-                activity?.runOnUiThread {
-                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
-                }
+            } catch (e: JSONException) {
+                e.printStackTrace()
             }
+
         }
     }
 
@@ -324,84 +286,63 @@ class CommunityListFragment : Fragment() {
     fun getFavouriteCommunity() {
         recyclerViewList.clear()
         GlobalScope.launch {
-            val response =
+            val document =
                 Jsoup.connect("https://sp.live.nicovideo.jp/favorites")
                     .cookie("user_session", user_session)
-                    .execute()
+                    .get()
 
-            //メンテ中は503エラー出す
-            if (response.statusCode() == 200) {
-                //せいこう
-                val document = response.parse()
+            //JSONっぽいのがあるので取り出す
+            val json = document.head().getElementsByTag("script").get(3)
+            var json_string = json.html().replace("window.__initial_state__ = \"", "")
+            json_string =
+                json_string.replace(
+                    "window.__public_path__ = \"https://nicolive.cdn.nimg.jp/relive/sp/\";",
+                    ""
+                )
+            json_string =
+                json_string.replace("}}\";", "")
 
-                //JSONっぽいのがあるので取り出す
-                val json = document.head().getElementsByTag("script").get(3)
-                var json_string = json.html().replace("window.__initial_state__ = \"", "")
-                json_string =
-                    json_string.replace(
-                        "window.__public_path__ = \"https://nicolive.cdn.nimg.jp/relive/sp/\";",
-                        ""
-                    )
-                json_string =
-                    json_string.replace("}}\";", "")
-
-                //URLデコードする
-                json_string = URLDecoder.decode(json_string, "UTF-8")
-                try {
-                    val jsonObject = JSONObject(json_string)
+            //URLデコードする
+            json_string = URLDecoder.decode(json_string, "UTF-8")
+            try {
+                val jsonObject = JSONObject(json_string)
 
 
-                    //JSON解析
-                    val programs =
-                        jsonObject.getJSONObject("pageContents").getJSONObject("favorites")
-                            .getJSONObject("favoritePrograms")
-                            .getJSONArray("programs")
-                    //for
-                    for (i in 0 until programs.length()) {
-                        val jsonObject = programs.getJSONObject(i)
-                        val programId = jsonObject.getString("id")
-                        val title = jsonObject.getString("title")
-                        val beginAt = jsonObject.getString("beginAt")
-                        val communityName = jsonObject.getString("socialGroupName")
-                        val liveNow = jsonObject.getString("liveCycle") //放送中か？
-                        //RecyclerView追加
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(title)
-                        item.add(communityName)
-                        item.add(title)
-                        item.add(beginAt)
-                        item.add(beginAt)
-                        item.add(programId)
-                        item.add(beginAt)
-                        item.add(liveNow)
-                        recyclerViewList.add(item)
-                    }
-                    //リスト更新
-                    activity?.runOnUiThread {
-                        communityRecyclerViewAdapter.notifyDataSetChanged()
-                        community_recyclerview.adapter = communityRecyclerViewAdapter
-                        community_swipe.isRefreshing = false
-                    }
-                } catch (e: JSONException) {
-                    e.printStackTrace()
+                //JSON解析
+                val programs =
+                    jsonObject.getJSONObject("pageContents").getJSONObject("favorites")
+                        .getJSONObject("favoritePrograms")
+                        .getJSONArray("programs")
+                //for
+                for (i in 0 until programs.length()) {
+                    val jsonObject = programs.getJSONObject(i)
+                    val programId = jsonObject.getString("id")
+                    val title = jsonObject.getString("title")
+                    val beginAt = jsonObject.getString("beginAt")
+                    val communityName = jsonObject.getString("socialGroupName")
+                    val liveNow = jsonObject.getString("liveCycle") //放送中か？
+                    //RecyclerView追加
+                    val item = arrayListOf<String>()
+                    item.add("")
+                    item.add(title)
+                    item.add(communityName)
+                    item.add(title)
+                    item.add(beginAt)
+                    item.add(beginAt)
+                    item.add(programId)
+                    item.add(beginAt)
+                    item.add(liveNow)
+                    recyclerViewList.add(item)
                 }
-            } else if (response.statusCode() == 503) {
-                //メンテ
+                //リスト更新
                 activity?.runOnUiThread {
-                    Toast.makeText(
-                        context,
-                        getString(R.string.error_maintenance),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    communityRecyclerViewAdapter.notifyDataSetChanged()
+                    community_recyclerview.adapter = communityRecyclerViewAdapter
+                    community_swipe.isRefreshing = false
                 }
-            } else {
-                //エラー
-                activity?.runOnUiThread {
-                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
-                }
+            } catch (e: JSONException) {
+                e.printStackTrace()
             }
-
         }
     }
 
@@ -467,11 +408,7 @@ class CommunityListFragment : Fragment() {
                         community_swipe.isRefreshing = false
                     }
                 } else {
-                    //めんての時は503返すらしい
-                    when (response.code) {
-                        503 -> showToast(getString(R.string.error_maintenance) + "\n" + response.code)
-                        else -> showToast(getString(R.string.error) + "\n" + response.code)
-                    }
+                    showToast(getString(R.string.error) + "\n" + response.code)
                 }
             }
         })
