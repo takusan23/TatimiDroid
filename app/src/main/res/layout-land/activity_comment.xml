@@ -17,14 +17,22 @@
         <FrameLayout
                 android:id="@+id/live_framelayout"
                 android:layout_width="match_parent"
+                android:layout_gravity="center"
                 android:layout_height="match_parent"
                 android:layout_weight="1">
 
             <VideoView
                     android:id="@+id/live_video_view"
                     android:layout_width="match_parent"
+                    android:visibility="gone"
                     android:layout_height="match_parent"
                     android:layout_gravity="center" />
+
+
+            <SurfaceView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/live_surface_view"/>
 
             <io.github.takusan23.tatimidroid.CommentCanvas
                     android:id="@+id/comment_canvas"

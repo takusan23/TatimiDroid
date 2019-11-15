@@ -32,6 +32,13 @@ import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import com.google.android.exoplayer2.ExoPlayerFactory
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.source.hls.HlsMediaSource
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DataSpec
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.TransferListener
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
@@ -215,6 +222,9 @@ class CommentFragment : Fragment() {
 
     //匿名コメント非表示機能。基本off
     var isTokumeiHide = false
+
+    //ExoPlayer
+    lateinit var exoPlayer: SimpleExoPlayer
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -1245,6 +1255,12 @@ class CommentFragment : Fragment() {
         commentPOSTWebSocketClient.connect()
     }
 
+    //16:9で横の大きさがわかるときに縦の大きさを返す
+    fun getAspectHeightFromWidth(width: Int): Int {
+        val heightCalc = width / 16
+        return heightCalc * 9
+    }
+
     //視聴モード
     fun setPlayVideoView() {
         //設定で読み込むかどうか
@@ -1255,83 +1271,130 @@ class CommentFragment : Fragment() {
             val display = commentActivity.windowManager.defaultDisplay
             val point = Point()
             display.getSize(point)
-            val layoutParams = live_video_view.layoutParams
+
+            val frameLayoutParams = liveFrameLayout.layoutParams
 
             //横画面のときの対応
             if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                //  //横画面
-                layoutParams?.width = point.x / 2
+/*
+                //横画面
+                frameLayoutParams.width = point.x / 2
+*/
                 //二窓モードのときはとりあえず更に小さくしておく
                 if (isNimadoMode) {
-                    layoutParams?.width = point.x / 4
+                    frameLayoutParams.width = point.x / 4
                 }
-                layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
-                live_video_view.layoutParams = layoutParams
+                //16:9の9を計算
+                frameLayoutParams.height = getAspectHeightFromWidth(point.x / 2)
+                liveFrameLayout.layoutParams = frameLayoutParams
             } else {
                 //縦画面
-                layoutParams?.height = point.y / 3
-                layoutParams?.width = ViewGroup.LayoutParams.MATCH_PARENT
-                live_video_view.layoutParams = layoutParams
+                frameLayoutParams.width = point.x
+                //16:9の9を計算
+                frameLayoutParams.height = getAspectHeightFromWidth(frameLayoutParams.width)
+                liveFrameLayout.layoutParams = frameLayoutParams
             }
 
+            exoPlayer = ExoPlayerFactory.newSimpleInstance(context)
+            val sourceFactory = DefaultDataSourceFactory(
+                context,
+                "TatimiDroid;@takusan_23",
+                object : TransferListener {
+                    override fun onTransferInitializing(
+                        source: DataSource?,
+                        dataSpec: DataSpec?,
+                        isNetwork: Boolean
+                    ) {
 
-            live_video_view.setOnErrorListener { mp, what, extra ->
-                /*
+                    }
+
+                    override fun onTransferStart(
+                        source: DataSource?,
+                        dataSpec: DataSpec?,
+                        isNetwork: Boolean
+                    ) {
+
+                    }
+
+                    override fun onTransferEnd(
+                        source: DataSource?,
+                        dataSpec: DataSpec?,
+                        isNetwork: Boolean
+                    ) {
+
+                    }
+
+                    override fun onBytesTransferred(
+                        source: DataSource?,
+                        dataSpec: DataSpec?,
+                        isNetwork: Boolean,
+                        bytesTransferred: Int
+                    ) {
+
+                    }
+                })
+
+            val hlsMediaSource = HlsMediaSource.Factory(sourceFactory)
+                .setAllowChunklessPreparation(true)
+                .createMediaSource(hls_address.toUri());
+
+            //再生準備
+            exoPlayer.prepare(hlsMediaSource)
+            //SurfaceViewセット
+            exoPlayer.setVideoSurfaceView(live_surface_view)
+            //再生
+            exoPlayer.playWhenReady = true
+
+            /* val tree = live_video_view.viewTreeObserver
+             val addOnGlobalLayoutListener = tree?.addOnGlobalLayoutListener {
+                 //横画面のときの対応
+                 val layoutParams = liveFrameLayout.layoutParams
+                 if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                     //   //横画面
+                     if (isNimadoMode) {
+                         //layoutParams.width = live_video_view.width
+                         //に窓のときはなぜか半分になるので倍にする
+                         layoutParams.width = live_video_view.width * 2
+                         layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                         liveFrameLayout.layoutParams = layoutParams
+                     }
+                     //コメントキャンバス
+                     val commentCanvasLayout =
+                         commentCanvas.layoutParams as FrameLayout.LayoutParams
+                     commentCanvasLayout.width = live_video_view.width
+                     commentCanvasLayout.height = live_video_view.height
+                     commentCanvasLayout.gravity = Gravity.CENTER
+                     commentCanvas.layoutParams = commentCanvasLayout
+
+                 } else {
+                     //縦画面
+                     layoutParams.height = live_video_view.height
+                     layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                     liveFrameLayout.layoutParams = layoutParams
+                 }
+             }
+
+
+
+             live_video_view.setOnErrorListener { mp, what, extra ->
+                 *//*
                                 println("error")
                                 println(what)
                                 println(extra)
-                */
+                *//*
                 false
             }
 
-
-            /*
-            * 再生始まったら生放送サイズを取り出してレイアウトを調整する。
-            * */
-            live_video_view.setOnInfoListener { mp: MediaPlayer?, what: Int, extra: Int ->
-                if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
-                    val tree = live_video_view.viewTreeObserver
-                    val addOnGlobalLayoutListener = tree?.addOnGlobalLayoutListener {
-                        //横画面のときの対応
-                        val layoutParams = liveFrameLayout.layoutParams
-                        if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                            //   //横画面
-                            if (isNimadoMode) {
-                                //layoutParams.width = live_video_view.width
-                                //に窓のときはなぜか半分になるので倍にする
-                                layoutParams.width = live_video_view.width * 2
-                                layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                                liveFrameLayout.layoutParams = layoutParams
-                            }
-                            //コメントキャンバス
-                            val commentCanvasLayout =
-                                commentCanvas.layoutParams as FrameLayout.LayoutParams
-                            commentCanvasLayout.width = live_video_view.width
-                            commentCanvasLayout.height = live_video_view.height
-                            commentCanvasLayout.gravity = Gravity.CENTER
-                            commentCanvas.layoutParams = commentCanvasLayout
-
-                        } else {
-                            //縦画面
-                            layoutParams.height = live_video_view.height
-                            layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                            liveFrameLayout.layoutParams = layoutParams
-                        }
-                    }
-                }
-                false
-            }
-
-/*
+*//*
             fab.setOnClickListener {
                 println("reload")
                 live_video_view.start()
             }
-*/
+*//*
             live_video_view.setVideoURI(hls_address.toUri())
             live_video_view.setOnPreparedListener {
                 live_video_view.start()
-            }
+            }*/
         }
 
     }
@@ -1747,6 +1810,9 @@ class CommentFragment : Fragment() {
         //println("ライフサイクル：onDestroy")
 
         live_video_view.stopPlayback()
+
+        exoPlayer.stop()
+        exoPlayer.release()
 
 
     }
