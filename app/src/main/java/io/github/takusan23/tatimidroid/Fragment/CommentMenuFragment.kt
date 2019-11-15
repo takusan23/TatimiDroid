@@ -118,7 +118,7 @@ class CommentMenuFragment : Fragment() {
             //Kotlinのapply便利だと思った。
             commentFragment.apply {
                 programShare =
-                    ProgramShare(commentActivity, this.live_video_view, programTitle, liveId)
+                    ProgramShare(commentActivity, this.live_surface_view, programTitle, liveId)
                 programShare.showShareScreen()
             }
         }
@@ -126,7 +126,7 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_menu_share_image_attach_button.setOnClickListener {
             commentFragment.apply {
                 programShare =
-                    ProgramShare(commentActivity, this.live_video_view, programTitle, liveId)
+                    ProgramShare(commentActivity, this.live_surface_view, programTitle, liveId)
                 programShare.shareAttacgImage()
             }
         }
@@ -135,7 +135,8 @@ class CommentMenuFragment : Fragment() {
             (activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment).apply {
                 if (live_framelayout.visibility == View.VISIBLE) {
                     live_framelayout.visibility = View.GONE
-                    live_video_view.stopPlayback()
+                    exoPlayer.stop()
+                    exoPlayer.release()
                 } else {
                     live_framelayout.visibility = View.VISIBLE
                     setPlayVideoView()

@@ -32,6 +32,7 @@ import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
@@ -211,7 +212,7 @@ class CommentFragment : Fragment() {
     /*
     * 画面回転でこの子たちnullになるのでfindViewByIdを絶対使わないということはできなかった。
     * */
-    lateinit var live_video_view: VideoView
+    //lateinit var live_video_view: VideoView
     lateinit var commentCanvas: CommentCanvas
     lateinit var liveFrameLayout: FrameLayout
 
@@ -237,7 +238,6 @@ class CommentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        live_video_view = view.findViewById(R.id.live_video_view)
         commentCanvas = view.findViewById(R.id.comment_canvas)
         liveFrameLayout = view.findViewById(R.id.live_framelayout)
 
@@ -975,7 +975,7 @@ class CommentFragment : Fragment() {
                             context!!
                         )
                         Snackbar.make(
-                            live_video_view,
+                            live_surface_view,
                             "${getString(R.string.successful_quality)}\n${oldQuality}→${newQuality}",
                             Snackbar.LENGTH_SHORT
                         ).show()
@@ -1075,7 +1075,7 @@ class CommentFragment : Fragment() {
                         val message =
                             "${getString(R.string.entyou_message)}\n${getString(R.string.end_time)} $time"
                         commentActivity.runOnUiThread {
-                            Snackbar.make(live_video_view, message, Snackbar.LENGTH_LONG)
+                            Snackbar.make(live_surface_view, message, Snackbar.LENGTH_LONG)
                                 .apply {
                                     anchorView = getSnackbarAnchorView()
                                     //複数行へ
@@ -1290,6 +1290,10 @@ class CommentFragment : Fragment() {
             } else {
                 //縦画面
                 frameLayoutParams.width = point.x
+                //二窓モードのときは小さくしておく
+                if (isNimadoMode) {
+                    frameLayoutParams.width = point.x / 2
+                }
                 //16:9の9を計算
                 frameLayoutParams.height = getAspectHeightFromWidth(frameLayoutParams.width)
                 liveFrameLayout.layoutParams = frameLayoutParams
@@ -1399,6 +1403,18 @@ class CommentFragment : Fragment() {
 
     }
 
+
+    override fun onStop() {
+        super.onStop()
+        exoPlayer.stop()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (this@CommentFragment::exoPlayer.isInitialized) {
+            exoPlayer.playWhenReady = true
+        }
+    }
 
     //コメント投稿用
     fun sendComment(comment: String) {
@@ -1692,7 +1708,7 @@ class CommentFragment : Fragment() {
 
     fun setLandscapePortrait() {
         val conf = resources.configuration
-        live_video_view.stopPlayback()
+        //live_video_view.stopPlayback()
         when (conf.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> {
                 //縦画面
@@ -1806,15 +1822,12 @@ class CommentFragment : Fragment() {
         if (this@CommentFragment::rotationSensor.isInitialized) {
             rotationSensor.destroy()
         }
-
-        //println("ライフサイクル：onDestroy")
-
-        live_video_view.stopPlayback()
-
+        //止める
+        exoPlayer.playWhenReady = false
         exoPlayer.stop()
+        exoPlayer.seekTo(0)
         exoPlayer.release()
-
-
+        // println("とじます")
     }
 
     //Activity終了時に閉じる
