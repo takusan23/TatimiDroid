@@ -324,6 +324,7 @@ class CommentFragment : Fragment() {
 
 
         //二窓モードではPreferenceの値を利用しない
+        //いつかSharedPreferenceで視聴モードを管理するのやめようと思う。
         if (arguments?.getString("watch_mode")?.isNotEmpty() == true) {
             watchingmode = false
             nicocasmode = false
