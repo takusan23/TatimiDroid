@@ -292,12 +292,6 @@ class CommentFragment : Fragment() {
             rotationSensor = RotationSensor(commentActivity)
         }
 
-        //視聴モードならtrue
-        isWatchingMode = pref_setting.getBoolean("setting_watching_mode", false)
-
-        //生放送を視聴する場合はtrue
-        watchLive = pref_setting.getBoolean("setting_watch_live", false)
-
         /*
         * ID同じだと２窓のときなぜか隣のFragmentが置き換わるなどするので
         * IDを作り直す
@@ -322,13 +316,27 @@ class CommentFragment : Fragment() {
         var watchingmode = pref_setting.getBoolean("setting_watching_mode", false)
         var nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
 
+        //視聴モードならtrue
+        isWatchingMode = pref_setting.getBoolean("setting_watching_mode", false)
+
+        //生放送を視聴する場合はtrue
+        watchLive = pref_setting.getBoolean("setting_watch_live", false)
+
+
         //二窓モードではPreferenceの値を利用しない
         if (arguments?.getString("watch_mode")?.isNotEmpty() == true) {
             watchingmode = false
             nicocasmode = false
+            isWatchingMode = false
             when (arguments?.getString("watch_mode")) {
-                "comment_post" -> watchingmode = true
-                "nicocas" -> nicocasmode = true
+                "comment_post" -> {
+                    watchingmode = true
+                    isWatchingMode = true
+                }
+                "nicocas" -> {
+                    nicocasmode = true
+                    isWatchingMode = false
+                }
             }
         }
 
@@ -883,7 +891,7 @@ class CommentFragment : Fragment() {
         val uri = URI(url)
         connectionNicoLiveWebSocket = object : WebSocketClient(uri) {
             override fun onOpen(handshakedata: ServerHandshake?) {
-                //System.out.println("ニコ生視聴セッションWebSocket接続開始")
+                //System.out.println("ニコ生視聴セッションWebSocket接続開始 $broadcastId")
                 //最初にクライアント側からサーバーにメッセージを送る必要がある
                 val jsonObject = JSONObject()
                 jsonObject.put("type", "watch")
@@ -929,11 +937,11 @@ class CommentFragment : Fragment() {
             }
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                // System.out.println("ニコ生視聴セッション終了：$reason")
+                //System.out.println("ニコ生視聴セッション終了：$reason")
             }
 
             override fun onMessage(message: String?) {
-
+                // println("メッセージ受信 $broadcastId")
                 //HLSのアドレス　と　変更可能な画質一覧取る
                 if (message?.contains("currentStream") == true) {
                     //System.out.println("ニコ生視聴セッション：$message")
@@ -1093,7 +1101,7 @@ class CommentFragment : Fragment() {
 
             override fun onError(ex: Exception?) {
                 ex?.printStackTrace()
-                //System.out.println("ニコ生視聴セッションWebSocket　えらー")
+                System.out.println("ニコ生視聴セッションWebSocket　えらー")
             }
         }
 
@@ -1265,7 +1273,7 @@ class CommentFragment : Fragment() {
     fun setPlayVideoView() {
         //設定で読み込むかどうか
         commentActivity.runOnUiThread {
-            //  println("生放送再生：HLSアドレス : $hls_address")
+            // println("生放送再生：HLSアドレス : $hls_address")
 
             //ウィンドウの半分ぐらいの大きさに設定
             val display = commentActivity.windowManager.defaultDisplay
@@ -1282,10 +1290,10 @@ class CommentFragment : Fragment() {
 */
                 //二窓モードのときはとりあえず更に小さくしておく
                 if (isNimadoMode) {
-                    frameLayoutParams.width = point.x / 4
+                    frameLayoutParams.width = point.x / 2
                 }
                 //16:9の9を計算
-                frameLayoutParams.height = getAspectHeightFromWidth(point.x / 2)
+                frameLayoutParams.height = getAspectHeightFromWidth(point.x / 4)
                 liveFrameLayout.layoutParams = frameLayoutParams
             } else {
                 //縦画面
@@ -1406,7 +1414,9 @@ class CommentFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        exoPlayer.stop()
+        if (this@CommentFragment::exoPlayer.isInitialized) {
+            exoPlayer.stop()
+        }
     }
 
     override fun onResume() {
@@ -1823,10 +1833,12 @@ class CommentFragment : Fragment() {
             rotationSensor.destroy()
         }
         //止める
-        exoPlayer.playWhenReady = false
-        exoPlayer.stop()
-        exoPlayer.seekTo(0)
-        exoPlayer.release()
+        if (this@CommentFragment::exoPlayer.isInitialized) {
+            exoPlayer.playWhenReady = false
+            exoPlayer.stop()
+            exoPlayer.seekTo(0)
+            exoPlayer.release()
+        }
         // println("とじます")
     }
 
