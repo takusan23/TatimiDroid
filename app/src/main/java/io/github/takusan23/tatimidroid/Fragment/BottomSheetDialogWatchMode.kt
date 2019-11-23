@@ -99,6 +99,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                             //画面移動
                             val intent = Intent(context, CommentActivity::class.java)
                             intent.putExtra("liveId", liveId)
+                            intent.putExtra("watch_mode", "comment_viewer")
                             startActivity(intent)
                             this@BottomSheetDialogWatchMode.dismiss()
                         }
@@ -113,6 +114,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                             //画面移動
                             val intent = Intent(context, CommentActivity::class.java)
                             intent.putExtra("liveId", liveId)
+                            intent.putExtra("watch_mode", "comment_post")
                             startActivity(intent)
                             this@BottomSheetDialogWatchMode.dismiss()
                         }
@@ -127,6 +129,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                             //画面移動
                             val intent = Intent(context, CommentActivity::class.java)
                             intent.putExtra("liveId", liveId)
+                            intent.putExtra("watch_mode", "nicocas")
                             startActivity(intent)
                             this@BottomSheetDialogWatchMode.dismiss()
                         }

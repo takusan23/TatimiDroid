@@ -226,6 +226,8 @@ class CommentActivity : AppCompatActivity() {
         //LiveID
         val liveId = intent?.getStringExtra("liveId") ?: ""
 
+        val watch_mode = intent?.getStringExtra("watch_mode")
+
         /*
         * なんか知らんけどnullチェックすればうまく動いてるっぽい？
         * */
@@ -236,6 +238,7 @@ class CommentActivity : AppCompatActivity() {
             //LiveID詰める
             val bundle = Bundle()
             bundle.putString("liveId", liveId)
+            bundle.putString("watch_mode", watch_mode)
             commentFragment.arguments = bundle
             trans.replace(R.id.activity_comment_new_linearlayout, commentFragment, liveId)
             trans.commit()

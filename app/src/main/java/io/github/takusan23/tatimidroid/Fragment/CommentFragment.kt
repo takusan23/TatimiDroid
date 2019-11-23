@@ -312,6 +312,7 @@ class CommentFragment : Fragment() {
         //NGデータベース読み込み
         loadNGDataBase()
 
+/*
         //コメント投稿モード、nicocas式コメント投稿モード以外でFAB非表示
         var watchingmode = pref_setting.getBoolean("setting_watching_mode", false)
         var nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
@@ -319,15 +320,16 @@ class CommentFragment : Fragment() {
         //視聴モードならtrue
         isWatchingMode = pref_setting.getBoolean("setting_watching_mode", false)
 
+
+*/
         //生放送を視聴する場合はtrue
         watchLive = pref_setting.getBoolean("setting_watch_live", false)
 
-
         //二窓モードではPreferenceの値を利用しない
         //いつかSharedPreferenceで視聴モードを管理するのやめようと思う。
+        var watchingmode = false
+        var nicocasmode = false
         if (arguments?.getString("watch_mode")?.isNotEmpty() == true) {
-            watchingmode = false
-            nicocasmode = false
             isWatchingMode = false
             when (arguments?.getString("watch_mode")) {
                 "comment_post" -> {
@@ -638,41 +640,47 @@ class CommentFragment : Fragment() {
                 when (p1?.action) {
                     "program_popup_close" -> {
                         if (isPopupPlay) {
-                            //ポップアップ再生終了
-                            notificationManager.cancel(overlayNotificationID)//削除
-                            val windowManager =
-                                context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                            windowManager.removeView(popupView)
-                            isPopupPlay = false
+                            if (this@CommentFragment::notificationManager.isInitialized) {
+                                //ポップアップ再生終了
+                                notificationManager.cancel(overlayNotificationID)//削除
+                                val windowManager =
+                                    context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                                windowManager.removeView(popupView)
+                                isPopupPlay = false
+                            }
                         }
                     }
                     "background_program_stop" -> {
                         //停止
-                        isBackgroundPlay = false
-                        mediaPlayer.stop()
-                        mediaPlayer.release()
-                        notificationManager.cancel(backgroundNotificationID)//削除
+                        if (this@CommentFragment::mediaPlayer.isInitialized) {
+                            isBackgroundPlay = false
+                            mediaPlayer.stop()
+                            mediaPlayer.release()
+                            notificationManager.cancel(backgroundNotificationID)//削除
+                        }
                     }
                     "background_program_pause" -> {
-                        isBackgroundPlay = true
-                        if (mediaPlayer.isPlaying) {
-                            //一時停止
-                            mediaPlayer.pause()
-                            //通知作成
-                            backgroundPlayNotification(
-                                getString(R.string.background_play_play),
-                                NotificationCompat.FLAG_ONGOING_EVENT
-                            )
-                        } else {
-                            //Liveで再生
-                            mediaPlayer =
-                                MediaPlayer.create(commentActivity, hls_address.toUri())
-                            mediaPlayer.start()
-                            //通知作成
-                            backgroundPlayNotification(
-                                getString(R.string.background_play_pause),
-                                NotificationCompat.FLAG_ONGOING_EVENT
-                            )
+                        if (this@CommentFragment::mediaPlayer.isInitialized) {
+                            isBackgroundPlay = true
+                            if (mediaPlayer.isPlaying) {
+                                //一時停止
+                                mediaPlayer.pause()
+                                //通知作成
+                                backgroundPlayNotification(
+                                    getString(R.string.background_play_play),
+                                    NotificationCompat.FLAG_ONGOING_EVENT
+                                )
+                            } else {
+                                //Liveで再生
+                                mediaPlayer =
+                                    MediaPlayer.create(commentActivity, hls_address.toUri())
+                                mediaPlayer.start()
+                                //通知作成
+                                backgroundPlayNotification(
+                                    getString(R.string.background_play_pause),
+                                    NotificationCompat.FLAG_ONGOING_EVENT
+                                )
+                            }
                         }
                     }
                 }
@@ -878,6 +886,7 @@ class CommentFragment : Fragment() {
                         //broadcastId
                         val broadcastId = program.getString("broadcastId")
                         connectionNicoLiveWebSocket(websocketUrl, broadcastId)
+                        //println("取得した $liveId")
                     }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
@@ -892,7 +901,7 @@ class CommentFragment : Fragment() {
         val uri = URI(url)
         connectionNicoLiveWebSocket = object : WebSocketClient(uri) {
             override fun onOpen(handshakedata: ServerHandshake?) {
-                //System.out.println("ニコ生視聴セッションWebSocket接続開始 $broadcastId")
+                // System.out.println("ニコ生視聴セッションWebSocket接続開始 $liveId")
                 //最初にクライアント側からサーバーにメッセージを送る必要がある
                 val jsonObject = JSONObject()
                 jsonObject.put("type", "watch")
@@ -931,21 +940,34 @@ class CommentFragment : Fragment() {
                 secondbodyObject.put("params", paramsArray)
                 secondObject.put("body", secondbodyObject)
 
+                /*    println(
+                        """
+
+                        JSON情報
+                        $liveId------
+                        ${jsonObject.toString()}
+                        ------
+                        $secondObject
+                        ----
+
+                    """.trimIndent()
+                    )*/
+
                 //送信
-                connectionNicoLiveWebSocket.send(secondObject.toString())
-                connectionNicoLiveWebSocket.send(jsonObject.toString())
+                this.send(secondObject.toString())
+                this.send(jsonObject.toString())
 
             }
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                //System.out.println("ニコ生視聴セッション終了：$reason")
+                // System.out.println("ニコ生視聴セッション終了：$liveId")
             }
 
             override fun onMessage(message: String?) {
-                // println("メッセージ受信 $broadcastId")
+                // println("$message $liveId $url")
                 //HLSのアドレス　と　変更可能な画質一覧取る
                 if (message?.contains("currentStream") == true) {
-                    //System.out.println("ニコ生視聴セッション：$message")
+                    //System.out.println("HLSアドレス：$liveId")
                     val jsonObject = JSONObject(message)
                     val currentObject =
                         jsonObject.getJSONObject("body").getJSONObject("currentStream")
@@ -1358,6 +1380,8 @@ class CommentFragment : Fragment() {
             //再生
             exoPlayer.playWhenReady = true
 
+
+
             /* val tree = live_video_view.viewTreeObserver
              val addOnGlobalLayoutListener = tree?.addOnGlobalLayoutListener {
                  //横画面のときの対応
@@ -1412,6 +1436,9 @@ class CommentFragment : Fragment() {
 
     }
 
+    fun isExoPlayerInitialized(): Boolean {
+        return this@CommentFragment::exoPlayer.isInitialized
+    }
 
     override fun onStop() {
         super.onStop()

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
+import android.media.VolumeShaper
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -11,6 +12,7 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
@@ -188,6 +190,24 @@ class CommentMenuFragment : Fragment() {
             commentFragment.isTokumeiHide = isChecked
         }
 
+        fragment_comment_fragment_volume_seek.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                commentFragment.apply {
+                    if (isExoPlayerInitialized()) {
+                        exoPlayer.volume = progress / 10F
+                    }
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+        })
 
     }
 
@@ -204,6 +224,13 @@ class CommentMenuFragment : Fragment() {
             commentFragment.isTokumeiComment
         //匿名コメントを非表示にするか
         fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = commentFragment.isTokumeiHide
+
+        //音量
+        commentFragment.apply {
+            if (isExoPlayerInitialized()) {
+                fragment_comment_fragment_volume_seek.progress = (exoPlayer.volume * 10).toInt()
+            }
+        }
     }
 
     //CommentFragmentへ値を渡す

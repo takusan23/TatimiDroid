@@ -15,6 +15,7 @@ import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
 import kotlinx.android.synthetic.main.fragment_gift_layout.*
 import okhttp3.*
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
@@ -85,26 +86,31 @@ class GiftFragment : Fragment() {
 
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
-                    val response_string = response.body?.string()
-                    val jsonObject = JSONObject(response_string)
-                    val rankingArray = jsonObject.getJSONObject("data").getJSONArray("ranking")
-                    for (i in 0..(rankingArray.length() - 1)) {
-                        val jsonObject = rankingArray.getJSONObject(i)
-                        val userId = jsonObject.getString("userId")
-                        val advertiserName = jsonObject.getString("advertiserName")
-                        val totalContribution = jsonObject.getString("totalContribution")
-                        val rank = jsonObject.getString("rank")
-                        //RecyclerView追加
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(advertiserName)
-                        item.add(totalContribution)
-                        recyclerViewList.add(item)
+                    //他の端末でJSONエラー出るので例外処理。私の環境だと再現できねえ？
+                    try{
+                        val response_string = response.body?.string()
+                        val jsonObject = JSONObject(response_string)
+                        val rankingArray = jsonObject.getJSONObject("data").getJSONArray("ranking")
+                        for (i in 0..(rankingArray.length() - 1)) {
+                            val jsonObject = rankingArray.getJSONObject(i)
+                            val userId = jsonObject.getString("userId")
+                            val advertiserName = jsonObject.getString("advertiserName")
+                            val totalContribution = jsonObject.getString("totalContribution")
+                            val rank = jsonObject.getString("rank")
+                            //RecyclerView追加
+                            val item = arrayListOf<String>()
+                            item.add("")
+                            item.add(advertiserName)
+                            item.add(totalContribution)
+                            recyclerViewList.add(item)
+                        }
+                        //更新
+                        activity?.runOnUiThread {
+                            giftRecyclerViewAdapter.notifyDataSetChanged()
+                        }}catch (e:JSONException){
+                        e.printStackTrace()
                     }
-                    //更新
-                    activity?.runOnUiThread {
-                        giftRecyclerViewAdapter.notifyDataSetChanged()
-                    }
+
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }

@@ -105,25 +105,25 @@
                             android:padding="5sp"
                             android:text="@string/iyayo_comment" />
 
-<!--
-                    <Switch
-                            android:id="@+id/fragment_comment_fragment_menu_toast_switch"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:checked="true"
-                            android:padding="5sp"
-                            android:text="@string/comment_toast" />
+                    <!--
+                                        <Switch
+                                                android:id="@+id/fragment_comment_fragment_menu_toast_switch"
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:checked="true"
+                                                android:padding="5sp"
+                                                android:text="@string/comment_toast" />
 
 
-                    <Switch
-                            android:id="@+id/fragment_comment_fragment_menu_tts_switch"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:checked="true"
-                            android:padding="5sp"
-                            android:text="@string/tts" />
+                                        <Switch
+                                                android:id="@+id/fragment_comment_fragment_menu_tts_switch"
+                                                android:layout_width="match_parent"
+                                                android:layout_height="wrap_content"
+                                                android:checked="true"
+                                                android:padding="5sp"
+                                                android:text="@string/tts" />
 
--->
+                    -->
 
                     <Switch
                             android:id="@+id/fragment_comment_fragment_menu_iyayo_hidden_switch"
@@ -225,6 +225,42 @@
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
+
+
+            <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="2sp">
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="2sp"
+                        android:orientation="vertical">
+
+                    <TextView
+                            android:id="@+id/textView11"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawableStart="@drawable/ic_share"
+                            android:gravity="center_vertical"
+                            android:text="@string/volume_control" />
+
+                    <SeekBar
+                            android:id="@+id/fragment_comment_fragment_volume_seek"
+                            android:progress="10"
+                            android:layout_margin="10sp"
+                            android:max="10"
+                            android:min="0"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="50sp"/>
 
         </LinearLayout>
     </ScrollView>

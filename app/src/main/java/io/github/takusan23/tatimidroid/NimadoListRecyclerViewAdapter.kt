@@ -57,6 +57,10 @@ class NimadoListRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList
                 //RecyclerViewからも
                 recyclerViewList.removeAt(position)
                 nimadoListRecyclerViewAdapter.notifyDataSetChanged()
+                //Fragmentも閉じる
+                supportFragmentManager.findFragmentByTag(id)?.apply {
+                    supportFragmentManager.beginTransaction().remove(this).commit()
+                }
             }
         }
     }
