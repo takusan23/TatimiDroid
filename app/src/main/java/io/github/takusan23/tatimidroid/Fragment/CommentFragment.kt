@@ -7,19 +7,25 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteDatabase
-import android.graphics.Color
-import android.graphics.PixelFormat
-import android.graphics.Point
+import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Icon
+import android.media.AudioAttributes
 import android.media.AudioManager
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
+import android.media.session.MediaSession
+import android.media.session.PlaybackState.ACTION_PAUSE
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
@@ -31,10 +37,13 @@ import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
+import androidx.media.session.MediaButtonReceiver
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.ExoPlayerFactory
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DataSpec
@@ -48,6 +57,7 @@ import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
+import io.github.takusan23.tatimidroid.Background.BackgroundPlay
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment.*
@@ -69,6 +79,7 @@ import java.io.IOException
 import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.stream.Stream
 import kotlin.concurrent.schedule
 import kotlin.concurrent.timerTask
 
@@ -135,6 +146,8 @@ class CommentFragment : Fragment() {
     var programTitle = ""
     //コミュニティID
     var communityID = ""
+    //サムネイル
+    var thumbnailURL = ""
 
     //NGデータベース
     lateinit var ngListSQLiteHelper: NGListSQLiteHelper
@@ -154,13 +167,15 @@ class CommentFragment : Fragment() {
     //オーバーレイ再生の通知ID
     val overlayNotificationID = 5678
 
-    //バックグラウンド再生MediaPlayer
-    lateinit var mediaPlayer: MediaPlayer
+    // //バックグラウンド再生MediaPlayer
+    // lateinit var mediaPlayer: MediaPlayer
     lateinit var broadcastReceiver: BroadcastReceiver
-    //バックグラウンド再生できてるか
-    var isBackgroundPlay = false
+    // //バックグラウンド再生できてるか
+    // var isBackgroundPlay = false
     //バックグラウンド再生の通知ID
     val backgroundNotificationID = 1234
+
+    lateinit var backgroundPlay: BackgroundPlay
 
     //NotificationManager
     lateinit var notificationManager: NotificationManager
@@ -227,6 +242,7 @@ class CommentFragment : Fragment() {
     //ExoPlayer
     lateinit var exoPlayer: SimpleExoPlayer
 
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -247,6 +263,8 @@ class CommentFragment : Fragment() {
 
         darkModeSupport = DarkModeSupport(context!!)
         darkModeSupport.setActivityTheme(activity as AppCompatActivity)
+
+        backgroundPlay = BackgroundPlay(context!!)
 
         //起動時の音量を保存しておく
         audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -652,35 +670,26 @@ class CommentFragment : Fragment() {
                     }
                     "background_program_stop" -> {
                         //停止
-                        if (this@CommentFragment::mediaPlayer.isInitialized) {
-                            isBackgroundPlay = false
-                            mediaPlayer.stop()
-                            mediaPlayer.release()
-                            notificationManager.cancel(backgroundNotificationID)//削除
-                        }
+                        backgroundPlay.pause()
+                        notificationManager.cancel(backgroundNotificationID)//削除
                     }
                     "background_program_pause" -> {
-                        if (this@CommentFragment::mediaPlayer.isInitialized) {
-                            isBackgroundPlay = true
-                            if (mediaPlayer.isPlaying) {
-                                //一時停止
-                                mediaPlayer.pause()
-                                //通知作成
-                                backgroundPlayNotification(
-                                    getString(R.string.background_play_play),
-                                    NotificationCompat.FLAG_ONGOING_EVENT
-                                )
-                            } else {
-                                //Liveで再生
-                                mediaPlayer =
-                                    MediaPlayer.create(commentActivity, hls_address.toUri())
-                                mediaPlayer.start()
-                                //通知作成
-                                backgroundPlayNotification(
-                                    getString(R.string.background_play_pause),
-                                    NotificationCompat.FLAG_ONGOING_EVENT
-                                )
-                            }
+                        if (backgroundPlay.exoPlayer.playWhenReady) {
+                            //一時停止
+                            backgroundPlay.pause()
+                            //通知作成
+                            backgroundPlayNotification(
+                                getString(R.string.background_play_play),
+                                NotificationCompat.FLAG_ONGOING_EVENT
+                            )
+                        } else {
+                            //Liveで再生
+                            backgroundPlay.play(hls_address.toUri())
+                            //通知作成
+                            backgroundPlayNotification(
+                                getString(R.string.background_play_pause),
+                                NotificationCompat.FLAG_ONGOING_EVENT
+                            )
                         }
                     }
                 }
@@ -798,6 +807,8 @@ class CommentFragment : Fragment() {
                             }
                         }
                     }
+                    //サムネもほしい
+                    thumbnailURL = document.getElementsByTag("thumb_url")[0].text()
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
@@ -1307,16 +1318,14 @@ class CommentFragment : Fragment() {
 
             //横画面のときの対応
             if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-/*
-                //横画面
-                frameLayoutParams.width = point.x / 2
-*/
                 //二窓モードのときはとりあえず更に小さくしておく
                 if (isNimadoMode) {
                     frameLayoutParams.width = point.x / 2
+                    frameLayoutParams.height = getAspectHeightFromWidth(point.x / 4)
+                } else {
+                    //16:9の9を計算
+                    frameLayoutParams.height = getAspectHeightFromWidth(point.x / 2)
                 }
-                //16:9の9を計算
-                frameLayoutParams.height = getAspectHeightFromWidth(point.x / 4)
                 liveFrameLayout.layoutParams = frameLayoutParams
             } else {
                 //縦画面
@@ -1380,58 +1389,12 @@ class CommentFragment : Fragment() {
             //再生
             exoPlayer.playWhenReady = true
 
-
-
-            /* val tree = live_video_view.viewTreeObserver
-             val addOnGlobalLayoutListener = tree?.addOnGlobalLayoutListener {
-                 //横画面のときの対応
-                 val layoutParams = liveFrameLayout.layoutParams
-                 if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                     //   //横画面
-                     if (isNimadoMode) {
-                         //layoutParams.width = live_video_view.width
-                         //に窓のときはなぜか半分になるので倍にする
-                         layoutParams.width = live_video_view.width * 2
-                         layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                         liveFrameLayout.layoutParams = layoutParams
-                     }
-                     //コメントキャンバス
-                     val commentCanvasLayout =
-                         commentCanvas.layoutParams as FrameLayout.LayoutParams
-                     commentCanvasLayout.width = live_video_view.width
-                     commentCanvasLayout.height = live_video_view.height
-                     commentCanvasLayout.gravity = Gravity.CENTER
-                     commentCanvas.layoutParams = commentCanvasLayout
-
-                 } else {
-                     //縦画面
-                     layoutParams.height = live_video_view.height
-                     layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                     liveFrameLayout.layoutParams = layoutParams
-                 }
-             }
-
-
-
-             live_video_view.setOnErrorListener { mp, what, extra ->
-                 *//*
-                                println("error")
-                                println(what)
-                                println(extra)
-                *//*
-                false
+            //新しいバックグラウンド再生。バッググラウンドで常にExoPlayerを動かして離れた瞬間に再生をする。
+            if (pref_setting.getBoolean("setting_leave_background", false)) {
+                if (pref_setting.getBoolean("setting_leave_background_v2", false)) {
+                    backgroundPlay.play(hls_address.toUri())
+                }
             }
-
-*//*
-            fab.setOnClickListener {
-                println("reload")
-                live_video_view.start()
-            }
-*//*
-            live_video_view.setVideoURI(hls_address.toUri())
-            live_video_view.setOnPreparedListener {
-                live_video_view.start()
-            }*/
         }
 
     }
@@ -1526,165 +1489,6 @@ class CommentFragment : Fragment() {
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.comment_activity_menu_watch_live -> {
-                if (live_framelayout.visibility == View.VISIBLE) {
-                    live_framelayout.visibility = View.GONE
-                    //live_video_view.stopPlayback()
-                } else {
-                    live_framelayout.visibility = View.VISIBLE
-                    setPlayVideoView()
-                }
-            }
-            R.id.comment_activity_menu_open_browser -> {
-                val uri = "https://live2.nicovideo.jp/watch/$liveId".toUri()
-                val intent = Intent(Intent.ACTION_VIEW, uri)
-                startActivity(intent)
-            }
-            R.id.comment_activity_menu_iyayo -> {
-                if (item.isChecked) {
-                    item.isChecked = false
-                    commentCommand = ""
-                } else {
-                    item.isChecked = true
-                    commentCommand = "184"
-                }
-            }
-            R.id.comment_activity_menu_tts -> {
-                if (item.isChecked) {
-                    item.isChecked = false
-                    isTTS = false
-                } else {
-                    item.isChecked = true
-                    isTTS = true
-                }
-            }
-            R.id.comment_activity_menu_toast -> {
-                if (item.isChecked) {
-                    item.isChecked = false
-                    isToast = false
-                } else {
-                    item.isChecked = true
-                    isToast = true
-                }
-            }
-            R.id.comment_activity_menu_ng_list -> {
-                val intent = Intent(context, NGListActivity::class.java)
-                startActivity(intent)
-            }
-
-            R.id.comment_activity_menu_overlay -> {
-                //ポップアップ再生。コメント付き
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (!Settings.canDrawOverlays(context)) {
-                        //RuntimePermissionに対応させる
-                        // 権限取得
-                        val intent =
-                            Intent(
-                                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                Uri.parse("package:${context?.packageName}")
-                            )
-                        this@CommentFragment.startActivityForResult(intent, 114)
-                    } else {
-                        startOverlayPlayer()
-                    }
-                } else {
-                    //ろりぽっぷ
-                    startOverlayPlayer()
-                }
-
-            }
-            R.id.comment_activity_menu_background -> {
-                //バックグラウンド再生
-                setBackgroundProgramPlay()
-            }
-            R.id.comment_activity_menu_comment_hidden -> {
-                isCommentHidden = item.isChecked
-            }
-            R.id.comment_activity_menu_auto_next_program -> {
-                //自動次枠移動
-                if (item.isChecked) {
-                    item.isChecked = false
-                    isAutoNextProgram = false
-                } else {
-                    item.isChecked = true
-                    isAutoNextProgram = true
-                }
-            }
-            R.id.comment_activity_menu_landscape_portrait -> {
-                //縦画面、横画面変更
-                setLandscapePortrait()
-            }
-            R.id.comment_activity_menu_copy_programid -> {
-                //番組IDコピー
-                copyProgramId()
-            }
-            R.id.comment_activity_menu_mute -> {
-                //ミュート
-                if (item.isChecked) {
-                    item.isChecked = false
-                    setSound(volume)
-                } else {
-                    item.isChecked = true
-                    setSound(0)
-                }
-            }
-            R.id.comment_activity_menu_volume_control -> {
-                //音量調節UIを出す。
-                audioManager.adjustStreamVolume(
-                    AudioManager.STREAM_MUSIC,
-                    AudioManager.ADJUST_SAME,
-                    AudioManager.FLAG_SHOW_UI
-                )
-            }
-            R.id.comment_activity_menu_hide_info_unkome -> {
-                //運営コメント・infoコメント非表示
-                if (item.isChecked) {
-                    item.isChecked = false
-                    hideInfoUnnkome = false
-                } else {
-                    item.isChecked = true
-                    hideInfoUnnkome = true
-                }
-            }
-            R.id.comment_activity_menu_share_attach_image -> {
-                //共有
-                programShare =
-                    ProgramShare(
-                        commentActivity,
-                        live_video_view,
-                        programTitle,
-                        programTitle
-                    )
-                programShare.shareAttacgImage()
-            }
-            R.id.comment_activity_menu_share -> {
-                programShare =
-                    ProgramShare(
-                        commentActivity,
-                        live_video_view,
-                        programTitle,
-                        programTitle
-                    )
-                programShare.showShareScreen()
-            }
-            R.id.comment_activity_menu_quality -> {
-                //画質変更
-                if (this@CommentFragment::qualitySelectBottomSheet.isInitialized) {
-                    qualitySelectBottomSheet.show(
-                        commentActivity.supportFragmentManager,
-                        "quality_bottom"
-                    )
-                }
-            }
-            R.id.comment_activity_menu_floating_commentviewer -> {
-                //Bubblesで表示。
-                showBubbles()
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
 
     fun showBubbles() {
         //Android Q以降で利用可能
@@ -1832,15 +1636,7 @@ class CommentFragment : Fragment() {
         programTimer.cancel()
         activeTimer.cancel()
         //バックグラウンド再生止める
-        notificationManager.cancel(backgroundNotificationID)
-        if (isBackgroundPlay) {
-            if (this@CommentFragment::mediaPlayer.isInitialized) {
-                //MediaPlayer初期化済みなら止める
-                mediaPlayer.stop()
-                mediaPlayer.release()
-                isBackgroundPlay = false
-            }
-        }
+        backgroundPlay.release()
         //ポップアップ再生とめる
         if (this@CommentFragment::popupView.isInitialized) {
             if (isPopupPlay) {
@@ -2059,9 +1855,8 @@ class CommentFragment : Fragment() {
 
     /*バックグラウンド再生*/
     fun setBackgroundProgramPlay() {
-        mediaPlayer = MediaPlayer.create(context, hls_address.toUri())
-        mediaPlayer.start()
-        isBackgroundPlay = true
+        //再生。
+        backgroundPlay.start(hls_address.toUri())
         //Nougatと分岐
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannelId = "program_background"
@@ -2088,17 +1883,19 @@ class CommentFragment : Fragment() {
         }
     }
 
+
     fun backgroundPlayNotification(pausePlayString: String, flag: Int) {
         //音楽コントロールブロードキャスト
         val stopIntent = Intent("background_program_stop")
         val pauseIntent = Intent("background_program_pause")
 
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannelId = "program_background"
             val programNotification =
                 NotificationCompat.Builder(context!!, notificationChannelId)
-                    .setContentTitle(getString(R.string.notification_background_play))
-                    .setContentText(programTitle)
+                    .setContentTitle(programTitle)
+                    .setContentText(liveId)
                     .setSmallIcon(R.drawable.ic_background_icon)
                     .addAction(
                         NotificationCompat.Action(
@@ -2114,7 +1911,7 @@ class CommentFragment : Fragment() {
                     )
                     .addAction(
                         NotificationCompat.Action(
-                            R.drawable.ic_outline_stop_24px,
+                            R.drawable.ic_clear_black,
                             getString(R.string.background_play_finish),
                             PendingIntent.getBroadcast(
                                 context,
@@ -2123,15 +1920,16 @@ class CommentFragment : Fragment() {
                                 PendingIntent.FLAG_UPDATE_CURRENT
                             )
                         )
-                    ).build()
+                    )
+                    .build()
             //消せないようにする
             programNotification.flags = flag
 
             notificationManager.notify(backgroundNotificationID, programNotification)
         } else {
             val programNotification = NotificationCompat.Builder(context!!)
-                .setContentTitle(getString(R.string.notification_background_play))
-                .setContentText(programTitle)
+                .setContentTitle(programTitle)
+                .setContentText(liveId)
                 .setSmallIcon(R.drawable.ic_background_icon)
                 .addAction(
                     NotificationCompat.Action(
@@ -2169,22 +1967,25 @@ class CommentFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         //アプリ戻ってきたらバックグラウンド再生、ポップアップ再生を止める。
-        //バックグラウンド再生
         val windowManager =
             context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        if (this@CommentFragment::mediaPlayer.isInitialized) {
-            if (isBackgroundPlay) {
-                mediaPlayer.release()   //リソース開放
-                notificationManager.cancel(backgroundNotificationID) //通知削除
-                Toast.makeText(
-                    context!!,
-                    getString(R.string.lunch_app_close_background),
-                    Toast.LENGTH_SHORT
-                )
-                    .show()
-                isBackgroundPlay = false
+
+        //バックグラウンド再生から戻ってきた時
+        if (backgroundPlay.isPlaying) {
+            notificationManager.cancel(backgroundNotificationID) //通知削除
+            Toast.makeText(
+                context!!,
+                getString(R.string.lunch_app_close_background),
+                Toast.LENGTH_SHORT
+            ).show()
+            if (pref_setting.getBoolean("setting_leave_background_v2", false)) {
+                //新しいバッググラウンド再生。
+                backgroundPlay.pause()
+            } else {
+                backgroundPlay.release()
             }
         }
+
         //ポップアップ再生止める
         if (this@CommentFragment::popupView.isInitialized) {
             if (isPopupPlay) {

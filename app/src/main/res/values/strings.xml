@@ -185,4 +185,7 @@
     <string name="entyou_message">I confirmed the extension.</string>
     <string name="end_time">End time</string>
     <string name="iyayo_hidden">Hide 184 (anonymous) comments</string>
+    <string name="leave_background_v2_title">Smooth background playback</string>
+    <string name="leave_background_v2_description">In order to be able to play immediately when switching apps, prepare for playback in the back in advance and start playback at the same time when you leave the app. (The communication volume will increase.)</string>
+    <string name="not_get_user_session">Failed to get user session. Please review your email address and password.</string>
 </resources>

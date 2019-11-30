@@ -185,4 +185,7 @@
     <string name="entyou_message">延長を確認しました。</string>
     <string name="end_time">終了時刻</string>
     <string name="iyayo_hidden">184(匿名)コメントを非表示にする</string>
+    <string name="leave_background_v2_title">スムーズにバッググラウンド再生を行う</string>
+    <string name="leave_background_v2_description">アプリ切替時にすぐに再生できるように、予め裏で再生準備をしておいて、アプリから離れた時と同時に再生を開始します。（通信量が増えます。）</string>
+    <string name="not_get_user_session">ユーザーセッションの取得に失敗しました。 メールアドレス・パスワードを見直してみてください。</string>
 </resources>

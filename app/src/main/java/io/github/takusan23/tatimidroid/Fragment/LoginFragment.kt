@@ -18,7 +18,11 @@ import java.nio.charset.StandardCharsets
 class LoginFragment : Fragment() {
     lateinit var pref_setting: SharedPreferences
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_login, container, false)
     }
@@ -88,11 +92,12 @@ class LoginFragment : Fragment() {
             // POSTデータ送信処理
             val status = httpConn.responseCode
 
+            var user_session = ""
             for (cookie in httpConn.headerFields.get("Set-Cookie")!!) {
                 //user_sessionだけほしい！！！
                 if (cookie.contains("user_session") && !cookie.contains("deleted") && !cookie.contains("secure")) {
                     //邪魔なのを取る
-                    var user_session = cookie.replace("user_session=", "")
+                    user_session = cookie.replace("user_session=", "")
                     //uset_settionは文字数86なので切り取る
                     user_session = user_session.substring(0, 86)
                     //保存する
@@ -102,22 +107,35 @@ class LoginFragment : Fragment() {
                 }
             }
 
+
             if (status == HttpURLConnection.HTTP_OK) {
                 // レスポンスを受け取る処理等
             } else {
                 //３０２を返すのが正常なので
-                activity?.runOnUiThread {
-                    Toast.makeText(
-                        activity,
-                        getString(R.string.successful) + "\n" + httpConn.responseCode,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                //ユーザーセッション取れた？
+                if (user_session.isNotEmpty()) {
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            activity,
+                            getString(R.string.successful) + "\n" + httpConn.responseCode,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    val editor = pref_setting.edit()
+                    //めあど、ぱすわーども保存する
+                    editor.putString("mail", mail)
+                    editor.putString("password", pass)
+                    editor.apply()
+                } else {
+                    //取れなかった。見直してみて。
+                    activity?.runOnUiThread {
+                        Toast.makeText(
+                            activity,
+                            getString(R.string.not_get_user_session) + "\n" + httpConn.responseCode,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
-                val editor = pref_setting.edit()
-                //めあど、ぱすわーども保存する
-                editor.putString("mail", mail)
-                editor.putString("password", pass)
-                editor.apply()
             }
         } catch (e: IOException) {
             e.printStackTrace()

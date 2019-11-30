@@ -134,6 +134,15 @@
 
         <SwitchPreference
                 android:defaultValue="false"
+                android:dependency="setting_leave_background"
+                android:icon="@drawable/ic_background_icon_black"
+                android:key="setting_leave_background_v2"
+                android:summary="@string/leave_background_v2_description"
+                android:title="@string/leave_background_v2_title" />
+
+
+        <SwitchPreference
+                android:defaultValue="false"
                 android:icon="@drawable/ic_popup_icon_black"
                 android:key="setting_leave_popup"
                 android:summary="@string/leave_popup_description"
