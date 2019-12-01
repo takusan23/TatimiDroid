@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.R
@@ -30,6 +31,11 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+
+        //タイトル
+        (activity as AppCompatActivity).supportActionBar?.title =
+            getString(R.string.login)
+
 
         //保存していたら取得
         fragment_login_mail_inputedittext.setText(pref_setting.getString("mail", ""))

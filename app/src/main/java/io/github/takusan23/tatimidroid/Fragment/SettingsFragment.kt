@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -23,6 +24,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //タイトル
+        (activity as AppCompatActivity).supportActionBar?.title =
+            getString(R.string.setting)
 
         val licence_preference = findPreference<Preference>("licence_preference")
         val konoapp_preference = findPreference<Preference>("konoapp_preference")

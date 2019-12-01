@@ -29,9 +29,10 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>
         val name = item.get(1)
         val comment = item.get(2)
         val date = item.get(3)
+        val vpos = item.get(4)
 
         holder.commentTextView.text = comment
-        holder.userNameTextView.text = setTimeFormat(date.toLong())
+        holder.userNameTextView.text = setTimeFormat(date.toLong()) + " / " + vpos
 
     }
 
@@ -47,7 +48,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>
     }
 
     fun setTimeFormat(date: Long): String? {
-        val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd h:mm:ss")
+        val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
         return simpleDateFormat.format(date * 1000)
     }
 

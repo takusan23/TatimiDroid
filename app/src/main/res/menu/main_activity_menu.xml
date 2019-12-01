@@ -11,8 +11,8 @@
             android:title="@string/liveid_fragment" />
     <item
             android:id="@+id/menu_nicovideo"
-            android:icon="@drawable/ic_outline_live_tv_24px_black"
-            android:title="@string/liveid_fragment" />
+            android:icon="@drawable/ic_local_movies_24px"
+            android:title="@string/video_comment_get" />
     <item
             android:id="@+id/menu_login"
             android:icon="@drawable/ic_lock_outline_black_24dp"

@@ -188,4 +188,12 @@
     <string name="leave_background_v2_title">スムーズにバッググラウンド再生を行う</string>
     <string name="leave_background_v2_description">アプリ切替時にすぐに再生できるように、予め裏で再生準備をしておいて、アプリから離れた時と同時に再生を開始します。（通信量が増えます。）</string>
     <string name="not_get_user_session">ユーザーセッションの取得に失敗しました。 メールアドレス・パスワードを見直してみてください。</string>
+    <string name="video_id">動画ID（sm9、sm157等）</string>
+    <string name="video_comment_get">ニコ動コメント取得</string>
+    <string name="history">視聴履歴</string>
+    <string name="post_video">投稿動画</string>
+    <string name="play_count">再生数</string>
+    <string name="mylist">マイリスト</string>
+    <string name="post_date">投稿日時</string>
+    <string name="last_watch">視聴日時</string>
 </resources>

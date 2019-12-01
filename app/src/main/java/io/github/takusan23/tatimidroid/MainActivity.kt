@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentActivity
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_main.*
@@ -100,8 +101,10 @@ class MainActivity : AppCompatActivity() {
                     fragmentTransaction.commit()
                 }
                 R.id.menu_nicovideo -> {
-                    //ニコ動コメント取得
-                    startActivity(Intent(this,NicoVideoCommentActivity::class.java))
+                    //ニコ動コメント
+                    val fragmentTransaction = supportFragmentManager.beginTransaction()
+                    fragmentTransaction.replace(R.id.main_activity_linearlayout, NicoVideoSelectFragment())
+                    fragmentTransaction.commit()
                 }
             }
             true

@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.R
@@ -47,11 +48,18 @@ class NicoVideoCommentFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+
+        //動画ID受け取る（sm9とかsm157とか）
+        id = arguments?.getString("id") ?: "sm157"
+
         usersession = pref_setting.getString("user_session", "") ?: ""
-        // スクレイピングしてコメント取得に必要な情報を取得する
-        getNicoVideoWebPage()
+
         //RecyclerView初期化
         initRecyclerView()
+
+        // スクレイピングしてコメント取得に必要な情報を取得する
+        getNicoVideoWebPage()
+
     }
 
     private fun initRecyclerView() {
@@ -63,7 +71,11 @@ class NicoVideoCommentFragment : Fragment() {
         activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
     }
 
-    //https://nmsg.nicovideo.jp/api.json/ を叩く時に必要な情報をスクレイピングして取得
+    /*
+    *
+    * https://nmsg.nicovideo.jp/api.json/ を叩く時に必要な情報をスクレイピングして取得
+    * これで動くと思ってたんだけど「dmcInfo」がない動画が存在するんだけどどういう事？。
+    *     */
     fun getNicoVideoWebPage() {
         //番組ID
         //視聴モード（ユーザーセッション付き）
@@ -90,12 +102,6 @@ class NicoVideoCommentFragment : Fragment() {
                     if (html.getElementById("js-initial-watch-data") != null) {
                         val data_api_data = html.getElementById("js-initial-watch-data")
                         val json = JSONObject(data_api_data.attr("data-api-data"))
-                        //thread
-                        val thread_id = json.getJSONObject("video").getJSONObject("dmcInfo")
-                            .getJSONObject("thread").getString("thread_id")
-                        //nicos_thread_id っていうよくわからんけどこれもnull以外だったらいる模様
-                        var nicos_thread_id = json.getJSONObject("video").getJSONObject("dmcInfo")
-                            .getJSONObject("thread").getString("nicos_thread_id")
                         //userkey
                         val userkey = json.getJSONObject("context").getString("userkey")
                         //user_id
@@ -105,8 +111,10 @@ class NicoVideoCommentFragment : Fragment() {
                         val length = json.getJSONObject("video").getJSONObject("dmcInfo")
                             .getJSONObject("video").getString("length_seconds").toInt()
                         //必要なのは「分」なので割る
+                        //そして分に+1している模様
+                        //一時間超えでも分を使う模様？66みたいに
                         val minute = (length / 60) + 1
-                        //contentつくる
+                        //contentつくる。1000が限界？
                         val content = "0-${minute}:100,1000,nicoru:100"
 
                         /*
@@ -164,7 +172,7 @@ class NicoVideoCommentFragment : Fragment() {
                             }
                         }
                         //POST実行
-                        println(postJSONArray)
+                        // println(postJSONArray)
                         postNicoVideoCommentAPI(postJSONArray)
                     }
                 } else {
@@ -189,6 +197,10 @@ class NicoVideoCommentFragment : Fragment() {
             override fun onResponse(call: Call, response: Response) {
                 val response_string = response.body?.string()
                 val jsonArray = JSONArray(response_string)
+
+                //RecyclerViewに入れる配列には並び替えをしてから入れるのでそれまで一時的に入れておく配列
+                val commentListList = arrayListOf<ArrayList<String>>()
+
                 for (i in 0 until jsonArray.length()) {
                     val jsonObject = jsonArray.getJSONObject(i)
                     if (jsonObject.has("chat")) {
@@ -197,17 +209,41 @@ class NicoVideoCommentFragment : Fragment() {
                             val comment = chat.getString("content")
                             val user_id = ""
                             val date = chat.getString("date")
+                            val vpos = chat.getString("vpos")
                             val item = arrayListOf<String>()
                             item.add("")
                             item.add(user_id)
                             item.add(comment)
                             item.add(date)
-                            recyclerViewList.add(item)
+                            item.add(vpos)
+                            commentListList.add(item)
                         }
                     }
                 }
+
+                /*
+                * コメントを動画再生と同じ用に並び替える。vposを若い順にする。
+                * vposだけの配列だと「.sorted()」が使えるんだけど、今回は配列に配列があるので無理です。
+                * 数字だけ（vposだけ）だと[0,10,30,20] -> sorted()後 [0,10,20,30]
+                *
+                * でも今回は配列の中のにある配列の4番目の値で並び替えてほしいのです。
+                * そこで「sortedBy{}」を使い、4番目の値で並び替えろと書いています。
+                * arrayListは配列の中の配列がそうみたい。printlnして確認した。forEach的な
+                *
+                * */
+                commentListList.sortedBy { arrayList -> arrayList[4].toInt() }
+                    .forEach {
+                        recyclerViewList.add(it)
+                    }
+
+
                 activity?.runOnUiThread {
                     nicoVideoAdapter.notifyDataSetChanged()
+                    Snackbar.make(
+                        activity_nicovideo_recyclerview,
+                        "取得済みコメント：${recyclerViewList.size}",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
                 }
             }
         })

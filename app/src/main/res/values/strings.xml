@@ -188,4 +188,12 @@
     <string name="leave_background_v2_title">Smooth background playback</string>
     <string name="leave_background_v2_description">In order to be able to play immediately when switching apps, prepare for playback in the back in advance and start playback at the same time when you leave the app. (The communication volume will increase.)</string>
     <string name="not_get_user_session">Failed to get user session. Please review your email address and password.</string>
+    <string name="video_id">"Video ID (sm9, sm157, etc.)   "</string>
+    <string name="video_comment_get">Nico douga comment acquisition</string>
+    <string name="history">History</string>
+    <string name="post_video">Posted videos</string>
+    <string name="play_count">Views</string>
+    <string name="mylist">Mylist</string>
+    <string name="post_date">Post date</string>
+    <string name="last_watch">Watching</string>
 </resources>
