@@ -4,6 +4,7 @@ import android.app.DownloadManager
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.SpannableString
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +23,7 @@ import okhttp3.*
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
+import java.util.regex.Pattern
 
 class NicoVideoSelectFragment : Fragment() {
 
@@ -227,8 +229,8 @@ class NicoVideoSelectFragment : Fragment() {
                     val divList = document.getElementsByClass("outer VideoItem")
                     divList.forEach {
                         //一つずつ見ていく
-                        var videoId = it.getElementsByTag("a").first().attr("href")
-                        videoId = videoId.replace("/watch/", "")
+                        var videoId = it.getElementsByClass("ct").first().attr("href")
+                        videoId = videoId.replace("http://commons.nicovideo.jp/tree/", "")
                         val title = it.getElementsByTag("h5").first().getElementsByTag("a").text()
                         val postDate = it.getElementsByClass("posttime").first().text()
                         val thumbnailUrl = it.getElementsByTag("img").first().attr("src")
