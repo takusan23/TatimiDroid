@@ -196,4 +196,7 @@
     <string name="mylist">Mylist</string>
     <string name="post_date">Post date</string>
     <string name="last_watch">Watching</string>
+    <string name="nicovideo_open_browser">Play video in browser</string>
+    <string name="nicovideo_info">Video information</string>
+    <string name="dictionary">Dictionary</string>
 </resources>

@@ -3,6 +3,8 @@ package io.github.takusan23.tatimidroid.NicoVideo
 import android.app.DownloadManager
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
+import android.graphics.Color
 import android.os.Bundle
 import android.text.SpannableString
 import android.view.LayoutInflater
@@ -15,6 +17,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
+import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoSelectAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
@@ -33,6 +36,8 @@ class NicoVideoSelectFragment : Fragment() {
     lateinit var pref_setting: SharedPreferences
 
     var usersession = ""
+
+    lateinit var darkModeSupport: DarkModeSupport
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,6 +58,8 @@ class NicoVideoSelectFragment : Fragment() {
 
         usersession = pref_setting.getString("user_session", "") ?: ""
 
+        darkModeSupport = DarkModeSupport(context!!)
+
         //動画IDから
         setVideoID()
 
@@ -62,6 +69,9 @@ class NicoVideoSelectFragment : Fragment() {
         //とりあえず視聴履歴
         callHistoryAPI()
 
+        if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            fragment_nicovideo_select_tab_layout.setBackgroundColor(Color.parseColor("#000000"))
+        }
 
         fragment_nicovideo_select_tab_layout.addOnTabSelectedListener(object :
             TabLayout.OnTabSelectedListener {

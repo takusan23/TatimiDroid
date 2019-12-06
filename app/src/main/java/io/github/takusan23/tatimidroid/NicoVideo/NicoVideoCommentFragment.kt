@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -174,6 +175,22 @@ class NicoVideoCommentFragment : Fragment() {
                         //POST実行
                         // println(postJSONArray)
                         postNicoVideoCommentAPI(postJSONArray)
+
+                        //タイトルとか取り出す
+                        json.getJSONObject("video").apply {
+                            val title = getString("title")
+                            val videoId = getString("id")
+
+                            activity?.runOnUiThread {
+                                (activity as AppCompatActivity).supportActionBar?.apply {
+                                    this.title = title
+                                    subtitle = videoId
+                                }
+                            }
+
+                        }
+
+
                     }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")

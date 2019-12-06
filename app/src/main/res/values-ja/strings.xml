@@ -196,4 +196,7 @@
     <string name="mylist">マイリスト</string>
     <string name="post_date">投稿日時</string>
     <string name="last_watch">視聴日時</string>
+    <string name="nicovideo_open_browser">動画をブラウザで再生</string>
+    <string name="nicovideo_info">動画情報</string>
+    <string name="dictionary">ニコ百</string>
 </resources>
