@@ -134,6 +134,13 @@
                             android:text="@string/iyayo_hidden" />
 
 
+                    <Switch
+                            android:id="@+id/fragment_comment_fragment_menu_low_latency_switch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="5sp"
+                            android:text="@string/low_latency" />
+
                     <Button
                             android:id="@+id/fragment_comment_fragment_menu_quality_button"
                             android:layout_width="match_parent"
@@ -248,19 +255,19 @@
 
                     <SeekBar
                             android:id="@+id/fragment_comment_fragment_volume_seek"
-                            android:progress="10"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
                             android:layout_margin="10sp"
                             android:max="10"
                             android:min="0"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
+                            android:progress="10" />
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
             <Space
                     android:layout_width="match_parent"
-                    android:layout_height="50sp"/>
+                    android:layout_height="50sp" />
 
         </LinearLayout>
     </ScrollView>

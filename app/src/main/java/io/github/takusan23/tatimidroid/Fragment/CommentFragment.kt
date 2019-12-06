@@ -218,6 +218,8 @@ class CommentFragment : Fragment() {
     lateinit var qualitySelectBottomSheet: QualitySelectBottomSheet
     //最初の画質
     var start_quality = ""
+    //低遅延なのか。でふぉは低遅延有効
+    var isLowLatency = true
     //モバイルデータなら最低画質の設定で一度だけ動かすように
     var mobileDataQualityCheck = false
 
@@ -304,6 +306,10 @@ class CommentFragment : Fragment() {
         liveId = arguments?.getString("liveId") ?: ""
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context!!)
+
+        isLowLatency = !pref_setting.getBoolean("setting_low_latency_off", false)
+
+        println("低遅延$isLowLatency")
 
         //センサーによる画面回転
         if (pref_setting.getBoolean("setting_rotation_sensor", false)) {
@@ -928,7 +934,7 @@ class CommentFragment : Fragment() {
                 streamObject.put("protocol", "hls")
                 streamObject.put("requireNewStream", true)
                 streamObject.put("priorStreamQuality", "high")
-                streamObject.put("isLowLatency", true)
+                streamObject.put("isLowLatency", isLowLatency)
                 streamObject.put("isChasePlay", false)
                 //room
                 val roomObject = JSONObject()
@@ -2506,13 +2512,37 @@ class CommentFragment : Fragment() {
         val requirementObjects = JSONObject()
         requirementObjects.put("protocol", "hls")
         requirementObjects.put("quality", quality)
-        requirementObjects.put("isLowLatency", true)
+        requirementObjects.put("isLowLatency", isLowLatency)
         requirementObjects.put("isChasePlay", false)
         bodyObject.put("requirement", requirementObjects)
         jsonObject.put("body", bodyObject)
         //送信
         connectionNicoLiveWebSocket.send(jsonObject.toString())
     }
+
+    /**
+     * 低遅延モード。trueで有効
+     * */
+    fun sendLowLatency() {
+        val jsonObject = JSONObject()
+        jsonObject.put("type", "watch")
+        //body
+        val bodyObject = JSONObject()
+        bodyObject.put("command", "getstream")
+        //requirement
+        val requirementObjects = JSONObject()
+        requirementObjects.put("protocol", "hls")
+        requirementObjects.put("quality", start_quality)
+        requirementObjects.put("isLowLatency", !isLowLatency)
+        requirementObjects.put("isChasePlay", false)
+        bodyObject.put("requirement", requirementObjects)
+        jsonObject.put("body", bodyObject)
+        //送信
+        connectionNicoLiveWebSocket.send(jsonObject.toString())
+        //反転
+        isLowLatency = !isLowLatency
+    }
+
 
     fun sendMobileDataQuality() {
         if (!mobileDataQualityCheck) {

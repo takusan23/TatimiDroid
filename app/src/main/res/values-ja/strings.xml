@@ -199,4 +199,6 @@
     <string name="nicovideo_open_browser">動画をブラウザで再生</string>
     <string name="nicovideo_info">動画情報</string>
     <string name="dictionary">ニコ百</string>
+    <string name="low_latency">低遅延モード</string>
+    <string name="setting_low_latency_off_title">低遅延モードを無効にする</string>
 </resources>

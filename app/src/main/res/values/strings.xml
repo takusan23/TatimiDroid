@@ -199,4 +199,6 @@
     <string name="nicovideo_open_browser">Play video in browser</string>
     <string name="nicovideo_info">Video information</string>
     <string name="dictionary">Dictionary</string>
+    <string name="low_latency">Low latency mode</string>
+    <string name="setting_low_latency_off_title">Disable low latency mode</string>
 </resources>

@@ -190,6 +190,10 @@ class CommentMenuFragment : Fragment() {
             commentFragment.isTokumeiHide = isChecked
         }
 
+        fragment_comment_fragment_menu_low_latency_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            commentFragment.sendLowLatency()
+        }
+
         fragment_comment_fragment_volume_seek.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -224,7 +228,8 @@ class CommentMenuFragment : Fragment() {
             commentFragment.isTokumeiComment
         //匿名コメントを非表示にするか
         fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = commentFragment.isTokumeiHide
-
+        //低遅延モードの有効無効
+        fragment_comment_fragment_menu_low_latency_switch.isChecked = commentFragment.isLowLatency
         //音量
         commentFragment.apply {
             if (isExoPlayerInitialized()) {

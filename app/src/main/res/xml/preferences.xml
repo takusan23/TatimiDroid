@@ -28,10 +28,17 @@
 
     <SwitchPreference
             android:defaultValue="false"
+            android:icon="@drawable/ic_flash_on_24px"
+            android:key="setting_low_latency_off"
+            android:title="@string/setting_low_latency_off_title" />
+
+    <SwitchPreference
+            android:defaultValue="false"
             android:icon="@drawable/ic_outline_live_tv_24px_black"
             android:key="setting_watch_live"
             android:summary="@string/setting_watch_view_description"
             android:title="@string/setting_watch_view_title" />
+
 
     <SwitchPreference
             android:defaultValue="false"
