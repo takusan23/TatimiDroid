@@ -106,75 +106,88 @@ class NicoVideoCommentFragment : Fragment() {
                         //userkey
                         val userkey = json.getJSONObject("context").getString("userkey")
                         //user_id
-                        val user_id = json.getJSONObject("video").getJSONObject("dmcInfo")
-                            .getJSONObject("user").getString("user_id")
-                        //length(再生時間
-                        val length = json.getJSONObject("video").getJSONObject("dmcInfo")
-                            .getJSONObject("video").getString("length_seconds").toInt()
-                        //必要なのは「分」なので割る
-                        //そして分に+1している模様
-                        //一時間超えでも分を使う模様？66みたいに
-                        val minute = (length / 60) + 1
-                        //contentつくる。1000が限界？
-                        val content = "0-${minute}:100,1000,nicoru:100"
-
+                        val user_id = json.getJSONObject("viewer").getString("id")
                         /*
-                        * JSONの構成を指示してくれるJSONArray
-                        * threads[]の中になんのJSONを作ればいいかが書いてある。
+                        * dmcInfoが存在するかで分ける。たまによくない動画に当たる。ちなみにこいつ無くてもThreadIdとかuser_id取れるけど、
+                        * 再生時間が取れないので無理。非公式？XML形式で返してくれるコメント取得APIを叩くことにする。
+                        * 再生時間、JSONの中に入れないといけないっぽい。
                         * */
-                        val commentComposite =
-                            json.getJSONObject("commentComposite").getJSONArray("threads")
-                        //投げるJSON
-                        val postJSONArray = JSONArray()
-                        for (i in 0 until commentComposite.length()) {
-                            val thread = commentComposite.getJSONObject(i)
-                            val thread_id = thread.getString("id")  //thread まじでなんでこの管理方法にしたんだ運営・・
-                            val fork = thread.getInt("fork")    //わからん。
-                            val isOwnerThread = thread.getBoolean("isOwnerThread")   //
-                            //threads[]のJSON配列の中に「isActive」がtrueなら次のJSONを作成します
-                            if (thread.getBoolean("isActive")) {
-                                val jsonObject = JSONObject().apply {
-                                    //投稿者コメントも見れるように。「isOwnerThread」がtrueの場合は「version」を20061206にする？
-                                    if (isOwnerThread) {
-                                        put("version", "20061206")
-                                        put("res_from", -1000)
-                                    } else {
-                                        put("version", "20090904")
+                        if (!json.getJSONObject("video").isNull("dmcInfo")) {
+                            //length(再生時間
+                            val length = json.getJSONObject("video").getJSONObject("dmcInfo")
+                                .getJSONObject("video").getString("length_seconds").toInt()
+                            //必要なのは「分」なので割る
+                            //そして分に+1している模様
+                            //一時間超えでも分を使う模様？66みたいに
+                            val minute = (length / 60) + 1
+                            //contentつくる。1000が限界？
+                            val content = "0-${minute}:100,1000,nicoru:100"
+
+                            /*
+                            * JSONの構成を指示してくれるJSONArray
+                            * threads[]の中になんのJSONを作ればいいかが書いてある。
+                            * */
+                            val commentComposite =
+                                json.getJSONObject("commentComposite").getJSONArray("threads")
+                            //投げるJSON
+                            val postJSONArray = JSONArray()
+                            for (i in 0 until commentComposite.length()) {
+                                val thread = commentComposite.getJSONObject(i)
+                                val thread_id =
+                                    thread.getString("id")  //thread まじでなんでこの管理方法にしたんだ運営・・
+                                val fork = thread.getInt("fork")    //わからん。
+                                val isOwnerThread = thread.getBoolean("isOwnerThread")   //
+                                //threads[]のJSON配列の中に「isActive」がtrueなら次のJSONを作成します
+                                if (thread.getBoolean("isActive")) {
+                                    val jsonObject = JSONObject().apply {
+                                        //投稿者コメントも見れるように。「isOwnerThread」がtrueの場合は「version」を20061206にする？
+                                        if (isOwnerThread) {
+                                            put("version", "20061206")
+                                            put("res_from", -1000)
+                                        } else {
+                                            put("version", "20090904")
+                                        }
+                                        put("thread", thread_id)
+                                        put("fork", fork)
+                                        put("language", 0)
+                                        put("user_id", user_id)
+                                        put("with_global", 1)
+                                        put("score", 1)
+                                        put("nicoru", 3)
+                                        put("userkey", userkey)
                                     }
-                                    put("thread", thread_id)
-                                    put("fork", fork)
-                                    put("language", 0)
-                                    put("user_id", user_id)
-                                    put("with_global", 1)
-                                    put("score", 1)
-                                    put("nicoru", 3)
-                                    put("userkey", userkey)
+                                    val post_thread = JSONObject().apply {
+                                        put("thread", jsonObject)
+                                    }
+                                    postJSONArray.put(post_thread)
                                 }
-                                val post_thread = JSONObject().apply {
-                                    put("thread", jsonObject)
+                                //threads[]のJSON配列の中に「isLeafRequired」がtrueなら次のJSONを作成します
+                                if (thread.getBoolean("isLeafRequired")) {
+                                    val jsonObject = JSONObject().apply {
+                                        put("thread", thread_id)
+                                        put("language", 0)
+                                        put("user_id", user_id)
+                                        put("content", content)
+                                        put("scores", 0)
+                                        put("nicoru", 3)
+                                        put("userkey", userkey)
+                                    }
+                                    val thread_leaves = JSONObject().apply {
+                                        put("thread_leaves", jsonObject)
+                                    }
+                                    postJSONArray.put(thread_leaves)
                                 }
-                                postJSONArray.put(post_thread)
                             }
-                            //threads[]のJSON配列の中に「isLeafRequired」がtrueなら次のJSONを作成します
-                            if (thread.getBoolean("isLeafRequired")) {
-                                val jsonObject = JSONObject().apply {
-                                    put("thread", thread_id)
-                                    put("language", 0)
-                                    put("user_id", user_id)
-                                    put("content", content)
-                                    put("scores", 0)
-                                    put("nicoru", 3)
-                                    put("userkey", userkey)
-                                }
-                                val thread_leaves = JSONObject().apply {
-                                    put("thread_leaves", jsonObject)
-                                }
-                                postJSONArray.put(thread_leaves)
-                            }
+                            //POST実行
+                            // println(postJSONArray)
+                            postNicoVideoCommentAPI(postJSONArray)
+                        } else {
+                            //dmcInfoない。再生時間取れない。仕方ないのでXML形式でもらう。HTMLスクレイピングの要領で解析可能。
+                            val threadId = json.getJSONObject("thread").getJSONObject("ids")
+                                .getString("default")
+                            postNicoVideoCommentAPIXML(threadId, user_id)
                         }
-                        //POST実行
-                        // println(postJSONArray)
-                        postNicoVideoCommentAPI(postJSONArray)
+
 
                         //タイトルとか取り出す
                         json.getJSONObject("video").apply {
@@ -198,6 +211,7 @@ class NicoVideoCommentFragment : Fragment() {
             }
         })
     }
+
 
     fun postNicoVideoCommentAPI(jsonArray: JSONArray) {
         val request = Request.Builder()
@@ -264,6 +278,64 @@ class NicoVideoCommentFragment : Fragment() {
                 }
             }
         })
+    }
+
+    //何故か必要な情報がJSONにないときはXMLでコメントを取得する。非公式？
+    fun postNicoVideoCommentAPIXML(threadId: String, user_id: String) {
+        val postBody =
+            "<thread thread=\"$threadId\" version=\"20090904\" res_from=\"-1000\" user_id=\"$user_id\" force_184=\"1\"/>\n"
+        val request = Request.Builder()
+            .url("https://nmsg.nicovideo.jp/api") //XML。httpsじゃないとAndroid 9以降は通信できない。
+            .header("Cookie", "user_session=${usersession}")
+            .post(postBody.toRequestBody())
+            .build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+                showToast("${getString(R.string.error)}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                //XML解析、HTMLパースっぽい感じで
+                val xml = Jsoup.parse(response.body?.string())
+                val comments = xml.getElementsByTag("chat")
+
+                //RecyclerViewに入れる配列には並び替えをしてから入れるのでそれまで一時的に入れておく配列
+                val commentListList = arrayListOf<ArrayList<String>>()
+
+                comments.forEach {
+                    val comment = it.text()
+                    val user_id = ""
+                    val date = it.attr("date")
+                    val vpos = it.attr("vpos")
+                    val item = arrayListOf<String>()
+                    item.add("")
+                    item.add(user_id)
+                    item.add(comment)
+                    item.add(date)
+                    item.add(vpos)
+                    commentListList.add(item)
+                }
+
+                commentListList.sortedBy { arrayList -> arrayList[4].toInt() }
+                    .forEach {
+                        recyclerViewList.add(it)
+                    }
+
+
+                activity?.runOnUiThread {
+                    nicoVideoAdapter.notifyDataSetChanged()
+                    Snackbar.make(
+                        activity_nicovideo_recyclerview,
+                        "取得済みコメント(XML)：${recyclerViewList.size}",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                }
+
+            }
+        })
+
     }
 
     fun showToast(message: String) {

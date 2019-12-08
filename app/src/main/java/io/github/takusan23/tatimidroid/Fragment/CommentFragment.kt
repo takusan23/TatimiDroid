@@ -309,7 +309,7 @@ class CommentFragment : Fragment() {
 
         isLowLatency = !pref_setting.getBoolean("setting_low_latency_off", false)
 
-        println("低遅延$isLowLatency")
+        // println("低遅延$isLowLatency")
 
         //センサーによる画面回転
         if (pref_setting.getBoolean("setting_rotation_sensor", false)) {
