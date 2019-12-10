@@ -30,10 +30,11 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>
         val comment = item.get(2)
         val date = item.get(3)
         val vpos = item.get(4)
+        val time = vpos.toFloat() / 100 //再生時間。100で割ればいいっぽい？
         val mail = item.get(5)
 
         holder.commentTextView.text = comment
-        holder.userNameTextView.text = "${setTimeFormat(date.toLong())} | $vpos | $mail"
+        holder.userNameTextView.text = "${setTimeFormat(date.toLong())} | $time | $mail"
 
     }
 

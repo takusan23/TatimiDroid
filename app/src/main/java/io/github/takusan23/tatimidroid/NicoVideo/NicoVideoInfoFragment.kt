@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Html
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -49,6 +50,8 @@ class NicoVideoInfoFragment : Fragment() {
         usersession = pref_setting.getString("user_session", "") ?: ""
 
         getNicoVideoWebPage()
+
+        fragment_nicovideo_info_description_textview.movementMethod = LinkMovementMethod.getInstance();
 
     }
 
