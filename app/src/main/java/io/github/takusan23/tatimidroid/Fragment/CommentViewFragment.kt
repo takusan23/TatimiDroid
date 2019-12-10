@@ -336,7 +336,10 @@ class CommentViewFragment : Fragment() {
                                         Snackbar.LENGTH_SHORT
                                     ).setAction(getString(R.string.end)) {
                                         //終了
-                                        //commentActivity.finish()
+                                        if(activity !is NimadoActivity){
+                                            //二窓Activity以外では終了できるようにする。
+                                            activity?.finish()
+                                        }
                                     }.setAnchorView(commentFragment.getSnackbarAnchorView()).show()
                                 }
                             }

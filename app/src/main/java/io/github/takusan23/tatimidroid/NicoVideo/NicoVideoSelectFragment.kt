@@ -1,12 +1,10 @@
 package io.github.takusan23.tatimidroid.NicoVideo
 
-import android.app.DownloadManager
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
-import android.text.SpannableString
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,13 +18,11 @@ import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoSelectAdapter
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_select.*
 import okhttp3.*
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
-import java.util.regex.Pattern
 
 class NicoVideoSelectFragment : Fragment() {
 
@@ -128,7 +124,7 @@ class NicoVideoSelectFragment : Fragment() {
         fragment_nicovideo_select_video_id_button.setOnClickListener {
             //Activity移動
             val id = fragment_nicovideo_select_video_id_textinput.text.toString()
-            val intent = Intent(context, NicoVideoCommentActivity::class.java)
+            val intent = Intent(context, NicoVideoActivity::class.java)
             intent.putExtra("id", id)
             startActivity(intent)
         }

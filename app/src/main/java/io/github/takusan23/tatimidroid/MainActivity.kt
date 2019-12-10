@@ -14,12 +14,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Fragment.*
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentActivity
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_liveid.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch

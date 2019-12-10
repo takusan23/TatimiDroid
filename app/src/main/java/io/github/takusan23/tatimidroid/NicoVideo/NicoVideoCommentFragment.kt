@@ -37,6 +37,8 @@ class NicoVideoCommentFragment : Fragment() {
 
     var id = "sm157"
 
+    lateinit var nicoVideoFragment: NicoVideoFragment
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,8 +52,15 @@ class NicoVideoCommentFragment : Fragment() {
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
+
         //動画ID受け取る（sm9とかsm157とか）
         id = arguments?.getString("id") ?: "sm157"
+
+        //nicovideoFragment取る。
+        nicoVideoFragment =
+            activity?.supportFragmentManager?.findFragmentByTag(id) as NicoVideoFragment
+
+
 
         usersession = pref_setting.getString("user_session", "") ?: ""
 
@@ -236,18 +245,33 @@ class NicoVideoCommentFragment : Fragment() {
                     val jsonObject = jsonArray.getJSONObject(i)
                     if (jsonObject.has("chat")) {
                         val chat = jsonObject.getJSONObject("chat")
-                        if (chat.has("content")) {
+                        if (chat.has("content") && !chat.isNull("mail")) {
                             val comment = chat.getString("content")
                             val user_id = ""
                             val date = chat.getString("date")
                             val vpos = chat.getString("vpos")
-                            val item = arrayListOf<String>()
-                            item.add("")
-                            item.add(user_id)
-                            item.add(comment)
-                            item.add(date)
-                            item.add(vpos)
-                            commentListList.add(item)
+
+                            //mail取る。
+                            val mail = chat.getString("mail")
+                            //追加可能か
+                            var addable = true
+                            //3DSのコメント非表示機能有効時
+                            if (nicoVideoFragment.isHide3DSComment) {
+                                if (!mail.contains("device:3DS")) {
+                                    addable = false
+                                }
+                            }
+
+                            if (addable) {
+                                val item = arrayListOf<String>()
+                                item.add("")
+                                item.add(user_id)
+                                item.add(comment)
+                                item.add(date)
+                                item.add(vpos)
+                                item.add(mail)
+                                commentListList.add(item)
+                            }
                         }
                     }
                 }
@@ -309,12 +333,14 @@ class NicoVideoCommentFragment : Fragment() {
                     val user_id = ""
                     val date = it.attr("date")
                     val vpos = it.attr("vpos")
+                    val mail = it.attr("mail")
                     val item = arrayListOf<String>()
                     item.add("")
                     item.add(user_id)
                     item.add(comment)
                     item.add(date)
                     item.add(vpos)
+                    item.add(mail)
                     commentListList.add(item)
                 }
 

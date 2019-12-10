@@ -30,9 +30,10 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>
         val comment = item.get(2)
         val date = item.get(3)
         val vpos = item.get(4)
+        val mail = item.get(5)
 
         holder.commentTextView.text = comment
-        holder.userNameTextView.text = setTimeFormat(date.toLong()) + " / " + vpos
+        holder.userNameTextView.text = setTimeFormat(date.toLong()) + " / " + vpos + " / " + mail
 
     }
 

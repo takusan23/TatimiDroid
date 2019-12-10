@@ -5,12 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentActivity
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
-import org.w3c.dom.Text
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 
@@ -66,7 +64,7 @@ class NicoVideoSelectAdapter(private val arrayListArrayAdapter: ArrayList<ArrayL
 
         //Card押した時
         holder.cardView.setOnClickListener {
-            val intent = Intent(context, NicoVideoCommentActivity::class.java)
+            val intent = Intent(context, NicoVideoActivity::class.java)
             intent.putExtra("id", id)
             context.startActivity(intent)
         }

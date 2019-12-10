@@ -201,4 +201,5 @@
     <string name="dictionary">Dictionary</string>
     <string name="low_latency">Low latency mode</string>
     <string name="setting_low_latency_off_title">Disable low latency mode</string>
+    <string name="menu_device_3ds_block">Hide 3DS comments</string>
 </resources>
