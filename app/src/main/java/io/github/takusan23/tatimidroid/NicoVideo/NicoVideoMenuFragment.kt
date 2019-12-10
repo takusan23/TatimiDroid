@@ -32,10 +32,13 @@ class NicoVideoMenuFragment : Fragment() {
 
         //3DSのコメントを非表示にする
         nicoVideoFragment.apply {
+
             fragment_nicovideo_menu_3ds_switch.isChecked = isHide3DSComment
+
             fragment_nicovideo_menu_3ds_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-                isHide3DSComment = isChecked
+                isHide3DSComment = fragment_nicovideo_menu_3ds_switch.isChecked
             }
+
         }
 
 

@@ -223,6 +223,8 @@ class NicoVideoCommentFragment : Fragment() {
 
 
     fun postNicoVideoCommentAPI(jsonArray: JSONArray) {
+        recyclerViewList.clear()
+
         val request = Request.Builder()
             .url("https://nmsg.nicovideo.jp/api.json/")
             .header("Cookie", "user_session=${usersession}")
@@ -257,7 +259,7 @@ class NicoVideoCommentFragment : Fragment() {
                             var addable = true
                             //3DSのコメント非表示機能有効時
                             if (nicoVideoFragment.isHide3DSComment) {
-                                if (!mail.contains("device:3DS")) {
+                                if (mail.contains("device:3DS")) {
                                     addable = false
                                 }
                             }
@@ -295,7 +297,7 @@ class NicoVideoCommentFragment : Fragment() {
                 activity?.runOnUiThread {
                     nicoVideoAdapter.notifyDataSetChanged()
                     Snackbar.make(
-                        activity_nicovideo_recyclerview,
+                        activity?.findViewById(android.R.id.content)!!,
                         "取得済みコメント：${recyclerViewList.size}",
                         Snackbar.LENGTH_SHORT
                     ).show()
@@ -306,6 +308,7 @@ class NicoVideoCommentFragment : Fragment() {
 
     //何故か必要な情報がJSONにないときはXMLでコメントを取得する。非公式？
     fun postNicoVideoCommentAPIXML(threadId: String, user_id: String) {
+        recyclerViewList.clear()
         val postBody =
             "<thread thread=\"$threadId\" version=\"20090904\" res_from=\"-1000\" user_id=\"$user_id\" force_184=\"1\"/>\n"
         val request = Request.Builder()
@@ -334,14 +337,26 @@ class NicoVideoCommentFragment : Fragment() {
                     val date = it.attr("date")
                     val vpos = it.attr("vpos")
                     val mail = it.attr("mail")
-                    val item = arrayListOf<String>()
-                    item.add("")
-                    item.add(user_id)
-                    item.add(comment)
-                    item.add(date)
-                    item.add(vpos)
-                    item.add(mail)
-                    commentListList.add(item)
+
+                    //追加可能か
+                    var addable = true
+                    //3DSのコメント非表示機能有効時
+                    if (nicoVideoFragment.isHide3DSComment) {
+                        if (mail.contains("device:3DS")) {
+                            addable = false
+                        }
+                    }
+
+                    if (addable) {
+                        val item = arrayListOf<String>()
+                        item.add("")
+                        item.add(user_id)
+                        item.add(comment)
+                        item.add(date)
+                        item.add(vpos)
+                        item.add(mail)
+                        commentListList.add(item)
+                    }
                 }
 
                 commentListList.sortedBy { arrayList -> arrayList[4].toInt() }
@@ -353,7 +368,7 @@ class NicoVideoCommentFragment : Fragment() {
                 activity?.runOnUiThread {
                     nicoVideoAdapter.notifyDataSetChanged()
                     Snackbar.make(
-                        activity_nicovideo_recyclerview,
+                        activity?.findViewById(android.R.id.content)!!,
                         "取得済みコメント(XML)：${recyclerViewList.size}",
                         Snackbar.LENGTH_SHORT
                     ).show()
