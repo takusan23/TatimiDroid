@@ -351,6 +351,12 @@ class NicoVideoCommentFragment : Fragment() {
                                 }
                             }
 
+                            //ニコる数
+                            var nicoruCount = ""
+                            if (chat.has("nicoru")) {
+                                nicoruCount = chat.getInt("nicoru").toString()
+                            }
+
                             if (addable) {
                                 val item = arrayListOf<String>()
                                 item.add("")
@@ -359,6 +365,7 @@ class NicoVideoCommentFragment : Fragment() {
                                 item.add(date)
                                 item.add(vpos)
                                 item.add(mail)
+                                item.add(nicoruCount)
                                 commentListList.add(item)
                             }
                         }
@@ -454,6 +461,7 @@ class NicoVideoCommentFragment : Fragment() {
                         item.add(date)
                         item.add(vpos)
                         item.add(mail)
+                        item.add("")
                         commentListList.add(item)
                     }
                 }

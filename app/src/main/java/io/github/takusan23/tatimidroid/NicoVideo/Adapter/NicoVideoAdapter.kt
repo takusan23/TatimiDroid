@@ -25,6 +25,8 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
+        val context = holder.commentTextView.context
+
         val item = arrayListArrayAdapter[position] as ArrayList<String>
         val name = item.get(1)
         val comment = item.get(2)
@@ -32,9 +34,14 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>
         val vpos = item.get(4)
         val time = vpos.toFloat() / 100 //再生時間。100で割ればいいっぽい？
         val mail = item.get(5)
+        var nicoruCount = item.get(6)
+        if (nicoruCount.isNotEmpty()) {
+            nicoruCount = "${context.getString(R.string.nicoru)} $nicoruCount"
+        }
 
         holder.commentTextView.text = comment
-        holder.userNameTextView.text = "${setTimeFormat(date.toLong())} | $time | $mail"
+        holder.userNameTextView.text =
+            "${setTimeFormat(date.toLong())} | $time | $mail | $nicoruCount"
 
     }
 
