@@ -51,7 +51,8 @@ class NicoVideoInfoFragment : Fragment() {
 
         getNicoVideoWebPage()
 
-        fragment_nicovideo_info_description_textview.movementMethod = LinkMovementMethod.getInstance();
+        fragment_nicovideo_info_description_textview.movementMethod =
+            LinkMovementMethod.getInstance();
 
     }
 
@@ -90,10 +91,24 @@ class NicoVideoInfoFragment : Fragment() {
 
                         val threadObject = json.getJSONObject("thread")
                         val commentCount = threadObject.getString("commentCount")
-                        val ownerObject = json.getJSONObject("owner")
-                        val nickname = ownerObject.getString("nickname")
-                        val userId = ownerObject.getString("id")
-                        val iconURL = ownerObject.getString("iconURL")
+
+                        //ユーザー情報。公式動画だと取れない。
+                        var nickname = ""
+                        var userId = ""
+                        var iconURL = ""
+                        if (!json.isNull("owner")) {
+                            val ownerObject = json.getJSONObject("owner")
+                            nickname = ownerObject.getString("nickname")
+                            userId = ownerObject.getString("id")
+                            iconURL = ownerObject.getString("iconURL")
+                        }
+                        //公式動画では代わりにチャンネル取る。
+                        if (!json.isNull("channel")) {
+                            val ownerObject = json.getJSONObject("channel")
+                            nickname = ownerObject.getString("name")
+                            userId = ownerObject.getString("globalId")
+                            //iconURL = ownerObject.getString("iconURL")
+                        }
 
                         val videoObject = json.getJSONObject("video")
 
@@ -173,7 +188,12 @@ class NicoVideoInfoFragment : Fragment() {
 
                             //ユーザーページ
                             fragment_nicovideo_info_owner_textview.setOnClickListener {
-                                openBrowser("https://www.nicovideo.jp/user/$userId")
+                                if (userId.contains("co")) {
+                                    openBrowser("https://www.nicovideo.jp/user/$userId")
+                                } else {
+                                    //チャンネルの時、ch以外にもそれぞれアニメの名前を入れても通る。例：te-kyu2 / gochiusa など
+                                    openBrowser("https://ch.nicovideo.jp/$userId")
+                                }
                             }
 
                         }

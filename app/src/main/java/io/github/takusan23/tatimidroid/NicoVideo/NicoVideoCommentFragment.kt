@@ -1,30 +1,30 @@
 package io.github.takusan23.tatimidroid.NicoVideo
 
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.adapter_auto_admission_layout.*
-import kotlinx.android.synthetic.main.fragment_gift_layout.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
+import kotlin.concurrent.thread
+
 
 class NicoVideoCommentFragment : Fragment() {
 
@@ -145,7 +145,29 @@ class NicoVideoCommentFragment : Fragment() {
                                 val thread_id =
                                     thread.getString("id")  //thread まじでなんでこの管理方法にしたんだ運営・・
                                 val fork = thread.getInt("fork")    //わからん。
-                                val isOwnerThread = thread.getBoolean("isOwnerThread")   //
+                                val isOwnerThread = thread.getBoolean("isOwnerThread")
+
+                                //公式動画のみ？threadkeyとforce_184が必要かどうか
+                                val isThreadkeyRequired = thread.getBoolean("isThreadkeyRequired")
+
+                                //公式動画のコメント取得に必須なthreadkeyとforce_184を取得する。
+                                var threadResponse: String? = ""
+                                var threadkey: String? = ""
+                                var force_184: String? = ""
+                                if (isThreadkeyRequired) {
+                                    //なお同期処理なので取得できるまで進みません。
+                                    threadResponse = getThreadKeyForce184(thread_id)
+                                    //なーんかUriでパースできないので仕方なく＆のいちを取り出して無理やり取り出す。
+                                    val andPos = threadResponse?.indexOf("&")
+                                    //threadkeyとforce_184パース
+                                    threadkey =
+                                        threadResponse?.substring(0, andPos!!)
+                                            ?.replace("threadkey=", "")
+                                    force_184 =
+                                        threadResponse?.substring(andPos!!, threadResponse.length)
+                                            ?.replace("&force_184=", "")
+                                }
+
                                 //threads[]のJSON配列の中に「isActive」がtrueなら次のJSONを作成します
                                 if (thread.getBoolean("isActive")) {
                                     val jsonObject = JSONObject().apply {
@@ -163,7 +185,14 @@ class NicoVideoCommentFragment : Fragment() {
                                         put("with_global", 1)
                                         put("score", 1)
                                         put("nicoru", 3)
-                                        put("userkey", userkey)
+                                        //公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
+                                        //threadkeyのときはもしかするとuserkeyいらない
+                                        if (isThreadkeyRequired) {
+                                            put("force_184", force_184)
+                                            put("threadkey", threadkey)
+                                        } else {
+                                            put("userkey", userkey)
+                                        }
                                     }
                                     val post_thread = JSONObject().apply {
                                         put("thread", jsonObject)
@@ -179,7 +208,14 @@ class NicoVideoCommentFragment : Fragment() {
                                         put("content", content)
                                         put("scores", 0)
                                         put("nicoru", 3)
-                                        put("userkey", userkey)
+                                        //公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
+                                        //threadkeyのときはもしかするとuserkeyいらない
+                                        if (isThreadkeyRequired) {
+                                            put("force_184", force_184)
+                                            put("threadkey", threadkey)
+                                        } else {
+                                            put("userkey", userkey)
+                                        }
                                     }
                                     val thread_leaves = JSONObject().apply {
                                         put("thread_leaves", jsonObject)
@@ -188,13 +224,46 @@ class NicoVideoCommentFragment : Fragment() {
                                 }
                             }
                             //POST実行
-                            // println(postJSONArray)
                             postNicoVideoCommentAPI(postJSONArray)
                         } else {
                             //dmcInfoない。再生時間取れない。仕方ないのでXML形式でもらう。HTMLスクレイピングの要領で解析可能。
                             val threadId = json.getJSONObject("thread").getJSONObject("ids")
                                 .getString("default")
-                            postNicoVideoCommentAPIXML(threadId, user_id)
+                            //https://flapi.nicovideo.jp/api/getthreadkey?thread=にはこっちのthread_idが必要な模様
+                            val community_threadId =
+                                json.getJSONObject("thread").getJSONObject("ids")
+                                    .getString("community")
+                            //公式動画かどうか
+                            val isOfficialVideo =
+                                json.getJSONObject("video").getBoolean("isOfficial")
+
+                            //公式動画のコメント取得に必須なthreadkeyとforce_184を取得する。
+                            var threadResponse: String? = ""
+                            var threadkey: String? = ""
+                            var force_184: String? = ""
+                            if (isOfficialVideo) {
+                                //なお同期処理なので取得できるまで進みません。
+                                threadResponse = getThreadKeyForce184(community_threadId)
+                                //なーんかUriでパースできないので仕方なく＆のいちを取り出して無理やり取り出す。
+                                val andPos = threadResponse?.indexOf("&")
+                                //threadkeyとforce_184パース
+                                threadkey =
+                                    threadResponse?.substring(0, andPos!!)
+                                        ?.replace("threadkey=", "")
+                                force_184 =
+                                    threadResponse?.substring(andPos!!, threadResponse.length)
+                                        ?.replace("&force_184=", "")
+                                //公式動画はthreadIdもcommunityの方を使うらしい
+                                postNicoVideoCommentAPIXML(
+                                    community_threadId,
+                                    user_id,
+                                    threadkey,
+                                    force_184
+                                )
+                            } else {
+                                //一般
+                                postNicoVideoCommentAPIXML(threadId, user_id)
+                            }
                         }
 
 
@@ -211,8 +280,6 @@ class NicoVideoCommentFragment : Fragment() {
                             }
 
                         }
-
-
                     }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
@@ -221,6 +288,26 @@ class NicoVideoCommentFragment : Fragment() {
         })
     }
 
+    /*
+    * 公式動画のコメントを取得するのに必要。
+    * 同期処理です。
+    * */
+    fun getThreadKeyForce184(thread: String): String? {
+        val url = "https://flapi.nicovideo.jp/api/getthreadkey?thread=$thread"
+        val request = Request.Builder()
+            .url(url).get()
+            .header("Cookie", "user_session=${usersession}")
+            .header("User-Agent", "TatimiDroid;@takusan_23")
+            .build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        if (response.isSuccessful) {
+            return response.body?.string()
+        } else {
+            showToast("${getString(R.string.error)}\n${response.code}")
+        }
+        return null
+    }
 
     fun postNicoVideoCommentAPI(jsonArray: JSONArray) {
         recyclerViewList.clear()
@@ -307,10 +394,22 @@ class NicoVideoCommentFragment : Fragment() {
     }
 
     //何故か必要な情報がJSONにないときはXMLでコメントを取得する。非公式？
-    fun postNicoVideoCommentAPIXML(threadId: String, user_id: String) {
+    fun postNicoVideoCommentAPIXML(
+        threadId: String,
+        user_id: String,
+        threadkey: String? = "",
+        force_184: String? = "1"
+    ) {
         recyclerViewList.clear()
-        val postBody =
-            "<thread thread=\"$threadId\" version=\"20090904\" res_from=\"-1000\" user_id=\"$user_id\" force_184=\"1\"/>\n"
+
+        //公式動画かどうか
+        val postBody = if (threadkey?.isEmpty() ?: true) {
+            "<thread thread=\"$threadId\" version=\"20090904\" res_from=\"-1000\" user_id=\"$user_id\" force_184=\"$force_184\"/>\n"
+        } else {
+            //公式動画
+            "<thread thread=\"$threadId\" threadkey=\"$threadkey\" version=\"20090904\" res_from=\"-1000\" user_id=\"$user_id\" force_184=\"$force_184\"/>\n"
+        }
+
         val request = Request.Builder()
             .url("https://nmsg.nicovideo.jp/api") //XML。httpsじゃないとAndroid 9以降は通信できない。
             .header("Cookie", "user_session=${usersession}")

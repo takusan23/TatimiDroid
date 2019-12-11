@@ -18,6 +18,7 @@ import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoSelectAdapter
 import io.github.takusan23.tatimidroid.R
+import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.view.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_select.*
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
@@ -73,7 +74,8 @@ class NicoVideoSelectFragment : Fragment() {
         callHistoryAPI()
 
         if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
-            fragment_nicovideo_select_tab_layout.setBackgroundColor(Color.parseColor("#000000"))
+            fragment_nicovideo_select_tab_layout.setBackgroundColor(darkModeSupport.getThemeColor())
+            fragment_nicovideo_select_mylist_tab_layout.setBackgroundColor(darkModeSupport.getThemeColor())
         }
 
         fragment_nicovideo_select_tab_layout.addOnTabSelectedListener(object :
@@ -101,9 +103,36 @@ class NicoVideoSelectFragment : Fragment() {
                         GlobalScope.launch {
                             val token = getNicoAPIToken().await()
                             nicoAPIToken = token
-                           // println("トークン　$token")
-                            postToriaezuMylist(token)
+                            //とりあえずマイリストを最初に読み込んでおく。
+                            postMylist(token, "", true)
+                            postMylistList(token)
                         }
+                    }
+                }
+            }
+        })
+
+        //マイリストのTabLayoutのコールバック
+        fragment_nicovideo_select_mylist_tab_layout.addOnTabSelectedListener(object :
+            TabLayout.OnTabSelectedListener {
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+
+            }
+
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                when (tab?.text) {
+                    //とりあえずマイリスト
+                    getString(R.string.toriaezu_mylist) -> {
+                        postMylist(nicoAPIToken, "", true)
+                    }
+                    //それ以外（普通のマイリストなど
+                    else -> {
+                        val id = tab?.tag as String
+                        postMylist(nicoAPIToken, id)
                     }
                 }
             }
@@ -123,13 +152,19 @@ class NicoVideoSelectFragment : Fragment() {
                     callHistoryAPI()
                 }
                 getString(R.string.mylist) -> {
-                    //マイリスト
-                    GlobalScope.launch {
-                        val token = getNicoAPIToken().await()
-                        nicoAPIToken = token
-                        // println("トークン　$token")
-                        postToriaezuMylist(token)
-                        postMylistList(token)
+                    val tab = fragment_nicovideo_select_mylist_tab_layout.getTabAt(
+                        fragment_nicovideo_select_mylist_tab_layout.selectedTabPosition
+                    )
+                    when (tab?.text) {
+                        //とりあえずマイリスト
+                        getString(R.string.toriaezu_mylist) -> {
+                            postMylist(nicoAPIToken, "", true)
+                        }
+                        //それ以外（普通のマイリストなど
+                        else -> {
+                            val id = tab?.tag as String
+                            postMylist(nicoAPIToken, id)
+                        }
                     }
                 }
             }
@@ -139,6 +174,22 @@ class NicoVideoSelectFragment : Fragment() {
 
     //マイリスト一覧を取得
     private fun postMylistList(token: String) {
+
+        //表示する
+        activity?.runOnUiThread {
+            fragment_nicovideo_select_mylist_tab_layout.visibility = View.VISIBLE
+
+            //タブ初期化
+            fragment_nicovideo_select_mylist_tab_layout.removeAllTabs()
+            //IDをtagに詰めとく。
+            val tabItem = fragment_nicovideo_select_mylist_tab_layout.newTab()
+            tabItem.apply {
+                text = getString(R.string.toriaezu_mylist)
+            }
+            fragment_nicovideo_select_mylist_tab_layout.addTab(tabItem)
+
+        }
+
         val post = FormBody.Builder()
             .add("token", token)
             .build()
@@ -159,11 +210,22 @@ class NicoVideoSelectFragment : Fragment() {
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     val jsonObject = JSONObject(response.body?.string())
-                    val mylistItems = jsonObject.getJSONArray("mylistgroup")
-                    for (i in 0 until mylistItems.length()){
-                        val mylist = mylistItems.getJSONObject(i)
-                        val name = mylist.getString("name")
+                    activity?.runOnUiThread {
+                        val mylistItems = jsonObject.getJSONArray("mylistgroup")
+                        for (i in 0 until mylistItems.length()) {
+                            val mylist = mylistItems.getJSONObject(i)
+                            val name = mylist.getString("name")
+                            val id = mylist.getString("id")
 
+                            //IDをtagに詰めとく。
+                            val tabItem = fragment_nicovideo_select_mylist_tab_layout.newTab()
+                            tabItem.apply {
+                                text = name
+                                tag = id
+                            }
+                            fragment_nicovideo_select_mylist_tab_layout.addTab(tabItem)
+
+                        }
                     }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
@@ -172,14 +234,31 @@ class NicoVideoSelectFragment : Fragment() {
         })
     }
 
-    //とりあえずマイリスト取得
-    private fun postToriaezuMylist(token: String) {
+    /**
+     * マイリストを取得する（POSTすれば返ってくる。
+     * @param toriaezumylist とりあえずマイリストを取得するときはtrueで
+     * @param mylistId https://www.nicovideo.jp/my/mylist/#/ここの数字　とりあえずマイリスト以外では指定しないといけません。
+     * */
+    private fun postMylist(token: String, mylistId: String = "", toriaezumylist: Boolean = false) {
+
         recyclerViewList.clear()
         activity?.runOnUiThread { fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true }
-        val post = FormBody.Builder()
-            .add("token", token)
-            .build()
-        val url = "https://www.nicovideo.jp/api/deflist/list"
+
+        val post = FormBody.Builder().apply {
+            add("token", token)
+            //とりあえずマイリスト以外ではIDを入れる、
+            if (!toriaezumylist) {
+                add("group_id", mylistId)
+            }
+        }.build()
+
+        //とりあえずマイリストと普通のマイリスト。
+        val url = if (toriaezumylist) {
+            "https://www.nicovideo.jp/api/deflist/list"
+        } else {
+            "https://www.nicovideo.jp/api/mylist/list"
+        }
+
         val request = Request.Builder()
             .header("Cookie", "user_session=${usersession}")
             .header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
@@ -187,6 +266,7 @@ class NicoVideoSelectFragment : Fragment() {
             .url(url)
             .post(post)
             .build()
+
         val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
@@ -197,6 +277,7 @@ class NicoVideoSelectFragment : Fragment() {
                 if (response.isSuccessful) {
                     val jsonObject = JSONObject(response.body?.string())
                     val mylistItems = jsonObject.getJSONArray("mylistitem")
+                    val tmpList = arrayListOf<ArrayList<String>>()
                     for (i in 0 until mylistItems.length()) {
 
                         val videoObject = mylistItems.getJSONObject(i)
@@ -227,8 +308,16 @@ class NicoVideoSelectFragment : Fragment() {
                             add(mylistCount)
                         }
 
-                        recyclerViewList.add(item)
+                        tmpList.add(item)
                     }
+
+                    //登録順に並び替える？
+                    tmpList.toList()
+                        .sortedByDescending { arrayList -> arrayList[3].toString().toLong() }
+                        .forEach {
+                            recyclerViewList.add(it)
+                        }
+
                     activity?.runOnUiThread {
                         nicoVideoSelectAdapter.notifyDataSetChanged()
                         fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = false
@@ -261,8 +350,11 @@ class NicoVideoSelectFragment : Fragment() {
 
     //履歴取得。スマホWeb版見てたらそれっぽいAPI特定した
     fun callHistoryAPI() {
+
         recyclerViewList.clear()
         fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
+        fragment_nicovideo_select_mylist_tab_layout.visibility = View.GONE
+
         //200件最大まで取得する
         val url = "https://nvapi.nicovideo.jp/v1/users/me/watch/history?pageSize=200"
         val request = Request.Builder()
@@ -335,8 +427,11 @@ class NicoVideoSelectFragment : Fragment() {
     * スクレイピング、HTMLが変わったら動かなくなるのでやりたくね～
     * */
     fun getPOSTVideoHTML(page: String = "") {
+
         recyclerViewList.clear()
         fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
+        fragment_nicovideo_select_mylist_tab_layout.visibility = View.GONE
+
         //200件最大まで取得する
         var url = "https://www.nicovideo.jp/my/video"
         if (page.isNotEmpty()) {
