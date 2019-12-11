@@ -38,6 +38,7 @@ class NicoVideoSelectFragment : Fragment() {
     lateinit var pref_setting: SharedPreferences
 
     var usersession = ""
+    var nicoAPIToken = ""
 
     lateinit var darkModeSupport: DarkModeSupport
 
@@ -99,6 +100,7 @@ class NicoVideoSelectFragment : Fragment() {
                         //マイリスト
                         GlobalScope.launch {
                             val token = getNicoAPIToken().await()
+                            nicoAPIToken = token
                            // println("トークン　$token")
                             postToriaezuMylist(token)
                         }
@@ -124,11 +126,50 @@ class NicoVideoSelectFragment : Fragment() {
                     //マイリスト
                     GlobalScope.launch {
                         val token = getNicoAPIToken().await()
+                        nicoAPIToken = token
+                        // println("トークン　$token")
+                        postToriaezuMylist(token)
+                        postMylistList(token)
                     }
                 }
             }
         }
 
+    }
+
+    //マイリスト一覧を取得
+    private fun postMylistList(token: String) {
+        val post = FormBody.Builder()
+            .add("token", token)
+            .build()
+        val url = "https://www.nicovideo.jp/api/mylistgroup/list"
+        val request = Request.Builder()
+            .header("Cookie", "user_session=${usersession}")
+            .header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
+            .header("User-Agent", "TatimiDroid;@takusan_23")
+            .url(url)
+            .post(post)
+            .build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                showToast("${getString(R.string.error)}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val jsonObject = JSONObject(response.body?.string())
+                    val mylistItems = jsonObject.getJSONArray("mylistgroup")
+                    for (i in 0 until mylistItems.length()){
+                        val mylist = mylistItems.getJSONObject(i)
+                        val name = mylist.getString("name")
+
+                    }
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                }
+            }
+        })
     }
 
     //とりあえずマイリスト取得
