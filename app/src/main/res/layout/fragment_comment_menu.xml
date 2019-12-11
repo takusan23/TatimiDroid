@@ -131,7 +131,7 @@
                             android:layout_height="wrap_content"
                             android:checked="false"
                             android:padding="5sp"
-                            android:text="@string/iyayo_hidden" />
+                            android:text="iyayo_hidden" />
 
 
                     <Switch

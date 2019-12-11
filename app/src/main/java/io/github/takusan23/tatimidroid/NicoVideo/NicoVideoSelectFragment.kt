@@ -19,10 +19,16 @@ import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoSelectAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_select.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import okhttp3.*
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 class NicoVideoSelectFragment : Fragment() {
 
@@ -89,6 +95,14 @@ class NicoVideoSelectFragment : Fragment() {
                         //履歴
                         callHistoryAPI()
                     }
+                    getString(R.string.mylist) -> {
+                        //マイリスト
+                        GlobalScope.launch {
+                            val token = getNicoAPIToken().await()
+                           // println("トークン　$token")
+                            postToriaezuMylist(token)
+                        }
+                    }
                 }
             }
         })
@@ -106,9 +120,83 @@ class NicoVideoSelectFragment : Fragment() {
                     //履歴
                     callHistoryAPI()
                 }
+                getString(R.string.mylist) -> {
+                    //マイリスト
+                    GlobalScope.launch {
+                        val token = getNicoAPIToken().await()
+                    }
+                }
             }
         }
 
+    }
+
+    //とりあえずマイリスト取得
+    private fun postToriaezuMylist(token: String) {
+        recyclerViewList.clear()
+        activity?.runOnUiThread { fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true }
+        val post = FormBody.Builder()
+            .add("token", token)
+            .build()
+        val url = "https://www.nicovideo.jp/api/deflist/list"
+        val request = Request.Builder()
+            .header("Cookie", "user_session=${usersession}")
+            .header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
+            .header("User-Agent", "TatimiDroid;@takusan_23")
+            .url(url)
+            .post(post)
+            .build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                showToast("${getString(R.string.error)}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val jsonObject = JSONObject(response.body?.string())
+                    val mylistItems = jsonObject.getJSONArray("mylistitem")
+                    for (i in 0 until mylistItems.length()) {
+
+                        val videoObject = mylistItems.getJSONObject(i)
+                        val videoInfo = videoObject.getJSONObject("item_data")
+
+                        val videoId = videoInfo.getString("video_id")
+                        val title = videoInfo.getString("title")
+                        val lastWatch = ""
+                        val registeredAt = videoInfo.getLong("first_retrieve").toString()
+                        val watchCount = videoInfo.getString("view_counter")
+                        val thumbnailUrl = videoInfo.getString("thumbnail_url")
+                        val commentCount = videoInfo.getString("num_res")
+                        val playCount = videoInfo.getString("view_counter")
+                        val mylistCount = videoInfo.getString("mylist_counter")
+
+                        val createTime = videoObject.getLong("create_time").toString()
+
+                        val item = arrayListOf<String>().apply {
+                            add("mylist")//マイリストだよ
+                            add(videoId)
+                            add(title)
+                            add(createTime)
+                            add(registeredAt)
+                            add(watchCount)
+                            add(thumbnailUrl)
+                            add(commentCount)
+                            add(playCount)
+                            add(mylistCount)
+                        }
+
+                        recyclerViewList.add(item)
+                    }
+                    activity?.runOnUiThread {
+                        nicoVideoSelectAdapter.notifyDataSetChanged()
+                        fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = false
+                    }
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                }
+            }
+        })
     }
 
     private fun initRecyclerView() {
@@ -206,6 +294,8 @@ class NicoVideoSelectFragment : Fragment() {
     * スクレイピング、HTMLが変わったら動かなくなるのでやりたくね～
     * */
     fun getPOSTVideoHTML(page: String = "") {
+        recyclerViewList.clear()
+        fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
         //200件最大まで取得する
         var url = "https://www.nicovideo.jp/my/video"
         if (page.isNotEmpty()) {
@@ -290,5 +380,40 @@ class NicoVideoSelectFragment : Fragment() {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /*
+    * マイリストのHTMLからNicoAPI.Tokenをとってみよう
+    * */
+    fun getNicoAPIToken(): Deferred<String> = GlobalScope.async {
+        //200件最大まで取得する
+        val url = "https://www.nicovideo.jp/my/mylist"
+        val request = Request.Builder()
+            .url(url)
+            .header("Cookie", "user_session=${usersession}")
+            .header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
+            .header("User-Agent", "TatimiDroid;@takusan_23")
+            .get()
+            .build()
+        val okHttpClient = OkHttpClient()
+        //同期実行
+        val response = okHttpClient.newCall(request).execute()
+        if (response.isSuccessful) {
+
+            //正規表現で取り出す。
+            val html = Jsoup.parse(response.body?.string())
+            val regex = "NicoAPI.token = \"(.+?)\";"
+            val pattern = Pattern.compile(regex)
+            val matcher = pattern.matcher(html.html())
+            if (matcher.find()) {
+                val token = matcher.group(1)
+                //println("トークン　$token")
+                return@async token
+            }
+
+        } else {
+            showToast("${getString(R.string.error)}\n${response.code}")
+        }
+        return@async ""
     }
 }

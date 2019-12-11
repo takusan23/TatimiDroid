@@ -202,4 +202,5 @@
     <string name="low_latency">低遅延モード</string>
     <string name="setting_low_latency_off_title">低遅延モードを無効にする</string>
     <string name="menu_device_3ds_block">3DSのコメントを非表示にする</string>
+    <string name="register_date">登録日</string>
 </resources>

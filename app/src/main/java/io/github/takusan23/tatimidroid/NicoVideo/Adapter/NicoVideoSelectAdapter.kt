@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
 import java.text.SimpleDateFormat
-import java.util.ArrayList
+import java.util.*
 
 class NicoVideoSelectAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
     RecyclerView.Adapter<NicoVideoSelectAdapter.ViewHolder>() {
@@ -45,21 +45,39 @@ class NicoVideoSelectAdapter(private val arrayListArrayAdapter: ArrayList<ArrayL
 
         holder.titleTextView.text = title
 
-        if (type != "post") {
-            holder.dateTextView.text =
-                "${context.getString(R.string.last_watch)} : ${setTimeFormat(lastWatch)}"
-            holder.commentCountTextView.text =
-                "${context.getString(R.string.comment_count)} : $commentCount"
-            holder.playCountTextView.text = "${context.getString(R.string.play_count)} : $playCount"
-            holder.mylistCountTextView.text = "${context.getString(R.string.mylist)} : $mylistCount"
-            holder.postDateTextView.text =
-                "${context.getString(R.string.post_date)} : ${setTimeFormat(registeredAt)}"
-        } else {
-            holder.dateTextView.text = lastWatch
-            holder.commentCountTextView.text = commentCount
-            holder.playCountTextView.text = playCount
-            holder.mylistCountTextView.text = mylistCount
-            holder.postDateTextView.text = registeredAt
+        when (type) {
+            "history" -> {
+                holder.dateTextView.text =
+                    "${context.getString(R.string.last_watch)} : ${setTimeFormat(lastWatch)}"
+                holder.commentCountTextView.text =
+                    "${context.getString(R.string.comment_count)} : $commentCount"
+                holder.playCountTextView.text =
+                    "${context.getString(R.string.play_count)} : $playCount"
+                holder.mylistCountTextView.text =
+                    "${context.getString(R.string.mylist)} : $mylistCount"
+                holder.postDateTextView.text =
+                    "${context.getString(R.string.post_date)} : ${setTimeFormat(registeredAt)}"
+            }
+            "mylist" -> {
+                holder.dateTextView.text =
+                    "${context.getString(R.string.register_date)} : ${unixTimeToFormat(lastWatch.toLong()*1000)}" //ほしいのはミリ秒なUnixTimeなので
+                holder.commentCountTextView.text =
+                    "${context.getString(R.string.comment_count)} : $commentCount"
+                holder.playCountTextView.text =
+                    "${context.getString(R.string.play_count)} : $playCount"
+                holder.mylistCountTextView.text =
+                    "${context.getString(R.string.mylist)} : $mylistCount"
+                holder.postDateTextView.text =
+                    "${context.getString(R.string.post_date)} : ${unixTimeToFormat(registeredAt.toLong())}"
+
+            }
+            else -> {
+                holder.dateTextView.text = lastWatch
+                holder.commentCountTextView.text = commentCount
+                holder.playCountTextView.text = playCount
+                holder.mylistCountTextView.text = mylistCount
+                holder.postDateTextView.text = registeredAt
+            }
         }
 
         //Card押した時
@@ -109,4 +127,11 @@ class NicoVideoSelectAdapter(private val arrayListArrayAdapter: ArrayList<ArrayL
         }
         return iso8601
     }
+
+    fun unixTimeToFormat(unixtime: Long): String {
+        //パース前の形。ISO8601の形
+        val fromSimpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+        return fromSimpleDateFormat.format(Date(unixtime))
+    }
+
 }
