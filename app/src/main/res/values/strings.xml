@@ -205,4 +205,7 @@
     <string name="register_date">Registration date</string>
     <string name="toriaezu_mylist">Toriaezu Mylist</string>
     <string name="nicoru">Nicoru</string>
+    <string name="parent_contents">Parent work</string>
+    <string name="get_comment_count">Number of comments acquired</string>
+    <string name="get_parent_count">Total parent work</string>
 </resources>

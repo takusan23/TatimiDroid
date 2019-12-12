@@ -95,6 +95,12 @@ class NicoVideoFragment : Fragment() {
                         (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
                             .replace(R.id.activity_comment_linearlayout, fragment).commit()
                     }
+                    getString(R.string.parent_contents) -> {
+                        val fragment = NicoVideoContentTreeFragment()
+                        fragment.arguments = bundle
+                        (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
+                            .replace(R.id.activity_comment_linearlayout, fragment).commit()
+                    }
                 }
             }
         })

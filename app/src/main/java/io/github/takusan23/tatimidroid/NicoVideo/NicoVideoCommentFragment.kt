@@ -392,7 +392,7 @@ class NicoVideoCommentFragment : Fragment() {
                     nicoVideoAdapter.notifyDataSetChanged()
                     Snackbar.make(
                         activity?.findViewById(android.R.id.content)!!,
-                        "取得済みコメント：${recyclerViewList.size}",
+                        "${getString(R.string.get_comment_count)}：${recyclerViewList.size}",
                         Snackbar.LENGTH_SHORT
                     ).show()
                 }
@@ -476,7 +476,7 @@ class NicoVideoCommentFragment : Fragment() {
                     nicoVideoAdapter.notifyDataSetChanged()
                     Snackbar.make(
                         activity?.findViewById(android.R.id.content)!!,
-                        "取得済みコメント(XML)：${recyclerViewList.size}",
+                        "${getString(R.string.get_comment_count)}(XML)：${recyclerViewList.size}",
                         Snackbar.LENGTH_SHORT
                     ).show()
                 }

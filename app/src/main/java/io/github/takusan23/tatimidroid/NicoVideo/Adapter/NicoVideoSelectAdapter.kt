@@ -60,7 +60,7 @@ class NicoVideoSelectAdapter(private val arrayListArrayAdapter: ArrayList<ArrayL
             }
             "mylist" -> {
                 holder.dateTextView.text =
-                    "${context.getString(R.string.register_date)} : ${unixTimeToFormat(lastWatch.toLong()*1000)}" //ほしいのはミリ秒なUnixTimeなので
+                    "${context.getString(R.string.register_date)} : ${unixTimeToFormat(lastWatch.toLong() * 1000)}" //ほしいのはミリ秒なUnixTimeなので
                 holder.commentCountTextView.text =
                     "${context.getString(R.string.comment_count)} : $commentCount"
                 holder.playCountTextView.text =
@@ -69,7 +69,14 @@ class NicoVideoSelectAdapter(private val arrayListArrayAdapter: ArrayList<ArrayL
                     "${context.getString(R.string.mylist)} : $mylistCount"
                 holder.postDateTextView.text =
                     "${context.getString(R.string.post_date)} : ${unixTimeToFormat(registeredAt.toLong())}"
-
+            }
+            "content_tree" -> {
+                holder.dateTextView.text = ""
+                holder.commentCountTextView.text = ""
+                holder.playCountTextView.text = ""
+                holder.mylistCountTextView.text = ""
+                holder.postDateTextView.text =
+                    "${context.getString(R.string.register_date)} : $registeredAt"
             }
             else -> {
                 holder.dateTextView.text = lastWatch
