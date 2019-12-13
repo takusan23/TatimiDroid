@@ -98,6 +98,10 @@ class NicoVideoSelectFragment : Fragment() {
                         //履歴
                         callHistoryAPI()
                     }
+                    getString(R.string.series) -> {
+                        //シリーズ
+                        callSeriesAPI()
+                    }
                     getString(R.string.mylist) -> {
                         //マイリスト
                         GlobalScope.launch {
@@ -138,6 +142,23 @@ class NicoVideoSelectFragment : Fragment() {
             }
         })
 
+        //シリーズのTabLayoutの押したとき
+        fragment_nicovideo_select_series_tab_layout.addOnTabSelectedListener(object :TabLayout.OnTabSelectedListener{
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+
+            }
+
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                val id = tab?.tag as String
+
+            }
+        })
+
+        //引っ張って更新
         fragment_nicovideo_select_swipe_to_reflesh.setOnRefreshListener {
             val pos = fragment_nicovideo_select_tab_layout.selectedTabPosition
             val text = fragment_nicovideo_select_tab_layout.getTabAt(pos)?.text
@@ -172,12 +193,110 @@ class NicoVideoSelectFragment : Fragment() {
 
     }
 
+    fun getSeriesHTML(id:String){
+        val url = "https://www.nicovideo.jp/series/$id"
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object :Callback{
+            override fun onFailure(call: Call, e: IOException) {
+                showToast("${getString(R.string.error)}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if(response.isSuccessful){
+                    val responseString = response.body?.string()
+                    val html = Jsoup.parse(responseString)
+                    val series = html.getElementsByClass("MediaObject VideoMediaObject SeriesVideoListContainer-video")
+                    series.forEach {
+
+                        val title = it.getElementsByTag("a")[1].text()
+                        val videoId = it.getElementsByTag("a")[1].getElementsByAttribute("href").text().replace("/watch/","")
+                        val thumbnail = it.getElementsByTag("img")
+                        val registered_date = video.getString("registered_date")
+
+                        val item = arrayListOf<String>().apply {
+                            add("content_tree")//親作品だよー
+                            add(videoId)
+                            add(title)
+                            add("")
+                            add(registered_date)
+                            add("")
+                            add(thumbnail)
+                            add("")
+                            add("")
+                            add("")
+                        }
+                        recyclerViewList.add(item)
+
+                    }
+
+
+                }else{
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                }
+            }
+        })
+    }
+
+    //シリーズ一覧を取得
+    private fun callSeriesAPI() {
+
+        recyclerViewList.clear()
+        fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
+        fragment_nicovideo_select_series_tab_layout.visibility = View.GONE
+        fragment_nicovideo_select_mylist_tab_layout.visibility = View.GONE
+
+        val url = "https://nvapi.nicovideo.jp/v1/users/me/series"
+        val request = Request.Builder()
+            .url(url)
+            .header("Cookie", "user_session=${usersession}")
+            .header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
+            .header("User-Agent", "TatimiDroid;@takusan_23")
+            .get()
+            .build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                showToast("${getString(R.string.error)}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val responseString = response.body?.string()
+                    activity?.runOnUiThread {
+                        val jsonObject = JSONObject(responseString)
+                        val data = jsonObject.getJSONObject("data")
+                        val seriesList = data.getJSONArray("items")
+                        for (i in 0 until seriesList.length()) {
+                            val series = seriesList.getJSONObject(i)
+                            val seriesId = series.getLong("id")
+                            val title = series.getString("title")
+                            val tabItem = fragment_nicovideo_select_series_tab_layout.newTab()
+                            tabItem.apply {
+                                text = title
+                                tag = seriesId
+                            }
+                            fragment_nicovideo_select_series_tab_layout.addTab(tabItem)
+                        }
+                    }
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                }
+            }
+        })
+    }
+
     //マイリスト一覧を取得
     private fun postMylistList(token: String) {
 
         //表示する
         activity?.runOnUiThread {
             fragment_nicovideo_select_mylist_tab_layout.visibility = View.VISIBLE
+            fragment_nicovideo_select_series_tab_layout.visibility = View.GONE
+
 
             //タブ初期化
             fragment_nicovideo_select_mylist_tab_layout.removeAllTabs()
@@ -354,6 +473,7 @@ class NicoVideoSelectFragment : Fragment() {
         recyclerViewList.clear()
         fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
         fragment_nicovideo_select_mylist_tab_layout.visibility = View.GONE
+        fragment_nicovideo_select_series_tab_layout.visibility = View.GONE
 
         //200件最大まで取得する
         val url = "https://nvapi.nicovideo.jp/v1/users/me/watch/history?pageSize=200"
@@ -431,6 +551,7 @@ class NicoVideoSelectFragment : Fragment() {
         recyclerViewList.clear()
         fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
         fragment_nicovideo_select_mylist_tab_layout.visibility = View.GONE
+        fragment_nicovideo_select_series_tab_layout.visibility = View.GONE
 
         //200件最大まで取得する
         var url = "https://www.nicovideo.jp/my/video"
