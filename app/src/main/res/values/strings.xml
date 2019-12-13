@@ -208,4 +208,5 @@
     <string name="parent_contents">Parent work</string>
     <string name="get_comment_count">Number of comments acquired</string>
     <string name="get_parent_count">Total parent work</string>
+    <string name="series">series</string>
 </resources>

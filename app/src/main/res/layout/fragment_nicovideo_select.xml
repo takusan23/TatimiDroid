@@ -59,6 +59,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/mylist" />
+
+            <com.google.android.material.tabs.TabItem
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/series" />
+
         </com.google.android.material.tabs.TabLayout>
 
         <com.google.android.material.tabs.TabLayout
@@ -70,6 +76,12 @@
 
 
         </com.google.android.material.tabs.TabLayout>
+
+        <com.google.android.material.tabs.TabLayout
+                android:id="@+id/fragment_nicovideo_select_series_tab_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/fragment_nicovideo_select_swipe_to_reflesh"

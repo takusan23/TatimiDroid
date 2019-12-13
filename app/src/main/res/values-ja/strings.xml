@@ -208,4 +208,5 @@
     <string name="parent_contents">親作品</string>
     <string name="get_comment_count">取得したコメント数</string>
     <string name="get_parent_count">親作品合計</string>
+    <string name="series">シリーズ</string>
 </resources>
