@@ -1,14 +1,12 @@
 package io.github.takusan23.tatimidroid.NicoVideo
 
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,7 +21,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
-import kotlin.concurrent.thread
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class NicoVideoCommentFragment : Fragment() {
@@ -116,11 +116,13 @@ class NicoVideoCommentFragment : Fragment() {
                         val userkey = json.getJSONObject("context").getString("userkey")
                         //user_id
                         val user_id = json.getJSONObject("viewer").getString("id")
+
                         /*
                         * dmcInfoが存在するかで分ける。たまによくない動画に当たる。ちなみにこいつ無くてもThreadIdとかuser_id取れるけど、
                         * 再生時間が取れないので無理。非公式？XML形式で返してくれるコメント取得APIを叩くことにする。
                         * 再生時間、JSONの中に入れないといけないっぽい。
                         * */
+                        var minute = 0
                         if (!json.getJSONObject("video").isNull("dmcInfo")) {
                             //length(再生時間
                             val length = json.getJSONObject("video").getJSONObject("dmcInfo")
@@ -128,122 +130,57 @@ class NicoVideoCommentFragment : Fragment() {
                             //必要なのは「分」なので割る
                             //そして分に+1している模様
                             //一時間超えでも分を使う模様？66みたいに
-                            val minute = (length / 60) + 1
-                            //contentつくる。1000が限界？
-                            val content = "0-${minute}:100,1000,nicoru:100"
-
-                            /*
-                            * JSONの構成を指示してくれるJSONArray
-                            * threads[]の中になんのJSONを作ればいいかが書いてある。
-                            * */
-                            val commentComposite =
-                                json.getJSONObject("commentComposite").getJSONArray("threads")
-                            //投げるJSON
-                            val postJSONArray = JSONArray()
-                            for (i in 0 until commentComposite.length()) {
-                                val thread = commentComposite.getJSONObject(i)
-                                val thread_id =
-                                    thread.getString("id")  //thread まじでなんでこの管理方法にしたんだ運営・・
-                                val fork = thread.getInt("fork")    //わからん。
-                                val isOwnerThread = thread.getBoolean("isOwnerThread")
-
-                                //公式動画のみ？threadkeyとforce_184が必要かどうか
-                                val isThreadkeyRequired = thread.getBoolean("isThreadkeyRequired")
-
-                                //公式動画のコメント取得に必須なthreadkeyとforce_184を取得する。
-                                var threadResponse: String? = ""
-                                var threadkey: String? = ""
-                                var force_184: String? = ""
-                                if (isThreadkeyRequired) {
-                                    //なお同期処理なので取得できるまで進みません。
-                                    threadResponse = getThreadKeyForce184(thread_id)
-                                    //なーんかUriでパースできないので仕方なく＆のいちを取り出して無理やり取り出す。
-                                    val andPos = threadResponse?.indexOf("&")
-                                    //threadkeyとforce_184パース
-                                    threadkey =
-                                        threadResponse?.substring(0, andPos!!)
-                                            ?.replace("threadkey=", "")
-                                    force_184 =
-                                        threadResponse?.substring(andPos!!, threadResponse.length)
-                                            ?.replace("&force_184=", "")
-                                }
-
-                                //threads[]のJSON配列の中に「isActive」がtrueなら次のJSONを作成します
-                                if (thread.getBoolean("isActive")) {
-                                    val jsonObject = JSONObject().apply {
-                                        //投稿者コメントも見れるように。「isOwnerThread」がtrueの場合は「version」を20061206にする？
-                                        if (isOwnerThread) {
-                                            put("version", "20061206")
-                                            put("res_from", -1000)
-                                        } else {
-                                            put("version", "20090904")
-                                        }
-                                        put("thread", thread_id)
-                                        put("fork", fork)
-                                        put("language", 0)
-                                        put("user_id", user_id)
-                                        put("with_global", 1)
-                                        put("score", 1)
-                                        put("nicoru", 3)
-                                        //公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
-                                        //threadkeyのときはもしかするとuserkeyいらない
-                                        if (isThreadkeyRequired) {
-                                            put("force_184", force_184)
-                                            put("threadkey", threadkey)
-                                        } else {
-                                            put("userkey", userkey)
-                                        }
-                                    }
-                                    val post_thread = JSONObject().apply {
-                                        put("thread", jsonObject)
-                                    }
-                                    postJSONArray.put(post_thread)
-                                }
-                                //threads[]のJSON配列の中に「isLeafRequired」がtrueなら次のJSONを作成します
-                                if (thread.getBoolean("isLeafRequired")) {
-                                    val jsonObject = JSONObject().apply {
-                                        put("thread", thread_id)
-                                        put("language", 0)
-                                        put("user_id", user_id)
-                                        put("content", content)
-                                        put("scores", 0)
-                                        put("nicoru", 3)
-                                        //公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
-                                        //threadkeyのときはもしかするとuserkeyいらない
-                                        if (isThreadkeyRequired) {
-                                            put("force_184", force_184)
-                                            put("threadkey", threadkey)
-                                        } else {
-                                            put("userkey", userkey)
-                                        }
-                                    }
-                                    val thread_leaves = JSONObject().apply {
-                                        put("thread_leaves", jsonObject)
-                                    }
-                                    postJSONArray.put(thread_leaves)
-                                }
-                            }
-                            //POST実行
-                            postNicoVideoCommentAPI(postJSONArray)
+                            minute = (length / 60) + 1
                         } else {
-                            //dmcInfoない。再生時間取れない。仕方ないのでXML形式でもらう。HTMLスクレイピングの要領で解析可能。
-                            val threadId = json.getJSONObject("thread").getJSONObject("ids")
-                                .getString("default")
-                            //https://flapi.nicovideo.jp/api/getthreadkey?thread=にはこっちのthread_idが必要な模様
-                            val community_threadId =
-                                json.getJSONObject("thread").getJSONObject("ids")
-                                    .getString("community")
-                            //公式動画かどうか
-                            val isOfficialVideo =
-                                json.getJSONObject("video").getBoolean("isOfficial")
+                            /*
+                            * ----------
+                            * dmcInfoがないんですよね～。
+                            * XML形式でAPI叩くとニコる数が取れないしで～ちょっと面倒くさいしで～XMLで取得するのはやめたいと思います。
+                            *
+                            * えー急遽、新しい方法で取得しないといけないわけでども、えー次の方法ではdmcInfoあるときと同じ、JSONで取得したいと思います。
+                            * もうすでに、再生時間の取得方法を知っています。
+                            *
+                            * JSONのコメント取得で、お会いしましょう。それじゃあ、またのー
+                            *
+                            * Syamu　未完結のお知らせ　風
+                            * ----------
+                            *
+                            * 真面目な話をすると、https://ext.nicovideo.jp/api/getthumbinfo/sm157のAPIを使うことで再生時間が取得可能だということがわかりました。
+                            * XML形式なのでまあマシかな
+                            *
+                            * */
+                            //同期処理でAPIを叩いて再生時間を取得
+                            minute = callGetThumbinfo() + 1
+                        }
+
+                        //contentつくる。1000が限界？
+                        val content = "0-${minute}:100,1000,nicoru:100"
+
+                        /*
+                        * JSONの構成を指示してくれるJSONArray
+                        * threads[]の中になんのJSONを作ればいいかが書いてある。
+                        * */
+                        val commentComposite =
+                            json.getJSONObject("commentComposite").getJSONArray("threads")
+                        //投げるJSON
+                        val postJSONArray = JSONArray()
+                        for (i in 0 until commentComposite.length()) {
+                            val thread = commentComposite.getJSONObject(i)
+                            val thread_id =
+                                thread.getString("id")  //thread まじでなんでこの管理方法にしたんだ運営・・
+                            val fork = thread.getInt("fork")    //わからん。
+                            val isOwnerThread = thread.getBoolean("isOwnerThread")
+
+                            //公式動画のみ？threadkeyとforce_184が必要かどうか
+                            val isThreadkeyRequired = thread.getBoolean("isThreadkeyRequired")
 
                             //公式動画のコメント取得に必須なthreadkeyとforce_184を取得する。
                             var threadResponse: String? = ""
                             var threadkey: String? = ""
                             var force_184: String? = ""
-                            if (isOfficialVideo) {
+                            if (isThreadkeyRequired) {
                                 //なお同期処理なので取得できるまで進みません。
-                                threadResponse = getThreadKeyForce184(community_threadId)
+                                threadResponse = getThreadKeyForce184(thread_id)
                                 //なーんかUriでパースできないので仕方なく＆のいちを取り出して無理やり取り出す。
                                 val andPos = threadResponse?.indexOf("&")
                                 //threadkeyとforce_184パース
@@ -253,18 +190,65 @@ class NicoVideoCommentFragment : Fragment() {
                                 force_184 =
                                     threadResponse?.substring(andPos!!, threadResponse.length)
                                         ?.replace("&force_184=", "")
-                                //公式動画はthreadIdもcommunityの方を使うらしい
-                                postNicoVideoCommentAPIXML(
-                                    community_threadId,
-                                    user_id,
-                                    threadkey,
-                                    force_184
-                                )
-                            } else {
-                                //一般
-                                postNicoVideoCommentAPIXML(threadId, user_id)
+                            }
+
+                            //threads[]のJSON配列の中に「isActive」がtrueなら次のJSONを作成します
+                            if (thread.getBoolean("isActive")) {
+                                val jsonObject = JSONObject().apply {
+                                    //投稿者コメントも見れるように。「isOwnerThread」がtrueの場合は「version」を20061206にする？
+                                    if (isOwnerThread) {
+                                        put("version", "20061206")
+                                        put("res_from", -1000)
+                                    } else {
+                                        put("version", "20090904")
+                                    }
+                                    put("thread", thread_id)
+                                    put("fork", fork)
+                                    put("language", 0)
+                                    put("user_id", user_id)
+                                    put("with_global", 1)
+                                    put("score", 1)
+                                    put("nicoru", 3)
+                                    //公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
+                                    //threadkeyのときはもしかするとuserkeyいらない
+                                    if (isThreadkeyRequired) {
+                                        put("force_184", force_184)
+                                        put("threadkey", threadkey)
+                                    } else {
+                                        put("userkey", userkey)
+                                    }
+                                }
+                                val post_thread = JSONObject().apply {
+                                    put("thread", jsonObject)
+                                }
+                                postJSONArray.put(post_thread)
+                            }
+                            //threads[]のJSON配列の中に「isLeafRequired」がtrueなら次のJSONを作成します
+                            if (thread.getBoolean("isLeafRequired")) {
+                                val jsonObject = JSONObject().apply {
+                                    put("thread", thread_id)
+                                    put("language", 0)
+                                    put("user_id", user_id)
+                                    put("content", content)
+                                    put("scores", 0)
+                                    put("nicoru", 3)
+                                    //公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
+                                    //threadkeyのときはもしかするとuserkeyいらない
+                                    if (isThreadkeyRequired) {
+                                        put("force_184", force_184)
+                                        put("threadkey", threadkey)
+                                    } else {
+                                        put("userkey", userkey)
+                                    }
+                                }
+                                val thread_leaves = JSONObject().apply {
+                                    put("thread_leaves", jsonObject)
+                                }
+                                postJSONArray.put(thread_leaves)
                             }
                         }
+                        //POST実行
+                        postNicoVideoCommentAPI(postJSONArray)
 
 
                         //タイトルとか取り出す
@@ -278,14 +262,41 @@ class NicoVideoCommentFragment : Fragment() {
                                     subtitle = videoId
                                 }
                             }
-
                         }
+
                     }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
             }
         })
+    }
+
+    /*
+    * getthumbinfoを叩いて再生時間を取り出す。
+    * */
+    private fun callGetThumbinfo(): Int {
+        val url = "https://ext.nicovideo.jp/api/getthumbinfo/$id"
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        if (response.isSuccessful) {
+            val responseString = response.body?.string()
+            val html = Jsoup.parse(responseString)
+            val length = html.getElementsByTag("length")[0]
+            //分：秒なので分だけ取り出す
+            val simpleDateFormat = SimpleDateFormat("mm:ss")
+            val calendar = Calendar.getInstance()
+            calendar.time = simpleDateFormat.parse(length.text())
+            val minute = calendar.get(Calendar.MINUTE)
+            return minute
+        } else {
+            return 0
+        }
+        return 0
     }
 
     /*

@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.regex.Pattern
 
 
@@ -51,7 +53,6 @@ class MainActivity : AppCompatActivity() {
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(1234)
-
 
         //共有から起動した
         lunchShareIntent()
@@ -101,7 +102,10 @@ class MainActivity : AppCompatActivity() {
                 R.id.menu_nicovideo -> {
                     //ニコ動コメント
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(R.id.main_activity_linearlayout, NicoVideoSelectFragment())
+                    fragmentTransaction.replace(
+                        R.id.main_activity_linearlayout,
+                        NicoVideoSelectFragment()
+                    )
                     fragmentTransaction.commit()
                 }
             }
