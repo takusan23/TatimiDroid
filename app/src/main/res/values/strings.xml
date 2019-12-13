@@ -209,4 +209,9 @@
     <string name="get_comment_count">Number of comments acquired</string>
     <string name="get_parent_count">Total parent work</string>
     <string name="series">series</string>
+    <string name="comment_sort">Sort comments</string>
+    <string name="nicovideo_sort_play_first">Play time (from the beginning)</string>
+    <string name="nicovideo_sort_play_last">Play time (from the end)</string>
+    <string name="nicovideo_sort_post_date_new">Posting date (new → old)</string>
+    <string name="nicovideo_sort_post_date_old">Posting date (old → new)</string>
 </resources>

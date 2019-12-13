@@ -76,6 +76,7 @@ class NicoVideoSelectFragment : Fragment() {
         if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
             fragment_nicovideo_select_tab_layout.setBackgroundColor(darkModeSupport.getThemeColor())
             fragment_nicovideo_select_mylist_tab_layout.setBackgroundColor(darkModeSupport.getThemeColor())
+            fragment_nicovideo_select_series_tab_layout.setBackgroundColor(darkModeSupport.getThemeColor())
         }
 
         fragment_nicovideo_select_tab_layout.addOnTabSelectedListener(object :

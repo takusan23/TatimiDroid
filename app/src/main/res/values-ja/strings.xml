@@ -209,4 +209,9 @@
     <string name="get_comment_count">取得したコメント数</string>
     <string name="get_parent_count">親作品合計</string>
     <string name="series">シリーズ</string>
+    <string name="comment_sort">コメントの並び替え</string>
+    <string name="nicovideo_sort_play_first">再生時間（最初から）</string>
+    <string name="nicovideo_sort_play_last">再生時間（最後から）</string>
+    <string name="nicovideo_sort_post_date_old">投稿日時（古→新）</string>
+    <string name="nicovideo_sort_post_date_new">投稿日時（新→古）</string>
 </resources>

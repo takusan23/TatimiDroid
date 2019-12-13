@@ -2,11 +2,14 @@ package io.github.takusan23.tatimidroid.NicoVideo
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.AdapterView
+import android.widget.AdapterView.OnItemSelectedListener
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuBuilder
+import androidx.appcompat.view.menu.MenuPopupHelper
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -67,10 +70,14 @@ class NicoVideoCommentFragment : Fragment() {
         //RecyclerView初期化
         initRecyclerView()
 
+        //ポップアップメニュー初期化
+        initSortPopupMenu()
+
         // スクレイピングしてコメント取得に必要な情報を取得する
         getNicoVideoWebPage()
 
     }
+
 
     private fun initRecyclerView() {
         activity_nicovideo_recyclerview.setHasFixedSize(true)
@@ -296,7 +303,6 @@ class NicoVideoCommentFragment : Fragment() {
         } else {
             return 0
         }
-        return 0
     }
 
     /*
@@ -363,7 +369,7 @@ class NicoVideoCommentFragment : Fragment() {
                             }
 
                             //ニコる数
-                            var nicoruCount = ""
+                            var nicoruCount = "0"
                             if (chat.has("nicoru")) {
                                 nicoruCount = chat.getInt("nicoru").toString()
                             }
@@ -465,6 +471,7 @@ class NicoVideoCommentFragment : Fragment() {
                     }
 
                     if (addable) {
+                        //ここの並び替え変えると並び替え機能が動かなくなるからやめてね。
                         val item = arrayListOf<String>()
                         item.add("")
                         item.add(user_id)
@@ -501,6 +508,73 @@ class NicoVideoCommentFragment : Fragment() {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun initSortPopupMenu() {
+        val menuBuilder = MenuBuilder(context)
+        val menuInflater = MenuInflater(context)
+        menuInflater.inflate(R.menu.nicovideo_comment_sort, menuBuilder)
+        val menuPopupHelper =
+            MenuPopupHelper(context!!, menuBuilder, activity_nicovideo_sort_button)
+        menuPopupHelper.setForceShowIcon(true)
+        menuBuilder.setCallback(object : MenuBuilder.Callback {
+            override fun onMenuModeChange(menu: MenuBuilder?) {
+
+            }
+
+            override fun onMenuItemSelected(menu: MenuBuilder?, item: MenuItem?): Boolean {
+
+                //配列の中身全部コピーする
+                val tmp = arrayListOf<ArrayList<String>>()
+                recyclerViewList.forEach {
+                    tmp.add(it as ArrayList<String>)
+                }
+                //クリアに
+                recyclerViewList.clear()
+                when (item?.itemId) {
+                    R.id.nicovideo_comment_sort_time -> {
+                        //再生時間
+                        tmp.sortedBy { arrayList -> arrayList[4].toInt() }
+                            .forEach { recyclerViewList.add(it) }
+                    }
+                    R.id.nicovideo_comment_sort_reverse_time -> {
+                        //再生時間逆順
+                        tmp.sortedByDescending { arrayList -> arrayList[4].toInt() }
+                            .forEach { recyclerViewList.add(it) }
+                    }
+                    R.id.nicovideo_comment_nicoru -> {
+                        //ニコる数
+                        tmp.sortedByDescending { arrayList ->
+                            //ニコる数0の時対策
+                            val count = arrayList[6]
+                            if (count.isNotEmpty()) {
+                                arrayList[6].toInt()
+                            } else {
+                                0
+                            }
+                        }.forEach { recyclerViewList.add(it) }
+                    }
+                    R.id.nicovideo_date -> {
+                        //投稿日時(新→古)
+                        tmp.sortedByDescending { arrayList -> arrayList[3].toFloat() }
+                            .forEach { recyclerViewList.add(it) }
+                    }
+                    R.id.nicovideo_reverse_date -> {
+                        //投稿日時(古→新)
+                        tmp.sortedBy { arrayList -> arrayList[3].toFloat() }
+                            .forEach { recyclerViewList.add(it) }
+                    }
+                }
+                nicoVideoAdapter.notifyDataSetChanged()
+                return false
+            }
+        })
+
+        //押したら開く
+        activity_nicovideo_sort_button.setOnClickListener {
+            menuPopupHelper.show()
+        }
+
     }
 
 }
