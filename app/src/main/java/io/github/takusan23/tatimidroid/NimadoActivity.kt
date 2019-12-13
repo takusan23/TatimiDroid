@@ -76,7 +76,7 @@ class NimadoActivity : AppCompatActivity() {
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
 
-        println(savedInstanceState == null)
+        // println(savedInstanceState == null)
 
 
         //自作Toolbarを適用させる
