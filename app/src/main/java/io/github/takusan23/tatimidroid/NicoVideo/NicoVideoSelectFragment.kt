@@ -143,7 +143,8 @@ class NicoVideoSelectFragment : Fragment() {
         })
 
         //シリーズのTabLayoutの押したとき
-        fragment_nicovideo_select_series_tab_layout.addOnTabSelectedListener(object :TabLayout.OnTabSelectedListener{
+        fragment_nicovideo_select_series_tab_layout.addOnTabSelectedListener(object :
+            TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
 
             }
@@ -153,8 +154,9 @@ class NicoVideoSelectFragment : Fragment() {
             }
 
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                val id = tab?.tag as String
-
+                if (tab?.tag is String) {
+                    getSeriesHTML(tab.tag as String)
+                }
             }
         })
 
@@ -188,53 +190,80 @@ class NicoVideoSelectFragment : Fragment() {
                         }
                     }
                 }
+                getString(R.string.series) -> {
+                    //シリーズ
+                    val tab = fragment_nicovideo_select_series_tab_layout.getTabAt(
+                        fragment_nicovideo_select_series_tab_layout.selectedTabPosition
+                    )
+                    getSeriesHTML(tab?.tag as String)
+                }
             }
         }
 
     }
 
-    fun getSeriesHTML(id:String){
+    fun getSeriesHTML(id: String) {
+        recyclerViewList.clear()
+        activity?.runOnUiThread { fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true }
+
         val url = "https://www.nicovideo.jp/series/$id"
+
         val request = Request.Builder()
             .url(url)
             .get()
             .build()
         val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object :Callback{
+        okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 showToast("${getString(R.string.error)}")
             }
 
             override fun onResponse(call: Call, response: Response) {
-                if(response.isSuccessful){
+                if (response.isSuccessful) {
                     val responseString = response.body?.string()
                     val html = Jsoup.parse(responseString)
-                    val series = html.getElementsByClass("MediaObject VideoMediaObject SeriesVideoListContainer-video")
-                    series.forEach {
+                    val scripts = html.getElementsByTag("script")
+                    scripts.forEach {
+                        //JSONがあるので取り出す。
+                        //よかったHTMLスクレイピングとかにならなくてまじで
+                        //application/ld+jsonにある
+                        if (it.attr("type").contains("application/ld+json")) {
+                            val jsonString = it.html()
+                            val itemListElement =
+                                JSONObject(jsonString).getJSONArray("itemListElement")
 
-                        val title = it.getElementsByTag("a")[1].text()
-                        val videoId = it.getElementsByTag("a")[1].getElementsByAttribute("href").text().replace("/watch/","")
-                        val thumbnail = it.getElementsByTag("img")
-                        val registered_date = video.getString("registered_date")
+                            for (i in 0 until itemListElement.length()) {
+                                val jsonObject = itemListElement.getJSONObject(i)
 
-                        val item = arrayListOf<String>().apply {
-                            add("content_tree")//親作品だよー
-                            add(videoId)
-                            add(title)
-                            add("")
-                            add(registered_date)
-                            add("")
-                            add(thumbnail)
-                            add("")
-                            add("")
-                            add("")
+                                val videoId = jsonObject.getString("@id")
+                                    .replace("https://www.nicovideo.jp/watch/", "")
+                                val title = jsonObject.getString("name")
+                                val uploadDate = jsonObject.getString("uploadDate")
+                                val thumbnailUrl =
+                                    jsonObject.getJSONArray("thumbnailUrl").getString(0)
+
+                                val item = arrayListOf<String>().apply {
+                                    add("series")//シリーズだよー
+                                    add(videoId)
+                                    add(title)
+                                    add(uploadDate)
+                                    add("")
+                                    add("")
+                                    add(thumbnailUrl)
+                                    add("")
+                                    add("")
+                                    add("")
+                                }
+                                recyclerViewList.add(item)
+                            }
                         }
-                        recyclerViewList.add(item)
-
+                        activity?.runOnUiThread {
+                            nicoVideoSelectAdapter.notifyDataSetChanged()
+                            fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = false
+                        }
                     }
 
-
-                }else{
+                } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
             }
@@ -246,8 +275,10 @@ class NicoVideoSelectFragment : Fragment() {
 
         recyclerViewList.clear()
         fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
-        fragment_nicovideo_select_series_tab_layout.visibility = View.GONE
+        fragment_nicovideo_select_series_tab_layout.visibility = View.VISIBLE
         fragment_nicovideo_select_mylist_tab_layout.visibility = View.GONE
+        //タブ初期化
+        fragment_nicovideo_select_series_tab_layout.removeAllTabs()
 
         val url = "https://nvapi.nicovideo.jp/v1/users/me/series"
         val request = Request.Builder()
@@ -272,7 +303,7 @@ class NicoVideoSelectFragment : Fragment() {
                         val seriesList = data.getJSONArray("items")
                         for (i in 0 until seriesList.length()) {
                             val series = seriesList.getJSONObject(i)
-                            val seriesId = series.getLong("id")
+                            val seriesId = series.getLong("id").toString()
                             val title = series.getString("title")
                             val tabItem = fragment_nicovideo_select_series_tab_layout.newTab()
                             tabItem.apply {
@@ -280,6 +311,7 @@ class NicoVideoSelectFragment : Fragment() {
                                 tag = seriesId
                             }
                             fragment_nicovideo_select_series_tab_layout.addTab(tabItem)
+                            fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = false
                         }
                     }
                 } else {
@@ -548,10 +580,11 @@ class NicoVideoSelectFragment : Fragment() {
     * */
     fun getPOSTVideoHTML(page: String = "") {
 
-        recyclerViewList.clear()
-        fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
-        fragment_nicovideo_select_mylist_tab_layout.visibility = View.GONE
-        fragment_nicovideo_select_series_tab_layout.visibility = View.GONE
+        activity?.runOnUiThread {
+            fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
+            fragment_nicovideo_select_mylist_tab_layout.visibility = View.GONE
+            fragment_nicovideo_select_series_tab_layout.visibility = View.GONE
+        }
 
         //200件最大まで取得する
         var url = "https://www.nicovideo.jp/my/video"
@@ -560,7 +593,6 @@ class NicoVideoSelectFragment : Fragment() {
         } else {
             //リストクリア
             recyclerViewList.clear()
-            fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
         }
         val request = Request.Builder()
             .url(url)

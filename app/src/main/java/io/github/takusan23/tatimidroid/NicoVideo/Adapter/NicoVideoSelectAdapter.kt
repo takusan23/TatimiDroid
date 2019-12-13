@@ -78,6 +78,14 @@ class NicoVideoSelectAdapter(private val arrayListArrayAdapter: ArrayList<ArrayL
                 holder.postDateTextView.text =
                     "${context.getString(R.string.register_date)} : $registeredAt"
             }
+            "series" -> {
+                holder.dateTextView.text =
+                    "${context.getString(R.string.post_date)} : ${setTimeFormat(lastWatch)}" //ほしいのはミリ秒なUnixTimeなので
+                holder.commentCountTextView.text = ""
+                holder.playCountTextView.text = ""
+                holder.mylistCountTextView.text = ""
+                holder.postDateTextView.text = ""
+            }
             else -> {
                 holder.dateTextView.text = lastWatch
                 holder.commentCountTextView.text = commentCount
