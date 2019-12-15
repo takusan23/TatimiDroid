@@ -39,10 +39,7 @@ import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.media.session.MediaButtonReceiver
 import androidx.preference.PreferenceManager
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.ExoPlayerFactory
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
@@ -1394,6 +1391,18 @@ class CommentFragment : Fragment() {
             exoPlayer.setVideoSurfaceView(live_surface_view)
             //再生
             exoPlayer.playWhenReady = true
+
+            exoPlayer.addListener(object :Player.EventListener{
+
+                override fun onPlayerError(error: ExoPlaybackException?) {
+                    super.onPlayerError(error)
+                    error?.printStackTrace()
+                    activity?.runOnUiThread {
+                        Toast.makeText(context,error?.message,Toast.LENGTH_LONG).show()
+                    }
+                }
+
+            })
 
             //新しいバックグラウンド再生。バッググラウンドで常にExoPlayerを動かして離れた瞬間に再生をする。
             if (pref_setting.getBoolean("setting_leave_background", false)) {
