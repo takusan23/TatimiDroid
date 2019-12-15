@@ -216,4 +216,5 @@
     <string name="nicovideo_sort_post_date_new">投稿日時（新→古）</string>
     <string name="error_player">生放送の再生に問題が発生しました。もう一度再生準備を行います。</string>
     <string name="error_player_reload">再試行</string>
+    <string name="end_time_tooltip">枠の残り時間</string>
 </resources>

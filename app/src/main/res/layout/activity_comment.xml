@@ -21,16 +21,16 @@
 
             <VideoView
                     android:id="@+id/live_video_view"
-                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+
+            <SurfaceView
+                    android:id="@+id/live_surface_view"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center" />
-
-            <SurfaceView
-                    android:layout_width="match_parent"
-                    android:layout_gravity="center"
-                    android:layout_height="match_parent"
-                android:id="@+id/live_surface_view"/>
 
             <io.github.takusan23.tatimidroid.CommentCanvas
                     android:id="@+id/comment_canvas"
@@ -48,16 +48,15 @@
             <LinearLayout
                     android:id="@+id/activity_comment_linearlayout"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical">
 
                 <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:orientation="horizontal"
                         android:paddingLeft="10sp"
-                        android:paddingRight="10sp"
-                        android:visibility="visible">
+                        android:paddingRight="10sp">
 
                     <ImageView
                             android:layout_width="wrap_content"
@@ -74,6 +73,26 @@
                             android:text="00:00"
                             android:textSize="18sp"
                             android:tooltipText="@string/livetime" />
+
+                    <TextView
+                            android:id="@+id/activity_comment_comment_end_time"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:tooltipText="@string/end_time_tooltip"
+                            android:maxLines="1"
+                            android:text="00:00"
+                            android:textSize="18sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingLeft="10sp"
+                        android:paddingRight="10sp"
+                        android:visibility="visible">
 
 
                     <ImageView
@@ -128,10 +147,10 @@
                 </LinearLayout>
 
                 <com.google.android.material.tabs.TabLayout
-                        app:tabMode="scrollable"
                         android:id="@+id/activity_comment_tab_layout"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        app:tabMode="scrollable">
 
                     <com.google.android.material.tabs.TabItem
                             android:layout_width="wrap_content"

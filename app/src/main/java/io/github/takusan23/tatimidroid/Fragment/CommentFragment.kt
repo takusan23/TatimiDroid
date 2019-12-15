@@ -1105,12 +1105,14 @@ class CommentFragment : Fragment() {
 
                 //延長を検知
                 if (message?.contains("schedule") == true) {
-                    //時間表示させる場所無かったわ、Snackbarで出すだけにする
+                    //時間出す場所確保したので終了時刻書く。
+                    val jsonObject = JSONObject(message)
+                    val endTime =
+                        jsonObject.getJSONObject("body").getJSONObject("update")
+                            .getLong("endtime")
+                    val beginTime = jsonObject.getJSONObject("body").getJSONObject("update")
+                        .getLong("begintime")
                     if (isEntyouKenti) {
-                        val jsonObject = JSONObject(message)
-                        val endTime =
-                            jsonObject.getJSONObject("body").getJSONObject("update")
-                                .getLong("endtime")
                         //終了時刻計算
                         val simpleDateFormat = SimpleDateFormat("dd/MM HH:mm:ss")
                         val date = Date(endTime)
@@ -1127,9 +1129,23 @@ class CommentFragment : Fragment() {
                                     show()
                                 }
                         }
+
                     } else {
                         isEntyouKenti = true
                     }
+
+                    //延長したら残り時間再計算する
+                    //割り算！
+                    val calc = (endTime - beginTime) / 1000
+                    //時間/分
+                    val hour = calc / 3600
+                    val minute = calc % 3600 / 60
+
+                    commentActivity.runOnUiThread {
+                        activity_comment_comment_end_time.text =
+                            "${String.format("%2d", hour)}:${String.format("%2d", minute)}"
+                    }
+
                 }
 
             }

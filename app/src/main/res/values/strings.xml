@@ -216,4 +216,5 @@
     <string name="nicovideo_sort_post_date_old">Posting date (old → new)</string>
     <string name="error_player">There was a problem playing the live broadcast. Prepare for playback again.</string>
     <string name="error_player_reload">Retry</string>
+    <string name="end_time_tooltip">Frame remaining time</string>
 </resources>
