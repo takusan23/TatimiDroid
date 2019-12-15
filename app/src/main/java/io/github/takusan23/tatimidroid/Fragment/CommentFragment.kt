@@ -43,10 +43,7 @@ import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.source.BehindLiveWindowException
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DataSpec
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.upstream.TransferListener
+import com.google.android.exoplayer2.upstream.*
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
@@ -1400,21 +1397,19 @@ class CommentFragment : Fragment() {
                     error?.printStackTrace()
                     println("生放送の再生が止まりました。")
                     //再接続する？
-                    if (error?.cause is BehindLiveWindowException) {
-                        println("再度再生準備を行います")
-                        activity?.runOnUiThread {
-                            //再生準備
-                            exoPlayer.prepare(hlsMediaSource)
-                            //SurfaceViewセット
-                            exoPlayer.setVideoSurfaceView(live_surface_view)
-                            //再生
-                            exoPlayer.playWhenReady = true
-                            Snackbar.make(
-                                fab,
-                                getString(R.string.error_player),
-                                Snackbar.LENGTH_SHORT
-                            ).setAnchorView(getSnackbarAnchorView()).show()
-                        }
+                    println("再度再生準備を行います")
+                    activity?.runOnUiThread {
+                        //再生準備
+                        exoPlayer.prepare(hlsMediaSource)
+                        //SurfaceViewセット
+                        exoPlayer.setVideoSurfaceView(live_surface_view)
+                        //再生
+                        exoPlayer.playWhenReady = true
+                        Snackbar.make(
+                            fab,
+                            getString(R.string.error_player),
+                            Snackbar.LENGTH_SHORT
+                        ).setAnchorView(getSnackbarAnchorView()).show()
                     }
                 }
             })
