@@ -238,7 +238,11 @@ class CommentFragment : Fragment() {
 
     //ExoPlayer
     lateinit var exoPlayer: SimpleExoPlayer
+    //ポップアップ再生ようExoPlayer
+    lateinit var popupExoPlayer: SimpleExoPlayer
 
+    //番組終了時刻（UnixTime
+    var programEndUnixTime: Long = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -1139,12 +1143,22 @@ class CommentFragment : Fragment() {
                     val calc = (endTime - beginTime) / 1000
                     //時間/分
                     val hour = calc / 3600
+                    var hourString = hour.toString()
+                    if (hourString.length == 1) {
+                        hourString = "0$hourString"
+                    }
                     val minute = calc % 3600 / 60
-
+                    var minuteString = hour.toString()
+                    if (minuteString.length == 1) {
+                        minuteString = "0$minuteString"
+                    }
                     commentActivity.runOnUiThread {
                         activity_comment_comment_end_time.text =
-                            "${String.format("%2d", hour)}:${String.format("%2d", minute)}"
+                            "${hourString}:${minuteString}"
                     }
+
+                    //番組終了時刻を入れる
+                    programEndUnixTime = endTime / 1000
 
                 }
 
@@ -1413,19 +1427,24 @@ class CommentFragment : Fragment() {
                     error?.printStackTrace()
                     println("生放送の再生が止まりました。")
                     //再接続する？
-                    println("再度再生準備を行います")
-                    activity?.runOnUiThread {
-                        //再生準備
-                        exoPlayer.prepare(hlsMediaSource)
-                        //SurfaceViewセット
-                        exoPlayer.setVideoSurfaceView(live_surface_view)
-                        //再生
-                        exoPlayer.playWhenReady = true
-                        Snackbar.make(
-                            fab,
-                            getString(R.string.error_player),
-                            Snackbar.LENGTH_SHORT
-                        ).setAnchorView(getSnackbarAnchorView()).show()
+                    //でも番組が終わっているのに再試行するのああれなので番組が終わっていないか確認してから。
+                    val nowUnixtime = System.currentTimeMillis() / 1000
+                    //それからニコ生視聴セッションWebSocketが切断されてなければ
+                    if (nowUnixtime <= programEndUnixTime && !connectionNicoLiveWebSocket.isClosed) {
+                        println("再度再生準備を行います")
+                        activity?.runOnUiThread {
+                            //再生準備
+                            exoPlayer.prepare(hlsMediaSource)
+                            //SurfaceViewセット
+                            exoPlayer.setVideoSurfaceView(live_surface_view)
+                            //再生
+                            exoPlayer.playWhenReady = true
+                            Snackbar.make(
+                                fab,
+                                getString(R.string.error_player),
+                                Snackbar.LENGTH_SHORT
+                            ).setAnchorView(getSnackbarAnchorView()).show()
+                        }
                     }
                 }
             })
@@ -1716,8 +1735,9 @@ class CommentFragment : Fragment() {
     /*オーバーレイ*/
     fun startOverlayPlayer() {
         if (Settings.canDrawOverlays(context)) {
+            //アスペクト比16:9なので
             val width = 400
-            val height = 200
+            val height = (width / 16) * 9
             //レイアウト読み込み
             val layoutInflater = LayoutInflater.from(context)
             // オーバーレイViewの設定をする
@@ -1755,17 +1775,80 @@ class CommentFragment : Fragment() {
             //通知表示
             showPopUpPlayerNotification()
 
-            //VideoView再生。
-            popupView.overlay_videoview.setVideoURI(hls_address.toUri())
+            //ポップアップ再生もExoPlayerにお引越し。
+            popupExoPlayer = ExoPlayerFactory.newSimpleInstance(context)
+            val sourceFactory = DefaultDataSourceFactory(
+                context,
+                "TatimiDroid;@takusan_23",
+                object : TransferListener {
+                    override fun onTransferInitializing(
+                        source: DataSource?,
+                        dataSpec: DataSpec?,
+                        isNetwork: Boolean
+                    ) {
+
+                    }
+
+                    override fun onTransferStart(
+                        source: DataSource?,
+                        dataSpec: DataSpec?,
+                        isNetwork: Boolean
+                    ) {
+
+                    }
+
+                    override fun onTransferEnd(
+                        source: DataSource?,
+                        dataSpec: DataSpec?,
+                        isNetwork: Boolean
+                    ) {
+
+                    }
+
+                    override fun onBytesTransferred(
+                        source: DataSource?,
+                        dataSpec: DataSpec?,
+                        isNetwork: Boolean,
+                        bytesTransferred: Int
+                    ) {
+
+                    }
+                })
+
+            val hlsMediaSource = HlsMediaSource.Factory(sourceFactory)
+                .setAllowChunklessPreparation(true)
+                .createMediaSource(hls_address.toUri());
+
+            //再生準備
+            popupExoPlayer.prepare(hlsMediaSource)
+            //SurfaceViewセット
+            popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
             //再生
-            popupView.overlay_videoview.start()
-            //あと再生できたらサイズ調整
-            popupView.overlay_videoview.setOnPreparedListener {
-                //高さ、幅取得
-                params.width = it.videoWidth
-                params.height = it.videoHeight
-                commentActivity.windowManager.updateViewLayout(popupView, params)
-            }
+            popupExoPlayer.playWhenReady = true
+
+            popupExoPlayer.addListener(object : Player.EventListener {
+
+                override fun onPlayerError(error: ExoPlaybackException?) {
+                    super.onPlayerError(error)
+                    error?.printStackTrace()
+                    println("生放送の再生が止まりました。")
+                    //再接続する？
+                    //でも番組が終わっているのに再試行するのああれなので番組が終わっていないか確認してから。
+                    val nowUnixtime = System.currentTimeMillis() / 1000
+                    //それからニコ生視聴セッションWebSocketが切断されてなければ
+                    if (nowUnixtime <= programEndUnixTime && !connectionNicoLiveWebSocket.isClosed) {
+                        println("再度再生準備を行います")
+                        activity?.runOnUiThread {
+                            //再生準備
+                            popupExoPlayer.prepare(hlsMediaSource)
+                            //SurfaceViewセット
+                            popupExoPlayer.setVideoSurfaceView(live_surface_view)
+                            //再生
+                            popupExoPlayer.playWhenReady = true
+                        }
+                    }
+                }
+            })
 
             //閉じる
             popupView.overlay_close_button.setOnClickListener {

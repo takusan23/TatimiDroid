@@ -10,10 +10,10 @@
             android:layout_height="match_parent"
             android:layout_weight="1">
 
-        <VideoView
-                android:id="@+id/overlay_videoview"
+        <SurfaceView
+                android:id="@+id/overlay_surfaceview"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"/>
 
         <io.github.takusan23.tatimidroid.CommentCanvas
                 android:id="@+id/overlay_commentCanvas"
