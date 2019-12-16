@@ -154,23 +154,7 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_menu_popup_button.setOnClickListener {
             commentFragment.apply {
                 //ポップアップ再生。コメント付き
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (!Settings.canDrawOverlays(context)) {
-                        //RuntimePermissionに対応させる
-                        // 権限取得
-                        val intent =
-                            Intent(
-                                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                Uri.parse("package:${context?.packageName}")
-                            )
-                        startActivityForResult(intent, 114)
-                    } else {
-                        startOverlayPlayer()
-                    }
-                } else {
-                    //ろりぽっぷ
-                    startOverlayPlayer()
-                }
+                startOverlayPlayer()
             }
         }
 

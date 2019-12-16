@@ -1148,7 +1148,7 @@ class CommentFragment : Fragment() {
                         hourString = "0$hourString"
                     }
                     val minute = calc % 3600 / 60
-                    var minuteString = hour.toString()
+                    var minuteString = minute.toString()
                     if (minuteString.length == 1) {
                         minuteString = "0$minuteString"
                     }
@@ -1427,10 +1427,8 @@ class CommentFragment : Fragment() {
                     error?.printStackTrace()
                     println("生放送の再生が止まりました。")
                     //再接続する？
-                    //でも番組が終わっているのに再試行するのああれなので番組が終わっていないか確認してから。
-                    val nowUnixtime = System.currentTimeMillis() / 1000
                     //それからニコ生視聴セッションWebSocketが切断されてなければ
-                    if (nowUnixtime <= programEndUnixTime && !connectionNicoLiveWebSocket.isClosed) {
+                    if (!connectionNicoLiveWebSocket.isClosed) {
                         println("再度再生準備を行います")
                         activity?.runOnUiThread {
                             //再生準備
@@ -1718,10 +1716,21 @@ class CommentFragment : Fragment() {
         }
         //止める
         if (this@CommentFragment::exoPlayer.isInitialized) {
-            exoPlayer.playWhenReady = false
-            exoPlayer.stop()
-            exoPlayer.seekTo(0)
-            exoPlayer.release()
+            exoPlayer.apply {
+                playWhenReady = false
+                stop()
+                seekTo(0)
+                release()
+            }
+        }
+        //ポップアップ再生のExoPlayerも止める
+        if (this@CommentFragment::popupExoPlayer.isInitialized) {
+            popupExoPlayer.apply {
+                playWhenReady = false
+                stop()
+                seekTo(0)
+                release()
+            }
         }
         // println("とじます")
     }
@@ -1736,7 +1745,7 @@ class CommentFragment : Fragment() {
     fun startOverlayPlayer() {
         if (Settings.canDrawOverlays(context)) {
             //アスペクト比16:9なので
-            val width = 400
+            val width = 800
             val height = (width / 16) * 9
             //レイアウト読み込み
             val layoutInflater = LayoutInflater.from(context)
@@ -1832,17 +1841,14 @@ class CommentFragment : Fragment() {
                     super.onPlayerError(error)
                     error?.printStackTrace()
                     println("生放送の再生が止まりました。")
-                    //再接続する？
-                    //でも番組が終わっているのに再試行するのああれなので番組が終わっていないか確認してから。
-                    val nowUnixtime = System.currentTimeMillis() / 1000
                     //それからニコ生視聴セッションWebSocketが切断されてなければ
-                    if (nowUnixtime <= programEndUnixTime && !connectionNicoLiveWebSocket.isClosed) {
+                    if (!connectionNicoLiveWebSocket.isClosed) {
                         println("再度再生準備を行います")
                         activity?.runOnUiThread {
                             //再生準備
                             popupExoPlayer.prepare(hlsMediaSource)
                             //SurfaceViewセット
-                            popupExoPlayer.setVideoSurfaceView(live_surface_view)
+                            popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
                             //再生
                             popupExoPlayer.playWhenReady = true
                         }
@@ -1855,7 +1861,20 @@ class CommentFragment : Fragment() {
                 isPopupPlay = false
                 commentActivity.windowManager.removeView(popupView)
                 notificationManager.cancel(overlayNotificationID)
+                popupExoPlayer.apply {
+                    playWhenReady = false
+                    stop()
+                    seekTo(0)
+                    release()
+                }
             }
+
+            //アプリ起動
+            popupView.overlay_activity_launch.setOnClickListener {
+                onDestroy()
+                startActivity(activity?.intent)
+            }
+
             //画面サイズ
             val displaySize: Point by lazy {
                 val display = commentActivity.windowManager.defaultDisplay
@@ -2111,7 +2130,14 @@ class CommentFragment : Fragment() {
         }
 
         //ポップアップ再生止める
-        if (this@CommentFragment::popupView.isInitialized) {
+        //ポップアップ再生のExoPlayerも止める
+        if (this@CommentFragment::popupExoPlayer.isInitialized) {
+            popupExoPlayer.apply {
+                playWhenReady = false
+                stop()
+                seekTo(0)
+                release()
+            }
             if (isPopupPlay) {
                 isPopupPlay = false
                 windowManager.removeView(popupView)

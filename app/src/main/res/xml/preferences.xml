@@ -39,7 +39,6 @@
             android:summary="@string/setting_watch_view_description"
             android:title="@string/setting_watch_view_title" />
 
-
     <SwitchPreference
             android:defaultValue="false"
             android:icon="@drawable/ic_signal_cellular_null_24px"
