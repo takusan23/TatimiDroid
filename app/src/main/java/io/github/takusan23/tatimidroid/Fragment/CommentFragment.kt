@@ -1154,7 +1154,7 @@ class CommentFragment : Fragment() {
                     }
                     commentActivity.runOnUiThread {
                         activity_comment_comment_end_time.text =
-                            "${hourString}:${minuteString}"
+                            "${hourString}:${minuteString}:00"
                     }
 
                     //番組終了時刻を入れる
@@ -1742,6 +1742,11 @@ class CommentFragment : Fragment() {
 
     /*オーバーレイ*/
     fun startOverlayPlayer() {
+        //すでにある場合は消す
+        if (this@CommentFragment::popupExoPlayer.isInitialized) {
+            destroyExoPlayer(popupExoPlayer)
+            commentActivity.windowManager.removeView(popupView)
+        }
         if (Settings.canDrawOverlays(context)) {
             //アスペクト比16:9なので
             val width = 800

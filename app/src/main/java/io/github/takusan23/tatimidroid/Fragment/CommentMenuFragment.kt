@@ -137,11 +137,10 @@ class CommentMenuFragment : Fragment() {
             (activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment).apply {
                 if (live_framelayout.visibility == View.VISIBLE) {
                     live_framelayout.visibility = View.GONE
-                    exoPlayer.stop()
-                    exoPlayer.release()
+                    exoPlayer.playWhenReady = false
                 } else {
                     live_framelayout.visibility = View.VISIBLE
-                    setPlayVideoView()
+                    exoPlayer.playWhenReady = true
                 }
             }
         }
@@ -149,8 +148,8 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_menu_background_button.setOnClickListener {
             commentFragment.apply {
                 setBackgroundProgramPlay()
-                if(isExoPlayerInitialized()){
-                    destroyExoPlayer(exoPlayer)
+                if (isExoPlayerInitialized()) {
+                    exoPlayer.stop()
                     live_framelayout.visibility = View.GONE
                 }
             }
@@ -161,8 +160,8 @@ class CommentMenuFragment : Fragment() {
             commentFragment.apply {
                 //ポップアップ再生。コメント付き
                 startOverlayPlayer()
-                if(isExoPlayerInitialized()){
-                    destroyExoPlayer(exoPlayer)
+                if (isExoPlayerInitialized()) {
+                    exoPlayer.stop()
                     live_framelayout.visibility = View.GONE
                 }
             }
