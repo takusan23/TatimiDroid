@@ -137,10 +137,10 @@ class CommentMenuFragment : Fragment() {
             (activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment).apply {
                 if (live_framelayout.visibility == View.VISIBLE) {
                     live_framelayout.visibility = View.GONE
-                    exoPlayer.playWhenReady = false
+                    exoPlayer.stop()
                 } else {
                     live_framelayout.visibility = View.VISIBLE
-                    exoPlayer.playWhenReady = true
+                    setPlayVideoView()
                 }
             }
         }

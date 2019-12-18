@@ -1338,6 +1338,7 @@ class CommentFragment : Fragment() {
     fun setPlayVideoView() {
         //設定で読み込むかどうか
         commentActivity.runOnUiThread {
+            live_surface_view.visibility = View.VISIBLE
             // println("生放送再生：HLSアドレス : $hls_address")
 
             //ウィンドウの半分ぐらいの大きさに設定
@@ -1463,14 +1464,15 @@ class CommentFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         if (this@CommentFragment::exoPlayer.isInitialized) {
-            exoPlayer.stop()
+            exoPlayer.release()
+            // println("ExoPlayerリリース")
         }
     }
 
     override fun onResume() {
         super.onResume()
         if (this@CommentFragment::exoPlayer.isInitialized) {
-            exoPlayer.playWhenReady = true
+            //exoPlayer.playWhenReady = true
         }
     }
 
@@ -2155,7 +2157,9 @@ class CommentFragment : Fragment() {
         }
         //再生部分を作り直す
         if (hls_address.isNotEmpty()) {
+            live_framelayout.visibility = View.VISIBLE
             setPlayVideoView()
+            // println("ExoPlayer開始")
         }
     }
 
