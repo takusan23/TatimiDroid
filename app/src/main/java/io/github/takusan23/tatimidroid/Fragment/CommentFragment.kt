@@ -1454,7 +1454,6 @@ class CommentFragment : Fragment() {
                 }
             }
         }
-
     }
 
     fun isExoPlayerInitialized(): Boolean {
@@ -2722,5 +2721,16 @@ class CommentFragment : Fragment() {
         return activity_comment_linearlayout.id
     }
 
+    //ExoPlayerを破棄するときに
+    //初期化済みか確認してから
+    fun destroyExoPlayer(exoPlayer: SimpleExoPlayer) {
+        //止める
+        exoPlayer.apply {
+            playWhenReady = false
+            stop()
+            seekTo(0)
+            release()
+        }
+    }
 
 }

@@ -147,7 +147,13 @@ class CommentMenuFragment : Fragment() {
         }
         //バッググラウンド再生。調子悪いのでServiceなんかで実装し直したほうがいいと思ってるけどまず使ってないので直さないと思います。
         fragment_comment_fragment_menu_background_button.setOnClickListener {
-            commentFragment.setBackgroundProgramPlay()
+            commentFragment.apply {
+                setBackgroundProgramPlay()
+                if(isExoPlayerInitialized()){
+                    destroyExoPlayer(exoPlayer)
+                    live_framelayout.visibility = View.GONE
+                }
+            }
         }
 
         //ポップアップ再生。いつか怒られそう（プレ垢限定要素だし）
@@ -155,6 +161,10 @@ class CommentMenuFragment : Fragment() {
             commentFragment.apply {
                 //ポップアップ再生。コメント付き
                 startOverlayPlayer()
+                if(isExoPlayerInitialized()){
+                    destroyExoPlayer(exoPlayer)
+                    live_framelayout.visibility = View.GONE
+                }
             }
         }
 
