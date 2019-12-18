@@ -93,7 +93,10 @@ class NicoVideoSelectFragment : Fragment() {
                 when (tab?.text) {
                     getString(R.string.post_video) -> {
                         //投稿動画
-                        getPOSTVideoHTML()
+                        GlobalScope.launch {
+                            val userId = getUserID().await()
+                            getUploadVideo(userId)
+                        }
                     }
                     getString(R.string.history) -> {
                         //履歴
@@ -169,7 +172,10 @@ class NicoVideoSelectFragment : Fragment() {
             when (text) {
                 getString(R.string.post_video) -> {
                     //投稿動画
-                    getPOSTVideoHTML()
+                    GlobalScope.launch {
+                        val userId = getUserID().await()
+                        getUploadVideo(userId)
+                    }
                 }
                 getString(R.string.history) -> {
                     //履歴
@@ -575,6 +581,110 @@ class NicoVideoSelectFragment : Fragment() {
         })
     }
 
+    //ユーザーID取得
+    //スマホWeb版でプロフィール取得API見つけた
+    fun getUserID(): Deferred<String> = GlobalScope.async {
+        //200件最大まで取得する
+        val url = "https://nvapi.nicovideo.jp/v1/users/me"
+        val request = Request.Builder()
+            .url(url)
+            .header("Cookie", "user_session=${usersession}")
+            .header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
+            .header("User-Agent", "TatimiDroid;@takusan_23")
+            .get()
+            .build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        if (response.isSuccessful) {
+            val responseString = response.body?.string()
+            val jsonObject = JSONObject(responseString)
+            val dataObject = jsonObject.getJSONObject("data")
+            val userObject = dataObject.getJSONObject("user")
+            val id = userObject.getLong("id").toString()
+            return@async id
+        } else {
+            return@async ""
+        }
+
+    }
+
+    /**
+     * 投稿動画のAPI見つけました。RSSで取得可能です。
+     * @param page 追加読み込み時に利用できます。
+     * */
+    fun getUploadVideo(userId: String, page: Int = 1) {
+        activity?.runOnUiThread {
+            fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true
+            fragment_nicovideo_select_mylist_tab_layout.visibility = View.GONE
+            fragment_nicovideo_select_series_tab_layout.visibility = View.GONE
+        }
+        //最初だけRecyclerViewをクリアする
+        if (page == 1) {
+            //リストクリア
+            recyclerViewList.clear()
+        }
+        //RSS
+        val url = "https://www.nicovideo.jp/user/$userId/video?page=$page&rss=2.0"
+        val request = Request.Builder()
+            .url(url)
+            .header("Cookie", "user_session=${usersession}")
+            .header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
+            .header("User-Agent", "TatimiDroid;@takusan_23")
+            .get()
+            .build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                showToast("${getString(R.string.error)}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+
+                    //RSS解析、HTMLと同じ要領で可能
+                    val rss = Jsoup.parse(response.body?.string())
+                    val itemList = rss.getElementsByTag("item")
+                    itemList.forEach {
+                        val title = it.getElementsByTag("title")[0].text()
+                        val id = it.getElementsByTag("link")[0].text()
+                            .replace("https://www.nicovideo.jp/watch/", "")
+                        val thumbnailUrl = it.getElementsByTag("media:thumbnail")[0].attr("yrk")
+                        val postDate = ""
+
+                        val item = arrayListOf<String>().apply {
+                            add("post")//投稿だよー
+                            add(id)
+                            add(title)
+                            add("")
+                            add(postDate)
+                            add("")
+                            add(thumbnailUrl)
+                            add("")
+                            add("")
+                            add("")
+                        }
+
+                        recyclerViewList.add(item)
+                    }
+
+                    //itemが無くなったとき最後なので
+                    if (itemList.size != 0) {
+                        //次のページ
+                        getUploadVideo(userId, page + 1)
+                    }
+
+                    activity?.runOnUiThread {
+                        nicoVideoSelectAdapter.notifyDataSetChanged()
+                        fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = false
+                    }
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                }
+            }
+        })
+
+    }
+
     /*
     * 投稿動画のAPIは見つからなかった。HTMLスクレイピングする
     * スクレイピング、HTMLが変わったら動かなくなるのでやりたくね～
@@ -587,7 +697,6 @@ class NicoVideoSelectFragment : Fragment() {
             fragment_nicovideo_select_series_tab_layout.visibility = View.GONE
         }
 
-        //200件最大まで取得する
         var url = "https://www.nicovideo.jp/my/video"
         if (page.isNotEmpty()) {
             url = "https://www.nicovideo.jp$page"
