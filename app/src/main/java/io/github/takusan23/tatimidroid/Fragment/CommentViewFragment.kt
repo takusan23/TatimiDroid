@@ -1,8 +1,6 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.SharedPreferences
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
@@ -247,7 +245,8 @@ class CommentViewFragment : Fragment() {
                         niconicoComment(
                             commentJSONParse.comment,
                             commentJSONParse.userId,
-                            commentJSONParse.mail
+                            commentJSONParse.mail,
+                            commentJSONParse
                         )
 
                         //コテハン登録
@@ -336,7 +335,7 @@ class CommentViewFragment : Fragment() {
                                         Snackbar.LENGTH_SHORT
                                     ).setAction(getString(R.string.end)) {
                                         //終了
-                                        if(activity !is NimadoActivity){
+                                        if (activity !is NimadoActivity) {
                                             //二窓Activity以外では終了できるようにする。
                                             activity?.finish()
                                         }
@@ -630,8 +629,17 @@ class CommentViewFragment : Fragment() {
 
     }
 
+    val commentUserList = arrayListOf<String>()
+    val commentDateList = arrayListOf<String>()
+    val commentTextList = arrayListOf<String>()
+
     //コメント流す
-    fun niconicoComment(message: String, userId: String, command: String) {
+    fun niconicoComment(
+        message: String,
+        userId: String,
+        command: String,
+        commentJSONParse: CommentJSONParse
+    ) {
         //コメントを流さない設定？
         if (!commentFragment.isCommentHidden) {
             //NGコメントは流さない
@@ -642,20 +650,31 @@ class CommentViewFragment : Fragment() {
                 //追い出しコメントは流さない
                 if (!message.contains("/hb ifseetno")) {
                     //UIスレッドで呼んだら遅延せずに表示されました！
-                    activity?.runOnUiThread {
-                        commentFragment.commentCanvas.postComment(message, command)
-                        //ポップアップ再生
-                        if (commentFragment.overlay_commentcamvas != null) {
-                            commentFragment.overlay_commentcamvas!!.postComment(
-                                message, command
-                            )
-                            //コメント
-                            val textView =
-                                commentFragment.popupView.overlay_comment_textview
-                            textView.text =
-                                "$message\n${textView.text}"
+
+                    if (!commentDateList.contains(commentJSONParse.date)) {
+                        if (!commentTextList.contains(commentJSONParse.comment)) {
+                            commentDateList.add(commentJSONParse.date)
+                            commentTextList.add(commentJSONParse.comment)
+
+                            activity?.runOnUiThread {
+                                commentFragment.commentCanvas.postComment(message, command)
+                                //ポップアップ再生
+                                if (commentFragment.overlay_commentcamvas != null) {
+                                    commentFragment.overlay_commentcamvas!!.postComment(
+                                        message, command
+                                    )
+                                    //コメント
+                                    val textView =
+                                        commentFragment.popupView.overlay_comment_textview
+                                    textView.text =
+                                        "$message\n${textView.text}"
+                                }
+                            }
+
                         }
                     }
+
+
                 }
             }
         }

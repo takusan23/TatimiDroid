@@ -14,6 +14,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import io.github.takusan23.tatimidroid.Fragment.CommentMenuBottomFragment
+import java.text.SimpleDateFormat
 import java.util.*
 
 class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :
@@ -88,13 +89,11 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
             if (commentJSONParse.date.isNotEmpty()) {
                 val calendar = Calendar.getInstance(TimeZone.getDefault())
                 calendar.timeInMillis = commentJSONParse.date.toLong() * 1000L
+                val simpleDateFormat = SimpleDateFormat("HH:mm:ss")
                 val hour = calendar.get(Calendar.HOUR_OF_DAY)
                 val minute = calendar.get(Calendar.MINUTE)
                 val second = calendar.get(Calendar.SECOND)
-                time =
-                    "${calendar.get(Calendar.HOUR_OF_DAY)}:${calendar.get(Calendar.MINUTE)}:${calendar.get(
-                        Calendar.SECOND
-                    )}"
+                time = simpleDateFormat.format(commentJSONParse.date.toLong() * 1000L)
             }
 
             var info = "${commentJSONParse.roomName} | $time | ${userId}"
