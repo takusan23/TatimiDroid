@@ -1,11 +1,13 @@
 package io.github.takusan23.tatimidroid.NicoVideo.Adapter
 
 import android.content.Intent
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.core.text.HtmlCompat
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
@@ -85,6 +87,14 @@ class NicoVideoSelectAdapter(private val arrayListArrayAdapter: ArrayList<ArrayL
                 holder.playCountTextView.text = ""
                 holder.mylistCountTextView.text = ""
                 holder.postDateTextView.text = ""
+            }
+            "post" -> {
+                holder.dateTextView.text = lastWatch
+                holder.commentCountTextView.text = commentCount
+                holder.playCountTextView.text = playCount
+                holder.mylistCountTextView.text = mylistCount
+                holder.postDateTextView.text =
+                    HtmlCompat.fromHtml(HtmlCompat.fromHtml(registeredAt, HtmlCompat.FROM_HTML_MODE_COMPACT).toString(), HtmlCompat.FROM_HTML_MODE_COMPACT)
             }
             else -> {
                 holder.dateTextView.text = lastWatch
