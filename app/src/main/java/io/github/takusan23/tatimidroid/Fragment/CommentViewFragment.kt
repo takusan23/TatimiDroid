@@ -633,6 +633,9 @@ class CommentViewFragment : Fragment() {
     val commentDateList = arrayListOf<String>()
     val commentTextList = arrayListOf<String>()
 
+    var oldComment = ""
+    var oldUser = ""
+
     //コメント流す
     fun niconicoComment(
         message: String,
@@ -651,30 +654,27 @@ class CommentViewFragment : Fragment() {
                 if (!message.contains("/hb ifseetno")) {
                     //UIスレッドで呼んだら遅延せずに表示されました！
 
-                    if (!commentDateList.contains(commentJSONParse.date)) {
-                        if (!commentTextList.contains(commentJSONParse.comment)) {
-                            commentDateList.add(commentJSONParse.date)
-                            commentTextList.add(commentJSONParse.comment)
+                    //二重に表示されない対策
+                    if (oldComment != message && oldUser != userId) {
 
-                            activity?.runOnUiThread {
-                                commentFragment.commentCanvas.postComment(message, command)
-                                //ポップアップ再生
-                                if (commentFragment.overlay_commentcamvas != null) {
-                                    commentFragment.overlay_commentcamvas!!.postComment(
-                                        message, command
-                                    )
-                                    //コメント
-                                    val textView =
-                                        commentFragment.popupView.overlay_comment_textview
-                                    textView.text =
-                                        "$message\n${textView.text}"
-                                }
+                        oldComment = message
+                        oldUser = userId
+
+                        activity?.runOnUiThread {
+                            commentFragment.commentCanvas.postComment(message, command)
+                            //ポップアップ再生
+                            if (commentFragment.overlay_commentcamvas != null) {
+                                commentFragment.overlay_commentcamvas!!.postComment(
+                                    message, command
+                                )
+                                //コメント
+                                val textView =
+                                    commentFragment.popupView.overlay_comment_textview
+                                textView.text =
+                                    "$message\n${textView.text}"
                             }
-
                         }
                     }
-
-
                 }
             }
         }
