@@ -10,6 +10,8 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
     var date = ""
     var premium = ""
     var mail = ""
+    var vpos = ""
+    var origin = ""
 
     init {
         val jsonObject = JSONObject(commentJson)
@@ -19,6 +21,7 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
             commentNo = chatObject.getString("no")
             userId = chatObject.getString("user_id")
             date = chatObject.getString("date")
+            vpos = chatObject.getString("vpos")
             //プレミアムかどうかはJSONにpremiumがあればいい（一般にはないので存在チェックいる）
             if (chatObject.has("premium")) {
                 when (chatObject.getString("premium").toInt()) {
@@ -26,8 +29,11 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
                     2 -> premium = "運営"
                 }
             }
+            if(chatObject.has("origin")){
+                origin = chatObject.getString("origin")
+            }
             //mailの中に色コメントの色の情報があったりする
-            if(chatObject.has("mail")){
+            if (chatObject.has("mail")) {
                 mail = chatObject.getString("mail")
             }
         }

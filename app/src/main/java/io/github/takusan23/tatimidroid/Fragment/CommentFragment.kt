@@ -1118,7 +1118,7 @@ class CommentFragment : Fragment() {
                         .getLong("begintime")
                     if (isEntyouKenti) {
                         //終了時刻計算
-                        val simpleDateFormat = SimpleDateFormat("dd/MM HH:mm:ss")
+                        val simpleDateFormat = SimpleDateFormat("MM/dd HH:mm:ss")
                         val date = Date(endTime)
                         val time = simpleDateFormat.format(date)
                         val message =

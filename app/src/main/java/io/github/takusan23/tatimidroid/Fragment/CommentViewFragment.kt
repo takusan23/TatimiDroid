@@ -525,53 +525,62 @@ class CommentViewFragment : Fragment() {
         commentJSONParse: CommentJSONParse
     ) {
 
+        /*
+        * 重複しないように。
+        * 令和元年8月中旬からアリーナに一般のコメントが流れ込むように（じゃあ枠の仕様なくせ栗田さん）
+        * 令和元年12月中旬から立ち見部屋にアリーナのコメントが流れ込むように（だから枠の仕様無くせよ）
+        * というわけで同じコメントが追加されてしまうので対策する。
+        * 12月中旬のメンテで立ち見部屋にアリーナコメントが出るように（とさり気なく枠の時間復活）なったとき、JSONにoriginが追加されて、
+        * 多分originの値がC以外のときに元の部屋のコメントだと
+        * */
+        if (commentJSONParse.origin != "C") {
+            val size = recyclerViewList.size
+            val item = arrayListOf<String>()
+            item.add("")
+            item.add(json)
+            item.add(roomName)
+            item.add(userId)
+            item.add(liveId)
 
-        val size = recyclerViewList.size
-        val item = arrayListOf<String>()
-        item.add("")
-        item.add(json)
-        item.add(roomName)
-        item.add(userId)
-        item.add(liveId)
+            recyclerViewList.add(0, item)
 
-        recyclerViewList.add(0, item)
-
-        //ロックオンできるように
-        //ロックオン中は自動更新できるようにする
-        val fragment = fragmentManager?.findFragmentByTag("comment_menu")
-        if (fragment != null) {
-            if (fragment is CommentMenuBottomFragment) {
-                if (fragment.userId == commentJSONParse.userId) {
-                    //更新する
-                    fragment.setLockOnComment()
+            //ロックオンできるように
+            //ロックオン中は自動更新できるようにする
+            val fragment = fragmentManager?.findFragmentByTag("comment_menu")
+            if (fragment != null) {
+                if (fragment is CommentMenuBottomFragment) {
+                    if (fragment.userId == commentJSONParse.userId) {
+                        //更新する
+                        fragment.setLockOnComment()
+                    }
                 }
             }
-        }
 
 
-        //RecyclerView更新
-        activity?.runOnUiThread {
-            if (fragment_comment_recyclerview != null) {
-                if (recyclerViewList.size <= size + 1) {
-                    commentRecyclerViewAdapter.notifyItemInserted(0)
-                }
-                // 画面上で最上部に表示されているビューのポジションとTopを記録しておく
-                val pos =
-                    (recyclerViewLayoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
-                var top = 0
-                if ((recyclerViewLayoutManager as LinearLayoutManager).childCount > 0) {
-                    top = (recyclerViewLayoutManager as LinearLayoutManager).getChildAt(0)!!.top
-                }
-                //一番上なら追いかける
-                //System.out.println(pos)
-                if (pos == 0 || pos == 1) {
-                    fragment_comment_recyclerview.scrollToPosition(0)
-                } else {
-                    fragment_comment_recyclerview.post {
-                        (recyclerViewLayoutManager as LinearLayoutManager).scrollToPositionWithOffset(
-                            pos + 1,
-                            top
-                        )
+            //RecyclerView更新
+            activity?.runOnUiThread {
+                if (fragment_comment_recyclerview != null) {
+                    if (recyclerViewList.size <= size + 1) {
+                        commentRecyclerViewAdapter.notifyItemInserted(0)
+                    }
+                    // 画面上で最上部に表示されているビューのポジションとTopを記録しておく
+                    val pos =
+                        (recyclerViewLayoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                    var top = 0
+                    if ((recyclerViewLayoutManager as LinearLayoutManager).childCount > 0) {
+                        top = (recyclerViewLayoutManager as LinearLayoutManager).getChildAt(0)!!.top
+                    }
+                    //一番上なら追いかける
+                    //System.out.println(pos)
+                    if (pos == 0 || pos == 1) {
+                        fragment_comment_recyclerview.scrollToPosition(0)
+                    } else {
+                        fragment_comment_recyclerview.post {
+                            (recyclerViewLayoutManager as LinearLayoutManager).scrollToPositionWithOffset(
+                                pos + 1,
+                                top
+                            )
+                        }
                     }
                 }
             }
@@ -629,12 +638,9 @@ class CommentViewFragment : Fragment() {
 
     }
 
-    val commentUserList = arrayListOf<String>()
-    val commentDateList = arrayListOf<String>()
-    val commentTextList = arrayListOf<String>()
-
     var oldComment = ""
     var oldUser = ""
+    var oldVpos = ""
 
     //コメント流す
     fun niconicoComment(
@@ -654,11 +660,11 @@ class CommentViewFragment : Fragment() {
                 if (!message.contains("/hb ifseetno")) {
                     //UIスレッドで呼んだら遅延せずに表示されました！
 
-                    //二重に表示されない対策
-                    if (oldComment != message && oldUser != userId) {
 
-                        oldComment = message
-                        oldUser = userId
+                    //二重に表示されない対策。originにCが入っていなければいいという本当にこれでいいのか？
+                    if (commentJSONParse.origin != "C") {
+
+                        //  println("${commentJSONParse.origin} / $message / $userId")
 
                         activity?.runOnUiThread {
                             commentFragment.commentCanvas.postComment(message, command)
