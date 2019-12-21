@@ -53,6 +53,12 @@
             android:summary="@string/setting_oidashi_comment_description"
             android:title="@string/setting_oidashi_comment_title" />
 
+    <SwitchPreference
+            android:defaultValue="true"
+            android:icon="@drawable/ic_outline_query_builder_24px"
+            android:key="setting_zettai_zikoku_hyouzi"
+            android:summary="@string/setting_zettaihyouzi_desciption"
+            android:title="@string/setting_zettaihyouzi_title" />
 
     <SwitchPreference
             android:defaultValue="true"

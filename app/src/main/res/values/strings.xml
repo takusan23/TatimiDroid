@@ -217,4 +217,6 @@
     <string name="error_player">There was a problem playing the live broadcast. Prepare for playback again.</string>
     <string name="error_player_reload">Retry</string>
     <string name="end_time_tooltip">Frame remaining time</string>
+    <string name="setting_zettaihyouzi_title">How to display comment posting time</string>
+    <string name="setting_zettaihyouzi_desciption">Change the display from absolute time (example: 07:14:22) to relative time (example: 25:25)</string>
 </resources>

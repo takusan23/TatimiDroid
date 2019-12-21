@@ -34,7 +34,7 @@ class KonoApp : AppCompatActivity() {
     /*
     * バージョンとか
     * */
-    val version = "6.0.1 2019/12/13"
+    val version = "2019/12/21"
     val codeName1 = "（夏）"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,9 +45,11 @@ class KonoApp : AppCompatActivity() {
 
         setContentView(R.layout.activity_kono_app)
 
+        val appVersion = packageManager.getPackageInfo(packageName, 0).versionName
+
         title = getString(R.string.kono_app)
 
-        kono_app_codename.text = "$version $codeName1"
+        kono_app_codename.text = "$appVersion $version $codeName1"
 
         kono_app_twitter.setOnClickListener {
             startBrowser(twitterLink)

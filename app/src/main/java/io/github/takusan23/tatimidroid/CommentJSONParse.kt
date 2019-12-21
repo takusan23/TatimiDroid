@@ -12,6 +12,7 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
     var mail = ""
     var vpos = ""
     var origin = ""
+    var score = ""
 
     init {
         val jsonObject = JSONObject(commentJson)
@@ -29,6 +30,11 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
                     2 -> premium = "運営"
                 }
             }
+            //NGスコア？
+            if(chatObject.has("score")){
+                score = chatObject.getInt("score").toString()
+            }
+            //コメントが服従表示される問題
             if(chatObject.has("origin")){
                 origin = chatObject.getString("origin")
             }
