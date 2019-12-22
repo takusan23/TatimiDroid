@@ -1153,7 +1153,7 @@ class CommentFragment : Fragment() {
                         minuteString = "0$minuteString"
                     }
                     commentActivity.runOnUiThread {
-                        activity_comment_comment_end_time.text =
+                        activity_comment_comment_end_time?.text =
                             "${hourString}:${minuteString}:00"
                     }
 

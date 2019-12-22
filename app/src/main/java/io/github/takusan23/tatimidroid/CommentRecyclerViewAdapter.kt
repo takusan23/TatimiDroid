@@ -87,27 +87,31 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
             //絶対時刻か相対時刻か
             var time = ""
             if (pref_setting.getBoolean("setting_zettai_zikoku_hyouzi", true)) {
-                //相対時刻（25:25）など
-                val programStartTime = commentFragment.programLiveTime
-                val commentUnixTime = commentJSONParse.date.toLong()
-                val calc = commentUnixTime - programStartTime
-                //時間/分
-                val hour = calc / 3600
-                var hourString = hour.toString()
-                if (hourString.length == 1) {
-                    hourString = "0$hourString"
+                if (commentJSONParse.date.isNotEmpty()) {
+                    //相対時刻（25:25）など
+                    val programStartTime = commentFragment.programLiveTime
+                    val commentUnixTime = commentJSONParse.date.toLong()
+                    val calc = commentUnixTime - programStartTime
+                    //時間/分
+                    val hour = calc / 3600
+                    var hourString = hour.toString()
+                    if (hourString.length == 1) {
+                        hourString = "0$hourString"
+                    }
+                    val minute = calc % 3600 / 60
+                    var minuteString = minute.toString()
+                    if (minuteString.length == 1) {
+                        minuteString = "0$minuteString"
+                    }
+                    val second = calc % 3600 % 60
+                    var secondString = second.toString()
+                    if (secondString.length == 1) {
+                        secondString = "0$secondString"
+                    }
+                    time = "$hourString:$minuteString:$secondString"
+                } else {
+                    time = "0"
                 }
-                val minute = calc % 3600 / 60
-                var minuteString = minute.toString()
-                if (minuteString.length == 1) {
-                    minuteString = "0$minuteString"
-                }
-                val second = calc % 3600 % 60
-                var secondString = second.toString()
-                if (secondString.length == 1) {
-                    secondString = "0$secondString"
-                }
-                time = "$hourString:$minuteString:$secondString"
             } else {
                 //絶対時刻（12:13:00）など
                 //UnixTime -> Minute
