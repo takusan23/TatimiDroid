@@ -123,13 +123,26 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
                 }
             }
 
-
             var info = "${commentJSONParse.roomName} | $time | ${userId}"
             var comment = "${commentJSONParse.commentNo} : ${commentJSONParse.comment}"
+
+            //NGスコア表示するか
+            if (pref_setting.getBoolean("setting_show_ng", false)) {
+                if (commentJSONParse.score.isNotEmpty()) {
+                    info = "$info | ${commentJSONParse.score}"
+                } else {
+                    info = info
+                }
+            } else {
+                info = info
+            }
+
 
             //プレ垢
             if (commentJSONParse.premium.isNotEmpty()) {
                 info = "$info | ${commentJSONParse.premium}"
+            } else {
+                info = info
             }
 
             //NGの場合は置き換える

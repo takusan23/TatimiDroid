@@ -219,4 +219,5 @@
     <string name="end_time_tooltip">枠の残り時間</string>
     <string name="setting_zettaihyouzi_title">コメント投稿時間の表示の設定</string>
     <string name="setting_zettaihyouzi_desciption">表示を絶対時刻(例：07:14:22)から相対時刻(例：25:25)に変更する</string>
+    <string name="setting_show_ng_score">NGスコアを表示する</string>
 </resources>
