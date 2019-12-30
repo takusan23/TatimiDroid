@@ -1744,10 +1744,11 @@ class CommentFragment : Fragment() {
 
     /*オーバーレイ*/
     fun startOverlayPlayer() {
+        val windowManager = context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         //すでにある場合は消す
         if (this@CommentFragment::popupExoPlayer.isInitialized) {
             destroyExoPlayer(popupExoPlayer)
-            commentActivity.windowManager.removeView(popupView)
+            // windowManager.removeView(popupView)
         }
         if (Settings.canDrawOverlays(context)) {
             //アスペクト比16:9なので
@@ -1783,7 +1784,7 @@ class CommentFragment : Fragment() {
 
 
             //表示
-            commentActivity.windowManager.addView(popupView, params)
+            windowManager.addView(popupView, params)
             isPopupPlay = true
             popupView.overlay_commentCanvas.isFloatingView = true
 
@@ -1865,7 +1866,7 @@ class CommentFragment : Fragment() {
             //閉じる
             popupView.overlay_close_button.setOnClickListener {
                 isPopupPlay = false
-                commentActivity.windowManager.removeView(popupView)
+                windowManager.removeView(popupView)
                 notificationManager.cancel(overlayNotificationID)
                 popupExoPlayer.apply {
                     playWhenReady = false
@@ -1883,7 +1884,7 @@ class CommentFragment : Fragment() {
 
             //画面サイズ
             val displaySize: Point by lazy {
-                val display = commentActivity.windowManager.defaultDisplay
+                val display = windowManager.defaultDisplay
                 val size = Point()
                 display.getSize(size)
                 size
@@ -1895,8 +1896,6 @@ class CommentFragment : Fragment() {
             //移動
             //https://qiita.com/farman0629/items/ce547821dd2e16e4399e
             popupView.setOnLongClickListener {
-                val windowManager =
-                    context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
                 //長押し判定
                 popupView.setOnTouchListener { view, motionEvent ->
                     // タップした位置を取得する
@@ -2740,6 +2739,10 @@ class CommentFragment : Fragment() {
             seekTo(0)
             release()
         }
+    }
+
+    fun isPopupViewInit(): Boolean {
+        return ::popupView.isInitialized
     }
 
 }

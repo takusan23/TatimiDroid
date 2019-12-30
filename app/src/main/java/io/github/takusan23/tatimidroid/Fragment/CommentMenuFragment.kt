@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.Fragment
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -12,6 +13,7 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.SeekBar
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -21,6 +23,7 @@ import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_comment_menu.*
+import java.lang.IllegalArgumentException
 
 
 /*
@@ -158,6 +161,15 @@ class CommentMenuFragment : Fragment() {
         //ポップアップ再生。いつか怒られそう（プレ垢限定要素だし）
         fragment_comment_fragment_menu_popup_button.setOnClickListener {
             commentFragment.apply {
+                if (isPopupViewInit()) {
+                    try {
+                        val windowManager =
+                            context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                        windowManager.removeView(popupView)
+                    } catch (e: IllegalArgumentException) {
+                        e.printStackTrace()
+                    }
+                }
                 //ポップアップ再生。コメント付き
                 startOverlayPlayer()
                 if (isExoPlayerInitialized()) {

@@ -232,35 +232,39 @@ class CommentRoomFragment : Fragment() {
 
     /*RecyclerViewについかする*/
     fun addItemRecyclerView(json: String, roomName: String) {
-        val item = arrayListOf<String>()
-        item.add("")
-        item.add(json)
-        item.add(roomName)
-        item.add(liveId)
-        item.add(liveId) //CommentViewFragmentだと３番目まで使っているので
+        val commentJSONParse = CommentJSONParse(json, roomName)
+        //コメント重複表示を直した
+        if (commentJSONParse.origin != "C") {
+            val item = arrayListOf<String>()
+            item.add("")
+            item.add(json)
+            item.add(roomName)
+            item.add(liveId)
+            item.add(liveId) //CommentViewFragmentだと３番目まで使っているので
 
-        recyclerViewList.add(0, item)
-        //RecyclerView更新
-        activity?.runOnUiThread {
-            if (comment_room_recycler_view != null) {
-                commentRecyclerViewAdapter.notifyItemInserted(0)
-                // 画面上で最上部に表示されているビューのポジションとTopを記録しておく
-                val pos =
-                    (recyclerViewLayoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
-                var top = 0
-                if ((recyclerViewLayoutManager as LinearLayoutManager).childCount > 0) {
-                    top = (recyclerViewLayoutManager as LinearLayoutManager).getChildAt(0)!!.top
-                }
-                //一番上なら追いかける
-                //System.out.println(pos)
-                if (pos == 0 || pos == 1) {
-                    comment_room_recycler_view.scrollToPosition(0)
-                } else {
-                    comment_room_recycler_view.post {
-                        (recyclerViewLayoutManager as LinearLayoutManager).scrollToPositionWithOffset(
-                            pos + 1,
-                            top
-                        )
+            recyclerViewList.add(0, item)
+            //RecyclerView更新
+            activity?.runOnUiThread {
+                if (comment_room_recycler_view != null) {
+                    commentRecyclerViewAdapter.notifyItemInserted(0)
+                    // 画面上で最上部に表示されているビューのポジションとTopを記録しておく
+                    val pos =
+                        (recyclerViewLayoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                    var top = 0
+                    if ((recyclerViewLayoutManager as LinearLayoutManager).childCount > 0) {
+                        top = (recyclerViewLayoutManager as LinearLayoutManager).getChildAt(0)!!.top
+                    }
+                    //一番上なら追いかける
+                    //System.out.println(pos)
+                    if (pos == 0 || pos == 1) {
+                        comment_room_recycler_view.scrollToPosition(0)
+                    } else {
+                        comment_room_recycler_view.post {
+                            (recyclerViewLayoutManager as LinearLayoutManager).scrollToPositionWithOffset(
+                                pos + 1,
+                                top
+                            )
+                        }
                     }
                 }
             }
