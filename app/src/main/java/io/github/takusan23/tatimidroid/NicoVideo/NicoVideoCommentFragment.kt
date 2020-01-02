@@ -63,8 +63,6 @@ class NicoVideoCommentFragment : Fragment() {
         nicoVideoFragment =
             activity?.supportFragmentManager?.findFragmentByTag(id) as NicoVideoFragment
 
-
-
         usersession = pref_setting.getString("user_session", "") ?: ""
 
         //RecyclerView初期化
@@ -271,7 +269,17 @@ class NicoVideoCommentFragment : Fragment() {
                             }
                         }
 
+                        //threadIdをニコる用に控える
+                        val threadId =
+                            json.getJSONObject("thread").getJSONObject("ids").getString("default")
+                        val isPremium = json.getJSONObject("viewer").getBoolean("isPremium")
+                        nicoVideoAdapter.threadId = threadId
+                        nicoVideoAdapter.user_session = usersession
+                        nicoVideoAdapter.isPremium = isPremium
+                        nicoVideoAdapter.userId = user_id
                     }
+
+
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
@@ -356,6 +364,7 @@ class NicoVideoCommentFragment : Fragment() {
                             val user_id = ""
                             val date = chat.getString("date")
                             val vpos = chat.getString("vpos")
+                            val no = chat.getString("no")
 
                             //mail取る。
                             val mail = chat.getString("mail")
@@ -383,6 +392,7 @@ class NicoVideoCommentFragment : Fragment() {
                                 item.add(vpos)
                                 item.add(mail)
                                 item.add(nicoruCount)
+                                item.add(no)
                                 commentListList.add(item)
                             }
                         }

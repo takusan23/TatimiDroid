@@ -16,22 +16,38 @@
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="10dp">
+                android:orientation="horizontal">
 
-            <TextView
-                    android:id="@+id/adapter_nicovideo_user_textview"
-                    android:layout_width="match_parent"
+            <LinearLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ゆーざー" />
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:padding="10dp">
 
-            <TextView
-                    android:id="@+id/adapter_nicovideo_comment_textview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="こめんと"
-                    android:textSize="18sp" />
+                <TextView
+                        android:id="@+id/adapter_nicovideo_user_textview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ゆーざー" />
 
+                <TextView
+                        android:id="@+id/adapter_nicovideo_comment_textview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="こめんと"
+                        android:textSize="18sp" />
+
+            </LinearLayout>
+
+            <Button
+                    android:id="@+id/adapter_nicovideo_comment_nicoru"
+                    android:layout_margin="2sp"
+                    android:layout_width="wrap_content"
+                    android:visibility="gone"
+                    android:layout_height="match_parent"
+                    android:text="ニコる" />
         </LinearLayout>
+
     </androidx.cardview.widget.CardView>
 </LinearLayout>
