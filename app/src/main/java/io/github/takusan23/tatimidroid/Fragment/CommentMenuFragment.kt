@@ -17,6 +17,7 @@ import android.view.WindowManager
 import android.widget.SeekBar
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import com.google.android.gms.cast.framework.CastButtonFactory
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.ProgramShare
@@ -87,6 +88,10 @@ class CommentMenuFragment : Fragment() {
 
     //クリックイベント
     private fun setClick() {
+        //キャスト
+        val googleCast = commentFragment.googleCast
+        googleCast.setUpCastButton(fragment_comment_fragment_menu_cast_button)
+
         //画質変更
         fragment_comment_fragment_menu_quality_button.setOnClickListener {
             //画質変更

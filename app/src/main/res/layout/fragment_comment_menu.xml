@@ -81,6 +81,29 @@
 
                     </LinearLayout>
 
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5sp"
+                            android:orientation="horizontal">
+
+                        <TextView
+                                android:id="@+id/textView12"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:gravity="center_vertical"
+                                android:text="キャスト（試験的）" />
+
+                        <androidx.mediarouter.app.MediaRouteButton
+                                android:id="@+id/fragment_comment_fragment_menu_cast_button"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:mediaRouteTypes="user" />
+
+                    </LinearLayout>
+
                     <Switch
                             android:id="@+id/fragment_comment_fragment_menu_comment_hidden_switch"
                             android:layout_width="match_parent"

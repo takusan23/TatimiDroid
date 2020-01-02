@@ -44,6 +44,8 @@ import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.source.BehindLiveWindowException
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.upstream.*
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
@@ -53,6 +55,7 @@ import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.Background.BackgroundPlay
+import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment.*
@@ -244,6 +247,9 @@ class CommentFragment : Fragment() {
     //番組終了時刻（UnixTime
     var programEndUnixTime: Long = 0
 
+    // GoogleCast使うか？
+    lateinit var googleCast: GoogleCast
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -283,6 +289,12 @@ class CommentFragment : Fragment() {
             activity_comment_tab_layout.background = ColorDrawable(darkModeSupport.getThemeColor())
         }
 
+        // GoogleCast？
+        googleCast = GoogleCast(context!!)
+        // GooglePlay開発者サービスがない可能性あり、Gapps焼いてない、ガラホ　など
+        if (googleCast.isGooglePlayServicesAvailable()) {
+            googleCast.init()
+        }
 
         notificationManager =
             context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -1028,6 +1040,18 @@ class CommentFragment : Fragment() {
                         ).show()
                         start_quality = selectQuality
                     }
+
+                    //GoogleCast
+                    commentActivity.runOnUiThread {
+                        googleCast.apply {
+                            programTitle = this@CommentFragment.programTitle
+                            programSubTitle = this@CommentFragment.liveId
+                            programThumbnail = this@CommentFragment.thumbnailURL
+                            hlsAddress = this@CommentFragment.hls_address
+                            resume()
+                        }
+                    }
+
                 }
 
                 //threadId、WebSocketURL受信
@@ -1474,6 +1498,11 @@ class CommentFragment : Fragment() {
         if (this@CommentFragment::exoPlayer.isInitialized) {
             //exoPlayer.playWhenReady = true
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        googleCast.pause()
     }
 
     //コメント投稿用
@@ -2368,7 +2397,7 @@ class CommentFragment : Fragment() {
                 }
                 false
             }
-        }else{
+        } else {
             //複数行？
             comment_cardview_comment_textinputlayout.maxLines = Int.MAX_VALUE
         }
