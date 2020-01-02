@@ -220,4 +220,5 @@
     <string name="setting_zettaihyouzi_title">コメント投稿時間の表示の設定</string>
     <string name="setting_zettaihyouzi_desciption">表示を絶対時刻(例：07:14:22)から相対時刻(例：25:25)に変更する</string>
     <string name="setting_show_ng_score">NGスコアを表示する</string>
+    <string name="setting_enter_post_title">エンターキー（改行）でコメントを投稿する</string>
 </resources>

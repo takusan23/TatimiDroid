@@ -2356,16 +2356,21 @@ class CommentFragment : Fragment() {
             comment_cardview_comment_textinputlayout.setText("")
         }
         //Enterキーを押したら投稿する
-        comment_cardview_comment_textinputlayout.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
-            if (i == KeyEvent.KEYCODE_ENTER) {
-                val text = comment_cardview_comment_textinputlayout.text.toString()
-                if (text.isNotEmpty()) {
-                    //コメント投稿
-                    sendComment(text)
-                    comment_cardview_comment_textinputlayout.setText("")
+        if (pref_setting.getBoolean("setting_enter_post", true)) {
+            comment_cardview_comment_textinputlayout.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
+                if (i == KeyEvent.KEYCODE_ENTER) {
+                    val text = comment_cardview_comment_textinputlayout.text.toString()
+                    if (text.isNotEmpty()) {
+                        //コメント投稿
+                        sendComment(text)
+                        comment_cardview_comment_textinputlayout.setText("")
+                    }
                 }
+                false
             }
-            false
+        }else{
+            //複数行？
+            comment_cardview_comment_textinputlayout.maxLines = Int.MAX_VALUE
         }
         //閉じるボタン
         comment_cardview_close_button.setOnClickListener {

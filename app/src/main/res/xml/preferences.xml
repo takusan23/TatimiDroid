@@ -33,6 +33,12 @@
             android:title="@string/setting_low_latency_off_title" />
 
     <SwitchPreference
+            android:defaultValue="true"
+            android:icon="@drawable/ic_keyboard_return_24px"
+            android:key="setting_enter_post"
+            android:title="@string/setting_enter_post_title" />
+
+    <SwitchPreference
             android:defaultValue="false"
             android:icon="@drawable/ic_outline_live_tv_24px_black"
             android:key="setting_watch_live"
