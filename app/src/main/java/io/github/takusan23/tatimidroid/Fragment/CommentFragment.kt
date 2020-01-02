@@ -1911,6 +1911,22 @@ class CommentFragment : Fragment() {
                 startActivity(activity?.intent)
             }
 
+            //ミュート・ミュート解除
+            popupView.overlay_sound_button.setOnClickListener {
+                if (::popupExoPlayer.isInitialized) {
+                    popupExoPlayer.apply {
+                        //音が０のとき
+                        if (volume == 0f) {
+                            volume = 1f
+                            popupView.overlay_sound_button.setImageDrawable(context?.getDrawable(R.drawable.ic_volume_up_24px))
+                        } else {
+                            volume = 0f
+                            popupView.overlay_sound_button.setImageDrawable(context?.getDrawable(R.drawable.ic_volume_off_24px))
+                        }
+                    }
+                }
+            }
+
             //画面サイズ
             val displaySize: Point by lazy {
                 val display = windowManager.defaultDisplay

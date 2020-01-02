@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -26,7 +27,8 @@
                 android:layout_height="match_parent"
                 android:background="#80000000"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:visibility="gone"
+                tools:visibility="gone">
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -35,13 +37,13 @@
                     android:orientation="horizontal">
 
                 <ImageButton
-                        android:id="@+id/overlay_close_button"
+                        android:id="@+id/overlay_sound_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@android:color/transparent"
                         android:padding="10sp"
                         android:tint="#ffffff"
-                        app:srcCompat="@drawable/ic_do_not_disturb_alt_black_24dp" />
+                        app:srcCompat="@drawable/ic_volume_up_24px" />
 
                 <ImageButton
                         android:id="@+id/overlay_activity_launch"
@@ -51,6 +53,15 @@
                         android:padding="10sp"
                         android:tint="#ffffff"
                         app:srcCompat="@drawable/ic_outline_open_in_browser_24px" />
+
+                <ImageButton
+                        android:id="@+id/overlay_close_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:padding="10sp"
+                        android:tint="#ffffff"
+                        app:srcCompat="@drawable/ic_do_not_disturb_alt_black_24dp" />
             </LinearLayout>
 
             <TextView
