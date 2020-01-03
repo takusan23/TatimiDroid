@@ -124,7 +124,14 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
             }
 
             var info = "${commentJSONParse.roomName} | $time | ${userId}"
-            var comment = "${commentJSONParse.commentNo} : ${commentJSONParse.comment}"
+            var comment: String
+
+            //公式番組のコメントはコメント番号存在しない
+            if (commentJSONParse.commentNo.isEmpty()) {
+                comment = commentJSONParse.comment
+            } else {
+                comment = "${commentJSONParse.commentNo} : ${commentJSONParse.comment}"
+            }
 
             //NGスコア表示するか
             if (pref_setting.getBoolean("setting_show_ng", false)) {

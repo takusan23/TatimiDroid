@@ -250,6 +250,14 @@ class CommentFragment : Fragment() {
     // GoogleCast使うか？
     lateinit var googleCast: GoogleCast
 
+    var isOfficial = false
+
+    //コメントWebSocket
+    var commentMessageServerUri = ""
+    var commentThreadId = ""
+    var commentRoomName = ""
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -296,6 +304,13 @@ class CommentFragment : Fragment() {
             googleCast.init()
         }
 
+        // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
+        isOfficial = arguments?.getBoolean("isOfficial") ?: false
+        // if (isOfficial) {
+        //     activity_comment_tab_layout.getTabAt(2)?.tabLabelVisibility =
+        //         TabLayout.TAB_LABEL_VISIBILITY_UNLABELED
+        // }
+
         notificationManager =
             context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -341,7 +356,11 @@ class CommentFragment : Fragment() {
         commentViewFragment.arguments = bundle
         val fragmentTransaction =
             childFragmentManager.beginTransaction()
-        fragmentTransaction.replace(activity_comment_linearlayout.id, commentViewFragment)
+        fragmentTransaction.replace(
+            activity_comment_linearlayout.id,
+            commentViewFragment,
+            "${liveId}_comment_view_fragment"
+        )
         fragmentTransaction.commit()
 
         //NGデータベース読み込み
@@ -821,6 +840,8 @@ class CommentFragment : Fragment() {
                             if (activity is AppCompatActivity) {
                                 (activity as AppCompatActivity).supportActionBar?.subtitle =
                                     "$room - $seet"
+                                (activity as AppCompatActivity).supportActionBar?.title =
+                                    "$programTitle - $liveId"
                             }
                         }
                     }
@@ -1061,6 +1082,7 @@ class CommentFragment : Fragment() {
                     val room = jsonObject.getJSONObject("body").getJSONObject("room")
                     val threadId = room.getString("threadId")
                     val messageServerUri = room.getString("messageServerUri")
+                    val roomName = room.getString("roomName")
 
                     //コメント投稿時に必要なpostKeyを取得するために使う
                     getPostKeyThreadId = threadId
@@ -1069,6 +1091,27 @@ class CommentFragment : Fragment() {
 
                     //コメント投稿時に使うWebSocketに接続する
                     connectionCommentPOSTWebSocket(messageServerUri, threadId)
+
+                    commentMessageServerUri = messageServerUri
+                    commentThreadId = threadId
+                    commentRoomName = roomName
+
+                    if(isOfficial) {
+                        //とりあえずコメントViewFragmentへ
+                        //LiveIDを詰める
+                        val bundle = Bundle()
+                        bundle.putString("liveId", liveId)
+                        val commentViewFragment = CommentViewFragment()
+                        commentViewFragment.arguments = bundle
+                        val fragmentTransaction =
+                            childFragmentManager.beginTransaction()
+                        fragmentTransaction.replace(
+                            activity_comment_linearlayout.id,
+                            commentViewFragment,
+                            "${liveId}_comment_view_fragment"
+                        )
+                        fragmentTransaction.commit()
+                    }
                 }
 
 
@@ -1341,6 +1384,7 @@ class CommentFragment : Fragment() {
                             }
                         }
                     }
+
                 }
             }
 

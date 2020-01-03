@@ -20,6 +20,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.*
 import org.json.JSONObject
+import org.jsoup.Jsoup
 import java.io.IOException
 
 class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
@@ -66,7 +67,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
 
 
         //番組が終わってる場合は落ちちゃうので修正。
-        val programInfo = "https://live2.nicovideo.jp/watch/${liveId}/programinfo";
+        val programInfo = "https://live2.nicovideo.jp/watch/${liveId}";
         val request = Request.Builder()
             .url(programInfo)
             .header("Cookie", "user_session=${pref_setting.getString("user_session", "")}")
@@ -84,64 +85,78 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
 
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
-                    val jsonObject = JSONObject(response.body?.string())
-                    val data = jsonObject.getJSONObject("data")
-                    val status = data.getString("status")
-                    if (status == "onAir") {
-                        //生放送中！
-                        //コメントビューワーモード
-                        //コメント投稿機能、視聴継続メッセージ送信機能なし
-                        commentViewerModeButton.setOnClickListener {
-                            //設定変更
-                            editor.putBoolean("setting_watching_mode", false)
-                            editor.putBoolean("setting_nicocas_mode", false)
-                            editor.apply()
-                            //画面移動
-                            val intent = Intent(context, CommentActivity::class.java)
-                            intent.putExtra("liveId", liveId)
-                            intent.putExtra("watch_mode", "comment_viewer")
-                            startActivity(intent)
-                            this@BottomSheetDialogWatchMode.dismiss()
-                        }
 
-                        //コメント投稿モード
-                        //書き込める
-                        commentPostModeButton.setOnClickListener {
-                            //設定変更
-                            editor.putBoolean("setting_watching_mode", true)
-                            editor.putBoolean("setting_nicocas_mode", false)
-                            editor.apply()
-                            //画面移動
-                            val intent = Intent(context, CommentActivity::class.java)
-                            intent.putExtra("liveId", liveId)
-                            intent.putExtra("watch_mode", "comment_post")
-                            startActivity(intent)
-                            this@BottomSheetDialogWatchMode.dismiss()
+                    val html = Jsoup.parse(response.body?.string())
+                    if (html.getElementById("embedded-data") != null) {
+                        val json = html.getElementById("embedded-data").attr("data-props")
+                        val jsonObject = JSONObject(json)
+                        //現在放送中か？
+                        val status = jsonObject.getJSONObject("program").getString("status")
+                        //公式番組かどうか
+                        val type = jsonObject.getJSONObject("program").getString("providerType")
+                        var isOfficial = false
+                        if (type.contains("official")) {
+                            isOfficial = true
                         }
+                        if (status == "ON_AIR") {
+                            //生放送中！
+                            //コメントビューワーモード
+                            //コメント投稿機能、視聴継続メッセージ送信機能なし
+                            commentViewerModeButton.setOnClickListener {
+                                //設定変更
+                                editor.putBoolean("setting_watching_mode", false)
+                                editor.putBoolean("setting_nicocas_mode", false)
+                                editor.apply()
+                                //画面移動
+                                val intent = Intent(context, CommentActivity::class.java)
+                                intent.putExtra("liveId", liveId)
+                                intent.putExtra("watch_mode", "comment_viewer")
+                                intent.putExtra("isOfficial", isOfficial)
+                                startActivity(intent)
+                                this@BottomSheetDialogWatchMode.dismiss()
+                            }
 
-                        //nicocas式コメント投稿モード
-                        //nicocasのAPIでコメント投稿を行う
-                        nicocasModeButton.setOnClickListener {
-                            //設定変更
-                            editor.putBoolean("setting_watching_mode", false)
-                            editor.putBoolean("setting_nicocas_mode", true)
-                            editor.apply()
-                            //画面移動
-                            val intent = Intent(context, CommentActivity::class.java)
-                            intent.putExtra("liveId", liveId)
-                            intent.putExtra("watch_mode", "nicocas")
-                            startActivity(intent)
-                            this@BottomSheetDialogWatchMode.dismiss()
-                        }
-                    } else {
-                        activity?.runOnUiThread {
-                            dismiss()
-                            Toast.makeText(
-                                context,
-                                getString(R.string.program_end),
-                                Toast.LENGTH_SHORT
-                            )
-                                .show()
+                            //コメント投稿モード
+                            //書き込める
+                            commentPostModeButton.setOnClickListener {
+                                //設定変更
+                                editor.putBoolean("setting_watching_mode", true)
+                                editor.putBoolean("setting_nicocas_mode", false)
+                                editor.apply()
+                                //画面移動
+                                val intent = Intent(context, CommentActivity::class.java)
+                                intent.putExtra("liveId", liveId)
+                                intent.putExtra("watch_mode", "comment_post")
+                                intent.putExtra("isOfficial", isOfficial)
+                                startActivity(intent)
+                                this@BottomSheetDialogWatchMode.dismiss()
+                            }
+
+                            //nicocas式コメント投稿モード
+                            //nicocasのAPIでコメント投稿を行う
+                            nicocasModeButton.setOnClickListener {
+                                //設定変更
+                                editor.putBoolean("setting_watching_mode", false)
+                                editor.putBoolean("setting_nicocas_mode", true)
+                                editor.apply()
+                                //画面移動
+                                val intent = Intent(context, CommentActivity::class.java)
+                                intent.putExtra("liveId", liveId)
+                                intent.putExtra("watch_mode", "nicocas")
+                                intent.putExtra("isOfficial", isOfficial)
+                                startActivity(intent)
+                                this@BottomSheetDialogWatchMode.dismiss()
+                            }
+                        } else {
+                            activity?.runOnUiThread {
+                                dismiss()
+                                Toast.makeText(
+                                    context,
+                                    getString(R.string.program_end),
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
+                            }
                         }
                     }
                 } else {
@@ -183,5 +198,4 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
             }
         })
     }
-
 }

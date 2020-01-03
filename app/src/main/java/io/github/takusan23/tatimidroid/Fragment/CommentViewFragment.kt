@@ -104,7 +104,9 @@ class CommentViewFragment : Fragment() {
             //コルーチン全くわからん！
             runBlocking {
                 //コメント（立ち見含めて）接続
-                getLiveInfo()
+                if (!commentFragment.isOfficial) {
+                    getLiveInfo()
+                }
                 //コメント投稿に必須な情報（ユーザーID、プレミアム会員かどうか）の取得と現在の部屋と座席番号取得のために
                 //視聴モードの場合は取得する
                 if (pref_setting.getBoolean("setting_watching_mode", false)) {
@@ -121,9 +123,21 @@ class CommentViewFragment : Fragment() {
 
         //定期的に立ち見席が出てないか確認する
         timer.schedule(60000, 60000) {
-            getLiveInfo()
+            if (!commentFragment.isOfficial) {
+                getLiveInfo()
+            }
         }
 
+        //公式番組。部屋のAPIが取得できないので今の部屋のこめんと鯖につなぐ。
+        if (commentFragment.isOfficial) {
+            if (commentFragment.commentMessageServerUri.isNotEmpty()) {
+                connectCommentServer(
+                    commentFragment.commentMessageServerUri,
+                    commentFragment.commentThreadId,
+                    ""
+                )
+            }
+        }
 
     }
 

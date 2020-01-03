@@ -228,6 +228,9 @@ class CommentActivity : AppCompatActivity() {
 
         val watch_mode = intent?.getStringExtra("watch_mode")
 
+        val isOfficial = intent?.getBooleanExtra("isOfficial", false) ?: false
+
+
         /*
         * なんか知らんけどnullチェックすればうまく動いてるっぽい？
         * */
@@ -239,6 +242,7 @@ class CommentActivity : AppCompatActivity() {
             val bundle = Bundle()
             bundle.putString("liveId", liveId)
             bundle.putString("watch_mode", watch_mode)
+            bundle.putBoolean("isOfficial", isOfficial)
             commentFragment.arguments = bundle
             trans.replace(R.id.activity_comment_new_linearlayout, commentFragment, liveId)
             trans.commit()

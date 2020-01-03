@@ -19,7 +19,9 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
         if (jsonObject.has("chat")) {
             val chatObject = jsonObject.getJSONObject("chat")
             comment = chatObject.getString("content")
-            commentNo = chatObject.getString("no")
+            if (chatObject.has("no")) {
+                commentNo = chatObject.getString("no")
+            }
             userId = chatObject.getString("user_id")
             date = chatObject.getString("date")
             vpos = chatObject.getString("vpos")
@@ -31,11 +33,11 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
                 }
             }
             //NGスコア？
-            if(chatObject.has("score")){
+            if (chatObject.has("score")) {
                 score = chatObject.getInt("score").toString()
             }
             //コメントが服従表示される問題
-            if(chatObject.has("origin")){
+            if (chatObject.has("origin")) {
                 origin = chatObject.getString("origin")
             }
             //mailの中に色コメントの色の情報があったりする
