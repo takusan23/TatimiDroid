@@ -24,7 +24,9 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
             }
             userId = chatObject.getString("user_id")
             date = chatObject.getString("date")
-            vpos = chatObject.getString("vpos")
+            if (chatObject.has("vpos")) {
+                vpos = chatObject.getString("vpos")
+            }
             //プレミアムかどうかはJSONにpremiumがあればいい（一般にはないので存在チェックいる）
             if (chatObject.has("premium")) {
                 when (chatObject.getString("premium").toInt()) {
