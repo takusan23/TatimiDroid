@@ -93,7 +93,7 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
     private fun getProgramInfo(watchMode: String, liveId: String = getLiveIDRegex()) {
 
         //番組が終わってる場合は落ちちゃうので修正。
-        val programInfo = "https://live2.nicovideo.jp/watch/${liveId}/programinfo";
+        val programInfo = "https://live2.nicovideo.jp/watch/${liveId}";
         val request = Request.Builder()
             .url(programInfo)
             .header("Cookie", "user_session=${pref_setting.getString("user_session", "")}")
@@ -108,59 +108,36 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
                     Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
                 }
             }
-
             override fun onResponse(call: Call, response: Response) {
-                val jsonObject = JSONObject(response?.body?.string())
                 if (response.isSuccessful) {
-                    val data = jsonObject.getJSONObject("data")
-                    val status = data.getString("status")
-                    if (status == "onAir") {
-                        //二窓追加
-                        (activity as NimadoActivity).apply {
-                            runOnUiThread {
-                                addNimado(liveId, watchMode)
-                                this@NimadoLiveIDBottomFragment.dismiss()
-                            }
+
+                    val html = Jsoup.parse(response.body?.string())
+                    if (html.getElementById("embedded-data") != null) {
+                        val json = html.getElementById("embedded-data").attr("data-props")
+                        val jsonObject = JSONObject(json)
+                        //現在放送中か？
+                        val status = jsonObject.getJSONObject("program").getString("status")
+                        //公式番組かどうか
+                        val type = jsonObject.getJSONObject("program").getString("providerType")
+                        var isOfficial = false
+                        if (type.contains("official")) {
+                            isOfficial = true
                         }
-                    } else {
-                        //番組が終わっている
-                        (activity as NimadoActivity).runOnUiThread {
-                            Toast.makeText(
-                                context,
-                                getString(R.string.program_end),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                } else {
-                    //ニコニコにログインをし直す
-                    if (context != null) {
-                        //４０１エラーのときはuser_sessionが切れた
-                        if (response.code == 401) {
-                            val nicoLogin = NicoLogin(context!!, liveId)
-                            //こるーちん？
-                            //再ログインする
-                            activity?.runOnUiThread {
-                                dismiss()
-                                Toast.makeText(
-                                    context,
-                                    getString(R.string.re_login),
-                                    Toast.LENGTH_SHORT
-                                )
-                                    .show()
-                            }
-                            //ログインしてから再度取得すr
-                            GlobalScope.launch {
-                                nicoLogin.getUserSession()
-                                getProgramInfo(watchMode)
+                        if (status == "ON_AIR") {
+                            //生放送中！
+                            //二窓追加
+                            (activity as NimadoActivity).apply {
+                                runOnUiThread {
+                                    addNimado(liveId, watchMode, isOfficial, false)
+                                    this@NimadoLiveIDBottomFragment.dismiss()
+                                }
                             }
                         } else {
-                            //エラーなので閉じる
                             activity?.runOnUiThread {
                                 dismiss()
                                 Toast.makeText(
                                     context,
-                                    getString(R.string.error),
+                                    getString(R.string.program_end),
                                     Toast.LENGTH_SHORT
                                 )
                                     .show()

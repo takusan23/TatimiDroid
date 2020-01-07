@@ -38,6 +38,7 @@ import kotlinx.android.synthetic.main.fragment_gift_layout.*
 import okhttp3.*
 import okhttp3.Callback
 import org.json.JSONObject
+import org.jsoup.Jsoup
 import java.io.IOException
 import java.text.FieldPosition
 
@@ -61,6 +62,8 @@ class NimadoActivity : AppCompatActivity() {
     var watchModeList = ArrayList<String>()
     //番組の名前
     var programNameList = arrayListOf<String>()
+    //公式番組かどうか
+    var officialList = arrayListOf<String>()
 
     var fragmentList = arrayListOf<Fragment>()
 
@@ -121,6 +124,7 @@ class NimadoActivity : AppCompatActivity() {
         intent.putStringArrayListExtra("program_list", programList)
         intent.putStringArrayListExtra("watch_mode_list", watchModeList)
         intent.putStringArrayListExtra("program_name", programNameList)
+        intent.putStringArrayListExtra("official_list", officialList)
         intent.putExtra("fragment_list", fragmentList)
         nimado_activity_linearlayout.removeAllViews()
         recyclerViewList.clear()
@@ -139,23 +143,31 @@ class NimadoActivity : AppCompatActivity() {
             programList = intent.getStringArrayListExtra("program_list")
             programNameList = intent.getStringArrayListExtra("program_name")
             watchModeList = intent.getStringArrayListExtra("watch_mode_list")
+            officialList = intent.getStringArrayListExtra("official_list")
 
             //復活させる
             for (index in 0 until programList.size) {
                 val liveID = programList[index]
                 val watchMode = watchModeList[index]
-                addNimado(liveID, watchMode, true)
+                val isOfficial = officialList[index].toBoolean()
+                addNimado(liveID, watchMode, isOfficial, true)
             }
         }
     }
 
 
-    fun addNimado(liveId: String, watchMode: String, isResume: Boolean = false) {
+    fun addNimado(
+        liveId: String,
+        watchMode: String,
+        isOfficial: Boolean,
+        isResume: Boolean = false
+    ) {
         //番組ID
         //二窓中の番組IDを入れる配列
         if (!programList.contains(liveId)) {
             programList.add(liveId)
             watchModeList.add(watchMode)
+            officialList.add(isOfficial.toString())
         }
         //動的にView作成
         val disp = windowManager.defaultDisplay
@@ -199,6 +211,7 @@ class NimadoActivity : AppCompatActivity() {
         val bundle = Bundle()
         bundle.putString("liveId", liveId)
         bundle.putString("watch_mode", watchMode)
+        bundle.putBoolean("isOfficial", isOfficial)
         commentFragment.arguments = bundle
         val trans = supportFragmentManager.beginTransaction()
         trans.replace(linearLayout.id, commentFragment, liveId)
@@ -231,24 +244,21 @@ class NimadoActivity : AppCompatActivity() {
         //API叩いてタイトルを取得する
         //適当にAPI叩いて認証情報エラーだったら再ログインする
         val request = Request.Builder()
-            .url("https://live2.nicovideo.jp/watch/${liveId}/programinfo")
+            .url("https://live.nicovideo.jp/api/getplayerstatus?v=${liveId}")
             .header("Cookie", "user_session=${user_session}")
             .get()
             .build()
         val okHttpClient = OkHttpClient()
-
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 //？
             }
 
             override fun onResponse(call: Call, response: Response) {
+                val responseString = response.body?.string()
                 if (response.isSuccessful) {
-                    //そもそも番組が終わってる可能性があるのでチェック
-                    val response_string = response.body?.string()
-                    val jsonObject = JSONObject(response_string)
-                    val data = jsonObject.getJSONObject("data")
-                    val title = data.getString("title")
+                    val xml = Jsoup.parse(responseString)
+                    val title = xml.getElementsByTag("title")[0].text()
                     //RecyclerViewついか
                     val item = arrayListOf<String>()
                     item.add("")
@@ -298,10 +308,13 @@ class NimadoActivity : AppCompatActivity() {
                     //入れ替えて再設置する
                     val liveID = programList[old]
                     val watchMode = watchModeList[old]
+                    val isOfficial = officialList[old]
                     programList.removeAt(old)
                     watchModeList.removeAt(old)
+                    officialList.removeAt(old)
                     programList.add(new, liveID)
                     watchModeList.add(new, watchMode)
+                    officialList.add(new, isOfficial)
                     //Fragmentが入るView再設置
                     //全部消すのでは無く移動するところだけ消す
                     val cardView = (nimado_activity_linearlayout[old] as CardView)
