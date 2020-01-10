@@ -1,9 +1,7 @@
 package io.github.takusan23.tatimidroid.Fragment
 
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.*
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.text.SpannableString
 import android.view.LayoutInflater
@@ -18,6 +16,7 @@ import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_liveid.*
 import kotlinx.coroutines.GlobalScope
@@ -31,6 +30,11 @@ import java.util.regex.Pattern
 class LiveIDFragment : Fragment() {
     lateinit var pref_setting: SharedPreferences
 
+    //履歴機能
+    lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
+    lateinit var nicoHistorySQLiteDatabase: SQLiteDatabase
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -42,6 +46,8 @@ class LiveIDFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+
+        initDB()
 
         //タイトル
         (activity as AppCompatActivity).supportActionBar?.title =
@@ -114,8 +120,22 @@ class LiveIDFragment : Fragment() {
             val intent = Intent(context, NimadoActivity::class.java)
             activity?.startActivity(intent)
         }
-
     }
+
+    private fun initDB() {
+        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(context!!)
+        nicoHistorySQLiteDatabase = nicoHistorySQLiteHelper.writableDatabase
+        nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
+    }
+
+    fun insertDB(){
+       val id = main_activity_liveid_inputedittext.text.toString()
+        val contentValues = ContentValues().apply {
+
+        }
+    }
+
+
 
 
     //クリップボードから番組ID取り出し

@@ -58,6 +58,7 @@ import io.github.takusan23.tatimidroid.Background.BackgroundPlay
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
+import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
@@ -256,7 +257,6 @@ class CommentFragment : Fragment() {
     var commentMessageServerUri = ""
     var commentThreadId = ""
     var commentRoomName = ""
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -770,7 +770,7 @@ class CommentFragment : Fragment() {
         if (!this@CommentFragment::ngListSQLiteHelper.isInitialized) {
             //データベース
             ngListSQLiteHelper = NGListSQLiteHelper(context!!)
-            sqLiteDatabase = ngListSQLiteHelper.writableDatabase
+            nicoHistorySQLiteDatabase = ngListSQLiteHelper.writableDatabase
             ngListSQLiteHelper.setWriteAheadLoggingEnabled(false)
         }
         setNGList("user", userNGList)
@@ -847,6 +847,7 @@ class CommentFragment : Fragment() {
                     }
                     //サムネもほしい
                     thumbnailURL = document.getElementsByTag("thumb_url")[0].text()
+
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
