@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 
         //生放送ID入力
         val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
-        fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, LiveIDFragment())
+        fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, LiveIDFragment(),"liveid_fragment")
         fragmentTransitionSupport.commit()
 
         //画面切り替え
@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.menu_liveid -> {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(R.id.main_activity_linearlayout, LiveIDFragment())
+                    fragmentTransaction.replace(R.id.main_activity_linearlayout, LiveIDFragment(),"liveid_fragment")
                     fragmentTransaction.commit()
                 }
                 R.id.menu_community -> {

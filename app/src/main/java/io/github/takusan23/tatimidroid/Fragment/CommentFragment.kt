@@ -61,6 +61,7 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
+import kotlinx.android.synthetic.main.fragment_liveid.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.*
 import okhttp3.*
@@ -258,6 +259,11 @@ class CommentFragment : Fragment() {
     var commentThreadId = ""
     var commentRoomName = ""
 
+    //履歴機能
+    lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
+    lateinit var nicoHistorySQLiteDatabase: SQLiteDatabase
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -316,6 +322,8 @@ class CommentFragment : Fragment() {
 
         //スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        initDB()
 
 /*
         //横画面はLinearLayoutの向きを変える
@@ -735,6 +743,13 @@ class CommentFragment : Fragment() {
 
     }
 
+    private fun initDB() {
+        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(context!!)
+        nicoHistorySQLiteDatabase = nicoHistorySQLiteHelper.writableDatabase
+        nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
+    }
+
+
     private fun testEnquate() {
         setEnquetePOSTLayout(
             "/vote start あ 怪異 パイロン バイオ マヨ E大神 乙女 クロエ 発掘",
@@ -770,7 +785,7 @@ class CommentFragment : Fragment() {
         if (!this@CommentFragment::ngListSQLiteHelper.isInitialized) {
             //データベース
             ngListSQLiteHelper = NGListSQLiteHelper(context!!)
-            nicoHistorySQLiteDatabase = ngListSQLiteHelper.writableDatabase
+            sqLiteDatabase = ngListSQLiteHelper.writableDatabase
             ngListSQLiteHelper.setWriteAheadLoggingEnabled(false)
         }
         setNGList("user", userNGList)
@@ -847,12 +862,35 @@ class CommentFragment : Fragment() {
                     }
                     //サムネもほしい
                     thumbnailURL = document.getElementsByTag("thumb_url")[0].text()
-
+                    //履歴追加
+                    insertDB()
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
             }
         })
+    }
+
+
+    fun insertDB() {
+        var type = "live"
+        val unixTime = System.currentTimeMillis() / 1000
+        val contentValues = ContentValues()
+        contentValues.apply {
+            put("service_id", liveId)
+            put("user_id", communityID)
+            put("title", programTitle)
+            put("type", type)
+            put("date", unixTime)
+            put("description", "")
+        }
+        println(
+            nicoHistorySQLiteDatabase.insert(
+                NicoHistorySQLiteHelper.TABLE_NAME,
+                null,
+                contentValues
+            )
+        )
     }
 
     //経過時間計算
@@ -1097,7 +1135,7 @@ class CommentFragment : Fragment() {
                     commentThreadId = threadId
                     commentRoomName = roomName
 
-                    if(isOfficial) {
+                    if (isOfficial) {
                         //とりあえずコメントViewFragmentへ
                         //LiveIDを詰める
                         val bundle = Bundle()

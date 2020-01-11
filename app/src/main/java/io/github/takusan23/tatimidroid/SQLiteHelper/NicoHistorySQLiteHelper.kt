@@ -17,8 +17,10 @@ class NicoHistorySQLiteHelper (context: Context) : SQLiteOpenHelper(
         // データーベース名
         private val DATABASE_NAME = "NicoHistory.db"
         val TABLE_NAME = "history"
-        private val TYPE = "type" //live or community or video
-        private val SERVICE_ID = "service_id" //生放送ID、コミュID
+        private val TYPE = "type" //live or video
+        private val SERVICE_ID = "service_id" //生放送ID、動画ID
+        private val SERVICE_USER_ID = "user_id" //コミュID　など
+        private val TITLE  = "title" //なまえ
         private val UNIXTIME = "date" // unix time
         private val DESCRIPTION = "description" // 将来つかうかも
         private val _ID = "_id"
@@ -29,6 +31,8 @@ class NicoHistorySQLiteHelper (context: Context) : SQLiteOpenHelper(
                 _ID + " INTEGER PRIMARY KEY," +
                 TYPE + " TEXT ," +
                 SERVICE_ID + " TEXT ," +
+                SERVICE_USER_ID + " TEXT ," +
+                TITLE + " TEXT ," +
                 UNIXTIME + " INTEGER ," +
                 DESCRIPTION + " TEXT" +
                 ")"

@@ -221,4 +221,5 @@
     <string name="setting_zettaihyouzi_desciption">Change the display from absolute time (example: 07:14:22) to relative time (example: 25:25)</string>
     <string name="setting_show_ng_score">Show NG score</string>
     <string name="setting_enter_post_title">Post a comment with the enter key (line feed)</string>
+    <string name="nico_history">History</string>
 </resources>

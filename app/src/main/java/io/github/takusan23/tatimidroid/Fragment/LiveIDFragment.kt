@@ -30,11 +30,6 @@ import java.util.regex.Pattern
 class LiveIDFragment : Fragment() {
     lateinit var pref_setting: SharedPreferences
 
-    //履歴機能
-    lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
-    lateinit var nicoHistorySQLiteDatabase: SQLiteDatabase
-
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,8 +41,6 @@ class LiveIDFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-
-        initDB()
 
         //タイトル
         (activity as AppCompatActivity).supportActionBar?.title =
@@ -120,23 +113,16 @@ class LiveIDFragment : Fragment() {
             val intent = Intent(context, NimadoActivity::class.java)
             activity?.startActivity(intent)
         }
-    }
 
-    private fun initDB() {
-        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(context!!)
-        nicoHistorySQLiteDatabase = nicoHistorySQLiteHelper.writableDatabase
-        nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
-    }
-
-    fun insertDB(){
-       val id = main_activity_liveid_inputedittext.text.toString()
-        val contentValues = ContentValues().apply {
-
+        // 履歴機能
+        main_activity_liveid_history_button.setOnClickListener {
+            val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
+            nicoHistoryBottomFragment.show(
+                (activity as AppCompatActivity).supportFragmentManager,
+                "history"
+            )
         }
     }
-
-
-
 
     //クリップボードから番組ID取り出し
     private fun setClipBoardProgramID() {
