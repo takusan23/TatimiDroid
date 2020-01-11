@@ -79,6 +79,13 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                    android:id="@+id/fragment_program_info_tag_linearlayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="10sp"
+                    android:orientation="vertical"></LinearLayout>
+
 
         </LinearLayout>
     </ScrollView>
