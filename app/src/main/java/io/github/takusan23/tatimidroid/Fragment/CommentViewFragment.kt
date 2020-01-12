@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
@@ -519,6 +520,14 @@ class CommentViewFragment : Fragment() {
                             }
                             //WebSocket接続
                             connectCommentServer(webSocketUri, threadId, roomName)
+                        }
+                    }
+                    activity?.runOnUiThread {
+                        //部屋別表示のTabItemに部屋数バッジ表示
+                        commentFragment.activity_comment_tab_layout.getTabAt(2)?.orCreateBadge?.apply {
+                            number = connectionWebSocketAddressList.size
+                            isVisible = true
+                            backgroundColor = Color.parseColor("#757575")
                         }
                     }
                 } else {

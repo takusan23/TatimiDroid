@@ -24,7 +24,11 @@ class GiftFragment : Fragment() {
     lateinit var giftRecyclerViewAdapter: GiftRecyclerViewAdapter
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
     var liveId = ""
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_gift_layout, container, false)
     }
@@ -87,27 +91,29 @@ class GiftFragment : Fragment() {
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     //他の端末でJSONエラー出るので例外処理。私の環境だと再現できねえ？
-                    try{
+                    try {
                         val response_string = response.body?.string()
+                        println(response_string)
                         val jsonObject = JSONObject(response_string)
                         val rankingArray = jsonObject.getJSONObject("data").getJSONArray("ranking")
-                        for (i in 0..(rankingArray.length() - 1)) {
+                        for (i in 0 until rankingArray.length()) {
                             val jsonObject = rankingArray.getJSONObject(i)
-                            val userId = jsonObject.getString("userId")
+                            // val userId = jsonObject.getString("userId")
                             val advertiserName = jsonObject.getString("advertiserName")
                             val totalContribution = jsonObject.getString("totalContribution")
                             val rank = jsonObject.getString("rank")
                             //RecyclerView追加
                             val item = arrayListOf<String>()
                             item.add("")
-                            item.add(advertiserName)
+                            item.add("$rank : $advertiserName")
                             item.add(totalContribution)
                             recyclerViewList.add(item)
                         }
                         //更新
                         activity?.runOnUiThread {
                             giftRecyclerViewAdapter.notifyDataSetChanged()
-                        }}catch (e:JSONException){
+                        }
+                    } catch (e: JSONException) {
                         e.printStackTrace()
                     }
 

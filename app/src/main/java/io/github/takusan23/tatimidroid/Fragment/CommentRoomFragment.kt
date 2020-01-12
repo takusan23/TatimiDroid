@@ -1,6 +1,10 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.SharedPreferences
+import android.graphics.Color
+import android.graphics.ColorFilter
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,10 +16,12 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
+import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_comment_room_layout.*
 import kotlinx.android.synthetic.main.fragment_commentview.*
 import okhttp3.*
