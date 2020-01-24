@@ -41,24 +41,31 @@ class AutoAdmissionService : Service() {
         showForegroundNotification()
     }
 
-    fun registerAutoAdmission(liveid: String, programName: String, app: String, calendar: Calendar) {
+    fun registerAutoAdmission(
+        liveid: String,
+        programName: String,
+        app: String,
+        calendar: Calendar
+    ) {
 
         Timer().schedule(timerTask {
             if (app.contains("tatimidroid_app")) {
                 //たちみどろいど
-                //設定変更。予約枠自動入場はコメント投稿モードのみ
-                val pref_setting = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                val editor = pref_setting.edit()
-                //設定変更
-                editor.putBoolean("setting_watching_mode", true)
-                editor.putBoolean("setting_nicocas_mode", false)
-                editor.apply()
+                //  //設定変更。予約枠自動入場はコメント投稿モードのみ
+                //  val pref_setting = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                //  val editor = pref_setting.edit()
+                //  //設定変更
+                //  editor.putBoolean("setting_watching_mode", true)
+                //  editor.putBoolean("setting_nicocas_mode", false)
+                //  editor.apply()
                 //ここにIntent起動書く。
                 val intent = Intent(applicationContext, CommentActivity::class.java)
                 //これいる
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 //番組ID
                 intent.putExtra("liveId", liveid)
+                //視聴モード
+                intent.putExtra("watch_mode", "comment_post")
                 //Activity起動
                 startActivity(intent)
             } else {
@@ -99,7 +106,12 @@ class AutoAdmissionService : Service() {
 
     }
 
-    fun showAutoAdmissionNotification(liveid: String, programName: String, app: String, calendar: Calendar) {
+    fun showAutoAdmissionNotification(
+        liveid: String,
+        programName: String,
+        app: String,
+        calendar: Calendar
+    ) {
         notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         //OreoかNougatか
@@ -118,7 +130,10 @@ class AutoAdmissionService : Service() {
             val programInfo = "${programName} - ${liveid}\n${time}"
 
             //通知作成
-            var notification = NotificationCompat.Builder(applicationContext, "auto_admission_one_minute_notification")
+            var notification = NotificationCompat.Builder(
+                applicationContext,
+                "auto_admission_one_minute_notification"
+            )
                 .setSmallIcon(R.drawable.ic_auto_admission_start_icon)
                 .setContentTitle(getString(R.string.auto_admission_one_minute_notification_description))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(programInfo))
@@ -130,7 +145,9 @@ class AutoAdmissionService : Service() {
                 notification.setContentTitle(getString(R.string.auto_admission_one_minute_notification))
                 notification.setContentText(getString(R.string.auto_admission_one_minute_notification_description_androidq))
                 notification.addAction(
-                    R.drawable.ic_auto_admission_start_icon, getString(R.string.lunch_app), PendingIntent.getActivity(
+                    R.drawable.ic_auto_admission_start_icon,
+                    getString(R.string.lunch_app),
+                    PendingIntent.getActivity(
                         applicationContext, 45, intent,
                         PendingIntent.FLAG_UPDATE_CURRENT
                     )
@@ -211,12 +228,13 @@ class AutoAdmissionService : Service() {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
             //通知作成
-            val notification = NotificationCompat.Builder(applicationContext, "auto_admission_notification")
-                .setContentTitle(getString(R.string.auto_admission_notification))
-                .setSmallIcon(R.drawable.ic_icon_large)
-                .setContentTitle(getString(R.string.auto_admission_notification_message))
-                .setStyle(NotificationCompat.BigTextStyle().bigText(programList))
-                .build()
+            val notification =
+                NotificationCompat.Builder(applicationContext, "auto_admission_notification")
+                    .setContentTitle(getString(R.string.auto_admission_notification))
+                    .setSmallIcon(R.drawable.ic_icon_large)
+                    .setContentTitle(getString(R.string.auto_admission_notification_message))
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(programList))
+                    .build()
             //表示
             startForeground(1, notification)
         }

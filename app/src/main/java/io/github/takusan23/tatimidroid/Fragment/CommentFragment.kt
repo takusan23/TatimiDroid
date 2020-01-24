@@ -311,7 +311,7 @@ class CommentFragment : Fragment() {
         }
 
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
-        isOfficial = arguments?.getBoolean("isOfficial") ?: false
+        // isOfficial = arguments?.getBoolean("isOfficial") ?: false
         // if (isOfficial) {
         //     activity_comment_tab_layout.getTabAt(2)?.tabLabelVisibility =
         //         TabLayout.TAB_LABEL_VISIBILITY_UNLABELED
@@ -962,6 +962,8 @@ class CommentFragment : Fragment() {
                     val html = Jsoup.parse(response_string)
                     //謎のJSON取得
                     //この部分長すぎてChromeだとうまくコピーできないんだけど、Edgeだと完璧にコピーできたぞ！
+                    //F12押してConsole選んで以下のJavaScriptを実行すれば取れます。
+                    //console.log(document.getElementById('embedded-data').getAttribute('data-props'))
                     if (html.getElementById("embedded-data") != null) {
                         val json = html.getElementById("embedded-data").attr("data-props")
                         val jsonObject = JSONObject(json)
@@ -969,8 +971,19 @@ class CommentFragment : Fragment() {
                         val relive = site.getJSONObject("relive")
                         //WebSocketリンク
                         val websocketUrl = relive.getString("webSocketUrl")
-                        //broadcastId取得
+                        //番組情報
                         val program = jsonObject.getJSONObject("program")
+                        //公式番組かどうか
+                        val providerType = program.getString("providerType")
+                        if (providerType == "official") {
+                            isOfficial = true
+                            //公式番組では全部屋取得APIが使えないので部屋別表示を無効にする。
+                            activity?.runOnUiThread {
+                                if (isOfficial) {
+                                    activity_comment_tab_layout.removeTabAt(2)
+                                }
+                            }
+                        }
                         //broadcastId
                         val broadcastId = program.getString("broadcastId")
                         connectionNicoLiveWebSocket(websocketUrl, broadcastId)
@@ -1135,6 +1148,8 @@ class CommentFragment : Fragment() {
                     commentThreadId = threadId
                     commentRoomName = roomName
 
+                    // 公式番組
+                    // WebSocketから流れてくるアドレスへアクセスするので
                     if (isOfficial) {
                         //とりあえずコメントViewFragmentへ
                         //LiveIDを詰める
