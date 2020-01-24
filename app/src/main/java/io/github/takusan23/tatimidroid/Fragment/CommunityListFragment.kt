@@ -280,46 +280,36 @@ class CommunityListFragment : Fragment() {
     }
 
 
-    //参加中コミュニティから放送中、予約枠を取得する。
-    //APIが見つからなかったのでスマホ版Webページからスクレイピングすることにした。
-    //headerのScriptの中にJSONっぽいのが！？！？
+    // 参加中コミュニティから放送中、予約枠を取得する。
+    // 今まではスマホサイトにアクセスしてJSON取ってたけど動かなくなった。
+    // のでPC版にアクセスしてJSONを取得する（PC版にもJSON存在した。）
     fun getFavouriteCommunity() {
         recyclerViewList.clear()
         GlobalScope.launch {
             val document =
-                Jsoup.connect("https://sp.live.nicovideo.jp/favorites")
+                Jsoup.connect("https://live.nicovideo.jp/?header")
+                    .header("User-Agent", "TatimiDroid;@takusan_23")
                     .cookie("user_session", user_session)
                     .get()
 
-            //JSONっぽいのがあるので取り出す
-            val json = document.head().getElementsByTag("script").get(3)
-            var json_string = json.html().replace("window.__initial_state__ = \"", "")
-            json_string =
-                json_string.replace(
-                    "window.__public_path__ = \"https://nicolive.cdn.nimg.jp/relive/sp/\";",
-                    ""
-                )
-            json_string =
-                json_string.replace("}}\";", "")
+            // JSONのあるscriptタグ
+            val script = document.getElementById("embedded-data")
+            val jsonString = script.attr("data-props")
+            val jsonObject = JSONObject(jsonString)
 
-            //URLデコードする
-            json_string = URLDecoder.decode(json_string, "UTF-8")
             try {
-                val jsonObject = JSONObject(json_string)
-
 
                 //JSON解析
                 val programs =
-                    jsonObject.getJSONObject("pageContents").getJSONObject("favorites")
-                        .getJSONObject("favoritePrograms")
-                        .getJSONArray("programs")
+                    jsonObject.getJSONObject("view").getJSONObject("favoriteProgramListState")
+                        .getJSONArray("programList")
                 //for
                 for (i in 0 until programs.length()) {
                     val jsonObject = programs.getJSONObject(i)
                     val programId = jsonObject.getString("id")
                     val title = jsonObject.getString("title")
                     val beginAt = jsonObject.getString("beginAt")
-                    val communityName = jsonObject.getString("socialGroupName")
+                    val communityName = jsonObject.getJSONObject("socialGroup").getString("name")
                     val liveNow = jsonObject.getString("liveCycle") //放送中か？
                     //RecyclerView追加
                     val item = arrayListOf<String>()

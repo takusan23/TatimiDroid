@@ -55,7 +55,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
 
         holder.titleTextView.text = "${title}\n[${name}]"
 
-        if (liveNow.contains("Begun")) {
+        if (liveNow.contains("ON_AIR")) {
             //放送中
             holder.timeTextView.text = time
             holder.timeTextView.setTextColor(Color.RED)
