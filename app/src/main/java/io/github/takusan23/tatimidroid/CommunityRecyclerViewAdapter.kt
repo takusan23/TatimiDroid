@@ -71,7 +71,8 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
 
         //Cardを選択したらコメントビューワーに
         holder.communityCard.setOnClickListener {
-            if (liveNow.contains("Begun")) {
+            // 放送中
+            if (liveNow.contains("ON_AIR")) {
                 //ダイアログ
                 val bundle = Bundle()
                 bundle.putString("liveId", liveId)
