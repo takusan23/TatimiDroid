@@ -191,7 +191,6 @@ class CommunityListFragment : Fragment() {
                 //for
                 for (i in 0 until programs.length()) {
                     val jsonObject = programs.getJSONObject(i)
-                    println(jsonObject.toString())
                     val programId = jsonObject.getString("id")
                     val title = jsonObject.getString("title")
                     val beginAt = jsonObject.getString("beginAt")
