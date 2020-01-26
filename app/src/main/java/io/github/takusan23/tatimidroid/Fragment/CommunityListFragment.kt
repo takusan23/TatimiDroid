@@ -21,6 +21,7 @@ import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
 import kotlinx.android.synthetic.main.fragment_community_list_layout.*
 import kotlinx.android.synthetic.main.fragment_community_list_layout.community_recyclerview
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.consumesAll
 import kotlinx.coroutines.launch
 import okhttp3.*
 import org.json.JSONException
@@ -165,7 +166,7 @@ class CommunityListFragment : Fragment() {
                     .get()
 
             //JSONっぽいのがあるので取り出す
-            val json = document.head().getElementsByTag("script").get(3)
+            val json = document.getElementsByTag("script").get(5)
             var json_string = URLDecoder.decode(json.html(), "utf-8")
 
             json_string = json_string.replace("window.__initial_state__ = \"", "")
@@ -190,6 +191,7 @@ class CommunityListFragment : Fragment() {
                 //for
                 for (i in 0 until programs.length()) {
                     val jsonObject = programs.getJSONObject(i)
+                    println(jsonObject.toString())
                     val programId = jsonObject.getString("id")
                     val title = jsonObject.getString("title")
                     val beginAt = jsonObject.getString("beginAt")

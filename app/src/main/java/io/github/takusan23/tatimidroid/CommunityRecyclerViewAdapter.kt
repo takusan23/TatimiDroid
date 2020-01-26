@@ -55,7 +55,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
 
         holder.titleTextView.text = "${title}\n[${name}]"
 
-        if (liveNow.contains("ON_AIR")) {
+        if (liveNow.contains("ON_AIR") || liveNow.contains("Begun")) {
             //放送中
             holder.timeTextView.text = time
             holder.timeTextView.setTextColor(Color.RED)
@@ -72,7 +72,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         //Cardを選択したらコメントビューワーに
         holder.communityCard.setOnClickListener {
             // 放送中
-            if (liveNow.contains("ON_AIR")) {
+            if (liveNow.contains("ON_AIR") || liveNow.contains("Begun")) {
                 //ダイアログ
                 val bundle = Bundle()
                 bundle.putString("liveId", liveId)
