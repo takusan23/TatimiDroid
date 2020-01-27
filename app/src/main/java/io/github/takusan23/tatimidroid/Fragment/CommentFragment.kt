@@ -1057,7 +1057,6 @@ class CommentFragment : Fragment() {
                 //送信
                 this.send(secondObject.toString())
                 this.send(jsonObject.toString())
-
             }
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
@@ -1129,42 +1128,45 @@ class CommentFragment : Fragment() {
 
                 //threadId、WebSocketURL受信
                 //コメント投稿時に使う。
-                if (message?.contains("threadId") == true) {
+                if (message?.contains("messageServerUri") == true) {
                     val jsonObject = JSONObject(message)
-                    val room = jsonObject.getJSONObject("body").getJSONObject("room")
-                    val threadId = room.getString("threadId")
-                    val messageServerUri = room.getString("messageServerUri")
-                    val roomName = room.getString("roomName")
+                    // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
+                    if (jsonObject.getJSONObject("body").has("room")) {
+                        val room = jsonObject.getJSONObject("body").getJSONObject("room")
+                        val threadId = room.getString("threadId")
+                        val messageServerUri = room.getString("messageServerUri")
+                        val roomName = room.getString("roomName")
 
-                    //コメント投稿時に必要なpostKeyを取得するために使う
-                    getPostKeyThreadId = threadId
+                        //コメント投稿時に必要なpostKeyを取得するために使う
+                        getPostKeyThreadId = threadId
 
-                    //System.out.println("コメントWebSocket情報 ${threadId} ${messageServerUri}")
+                        //System.out.println("コメントWebSocket情報 ${threadId} ${messageServerUri}")
 
-                    //コメント投稿時に使うWebSocketに接続する
-                    connectionCommentPOSTWebSocket(messageServerUri, threadId)
+                        //コメント投稿時に使うWebSocketに接続する
+                        connectionCommentPOSTWebSocket(messageServerUri, threadId)
 
-                    commentMessageServerUri = messageServerUri
-                    commentThreadId = threadId
-                    commentRoomName = roomName
+                        commentMessageServerUri = messageServerUri
+                        commentThreadId = threadId
+                        commentRoomName = roomName
 
-                    // 公式番組
-                    // WebSocketから流れてくるアドレスへアクセスするので
-                    if (isOfficial) {
-                        //とりあえずコメントViewFragmentへ
-                        //LiveIDを詰める
-                        val bundle = Bundle()
-                        bundle.putString("liveId", liveId)
-                        val commentViewFragment = CommentViewFragment()
-                        commentViewFragment.arguments = bundle
-                        val fragmentTransaction =
-                            childFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(
-                            activity_comment_linearlayout.id,
-                            commentViewFragment,
-                            "${liveId}_comment_view_fragment"
-                        )
-                        fragmentTransaction.commit()
+                        // 公式番組
+                        // WebSocketから流れてくるアドレスへアクセスするので
+                        if (isOfficial) {
+                            //とりあえずコメントViewFragmentへ
+                            //LiveIDを詰める
+                            val bundle = Bundle()
+                            bundle.putString("liveId", liveId)
+                            val commentViewFragment = CommentViewFragment()
+                            commentViewFragment.arguments = bundle
+                            val fragmentTransaction =
+                                childFragmentManager.beginTransaction()
+                            fragmentTransaction.replace(
+                                activity_comment_linearlayout.id,
+                                commentViewFragment,
+                                "${liveId}_comment_view_fragment"
+                            )
+                            fragmentTransaction.commit()
+                        }
                     }
                 }
 
