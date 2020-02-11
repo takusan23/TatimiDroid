@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.app.*
 import android.content.*
+import android.content.Context.WINDOW_SERVICE
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
@@ -1284,7 +1285,7 @@ class CommentFragment : Fragment() {
                     programEndUnixTime = endTime / 1000
 
                 }
-                
+
             }
 
             override fun onError(ex: Exception?) {
@@ -1880,8 +1881,14 @@ class CommentFragment : Fragment() {
             // windowManager.removeView(popupView)
         }
         if (Settings.canDrawOverlays(context)) {
+            // 画面の半分を利用するように
+            val wm = commentActivity.getSystemService(WINDOW_SERVICE) as WindowManager
+            val disp = wm.getDefaultDisplay()
+            val realSize = Point();
+            disp.getRealSize(realSize);
+            val width = realSize.x / 2
+
             //アスペクト比16:9なので
-            val width = 800
             val height = (width / 16) * 9
             //レイアウト読み込み
             val layoutInflater = LayoutInflater.from(context)
@@ -2040,33 +2047,29 @@ class CommentFragment : Fragment() {
 
             //移動
             //https://qiita.com/farman0629/items/ce547821dd2e16e4399e
-            popupView.setOnLongClickListener {
-                //長押し判定
-                popupView.setOnTouchListener { view, motionEvent ->
-                    // タップした位置を取得する
-                    val x = motionEvent.rawX.toInt()
-                    val y = motionEvent.rawY.toInt()
+            //長押し判定
+            popupView.setOnTouchListener { view, motionEvent ->
+                // タップした位置を取得する
+                val x = motionEvent.rawX.toInt()
+                val y = motionEvent.rawY.toInt()
 
-                    when (motionEvent.action) {
-                        // Viewを移動させてるときに呼ばれる
-                        MotionEvent.ACTION_MOVE -> {
-                            // 中心からの座標を計算する
-                            val centerX = x - (displaySize.x / 2)
-                            val centerY = y - (displaySize.y / 2)
+                when (motionEvent.action) {
+                    // Viewを移動させてるときに呼ばれる
+                    MotionEvent.ACTION_MOVE -> {
+                        // 中心からの座標を計算する
+                        val centerX = x - (displaySize.x / 2)
+                        val centerY = y - (displaySize.y / 2)
 
-                            // オーバーレイ表示領域の座標を移動させる
-                            params.x = centerX
-                            params.y = centerY
+                        // オーバーレイ表示領域の座標を移動させる
+                        params.x = centerX
+                        params.y = centerY
 
-                            // 移動した分を更新する
-                            windowManager.updateViewLayout(view, params)
-                        }
+                        // 移動した分を更新する
+                        windowManager.updateViewLayout(view, params)
                     }
-                    false
                 }
-                true//OnclickListener呼ばないようにtrue
+                false
             }
-
 
             //ボタン表示
             popupView.setOnClickListener {
