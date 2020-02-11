@@ -358,6 +358,15 @@ class CommentFragment : Fragment() {
         activity_comment_linearlayout.id = View.generateViewId()
 
         //とりあえずコメントViewFragmentへ
+        val checkCommentViewFragment =
+            childFragmentManager.findFragmentByTag("${liveId}_comment_view_fragment")
+        //Fragmentは画面回転しても存在するのでremoveして終了させる。
+        if (checkCommentViewFragment != null) {
+            val fragmentTransaction =
+                childFragmentManager.beginTransaction()
+            fragmentTransaction.remove(checkCommentViewFragment)
+            fragmentTransaction.commit()
+        }
         //LiveIDを詰める
         val bundle = Bundle()
         bundle.putString("liveId", liveId)
@@ -371,6 +380,7 @@ class CommentFragment : Fragment() {
             "${liveId}_comment_view_fragment"
         )
         fragmentTransaction.commit()
+
 
         //NGデータベース読み込み
         loadNGDataBase()
@@ -2046,8 +2056,6 @@ class CommentFragment : Fragment() {
             overlay_commentcamvas = popupView.findViewById(R.id.overlay_commentCanvas)
 
             //移動
-            //https://qiita.com/farman0629/items/ce547821dd2e16e4399e
-            //長押し判定
             popupView.setOnTouchListener { view, motionEvent ->
                 // タップした位置を取得する
                 val x = motionEvent.rawX.toInt()
