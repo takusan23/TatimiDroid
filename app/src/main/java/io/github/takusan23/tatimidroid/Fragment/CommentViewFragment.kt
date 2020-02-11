@@ -524,7 +524,8 @@ class CommentViewFragment : Fragment() {
                     }
                     activity?.runOnUiThread {
                         //部屋別表示のTabItemに部屋数バッジ表示
-                        commentFragment.activity_comment_tab_layout.getTabAt(2)?.orCreateBadge?.apply {
+                        commentFragment.activity_comment_tab_layout.getTabAt(2)
+                            ?.orCreateBadge?.apply {
                             number = connectionWebSocketAddressList.size
                             isVisible = true
                             backgroundColor = Color.parseColor("#757575")
@@ -690,11 +691,15 @@ class CommentViewFragment : Fragment() {
                         //  println("${commentJSONParse.origin} / $message / $userId")
 
                         activity?.runOnUiThread {
-                            commentFragment.commentCanvas.postComment(message, command)
+                            commentFragment.commentCanvas.postComment(
+                                message,
+                                command,
+                                commentJSONParse.roomName
+                            )
                             //ポップアップ再生
                             if (commentFragment.overlay_commentcamvas != null) {
                                 commentFragment.overlay_commentcamvas!!.postComment(
-                                    message, command
+                                    message, command, commentJSONParse.roomName
                                 )
                                 //コメント
                                 val textView =

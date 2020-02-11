@@ -1284,7 +1284,7 @@ class CommentFragment : Fragment() {
                     programEndUnixTime = endTime / 1000
 
                 }
-
+                
             }
 
             override fun onError(ex: Exception?) {

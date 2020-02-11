@@ -222,4 +222,6 @@
     <string name="setting_show_ng_score">Show NG score</string>
     <string name="setting_enter_post_title">Post a comment with the enter key (line feed)</string>
     <string name="nico_history">History</string>
+    <string name="setting_command_room_color">Add comment colors by room</string>
+    <string name="setting_command_room_color_description">Arena comments are colored by room, such as blue. If enabled, the command\'s colored comments will be disabled.</string>
 </resources>

@@ -222,4 +222,6 @@
     <string name="setting_show_ng_score">NGスコアを表示する</string>
     <string name="setting_enter_post_title">エンターキー（改行）でコメントを投稿する</string>
     <string name="nico_history">履歴</string>
+    <string name="setting_command_room_color">コメントの色を部屋別で付ける</string>
+    <string name="setting_command_room_color_description">アリーナのコメントには青色、のように部屋別に色を付けます。 有効にした場合、コマンドの色付きコメントは無効になります。</string>
 </resources>

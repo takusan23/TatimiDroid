@@ -54,7 +54,7 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<
 
     fun unixToDataFormat(unixTime: Long): String? {
         val simpleDateFormat = SimpleDateFormat("yyy/MM/dd HH:mm:ss")
-        return simpleDateFormat.format(unixTime)
+        return simpleDateFormat.format(unixTime * 1000)
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

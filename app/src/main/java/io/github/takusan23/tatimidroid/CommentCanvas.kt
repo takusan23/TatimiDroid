@@ -9,6 +9,7 @@ import android.graphics.Point
 import android.util.AttributeSet
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceManager
 import java.util.*
 import kotlin.concurrent.schedule
@@ -26,6 +27,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     val yList = arrayListOf<Int>()
     //色とか
     val commandList = arrayListOf<String>()
+
+    // コメントの色を部屋の色にする設定が有効ならtrue
+    var isCommentColorRoom = false
 
     //いまコメントが流れてる座標を保存する
     val commentFlowingXList = arrayListOf<Int>()
@@ -86,6 +90,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         //コメントの流れる速度
         val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         val speed = pref_setting.getString("setting_comment_speed", "5")?.toInt() ?: 5
+        // コメントの色を部屋の色にする設定が有効ならtrue
+        isCommentColorRoom = pref_setting.getBoolean("setting_command_room_color", false)
 
         Timer().schedule(10, 10) {
             for (i in 0..(xList.size - 1)) {
@@ -128,6 +134,10 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         paint.textSize = fontsize
         paint.style = Paint.Style.FILL
         paint.color = Color.parseColor(getColor(command))
+        // コメントの色を部屋の色にする機能が有効になっている場合
+        if (isCommentColorRoom) {
+            paint.color = getRoomColor(command)
+        }
         return paint
     }
 
@@ -163,11 +173,50 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         return "#FFFFFF"
     }
 
+    //コメビュの部屋の色。NCVに追従する
+    fun getRoomColor(command: String): Int {
+        if (command.contains("アリーナ")) {
+            return Color.argb(255, 0, 153, 229)
+        }
+        if (command.contains("立ち見1")) {
+            return Color.argb(255, 234, 90, 61)
+        }
+        if (command.contains("立ち見2")) {
+            return Color.argb(255, 172, 209, 94)
+        }
+        if (command.contains("立ち見3")) {
+            return Color.argb(255, 0, 217, 181)
+        }
+        if (command.contains("立ち見4")) {
+            return Color.argb(255, 229, 191, 0)
+        }
+        if (command.contains("立ち見5")) {
+            return Color.argb(255, 235, 103, 169)
+        }
+        if (command.contains("立ち見6")) {
+            return Color.argb(255, 181, 89, 217)
+        }
+        if (command.contains("立ち見7")) {
+            return Color.argb(255, 20, 109, 199)
+        }
+        if (command.contains("立ち見8")) {
+            return Color.argb(255, 226, 64, 33)
+        }
+        if (command.contains("立ち見9")) {
+            return Color.argb(255, 142, 193, 51)
+        }
+        if (command.contains("立ち見10")) {
+            return Color.argb(255, 0, 189, 120)
+        }
+        return Color.parseColor("#ffffff")
+    }
+
+
     /*
     * コメント投稿
     * */
 
-    fun postComment(comment: String, command: String) {
+    fun postComment(comment: String, command: String, roomName: String = "アリーナ") {
         //フローティングモードのときは計算する
         if (isFloatingView) {
             fontsize = (height / 10).toFloat()
@@ -194,7 +243,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             textList.add(comment)
             xList.add(weight)
             yList.add(getCommentPosition(comment))
-            commandList.add(command)
+            commandList.add("$command,room=$roomName") // コマンド＋今の部屋
         }
     }
 

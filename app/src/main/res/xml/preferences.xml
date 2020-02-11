@@ -80,6 +80,13 @@
             android:title="@string/room_color_title" />
 
     <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_outline_format_color_fill_24px"
+            android:key="setting_command_room_color"
+            android:summary="@string/setting_command_room_color_description"
+            android:title="@string/setting_command_room_color" />
+
+    <SwitchPreference
             android:defaultValue="true"
             android:enabled="false"
             android:icon="@drawable/ic_new_comment_icon"
