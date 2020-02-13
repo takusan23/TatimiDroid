@@ -98,7 +98,23 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                         if (type.contains("official")) {
                             isOfficial = true
                         }
-                        if (status == "ON_AIR") {
+                        //この番組を視聴可能かどうか。デフォtrue
+                        var canWatchLive = true
+                        //コミュ限定か調べる
+                        val isFollowerOnly =
+                            jsonObject.getJSONObject("program").getBoolean("isFollowerOnly")
+                        if (isFollowerOnly) {
+                            //コミュ限
+                            canWatchLive = false
+                            //コミュ限だったとき→コミュニティをフォローしているか確認する
+                            val isFollowed =
+                                jsonObject.getJSONObject("socialGroup").getBoolean("isFollowed")
+                            if (isFollowed) {
+                                canWatchLive = true
+                            }
+                        }
+
+                        if (status == "ON_AIR" && canWatchLive) {
                             //生放送中！
                             //コメントビューワーモード
                             //コメント投稿機能、視聴継続メッセージ送信機能なし
@@ -146,6 +162,17 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                                 intent.putExtra("isOfficial", isOfficial)
                                 startActivity(intent)
                                 this@BottomSheetDialogWatchMode.dismiss()
+                            }
+                        } else if (!canWatchLive) {
+                            //フォロワー限定番組だった
+                            activity?.runOnUiThread {
+                                dismiss()
+                                Toast.makeText(
+                                    context,
+                                    getString(R.string.error_follower_only),
+                                    Toast.LENGTH_SHORT
+                                )
+                                    .show()
                             }
                         } else {
                             activity?.runOnUiThread {

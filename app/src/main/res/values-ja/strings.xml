@@ -224,4 +224,5 @@
     <string name="nico_history">履歴</string>
     <string name="setting_command_room_color">コメントの色を部屋別で付ける</string>
     <string name="setting_command_room_color_description">アリーナのコメントには青色、のように部屋別に色を付けます。 有効にした場合、コマンドの色付きコメントは無効になります。</string>
+    <string name="error_follower_only">フォロワー限定番組です。</string>
 </resources>

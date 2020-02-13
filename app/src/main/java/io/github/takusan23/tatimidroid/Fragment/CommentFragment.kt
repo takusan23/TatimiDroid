@@ -842,39 +842,54 @@ class CommentFragment : Fragment() {
                     //必要なものを取り出していく
                     //add,port,thread
                     val document = Jsoup.parse(response_string)
-                    //ひつようなやつ
-                    val ms = document.select("ms")
-                    val user = document.select("user")
-                    val room = user.select("room_label").text()
-                    val seet = user.select("room_seetno").text()
-                    //番組名もほしい
-                    val stream = document.select("stream")
-                    programTitle = stream.select("title").text()
-                    //コミュニティID
-                    communityID = stream.select("default_community").text()
-                    //コメント投稿に必須なゆーざーID、プレミアム会員かどうか
-                    userId = user.select("user_id").text()
-                    premium = user.select("is_premium").text().toInt()
-                    //vpos
-                    programStartTime = document.select("stream").select("base_time").text().toLong()
-                    programLiveTime = document.select("stream").select("start_time").text().toLong()
-                    //経過時間計算
-                    setLiveTime()
-                    commentActivity.runOnUiThread {
-                        //二窓モードでは表示させない
-                        if (activity !is NimadoActivity) {
-                            if (activity is AppCompatActivity) {
-                                (activity as AppCompatActivity).supportActionBar?.subtitle =
-                                    "$room - $seet"
-                                (activity as AppCompatActivity).supportActionBar?.title =
-                                    "$programTitle - $liveId"
+                    // コミュ限など、視聴ができない場合はgetplayerstatusタグの属性「status」にOK以外が入るのでちぇっく。
+                    if (document.getElementsByTag("getplayerstatus")[0].attr("status") == "ok") {
+                        //ひつようなやつ
+                        val ms = document.select("ms")
+                        val user = document.select("user")
+                        val room = user.select("room_label").text()
+                        val seet = user.select("room_seetno").text()
+                        //番組名もほしい
+                        val stream = document.select("stream")
+                        programTitle = stream.select("title").text()
+                        //コミュニティID
+                        communityID = stream.select("default_community").text()
+                        //コメント投稿に必須なゆーざーID、プレミアム会員かどうか
+                        userId = user.select("user_id").text()
+                        premium = user.select("is_premium").text().toInt()
+                        //vpos
+                        programStartTime =
+                            document.select("stream").select("base_time").text().toLong()
+                        programLiveTime =
+                            document.select("stream").select("start_time").text().toLong()
+                        //経過時間計算
+                        setLiveTime()
+                        commentActivity.runOnUiThread {
+                            //二窓モードでは表示させない
+                            if (activity !is NimadoActivity) {
+                                if (activity is AppCompatActivity) {
+                                    (activity as AppCompatActivity).supportActionBar?.subtitle =
+                                        "$room - $seet"
+                                    (activity as AppCompatActivity).supportActionBar?.title =
+                                        "$programTitle - $liveId"
+                                }
                             }
                         }
+                        //サムネもほしい
+                        thumbnailURL = document.getElementsByTag("thumb_url")[0].text()
+                        //履歴追加
+                        insertDB()
+                    } else {
+                        // エラーの原因取る。
+                        val code = document.getElementsByTag("code")[0].text()
+                        commentActivity.runOnUiThread {
+                            Toast.makeText(
+                                context,
+                                "${getString(R.string.error)}\n$code",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
-                    //サムネもほしい
-                    thumbnailURL = document.getElementsByTag("thumb_url")[0].text()
-                    //履歴追加
-                    insertDB()
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
