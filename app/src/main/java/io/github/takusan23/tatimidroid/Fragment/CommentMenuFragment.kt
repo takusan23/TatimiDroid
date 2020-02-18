@@ -167,6 +167,14 @@ class CommentMenuFragment : Fragment() {
         //ポップアップ再生。いつか怒られそう（プレ垢限定要素だし）
         fragment_comment_fragment_menu_popup_button.setOnClickListener {
             commentFragment.apply {
+                if (!Settings.canDrawOverlays(context)) {
+                    // 上に重ねる権限無いとき。取りに行く
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:${context?.packageName}")
+                    )
+                    startActivity(intent)
+                }
                 if (isPopupViewInit()) {
                     try {
                         val windowManager =
@@ -208,7 +216,7 @@ class CommentMenuFragment : Fragment() {
         // コメント一行モード on/off
         fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.setOnCheckedChangeListener { buttonView, isChecked ->
             commentFragment.pref_setting.edit {
-                putBoolean("setting_id_hidden",isChecked)
+                putBoolean("setting_id_hidden", isChecked)
                 apply()
             }
         }
@@ -216,7 +224,7 @@ class CommentMenuFragment : Fragment() {
         // ユーザーID非表示モード
         fragment_comment_fragment_menu_setting_one_line_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             commentFragment.pref_setting.edit {
-                putBoolean("setting_one_line",isChecked)
+                putBoolean("setting_one_line", isChecked)
                 apply()
             }
         }
@@ -258,9 +266,11 @@ class CommentMenuFragment : Fragment() {
         //低遅延モードの有効無効
         fragment_comment_fragment_menu_low_latency_switch.isChecked = commentFragment.isLowLatency
         // コメント一行もーど
-        fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.isChecked = commentFragment.pref_setting.getBoolean("setting_id_hidden",false)
+        fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.isChecked =
+            commentFragment.pref_setting.getBoolean("setting_id_hidden", false)
         // ユーザーID非表示モード
-        fragment_comment_fragment_menu_setting_one_line_switch.isChecked = commentFragment.pref_setting.getBoolean("setting_one_line",false)
+        fragment_comment_fragment_menu_setting_one_line_switch.isChecked =
+            commentFragment.pref_setting.getBoolean("setting_one_line", false)
         //音量
         commentFragment.apply {
             if (isExoPlayerInitialized()) {

@@ -1,25 +1,22 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.app.Activity
-import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
-import io.github.takusan23.tatimidroid.Activity.LicenceActivity
 import io.github.takusan23.tatimidroid.Activity.KonoApp
+import io.github.takusan23.tatimidroid.Activity.LicenceActivity
 import io.github.takusan23.tatimidroid.AutoAdmissionService
 import io.github.takusan23.tatimidroid.R
-import org.jsoup.select.Evaluator
 import java.io.File
-import java.net.URI
+
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
@@ -77,7 +74,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             // フォント選択
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             intent.apply {
-                type = "font/*"
+                type = "font/otf"
             }
             startActivityForResult(intent, fontFileOpenCode)
             true

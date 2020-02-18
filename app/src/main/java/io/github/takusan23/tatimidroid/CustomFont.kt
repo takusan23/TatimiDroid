@@ -16,31 +16,27 @@ class CustomFont(val context: Context?) {
     var fontFolder: File = File("${context?.getExternalFilesDir(null)}/font")
 
     // フォントフォルダーには一つのファイル（フォントファイル）しか存在しないでーす
-    var fontFile = fontFolder.listFiles()[0]
+    lateinit var fontFile: File
 
     // TypeFace
     lateinit var typeface: Typeface
 
     init {
-        // ファイルが存在する場合はTypeFaceつくる
-        if (!isFontFileExists()) {
+        // フォントフォルダーには一つのファイル（フォントファイル）しか存在しないでーす
+        if (fontFolder.exists() && fontFolder.listFiles().isNotEmpty()) {
+            // ファイルが存在する場合はTypeFaceつくる
+            fontFile = fontFolder.listFiles()[0]
             typeface = Typeface.createFromFile(fontFile)
         }
     }
 
-    /**
-     * フォントファイルが存在するか
-     * */
-    fun isFontFileExists(): Boolean {
-        return fontFile.exists()
-    }
 
     /**
      * TextViewにフォントを設定する
      * */
     fun setTextViewFont(textView: TextView) {
-        if (!isFontFileExists() && !::typeface.isInitialized) {
-            // 存在しない + TypeFace初期化できない とき終了
+        if (!::typeface.isInitialized) {
+            //TypeFace初期化できない とき終了
             return
         }
         textView.typeface = typeface
@@ -50,8 +46,8 @@ class CustomFont(val context: Context?) {
      * PaintにTypeFaceを設定する
      * */
     fun setPaintTypeFace(paint: Paint) {
-        if (!isFontFileExists() && !::typeface.isInitialized) {
-            // 存在しない + TypeFace初期化できない とき終了
+        if (!::typeface.isInitialized) {
+            //TypeFace初期化できない とき終了
             return
         }
         paint.typeface = typeface
