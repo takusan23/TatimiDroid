@@ -83,6 +83,7 @@
             android:defaultValue="false"
             android:icon="@drawable/ic_outline_format_color_fill_24px"
             android:key="setting_command_room_color"
+            app:isPreferenceVisible="false"
             android:summary="@string/setting_command_room_color_description"
             android:title="@string/setting_command_room_color" />
 
@@ -151,6 +152,13 @@
                 android:targetClass="io.github.takusan23.tatimidroid.Activity.CommentCollectionListActivity"
                 android:targetPackage="io.github.takusan23.tatimidroid" />
     </Preference>
+
+    <PreferenceCategory android:title="font">
+
+        <Preference android:key="setting_font_select" android:title="フォントを選択"/>
+        <Preference android:key="setting_font_reset" android:title="選択したフォントをリセットする。"/>
+
+    </PreferenceCategory>
 
 
     <PreferenceCategory android:title="@string/leave_app">

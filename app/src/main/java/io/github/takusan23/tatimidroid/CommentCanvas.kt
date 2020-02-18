@@ -1,73 +1,44 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.commentcanvas
 
+import android.annotation.TargetApi
 import android.content.Context
-import android.content.res.Configuration
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Point
+import android.graphics.*
+import android.os.Build
+import android.text.method.ReplacementTransformationMethod
+import android.util.ArrayMap
 import android.util.AttributeSet
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
-import androidx.preference.PreferenceGroup
+import android.widget.Toast
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.CommentJSONParse
+import org.w3c.dom.Comment
 import java.util.*
-import kotlin.concurrent.schedule
+import kotlin.concurrent.timerTask
 import kotlin.random.Random
+
 
 class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     //白色テキストPaint
-    lateinit var paint: Paint
+    var paint: Paint
     //白色テキストの下に描画する黒色テキストPaint
-    lateinit var blackPaint: Paint
-    val textList = arrayListOf<String>()
-    //座標？
-    val xList = arrayListOf<Int>()
-    val yList = arrayListOf<Int>()
-    //色とか
-    val commandList = arrayListOf<String>()
+    var blackPaint: Paint
 
-    // コメントの色を部屋の色にする設定が有効ならtrue
-    var isCommentColorRoom = false
+    var fontsize = 100f
 
-    //いまコメントが流れてる座標を保存する
-    val commentFlowingXList = arrayListOf<Int>()
-    val commentFlowingYList = arrayListOf<Int>()
+    // var lineCount = 10f
 
-    var fontsize = 40F
+    // コメントの配列
+    val commentObjList = arrayListOf<CommentObject>()
 
-    //コメントのレールの配列を入れるための配列
-    val commentPositionList = arrayListOf<ArrayList<Long>>()
-
-    //レールの配列。1から10まで用意したけど使わないと思う。
-    //コメントが入った時間をそれぞれのレーンに入れて管理する
-    val commentPositionListOne = arrayListOf<Long>()
-    val commentPositionListTwo = arrayListOf<Long>()
-    val commentPositionListThree = arrayListOf<Long>()
-    val commentPositionListFour = arrayListOf<Long>()
-    val commentPositionListFive = arrayListOf<Long>()
-    val commentPositionListSix = arrayListOf<Long>()
-    val commentPositionListSeven = arrayListOf<Long>()
-    val commentPositionListEight = arrayListOf<Long>()
-    val commentPositionListNine = arrayListOf<Long>()
-    val commentPositionListTen = arrayListOf<Long>()
-
-    //コメントの描画改善
-    //別に配列にする意味なくね？
-    var commentPosition_1 = 0L
-    var commentPosition_2 = 0L
-    var commentPosition_3 = 0L
-    var commentPosition_4 = 0L
-    var commentPosition_5 = 0L
-    var commentPosition_6 = 0L
-    var commentPosition_7 = 0L
-    var commentPosition_8 = 0L
-    var commentPosition_9 = 0L
-    var commentPosition_10 = 0L
-
-    //フローティング表示
-    var isFloatingView = false
+    // コメントのライン。行？。keyは高さ、valueはコメントの位置。決して空きスペースではない。
+    /*
+    *  |----ディスプレイ----|
+    *  |  wwwww             | ←これがKey。高さ。
+    *         ↑個々の位置がValue。
+    *
+    * */
+    val lineList = mutableMapOf<Float, Long>() // コメントの高さ、追加時間(UnixTime)
 
     init {
         //文字サイズ計算。端末によって変わるので
@@ -87,44 +58,148 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         blackPaint.textSize = fontsize
         blackPaint.color = Color.parseColor("#000000")
 
+        //lineCount = height / fontsize
+
         //コメントの流れる速度
         val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         val speed = pref_setting.getString("setting_comment_speed", "5")?.toInt() ?: 5
-        // コメントの色を部屋の色にする設定が有効ならtrue
-        isCommentColorRoom = pref_setting.getBoolean("setting_command_room_color", false)
 
-        Timer().schedule(10, 10) {
-            for (i in 0..(xList.size - 1)) {
-                //文字数が多い場合はもっと早く流す
-                val minus = speed + (textList.get(i).length / 2)
-                val x = xList.get(i) - minus
-                if (x > -2000) {
-                    xList.set(i, x)
+
+        // コメント移動
+        Timer().schedule(timerTask {
+
+            // コメント移動。
+            for (i in 0 until commentObjList.size) {
+                commentObjList[i].xPos -= speed
+            }
+
+/*
+            // コメントの移動に合わせて各行のコメントの位置も移動させる。
+            for (i in 0 until lineList.size) {
+                val line = lineList.toList()[i].first
+                val space = lineList.toList()[i].second
+                if (space > 0f) {
+                    lineList[line] = space - 5f
                 }
             }
+*/
+
+            // 再描画
             postInvalidate()
-        }
-    }
+        }, 10, 10)
 
-
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
-        commentFlowingXList.clear()
-        commentFlowingYList.clear()
-        for (i in 0..(xList.size - 1)) {
-            val text = textList.get(i)
-            val x = xList.get(i)
-            val y = yList.get(i)
-            val command = commandList.get(i)
-            if (x > -1000) {
-                commentFlowingXList.add(x)
-                commentFlowingYList.add(y)
-                canvas?.drawText(text, x.toFloat(), y.toFloat(), blackPaint)
-                canvas?.drawText(text, x.toFloat(), y.toFloat(), getCommentTextPaint(command))
+        // getHeightが0を返すので一手間加える
+        viewTreeObserver.addOnGlobalLayoutListener {
+            // Canvasの縦の長さとフォントサイズで割り算して何行書けるか計算して予めMapに入れておく
+            // 初期値は0である。
+            /*
+             *  |----ディスプレイ----|
+             *  |                    |
+             *   ↑初期は0にする。ここ。すべての行を0にする。
+             * */
+            val initUnixTime = System.currentTimeMillis()
+            val heightLineSize = (height / fontsize).toInt()
+            for (i in 1..heightLineSize) {
+                lineList[fontsize * i] = initUnixTime
             }
         }
+
     }
 
+    override fun draw(canvas: Canvas?) {
+        super.draw(canvas)
+        // コメントを描画する。
+        commentObjList.forEach {
+            canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
+            canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.commentJSONParse.mail))
+        }
+    }
+
+    var oldComment = ""
+
+    var theBottomYPos = fontsize
+
+    /**
+     * 最重要関数。
+     * */
+    fun postComment(comment: String, commentJSONParse: CommentJSONParse) {
+        // 縦。ここがすごく大変だった。何段目（行）に入れるか比較してみていくため。
+        var yPos = fontsize
+        // よこ。paint.measureText()で描画するときの文字の幅が取得可能である。
+        val xPos = width.toFloat()
+        // これから書くコメントの大きさ。上記の方法で描画するときの幅を取得している。
+        val commentLength = blackPaint.measureText(comment)
+
+        var check = false
+
+        val nowUnixTime = System.currentTimeMillis()
+
+        var returnPos = 0
+
+        var oldTextLength = 0
+
+        // ここから何段目に入れるかどうかを決める。
+        // 行が指定されていない場合はtrue
+        // 行が入ってるMapをfor文で見ていく。
+        for (i in 0 until lineList.size) {
+            // 高さ。何行目に入れるかはここで
+            val line = lineList.toList()[i].first
+
+            val lineUnix = lineList.toList()[i].second + comment.length * 100 // 何故か掛け算するとうまくいく。
+
+            // println("たかさ：$line / 前のUnixTime：$lineUnix / 現在のUnixTime：$nowUnixTime / 比較：${lineUnix < nowUnixTime} / ひきざん：${nowUnixTime - lineUnix}")
+
+            if (!check) {
+                if (lineUnix < nowUnixTime) {
+                    // 次の行へ
+                    check = true
+                    returnPos = i + 1
+                    yPos = returnPos * fontsize
+                    if (theBottomYPos < yPos) {
+                        theBottomYPos = yPos
+                    }
+                } else {
+                    // すべての段で計算結果がマイナスになる場合＝＝重なるとき。
+                    var allCalc = false
+                    val calc = nowUnixTime - lineUnix
+                    for (x in 0 until lineList.size) {
+                        val lineUnix = lineList.toList()[x].second + comment.length * 100
+                        allCalc = (nowUnixTime - lineUnix == calc)
+                    }
+                    if (allCalc) {
+                        // すべて同じだったとき
+                        Toast.makeText(context, "すべて同じ", Toast.LENGTH_SHORT).show()
+                        // 最大値を利用する
+                        //yPos = theBottomYPos + fontsize
+                        //theBottomYPos = yPos
+                        // 仕方ないのでランダムで
+                        yPos = (Random.nextInt(1, lineList.size) * fontsize)
+                    }
+                }
+            }
+        }
+
+        lineList[yPos] = nowUnixTime
+
+        //println("いち：$yPos / Xpos：$xPos")
+        //println("一番下：$theBottomYPos")
+
+
+        // 内容を更新する。なおここで入れたコメントの位置は上の方のforEachで引いていく。
+        /*
+        * |----ディスプレイ----|
+        * |              wwwwww|　ここの行（段）のコメントの位置を
+        *                     ↑コメントの位置を更新する。
+        * */
+        //lineList[yPos] = System.currentTimeMillis() / 1000L
+
+        //println(lineList.toList())
+
+        // コメント追加。
+        val commentObject =
+            CommentObject(comment, xPos, yPos, System.currentTimeMillis(),commentJSONParse)
+        commentObjList.add(commentObject)
+    }
 
     //色の変更
     fun getCommentTextPaint(command: String): Paint {
@@ -134,10 +209,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         paint.textSize = fontsize
         paint.style = Paint.Style.FILL
         paint.color = Color.parseColor(getColor(command))
-        // コメントの色を部屋の色にする機能が有効になっている場合
-        if (isCommentColorRoom) {
-            paint.color = getRoomColor(command)
-        }
+
         return paint
     }
 
@@ -173,252 +245,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         return "#FFFFFF"
     }
 
-    //コメビュの部屋の色。NCVに追従する
-    fun getRoomColor(command: String): Int {
-        if (command.contains("アリーナ")) {
-            return Color.argb(255, 0, 153, 229)
-        }
-        if (command.contains("立ち見1")) {
-            return Color.argb(255, 234, 90, 61)
-        }
-        if (command.contains("立ち見2")) {
-            return Color.argb(255, 172, 209, 94)
-        }
-        if (command.contains("立ち見3")) {
-            return Color.argb(255, 0, 217, 181)
-        }
-        if (command.contains("立ち見4")) {
-            return Color.argb(255, 229, 191, 0)
-        }
-        if (command.contains("立ち見5")) {
-            return Color.argb(255, 235, 103, 169)
-        }
-        if (command.contains("立ち見6")) {
-            return Color.argb(255, 181, 89, 217)
-        }
-        if (command.contains("立ち見7")) {
-            return Color.argb(255, 20, 109, 199)
-        }
-        if (command.contains("立ち見8")) {
-            return Color.argb(255, 226, 64, 33)
-        }
-        if (command.contains("立ち見9")) {
-            return Color.argb(255, 142, 193, 51)
-        }
-        if (command.contains("立ち見10")) {
-            return Color.argb(255, 0, 189, 120)
-        }
-        return Color.parseColor("#ffffff")
-    }
-
-
-    /*
-    * コメント投稿
-    * */
-
-    fun postComment(comment: String, command: String, roomName: String = "アリーナ") {
-        //フローティングモードのときは計算する
-        if (isFloatingView) {
-            fontsize = (height / 10).toFloat()
-            paint.textSize = fontsize
-            blackPaint.textSize = fontsize
-        }
-        if (this@CommentCanvas::paint.isInitialized) {
-            val display = (context as AppCompatActivity).getWindowManager().getDefaultDisplay()
-            val point = Point()
-            display.getSize(point)
-
-            //縦、横で開始位置を調整
-            var weight = point.x
-            if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                //横。幅を割る2する
-                weight = point.x / 2
-            } else {
-                //縦。そのまま
-                weight = point.x
-            }
-
-            weight = this@CommentCanvas.width
-
-            textList.add(comment)
-            xList.add(weight)
-            yList.add(getCommentPosition(comment))
-            commandList.add("$command,room=$roomName") // コマンド＋今の部屋
-        }
-    }
-
-    fun getCommentPosition(comment: String): Int {
-
-        /*
-        *
-        * コメントの位置を取り出すやーつ
-        *
-        * コメントの流れた時間(UnixTime)を変数に入れておいて
-        * 使いやすいように配列に入れて
-        *
-        * 時間と今のUnixTimeを比較して今のほうが大きかったら
-        * 配列の位置のUnixTimeを置き換えます。
-        *
-        * あと配列→変数へ
-        *
-        * それと時間とUnixTimeを引いたときの値も配列に入れています。
-        * その配列から0以上の時間があいていればその場所にコメントが流れます。
-        *
-        * */
-
-        //配列に入れる。
-        val posList = arrayListOf(
-            commentPosition_1,
-            commentPosition_2,
-            commentPosition_3,
-            commentPosition_4,
-            commentPosition_5,
-            commentPosition_6,
-            commentPosition_7,
-            commentPosition_8,
-            commentPosition_9,
-            commentPosition_10
-        )
-
-        var check = false
-
-        var commentY = 100
-
-        //コメント感覚。<--->
-        //値が大きければどんどん下に表示される
-        val timeSpace = 5000
-
-        val posMinusList = arrayListOf<Long>()
-
-        for (i in 0 until posList.size) {
-            //println(posList)
-            //UnixTimeで管理してるので。。
-            val nowUnixTime = System.currentTimeMillis() / 1000
-            val pos = posList[i]
-            val tmp = nowUnixTime - pos
-            posMinusList.add(tmp)
-            if (!check) {
-                if (pos < nowUnixTime) {
-                    check = true
-                    posList[i] = nowUnixTime
-                    commentPosition_1 = posList[0]
-                    commentPosition_2 = posList[1]
-                    commentPosition_3 = posList[2]
-                    commentPosition_4 = posList[3]
-                    commentPosition_5 = posList[4]
-                    commentPosition_6 = posList[5]
-                    commentPosition_7 = posList[6]
-                    commentPosition_8 = posList[7]
-                    commentPosition_9 = posList[8]
-                    commentPosition_10 = posList[9]
-                }
-            }
-        }
-
-        //コメントの位置を決定する
-        var tmpFindZero = 10L
-        var result = 0
-        for (l in 0 until posMinusList.size) {
-            val pos = posMinusList[l]
-            if (pos > 0L) {
-                if (tmpFindZero > pos) {
-                    tmpFindZero = pos
-                    result = l
-                }
-            } else {
-                //少しでも被らないように？
-                result = Random.nextInt(1, 10)
-            }
-        }
-        commentY = returnNumberList(result)
-
-/*
-        for (index in 0 until commentPositionList.size) {
-
-            val list = commentPositionList.get(index)
-
-            if (!check) {
-                if (list.size > 0) {
-                    val tmp = list.get(list.size - 1)
-                    val calc = System.currentTimeMillis() - tmp
-                    if (calc < 5000) {
-                        //今の時間と比較して1秒経過してれば2段目に入れる
-                        if (calc > timeSpace) {
-                            check = true
-                            commentY = returnNumberList(index)
-                            list.add(System.currentTimeMillis())
-                        } else {
-                            //ランダムで配置
-                            //commentY = returnNumberList((1 until 10).random())
-                        }
-                    } else {
-                        //一定期間（5秒？）コメントがないときは一段目に入れる
-                        commentY = 100
-                        commentPositionListOne.clear()
-                        //commentPositionListOne.add(System.currentTimeMillis())
-
-
-                        commentPosition_1 = 0
-                        commentPosition_2 = 0
-                        commentPosition_3 = 0
-                        commentPosition_4 = 0
-                        commentPosition_5 = 0
-                        commentPosition_6 = 0
-                        commentPosition_7 = 0
-                        commentPosition_8 = 0
-                        commentPosition_9 = 0
-                        commentPosition_10 = 0
-
-                        //一定期間（5秒）コメントがなかったら配列の中身もクリアに
-                        //理由は経過時間の計算がおかしくなるからです。
-                        commentPositionList.clear()
-                        commentPositionListTwo.clear()
-                        commentPositionListThree.clear()
-                        commentPositionListFour.clear()
-                        commentPositionListFive.clear()
-                        commentPositionListSix.clear()
-                        commentPositionListSeven.clear()
-                        commentPositionListEight.clear()
-                        commentPositionListNine.clear()
-                        commentPositionListTen.clear()
-
-                        commentPositionList.add(commentPositionListOne)
-                        commentPositionList.add(commentPositionListTwo)
-                        commentPositionList.add(commentPositionListThree)
-                        commentPositionList.add(commentPositionListFour)
-                        commentPositionList.add(commentPositionListFive)
-                        commentPositionList.add(commentPositionListSix)
-                        commentPositionList.add(commentPositionListSeven)
-                        commentPositionList.add(commentPositionListEight)
-                        commentPositionList.add(commentPositionListNine)
-                        commentPositionList.add(commentPositionListTen)
-                    }
-                } else {
-                    commentY = 100
-                    list.add(System.currentTimeMillis())
-                }
-            }
-        }
-*/
-        return commentY
-    }
-
-
-    fun returnNumberList(pos: Int): Int {
-        var size = (fontsize).toInt()
-        when (pos) {
-            1 -> size = (fontsize).toInt()
-            2 -> size = (fontsize * 2).toInt()
-            3 -> size = (fontsize * 3).toInt()
-            4 -> size = (fontsize * 4).toInt()
-            5 -> size = (fontsize * 5).toInt()
-            6 -> size = (fontsize * 6).toInt()
-            7 -> size = (fontsize * 7).toInt()
-            8 -> size = (fontsize * 8).toInt()
-            9 -> size = (fontsize * 9).toInt()
-            10 -> size = (fontsize * 10).toInt()
-        }
-        return size
-    }
-
 }
+
+data class CommentObject(val comment: String, var xPos: Float, var yPos: Float, var unixTime: Long,var commentJSONParse: CommentJSONParse)
+
+data class CommentDrawObject(var space: Float, var comment: String)

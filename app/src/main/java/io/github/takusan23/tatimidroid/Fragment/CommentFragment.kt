@@ -51,6 +51,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
+import io.github.takusan23.commentcanvas.CommentCanvas
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
@@ -264,6 +265,8 @@ class CommentFragment : Fragment() {
     lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
     lateinit var nicoHistorySQLiteDatabase: SQLiteDatabase
 
+    // フォント変更機能
+    lateinit var customFont: CustomFont
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -350,6 +353,11 @@ class CommentFragment : Fragment() {
         if (pref_setting.getBoolean("setting_rotation_sensor", false)) {
             rotationSensor = RotationSensor(commentActivity)
         }
+
+        // ユーザーの設定したフォント読み込み
+        customFont = CustomFont(context)
+        customFont.setPaintTypeFace(commentCanvas.paint)
+        customFont.setPaintTypeFace(commentCanvas.blackPaint)
 
         /*
         * ID同じだと２窓のときなぜか隣のFragmentが置き換わるなどするので
@@ -1947,7 +1955,7 @@ class CommentFragment : Fragment() {
             //表示
             windowManager.addView(popupView, params)
             isPopupPlay = true
-            popupView.overlay_commentCanvas.isFloatingView = true
+            //popupView.overlay_commentCanvas.isFloatingView = true
 
             //通知表示
             showPopUpPlayerNotification()

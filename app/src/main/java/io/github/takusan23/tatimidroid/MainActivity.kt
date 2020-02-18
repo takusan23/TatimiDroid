@@ -101,12 +101,22 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.menu_nicovideo -> {
                     //ニコ動コメント
-                    val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(
-                        R.id.main_activity_linearlayout,
-                        NicoVideoSelectFragment()
-                    )
-                    fragmentTransaction.commit()
+                    //ログイン情報がない場合は押させない
+                    if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
+                        val fragmentTransaction = supportFragmentManager.beginTransaction()
+                        fragmentTransaction.replace(
+                            R.id.main_activity_linearlayout,
+                            NicoVideoSelectFragment()
+                        )
+                        fragmentTransaction.commit()
+                    } else {
+                        //メアド設定してね！
+                        Toast.makeText(
+                            this,
+                            getString(R.string.mail_pass_error),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
             true

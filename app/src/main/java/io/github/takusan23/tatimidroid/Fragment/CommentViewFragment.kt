@@ -693,13 +693,12 @@ class CommentViewFragment : Fragment() {
                         activity?.runOnUiThread {
                             commentFragment.commentCanvas.postComment(
                                 message,
-                                command,
-                                commentJSONParse.roomName
+                                commentJSONParse
                             )
                             //ポップアップ再生
                             if (commentFragment.overlay_commentcamvas != null) {
                                 commentFragment.overlay_commentcamvas!!.postComment(
-                                    message, command, commentJSONParse.roomName
+                                    message, commentJSONParse
                                 )
                                 //コメント
                                 val textView =

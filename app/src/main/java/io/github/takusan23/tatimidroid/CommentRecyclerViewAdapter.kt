@@ -209,6 +209,11 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
             if (pref_setting.getBoolean("setting_one_line", false)) {
                 holder.commentTextView.maxLines = 1
             }
+
+            // ユーザーの設定したフォント
+            commentFragment.customFont.setTextViewFont(holder.commentTextView)
+            commentFragment.customFont.setTextViewFont(holder.roomNameTextView)
+
         }
     }
 

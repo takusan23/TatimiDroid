@@ -15,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.SeekBar
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.google.android.gms.cast.framework.CastButtonFactory
@@ -204,6 +205,22 @@ class CommentMenuFragment : Fragment() {
             commentFragment.sendLowLatency()
         }
 
+        // コメント一行モード on/off
+        fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.setOnCheckedChangeListener { buttonView, isChecked ->
+            commentFragment.pref_setting.edit {
+                putBoolean("setting_id_hidden",isChecked)
+                apply()
+            }
+        }
+
+        // ユーザーID非表示モード
+        fragment_comment_fragment_menu_setting_one_line_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            commentFragment.pref_setting.edit {
+                putBoolean("setting_one_line",isChecked)
+                apply()
+            }
+        }
+
         fragment_comment_fragment_volume_seek.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -240,6 +257,10 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = commentFragment.isTokumeiHide
         //低遅延モードの有効無効
         fragment_comment_fragment_menu_low_latency_switch.isChecked = commentFragment.isLowLatency
+        // コメント一行もーど
+        fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.isChecked = commentFragment.pref_setting.getBoolean("setting_id_hidden",false)
+        // ユーザーID非表示モード
+        fragment_comment_fragment_menu_setting_one_line_switch.isChecked = commentFragment.pref_setting.getBoolean("setting_one_line",false)
         //音量
         commentFragment.apply {
             if (isExoPlayerInitialized()) {
