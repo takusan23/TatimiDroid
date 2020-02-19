@@ -1947,7 +1947,7 @@ class CommentFragment : Fragment() {
             //表示
             windowManager.addView(popupView, params)
             isPopupPlay = true
-            //popupView.overlay_commentCanvas.isFloatingView = true
+            popupView.overlay_commentCanvas.isFloatingView = true
 
             //通知表示
             showPopUpPlayerNotification()

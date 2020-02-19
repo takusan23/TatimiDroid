@@ -68,6 +68,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     //フローティング表示
     var isFloatingView = false
 
+    var commentLines = arrayListOf<Long>()
+
     init {
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
@@ -103,6 +105,14 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             }
             postInvalidate()
         }
+
+        viewTreeObserver.addOnGlobalLayoutListener {
+            val lineCount = height / fontsize
+            for (i in 0 until lineCount.toInt()) {
+                commentLines.add(0L)
+            }
+        }
+
     }
 
 
@@ -289,27 +299,27 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
         val posMinusList = arrayListOf<Long>()
 
-        for (i in 0 until posList.size) {
+        for (i in 0 until commentLines.size) {
             //println(posList)
             //UnixTimeで管理してるので。。
             val nowUnixTime = System.currentTimeMillis() / 1000
-            val pos = posList[i]
+            val pos = commentLines[i]
             val tmp = nowUnixTime - pos
             posMinusList.add(tmp)
             if (!check) {
                 if (pos < nowUnixTime) {
                     check = true
-                    posList[i] = nowUnixTime
-                    commentPosition_1 = posList[0]
-                    commentPosition_2 = posList[1]
-                    commentPosition_3 = posList[2]
-                    commentPosition_4 = posList[3]
-                    commentPosition_5 = posList[4]
-                    commentPosition_6 = posList[5]
-                    commentPosition_7 = posList[6]
-                    commentPosition_8 = posList[7]
-                    commentPosition_9 = posList[8]
-                    commentPosition_10 = posList[9]
+                    commentLines[i] = nowUnixTime
+                    //commentPosition_1 = posList[0]
+                    //commentPosition_2 = posList[1]
+                    //commentPosition_3 = posList[2]
+                    //commentPosition_4 = posList[3]
+                    //commentPosition_5 = posList[4]
+                    //commentPosition_6 = posList[5]
+                    //commentPosition_7 = posList[6]
+                    //commentPosition_8 = posList[7]
+                    //commentPosition_9 = posList[8]
+                    //commentPosition_10 = posList[9]
                 }
             }
         }
