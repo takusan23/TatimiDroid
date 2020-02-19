@@ -83,9 +83,9 @@
             android:defaultValue="false"
             android:icon="@drawable/ic_outline_format_color_fill_24px"
             android:key="setting_command_room_color"
-            app:isPreferenceVisible="false"
             android:summary="@string/setting_command_room_color_description"
-            android:title="@string/setting_command_room_color" />
+            android:title="@string/setting_command_room_color"
+            app:isPreferenceVisible="false" />
 
     <SwitchPreference
             android:defaultValue="true"
@@ -155,8 +155,23 @@
 
     <PreferenceCategory android:title="font">
 
-        <Preference android:key="setting_font_select" android:title="フォントを選択"/>
-        <Preference android:key="setting_font_reset" android:title="選択したフォントをリセットする。"/>
+        <Preference
+                android:key="setting_font_select"
+                android:title="フォントを選択" />
+        <Preference
+                android:key="setting_font_reset"
+                android:title="選択したフォントをリセットする。" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="実験的">
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_sports_esports_24px"
+                android:key="setting_nico_nama_game"
+                android:summary="技術者向け：PC版ニコ生（全画面モード）をWebViewで表示することでゲームを遊べるようにします。"
+                android:title="ニコ生ゲームを遊べるようにする" />
 
     </PreferenceCategory>
 

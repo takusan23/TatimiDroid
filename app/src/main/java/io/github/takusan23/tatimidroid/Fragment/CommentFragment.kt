@@ -260,6 +260,9 @@ class CommentFragment : Fragment() {
     // フォント変更機能
     lateinit var customFont: CustomFont
 
+    // ニコ生ゲームようWebView
+    lateinit var nicoNamaGameWebView: NicoNamaGameWebView
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -348,8 +351,12 @@ class CommentFragment : Fragment() {
 
         // ユーザーの設定したフォント読み込み
         customFont = CustomFont(context)
-        // customFont.setPaintTypeFace(commentCanvas.paint)
-        // customFont.setPaintTypeFace(commentCanvas.blackPaint)
+
+        // ニコ生WebView
+        if (pref_setting.getBoolean("setting_nico_nama_game", false)) {
+            nicoNamaGameWebView = NicoNamaGameWebView(context, liveId)
+            live_framelayout.addView(nicoNamaGameWebView.webView)
+        }
 
         /*
         * ID同じだと２窓のときなぜか隣のFragmentが置き換わるなどするので
