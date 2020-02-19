@@ -49,6 +49,62 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
 
         //放送中であるかをAPIを叩き確認
         //番組IDだった
+
+        // 先に番組取得してエラー回避
+        GlobalScope.launch(Dispatchers.Main) {
+            // コミュIDのときはコミュIDを取ってから
+            val json = if (!isCommunityOrChannelID()) {
+                getProgramInfo("comment_viewer")
+            } else {
+                val liveID = getLiveIDFromCommunityID().await()
+                getProgramInfo("comment_viewer", liveID)
+            }.await()
+            // JSONパース
+            if (json != null) {
+                val jsonObject = JSONObject(json)
+                //現在放送中か？
+                val status = jsonObject.getJSONObject("program").getString("status")
+                //公式番組かどうか
+                val type = jsonObject.getJSONObject("program").getString("providerType")
+                // 番組ID
+                val programId = jsonObject.getJSONObject("program").getString("nicoliveProgramId")
+                var isOfficial = false
+                if (type.contains("official")) {
+                    isOfficial = true
+                }
+                if (status == "ON_AIR") {
+                    //生放送中！
+                    //二窓追加ボタン有効
+                    var mode = ""
+                    nimado_liveid_bottom_fragment_button_comment_viewer_mode.setOnClickListener {
+                        mode = "comment_viewer"
+                    }
+                    nimado_liveid_bottom_fragment_button_comment_post_mode.setOnClickListener {
+                        mode = "comment_post"
+                    }
+                    nimado_liveid_bottom_fragment_button_comment_nicocas_mode.setOnClickListener {
+                        mode = "nicocas"
+                    }
+                    (activity as NimadoActivity).apply {
+                        runOnUiThread {
+                            addNimado(programId, mode, isOfficial, false)
+                            this@NimadoLiveIDBottomFragment.dismiss()
+                        }
+                    }
+                } else {
+                    activity?.runOnUiThread {
+                        dismiss()
+                        Toast.makeText(
+                            context,
+                            getString(R.string.program_end),
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    }
+                }
+            }
+        }
+
         nimado_liveid_bottom_fragment_button_comment_viewer_mode.setOnClickListener {
             if (!isCommunityOrChannelID()) {
                 getProgramInfo("comment_viewer")
@@ -89,9 +145,12 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
 */
     }
 
+    // 番組情報を取得する
     //第2引数はない場合は正規表現で取り出す
-    private fun getProgramInfo(watchMode: String, liveId: String = getLiveIDRegex()) {
-
+    private fun getProgramInfo(
+        watchMode: String,
+        liveId: String = getLiveIDRegex()
+    ): Deferred<String?> = GlobalScope.async {
         //番組が終わってる場合は落ちちゃうので修正。
         val programInfo = "https://live2.nicovideo.jp/watch/${liveId}";
         val request = Request.Builder()
@@ -100,53 +159,24 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
             .get()
             .build()
         val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                //エラーなので閉じる
-                activity?.runOnUiThread {
-                    dismiss()
-                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
-                }
-            }
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
 
-                    val html = Jsoup.parse(response.body?.string())
-                    if (html.getElementById("embedded-data") != null) {
-                        val json = html.getElementById("embedded-data").attr("data-props")
-                        val jsonObject = JSONObject(json)
-                        //現在放送中か？
-                        val status = jsonObject.getJSONObject("program").getString("status")
-                        //公式番組かどうか
-                        val type = jsonObject.getJSONObject("program").getString("providerType")
-                        var isOfficial = false
-                        if (type.contains("official")) {
-                            isOfficial = true
-                        }
-                        if (status == "ON_AIR") {
-                            //生放送中！
-                            //二窓追加
-                            (activity as NimadoActivity).apply {
-                                runOnUiThread {
-                                    addNimado(liveId, watchMode, isOfficial, false)
-                                    this@NimadoLiveIDBottomFragment.dismiss()
-                                }
-                            }
-                        } else {
-                            activity?.runOnUiThread {
-                                dismiss()
-                                Toast.makeText(
-                                    context,
-                                    getString(R.string.program_end),
-                                    Toast.LENGTH_SHORT
-                                )
-                                    .show()
-                            }
-                        }
-                    }
-                }
+        val response = okHttpClient.newCall(request).execute()
+        if (response.isSuccessful) {
+            val html = Jsoup.parse(response.body?.string())
+            if (html.getElementById("embedded-data") != null) {
+                val json = html.getElementById("embedded-data").attr("data-props")
+                return@async json
+            } else {
+                return@async null
             }
-        })
+        } else {
+            //エラーなので閉じる
+            activity?.runOnUiThread {
+                dismiss()
+                Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
+            }
+            return@async null
+        }
     }
 
     //正規表現でURLから番組ID取る
