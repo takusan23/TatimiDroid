@@ -20,7 +20,9 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
 import kotlinx.android.synthetic.main.fragment_community_list_layout.*
 import kotlinx.android.synthetic.main.fragment_community_list_layout.community_recyclerview
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.consumesAll
 import kotlinx.coroutines.launch
 import okhttp3.*
@@ -78,7 +80,9 @@ class CommunityListFragment : Fragment() {
             getString(R.string.follow_program)
 
         //参加中のコミュニティ読み込み
-        getFavouriteCommunity()
+        GlobalScope.launch {
+            getFavouriteCommunity()
+        }
         community_swipe.isRefreshing = true
 
         program_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -109,43 +113,37 @@ class CommunityListFragment : Fragment() {
     fun setNicoLoad(text: String) {
         //くるくる
         community_swipe.isRefreshing = true
-        when (text) {
-            getString(R.string.follow_program) -> {
-                GlobalScope.launch {
+        GlobalScope.launch {
+            when (text) {
+                getString(R.string.follow_program) -> {
                     getFavouriteCommunity()
+                    (activity as AppCompatActivity).supportActionBar?.title =
+                        getString(R.string.follow_program)
                 }
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.follow_program)
-            }
-            getString(R.string.nicorepo) -> {
-                GlobalScope.launch {
+                getString(R.string.nicorepo) -> {
                     getNicorepo()
+                    (activity as AppCompatActivity).supportActionBar?.title =
+                        getString(R.string.nicorepo)
                 }
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.nicorepo)
-            }
-            getString(R.string.auto_admission) -> {
-                getAutoAdmissionList()
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.auto_admission)
-                //Service再起動
-                val intent = Intent(context, AutoAdmissionService::class.java)
-                context?.stopService(intent)
-                context?.startService(intent)
-            }
-            getString(R.string.osusume) -> {
-                GlobalScope.launch {
+                getString(R.string.auto_admission) -> {
+                    getAutoAdmissionList()
+                    (activity as AppCompatActivity).supportActionBar?.title =
+                        getString(R.string.auto_admission)
+                    //Service再起動
+                    val intent = Intent(context, AutoAdmissionService::class.java)
+                    context?.stopService(intent)
+                    context?.startService(intent)
+                }
+                getString(R.string.osusume) -> {
                     getRecommend()
+                    (activity as AppCompatActivity).supportActionBar?.title =
+                        getString(R.string.osusume)
                 }
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.osusume)
-            }
-            getString(R.string.ranking) -> {
-                GlobalScope.launch {
+                getString(R.string.ranking) -> {
                     getRanking()
+                    (activity as AppCompatActivity).supportActionBar?.title =
+                        getString(R.string.ranking)
                 }
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.ranking)
             }
         }
     }
@@ -286,54 +284,52 @@ class CommunityListFragment : Fragment() {
     // のでPC版にアクセスしてJSONを取得する（PC版にもJSON存在した。）
     fun getFavouriteCommunity() {
         recyclerViewList.clear()
-        GlobalScope.launch {
-            val document =
-                Jsoup.connect("https://live.nicovideo.jp/?header")
-                    .header("User-Agent", "TatimiDroid;@takusan_23")
-                    .cookie("user_session", user_session)
-                    .get()
+        val document =
+            Jsoup.connect("https://live.nicovideo.jp/?header")
+                .header("User-Agent", "TatimiDroid;@takusan_23")
+                .cookie("user_session", user_session)
+                .get()
 
-            // JSONのあるscriptタグ
-            val script = document.getElementById("embedded-data")
-            val jsonString = script.attr("data-props")
-            val jsonObject = JSONObject(jsonString)
-
-            try {
-
-                //JSON解析
-                val programs =
-                    jsonObject.getJSONObject("view").getJSONObject("favoriteProgramListState")
-                        .getJSONArray("programList")
-                //for
-                for (i in 0 until programs.length()) {
-                    val jsonObject = programs.getJSONObject(i)
-                    val programId = jsonObject.getString("id")
-                    val title = jsonObject.getString("title")
-                    val beginAt = jsonObject.getString("beginAt")
-                    val communityName = jsonObject.getJSONObject("socialGroup").getString("name")
-                    val liveNow = jsonObject.getString("liveCycle") //放送中か？
-                    //RecyclerView追加
-                    val item = arrayListOf<String>()
-                    item.add("")
-                    item.add(title)
-                    item.add(communityName)
-                    item.add(title)
-                    item.add(beginAt)
-                    item.add(beginAt)
-                    item.add(programId)
-                    item.add(beginAt)
-                    item.add(liveNow)
-                    recyclerViewList.add(item)
-                }
-                //リスト更新
-                activity?.runOnUiThread {
-                    communityRecyclerViewAdapter.notifyDataSetChanged()
-                    community_recyclerview.adapter = communityRecyclerViewAdapter
-                    community_swipe.isRefreshing = false
-                }
-            } catch (e: JSONException) {
-                e.printStackTrace()
+        // JSONのあるscriptタグ
+        val script = document.getElementById("embedded-data")
+        val jsonString = script.attr("data-props")
+        val jsonObject = JSONObject(jsonString)
+        try {
+            //JSON解析
+            val programs =
+                jsonObject.getJSONObject("view").getJSONObject("favoriteProgramListState")
+                    .getJSONArray("programList")
+            //for
+            for (i in 0 until programs.length()) {
+                val jsonObject = programs.getJSONObject(i)
+                val programId = jsonObject.getString("id")
+                val title = jsonObject.getString("title")
+                val beginAt = jsonObject.getString("beginAt")
+                val communityName = jsonObject.getJSONObject("socialGroup").getString("name")
+                val liveNow = jsonObject.getString("liveCycle") //放送中か？
+                //RecyclerView追加
+                val item = arrayListOf<String>()
+                item.add("")
+                item.add(title)
+                item.add(communityName)
+                item.add(title)
+                item.add(beginAt)
+                item.add(beginAt)
+                item.add(programId)
+                item.add(beginAt)
+                item.add(liveNow)
+                recyclerViewList.add(item)
             }
+
+            //リスト更新
+            activity?.runOnUiThread {
+                communityRecyclerViewAdapter.notifyDataSetChanged()
+                community_recyclerview.adapter = communityRecyclerViewAdapter
+                community_swipe.isRefreshing = false
+            }
+
+        } catch (e: JSONException) {
+            e.printStackTrace()
         }
     }
 
