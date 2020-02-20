@@ -263,6 +263,9 @@ class CommentFragment : Fragment() {
     // ニコ生ゲームようWebView
     lateinit var nicoNamaGameWebView: NicoNamaGameWebView
 
+    // ニコ生ゲームが有効になっているか
+    var isAddedNicoNamaGame = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -352,11 +355,11 @@ class CommentFragment : Fragment() {
         // ユーザーの設定したフォント読み込み
         customFont = CustomFont(context)
 
-        // ニコ生WebView
+        /*// ニコ生WebView
         if (pref_setting.getBoolean("setting_nico_nama_game", false)) {
             nicoNamaGameWebView = NicoNamaGameWebView(context, liveId)
             live_framelayout.addView(nicoNamaGameWebView.webView)
-        }
+        }*/
 
         /*
         * ID同じだと２窓のときなぜか隣のFragmentが置き換わるなどするので
@@ -759,6 +762,19 @@ class CommentFragment : Fragment() {
         }
         commentActivity.registerReceiver(broadcastReceiver, intentFilter)
 
+    }
+
+    // ニコ生ゲーム有効
+    fun setNicoNamaGame() {
+        nicoNamaGameWebView = NicoNamaGameWebView(context, liveId)
+        live_framelayout.addView(nicoNamaGameWebView.webView)
+        isAddedNicoNamaGame = true
+    }
+
+    // ニコ生ゲーム削除
+    fun removeNicoNamaGame() {
+        live_framelayout.removeView(nicoNamaGameWebView.webView)
+        isAddedNicoNamaGame = false
     }
 
     private fun initDB() {
@@ -1628,6 +1644,13 @@ class CommentFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        //// WebView（ニコ生ゲーム用）リロード
+        //activity?.runOnUiThread {
+        //    if (::nicoNamaGameWebView.isInitialized) {
+        //        nicoNamaGameWebView.reload()
+        //    }
+        //}
+
         if (this@CommentFragment::exoPlayer.isInitialized) {
             //exoPlayer.playWhenReady = true
         }

@@ -75,4 +75,16 @@ class NicoNamaGameWebView(val context: Context?, val liveId: String) {
             }
         }
     }
+
+    /**
+     * ライフサイクル等でアプリに戻ってきたら必ず呼ぶ必要があります。
+     * が、別にWebView#reload()を読んでるだけなんですけどね。
+     * */
+    fun reload() {
+        webView.apply {
+            isVisible = false
+            reload()
+        }
+    }
+
 }

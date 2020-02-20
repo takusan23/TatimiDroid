@@ -41,7 +41,6 @@ class CommentMenuFragment : Fragment() {
     lateinit var darkModeSupport: DarkModeSupport
 
     var liveId = ""
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -71,7 +70,7 @@ class CommentMenuFragment : Fragment() {
 
         //OutlinedButtonのテキストの色
         darkmode()
-
+        fragment_comment_fragment_nico_nama_game_switch
     }
 
     fun darkmode() {
@@ -229,6 +228,17 @@ class CommentMenuFragment : Fragment() {
             }
         }
 
+        // ニコ生ゲーム
+        fragment_comment_fragment_nico_nama_game_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            commentFragment.apply {
+                if (isChecked) {
+                    setNicoNamaGame()
+                } else {
+                    removeNicoNamaGame()
+                }
+            }
+        }
+
         fragment_comment_fragment_volume_seek.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -277,6 +287,9 @@ class CommentMenuFragment : Fragment() {
                 fragment_comment_fragment_volume_seek.progress = (exoPlayer.volume * 10).toInt()
             }
         }
+        //ニコ生ゲーム有効時
+        fragment_comment_fragment_nico_nama_game_switch.isChecked =
+            commentFragment.isAddedNicoNamaGame
     }
 
     //CommentFragmentへ値を渡す

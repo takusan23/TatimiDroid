@@ -20,11 +20,8 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
 import kotlinx.android.synthetic.main.fragment_community_list_layout.*
 import kotlinx.android.synthetic.main.fragment_community_list_layout.community_recyclerview
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.consumesAll
-import kotlinx.coroutines.launch
 import okhttp3.*
 import org.json.JSONException
 import org.json.JSONObject

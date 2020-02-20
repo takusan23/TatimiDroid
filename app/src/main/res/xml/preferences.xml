@@ -164,6 +164,7 @@
 
     </PreferenceCategory>
 
+<!--
     <PreferenceCategory android:title="実験的">
 
         <SwitchPreference
@@ -174,6 +175,7 @@
                 android:title="ニコ生ゲームを遊べるようにする" />
 
     </PreferenceCategory>
+-->
 
 
     <PreferenceCategory android:title="@string/leave_app">
