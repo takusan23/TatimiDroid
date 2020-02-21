@@ -93,7 +93,7 @@ class GiftFragment : Fragment() {
                     //他の端末でJSONエラー出るので例外処理。私の環境だと再現できねえ？
                     try {
                         val response_string = response.body?.string()
-                        println(response_string)
+                        // println(response_string)
                         val jsonObject = JSONObject(response_string)
                         val rankingArray = jsonObject.getJSONObject("data").getJSONArray("ranking")
                         for (i in 0 until rankingArray.length()) {

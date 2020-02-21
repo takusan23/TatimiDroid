@@ -56,9 +56,7 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -377,20 +375,6 @@ class CommentFragment : Fragment() {
             fragmentTransaction.remove(checkCommentViewFragment)
             fragmentTransaction.commit()
         }
-        //LiveIDを詰める
-        val bundle = Bundle()
-        bundle.putString("liveId", liveId)
-        val commentViewFragment = CommentViewFragment()
-        commentViewFragment.arguments = bundle
-        val fragmentTransaction =
-            childFragmentManager.beginTransaction()
-        fragmentTransaction.replace(
-            activity_comment_linearlayout.id,
-            commentViewFragment,
-            "${liveId}_comment_view_fragment"
-        )
-        fragmentTransaction.commit()
-
 
         //NGデータベース読み込み
         loadNGDataBase()
@@ -466,36 +450,67 @@ class CommentFragment : Fragment() {
 
         //ログイン情報がなければ戻す
         if (pref_setting.getString("mail", "")?.contains("") != false) {
-            //UserSession取得
-            //コルーチン全くわからん！
+            usersession = pref_setting.getString("user_session", "") ?: ""
+            // ニコ生の視聴ページ（HTML）を取得する。
             runBlocking {
-
-                //番組情報取得API叩く
-                //視聴モード（コメント投稿機能付き）の場合とそうでない場合分ける
-                if (isWatchingMode) {
-                    //視聴モード
-                    //PCなどで同時視聴してると怒られる。
-                    GlobalScope.async {
-                        NicoLogin(commentActivity, liveId)
-                    }.await()
-                    usersession = pref_setting.getString("user_session", "") ?: ""
-                    //ユーザーID、プレミアム会員かどうか取得
-                    getplayerstatus()
-                    //ニコ生の視聴に必要な情報を流してくれるWebSocketへ接続するために
-                    getNicoLiveWebPage()
-                } else {
-                    //User_Session取得
-                    GlobalScope.async {
-                        NicoLogin(commentActivity, liveId)
-                    }.await()
-                    usersession = pref_setting.getString("user_session", "") ?: ""
-                    //座席番号、部屋番号取得
-                    getplayerstatus()
-                    //ニコ生の視聴に必要な情報を流してくれるWebSocketへ接続するために
-                    getNicoLiveWebPage()
+                GlobalScope.launch {
+                    // 取得できるまで待機
+                    val response = getNicoLiveWebPage().await()
+                    if (response.isSuccessful) {
+                        // 成功した
+                        // ログインできているかチェック（user_session切れなど）
+                        // コメント投稿モード以外でもユーザーセッションは必要なのでここで判断しておく
+                        var niconicoId = response.headers["x-niconico-id"]
+                        // 視聴モード以外のときは適当に入れておく（将来的に視聴モードのみにするため）
+                        if (!isWatchingMode) {
+                            niconicoId = "てきとうに"
+                        }
+                        // ログイン無い
+                        if (niconicoId == null) {
+                            // ログイン済みの場合はレスポンスヘッダーにユーザーIDが入ってる。なければ(null)ログイン出来てない。
+                            NicoLogin.login(context) {
+                                // ログイン成功時でコメント投稿モードの場合は再度HTML（ニコ生視聴ページ）をリクエスト
+                                if (isWatchingMode) {
+                                    GlobalScope.launch {
+                                        val againResponse = getNicoLiveWebPage().await()
+                                        if (againResponse.isSuccessful && againResponse.headers["x-niconico-id"] != null) {
+                                            // HTMLパースする（HTMLの中にあるJSONをパース）
+                                            parseNicoLiveHTML(againResponse.body?.string())
+                                        } else {
+                                            showToast("ログインが切れたため再度ログインしました。しかし視聴ページの取得に失敗しました。\n${againResponse.code}")
+                                        }
+                                    }
+                                }
+                                // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
+                                getplayerstatus()
+                            }
+                        } else {
+                            // HTMLパースする（HTMLの中にあるJSONをパース）
+                            parseNicoLiveHTML(response.body?.string())
+                            // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
+                            getplayerstatus()
+                        }
+                    } else {
+                        // 失敗。
+                        showToast("${getString(R.string.error)}\n${response.code}")
+                    }
                 }
-
             }
+
+            // 全部屋表示
+            //LiveIDを詰める
+            val bundle = Bundle()
+            bundle.putString("liveId", liveId)
+            val commentViewFragment = CommentViewFragment()
+            commentViewFragment.arguments = bundle
+            val fragmentTransaction =
+                childFragmentManager.beginTransaction()
+            fragmentTransaction.replace(
+                activity_comment_linearlayout.id,
+                commentViewFragment,
+                "${liveId}_comment_view_fragment"
+            )
+            fragmentTransaction.commit()
 
             //TabLayout選択
             //標準でコメントの欄を選んでおく
@@ -613,94 +628,6 @@ class CommentFragment : Fragment() {
                     }
                 }
             })
-/*
-
-            activity_comment_bottom_navigation_bar.setOnNavigationItemSelectedListener {
-                when (it.itemId) {
-                    R.id.comment_view_menu_comment_view -> {
-                        //コメント
-                        val fragmentTransaction =
-                            commentActivity.supportFragmentManager.beginTransaction()
-                        //LiveIDを詰める
-                        val bundle = Bundle()
-                        bundle.putString("liveId", liveId)
-                        //LiveID付きで
-                        val commentViewFragment = CommentViewFragment()
-                        commentViewFragment.arguments = bundle
-                        fragmentTransaction.replace(
-                            R.id.activity_comment_linearlayout,
-                            commentViewFragment
-                        )
-                        fragmentTransaction.commit()
-                    }
-                    R.id.comment_view_menu_room -> {
-                        //ギフト
-                        val fragmentTransaction =
-                            commentActivity.supportFragmentManager.beginTransaction()
-                        //LiveIDを詰める
-                        val bundle = Bundle()
-                        bundle.putString("liveId", liveId)
-                        //LiveID付きで
-                        val commentRoomFragment = CommentRoomFragment()
-                        commentRoomFragment.arguments = bundle
-                        fragmentTransaction.replace(
-                            R.id.activity_comment_linearlayout,
-                            commentRoomFragment
-                        )
-                        fragmentTransaction.commit()
-                    }
-                    R.id.comment_view_menu_gift -> {
-                        //ギフト
-                        val fragmentTransaction =
-                            commentActivity.supportFragmentManager.beginTransaction()
-                        //LiveIDを詰める
-                        val bundle = Bundle()
-                        bundle.putString("liveId", liveId)
-                        //LiveID付きで
-                        val giftFragment = GiftFragment()
-                        giftFragment.arguments = bundle
-                        fragmentTransaction.replace(
-                            R.id.activity_comment_linearlayout,
-                            giftFragment
-                        )
-                        fragmentTransaction.commit()
-                    }
-                    R.id.comment_view_menu_nicoad -> {
-                        //広告
-                        val fragmentTransaction =
-                            commentActivity.supportFragmentManager.beginTransaction()
-                        //LiveIDを詰める
-                        val bundle = Bundle()
-                        bundle.putString("liveId", liveId)
-                        //LiveID付きで
-                        val nicoAdFragment = NicoAdFragment()
-                        nicoAdFragment.arguments = bundle
-                        fragmentTransaction.replace(
-                            R.id.activity_comment_linearlayout,
-                            nicoAdFragment
-                        )
-                        fragmentTransaction.commit()
-                    }
-                    R.id.comment_view_menu_info -> {
-                        //番組情報
-                        val fragmentTransaction =
-                            commentActivity.supportFragmentManager.beginTransaction()
-                        //LiveIDを詰める
-                        val bundle = Bundle()
-                        bundle.putString("liveId", liveId)
-                        //LiveIDを詰める
-                        val programInfoFragment = ProgramInfoFragment()
-                        programInfoFragment.arguments = bundle
-                        fragmentTransaction.replace(
-                            R.id.activity_comment_linearlayout,
-                            programInfoFragment
-                        )
-                        fragmentTransaction.commit()
-                    }
-                }
-                true
-            }
-*/
         } else {
             showToast(getString(R.string.mail_pass_error))
             commentActivity.finish()
@@ -933,13 +860,7 @@ class CommentFragment : Fragment() {
             put("date", unixTime)
             put("description", "")
         }
-        println(
-            nicoHistorySQLiteDatabase.insert(
-                NicoHistorySQLiteHelper.TABLE_NAME,
-                null,
-                contentValues
-            )
-        )
+        nicoHistorySQLiteDatabase.insert(NicoHistorySQLiteHelper.TABLE_NAME, null, contentValues)
     }
 
     //経過時間計算
@@ -977,7 +898,7 @@ class CommentFragment : Fragment() {
     //ニコ生の視聴用の情報を流してくれるWebSocketに接続する
 //コメントに投稿したり、HLSのアドレスはWebSocketから取得する必要がある。
 //で、WebSocketのアドレスはHTMLを解析する必要がある！？！？！？
-    fun getNicoLiveWebPage() {
+    fun getNicoLiveWebPage(): Deferred<Response> = GlobalScope.async {
         //番組ID
         val id = arguments?.getString("liveId") ?: ""
         var request: Request
@@ -987,6 +908,7 @@ class CommentFragment : Fragment() {
             //視聴モード（ユーザーセッション付き）
             request = Request.Builder()
                 .url("https://live2.nicovideo.jp/watch/${id}")
+                .header("User-Agent", "TatimiDroid;@takusan_23")
                 .header("Cookie", "user_session=${usersession}")
                 .get()
                 .build()
@@ -994,55 +916,49 @@ class CommentFragment : Fragment() {
             //コメビュモード（ユーザーセッションなし）
             request = Request.Builder()
                 .url("https://live2.nicovideo.jp/watch/${id}")
+                .header("User-Agent", "TatimiDroid;@takusan_23")
                 .get()
                 .build()
         }
 
         val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                showToast("${getString(R.string.error)}")
-            }
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
 
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    val response_string = response.body?.string()
-                    //HTML解析
-                    val html = Jsoup.parse(response_string)
-                    //謎のJSON取得
-                    //この部分長すぎてChromeだとうまくコピーできないんだけど、Edgeだと完璧にコピーできたぞ！
-                    //F12押してConsole選んで以下のJavaScriptを実行すれば取れます。
-                    //console.log(document.getElementById('embedded-data').getAttribute('data-props'))
-                    if (html.getElementById("embedded-data") != null) {
-                        val json = html.getElementById("embedded-data").attr("data-props")
-                        val jsonObject = JSONObject(json)
-                        val site = jsonObject.getJSONObject("site")
-                        val relive = site.getJSONObject("relive")
-                        //WebSocketリンク
-                        val websocketUrl = relive.getString("webSocketUrl")
-                        //番組情報
-                        val program = jsonObject.getJSONObject("program")
-                        //公式番組かどうか
-                        val providerType = program.getString("providerType")
-                        if (providerType == "official") {
-                            isOfficial = true
-                            //公式番組では全部屋取得APIが使えないので部屋別表示を無効にする。
-                            activity?.runOnUiThread {
-                                if (isOfficial) {
-                                    activity_comment_tab_layout.removeTabAt(2)
-                                }
-                            }
-                        }
-                        //broadcastId
-                        val broadcastId = program.getString("broadcastId")
-                        connectionNicoLiveWebSocket(websocketUrl, broadcastId)
-                        //println("取得した $liveId")
+    // HTMLから必要な情報を取得する
+    fun parseNicoLiveHTML(responseHTML: String?) {
+        //HTML解析
+        val html = Jsoup.parse(responseHTML)
+        //謎のJSON取得
+        //この部分長すぎてChromeだとうまくコピーできないんだけど、Edgeだと完璧にコピーできたぞ！
+        //F12押してConsole選んで以下のJavaScriptを実行すれば取れます。
+        //console.log(document.getElementById('embedded-data').getAttribute('data-props'))
+        if (html.getElementById("embedded-data") != null) {
+            val json = html.getElementById("embedded-data").attr("data-props")
+            val jsonObject = JSONObject(json)
+            val site = jsonObject.getJSONObject("site")
+            val relive = site.getJSONObject("relive")
+            //WebSocketリンク
+            val websocketUrl = relive.getString("webSocketUrl")
+            //番組情報
+            val program = jsonObject.getJSONObject("program")
+            //公式番組かどうか
+            val providerType = program.getString("providerType")
+            if (providerType == "official") {
+                isOfficial = true
+                //公式番組では全部屋取得APIが使えないので部屋別表示を無効にする。
+                activity?.runOnUiThread {
+                    if (isOfficial) {
+                        activity_comment_tab_layout.removeTabAt(2)
                     }
-                } else {
-                    showToast("${getString(R.string.error)}\n${response.code}")
                 }
             }
-        })
+            //broadcastId
+            val broadcastId = program.getString("broadcastId")
+            connectionNicoLiveWebSocket(websocketUrl, broadcastId)
+            //println("取得した $liveId")
+        }
     }
 
     //ニコ生の視聴に必要なデータを流してくれるWebSocket

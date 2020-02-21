@@ -67,6 +67,7 @@ class NicoLogin(val context: Context, val liveId: String) {
 
     companion object {
         /**
+         * UIスレッドでは実行できません。
          * ニコ動へログインする関数。ただし初回利用時は利用できません。（SharedPreferenceに値が保存されている必要があるため。）
          * @param context SharedPreferenceに保存するときなどに必要。
          * @param loginSuccessful ログインに成功したら呼ばれます。（注意：UIスレッドではありません。）
