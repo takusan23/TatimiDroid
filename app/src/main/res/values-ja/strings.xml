@@ -228,4 +228,8 @@
     <string name="cast">キャスト</string>
     <string name="re_login_successful">ユーザーセッションが切れたので再度ログインしました。</string>
     <string name="reload">再読み込み</string>
+    <string name="font">フォント</string>
+    <string name="setting_select_font">フォントを選択する</string>
+    <string name="setting_reset_font">選択したフォントを削除する</string>
+    <string name="setting_font_description">もしフォント選択で選べないフォントファイルを利用したい場合は以下の場所においてください。\\\\n /sdcard/Android/data/io.github.takusan23.tatimidroid/font</string>
 </resources>

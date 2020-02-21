@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import io.github.takusan23.tatimidroid.Activity.KonoApp
@@ -23,6 +24,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
     val privacy_policy = "https://github.com/takusan23/TatimiDroid/blob/master/privacy_policy.md"
 
     val fontFileOpenCode = 845
+
+    lateinit var setting_font_category: PreferenceCategory
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
@@ -41,8 +44,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
             findPreference<Preference>("auto_admission_stop_preference")
         val konoapp_privacy = findPreference<Preference>("konoapp_privacy")
 
+        // フォントかてごりー
+        setting_font_category = findPreference<PreferenceCategory>("setting_font_category")!!
         // フォント指定
-        val font_select_setting = findPreference<Preference>("setting_font_select")
+        val fontSelectPreference = findPreference<Preference>("setting_font_select")
         // フォント削除
         val font_select_reset = findPreference<Preference>("setting_font_reset")
 
@@ -70,19 +75,21 @@ class SettingsFragment : PreferenceFragmentCompat() {
             true
         }
 
-        font_select_setting?.setOnPreferenceClickListener {
+        fontSelectPreference?.setOnPreferenceClickListener {
             // フォント選択
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             intent.apply {
-                type = "font/otf"
+                type = "font/*"
             }
             startActivityForResult(intent, fontFileOpenCode)
             true
         }
 
         font_select_reset?.setOnPreferenceClickListener {
-            // フォント選択リセット
+            // 選択したフォントリセット
             resetFont()
+            // 選択中フォント更新
+            setting_font_category.summary = getSelectFontName()
             true
         }
 
@@ -90,6 +97,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
             darkmode_switch_preference?.isVisible = true
         }
 
+        // 選択中フォントの名前を選択の説明文として入れるなど
+        setting_font_category.summary = getSelectFontName()
 
     }
 
@@ -104,11 +113,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
             fontFolder.mkdir()
             // ふぁいるこぴー。
             val fileName = getFileName(data.data)
-            val scopedStorageFontFile = File("${fontFolder}/font${getExtension(fileName)}")
+            val scopedStorageFontFile = File("${fontFolder}/$fileName")
             scopedStorageFontFile.createNewFile()
             scopedStorageFontFile.outputStream().use {
                 context?.contentResolver?.openInputStream(data.data!!)?.copyTo(it)
             }
+            // 選択中フォント更新
+            setting_font_category.summary = getSelectFontName()
         }
     }
 
@@ -145,7 +156,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val fontFolder = File("${context?.getExternalFilesDir(null)}/font")
         if (fontFolder.exists()) {
             // 存在するとき削除
-            fontFolder.listFiles().forEach {
+            fontFolder.listFiles()?.forEach {
                 it.delete()
             }
         }
@@ -154,6 +165,15 @@ class SettingsFragment : PreferenceFragmentCompat() {
     fun startBrowser(link: String) {
         val i = Intent(Intent.ACTION_VIEW, link.toUri());
         startActivity(i);
+    }
+
+    // 選択中のフォントの名前
+    fun getSelectFontName(): CharSequence? {
+        val fontFolder = File("${context?.getExternalFilesDir(null)}/font")
+        if (fontFolder.listFiles()?.size ?: 0 <= 0) {
+            return ""
+        }
+        return fontFolder.listFiles()?.get(0)?.name ?: ""
     }
 
 }

@@ -228,4 +228,8 @@
     <string name="cast">Cast</string>
     <string name="re_login_successful">Logged in again because user session expired.</string>
     <string name="reload">Reload</string>
+    <string name="font">font</string>
+    <string name="setting_select_font">Choose a font</string>
+    <string name="setting_reset_font">Delete selected font</string>
+    <string name="setting_font_description">If you want to use a font file that cannot be selected in font selection, please go to the following location. \\\\n /sdcard/Android/data/io.github.takusan23.tatimidroid/font</string>
 </resources>
