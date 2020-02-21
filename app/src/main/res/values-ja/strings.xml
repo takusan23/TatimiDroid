@@ -226,4 +226,6 @@
     <string name="setting_command_room_color_description">アリーナのコメントには青色、のように部屋別に色を付けます。 有効にした場合、コマンドの色付きコメントは無効になります。</string>
     <string name="error_follower_only">フォロワー限定番組です。</string>
     <string name="cast">キャスト</string>
+    <string name="re_login_successful">ユーザーセッションが切れたので再度ログインしました。</string>
+    <string name="reload">再読み込み</string>
 </resources>
