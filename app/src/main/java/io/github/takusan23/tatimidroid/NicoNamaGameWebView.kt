@@ -63,12 +63,13 @@ class NicoNamaGameWebView(val context: Context?, val liveId: String) {
                     loadUrl("javascript:document.getElementsByClassName('___comment-button___KaSS7')[0].click()")
                     // 動画プレイヤー消す
                     loadUrl("javascript:(function(){document.getElementsByTagName('video')[0].parentNode.remove()})()")
+                    // コントローラー削除
+                    loadUrl("javascript:(function(){document.getElementsByClassName('___player-display-footer___2DTQK')[0].remove()})()")
                     // コントローラー非表示
-                    loadUrl("javascript:(function(){document.getElementsByClassName('___controller-display-button___18KFH')[0].click())()")
+                    // loadUrl("javascript:(function(){document.getElementsByClassName('___controller-display-button___18KFH')[0].click())()")
                     // 背景を透明に
                     loadUrl("javascript:(function(){document.getElementsByClassName('___player-display___35bAr')[0].style.backgroundColor = 'transparent' })()")
                     loadUrl("javascript:(function(){document.getElementsByClassName('___watch-page___th_ha ___ga-ns-watch-page___pYeNv ___page___1G6yH')[0].style.backgroundColor = 'transparent' })()")
-
                     // 読み込み完了したので表示
                     view?.isVisible = true
                 }

@@ -104,6 +104,55 @@
 
                     </LinearLayout>
 
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+                        <TextView
+                                android:id="@+id/textView14"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="5sp"
+                                android:text="ニコ生ゲーム"
+                                android:textSize="18sp" />
+
+                        <Switch
+                                android:id="@+id/fragment_comment_fragment_nico_nama_game_switch"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="5sp"
+                                android:text="ニコ生ゲームを遊べるようにする（試験的）" />
+                    </LinearLayout>
+
+                    <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="5sp"
+                            android:text="@string/comment_viewer_setting"
+                            android:textSize="18sp" />
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="5sp">
+
+                        <Switch
+                                android:id="@+id/fragment_comment_fragment_menu_comment_setting_hidden_id_swtich"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="5sp"
+                                android:text="@string/setting_hidden_id" />
+
+                        <Switch
+                                android:id="@+id/fragment_comment_fragment_menu_setting_one_line_switch"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="5sp"
+                                android:text="@string/setting_one_line" />
+                    </LinearLayout>
+
                     <Switch
                             android:id="@+id/fragment_comment_fragment_menu_comment_hidden_switch"
                             android:layout_width="match_parent"
@@ -163,55 +212,6 @@
                             android:layout_height="wrap_content"
                             android:padding="5sp"
                             android:text="@string/low_latency" />
-
-                    <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="5sp"
-                            android:text="@string/comment_viewer_setting"
-                            android:textSize="18sp" />
-
-                    <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="5sp">
-
-                        <Switch
-                                android:id="@+id/fragment_comment_fragment_menu_comment_setting_hidden_id_swtich"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:padding="5sp"
-                                android:text="@string/setting_hidden_id" />
-
-                        <Switch
-                                android:id="@+id/fragment_comment_fragment_menu_setting_one_line_switch"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:padding="5sp"
-                                android:text="@string/setting_one_line" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:orientation="vertical">
-
-                        <TextView
-                                android:id="@+id/textView14"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:padding="5sp"
-                                android:text="ニコ生ゲーム"
-                                android:textSize="18sp" />
-
-                        <Switch
-                                android:id="@+id/fragment_comment_fragment_nico_nama_game_switch"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:padding="5sp"
-                                android:text="ニコ生ゲームを遊べるようにする（試験的）" />
-                    </LinearLayout>
 
                     <Button
                             android:id="@+id/fragment_comment_fragment_menu_quality_button"
