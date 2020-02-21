@@ -231,5 +231,12 @@
     <string name="font">フォント</string>
     <string name="setting_select_font">フォントを選択する</string>
     <string name="setting_reset_font">選択したフォントを削除する</string>
-    <string name="setting_font_description">もしフォント選択で選べないフォントファイルを利用したい場合は以下の場所においてください。\\\\n /sdcard/Android/data/io.github.takusan23.tatimidroid/font</string>
+    <string name="setting_font_description">もしフォント選択で選べないフォントファイルを利用したい場合は以下の場所においてください。\n /sdcard/Android/data/io.github.takusan23.tatimidroid/font</string>
+    <string name="nico_nama_game">ニコ生ゲーム</string>
+    <string name="play_nico_nama_game">ニコ生ゲームを遊ぶ（試験的）</string>
+    <string name="nico_nama_game_engineers">技術者向け：ニコ生ゲームを利用するために、PC版ニコ生をWebViewに表示させることで実現しています。</string>
+    <string name="nico_nama_game_description">有効にする際は他の端末で視聴していないことを確認してください。また他の端末で番組を開かないでください。（切断されます）</string>
+    <string name="nico_nama_game_playing_program">ニコ生ゲームプレイ中の番組</string>
+    <string name="nico_nama_game_recruiting_program">ニコ生ゲーム視聴者募集中の番組</string>
+    <string name="not_found_program">番組が見つかりませんでした</string>
 </resources>

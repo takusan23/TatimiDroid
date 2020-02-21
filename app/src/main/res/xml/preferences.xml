@@ -154,13 +154,13 @@
     </Preference>
 
     <PreferenceCategory
-            android:key="setting_font_category"
             android:icon="@drawable/ic_font_download_24px"
+            android:key="setting_font_category"
             android:title="@string/font">
 
         <Preference
-                android:summary="@string/setting_font_description"
                 android:key="setting_font_select"
+                android:summary="@string/setting_font_description"
                 android:title="@string/setting_select_font" />
         <Preference
                 android:key="setting_font_reset"

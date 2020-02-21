@@ -140,7 +140,87 @@ class CommunityListFragment : Fragment() {
                 (activity as AppCompatActivity).supportActionBar?.title =
                     getString(R.string.ranking)
             }
+            getString(R.string.nico_nama_game_recruiting_program) -> {
+                // 募集中
+                getNicoNamaGameProgram("https://api.spi.nicovideo.jp/v1/matching/profiles/targets/frontend/statuses/matching?limit=20")
+                (activity as AppCompatActivity).supportActionBar?.title =
+                    getString(R.string.nico_nama_game_recruiting_program)
+            }
+            getString(R.string.nico_nama_game_playing_program) -> {
+                // プレイ中
+                getNicoNamaGameProgram("https://api.spi.nicovideo.jp/v1/matching/profiles/targets/frontend/statuses/playing?limit=30")
+                (activity as AppCompatActivity).supportActionBar?.title =
+                    getString(R.string.nico_nama_game_playing_program)
+            }
         }
+    }
+
+    /**
+     * ニコ生ゲームプレイ中番組取得。APIのリンクちょっと違うだけで、レスポンスのJSONの形は変わらなかった。
+     * @param url URL。api.spi.nicovideo.jp/v1/matching/profiles/targets/frontend/statuses/playing か spi.nicovideo.jp/v1/matching/profiles/targets/frontend/statuses/matching?limit=20
+     * */
+    fun getNicoNamaGameProgram(url: String) {
+        recyclerViewList.clear()
+        val request = Request.Builder().apply {
+            url(url) // なんと！APIがある！
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$user_session")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                showToast(getString(R.string.error))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                recyclerViewList.clear()
+                if (response.isSuccessful) {
+                    // JSONパース
+                    val jsonObject = JSONObject(response.body?.string())
+                    val data = jsonObject.getJSONArray("data")
+                    for (i in 0 until data.length()) {
+                        val program = data.getJSONObject(i)
+                        val contentId = program.getString("contentId") // 番組ID
+                        val contentTitle = program.getString("contentTitle") // 番組名
+                        val startedAt = program.getString("startedAt") // 番組開始時間
+                        val providerName = program.getString("providerName") // 放送者
+                        val productName = program.getString("productName") // ゲーム名
+                        // ISO 8601の形式からUnixTimeへ変換（Adapterの方で必要）
+                        val simpleDateFormat =
+                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX")
+                        val date_calender = simpleDateFormat.parse(startedAt)
+                        val calender = Calendar.getInstance(TimeZone.getDefault())
+                        calender.time = date_calender
+                        //RecyclerView追加
+                        val item = arrayListOf<String>()
+                        item.add("")
+                        item.add("$contentTitle\n\uD83C\uDFAE：$productName")
+                        item.add(providerName)
+                        item.add(contentTitle)
+                        item.add(calender.time.time.toString())
+                        item.add(calender.time.time.toString())
+                        item.add(contentId)
+                        item.add("")
+                        item.add("ON_AIR")
+                        recyclerViewList.add(item)
+                    }
+                    //リスト更新
+                    activity?.runOnUiThread {
+                        communityRecyclerViewAdapter.notifyDataSetChanged()
+                        community_recyclerview.adapter = communityRecyclerViewAdapter
+                        community_swipe.isRefreshing = false
+                        if (data.length() == 0) {
+                            // なかったよ；；
+                            Toast.makeText(context, R.string.not_found_program, Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                }
+            }
+        })
     }
 
     fun setTitle(title: String) {

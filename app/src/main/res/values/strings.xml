@@ -231,5 +231,12 @@
     <string name="font">font</string>
     <string name="setting_select_font">Choose a font</string>
     <string name="setting_reset_font">Delete selected font</string>
-    <string name="setting_font_description">If you want to use a font file that cannot be selected in font selection, please go to the following location. \\\\n /sdcard/Android/data/io.github.takusan23.tatimidroid/font</string>
+    <string name="setting_font_description">If you want to use a font file that cannot be selected in font selection, please go to the following location. \n /sdcard/Android/data/io.github.takusan23.tatimidroid/font</string>
+    <string name="nico_nama_game">Nico live game</string>
+    <string name="play_nico_nama_game">Play Nico live game (experimental)</string>
+    <string name="nico_nama_game_engineers">For engineers: In order to use the Nico Live game, it is realized by displaying the PC version of Nico Live on WebView.</string>
+    <string name="nico_nama_game_description">Make sure you ’re not watching on another device when activating. Also, do not open programs on other terminals. (Disconnected)</string>
+    <string name="nico_nama_game_playing_program">Program during Nico live game play</string>
+    <string name="nico_nama_game_recruiting_program">Programs for recruiting Nico live game viewers</string>
+    <string name="not_found_program">No shows found</string>
 </resources>

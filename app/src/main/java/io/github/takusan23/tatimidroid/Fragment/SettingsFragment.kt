@@ -45,7 +45,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val konoapp_privacy = findPreference<Preference>("konoapp_privacy")
 
         // フォントかてごりー
-        setting_font_category = findPreference<PreferenceCategory>("setting_font_category")!!
+        setting_font_category = findPreference("setting_font_category")!!
         // フォント指定
         val fontSelectPreference = findPreference<Preference>("setting_font_select")
         // フォント削除

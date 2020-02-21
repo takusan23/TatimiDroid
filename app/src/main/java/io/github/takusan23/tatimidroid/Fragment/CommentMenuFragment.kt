@@ -70,7 +70,6 @@ class CommentMenuFragment : Fragment() {
 
         //OutlinedButtonのテキストの色
         darkmode()
-        fragment_comment_fragment_nico_nama_game_switch
     }
 
     fun darkmode() {
