@@ -31,23 +31,27 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     //GoogleCast
     implementation 'com.google.android.gms:play-services-cast-framework:18.0.0'
-
-
+    // ExoPlayer
     implementation 'com.google.android.exoplayer:exoplayer-core:2.10.4'
     implementation 'com.google.android.exoplayer:exoplayer-hls:2.10.4'
     implementation 'com.google.android.exoplayer:extension-mediasession:2.10.4'
-
+    // WebSocket
     implementation "org.java-websocket:Java-WebSocket:1.4.0"
+    // HTML Parser
     implementation 'org.jsoup:jsoup:1.12.1'
+    // Coroutines
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.0"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0"
+    // Preference
     implementation "androidx.preference:preference:1.1.0"
+    // OkHttp
     implementation("com.squareup.okhttp3:okhttp:4.0.1")
+    // Material Design
     implementation 'com.google.android.material:material:1.2.0-alpha02'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    // Android 5.x でWebViewが落ちるので
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0'
     implementation 'androidx.core:core-ktx:1.1.0'

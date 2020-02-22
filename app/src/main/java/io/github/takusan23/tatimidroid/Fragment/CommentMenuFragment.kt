@@ -70,6 +70,12 @@ class CommentMenuFragment : Fragment() {
 
         //OutlinedButtonのテキストの色
         darkmode()
+
+        // Android 5の場合はWebViewが落ちてしまうので塞ぐ
+        // こればっかりはandroidx.appcompat:appcompatのせいなので私悪くない
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP_MR1) {
+            fragment_comment_fragment_nico_nama_game_switch.isEnabled = false
+        }
     }
 
     fun darkmode() {

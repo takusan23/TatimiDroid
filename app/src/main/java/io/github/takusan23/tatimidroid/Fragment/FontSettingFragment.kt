@@ -51,8 +51,8 @@ class FontSettingFragment : Fragment() {
             // フォントサイズリセット
             // フォントサイズが指定されていなければ空文字が入る。
             pref_setting.edit {
-                putFloat("setting_font_size_id", 14F)
-                putFloat("setting_font_size_comment", 18F)
+                putFloat("setting_font_size_id", 12F)
+                putFloat("setting_font_size_comment", 14F)
                 apply()
                 fontSizeEditTextInit()
             }

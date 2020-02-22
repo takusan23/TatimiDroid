@@ -188,7 +188,7 @@ class CommunityListFragment : Fragment() {
                         val productName = program.getString("productName") // ゲーム名
                         // ISO 8601の形式からUnixTimeへ変換（Adapterの方で必要）
                         val simpleDateFormat =
-                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX")
+                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
                         val date_calender = simpleDateFormat.parse(startedAt)
                         val calender = Calendar.getInstance(TimeZone.getDefault())
                         calender.time = date_calender
@@ -439,6 +439,7 @@ class CommunityListFragment : Fragment() {
                                     R.string.re_login_successful,
                                     Snackbar.LENGTH_SHORT
                                 ).setAction(R.string.reload) {
+                                    user_session = pref_setting.getString("user_session", "") ?: ""
                                     getFavouriteCommunity()
                                 }.show()
                             }

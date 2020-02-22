@@ -13,8 +13,8 @@ import java.util.prefs.PreferenceChangeEvent
 /**
  * フォント変更機能 / フォントサイズ変更機能 でよく使うやつ。
  *
- * フォントサイズ（ユーザーID）：setting_font_size_id　Float　初期値　14F
- * フォントサイズ（コメント）：setting_font_size_comment　Float 初期値　18F
+ * フォントサイズ（ユーザーID）：setting_font_size_id　Float　初期値　12F
+ * フォントサイズ（コメント）：setting_font_size_comment　Float 初期値　14F
  *
  * */
 class CustomFont(val context: Context?) {
@@ -31,9 +31,9 @@ class CustomFont(val context: Context?) {
     lateinit var typeface: Typeface
 
     // フォントサイズ（ゆーざーID）
-    var userIdFontSize = 14F
+    var userIdFontSize = 12F
     // フォントサイズ（コメント）
-    var commentFontSize = 18F
+    var commentFontSize = 14F
 
     init {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
@@ -44,8 +44,8 @@ class CustomFont(val context: Context?) {
             typeface = Typeface.createFromFile(fontFile)
         }
         // フォントサイズ取得
-        userIdFontSize = pref_setting.getFloat("setting_font_size_id", 14F)
-        commentFontSize = pref_setting.getFloat("setting_font_size_comment", 18F)
+        userIdFontSize = pref_setting.getFloat("setting_font_size_id", 12F)
+        commentFontSize = pref_setting.getFloat("setting_font_size_comment", 14F)
     }
 
 
