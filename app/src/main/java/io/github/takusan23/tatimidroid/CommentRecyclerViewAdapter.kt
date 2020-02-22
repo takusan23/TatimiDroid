@@ -210,6 +210,12 @@ class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<Ar
                 holder.commentTextView.maxLines = 1
             }
 
+            // ユーザーの設定したフォントサイズ
+            commentFragment.customFont.apply {
+                holder.commentTextView.textSize = commentFontSize
+                holder.roomNameTextView.textSize = userIdFontSize
+            }
+
             // ユーザーの設定したフォント
             commentFragment.customFont.setTextViewFont(holder.commentTextView)
             commentFragment.customFont.setTextViewFont(holder.roomNameTextView)
