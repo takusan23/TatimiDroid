@@ -78,7 +78,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
                 add(communityId)
             }
             recyclerViewList.add(0,item)
-            println(id)
+            //println(id)
             query.moveToNext()
         }
         query.close()

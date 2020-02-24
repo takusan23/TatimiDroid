@@ -3,6 +3,8 @@ package io.github.takusan23.tatimidroid.Fragment
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +16,7 @@ import androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.adapter_community_layout.*
 import kotlinx.android.synthetic.main.fragment_program_info.*
@@ -27,14 +30,23 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
 import java.text.SimpleDateFormat
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
 import java.time.temporal.WeekFields
 import java.util.*
+import kotlin.concurrent.thread
 
 class ProgramInfoFragment : Fragment() {
 
     var liveId = ""
     var usersession = ""
     lateinit var pref_setting: SharedPreferences
+
+    // ユーザー、コミュID
+    var userId = ""
+    var communityId = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,16 +80,33 @@ class ProgramInfoFragment : Fragment() {
                         //ボタン作成
                         val button = MaterialButton(context!!)
                         button.text = text
-                        if(isNicopedia){
+                        if (isNicopedia) {
                             button.setOnClickListener {
-                                val intent = Intent(Intent.ACTION_VIEW,nicopediaUrl.toUri())
+                                val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
                                 startActivity(intent)
                             }
-                        }else{
+                        } else {
                             button.isEnabled = false
                         }
                         fragment_program_info_tag_linearlayout.addView(button)
                     }
+                }
+            }
+        }
+
+        // ユーザーフォロー
+        fragment_program_info_broadcaster_follow_button.setOnClickListener {
+            requestFollow(userId) {
+                Toast.makeText(context, "ユーザーをフォローしました。", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // コミュニティフォロー
+        fragment_program_info_community_follow_button.setOnClickListener {
+            requestCommunityFollow(communityId) {
+                activity?.runOnUiThread {
+                    Toast.makeText(context, "コミュニティをフォローしました。\n$communityId", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }
@@ -115,11 +144,13 @@ class ProgramInfoFragment : Fragment() {
                     val startTimeFormat = simpleDateFormat.format(startTime.toLong() * 1000)
                     //コミュ
                     val community = data.getJSONObject("socialGroup")
+                    communityId = community.getString("id")
                     val community_name = community.getString("name")
                     val community_level = community.getString("communityLevel")
                     //配信者
                     val broadcaster = data.getJSONObject("broadcaster")
                     val name = broadcaster.getString("name")
+                    userId = broadcaster.getString("id")
                     //UI
                     activity?.runOnUiThread {
                         fragment_program_info_broadcaster_name.text =
@@ -171,6 +202,82 @@ class ProgramInfoFragment : Fragment() {
         } else {
             return@async ""
         }
+    }
+
+    /**
+     * ユーザーをフォローする関数。
+     * @param userId ユーザーID
+     * @param response 成功時呼ばれます。UIスレッドではない。
+     * */
+    fun requestFollow(userId: String, response: (Response) -> Unit) {
+        val request = Request.Builder().apply {
+            url("https://public.api.nicovideo.jp/v1/user/followees/niconico-users/${userId}.json")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$usersession")
+            // これがないと 200 が帰ってこない
+            header(
+                "X-Request-With",
+                "https://live2.nicovideo.jp/watch/$liveId?_topic=live_user_program_onairs"
+            )
+            post("{}".toRequestBody()) // 送る内容は｛｝ていいらしい。
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                showToast(getString(R.string.error))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val status =
+                        JSONObject(response.body?.string()).getJSONObject("meta").getInt("status")
+                    if (status == 200) {
+                        // 高階関数をよぶ
+                        response(response)
+                    }
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                }
+            }
+        })
+    }
+
+    /**
+     * コミュニティをフォローする関数。
+     * @param communityId コミュニティーID coから
+     * @param response 成功したら呼ばれます。
+     * */
+    fun requestCommunityFollow(communityId: String, response: (Response) -> Unit) {
+        val formData = FormBody.Builder().apply {
+            add("mode", "commit")
+            add("title", "フォローリクエスト")
+            add("comment", "")
+            add("notify", "")
+        }.build()
+        val request = Request.Builder().apply {
+            url("https://com.nicovideo.jp/motion/${communityId}")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$usersession")
+            header("Content-Type", "application/x-www-form-urlencoded")
+            // Referer これないと200が帰ってくる。（ほしいのは302 Found）
+            header("Referer", "https://com.nicovideo.jp/motion/$communityId")
+            post(formData) // これ送って何にするの？
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                showToast(getString(R.string.error))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    // 302 Foundのとき成功？
+                    response(response)
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                }
+            }
+        })
     }
 
 }
