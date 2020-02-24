@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import com.google.android.material.transition.MaterialFadeThrough
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_login.*
 import java.io.IOException

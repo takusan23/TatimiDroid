@@ -13,6 +13,7 @@ import android.text.SpannableString
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import com.google.android.material.transition.MaterialFadeThrough
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
@@ -59,7 +60,11 @@ class MainActivity : AppCompatActivity() {
 
         //生放送ID入力
         val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
-        fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, LiveIDFragment(),"liveid_fragment")
+        fragmentTransitionSupport.replace(
+            R.id.main_activity_linearlayout,
+            LiveIDFragment(),
+            "liveid_fragment"
+        )
         fragmentTransitionSupport.commit()
 
         //画面切り替え
@@ -68,12 +73,19 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.menu_login -> {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
+                    fragmentTransaction.replace(
+                        R.id.main_activity_linearlayout,
+                        LoginFragment()
+                    )
                     fragmentTransaction.commit()
                 }
                 R.id.menu_liveid -> {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(R.id.main_activity_linearlayout, LiveIDFragment(),"liveid_fragment")
+                    fragmentTransaction.replace(
+                        R.id.main_activity_linearlayout,
+                        LiveIDFragment(),
+                        "liveid_fragment"
+                    )
                     fragmentTransaction.commit()
                 }
                 R.id.menu_community -> {

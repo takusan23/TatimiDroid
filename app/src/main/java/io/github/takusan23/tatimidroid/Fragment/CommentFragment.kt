@@ -1250,6 +1250,21 @@ class CommentFragment : Fragment() {
 
                 }
 
+                // 自動終了
+                if (message?.contains("disconnect") == true) {
+                    val jsonObject = JSONObject(message)
+                    val command = jsonObject.getJSONObject("body").getString("command")
+                    if (command == "disconnect") {
+                        // 終了メッセージ
+                        if (pref_setting.getBoolean("setting_disconnect_activity_finish", false)) {
+                            if (activity is CommentActivity) {
+                                // Activity が CommentActivity なら消す。二窓Activityは動かないように
+                                activity?.finish()
+                            }
+                        }
+                    }
+                }
+
             }
 
             override fun onError(ex: Exception?) {

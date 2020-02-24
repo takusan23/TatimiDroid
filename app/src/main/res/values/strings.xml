@@ -245,4 +245,6 @@
     <string name="setting_font_size_reset">Reset font size</string>
     <string name="font_setting">Font settings</string>
     <string name="setting_font_description">You can use the font size and font file of the comment viewer.</string>
+    <string name="setting_disconnect_activity_finish_title">Exit comment viewer when program ends</string>
+    <string name="setting_disconnect_activity_finish_description">Even if you fall asleep, you can avoid running out of battery.</string>
 </resources>
