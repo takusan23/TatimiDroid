@@ -76,6 +76,8 @@ class CommentViewFragment : Fragment() {
         liveId = arguments?.getString("liveId") ?: ""
         //println("なんでええええええええ$liveId")
 
+        val recyclerView = view.findViewById<RecyclerView>(R.id.fragment_comment_recyclerview)
+
         stringArena = getString(R.string.arena)
 
         //CommentFragment取得
@@ -93,14 +95,14 @@ class CommentViewFragment : Fragment() {
                 )
             }
             // RecyclerView初期化
-            fragment_comment_recyclerview.setHasFixedSize(true)
+            recyclerView.setHasFixedSize(true)
             val mLayoutManager = LinearLayoutManager(context)
-            fragment_comment_recyclerview.layoutManager = mLayoutManager
+            recyclerView.layoutManager = mLayoutManager
             commentRecyclerViewAdapter =
                 CommentRecyclerViewAdapter(allRoomComment.recyclerViewList)
-            fragment_comment_recyclerview.adapter = commentRecyclerViewAdapter
-            allRoomComment.recyclerView = fragment_comment_recyclerview
-            fragment_comment_recyclerview.setItemAnimator(null);
+            recyclerView.adapter = commentRecyclerViewAdapter
+            allRoomComment.recyclerView = recyclerView
+            recyclerView.setItemAnimator(null);
         }
 
         //val viewPool = fragment_comment_recyclerview.recycledViewPool
