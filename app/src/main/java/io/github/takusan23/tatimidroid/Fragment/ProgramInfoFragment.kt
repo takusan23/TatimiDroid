@@ -67,31 +67,49 @@ class ProgramInfoFragment : Fragment() {
         getProgramInfo()
 
         GlobalScope.launch {
-            val list = getNicoLiveHTML().await()
-            if (list.isNotEmpty()) {
-                activity?.runOnUiThread {
-                    val jsonArray = JSONArray(list)
-                    for (i in 0 until jsonArray.length()) {
-                        val tag = jsonArray.getJSONObject(i)
-                        val text = tag.getString("text")
-                        val isNicopedia = tag.getBoolean("existsNicopediaArticle")
-                        val nicopediaUrl =
-                            "https://dic.nicovideo.jp/${tag.getString("nicopediaArticlePageUrlPath")}"
-                        //ボタン作成
-                        val button = MaterialButton(context!!)
-                        button.text = text
-                        if (isNicopedia) {
-                            button.setOnClickListener {
-                                val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
-                                startActivity(intent)
+            val responseString = getNicoLiveHTML().await()
+            val html = Jsoup.parse(responseString)
+            if (html.getElementById("embedded-data") != null) {
+                val json = html.getElementById("embedded-data").attr("data-props")
+                val jsonObject = JSONObject(json)
+                // コミュフォロー中？
+                val isCommunityFollow =
+                    jsonObject.getJSONObject("socialGroup").getBoolean("isFollowed")
+                if (isCommunityFollow) {
+                    activity?.runOnUiThread {
+                        // 押せないように
+                        fragment_program_info_community_follow_button.isEnabled = false
+                        fragment_program_info_community_follow_button.text = "フォロー済みです"
+                    }
+                }
+                //たぐ
+                val tags =
+                    jsonObject.getJSONObject("program").getJSONObject("tag").getJSONArray("list")
+                if (tags.length() != 0) {
+                    activity?.runOnUiThread {
+                        for (i in 0 until tags.length()) {
+                            val tag = tags.getJSONObject(i)
+                            val text = tag.getString("text")
+                            val isNicopedia = tag.getBoolean("existsNicopediaArticle")
+                            val nicopediaUrl =
+                                "https://dic.nicovideo.jp/${tag.getString("nicopediaArticlePageUrlPath")}"
+                            //ボタン作成
+                            val button = MaterialButton(context!!)
+                            button.text = text
+                            if (isNicopedia) {
+                                button.setOnClickListener {
+                                    val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
+                                    startActivity(intent)
+                                }
+                            } else {
+                                button.isEnabled = false
                             }
-                        } else {
-                            button.isEnabled = false
+                            fragment_program_info_tag_linearlayout.addView(button)
                         }
-                        fragment_program_info_tag_linearlayout.addView(button)
                     }
                 }
             }
+
         }
 
         // ユーザーフォロー
@@ -188,17 +206,7 @@ class ProgramInfoFragment : Fragment() {
         val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         if (response.isSuccessful) {
-            val html = Jsoup.parse(response.body?.string())
-            if (html.getElementById("embedded-data") != null) {
-                val json = html.getElementById("embedded-data").attr("data-props")
-                val jsonObject = JSONObject(json)
-                //たぐ
-                val tags =
-                    jsonObject.getJSONObject("program").getJSONObject("tag").getJSONArray("list")
-                return@async tags.toString()
-            } else {
-                return@async ""
-            }
+            return@async response.body?.string() ?: ""
         } else {
             return@async ""
         }

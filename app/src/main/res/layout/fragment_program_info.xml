@@ -75,7 +75,9 @@
                                 android:id="@+id/fragment_program_info_broadcaster_name"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="放送者" />
+                                android:text="放送者"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
 
                         <Button
                                 android:id="@+id/fragment_program_info_broadcaster_follow_button"
