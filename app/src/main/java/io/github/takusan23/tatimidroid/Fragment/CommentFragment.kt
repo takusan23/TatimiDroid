@@ -264,6 +264,9 @@ class CommentFragment : Fragment() {
     // ニコ生ゲームが有効になっているか
     var isAddedNicoNamaGame = false
 
+    // 全部屋接続
+    lateinit var allRoomComment: AllRoomComment
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -325,17 +328,6 @@ class CommentFragment : Fragment() {
 
         initDB()
 
-/*
-        //横画面はLinearLayoutの向きを変える
-        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            //横画面
-            activity_comment_main_linearlayout.orientation = LinearLayout.HORIZONTAL
-        } else {
-            //縦画面
-            activity_comment_main_linearlayout.orientation = LinearLayout.VERTICAL
-        }
-*/
-
         //liveId = intent?.getStringExtra("liveId") ?: ""
         liveId = arguments?.getString("liveId") ?: ""
 
@@ -352,12 +344,6 @@ class CommentFragment : Fragment() {
 
         // ユーザーの設定したフォント読み込み
         customFont = CustomFont(context)
-
-        /*// ニコ生WebView
-        if (pref_setting.getBoolean("setting_nico_nama_game", false)) {
-            nicoNamaGameWebView = NicoNamaGameWebView(context, liveId)
-            live_framelayout.addView(nicoNamaGameWebView.webView)
-        }*/
 
         /*
         * ID同じだと２窓のときなぜか隣のFragmentが置き換わるなどするので
@@ -1849,6 +1835,9 @@ class CommentFragment : Fragment() {
                 release()
             }
         }
+        if (::allRoomComment.isInitialized) {
+            allRoomComment.destory()
+        }
         // println("とじます")
     }
 
@@ -2880,6 +2869,10 @@ class CommentFragment : Fragment() {
 
     fun isPopupViewInit(): Boolean {
         return ::popupView.isInitialized
+    }
+
+    fun isAllRoomCommentInit(): Boolean {
+        return ::allRoomComment.isInitialized
     }
 
 }

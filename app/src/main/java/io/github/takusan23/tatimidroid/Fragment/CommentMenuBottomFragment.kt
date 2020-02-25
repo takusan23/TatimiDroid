@@ -133,39 +133,33 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         //全部屋、部屋別のFragmentが表示されるレイアウトのIDを取る
         val commentFragment = (fragment as CommentFragment)
 
-        //もう一回聞く。
-        val commentViewFragment =
-            commentFragment.childFragmentManager.findFragmentById(commentFragment.getFragmentLinearLayoutId())
-
-        if (commentViewFragment is CommentViewFragment) {
-            //全部屋コメントRecyclerViewを取得
-            val adapterList: ArrayList<ArrayList<String>> = commentViewFragment.recyclerViewList
-            //ConcurrentModificationExceptionが発生する。forEachはやめようね！
-            val tmp = adapterList
-            for (i in 0 until tmp.size) {
-                if (tmp[i] != null) {
-                    val item = tmp[i]
-                    val commentJson: String = item[1]
-                    val roomName: String = item[2]
-                    val commentJSONParse = CommentJSONParse(commentJson, roomName)
-                    //IDを比較
-                    if (commentJSONParse.userId == userId) {
-                        //ロックオンコメント取得
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(commentJson)
-                        item.add(roomName)
-                        item.add(commentJSONParse.userId)
-                        item.add(liveId)
-                        activity?.runOnUiThread {
-                            recyclerViewList.add(item)
-                            commentRecyclerViewAdapter.notifyDataSetChanged()
-                        }
+        //全部屋コメントRecyclerViewを取得
+        val adapterList: ArrayList<ArrayList<String>> =
+            commentFragment.allRoomComment.recyclerViewList
+        //ConcurrentModificationExceptionが発生する。forEachはやめようね！
+        val tmp = adapterList
+        for (i in 0 until tmp.size) {
+            if (tmp[i] != null) {
+                val item = tmp[i]
+                val commentJson: String = item[1]
+                val roomName: String = item[2]
+                val commentJSONParse = CommentJSONParse(commentJson, roomName)
+                //IDを比較
+                if (commentJSONParse.userId == userId) {
+                    //ロックオンコメント取得
+                    val item = arrayListOf<String>()
+                    item.add("")
+                    item.add(commentJson)
+                    item.add(roomName)
+                    item.add(commentJSONParse.userId)
+                    item.add(liveId)
+                    activity?.runOnUiThread {
+                        recyclerViewList.add(item)
+                        commentRecyclerViewAdapter.notifyDataSetChanged()
                     }
                 }
             }
         }
-
     }
 
 

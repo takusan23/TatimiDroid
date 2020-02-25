@@ -78,27 +78,35 @@ class CommentViewFragment : Fragment() {
 
         stringArena = getString(R.string.arena)
 
-        //RecyclerView
-        //recyclerViewList = ArrayList()
-        //ここから下三行必須
-        recyclerViewList = ArrayList()
-        fragment_comment_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(context)
-        fragment_comment_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
-        commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
-        fragment_comment_recyclerview.adapter = commentRecyclerViewAdapter
-        recyclerViewLayoutManager = fragment_comment_recyclerview.layoutManager!!
-
-        fragment_comment_recyclerview.setItemAnimator(null);
-
         //CommentFragment取得
         val fragment =
             (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId)
         commentFragment = fragment as CommentFragment
 
+        commentFragment.apply {
+            if (!isAllRoomCommentInit()) {
+                // 初期化してないとき
+                allRoomComment = AllRoomComment(
+                    context,
+                    liveId,
+                    this
+                )
+            }
+            // RecyclerView初期化
+            fragment_comment_recyclerview.setHasFixedSize(true)
+            val mLayoutManager = LinearLayoutManager(context)
+            fragment_comment_recyclerview.layoutManager = mLayoutManager
+            commentRecyclerViewAdapter =
+                CommentRecyclerViewAdapter(allRoomComment.recyclerViewList)
+            fragment_comment_recyclerview.adapter = commentRecyclerViewAdapter
+            allRoomComment.recyclerView = fragment_comment_recyclerview
+            fragment_comment_recyclerview.setItemAnimator(null);
+        }
+
         //val viewPool = fragment_comment_recyclerview.recycledViewPool
         //viewPool.setMaxRecycledViews(1, 128)
 
+/*
         //ログイン情報がなければ戻す
         if (pref_setting.getString("mail", "")?.contains("") != false) {
             //UserSession取得
@@ -139,6 +147,7 @@ class CommentViewFragment : Fragment() {
                 )
             }
         }
+*/
 
     }
 

@@ -17,7 +17,7 @@ import io.github.takusan23.tatimidroid.Fragment.CommentMenuBottomFragment
 import java.text.SimpleDateFormat
 import java.util.*
 
-class CommentRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :
+class CommentRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :
     RecyclerView.Adapter<CommentRecyclerViewAdapter.ViewHolder>() {
 
     //UserIDの配列。初コメを太字表示する
