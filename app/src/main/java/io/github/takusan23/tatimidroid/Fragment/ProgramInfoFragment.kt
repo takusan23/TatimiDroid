@@ -48,6 +48,9 @@ class ProgramInfoFragment : Fragment() {
     var userId = ""
     var communityId = ""
 
+    // タグ変更に使うトークン
+    var tagToken = ""
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -83,12 +86,12 @@ class ProgramInfoFragment : Fragment() {
                     }
                 }
                 //たぐ
-                val tags =
-                    jsonObject.getJSONObject("program").getJSONObject("tag").getJSONArray("list")
-                if (tags.length() != 0) {
+                val tag = jsonObject.getJSONObject("program").getJSONObject("tag")
+                val tagsList = tag.getJSONArray("list")
+                if (tagsList.length() != 0) {
                     activity?.runOnUiThread {
-                        for (i in 0 until tags.length()) {
-                            val tag = tags.getJSONObject(i)
+                        for (i in 0 until tagsList.length()) {
+                            val tag = tagsList.getJSONObject(i)
                             val text = tag.getString("text")
                             val isNicopedia = tag.getBoolean("existsNicopediaArticle")
                             val nicopediaUrl =
@@ -108,6 +111,8 @@ class ProgramInfoFragment : Fragment() {
                         }
                     }
                 }
+                // タグの登録に必要なトークンを取得
+                tagToken = tag.getString("apiToken")
             }
 
         }
@@ -127,6 +132,17 @@ class ProgramInfoFragment : Fragment() {
                         .show()
                 }
             }
+        }
+
+        // タグ編集
+        fragment_program_info_tag_add_button.setOnClickListener {
+            val nicoLiveTagBottomFragment = NicoLiveTagBottomFragment()
+            val bundle = Bundle().apply {
+                putString("liveId", liveId)
+                putString("tagToken", tagToken)
+            }
+            nicoLiveTagBottomFragment.arguments = bundle
+            nicoLiveTagBottomFragment.show(childFragmentManager, "tag")
         }
 
         //getCommentWatchingCount()
