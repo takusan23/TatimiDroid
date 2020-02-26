@@ -69,6 +69,44 @@ class ProgramInfoFragment : Fragment() {
 
         getProgramInfo()
 
+        // タグ取得
+        programInfoCoroutine()
+
+        // ユーザーフォロー
+        fragment_program_info_broadcaster_follow_button.setOnClickListener {
+            requestFollow(userId) {
+                Toast.makeText(context, "ユーザーをフォローしました。", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // コミュニティフォロー
+        fragment_program_info_community_follow_button.setOnClickListener {
+            requestCommunityFollow(communityId) {
+                activity?.runOnUiThread {
+                    Toast.makeText(context, "コミュニティをフォローしました。\n$communityId", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+        }
+
+        // タグ編集
+        fragment_program_info_tag_add_button.setOnClickListener {
+            val nicoLiveTagBottomFragment = NicoLiveTagBottomFragment()
+            val bundle = Bundle().apply {
+                putString("liveId", liveId)
+                putString("tagToken", tagToken)
+            }
+            nicoLiveTagBottomFragment.arguments = bundle
+            nicoLiveTagBottomFragment.programFragment = this@ProgramInfoFragment
+            nicoLiveTagBottomFragment.show(childFragmentManager, "bottom_tag")
+        }
+
+        //getCommentWatchingCount()
+
+    }
+
+    /** コルーチン */
+    fun programInfoCoroutine(){
         GlobalScope.launch {
             val responseString = getNicoLiveHTML().await()
             val html = Jsoup.parse(responseString)
@@ -114,39 +152,7 @@ class ProgramInfoFragment : Fragment() {
                 // タグの登録に必要なトークンを取得
                 tagToken = tag.getString("apiToken")
             }
-
         }
-
-        // ユーザーフォロー
-        fragment_program_info_broadcaster_follow_button.setOnClickListener {
-            requestFollow(userId) {
-                Toast.makeText(context, "ユーザーをフォローしました。", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // コミュニティフォロー
-        fragment_program_info_community_follow_button.setOnClickListener {
-            requestCommunityFollow(communityId) {
-                activity?.runOnUiThread {
-                    Toast.makeText(context, "コミュニティをフォローしました。\n$communityId", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            }
-        }
-
-        // タグ編集
-        fragment_program_info_tag_add_button.setOnClickListener {
-            val nicoLiveTagBottomFragment = NicoLiveTagBottomFragment()
-            val bundle = Bundle().apply {
-                putString("liveId", liveId)
-                putString("tagToken", tagToken)
-            }
-            nicoLiveTagBottomFragment.arguments = bundle
-            nicoLiveTagBottomFragment.show(childFragmentManager, "tag")
-        }
-
-        //getCommentWatchingCount()
-
     }
 
     /*番組情報取得*/

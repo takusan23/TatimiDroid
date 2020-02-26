@@ -607,7 +607,8 @@ class CommentFragment : Fragment() {
                             programInfoFragment.arguments = bundle
                             fragmentTransaction.replace(
                                 activity_comment_linearlayout.id,
-                                programInfoFragment
+                                programInfoFragment,
+                                "program_info"
                             )
                             fragmentTransaction.commit()
                         }

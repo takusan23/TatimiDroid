@@ -169,7 +169,7 @@
                                 android:id="@+id/fragment_program_info_tag_add_button"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="タグ追加" />
+                                android:text="タグ編集" />
 
                         <LinearLayout
                                 android:id="@+id/fragment_program_info_tag_linearlayout"
