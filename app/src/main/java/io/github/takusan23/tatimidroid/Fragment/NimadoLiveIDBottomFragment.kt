@@ -50,7 +50,35 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
         //放送中であるかをAPIを叩き確認
         //番組IDだった
 
-        // 先に番組取得してエラー回避
+        nimado_liveid_bottom_fragment_button_comment_post_mode.setOnClickListener {
+            addNimado("comment_post")
+            allButtonDisable()
+        }
+        nimado_liveid_bottom_fragment_button_comment_nicocas_mode.setOnClickListener {
+            addNimado("nicocas")
+            allButtonDisable()
+        }
+        nimado_liveid_bottom_fragment_button_comment_viewer_mode.setOnClickListener {
+            addNimado("comment_viewer")
+            allButtonDisable()
+        }
+/*
+        nimado_liveid_bottom_fragment_button.setOnClickListener {
+            (activity as NimadoActivity).apply {
+                addNimado(this@NimadoLiveIDBottomFragment.nimado_liveid_bottom_fragment_liveid_edittext.text.toString())
+            }
+            this@NimadoLiveIDBottomFragment.dismiss()
+        }
+*/
+    }
+
+    fun allButtonDisable() {
+        nimado_liveid_bottom_fragment_button_comment_post_mode.isEnabled = false
+        nimado_liveid_bottom_fragment_button_comment_nicocas_mode.isEnabled = false
+        nimado_liveid_bottom_fragment_button_comment_viewer_mode.isEnabled = false
+    }
+
+    fun addNimado(mode: String) {
         GlobalScope.launch(Dispatchers.Main) {
             // コミュIDのときはコミュIDを取ってから
             val json = if (!isCommunityOrChannelID()) {
@@ -75,32 +103,10 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
                 if (status == "ON_AIR") {
                     //生放送中！
                     //二窓追加ボタン有効
-                    var mode = ""
-                    nimado_liveid_bottom_fragment_button_comment_viewer_mode.setOnClickListener {
-                        mode = "comment_viewer"
-                        (activity as NimadoActivity).apply {
-                            runOnUiThread {
-                                addNimado(programId, mode, isOfficial, false)
-                                this@NimadoLiveIDBottomFragment.dismiss()
-                            }
-                        }
-                    }
-                    nimado_liveid_bottom_fragment_button_comment_post_mode.setOnClickListener {
-                        mode = "comment_post"
-                        (activity as NimadoActivity).apply {
-                            runOnUiThread {
-                                addNimado(programId, mode, isOfficial, false)
-                                this@NimadoLiveIDBottomFragment.dismiss()
-                            }
-                        }
-                    }
-                    nimado_liveid_bottom_fragment_button_comment_nicocas_mode.setOnClickListener {
-                        mode = "nicocas"
-                        (activity as NimadoActivity).apply {
-                            runOnUiThread {
-                                addNimado(programId, mode, isOfficial, false)
-                                this@NimadoLiveIDBottomFragment.dismiss()
-                            }
+                    (activity as NimadoActivity).apply {
+                        runOnUiThread {
+                            addNimado(programId, mode, isOfficial, false)
+                            this@NimadoLiveIDBottomFragment.dismiss()
                         }
                     }
                 } else {
@@ -116,14 +122,6 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
                 }
             }
         }
-/*
-        nimado_liveid_bottom_fragment_button.setOnClickListener {
-            (activity as NimadoActivity).apply {
-                addNimado(this@NimadoLiveIDBottomFragment.nimado_liveid_bottom_fragment_liveid_edittext.text.toString())
-            }
-            this@NimadoLiveIDBottomFragment.dismiss()
-        }
-*/
     }
 
     // 番組情報を取得する
