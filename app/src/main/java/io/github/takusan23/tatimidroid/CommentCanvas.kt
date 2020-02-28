@@ -226,6 +226,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     * */
 
     fun postComment(comment: String, commentJSONParse: CommentJSONParse) {
+        if (commentJSONParse.premium == "生主") {
+            return
+        }
         //フローティングモードのときは計算する
         if (isFloatingView) {
             fontsize = (height / 10).toFloat()

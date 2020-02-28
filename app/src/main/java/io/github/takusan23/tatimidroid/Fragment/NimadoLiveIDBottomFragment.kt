@@ -78,17 +78,29 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
                     var mode = ""
                     nimado_liveid_bottom_fragment_button_comment_viewer_mode.setOnClickListener {
                         mode = "comment_viewer"
+                        (activity as NimadoActivity).apply {
+                            runOnUiThread {
+                                addNimado(programId, mode, isOfficial, false)
+                                this@NimadoLiveIDBottomFragment.dismiss()
+                            }
+                        }
                     }
                     nimado_liveid_bottom_fragment_button_comment_post_mode.setOnClickListener {
                         mode = "comment_post"
+                        (activity as NimadoActivity).apply {
+                            runOnUiThread {
+                                addNimado(programId, mode, isOfficial, false)
+                                this@NimadoLiveIDBottomFragment.dismiss()
+                            }
+                        }
                     }
                     nimado_liveid_bottom_fragment_button_comment_nicocas_mode.setOnClickListener {
                         mode = "nicocas"
-                    }
-                    (activity as NimadoActivity).apply {
-                        runOnUiThread {
-                            addNimado(programId, mode, isOfficial, false)
-                            this@NimadoLiveIDBottomFragment.dismiss()
+                        (activity as NimadoActivity).apply {
+                            runOnUiThread {
+                                addNimado(programId, mode, isOfficial, false)
+                                this@NimadoLiveIDBottomFragment.dismiss()
+                            }
                         }
                     }
                 } else {
@@ -101,37 +113,6 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
                         )
                             .show()
                     }
-                }
-            }
-        }
-
-        nimado_liveid_bottom_fragment_button_comment_viewer_mode.setOnClickListener {
-            if (!isCommunityOrChannelID()) {
-                getProgramInfo("comment_viewer")
-            } else {
-                GlobalScope.launch(Dispatchers.Main) {
-                    val liveID = getLiveIDFromCommunityID().await()
-                    getProgramInfo("comment_viewer", liveID)
-                }
-            }
-        }
-        nimado_liveid_bottom_fragment_button_comment_post_mode.setOnClickListener {
-            if (!isCommunityOrChannelID()) {
-                getProgramInfo("comment_post")
-            } else {
-                GlobalScope.launch(Dispatchers.Main) {
-                    val liveID = getLiveIDFromCommunityID().await()
-                    getProgramInfo("comment_post", liveID)
-                }
-            }
-        }
-        nimado_liveid_bottom_fragment_button_comment_nicocas_mode.setOnClickListener {
-            if (!isCommunityOrChannelID()) {
-                getProgramInfo("nicocas")
-            } else {
-                GlobalScope.launch(Dispatchers.Main) {
-                    val liveID = getLiveIDFromCommunityID().await()
-                    getProgramInfo("nicocas", liveID)
                 }
             }
         }

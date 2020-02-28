@@ -20,10 +20,7 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.adapter_community_layout.*
 import kotlinx.android.synthetic.main.fragment_program_info.*
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import okhttp3.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -106,8 +103,8 @@ class ProgramInfoFragment : Fragment() {
     }
 
     /** コルーチン */
-    fun programInfoCoroutine(){
-        GlobalScope.launch {
+    fun programInfoCoroutine() {
+        GlobalScope.launch(Dispatchers.Main) {
             val responseString = getNicoLiveHTML().await()
             val html = Jsoup.parse(responseString)
             if (html.getElementById("embedded-data") != null) {
@@ -125,6 +122,7 @@ class ProgramInfoFragment : Fragment() {
                 }
                 //たぐ
                 val tag = jsonObject.getJSONObject("program").getJSONObject("tag")
+                val isTagNotEditable = tag.getBoolean("isLocked") // タグ編集が可能か？
                 val tagsList = tag.getJSONArray("list")
                 if (tagsList.length() != 0) {
                     activity?.runOnUiThread {
@@ -151,6 +149,13 @@ class ProgramInfoFragment : Fragment() {
                 }
                 // タグの登録に必要なトークンを取得
                 tagToken = tag.getString("apiToken")
+                // タグが変更できない場合はボタンをグレーアウトする
+                if (isTagNotEditable) {
+                    fragment_program_info_tag_add_button.apply {
+                        isEnabled = false
+                        text = "タグ編集が出来ない番組です"
+                    }
+                }
             }
         }
     }
