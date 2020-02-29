@@ -3,9 +3,6 @@ package io.github.takusan23.tatimidroid.Fragment
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,24 +13,15 @@ import androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.adapter_community_layout.*
 import kotlinx.android.synthetic.main.fragment_program_info.*
 import kotlinx.coroutines.*
 import okhttp3.*
-import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
 import java.text.SimpleDateFormat
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.net.HttpURLConnection
-import java.net.URL
-import java.nio.charset.StandardCharsets
-import java.time.temporal.WeekFields
-import java.util.*
-import kotlin.concurrent.thread
 
 class ProgramInfoFragment : Fragment() {
 
@@ -64,7 +52,7 @@ class ProgramInfoFragment : Fragment() {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         usersession = pref_setting.getString("user_session", "") ?: ""
 
-        getProgramInfo()
+        // getProgramInfo()
 
         // タグ取得
         programInfoCoroutine()
@@ -110,6 +98,44 @@ class ProgramInfoFragment : Fragment() {
             if (html.getElementById("embedded-data") != null) {
                 val json = html.getElementById("embedded-data").attr("data-props")
                 val jsonObject = JSONObject(json)
+
+                // 番組情報取得
+                val program = jsonObject.getJSONObject("program")
+                val title = program.getString("title")
+                val description = program.getString("description")
+                val beginTime = program.getLong("beginTime")
+                val endTime = program.getLong("endTime")
+                // 放送者
+                val supplier = program.getJSONObject("supplier")
+                val name = supplier.getString("name")
+                val level = supplier.getInt("level")
+                // UnixTimeから変換
+                val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+                // フォーマット済み
+                val formattedBeginTime = simpleDateFormat.format(beginTime * 1000)
+                val formattedEndTime = simpleDateFormat.format(endTime * 1000)
+                // コミュ
+                val community = jsonObject.getJSONObject("socialGroup")
+                val communityName = community.getString("name")
+                val communityLevel = community.getInt("level")
+
+                //UI
+                activity?.runOnUiThread {
+                    fragment_program_info_broadcaster_name.text =
+                        "${getString(R.string.broadcaster)} : $name"
+                    fragment_program_info_broadcaster_level.text =
+                        "${getString(R.string.level)} : $level"
+                    fragment_program_info_time.text =
+                        "${getString(R.string.program_start)} : $formattedBeginTime / ${getString(R.string.end_of_program)} : $formattedEndTime"
+                    fragment_program_info_title.text = title
+                    fragment_program_info_description.text =
+                        HtmlCompat.fromHtml(description, FROM_HTML_MODE_COMPACT)
+                    fragment_program_info_community_name.text =
+                        "${getString(R.string.community_name)} : $communityName"
+                    fragment_program_info_community_level.text =
+                        "${getString(R.string.community_level)} : $communityLevel"
+                }
+
                 // コミュフォロー中？
                 val isCommunityFollow =
                     jsonObject.getJSONObject("socialGroup").getBoolean("isFollowed")
@@ -200,7 +226,7 @@ class ProgramInfoFragment : Fragment() {
                     activity?.runOnUiThread {
                         fragment_program_info_broadcaster_name.text =
                             "${getString(R.string.broadcaster)} : $name"
-                        fragment_program_info_start.text = startTimeFormat
+                        fragment_program_info_time.text = startTimeFormat
                         fragment_program_info_title.text = title
                         fragment_program_info_description.text =
                             HtmlCompat.fromHtml(description, FROM_HTML_MODE_COMPACT)

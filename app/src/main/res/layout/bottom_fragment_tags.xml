@@ -10,7 +10,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="5sp"
             android:textSize="18sp"
-            android:text="タグ" />
+            android:text="@string/tag" />
 
     <LinearLayout
             android:layout_width="match_parent"
@@ -28,7 +28,7 @@
                     android:id="@+id/bottom_fragment_tag_edittext"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="タグ名" />
+                    android:hint="@string/tag" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
@@ -36,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5sp"
-                android:text="追加" />
+                android:text="@string/add" />
 
     </LinearLayout>
 

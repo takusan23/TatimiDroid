@@ -286,7 +286,9 @@ class CommentRoomFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        webSocketClient.close()
+        if (::webSocketClient.isInitialized) {
+            webSocketClient.close()
+        }
     }
 
 }

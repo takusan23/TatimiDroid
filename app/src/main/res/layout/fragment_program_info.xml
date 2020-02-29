@@ -41,10 +41,11 @@
                             android:text="説明" />
 
                     <TextView
-                            android:id="@+id/fragment_program_info_start"
+                            android:id="@+id/fragment_program_info_time"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="開始時刻" />
+
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -68,15 +69,21 @@
                     <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="10sp">
+                            android:orientation="vertical">
 
                         <TextView
                                 android:id="@+id/fragment_program_info_broadcaster_name"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="放送者"
+                                android:text="@string/broadcaster"
                                 android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                        <TextView
+                                android:id="@+id/fragment_program_info_broadcaster_level"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/level"
                                 android:textStyle="bold" />
 
                         <Button
@@ -84,7 +91,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="5sp"
-                                android:text="ユーザーをフォロー" />
+                                android:text="@string/user_follow" />
 
                     </LinearLayout>
 
@@ -119,7 +126,7 @@
                                 android:id="@+id/fragment_program_info_community_name"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="コミュニティ"
+                                android:text="@string/community_name"
                                 android:textSize="20sp"
                                 android:textStyle="bold" />
 
@@ -127,7 +134,7 @@
                                 android:id="@+id/fragment_program_info_community_level"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="コミュレベル"
+                                android:text="@string/community_level"
                                 android:textStyle="bold" />
 
                         <Button
@@ -136,7 +143,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="5sp"
-                                android:text="コミュニティをフォロー" />
+                                android:text="@string/community_follow" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -169,7 +176,7 @@
                                 android:id="@+id/fragment_program_info_tag_add_button"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="タグ編集" />
+                                android:text="@string/tag_edit" />
 
                         <LinearLayout
                                 android:id="@+id/fragment_program_info_tag_linearlayout"
