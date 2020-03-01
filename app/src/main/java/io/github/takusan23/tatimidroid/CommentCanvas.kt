@@ -70,6 +70,13 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     var commentLines = arrayListOf<Long>()
 
+    // コメントの配列
+    val commentObjList = arrayListOf<CommentObject>()
+
+    // 高さ：横の位置
+    val commentLine = mutableMapOf<Float, CommentObject>()
+
+
     init {
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
@@ -95,14 +102,14 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         isCommentColorRoom = pref_setting.getBoolean("setting_command_room_color", false)
 
         Timer().schedule(10, 10) {
-            for (i in 0..(xList.size - 1)) {
-                //文字数が多い場合はもっと早く流す
-                val minus = speed + (textList.get(i).length / 2)
-                val x = xList.get(i) - minus
-                if (x > -2000) {
-                    xList.set(i, x)
+            // コメントを移動させる
+            for (i in 0 until commentObjList.size) {
+                val obj = commentObjList[i]
+                if ((obj.xPos + obj.commentMeasure) > 0) {
+                    commentObjList[i].xPos -= 5 + (obj.comment.length / 2)
                 }
             }
+            // 再描画
             postInvalidate()
         }
 
@@ -118,18 +125,12 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        commentFlowingXList.clear()
-        commentFlowingYList.clear()
-        for (i in 0..(xList.size - 1)) {
-            val text = textList.get(i)
-            val x = xList.get(i)
-            val y = yList.get(i)
-            val command = commandList.get(i)
-            if (x > -1000) {
-                commentFlowingXList.add(x)
-                commentFlowingYList.add(y)
-                canvas?.drawText(text, x.toFloat(), y.toFloat(), blackPaint)
-                canvas?.drawText(text, x.toFloat(), y.toFloat(), getCommentTextPaint(command))
+        // コメントを描画する。
+        commentObjList.forEach {
+            //画面外のコメントは表示させない
+            if ((it.xPos + it.commentMeasure) > 0) {
+                canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command))
+                canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
             }
         }
     }
@@ -226,37 +227,49 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     * */
 
     fun postComment(comment: String, commentJSONParse: CommentJSONParse) {
+        // 生主のコメントは無視する
         if (commentJSONParse.premium == "生主") {
             return
         }
-        //フローティングモードのときは計算する
-        if (isFloatingView) {
-            fontsize = (height / 10).toFloat()
-            paint.textSize = fontsize
-            blackPaint.textSize = fontsize
-        }
-        if (this@CommentCanvas::paint.isInitialized) {
-            val display = (context as AppCompatActivity).getWindowManager().getDefaultDisplay()
-            val point = Point()
-            display.getSize(point)
 
-            //縦、横で開始位置を調整
-            var weight = point.x
-            if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                //横。幅を割る2する
-                weight = point.x / 2
+        val measure = paint.measureText(comment)
+        var xPos = width.toFloat()
+        var yPos = fontsize
+
+        for (i in 0 until commentLine.size) {
+            val obj = commentLine.toList().get(i).second
+            val space = width - obj.xPos
+            // println(space)
+            yPos = obj.yPos
+            if (space < -1) {
+                // 画面外。負の値
+                // 次の段へ
+                yPos += fontsize
+            } else if (space < measure) {
+                // 空きスペースよりコメントの長さが大きいとき
+                // 次の段へ
+                yPos += fontsize
             } else {
-                //縦。そのまま
-                weight = point.x
+                // 位置決定
+                // println("位置が決定しました")
+                break
             }
-
-            weight = this@CommentCanvas.width
-
-            textList.add(comment)
-            xList.add(weight)
-            yList.add(getCommentPosition(comment))
-            commandList.add("${commentJSONParse.comment},room=${commentJSONParse.roomName}") // コマンド＋今の部屋
+            if (yPos > height) {
+                // 画面外に行く場合はランダムで決定
+                yPos = Random.nextInt(fontsize.toInt(), height).toFloat()
+            }
         }
+
+        val commentObj = CommentObject(
+            comment,
+            xPos,
+            yPos,
+            System.currentTimeMillis(),
+            measure,
+            commentJSONParse.mail
+        )
+        commentObjList.add(commentObj)
+        commentLine[yPos] = commentObj
     }
 
     fun getCommentPosition(comment: String): Int {
@@ -432,5 +445,14 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         }
         return size
     }
+
+    data class CommentObject(
+        val comment: String,
+        var xPos: Float,
+        var yPos: Float,
+        var unixTime: Long,
+        var commentMeasure: Float,
+        var command: String
+    )
 
 }
