@@ -72,9 +72,18 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     // コメントの配列
     val commentObjList = arrayListOf<CommentObject>()
-
     // 高さ：横の位置
     val commentLine = mutableMapOf<Float, CommentObject>()
+
+    // 上付きコメントの配列
+    val ueCommentList = arrayListOf<CommentObject>()
+    // 高さ：追加時間（UnixTime）
+    val ueCommentLine = mutableMapOf<Float, Long>()
+
+    // 下付きコメントの配列
+    val sitaCommentList = arrayListOf<CommentObject>()
+    // 高さ：追加時間（UnixTime）
+    val sitaCommentLine = mutableMapOf<Float, Long>()
 
 
     init {
@@ -109,6 +118,25 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     commentObjList[i].xPos -= 5 + (obj.comment.length / 2)
                 }
             }
+
+            val nowUnixTime = System.currentTimeMillis()
+            // toList() を使って forEach すればエラー回避できます
+            // 3秒経過したら配列から消す
+            ueCommentList.toList().forEach {
+                for (i in 0 until ueCommentList.size) {
+                    if (nowUnixTime - it.unixTime > 3000) {
+                        ueCommentList.remove(it)
+                    }
+                }
+            }
+            sitaCommentList.toList().forEach {
+                for (i in 0 until sitaCommentList.size) {
+                    if (nowUnixTime - it.unixTime > 3000) {
+                        sitaCommentList.remove(it)
+                    }
+                }
+            }
+
             // 再描画
             postInvalidate()
         }
@@ -126,12 +154,24 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         // コメントを描画する。
-        commentObjList.forEach {
-            //画面外のコメントは表示させない
-            if ((it.xPos + it.commentMeasure) > 0) {
-                canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command))
-                canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
+        for (i in 0 until commentObjList.size) {
+            val obj = commentObjList[i]
+            if ((obj.xPos + obj.commentMeasure) > 0) {
+                canvas?.drawText(obj.comment, obj.xPos, obj.yPos, blackPaint)
+                canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command))
             }
+        }
+        // 上付きコメントを描画する
+        for (i in 0 until ueCommentList.size) {
+            val obj = ueCommentList[i]
+            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, blackPaint)
+            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command))
+        }
+        // 下付きコメントを描画する
+        for (i in 0 until sitaCommentList.size) {
+            val obj = sitaCommentList[i]
+            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, blackPaint)
+            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command))
         }
     }
 
@@ -231,45 +271,100 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         if (commentJSONParse.premium == "生主") {
             return
         }
-
         val measure = paint.measureText(comment)
         var xPos = width.toFloat()
         var yPos = fontsize
+        val nowUnixTime = System.currentTimeMillis()
+        val command = commentJSONParse.mail
 
-        for (i in 0 until commentLine.size) {
-            val obj = commentLine.toList().get(i).second
-            val space = width - obj.xPos
-            // println(space)
-            yPos = obj.yPos
-            if (space < -1) {
-                // 画面外。負の値
-                // 次の段へ
-                yPos += fontsize
-            } else if (space < measure) {
-                // 空きスペースよりコメントの長さが大きいとき
-                // 次の段へ
-                yPos += fontsize
-            } else {
-                // 位置決定
-                // println("位置が決定しました")
-                break
+        // 上でもなければ下でもないときは流す
+        if (!command.contains("ue") && !command.contains("shita")) {
+            // 流れるコメント
+            for (i in 0 until commentLine.size) {
+                val obj = commentLine.toList().get(i).second
+                val space = width - obj.xPos
+                // println(space)
+                yPos = obj.yPos
+                if (space < -1) {
+                    // 画面外。負の値
+                    // println("画面外です")
+                    yPos += fontsize
+                } else if (space < measure) {
+                    // 空きスペースよりコメントの長さが大きいとき
+                    // println("コメントのほうが長いです")
+                    yPos += fontsize
+                } else {
+                    // 位置決定
+                    // println("位置が決定しました")
+                    break
+                }
+                if (yPos > height) {
+                    // 画面外に行く場合はランダムで決定
+                    // println("らんだむ")
+                    yPos = Random.nextInt(fontsize.toInt(), height).toFloat()
+                }
             }
-            if (yPos > height) {
-                // 画面外に行く場合はランダムで決定
-                yPos = Random.nextInt(fontsize.toInt(), height).toFloat()
+            val commentObj = CommentObject(
+                comment,
+                xPos,
+                yPos,
+                System.currentTimeMillis(),
+                measure,
+                command
+            )
+            commentObjList.add(commentObj)
+            commentLine[yPos] = commentObj
+        } else if (command.contains("ue")) {
+            // 上付きコメント
+            var yPos = fontsize
+            // 位置決定
+            for (i in 0 until ueCommentLine.size) {
+                // 空きがあればそこに入れる
+                val unix = ueCommentLine.toList().get(i).second
+                if ((nowUnixTime - unix) > 3000) {
+                    yPos = (i + 1) * fontsize
+                    break
+                } else {
+                    yPos = (i + 1) * fontsize + fontsize
+                }
             }
+            val commentObj =
+                CommentObject(
+                    comment,
+                    ((width.toFloat() - measure) / 2),
+                    yPos,
+                    System.currentTimeMillis(),
+                    measure,
+                    command
+                )
+            ueCommentList.add(commentObj)
+            ueCommentLine[yPos] = System.currentTimeMillis()
+        } else if (command.contains("shita")) {
+            // 下付きコメント
+            var yPos = height - fontsize
+            // 位置決定
+            for (i in 0 until sitaCommentLine.size) {
+                // 空きがあればそこに入れる
+                val unix = sitaCommentLine.toList().get(i).second
+                if ((nowUnixTime - unix) > 3000) {
+                    yPos = height - ((i + 1) * fontsize)
+                    break
+                } else {
+                    yPos = height - ((i + 1) * fontsize + fontsize)
+                }
+            }
+            val commentObj =
+                CommentObject(
+                    comment,
+                    ((width.toFloat() - measure) / 2),
+                    yPos,
+                    System.currentTimeMillis(),
+                    measure,
+                    command
+                )
+            sitaCommentList.add(commentObj)
+            sitaCommentLine[yPos] = System.currentTimeMillis()
         }
-
-        val commentObj = CommentObject(
-            comment,
-            xPos,
-            yPos,
-            System.currentTimeMillis(),
-            measure,
-            commentJSONParse.mail
-        )
-        commentObjList.add(commentObj)
-        commentLine[yPos] = commentObj
     }
 
     fun getCommentPosition(comment: String): Int {
