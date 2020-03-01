@@ -267,8 +267,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     * */
 
     fun postComment(comment: String, commentJSONParse: CommentJSONParse) {
-        // 生主のコメントは無視する
-        if (commentJSONParse.premium == "生主") {
+        // 生主/運営のコメントは無視する
+        if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
             return
         }
         val measure = paint.measureText(comment)

@@ -56,7 +56,19 @@ class AllRoomComment(
     val timer = Timer()
 
     init {
-        getRoomList()
+        println(commentFragment.commentMessageServerUri)
+        if (!commentFragment.isOfficial) {
+            // 公式番組以外では利用する
+            getRoomList()
+        } else {
+            if (commentFragment.commentMessageServerUri.isNotEmpty()) {
+                connectCommentServer(
+                    commentFragment.commentMessageServerUri,
+                    commentFragment.commentThreadId,
+                    ""
+                )
+            }
+        }
         //定期的に立ち見席が出てないか確認する
         timer.schedule(60000, 60000) {
             if (!commentFragment.isOfficial) {

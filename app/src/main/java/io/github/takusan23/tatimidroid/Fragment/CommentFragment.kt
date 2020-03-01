@@ -469,12 +469,20 @@ class CommentFragment : Fragment() {
                                 }
                                 // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
                                 getplayerstatus()
+                                // 全部屋表示Fragment表示
+                                if (!isOfficial) {
+                                    setAllRoomCommentFragment()
+                                }
                             }
                         } else {
                             // HTMLパースする（HTMLの中にあるJSONをパース）
                             parseNicoLiveHTML(response.body?.string())
                             // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
                             getplayerstatus()
+                            // 全部屋表示Fragment表示
+                            if (!isOfficial) {
+                                setAllRoomCommentFragment()
+                            }
                         }
                     } else {
                         // 失敗。
@@ -482,21 +490,6 @@ class CommentFragment : Fragment() {
                     }
                 }
             }
-
-            // 全部屋表示
-            //LiveIDを詰める
-            val bundle = Bundle()
-            bundle.putString("liveId", liveId)
-            val commentViewFragment = CommentViewFragment()
-            commentViewFragment.arguments = bundle
-            val fragmentTransaction =
-                childFragmentManager.beginTransaction()
-            fragmentTransaction.replace(
-                activity_comment_linearlayout.id,
-                commentViewFragment,
-                "${liveId}_comment_view_fragment"
-            )
-            fragmentTransaction.commit()
 
             //TabLayout選択
             //標準でコメントの欄を選んでおく
@@ -676,6 +669,22 @@ class CommentFragment : Fragment() {
         }
         commentActivity.registerReceiver(broadcastReceiver, intentFilter)
 
+    }
+
+    fun setAllRoomCommentFragment() {
+        //LiveIDを詰める
+        val bundle = Bundle()
+        bundle.putString("liveId", liveId)
+        val commentViewFragment = CommentViewFragment()
+        commentViewFragment.arguments = bundle
+        val fragmentTransaction =
+            childFragmentManager.beginTransaction()
+        fragmentTransaction.replace(
+            activity_comment_linearlayout.id,
+            commentViewFragment,
+            "${liveId}_comment_view_fragment"
+        )
+        fragmentTransaction.commit()
     }
 
     // ニコ生ゲーム有効
@@ -1092,7 +1101,7 @@ class CommentFragment : Fragment() {
                         //コメント投稿時に必要なpostKeyを取得するために使う
                         getPostKeyThreadId = threadId
 
-                        //System.out.println("コメントWebSocket情報 ${threadId} ${messageServerUri}")
+                        // System.out.println("コメントWebSocket情報 ${threadId} ${messageServerUri}")
 
                         //コメント投稿時に使うWebSocketに接続する
                         connectionCommentPOSTWebSocket(messageServerUri, threadId)
@@ -1101,24 +1110,9 @@ class CommentFragment : Fragment() {
                         commentThreadId = threadId
                         commentRoomName = roomName
 
-                        // 公式番組
-                        // WebSocketから流れてくるアドレスへアクセスするので
-                        if (isOfficial) {
-                            //とりあえずコメントViewFragmentへ
-                            //LiveIDを詰める
-                            val bundle = Bundle()
-                            bundle.putString("liveId", liveId)
-                            val commentViewFragment = CommentViewFragment()
-                            commentViewFragment.arguments = bundle
-                            val fragmentTransaction =
-                                childFragmentManager.beginTransaction()
-                            fragmentTransaction.replace(
-                                activity_comment_linearlayout.id,
-                                commentViewFragment,
-                                "${liveId}_comment_view_fragment"
-                            )
-                            fragmentTransaction.commit()
-                        }
+                        // コメントWebSocket接続
+                        setAllRoomCommentFragment()
+
                     }
                 }
 

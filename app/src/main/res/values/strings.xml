@@ -254,4 +254,6 @@
     <string name="program_start">Show start</string>
     <string name="end_of_program">End of program</string>
     <string name="level">Level</string>
+    <string name="followed">Followed</string>
+    <string name="not_tag_editable">It is a program that can not edit tags</string>
 </resources>

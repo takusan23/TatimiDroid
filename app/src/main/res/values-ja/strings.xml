@@ -254,4 +254,6 @@
     <string name="program_start">番組開始</string>
     <string name="end_of_program">番組終了</string>
     <string name="level">レベル</string>
+    <string name="followed">フォロー済みです</string>
+    <string name="not_tag_editable">タグ編集が出来ない番組です</string>
 </resources>

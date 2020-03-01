@@ -143,7 +143,8 @@ class ProgramInfoFragment : Fragment() {
                     activity?.runOnUiThread {
                         // 押せないように
                         fragment_program_info_community_follow_button.isEnabled = false
-                        fragment_program_info_community_follow_button.text = "フォロー済みです"
+                        fragment_program_info_community_follow_button.text =
+                            getString(R.string.followed)
                     }
                 }
                 //たぐ
@@ -179,7 +180,7 @@ class ProgramInfoFragment : Fragment() {
                 if (isTagNotEditable) {
                     fragment_program_info_tag_add_button.apply {
                         isEnabled = false
-                        text = "タグ編集が出来ない番組です"
+                        text = getString(R.string.not_tag_editable)
                     }
                 }
             }
