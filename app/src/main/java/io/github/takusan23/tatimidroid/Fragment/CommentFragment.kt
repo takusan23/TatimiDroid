@@ -2546,6 +2546,8 @@ class CommentFragment : Fragment() {
         // コマンドリセットボタン
         comment_cardview_comment_command_edit_reset_button.setOnClickListener {
             comment_cardview_command_textinputlayout.setText("")
+            clearColorCommandSizeButton()
+            clearColorCommandPosButton()
         }
 
         // 184が有効になっているときはコメントInputEditTextのHintに追記する
@@ -2564,28 +2566,40 @@ class CommentFragment : Fragment() {
         comment_cardview_comment_command_big_button.setOnClickListener {
             commentSize = "big"
             comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            clearColorCommandSizeButton()
+            (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
         comment_cardview_comment_command_medium_button.setOnClickListener {
             commentSize = "medium"
             comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            clearColorCommandSizeButton()
+            (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
         comment_cardview_comment_command_small_button.setOnClickListener {
             commentSize = "small"
             comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            clearColorCommandSizeButton()
+            (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
 
         // コメントの位置
         comment_cardview_comment_command_ue_button.setOnClickListener {
             commentPos = "ue"
             comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            clearColorCommandPosButton()
+            (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
         comment_cardview_comment_command_naka_button.setOnClickListener {
             commentPos = "naka"
             comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            clearColorCommandPosButton()
+            (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
         comment_cardview_comment_command_shita_button.setOnClickListener {
             commentPos = "shita"
             comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            clearColorCommandPosButton()
+            (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
 
         // コメントの色。流石にすべてのボタンにクリックリスナー書くと長くなるので、タグに色（文字列）を入れる方法で対処
@@ -2659,12 +2673,18 @@ class CommentFragment : Fragment() {
         }
     }
 
+    // ボタンの色を戻す サイズボタン
     fun clearColorCommandSizeButton() {
-
+        comment_cardview_comment_command_size_layout.children.forEach {
+            (it as Button).backgroundTintList = ColorStateList.valueOf(Color.parseColor("#757575"))
+        }
     }
 
+    // ボタンの色を戻す 位置ボタン
     fun clearColorCommandPosButton() {
-
+        comment_cardview_comment_command_pos_layout.children.forEach {
+            (it as Button).backgroundTintList = ColorStateList.valueOf(Color.parseColor("#757575"))
+        }
     }
 
 
