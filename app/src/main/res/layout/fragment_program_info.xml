@@ -38,6 +38,8 @@
                             android:id="@+id/fragment_program_info_description"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:autoLink="all"
+                            android:textIsSelectable="true"
                             android:text="説明" />
 
                     <TextView
@@ -48,9 +50,9 @@
 
                     <Button
                             android:id="@+id/fragment_program_info_timeshift_button"
-                            android:layout_margin="10sp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_margin="10sp"
                             android:text="@string/timeshift_reservation_button" />
 
                 </LinearLayout>
