@@ -17,6 +17,7 @@ import android.media.AudioManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.opengl.Visibility
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -30,6 +31,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.ExoPlaybackException
@@ -45,6 +47,8 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
@@ -55,6 +59,8 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
+import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
+import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.*
 import okhttp3.*
@@ -108,6 +114,8 @@ class CommentFragment : Fragment() {
     var commentCommand = ""
     //視聴モード（コメント投稿機能付き）かどうか
     var isWatchingMode = false
+    //視聴モードがnicocasの場合
+    var isNicocasMode = false
     //hls
     var hls_address = ""
     //こてはん（固定ハンドルネーム　配列
@@ -295,8 +303,8 @@ class CommentFragment : Fragment() {
         volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
         //ダークモード対応
-        activity_comment_bottom_navigation_bar.backgroundTintList =
-            ColorStateList.valueOf(darkModeSupport.getThemeColor())
+//        activity_comment_bottom_navigation_bar.backgroundTintList =
+//            ColorStateList.valueOf(darkModeSupport.getThemeColor())
         if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
             commentActivity.supportActionBar?.setBackgroundDrawable(
                 ColorDrawable(
@@ -392,6 +400,7 @@ class CommentFragment : Fragment() {
                 "nicocas" -> {
                     nicocasmode = true
                     isWatchingMode = false
+                    isNicocasMode = true
                 }
             }
         }
@@ -438,45 +447,34 @@ class CommentFragment : Fragment() {
         if (pref_setting.getString("mail", "")?.contains("") != false) {
             usersession = pref_setting.getString("user_session", "") ?: ""
             // ニコ生の視聴ページ（HTML）を取得する。
-            runBlocking {
-                GlobalScope.launch {
-                    // 取得できるまで待機
-                    val response = getNicoLiveWebPage().await()
-                    if (response.isSuccessful) {
-                        // 成功した
-                        // ログインできているかチェック（user_session切れなど）
-                        // コメント投稿モード以外でもユーザーセッションは必要なのでここで判断しておく
-                        var niconicoId = response.headers["x-niconico-id"]
-                        // 視聴モード以外のときは適当に入れておく（将来的に視聴モードのみにするため）
-                        if (!isWatchingMode) {
-                            niconicoId = "てきとうに"
-                        }
-                        // ログイン無い
-                        if (niconicoId == null) {
-                            // ログイン済みの場合はレスポンスヘッダーにユーザーIDが入ってる。なければ(null)ログイン出来てない。
-                            NicoLogin.login(context) {
-                                // ログイン成功時でコメント投稿モードの場合は再度HTML（ニコ生視聴ページ）をリクエスト
-                                if (isWatchingMode) {
-                                    GlobalScope.launch {
-                                        val againResponse = getNicoLiveWebPage().await()
-                                        if (againResponse.isSuccessful && againResponse.headers["x-niconico-id"] != null) {
-                                            // HTMLパースする（HTMLの中にあるJSONをパース）
-                                            parseNicoLiveHTML(againResponse.body?.string())
-                                        } else {
-                                            showToast("ログインが切れたため再度ログインしました。しかし視聴ページの取得に失敗しました。\n${againResponse.code}")
-                                        }
+            GlobalScope.launch {
+                // 取得できるまで待機
+                val response = getNicoLiveWebPage().await()
+                if (response.isSuccessful) {
+                    // 成功した
+                    // ログインできているかチェック（user_session切れなど）
+                    // コメント投稿モード以外でもユーザーセッションは必要なのでここで判断しておく
+                    var niconicoId = response.headers["x-niconico-id"]
+                    // 視聴モード以外のときは適当に入れておく（将来的に視聴モードのみにするため）
+                    if (!isWatchingMode) {
+                        niconicoId = "てきとうに"
+                    }
+                    // ログイン無い
+                    if (niconicoId == null) {
+                        // ログイン済みの場合はレスポンスヘッダーにユーザーIDが入ってる。なければ(null)ログイン出来てない。
+                        NicoLogin.login(context) {
+                            // ログイン成功時でコメント投稿モードの場合は再度HTML（ニコ生視聴ページ）をリクエスト
+                            if (isWatchingMode) {
+                                GlobalScope.launch {
+                                    val againResponse = getNicoLiveWebPage().await()
+                                    if (againResponse.isSuccessful && againResponse.headers["x-niconico-id"] != null) {
+                                        // HTMLパースする（HTMLの中にあるJSONをパース）
+                                        parseNicoLiveHTML(againResponse.body?.string())
+                                    } else {
+                                        showToast("ログインが切れたため再度ログインしました。しかし視聴ページの取得に失敗しました。\n${againResponse.code}")
                                     }
                                 }
-                                // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
-                                getplayerstatus()
-                                // 全部屋表示Fragment表示
-                                if (!isOfficial) {
-                                    setAllRoomCommentFragment()
-                                }
                             }
-                        } else {
-                            // HTMLパースする（HTMLの中にあるJSONをパース）
-                            parseNicoLiveHTML(response.body?.string())
                             // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
                             getplayerstatus()
                             // 全部屋表示Fragment表示
@@ -485,9 +483,18 @@ class CommentFragment : Fragment() {
                             }
                         }
                     } else {
-                        // 失敗。
-                        showToast("${getString(R.string.error)}\n${response.code}")
+                        // HTMLパースする（HTMLの中にあるJSONをパース）
+                        parseNicoLiveHTML(response.body?.string())
+                        // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
+                        getplayerstatus()
+                        // 全部屋表示Fragment表示
+                        if (!isOfficial) {
+                            setAllRoomCommentFragment()
+                        }
                     }
+                } else {
+                    // 失敗。
+                    showToast("${getString(R.string.error)}\n${response.code}")
                 }
             }
 
@@ -732,8 +739,16 @@ class CommentFragment : Fragment() {
                 //println(activeList)
                 activity_comment_comment_active_text.text =
                     "${activeList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
-                // TODO ここでエラーでる
-                activeList.clear()
+                // ここでエラーでる
+                try {
+                    activeList.clear()
+                } catch (e: ArrayIndexOutOfBoundsException) {
+                    e.printStackTrace()
+                    GlobalScope.launch {
+                        delay(1000)
+                        activeList.clear()
+                    }
+                }
             }
         }
     }
@@ -1111,9 +1126,10 @@ class CommentFragment : Fragment() {
                         commentThreadId = threadId
                         commentRoomName = roomName
 
-                        // コメントWebSocket接続
-                        setAllRoomCommentFragment()
-
+                        // 全部屋Fragment
+                        if (isOfficial) {
+                            setAllRoomCommentFragment()
+                        }
                     }
                 }
 
@@ -1584,10 +1600,10 @@ class CommentFragment : Fragment() {
             commentValue = comment
             commentCommand = command
             //コメント投稿モード（コメントWebSocketに送信）
-            val watchmode = pref_setting.getBoolean("setting_watching_mode", false)
+            // val watchmode = pref_setting.getBoolean("setting_watching_mode", false)
             //nicocas式コメント投稿モード
-            val nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
-            if (watchmode) {
+            // val nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
+            if (isWatchingMode) {
                 //postKeyを視聴用セッションWebSocketに払い出してもらう
                 //PC版ニコ生だとコメントを投稿のたびに取得してるので
                 val postKeyObject = JSONObject()
@@ -1601,11 +1617,14 @@ class CommentFragment : Fragment() {
                 //送信する
                 //この後の処理は視聴用セッションWebSocketでpostKeyを受け取る処理に行きます。
                 connectionNicoLiveWebSocket.send(postKeyObject.toString())
-            } else if (nicocasmode) {
+            } else if (isNicocasMode) {
                 //コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
                 val vpos = (System.currentTimeMillis() / 1000L) - programStartTime
                 val jsonObject = JSONObject()
                 jsonObject.put("message", commentValue)
+                if (isTokumeiComment) {
+                    commentCommand = "184 $commentCommand"
+                }
                 jsonObject.put("command", commentCommand)
                 jsonObject.put("vpos", vpos.toString())
 
@@ -2473,28 +2492,28 @@ class CommentFragment : Fragment() {
     fun commentCardView() {
         //投稿ボタンを押したら投稿
         comment_cardview_comment_send_button.setOnClickListener {
-            val comment = comment_cardview_comment_textinputlayout.text.toString()
+            val comment = comment_cardview_comment_textinput_edittext.text.toString()
             val command = comment_cardview_command_textinputlayout.text.toString()
             sendComment(comment, command)
-            comment_cardview_comment_textinputlayout.setText("")
+            comment_cardview_comment_textinput_edittext.setText("")
         }
         //Enterキーを押したら投稿する
         if (pref_setting.getBoolean("setting_enter_post", true)) {
-            comment_cardview_comment_textinputlayout.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
+            comment_cardview_comment_textinput_edittext.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
                 if (i == KeyEvent.KEYCODE_ENTER) {
-                    val text = comment_cardview_comment_textinputlayout.text.toString()
+                    val text = comment_cardview_comment_textinput_edittext.text.toString()
                     val command = comment_cardview_command_textinputlayout.text.toString()
                     if (text.isNotEmpty()) {
                         //コメント投稿
                         sendComment(text, command)
-                        comment_cardview_comment_textinputlayout.setText("")
+                        comment_cardview_comment_textinput_edittext.setText("")
                     }
                 }
                 false
             }
         } else {
             //複数行？
-            comment_cardview_comment_textinputlayout.maxLines = Int.MAX_VALUE
+            comment_cardview_comment_textinput_edittext.maxLines = Int.MAX_VALUE
         }
         //閉じるボタン
         comment_cardview_close_button.setOnClickListener {
@@ -2510,12 +2529,79 @@ class CommentFragment : Fragment() {
             fab.show()
         }
 
+        comment_cardview_comment_command_edit_button.setOnClickListener {
+            // コマンド入力画面展開
+            val visibility = comment_cardview_command_edit_linearlayout.visibility
+            if (visibility == View.GONE) {
+                // 展開
+                comment_cardview_command_edit_linearlayout.visibility = View.VISIBLE
+                // アイコンを閉じるアイコンへ
+                comment_cardview_comment_command_edit_button.setImageDrawable(context?.getDrawable(R.drawable.ic_expand_more_24px))
+            } else {
+                comment_cardview_command_edit_linearlayout.visibility = View.GONE
+                comment_cardview_comment_command_edit_button.setImageDrawable(context?.getDrawable(R.drawable.ic_outline_format_color_fill_24px))
+            }
+        }
+
+        // コマンドリセットボタン
+        comment_cardview_comment_command_edit_reset_button.setOnClickListener {
+            comment_cardview_command_textinputlayout.setText("")
+        }
+
+        // 184が有効になっているときはコメントInputEditTextのHintに追記する
+        if (isTokumeiComment) {
+            comment_cardview_comment_textinput_layout.hint = getString(R.string.comment)
+        } else {
+            comment_cardview_comment_textinput_layout.hint =
+                "${getString(R.string.comment)}（${getString(R.string.disabled_tokumei_comment)}）"
+        }
+
+        var commentSize = ""
+        var commentColor = ""
+        var commentPos = ""
+
+        // 大きさ
+        comment_cardview_comment_command_big_button.setOnClickListener {
+            commentSize = "big"
+            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+        }
+        comment_cardview_comment_command_medium_button.setOnClickListener {
+            commentSize = "medium"
+            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+        }
+        comment_cardview_comment_command_small_button.setOnClickListener {
+            commentSize = "small"
+            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+        }
+
+        // コメントの位置
+        comment_cardview_comment_command_ue_button.setOnClickListener {
+            commentPos = "ue"
+            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+        }
+        comment_cardview_comment_command_naka_button.setOnClickListener {
+            commentPos = "naka"
+            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+        }
+        comment_cardview_comment_command_shita_button.setOnClickListener {
+            commentPos = "shita"
+            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+        }
+
+        // コメントの色。流石にすべてのボタンにクリックリスナー書くと長くなるので、タグに色（文字列）を入れる方法で対処
+        comment_cardview_command_edit_color_linearlayout.children.forEach {
+            it.setOnClickListener {
+                commentColor = it.tag as String
+                comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            }
+        }
+
         if (pref_setting.getBoolean("setting_comment_collection_useage", false)) {
             //コメント投稿リスト読み込み
             loadCommentPOSTList()
             //コメントコレクション補充機能
             if (pref_setting.getBoolean("setting_comment_collection_assist", false)) {
-                comment_cardview_comment_textinputlayout.addTextChangedListener(object :
+                comment_cardview_comment_textinput_edittext.addTextChangedListener(object :
                     TextWatcher {
                     override fun afterTextChanged(p0: Editable?) {
                     }
@@ -2551,11 +2637,11 @@ class CommentFragment : Fragment() {
                                         //置き換える
                                         var text = p0.toString()
                                         text = text.replace(yomi, comment)
-                                        comment_cardview_comment_textinputlayout.setText(
+                                        comment_cardview_comment_textinput_edittext.setText(
                                             text
                                         )
                                         //カーソル移動
-                                        comment_cardview_comment_textinputlayout.setSelection(
+                                        comment_cardview_comment_textinput_edittext.setSelection(
                                             text.length
                                         )
                                         //消す
@@ -2571,6 +2657,14 @@ class CommentFragment : Fragment() {
         } else {
             comment_cardview_comment_list_button.visibility = View.GONE
         }
+    }
+
+    fun clearColorCommandSizeButton() {
+
+    }
+
+    fun clearColorCommandPosButton() {
+
     }
 
 
@@ -2602,7 +2696,7 @@ class CommentFragment : Fragment() {
         cursor.close()
         //ポップアップメニュー押したとき
         popup.setOnMenuItemClickListener {
-            comment_cardview_comment_textinputlayout.text?.append(it.title)
+            comment_cardview_comment_textinput_edittext.text?.append(it.title)
             true
         }
         //表示

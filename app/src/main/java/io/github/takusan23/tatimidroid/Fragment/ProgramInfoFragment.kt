@@ -127,7 +127,6 @@ class ProgramInfoFragment : Fragment() {
                         }
                     }.setAnchorView(commentFragment.getSnackbarAnchorView()).show()
                 }
-
             }
         }
 

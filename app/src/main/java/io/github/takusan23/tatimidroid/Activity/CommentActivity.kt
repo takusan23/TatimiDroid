@@ -2047,18 +2047,18 @@ class CommentActivity : AppCompatActivity() {
     fun commentCardView() {
         //投稿ボタンを押したら投稿
         comment_cardview_comment_send_button.setOnClickListener {
-            val comment = comment_cardview_comment_textinputlayout.text.toString()
+            val comment = comment_cardview_comment_textinput_edittext.text.toString()
             sendComment(comment)
-            comment_cardview_comment_textinputlayout.setText("")
+            comment_cardview_comment_textinput_edittext.setText("")
         }
         //Enterキーを押したら投稿する
-        comment_cardview_comment_textinputlayout.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
+        comment_cardview_comment_textinput_edittext.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
             if (i == KeyEvent.KEYCODE_ENTER) {
-                val text = comment_cardview_comment_textinputlayout.text.toString()
+                val text = comment_cardview_comment_textinput_edittext.text.toString()
                 if (text.isNotEmpty()) {
                     //コメント投稿
                     sendComment(text)
-                    comment_cardview_comment_textinputlayout.setText("")
+                    comment_cardview_comment_textinput_edittext.setText("")
                 }
             }
             false
@@ -2079,7 +2079,7 @@ class CommentActivity : AppCompatActivity() {
             loadCommentPOSTList()
             //コメントコレクション補充機能
             if (pref_setting.getBoolean("setting_comment_collection_assist", false)) {
-                comment_cardview_comment_textinputlayout.addTextChangedListener(object :
+                comment_cardview_comment_textinput_edittext.addTextChangedListener(object :
                     TextWatcher {
                     override fun afterTextChanged(p0: Editable?) {
                     }
@@ -2105,9 +2105,9 @@ class CommentActivity : AppCompatActivity() {
                                         //置き換える
                                         var text = p0.toString()
                                         text = text.replace(yomi, comment)
-                                        comment_cardview_comment_textinputlayout.setText(text)
+                                        comment_cardview_comment_textinput_edittext.setText(text)
                                         //カーソル移動
-                                        comment_cardview_comment_textinputlayout.setSelection(text.length)
+                                        comment_cardview_comment_textinput_edittext.setSelection(text.length)
                                         //消す
                                         comment_cardview_chipgroup.removeAllViews()
                                     }
@@ -2152,7 +2152,7 @@ class CommentActivity : AppCompatActivity() {
         cursor.close()
         //ポップアップメニュー押したとき
         popup.setOnMenuItemClickListener {
-            comment_cardview_comment_textinputlayout.text?.append(it.title)
+            comment_cardview_comment_textinput_edittext.text?.append(it.title)
             true
         }
         //表示

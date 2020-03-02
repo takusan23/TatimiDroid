@@ -41,8 +41,8 @@
     <string name="commentviewer_merit">すべての部屋のコメント・ギフト・ニコニ広告が取得できます。</string>
     <string name="commentviewer_mode_demerit">コメントの投稿ができません。</string>
     <string name="comment_post_mode">コメント投稿モード</string>
-    <string name="comment_post_mode_merit">コメントの投稿が可能です。\nすべての部屋のコメント・ギフト・ニコニ広告が取得できます。</string>
-    <string name="comment_post_demerit">パソコンで同時視聴していると切断されます。</string>
+    <string name="comment_post_mode_merit">パソコンで同時視聴しても切断されません。\nコメントの投稿が可能です。\nすべての部屋のコメント・ギフト・ニコニ広告が取得できます。</string>
+    <string name="comment_post_demerit">投稿したコメントがPC版ニコ生で表示されない。(要検証)\nコメビュやスマホアプリでは見れているので謎。</string>
     <string name="nicocas_comment_post_mode">nicocas式コメント投稿モード</string>
     <string name="nicocas_comment_post_mode_merit">パソコンで同時視聴しても切断されません。\nコメントの投稿が可能です。\nすべての部屋のコメント・ギフト・ニコニ広告が取得できます。</string>
     <string name="nicocas_comment_post_demerit">投稿したコメントは部屋に関係なくアリーナ部屋のコメントとなります。</string>
@@ -263,4 +263,9 @@
     <string name="timeshift_list">予約リスト（ブラウザ）</string>
     <string name="timeshift_delete_reservation_button">予約を取り消す</string>
     <string name="timeshift_reserved">タイムシフト予約済みです</string>
+    <string name="command">コマンド</string>
+    <string name="disabled_tokumei_comment">生IDで投稿します</string>
+    <string name="big">大</string>
+    <string name="small">小</string>
+    <string name="medium">中</string>
 </resources>

@@ -147,7 +147,7 @@ class AllRoomComment(
                         recyclerView!!,
                         context?.getString(R.string.connected) + ": $connectingRoomName",
                         Snackbar.LENGTH_LONG
-                    ).setAnchorView(commentFragment.fab).show()
+                    ).setAnchorView(commentFragment.getSnackbarAnchorView()).show()
                 }
 
                 //スレッド番号、過去コメントなど必要なものを最初に送る
