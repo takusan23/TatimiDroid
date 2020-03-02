@@ -256,4 +256,11 @@
     <string name="level">レベル</string>
     <string name="followed">フォロー済みです</string>
     <string name="not_tag_editable">タグ編集が出来ない番組です</string>
+    <string name="timeshift">タイムシフト予約</string>
+    <string name="timeshift_reservation_button">タイムシフト登録 / 解除</string>
+    <string name="timeshift_reservation_successful">タイムシフト予約に成功しました</string>
+    <string name="timeshift_delete_reservation_successful">タイムシフト予約を取り消しました</string>
+    <string name="timeshift_list">予約リスト（ブラウザ）</string>
+    <string name="timeshift_delete_reservation_button">予約を取り消す</string>
+    <string name="timeshift_reserved">タイムシフト予約済みです</string>
 </resources>

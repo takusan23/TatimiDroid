@@ -105,7 +105,7 @@ class CommentFragment : Fragment() {
     //コメントの内容
     var commentValue = ""
     //コマンド（匿名とか）
-    var commentCommand = "184"
+    var commentCommand = ""
     //視聴モード（コメント投稿機能付き）かどうか
     var isWatchingMode = false
     //hls
@@ -732,6 +732,7 @@ class CommentFragment : Fragment() {
                 //println(activeList)
                 activity_comment_comment_active_text.text =
                     "${activeList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
+                // TODO ここでエラーでる
                 activeList.clear()
             }
         }
@@ -1142,7 +1143,11 @@ class CommentFragment : Fragment() {
                             "vpos",
                             vpos
                         )     //番組情報取得で取得した値 - = System.currentTimeMillis() UNIX時間
-                        chatObject.put("mail", "184")
+                        // 匿名が有効の場合は184をつける
+                        if (isTokumeiComment) {
+                            commentCommand = "184 $commentCommand"
+                        }
+                        chatObject.put("mail", commentCommand)
                         chatObject.put(
                             "ticket",
                             commentTicket
@@ -1574,9 +1579,10 @@ class CommentFragment : Fragment() {
     }
 
     //コメント投稿用
-    fun sendComment(comment: String) {
+    fun sendComment(comment: String, command: String) {
         if (comment != "\n") {
             commentValue = comment
+            commentCommand = command
             //コメント投稿モード（コメントWebSocketに送信）
             val watchmode = pref_setting.getBoolean("setting_watching_mode", false)
             //nicocas式コメント投稿モード
@@ -2468,7 +2474,8 @@ class CommentFragment : Fragment() {
         //投稿ボタンを押したら投稿
         comment_cardview_comment_send_button.setOnClickListener {
             val comment = comment_cardview_comment_textinputlayout.text.toString()
-            sendComment(comment)
+            val command = comment_cardview_command_textinputlayout.text.toString()
+            sendComment(comment, command)
             comment_cardview_comment_textinputlayout.setText("")
         }
         //Enterキーを押したら投稿する
@@ -2476,9 +2483,10 @@ class CommentFragment : Fragment() {
             comment_cardview_comment_textinputlayout.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
                 if (i == KeyEvent.KEYCODE_ENTER) {
                     val text = comment_cardview_comment_textinputlayout.text.toString()
+                    val command = comment_cardview_command_textinputlayout.text.toString()
                     if (text.isNotEmpty()) {
                         //コメント投稿
-                        sendComment(text)
+                        sendComment(text, command)
                         comment_cardview_comment_textinputlayout.setText("")
                     }
                 }

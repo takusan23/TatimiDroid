@@ -256,4 +256,11 @@
     <string name="level">Level</string>
     <string name="followed">Followed</string>
     <string name="not_tag_editable">It is a program that can not edit tags</string>
+    <string name="timeshift">Time shift reservation</string>
+    <string name="timeshift_reservation_button">Register / cancel time shift</string>
+    <string name="timeshift_reservation_successful">Time shift reservation successful</string>
+    <string name="timeshift_delete_reservation_successful">Timeshift reservation canceled</string>
+    <string name="timeshift_list">Booking list (browser)</string>
+    <string name="timeshift_delete_reservation_button">Cancel reservation</string>
+    <string name="timeshift_reserved">Time shift reserved</string>
 </resources>

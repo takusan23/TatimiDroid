@@ -115,7 +115,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             for (i in 0 until commentObjList.size) {
                 val obj = commentObjList[i]
                 if ((obj.xPos + obj.commentMeasure) > 0) {
-                    commentObjList[i].xPos -= 5 + (obj.comment.length / 2)
+                    commentObjList[i].xPos -= speed + (obj.comment.length / 2)
                 }
             }
 
@@ -162,16 +162,14 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             }
         }
         // 上付きコメントを描画する
-        for (i in 0 until ueCommentList.size) {
-            val obj = ueCommentList[i]
-            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, blackPaint)
-            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command))
+        ueCommentList.toList().forEach {
+            canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
+            canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command))
         }
         // 下付きコメントを描画する
-        for (i in 0 until sitaCommentList.size) {
-            val obj = sitaCommentList[i]
-            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, blackPaint)
-            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command))
+        sitaCommentList.toList().forEach {
+            canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
+            canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command))
         }
     }
 

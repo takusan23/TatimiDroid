@@ -7,12 +7,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_info.*
 import kotlinx.coroutines.*
@@ -52,9 +54,11 @@ class ProgramInfoFragment : Fragment() {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         usersession = pref_setting.getString("user_session", "") ?: ""
 
-        // getProgramInfo()
+        val fragment =
+            (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId)
+        val commentFragment = fragment as CommentFragment
 
-        // タグ取得
+        // 番組情報取得
         programInfoCoroutine()
 
         // ユーザーフォロー
@@ -84,6 +88,47 @@ class ProgramInfoFragment : Fragment() {
             nicoLiveTagBottomFragment.arguments = bundle
             nicoLiveTagBottomFragment.programFragment = this@ProgramInfoFragment
             nicoLiveTagBottomFragment.show(childFragmentManager, "bottom_tag")
+        }
+
+        // TS予約
+        fragment_program_info_timeshift_button.setOnClickListener {
+            registerTimeShift {
+                println(it.body?.string())
+                if (it.isSuccessful) {
+                    activity?.runOnUiThread {
+                        // 成功したらTS予約リストへ飛ばす
+                        Snackbar.make(
+                            fragment_program_info_timeshift_button,
+                            R.string.timeshift_reservation_successful,
+                            Snackbar.LENGTH_LONG
+                        ).setAction(R.string.timeshift_list) {
+                            val intent =
+                                Intent(Intent.ACTION_VIEW, "https://live.nicovideo.jp/my".toUri())
+                            startActivity(intent)
+                        }.setAnchorView(commentFragment.getSnackbarAnchorView()).show()
+                    }
+                } else if (it.code == 500) {
+                    // 予約済みの可能性。
+                    // なお本家も多分一度登録APIを叩いて500エラーのとき登録済みって判断するっぽい？
+                    Snackbar.make(
+                        fragment_program_info_timeshift_button,
+                        R.string.timeshift_reserved,
+                        Snackbar.LENGTH_LONG
+                    ).setAction(R.string.timeshift_delete_reservation_button) {
+                        deleteTimeShift {
+                            println(it.body?.string())
+                            activity?.runOnUiThread {
+                                Toast.makeText(
+                                    context,
+                                    R.string.timeshift_delete_reservation_successful,
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }.setAnchorView(commentFragment.getSnackbarAnchorView()).show()
+                }
+
+            }
         }
 
         //getCommentWatchingCount()
@@ -183,6 +228,12 @@ class ProgramInfoFragment : Fragment() {
                         text = getString(R.string.not_tag_editable)
                     }
                 }
+
+                // タイムシフト予約済みか
+                val userProgramReservation = jsonObject.getJSONObject("userProgramReservation")
+                val isReserved = userProgramReservation.getBoolean("isReserved")
+
+
             }
         }
     }
@@ -342,4 +393,68 @@ class ProgramInfoFragment : Fragment() {
         })
     }
 
+    /**
+     * タイムシフト登録する。 overwriteってなんだ？
+     * @param レスポンスが帰ってくれば
+     * */
+    fun registerTimeShift(successful: (Response) -> Unit) {
+        val postFormData = FormBody.Builder().apply {
+            // 番組IDからlvを抜いた値を指定する
+            add("vid", liveId.replace("lv", ""))
+            add("overwrite", "0")
+        }.build()
+        val request = Request.Builder().apply {
+            url("https://live.nicovideo.jp/api/timeshift.reservations")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$usersession")
+            header("Content-Type", "application/x-www-form-urlencoded")
+            header("Origin", "https://live2.nicovideo.jp") // これが必須の模様
+            post(postFormData)
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                showToast(getString(R.string.error))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                successful(response)
+            }
+        })
+    }
+
+    /**
+     * タイムシフトを削除する
+     * @param successful 成功したら呼ばれます。
+     * */
+    fun deleteTimeShift(successful: (Response) -> Unit) {
+        val request = Request.Builder().apply {
+            // 番組IDからlvを抜いた値を指定する
+            url(
+                "https://live.nicovideo.jp/api/timeshift.reservations?vid=${liveId.replace(
+                    "lv",
+                    ""
+                )}"
+            )
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$usersession")
+            header("Content-Type", "application/x-www-form-urlencoded")
+            header("Origin", "https://live2.nicovideo.jp") // これが必須の模様
+            delete()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                showToast(getString(R.string.error))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    successful(response)
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                }
+            }
+        })
+    }
 }

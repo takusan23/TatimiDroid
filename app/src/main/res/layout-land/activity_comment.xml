@@ -238,11 +238,30 @@
                                 android:padding="10dp"
                                 android:src="@drawable/ic_clear_black" />
 
+                        <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/comment_cardview_command_textinputlayout"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="コマンド"
+                                    android:maxLines="1" />
+
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
 
                         <com.google.android.material.textfield.TextInputLayout
                                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
 

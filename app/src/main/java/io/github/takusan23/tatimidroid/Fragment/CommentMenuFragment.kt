@@ -309,16 +309,16 @@ class CommentMenuFragment : Fragment() {
             commentFragment.hideInfoUnnkome = isChecked
         }
         fragment_comment_fragment_menu_iyayo_comment_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            //匿名かどうか。commandを直接触る
+            //匿名かどうか。
             commentFragment.isTokumeiComment = isChecked
-            when (isChecked) {
+            /*when (isChecked) {
                 true -> {
                     commentFragment.commentCommand = "184"
                 }
                 false -> {
                     commentFragment.commentCommand = ""
                 }
-            }
+            }*/
         }
     }
 }

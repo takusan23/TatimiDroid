@@ -80,10 +80,10 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:tooltipText="@string/end_time_tooltip"
                             android:maxLines="1"
                             android:text="00:00"
-                            android:textSize="18sp" />
+                            android:textSize="18sp"
+                            android:tooltipText="@string/end_time_tooltip" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -239,6 +239,25 @@
                                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/comment_cardview_command_textinputlayout"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="コマンド"
+                                    android:maxLines="1" />
+
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
 
@@ -251,6 +270,7 @@
 
 
                         </com.google.android.material.textfield.TextInputLayout>
+
 
                         <ImageButton
                                 android:id="@+id/comment_cardview_comment_list_button"

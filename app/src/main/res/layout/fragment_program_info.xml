@@ -46,6 +46,13 @@
                             android:layout_height="wrap_content"
                             android:text="開始時刻" />
 
+                    <Button
+                            android:id="@+id/fragment_program_info_timeshift_button"
+                            android:layout_margin="10sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/timeshift_reservation_button" />
+
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

@@ -56,7 +56,7 @@ class AllRoomComment(
     val timer = Timer()
 
     init {
-        println(commentFragment.commentMessageServerUri)
+        // println(commentFragment.commentMessageServerUri)
         if (!commentFragment.isOfficial) {
             // 公式番組以外では利用する
             getRoomList()
@@ -370,10 +370,21 @@ class AllRoomComment(
                     //二重に表示されない対策。originにCが入っていなければいいという本当にこれでいいのか？
                     if (commentJSONParse.origin != "C") {
                         Handler(Looper.getMainLooper()).post {
-                            commentFragment.commentCanvas.postComment(
-                                message,
-                                commentJSONParse
-                            )
+                            if (!message.contains("\n")) {
+                                commentFragment.commentCanvas.postComment(
+                                    message,
+                                    commentJSONParse
+                                )
+                            } else {
+                                // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
+                                // 豆先輩！！！！！！！！！！！！！！！！！！
+                                for (line in message.split("\n")) {
+                                    commentFragment.commentCanvas.postComment(
+                                        line,
+                                        commentJSONParse
+                                    )
+                                }
+                            }
                             //ポップアップ再生
                             if (commentFragment.overlay_commentcamvas != null) {
                                 commentFragment.overlay_commentcamvas!!.postComment(
