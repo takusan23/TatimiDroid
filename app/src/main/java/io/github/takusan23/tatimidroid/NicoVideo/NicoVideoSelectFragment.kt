@@ -203,6 +203,7 @@ class NicoVideoSelectFragment : Fragment() {
 
     }
 
+    // シリーズ一覧はAPIがあるのにシリーズの中身はAPIない
     fun getSeriesHTML(id: String) {
         recyclerViewList.clear()
         activity?.runOnUiThread { fragment_nicovideo_select_swipe_to_reflesh.isRefreshing = true }
@@ -232,30 +233,30 @@ class NicoVideoSelectFragment : Fragment() {
                             val jsonString = it.html()
                             val itemListElement =
                                 JSONObject(jsonString).getJSONArray("itemListElement")
+                            if (JSONObject(jsonString).getString("@type") == "ItemList") {
+                                for (i in 0 until itemListElement.length()) {
+                                    val jsonObject = itemListElement.getJSONObject(i)
+                                    val videoId = jsonObject.getString("@id")
+                                        .replace("https://www.nicovideo.jp/watch/", "")
+                                    val title = jsonObject.getString("name")
+                                    val uploadDate = jsonObject.getString("uploadDate")
+                                    val thumbnailUrl =
+                                        jsonObject.getJSONArray("thumbnailUrl").getString(0)
 
-                            for (i in 0 until itemListElement.length()) {
-                                val jsonObject = itemListElement.getJSONObject(i)
-
-                                val videoId = jsonObject.getString("@id")
-                                    .replace("https://www.nicovideo.jp/watch/", "")
-                                val title = jsonObject.getString("name")
-                                val uploadDate = jsonObject.getString("uploadDate")
-                                val thumbnailUrl =
-                                    jsonObject.getJSONArray("thumbnailUrl").getString(0)
-
-                                val item = arrayListOf<String>().apply {
-                                    add("series")//シリーズだよー
-                                    add(videoId)
-                                    add(title)
-                                    add(uploadDate)
-                                    add("")
-                                    add("")
-                                    add(thumbnailUrl)
-                                    add("")
-                                    add("")
-                                    add("")
+                                    val item = arrayListOf<String>().apply {
+                                        add("series")//シリーズだよー
+                                        add(videoId)
+                                        add(title)
+                                        add(uploadDate)
+                                        add("")
+                                        add("")
+                                        add(thumbnailUrl)
+                                        add("")
+                                        add("")
+                                        add("")
+                                    }
+                                    recyclerViewList.add(item)
                                 }
-                                recyclerViewList.add(item)
                             }
                         }
                         activity?.runOnUiThread {
@@ -614,44 +615,49 @@ class NicoVideoSelectFragment : Fragment() {
                     //動画のDiv要素を取り出す
                     val divList = document.getElementsByClass("outer VideoItem")
                     divList.forEach {
-                        //一つずつ見ていく
-                        var videoId = it.getElementsByClass("ct").first().attr("href")
-                        videoId = videoId.replace("http://commons.nicovideo.jp/tree/", "")
-                        val title = it.getElementsByTag("h5").first().getElementsByTag("a").text()
-                        val postDate = it.getElementsByClass("posttime").first().text()
-                        val thumbnailUrl = it.getElementsByTag("img").first().attr("src")
-                        val commentCount = it.getElementsByClass("comment").first().text()
-                        val playCount = it.getElementsByClass("play").first().text()
-                        val mylistCount = it.getElementsByClass("mylist").first().text()
+                        if (it.getElementsByClass("ct").isNotEmpty()) {
+                            //一つずつ見ていく
+                            var videoId = it.getElementsByClass("ct").first().attr("href")
+                            videoId = videoId.replace("http://commons.nicovideo.jp/tree/", "")
+                            val title =
+                                it.getElementsByTag("h5").first().getElementsByTag("a").text()
+                            val postDate = it.getElementsByClass("posttime").first().text()
+                            val thumbnailUrl = it.getElementsByTag("img").first().attr("src")
+                            val commentCount = it.getElementsByClass("comment").first().text()
+                            val playCount = it.getElementsByClass("play").first().text()
+                            val mylistCount = it.getElementsByClass("mylist").first().text()
 
-                        val item = arrayListOf<String>().apply {
-                            add("post")//投稿だよー
-                            add(videoId)
-                            add(title)
-                            add("")
-                            add(postDate)
-                            add("")
-                            add(thumbnailUrl)
-                            add(commentCount)
-                            add(playCount)
-                            add(mylistCount)
+                            val item = arrayListOf<String>().apply {
+                                add("post")//投稿だよー
+                                add(videoId)
+                                add(title)
+                                add("")
+                                add(postDate)
+                                add("")
+                                add(thumbnailUrl)
+                                add(commentCount)
+                                add(playCount)
+                                add(mylistCount)
+                            }
+                            recyclerViewList.add(item)
                         }
-
-                        recyclerViewList.add(item)
-
                     }
                     //次のページへ移動
-                    val videoListButtonDiv =
-                        document.getElementsByClass("outer VideoListHeadMenuContainer")[0].getElementsByClass(
-                            "pager"
-                        )[0]
-                    val nextButton = videoListButtonDiv.children().last()
-
-                    //href取得。次のページへ
-                    //最後かどうか判断しないと無限に取得しに行くので。最後は要素が「span」になる。最後の要素が「span」なら取得しない。
-                    if (nextButton.tagName() != "span") {
-                        val link = nextButton.attr("href")
-                        getPOSTVideoHTML(link)
+                    if (document.getElementsByClass("outer VideoListHeadMenuContainer").isNotEmpty() && document.getElementsByClass(
+                            "outer VideoListHeadMenuContainer"
+                        )[0].getElementsByClass("pager").isNotEmpty()
+                    ) {
+                        val videoListButtonDiv =
+                            document.getElementsByClass("outer VideoListHeadMenuContainer")[0].getElementsByClass(
+                                "pager"
+                            )[0]
+                        val nextButton = videoListButtonDiv.children().last()
+                        //href取得。次のページへ
+                        //最後かどうか判断しないと無限に取得しに行くので。最後は要素が「span」になる。最後の要素が「span」なら取得しない。
+                        if (nextButton.tagName() != "span") {
+                            val link = nextButton.attr("href")
+                            getPOSTVideoHTML(link)
+                        }
                     }
 
                     activity?.runOnUiThread {

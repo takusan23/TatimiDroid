@@ -78,6 +78,11 @@ class ProgramInfoFragment : Fragment() {
             }
         }
 
+        // 公式番組はユーザーフォローボタンない？
+        if (commentFragment.isOfficial) {
+            fragment_program_info_broadcaster_follow_button.isEnabled = false
+        }
+
         // タグ編集
         fragment_program_info_tag_add_button.setOnClickListener {
             val nicoLiveTagBottomFragment = NicoLiveTagBottomFragment()
@@ -152,16 +157,16 @@ class ProgramInfoFragment : Fragment() {
                 // 放送者
                 val supplier = program.getJSONObject("supplier")
                 val name = supplier.getString("name")
-                val level = supplier.getInt("level")
+                var level = 0
+                // 公式番組対応版
+                if (supplier.has("level")) {
+                    level = supplier.getInt("level")
+                }
                 // UnixTimeから変換
                 val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
                 // フォーマット済み
                 val formattedBeginTime = simpleDateFormat.format(beginTime * 1000)
                 val formattedEndTime = simpleDateFormat.format(endTime * 1000)
-                // コミュ
-                val community = jsonObject.getJSONObject("socialGroup")
-                val communityName = community.getString("name")
-                val communityLevel = community.getInt("level")
 
                 //UI
                 activity?.runOnUiThread {
@@ -174,6 +179,17 @@ class ProgramInfoFragment : Fragment() {
                     fragment_program_info_title.text = title
                     fragment_program_info_description.text =
                         HtmlCompat.fromHtml(description, FROM_HTML_MODE_COMPACT)
+                }
+
+                // コミュ
+                val community = jsonObject.getJSONObject("socialGroup")
+                val communityName = community.getString("name")
+                var communityLevel = 0
+                // 公式番組にはlevelない
+                if (community.has("level")) {
+                    communityLevel = community.getInt("level")
+                }
+                activity?.runOnUiThread {
                     fragment_program_info_community_name.text =
                         "${getString(R.string.community_name)} : $communityName"
                     fragment_program_info_community_level.text =

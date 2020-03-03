@@ -65,7 +65,7 @@ class AllRoomComment(
                 connectCommentServer(
                     commentFragment.commentMessageServerUri,
                     commentFragment.commentThreadId,
-                    ""
+                    commentFragment.commentRoomName
                 )
             }
         }

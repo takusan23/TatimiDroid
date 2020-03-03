@@ -42,13 +42,24 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<
 
         //コミュIDをいれる
         holder.parentLinearLayout.setOnClickListener {
-            if(::editText.isInitialized){
+            if (::editText.isInitialized) {
                 editText.setText(communityId)
             }
             //けす
-            if(::bottomSheetDialogFragment.isInitialized){
+            if (::bottomSheetDialogFragment.isInitialized) {
                 bottomSheetDialogFragment.dismiss()
             }
+        }
+        // 長押しで番組ID
+        holder.parentLinearLayout.setOnLongClickListener {
+            if (::editText.isInitialized) {
+                editText.setText(id)
+            }
+            //けす
+            if (::bottomSheetDialogFragment.isInitialized) {
+                bottomSheetDialogFragment.dismiss()
+            }
+            true
         }
     }
 
@@ -61,7 +72,7 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<
 
         var titleTextView: TextView
         var dateTextView: TextView
-        var parentLinearLayout:LinearLayout
+        var parentLinearLayout: LinearLayout
 
         init {
             parentLinearLayout = itemView.findViewById(R.id.adapter_nico_history_parent)
