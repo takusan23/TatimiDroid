@@ -85,6 +85,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     // 高さ：追加時間（UnixTime）
     val sitaCommentLine = mutableMapOf<Float, Long>()
 
+    // Canvasの高さ。なぜかgetHeight()が0を返すので一工夫する必要がある。くっっっっっっそ
+    var finalHeight = 10
+
 
     init {
         //文字サイズ計算。端末によって変わるので
@@ -142,6 +145,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         }
 
         viewTreeObserver.addOnGlobalLayoutListener {
+            finalHeight = height
             val lineCount = height / fontsize
             for (i in 0 until lineCount.toInt()) {
                 commentLines.add(0L)
@@ -296,10 +300,16 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     // println("位置が決定しました")
                     break
                 }
-                if (yPos > height) {
+                if (yPos > finalHeight) {
                     // 画面外に行く場合はランダムで決定
+                    if (finalHeight > 0) {
+                        // Canvasの高さが取得できているとき
+                        yPos = Random.nextInt(fontsize.toInt(), finalHeight).toFloat()
+                    } else {
+                        // 取得できてないとき。ほんとに適当
+                        yPos = Random.nextInt(1, 10) * fontsize
+                    }
                     // println("らんだむ")
-                    yPos = Random.nextInt(fontsize.toInt(), height).toFloat()
                 }
             }
             val commentObj = CommentObject(
