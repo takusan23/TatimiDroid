@@ -141,6 +141,7 @@ class ProgramInfoFragment : Fragment() {
 
     /** コルーチン */
     fun programInfoCoroutine() {
+        fragment_program_info_tag_linearlayout.removeAllViews()
         GlobalScope.launch(Dispatchers.Main) {
             val responseString = getNicoLiveHTML().await()
             val html = Jsoup.parse(responseString)

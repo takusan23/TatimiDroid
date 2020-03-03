@@ -676,6 +676,8 @@ class CommentFragment : Fragment() {
         }
         commentActivity.registerReceiver(broadcastReceiver, intentFilter)
 
+        // testEnquate()
+
     }
 
     fun setAllRoomCommentFragment() {
@@ -716,13 +718,13 @@ class CommentFragment : Fragment() {
 
     private fun testEnquate() {
         setEnquetePOSTLayout(
-            "/vote start あ 怪異 パイロン バイオ マヨ E大神 乙女 クロエ 発掘",
+            "/vote start コロナ患者近くにいる？ はい いいえ 僕がコロナです",
             "start"
         )
         Timer().schedule(timerTask {
             commentActivity.runOnUiThread {
                 setEnquetePOSTLayout(
-                    "/vote showresult per 538 168 132 82 80",
+                    "/vote showresult per 176 353 471",
                     "result"
                 )
             }
@@ -1313,9 +1315,8 @@ class CommentFragment : Fragment() {
     //コメント送信用WebSocket。今の部屋に繋がってる（アリーナならアリーナ）
     fun connectionCommentPOSTWebSocket(url: String, threadId: String) {
         //過去コメントか流れてきたコメントか
-        var historyComment = -1000
-        //過去コメントだとtrue
-        var isHistoryComment = true
+        var historyComment = 0
+        // 過去コメント0にしたので常に
         //
         val uri = URI(url)
         //これはプロトコルの設定が必要
@@ -1350,12 +1351,6 @@ class CommentFragment : Fragment() {
             override fun onMessage(message: String?) {
                 //コメント送信に使うticketを取得する
                 if (message != null) {
-                    //過去コメントかな？
-                    if (historyComment < 0) {
-                        historyComment++
-                    } else {
-                        isHistoryComment = false
-                    }
                     //thread
                     if (message.contains("ticket")) {
                         val jsonObject = JSONObject(message)
@@ -1391,32 +1386,31 @@ class CommentFragment : Fragment() {
                     // /voteが流れてきたとき（アンケート）
                     // だたし過去コメントには反応しないようにする
                     if (message.contains("/vote")) {
-                        if (!isHistoryComment) {
-                            //コメント取得
-                            val jsonObject = JSONObject(message)
-                            val chatObject = jsonObject.getJSONObject("chat")
-                            val content = chatObject.getString("content")
-                            val premium = chatObject.getInt("premium")
-                            if (premium == 3) {
-                                //運営コメント
-                                //アンケ開始
-                                if (content.contains("/vote start")) {
-                                    commentActivity.runOnUiThread {
-                                        setEnquetePOSTLayout(content, "start")
-                                    }
+                        //コメント取得
+                        val jsonObject = JSONObject(message)
+                        val chatObject = jsonObject.getJSONObject("chat")
+                        val content = chatObject.getString("content")
+                        val premium = chatObject.getInt("premium")
+                        if (premium == 3) {
+                            println(content)
+                            //運営コメント
+                            //アンケ開始
+                            if (content.contains("/vote start")) {
+                                commentActivity.runOnUiThread {
+                                    setEnquetePOSTLayout(content, "start")
                                 }
-                                //アンケ結果
-                                if (content.contains("/vote showresult")) {
-                                    commentActivity.runOnUiThread {
-                                        setEnquetePOSTLayout(content, "showresult")
-                                    }
+                            }
+                            //アンケ結果
+                            if (content.contains("/vote showresult")) {
+                                commentActivity.runOnUiThread {
+                                    setEnquetePOSTLayout(content, "showresult")
                                 }
-                                //アンケ終了
-                                if (content.contains("/vote stop")) {
-                                    commentActivity.runOnUiThread {
-                                        if (this@CommentFragment::enquateView.isInitialized) {
-                                            live_framelayout.removeView(enquateView)
-                                        }
+                            }
+                            //アンケ終了
+                            if (content.contains("/vote stop")) {
+                                commentActivity.runOnUiThread {
+                                    if (this@CommentFragment::enquateView.isInitialized) {
+                                        live_framelayout.removeView(enquateView)
                                     }
                                 }
                             }
@@ -2341,7 +2335,10 @@ class CommentFragment : Fragment() {
         if (type.contains("start")) {
             //アンケ開始
             live_framelayout.addView(enquateView)
-            val jsonArray = JSONArray(enquateStartMessageToJSONArray(message))
+            // /vote start ～なんとか　を配列にする
+            val voteString = message.replace("/vote start ", "")
+            val voteList = voteString.split(" ") // 空白の部分で分けて配列にする
+            val jsonArray = JSONArray(voteList)
             //println(enquateStartMessageToJSONArray(message))
             //アンケ内容保存
             enquateJSONArray = jsonArray.toString()
@@ -2392,9 +2389,11 @@ class CommentFragment : Fragment() {
             //println(enquateJSONArray)
             //アンケ結果
             live_framelayout.removeView(enquateView)
-
             live_framelayout.addView(enquateView)
-            val jsonArray = JSONArray(enquateResultMessageToJSONArray(message))
+            // /vote showresult ~なんとか を　配列にする
+            val voteString = message.replace("/vote showresult per ", "")
+            val voteList = voteString.split(" ")
+            val jsonArray = JSONArray(voteList)
             val questionJsonArray = JSONArray(enquateJSONArray)
             //０個目はタイトル
             val title = questionJsonArray.getString(0)
@@ -2440,24 +2439,6 @@ class CommentFragment : Fragment() {
                 share(shareText, "$title($programTitle-$liveId)")
             }.show()
         }
-    }
-
-    fun enquateStartMessageToJSONArray(message: String): String {
-        //無理やりJSON配列にする
-        var comment = message
-        comment = comment.replace("/vote start ", "[")
-        comment += "]"
-        comment = comment.replace("\\s".toRegex(), ",")  //正規表現でスペースを,にする
-        return comment
-    }
-
-    fun enquateResultMessageToJSONArray(message: String): String {
-        //無理やりJSON配列にする
-        var comment = message
-        comment = comment.replace("/vote showresult per ", "[")
-        comment += "]"
-        comment = comment.replace("\\s".toRegex(), ",")  //正規表現でスペースを,にする
-        return comment
     }
 
     //アンケートの結果を％表示
