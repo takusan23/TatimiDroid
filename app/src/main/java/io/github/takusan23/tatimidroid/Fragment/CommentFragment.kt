@@ -1152,7 +1152,7 @@ class CommentFragment : Fragment() {
                         // 100=1秒らしい。 例：300->3秒
                         val unixTime = System.currentTimeMillis() / 1000L
                         val vpos = (unixTime - programStartTime) * 100
-                        println(vpos)
+                        // println(vpos)
                         val jsonObject = JSONObject()
                         val chatObject = JSONObject()
                         chatObject.put(
@@ -1454,13 +1454,35 @@ class CommentFragment : Fragment() {
                     if (!hideInfoUnnkome) {
                         //運営コメント
                         if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
-                            // info と ニコニ広告は見逃す（下で表示するので）
                             val isNicoad = commentJSONParse.comment.contains("/nicoad")
                             val isInfo = commentJSONParse.comment.contains("/info")
                             val isUadPoint = commentJSONParse.comment.contains("/uadpoint")
-                            if (!isNicoad && !isInfo && !isUadPoint) {
+                            val isSpi = commentJSONParse.comment.contains("/spi")
+                            // 上に表示されるやつ
+                            if (!isNicoad && !isInfo && !isUadPoint && !isSpi) {
                                 // 生主コメント
                                 setUnneiComment(commentJSONParse.comment)
+                            } else {
+                                // UIスレッド
+                                activity?.runOnUiThread {
+                                    // 下に表示するやつ
+                                    if (isInfo) {
+                                        // /info {数字}　を消す
+                                        val regex = "/info \\d+ ".toRegex()
+                                        showInfoComment(commentJSONParse.comment.replace(regex, ""))
+                                    }
+                                    // ニコニ広告
+                                    if (isNicoad) {
+                                        val json =
+                                            JSONObject(commentJSONParse.comment.replace("/nicoad ", ""))
+                                        val comment = json.getString("message")
+                                        showInfoComment(comment)
+                                    }
+                                    // spi (ニコニコ新市場に商品が貼られたとき)
+                                    if (isSpi) {
+                                        showInfoComment(commentJSONParse.comment.replace("/spi ", ""))
+                                    }
+                                }
                             }
                         }
                         //運営コメントけす
@@ -1468,6 +1490,7 @@ class CommentFragment : Fragment() {
                             removeUnneiComment()
                         }
 
+/*
                         //infoコメントを表示
                         if (commentJSONParse.comment.contains("/nicoad")) {
                             activity?.runOnUiThread {
@@ -1492,6 +1515,7 @@ class CommentFragment : Fragment() {
                                 )
                             }
                         }
+*/
                     }
                 }
             }
@@ -2867,7 +2891,7 @@ class CommentFragment : Fragment() {
     fun showInfoComment(comment: String) {
         //テキスト、背景色
         infoTextView.text = comment
-        infoTextView.textSize = 20F
+        infoTextView.textSize = 15F
         infoTextView.setTextColor(Color.WHITE)
         infoTextView.background = ColorDrawable(Color.parseColor("#80000000"))
         //追加
