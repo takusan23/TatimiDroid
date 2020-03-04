@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.tatimidroid.NicoLiveAPI
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -7,6 +7,7 @@ import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.R
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException

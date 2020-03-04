@@ -9,22 +9,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.NicoLogin
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.bottom_fragment_nimado_live_id.*
-import kotlinx.android.synthetic.main.fragment_liveid.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import org.json.JSONObject
 import org.jsoup.Jsoup
-import java.io.IOException
 import java.util.regex.Pattern
 
 class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {

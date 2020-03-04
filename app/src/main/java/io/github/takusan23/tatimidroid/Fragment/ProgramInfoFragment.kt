@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_info.*
 import kotlinx.coroutines.*
@@ -143,125 +144,120 @@ class ProgramInfoFragment : Fragment() {
     fun programInfoCoroutine() {
         fragment_program_info_tag_linearlayout.removeAllViews()
         GlobalScope.launch(Dispatchers.Main) {
-            val responseString = getNicoLiveHTML().await()
-            val html = Jsoup.parse(responseString)
-            if (html.getElementById("embedded-data") != null) {
-                val json = html.getElementById("embedded-data").attr("data-props")
-                val jsonObject = JSONObject(json)
+            val nicolive = NicoLiveHTML()
+            val responseString = nicolive.getNicoLiveHTML(liveId, usersession).await()
+            val jsonObject = nicolive.nicoLiveHTMLtoJSONObject(responseString)
+            // 番組情報取得
+            val program = jsonObject.getJSONObject("program")
+            val title = program.getString("title")
+            val description = program.getString("description")
+            val beginTime = program.getLong("beginTime")
+            val endTime = program.getLong("endTime")
+            // 放送者
+            val supplier = program.getJSONObject("supplier")
+            val name = supplier.getString("name")
+            var level = 0
+            // 公式番組対応版
+            if (supplier.has("level")) {
+                level = supplier.getInt("level")
+            }
+            // UnixTimeから変換
+            val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+            // フォーマット済み
+            val formattedBeginTime = simpleDateFormat.format(beginTime * 1000)
+            val formattedEndTime = simpleDateFormat.format(endTime * 1000)
 
-                // 番組情報取得
-                val program = jsonObject.getJSONObject("program")
-                val title = program.getString("title")
-                val description = program.getString("description")
-                val beginTime = program.getLong("beginTime")
-                val endTime = program.getLong("endTime")
-                // 放送者
-                val supplier = program.getJSONObject("supplier")
-                val name = supplier.getString("name")
-                var level = 0
-                // 公式番組対応版
-                if (supplier.has("level")) {
-                    level = supplier.getInt("level")
-                }
-                // UnixTimeから変換
-                val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
-                // フォーマット済み
-                val formattedBeginTime = simpleDateFormat.format(beginTime * 1000)
-                val formattedEndTime = simpleDateFormat.format(endTime * 1000)
+            //UI
+            activity?.runOnUiThread {
+                fragment_program_info_broadcaster_name.text =
+                    "${getString(R.string.broadcaster)} : $name"
+                fragment_program_info_broadcaster_level.text =
+                    "${getString(R.string.level)} : $level"
+                fragment_program_info_time.text =
+                    "${getString(R.string.program_start)} : $formattedBeginTime / ${getString(R.string.end_of_program)} : $formattedEndTime"
+                fragment_program_info_title.text = title
+                fragment_program_info_description.text =
+                    HtmlCompat.fromHtml(description, FROM_HTML_MODE_COMPACT)
+            }
 
-                //UI
+            // コミュ
+            val community = jsonObject.getJSONObject("socialGroup")
+            val communityName = community.getString("name")
+            var communityLevel = 0
+            // 公式番組にはlevelない
+            if (community.has("level")) {
+                communityLevel = community.getInt("level")
+            }
+            activity?.runOnUiThread {
+                fragment_program_info_community_name.text =
+                    "${getString(R.string.community_name)} : $communityName"
+                fragment_program_info_community_level.text =
+                    "${getString(R.string.community_level)} : $communityLevel"
+            }
+
+            // コミュフォロー中？
+            val isCommunityFollow =
+                jsonObject.getJSONObject("socialGroup").getBoolean("isFollowed")
+            if (isCommunityFollow) {
                 activity?.runOnUiThread {
-                    fragment_program_info_broadcaster_name.text =
-                        "${getString(R.string.broadcaster)} : $name"
-                    fragment_program_info_broadcaster_level.text =
-                        "${getString(R.string.level)} : $level"
-                    fragment_program_info_time.text =
-                        "${getString(R.string.program_start)} : $formattedBeginTime / ${getString(R.string.end_of_program)} : $formattedEndTime"
-                    fragment_program_info_title.text = title
-                    fragment_program_info_description.text =
-                        HtmlCompat.fromHtml(description, FROM_HTML_MODE_COMPACT)
+                    // 押せないように
+                    fragment_program_info_community_follow_button.isEnabled = false
+                    fragment_program_info_community_follow_button.text =
+                        getString(R.string.followed)
                 }
-
-                // コミュ
-                val community = jsonObject.getJSONObject("socialGroup")
-                val communityName = community.getString("name")
-                var communityLevel = 0
-                // 公式番組にはlevelない
-                if (community.has("level")) {
-                    communityLevel = community.getInt("level")
-                }
+            }
+            //たぐ
+            val tag = jsonObject.getJSONObject("program").getJSONObject("tag")
+            val isTagNotEditable = tag.getBoolean("isLocked") // タグ編集が可能か？
+            val tagsList = tag.getJSONArray("list")
+            if (tagsList.length() != 0) {
                 activity?.runOnUiThread {
-                    fragment_program_info_community_name.text =
-                        "${getString(R.string.community_name)} : $communityName"
-                    fragment_program_info_community_level.text =
-                        "${getString(R.string.community_level)} : $communityLevel"
-                }
-
-                // コミュフォロー中？
-                val isCommunityFollow =
-                    jsonObject.getJSONObject("socialGroup").getBoolean("isFollowed")
-                if (isCommunityFollow) {
-                    activity?.runOnUiThread {
-                        // 押せないように
-                        fragment_program_info_community_follow_button.isEnabled = false
-                        fragment_program_info_community_follow_button.text =
-                            getString(R.string.followed)
-                    }
-                }
-                //たぐ
-                val tag = jsonObject.getJSONObject("program").getJSONObject("tag")
-                val isTagNotEditable = tag.getBoolean("isLocked") // タグ編集が可能か？
-                val tagsList = tag.getJSONArray("list")
-                if (tagsList.length() != 0) {
-                    activity?.runOnUiThread {
-                        for (i in 0 until tagsList.length()) {
-                            val tag = tagsList.getJSONObject(i)
-                            val text = tag.getString("text")
-                            val isNicopedia = tag.getBoolean("existsNicopediaArticle")
-                            val nicopediaUrl =
-                                "https://dic.nicovideo.jp/${tag.getString("nicopediaArticlePageUrlPath")}"
-                            //ボタン作成
-                            val button = MaterialButton(context!!)
-                            button.text = text
-                            if (isNicopedia) {
-                                button.setOnClickListener {
-                                    val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
-                                    startActivity(intent)
-                                }
-                            } else {
-                                button.isEnabled = false
+                    for (i in 0 until tagsList.length()) {
+                        val tag = tagsList.getJSONObject(i)
+                        val text = tag.getString("text")
+                        val isNicopedia = tag.getBoolean("existsNicopediaArticle")
+                        val nicopediaUrl =
+                            "https://dic.nicovideo.jp/${tag.getString("nicopediaArticlePageUrlPath")}"
+                        //ボタン作成
+                        val button = MaterialButton(context!!)
+                        button.text = text
+                        if (isNicopedia) {
+                            button.setOnClickListener {
+                                val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
+                                startActivity(intent)
                             }
-                            fragment_program_info_tag_linearlayout.addView(button)
+                        } else {
+                            button.isEnabled = false
                         }
+                        fragment_program_info_tag_linearlayout.addView(button)
                     }
                 }
-                // タグの登録に必要なトークンを取得
-                tagToken = tag.getString("apiToken")
-                // タグが変更できない場合はボタンをグレーアウトする
-                if (isTagNotEditable) {
-                    fragment_program_info_tag_add_button.apply {
-                        isEnabled = false
-                        text = getString(R.string.not_tag_editable)
-                    }
+            }
+            // タグの登録に必要なトークンを取得
+            tagToken = tag.getString("apiToken")
+            // タグが変更できない場合はボタンをグレーアウトする
+            if (isTagNotEditable) {
+                fragment_program_info_tag_add_button.apply {
+                    isEnabled = false
+                    text = getString(R.string.not_tag_editable)
                 }
+            }
 
-                // タイムシフト予約済みか
-                val userProgramReservation = jsonObject.getJSONObject("userProgramReservation")
-                val isReserved = userProgramReservation.getBoolean("isReserved")
+            // タイムシフト予約済みか
+            val userProgramReservation = jsonObject.getJSONObject("userProgramReservation")
+            val isReserved = userProgramReservation.getBoolean("isReserved")
 
-                // タイムシフト機能が使えない場合
-                // JSONに programTimeshift と programTimeshiftWatch が存在しない場合はTS予約が無効にされている？
-                // 存在すればTS予約が利用できる
-                val canTSReserve =
-                    jsonObject.has("programTimeshift") && jsonObject.has("programTimeshiftWatch")
-                activity?.runOnUiThread {
-                    fragment_program_info_timeshift_button.isEnabled = canTSReserve
-                    if (!canTSReserve) {
-                        fragment_program_info_timeshift_button.text =
-                            getString(R.string.disabled_ts_reservation)
-                    }
+            // タイムシフト機能が使えない場合
+            // JSONに programTimeshift と programTimeshiftWatch が存在しない場合はTS予約が無効にされている？
+            // 存在すればTS予約が利用できる
+            val canTSReserve =
+                jsonObject.has("programTimeshift") && jsonObject.has("programTimeshiftWatch")
+            activity?.runOnUiThread {
+                fragment_program_info_timeshift_button.isEnabled = canTSReserve
+                if (!canTSReserve) {
+                    fragment_program_info_timeshift_button.text =
+                        getString(R.string.disabled_ts_reservation)
                 }
-
             }
         }
     }
@@ -325,23 +321,6 @@ class ProgramInfoFragment : Fragment() {
     fun showToast(message: String) {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    fun getNicoLiveHTML(): Deferred<String> = GlobalScope.async {
-        val url = "https://live2.nicovideo.jp/watch/$liveId"
-        val request = Request.Builder()
-            .get()
-            .url(url)
-            .addHeader("User-Agent", "TatimiDroid;@takusan_23")
-            .addHeader("Cookie", "user_session=$usersession")
-            .build()
-        val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        if (response.isSuccessful) {
-            return@async response.body?.string() ?: ""
-        } else {
-            return@async ""
         }
     }
 

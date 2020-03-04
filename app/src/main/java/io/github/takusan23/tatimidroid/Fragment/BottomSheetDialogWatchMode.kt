@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,7 +12,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.DarkModeSupport
-import io.github.takusan23.tatimidroid.NicoLogin
+import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLogin
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
 import kotlinx.coroutines.GlobalScope
@@ -191,7 +190,11 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                     if (context != null) {
                         //４０１エラーのときはuser_sessionが切れた
                         if (response.code == 401) {
-                            val nicoLogin = NicoLogin(context!!, liveId!!)
+                            val nicoLogin =
+                                NicoLogin(
+                                    context!!,
+                                    liveId!!
+                                )
                             //こるーちん？
                             //再ログインする
                             activity?.runOnUiThread {

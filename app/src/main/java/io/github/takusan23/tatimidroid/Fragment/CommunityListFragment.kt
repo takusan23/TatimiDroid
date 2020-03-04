@@ -17,14 +17,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.*
+import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLogin
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
-import kotlinx.android.synthetic.main.fragment_community_list_layout.*
 import kotlinx.android.synthetic.main.fragment_community_list_layout.community_recyclerview
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.consumesAll
 import okhttp3.*
-import org.json.JSONException
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException

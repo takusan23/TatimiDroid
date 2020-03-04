@@ -17,9 +17,10 @@ import android.media.AudioManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
-import android.opengl.Visibility
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
@@ -47,19 +48,17 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Background.BackgroundPlay
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
+import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLogin
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
-import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.*
@@ -1354,6 +1353,9 @@ class CommentFragment : Fragment() {
             override fun onMessage(message: String?) {
                 //コメント送信に使うticketを取得する
                 if (message != null) {
+                    // JSONぱーす
+                    val commentJSONParse = CommentJSONParse(message, getString(R.string.arena))
+
                     //thread
                     if (message.contains("ticket")) {
                         val jsonObject = JSONObject(message)
@@ -1420,6 +1422,77 @@ class CommentFragment : Fragment() {
                         }
                     }
 
+                    //disconnectを検知
+                    if (commentJSONParse.comment.contains("/disconnect")) {
+                        if (commentJSONParse.premium.contains("運営")) {
+                            //自動次枠移動が有効なら使う
+                            if (isAutoNextProgram) {
+                                checkNextProgram()
+                                Snackbar.make(
+                                    live_video_view,
+                                    context?.getString(R.string.next_program_message) ?: "",
+                                    Snackbar.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                //終了メッセージ
+                                Snackbar.make(
+                                    live_video_view,
+                                    context?.getString(R.string.program_disconnect) ?: "",
+                                    Snackbar.LENGTH_SHORT
+                                ).setAction(context?.getString(R.string.end)) {
+                                    //終了
+                                    if (activity !is NimadoActivity) {
+                                        //二窓Activity以外では終了できるようにする。
+                                        activity?.finish()
+                                    }
+                                }.setAnchorView(getSnackbarAnchorView()).show()
+                            }
+                        }
+                    }
+
+                    //運営コメント、Infoコメント　表示・非表示
+                    if (!hideInfoUnnkome) {
+                        //運営コメント
+                        if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
+                            // info と ニコニ広告は見逃す（下で表示するので）
+                            val isNicoad = commentJSONParse.comment.contains("/nicoad")
+                            val isInfo = commentJSONParse.comment.contains("/info")
+                            val isUadPoint = commentJSONParse.comment.contains("/uadpoint")
+                            if (!isNicoad && !isInfo && !isUadPoint) {
+                                // 生主コメント
+                                setUnneiComment(commentJSONParse.comment)
+                            }
+                        }
+                        //運営コメントけす
+                        if (commentJSONParse.comment.contains("/clear")) {
+                            removeUnneiComment()
+                        }
+
+                        //infoコメントを表示
+                        if (commentJSONParse.comment.contains("/nicoad")) {
+                            activity?.runOnUiThread {
+                                val json =
+                                    JSONObject(
+                                        commentJSONParse.comment.replace(
+                                            "/nicoad ",
+                                            ""
+                                        )
+                                    )
+                                val comment = json.getString("message")
+                                showInfoComment(comment)
+                            }
+                        }
+                        if (commentJSONParse.comment.contains("/info")) {
+                            activity?.runOnUiThread {
+                                showInfoComment(
+                                    commentJSONParse.comment.replace(
+                                        "/info ",
+                                        ""
+                                    )
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
@@ -2750,7 +2823,7 @@ class CommentFragment : Fragment() {
 */
             uncomeTextView.text =
                 HtmlCompat.fromHtml(comment, HtmlCompat.FROM_HTML_MODE_COMPACT)
-            uncomeTextView.textSize = 20F
+            uncomeTextView.textSize = 25F
             uncomeTextView.setTextColor(Color.WHITE)
             uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))
             //追加
@@ -2794,9 +2867,9 @@ class CommentFragment : Fragment() {
     fun showInfoComment(comment: String) {
         //テキスト、背景色
         infoTextView.text = comment
-        infoTextView.textSize = 20F
+        infoTextView.textSize = 25F
         infoTextView.setTextColor(Color.WHITE)
-        //infoTextView.background = ColorDrawable(Color.parseColor("#80000000"))
+        infoTextView.background = ColorDrawable(Color.parseColor("#80000000"))
         //追加
         val layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
