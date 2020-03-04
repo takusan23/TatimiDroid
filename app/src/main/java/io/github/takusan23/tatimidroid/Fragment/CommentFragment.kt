@@ -1486,7 +1486,7 @@ class CommentFragment : Fragment() {
                             activity?.runOnUiThread {
                                 showInfoComment(
                                     commentJSONParse.comment.replace(
-                                        "/info ",
+                                        "/info \\d+ ".toRegex(), // /info {数字}　を消す
                                         ""
                                     )
                                 )
@@ -2823,7 +2823,7 @@ class CommentFragment : Fragment() {
 */
             uncomeTextView.text =
                 HtmlCompat.fromHtml(comment, HtmlCompat.FROM_HTML_MODE_COMPACT)
-            uncomeTextView.textSize = 25F
+            uncomeTextView.textSize = 20F
             uncomeTextView.setTextColor(Color.WHITE)
             uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))
             //追加
@@ -2867,7 +2867,7 @@ class CommentFragment : Fragment() {
     fun showInfoComment(comment: String) {
         //テキスト、背景色
         infoTextView.text = comment
-        infoTextView.textSize = 25F
+        infoTextView.textSize = 20F
         infoTextView.setTextColor(Color.WHITE)
         infoTextView.background = ColorDrawable(Color.parseColor("#80000000"))
         //追加

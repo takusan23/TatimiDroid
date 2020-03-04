@@ -87,8 +87,6 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     // Canvasの高さ。なぜかgetHeight()が0を返すので一工夫する必要がある。くっっっっっっそ
     var finalHeight = 10
-
-
     init {
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
