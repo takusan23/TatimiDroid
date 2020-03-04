@@ -42,7 +42,7 @@
     <string name="commentviewer_mode_demerit">I cannot post comments.</string>
     <string name="comment_post_mode">Comment posting mode</string>
     <string name="comment_post_mode_merit">It is not disconnected even if you watch it simultaneously on a computer.\nComments can be posted. You can get comments, gifts, and nicoini ads for all rooms.</string>
-    <string name="comment_post_demerit">Posted comments are not displayed on the PC Nico Nico Live Broadcast.</string>
+    <string name="comment_post_demerit">If you launch this app on another device and select this mode, you will be disconnected. (You can choose another mode.)</string>
     <string name="nicocas_comment_post_mode">Nicocas expression comment posting mode</string>
     <string name="nicocas_comment_post_mode_merit">Even if you view on the computer at the same time, it will not be disconnected. \nComments can be posted. \nYou can get comments, gifts, and nicoini ads for all rooms.</string>
     <string name="nicocas_comment_post_demerit">The posted comments will be comments on the arena room regardless of the room.</string>
