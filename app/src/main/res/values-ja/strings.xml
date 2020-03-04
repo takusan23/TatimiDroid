@@ -42,7 +42,7 @@
     <string name="commentviewer_mode_demerit">コメントの投稿ができません。</string>
     <string name="comment_post_mode">コメント投稿モード</string>
     <string name="comment_post_mode_merit">パソコンで同時視聴しても切断されません。\nコメントの投稿が可能です。\nすべての部屋のコメント・ギフト・ニコニ広告が取得できます。</string>
-    <string name="comment_post_demerit">他の端末でこのアプリを起動してこのモードを選択すると切断されます。（他のモードを選べばいいです。）</string>
+    <string name="comment_post_demerit">他の端末でこのアプリを起動してこのモードを選択すると切断されます。一台なら大丈夫です。（二台目以降は他のモードを選べばいいです。）</string>
     <string name="nicocas_comment_post_mode">nicocas式コメント投稿モード</string>
     <string name="nicocas_comment_post_mode_merit">パソコンで同時視聴しても切断されません。\nコメントの投稿が可能です。\nすべての部屋のコメント・ギフト・ニコニ広告が取得できます。</string>
     <string name="nicocas_comment_post_demerit">投稿したコメントは部屋に関係なくアリーナ部屋のコメントとなります。</string>
@@ -268,4 +268,5 @@
     <string name="big">大</string>
     <string name="small">小</string>
     <string name="medium">中</string>
+    <string name="disabled_ts_reservation">タイムシフトが無効になっています</string>
 </resources>

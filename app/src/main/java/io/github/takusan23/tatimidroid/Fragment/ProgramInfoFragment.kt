@@ -249,6 +249,18 @@ class ProgramInfoFragment : Fragment() {
                 val userProgramReservation = jsonObject.getJSONObject("userProgramReservation")
                 val isReserved = userProgramReservation.getBoolean("isReserved")
 
+                // タイムシフト機能が使えない場合
+                // JSONに programTimeshift と programTimeshiftWatch が存在しない場合はTS予約が無効にされている？
+                // 存在すればTS予約が利用できる
+                val canTSReserve =
+                    jsonObject.has("programTimeshift") && jsonObject.has("programTimeshiftWatch")
+                activity?.runOnUiThread {
+                    fragment_program_info_timeshift_button.isEnabled = canTSReserve
+                    if (!canTSReserve) {
+                        fragment_program_info_timeshift_button.text =
+                            getString(R.string.disabled_ts_reservation)
+                    }
+                }
 
             }
         }
