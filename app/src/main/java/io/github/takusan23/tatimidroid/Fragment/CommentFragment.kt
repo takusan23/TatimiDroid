@@ -823,7 +823,7 @@ class CommentFragment : Fragment() {
                         premium = user.select("is_premium").text().toInt()
                         //vpos
                         programStartTime =
-                            document.select("stream").select("base_time").text().toLong()
+                            document.select("stream").select("open_time").text().toLong()
                         programLiveTime =
                             document.select("stream").select("start_time").text().toLong()
                         //経過時間計算
@@ -1150,7 +1150,10 @@ class CommentFragment : Fragment() {
                             jsonObject.getJSONObject("body").getJSONArray("params")
                         val postkey = paramsArray.getString(0)
                         //コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
-                        val vpos = (System.currentTimeMillis() / 1000L) - programStartTime
+                        // 100=1秒らしい。 例：300->3秒
+                        val unixTime = System.currentTimeMillis() / 1000L
+                        val vpos = (unixTime - programStartTime) * 100
+                        println(vpos)
                         val jsonObject = JSONObject()
                         val chatObject = JSONObject()
                         chatObject.put(
@@ -1613,7 +1616,9 @@ class CommentFragment : Fragment() {
                 connectionNicoLiveWebSocket.send(postKeyObject.toString())
             } else if (isNicocasMode) {
                 //コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
-                val vpos = (System.currentTimeMillis() / 1000L) - programStartTime
+                // 100=1秒らしい。 例：300->3秒
+                val unixTime = System.currentTimeMillis() / 1000L
+                val vpos = (unixTime - programStartTime) * 100
                 val jsonObject = JSONObject()
                 jsonObject.put("message", commentValue)
                 if (isTokumeiComment) {
