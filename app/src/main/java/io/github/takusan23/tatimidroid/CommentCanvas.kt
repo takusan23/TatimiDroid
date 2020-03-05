@@ -87,6 +87,10 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     // Canvasの高さ。なぜかgetHeight()が0を返すので一工夫する必要がある。くっっっっっっそ
     var finalHeight = 10
+
+    // ポップアップ再生時はtrue
+    var isPopupView = false
+
     init {
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
@@ -267,6 +271,14 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     * */
 
     fun postComment(comment: String, commentJSONParse: CommentJSONParse) {
+        // ポップアップ再生時はフォントサイズを小さく
+        if (isPopupView) {
+            fontsize = (finalHeight / 10).toFloat()
+            blackPaint.textSize = fontsize
+        } else {
+            fontsize = 20 * resources.displayMetrics.scaledDensity
+            blackPaint.textSize = fontsize
+        }
         // 生主/運営のコメントは無視する
         if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
             return

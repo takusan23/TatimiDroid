@@ -2135,6 +2135,7 @@ class CommentFragment : Fragment() {
 
             //コメント流し
             overlay_commentcamvas = popupView.findViewById(R.id.overlay_commentCanvas)
+            overlay_commentcamvas?.isPopupView = true
 
             //移動
             popupView.setOnTouchListener { view, motionEvent ->
