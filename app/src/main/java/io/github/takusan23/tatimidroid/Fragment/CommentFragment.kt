@@ -735,20 +735,35 @@ class CommentFragment : Fragment() {
     * */
     private fun activeUserClear() {
         //1分でリセット
-        activeTimer.schedule(60000, 60000) {
+        activeTimer.schedule(10000, 60000) {
             commentActivity.runOnUiThread {
                 //println(activeList)
-                activity_comment_comment_active_text.text =
-                    "${activeList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
-                // ここでエラーでる
-                try {
-                    activeList.clear()
-                } catch (e: ArrayIndexOutOfBoundsException) {
-                    e.printStackTrace()
-                    GlobalScope.launch {
-                        delay(1000)
-                        activeList.clear()
+                // 指定した時間の配列の要素を取得する
+                if (::allRoomComment.isInitialized) {
+                    // 一分前のUnixTime
+                    val calender = Calendar.getInstance()
+                    calender.add(Calendar.MINUTE, -1)
+                    val unixTime = calender.timeInMillis / 1000L
+                    // 今のUnixTime
+                    val nowUnixTime = System.currentTimeMillis() / 1000L
+                    // 範囲内のコメントを取得する
+                    val timeList = allRoomComment.recyclerViewList.toList().filter { arrayList ->
+                        if (arrayList != null) {
+                            val commentJSONParse = CommentJSONParse(arrayList[1], "")
+                            if (commentJSONParse.date.toFloatOrNull() != null) {
+                                commentJSONParse.date.toLong() in unixTime..nowUnixTime
+                            } else {
+                                false
+                            }
+                        } else {
+                            false
+                        }
                     }
+                    // 同じIDを取り除く
+                    val idList =
+                        timeList.distinctBy { arrayList -> CommentJSONParse(arrayList[1], "").userId }
+                    activity_comment_comment_active_text.text =
+                        "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
                 }
             }
         }

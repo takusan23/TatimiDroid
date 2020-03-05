@@ -405,11 +405,13 @@ class AllRoomComment(
 
     //アクティブ人数計算（１分間IDをカウントする）
     private fun calcActiveCount(commentJSONParse: CommentJSONParse) {
+/*
         val id = commentJSONParse.userId
         //ID入れる
         if (commentFragment.activeList.indexOf(id) == -1) {
             commentFragment.activeList.add(id)
         }
+*/
     }
 
     //コテハン登録
