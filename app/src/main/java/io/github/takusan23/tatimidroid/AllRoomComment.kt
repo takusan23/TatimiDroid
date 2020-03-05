@@ -295,7 +295,8 @@ class AllRoomComment(
                 if (!message.contains("/hb ifseetno")) {
                     //UIスレッドで呼んだら遅延せずに表示されました！
                     //二重に表示されない対策。originにCが入っていなければいいという本当にこれでいいのか？
-                    if (commentJSONParse.origin != "C") {
+                    // でも公式番組の場合は関係なく入れる
+                    if (commentJSONParse.origin != "C" || commentFragment.isOfficial) {
                         Handler(Looper.getMainLooper()).post {
                             if (!message.contains("\n")) {
                                 commentFragment.commentCanvas.postComment(
@@ -346,7 +347,12 @@ class AllRoomComment(
         * 12月中旬のメンテで立ち見部屋にアリーナコメントが出るように（とさり気なく枠の時間復活）なったとき、JSONにoriginが追加されて、
         * 多分originの値がC以外のときに元の部屋のコメントだと
         * */
-        if (commentJSONParse.origin != "C") {
+        // もしくは公式番組の場合は関係なく入れる（公式番組では全部屋見ることが出来ないため）
+        if (commentJSONParse.origin != "C" || commentFragment.isOfficial) {
+            var roomName = roomName
+            if (commentFragment.isOfficial) {
+                roomName = context?.getString(R.string.official_program) ?: "公式番組"
+            }
             val size = recyclerViewList.size
             val item = arrayListOf<String>()
             item.add("")

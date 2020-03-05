@@ -221,6 +221,7 @@ class ProgramInfoFragment : Fragment() {
                         //ボタン作成
                         val button = MaterialButton(context!!)
                         button.text = text
+                        button.isAllCaps = false
                         if (isNicopedia) {
                             button.setOnClickListener {
                                 val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())

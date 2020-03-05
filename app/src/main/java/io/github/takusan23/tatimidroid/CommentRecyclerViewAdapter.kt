@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
@@ -193,7 +194,7 @@ class CommentRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<ArrayList<
 
             //部屋の色
             if (pref_setting.getBoolean("setting_room_color", true)) {
-                holder.roomNameTextView.setTextColor(getRoomColor(roomName))
+                holder.roomNameTextView.setTextColor(getRoomColor(roomName, context))
             }
 
             //ID非表示
@@ -202,7 +203,7 @@ class CommentRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<ArrayList<
                 holder.roomNameTextView.visibility = View.GONE
                 //部屋の色をつける設定有効時はコメントのTextViewに色を付ける
                 if (pref_setting.getBoolean("setting_room_color", true)) {
-                    holder.commentTextView.setTextColor(getRoomColor(roomName))
+                    holder.commentTextView.setTextColor(getRoomColor(roomName, context))
                 }
             }
             //一行表示とか
@@ -241,9 +242,12 @@ class CommentRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<ArrayList<
     }
 
     //コメビュの部屋の色。NCVに追従する
-    fun getRoomColor(room: String): Int {
+    fun getRoomColor(room: String, context: Context): Int {
         when (room) {
-            "アリーナ" -> {
+            context.getString(R.string.official_program) -> {
+                return Color.argb(255, 0, 153, 229)
+            }
+            context.getString(R.string.arena) -> {
                 return Color.argb(255, 0, 153, 229)
             }
             "立ち見1" -> {

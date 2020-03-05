@@ -269,4 +269,5 @@
     <string name="small">小</string>
     <string name="medium">中</string>
     <string name="disabled_ts_reservation">タイムシフトが無効になっています</string>
+    <string name="official_program">公式番組</string>
 </resources>
