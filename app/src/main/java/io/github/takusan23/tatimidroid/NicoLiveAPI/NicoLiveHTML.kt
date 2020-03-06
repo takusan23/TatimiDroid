@@ -7,6 +7,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import org.jsoup.Jsoup
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  *  ニコ生のHTMLページを取得する
@@ -41,10 +43,18 @@ class NicoLiveHTML {
      * HTMLの中からJSONを見つけてくる関数
      * @param response HTML
      * */
-    fun nicoLiveHTMLtoJSONObject(response: String): JSONObject {
+    fun nicoLiveHTMLtoJSONObject(response: String?): JSONObject {
         val html = Jsoup.parse(response)
         val json = html.getElementById("embedded-data").attr("data-props")
         return JSONObject(json)
+    }
+
+    /**
+     * ISO 8601 -> わかりやすいやつに
+     * */
+    fun iso8601ToFormat(unixTime: Long): String {
+        val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN)
+        return simpleDateFormat.format(unixTime * 1000)
     }
 
 }

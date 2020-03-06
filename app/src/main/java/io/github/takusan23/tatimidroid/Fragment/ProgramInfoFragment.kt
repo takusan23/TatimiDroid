@@ -18,13 +18,14 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_info.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import okhttp3.*
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-import org.jsoup.Jsoup
 import java.io.IOException
 import java.text.SimpleDateFormat
-import okhttp3.RequestBody.Companion.toRequestBody
 
 class ProgramInfoFragment : Fragment() {
 

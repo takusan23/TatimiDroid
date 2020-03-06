@@ -192,9 +192,9 @@ class AutoAdmissionService : Service() {
             val app = cursor.getString(3)
 
             //未来の番組だけ読み込む（終わってるのは読み込まない）
-            if (Calendar.getInstance().timeInMillis < start.toLong()) {
+            if ((Calendar.getInstance().timeInMillis / 1000L) < start.toLong()) {
                 val calendar = Calendar.getInstance()
-                calendar.timeInMillis = start.toLong()
+                calendar.timeInMillis = start.toLong() * 1000L
                 //登録
                 registerAutoAdmission(liveId, programName, app, calendar)
                 //通知に表示

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Fragment.CommunityListFragment
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
+import java.text.SimpleDateFormat
 import java.util.*
 
 class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
@@ -89,14 +90,8 @@ class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayLis
     }
 
     fun parseTime(string: String): String {
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = string.toLong()
-        val month = calendar.get(Calendar.MONTH)
-        val date = calendar.get(Calendar.DATE)
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val minute = calendar.get(Calendar.MINUTE)
-
-        return "${month + 1}/$date $hour:$minute"
+        val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN)
+        return simpleDateFormat.format(string.toLong() * 1000)
     }
 
     fun getAppName(context: Context, name: String): String {

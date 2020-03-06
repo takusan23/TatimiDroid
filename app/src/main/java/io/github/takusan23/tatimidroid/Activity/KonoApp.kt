@@ -116,7 +116,7 @@ class KonoApp : AppCompatActivity() {
                 val contentValues = ContentValues()
                 contentValues.put("name", "イースターエッグ")
                 contentValues.put("liveid", liveId)
-                contentValues.put("start", calender.timeInMillis.toString())
+                contentValues.put("start", (calender.timeInMillis / 1000L).toString())
                 contentValues.put("app", app)
                 contentValues.put("description", "")
 

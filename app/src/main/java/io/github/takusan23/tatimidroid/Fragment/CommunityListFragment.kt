@@ -560,7 +560,7 @@ class CommunityListFragment : Fragment() {
             val app = cursor.getString(3)
 
             //未来の番組だけ読み込む（終わってるのは読み込まない）
-            if (Calendar.getInstance().timeInMillis < start.toLong()) {
+            if ((Calendar.getInstance().timeInMillis / 1000L) < start.toLong()) {
                 //RecyclerView追加
                 val item = arrayListOf<String>()
                 item.add("")

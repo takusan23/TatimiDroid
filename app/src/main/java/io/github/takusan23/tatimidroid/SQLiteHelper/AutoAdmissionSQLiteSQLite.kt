@@ -4,7 +4,8 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class AutoAdmissionSQLiteSQLite(context: Context) : SQLiteOpenHelper(context,
+class AutoAdmissionSQLiteSQLite(context: Context) : SQLiteOpenHelper(
+    context,
     DATABASE_NAME, null,
     DATABASE_VERSION
 ) {
@@ -15,10 +16,10 @@ class AutoAdmissionSQLiteSQLite(context: Context) : SQLiteOpenHelper(context,
 
         // データーベース名
         private val DATABASE_NAME = "AutoAdmission.db"
-        private val TABLE_NAME = "auto_admission"
+        val TABLE_NAME = "auto_admission"
         private val DESCRIPTION = "description"
         private val APP = "app"
-        private val START = "start"
+        private val START = "start" // 開始時間。UnixTimeで頼んだ（System.currentTimeなんとかだとミリ秒になるので1000で割ってね）
         private val LIVEID = "liveid"
         private val NAME = "name"
         private val _ID = "_id"
