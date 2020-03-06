@@ -5,10 +5,11 @@ import android.graphics.Color
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 
-class NicoNamaGameWebView(val context: Context?, val liveId: String) {
+class NicoNamaGameWebView(val context: Context?, val liveId: String, val liveFramelayout: FrameLayout) {
 
     // WebView。これにニコ生のPC版サイトを表示させてゲームを遊べるようにする。
     val webView: WebView = WebView(context)
@@ -51,6 +52,7 @@ class NicoNamaGameWebView(val context: Context?, val liveId: String) {
             setBackgroundColor(Color.TRANSPARENT)
             setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
 
+
             // 読み込み完了したらゲームのCanvas要素のみ取り出すJavaScript（ブックマークレット）を実行する
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
@@ -63,17 +65,31 @@ class NicoNamaGameWebView(val context: Context?, val liveId: String) {
                     loadUrl("javascript:document.getElementsByClassName('___comment-button___KaSS7')[0].click()")
                     // 動画プレイヤー消す
                     loadUrl("javascript:(function(){document.getElementsByTagName('video')[0].parentNode.remove()})()")
-                    // コントローラー削除
-                    loadUrl("javascript:(function(){document.getElementsByClassName('___player-display-footer___2DTQK')[0].remove()})()")
-                    // コントローラー非表示
-                    // loadUrl("javascript:(function(){document.getElementsByClassName('___controller-display-button___18KFH')[0].click())()")
-                    // 背景を透明に
+                    // // 背景を透明に
                     loadUrl("javascript:(function(){document.getElementsByClassName('___player-display___35bAr')[0].style.backgroundColor = 'transparent' })()")
                     loadUrl("javascript:(function(){document.getElementsByClassName('___watch-page___th_ha ___ga-ns-watch-page___pYeNv ___page___1G6yH')[0].style.backgroundColor = 'transparent' })()")
+                    // 新市場の位置を変える
+                    loadUrl("javascript:(function(){var ichiba = document.getElementsByClassName('___ichiba-counter-section___2B9Wc')[0]; ichiba.parentElement.parentElement.parentElement.parentElement.appendChild(ichiba)})()")
+                    // 新市場サイズ変更と下にPadding
+                    loadUrl("javascript:(function(){var ichiba = document.getElementsByClassName('___ichiba-counter-section___2B9Wc')[0]; ichiba.style.transform='scale(1.5)'; ichiba.style.width='1px'; ichiba.style.paddingBottom = '20px'})()")
+                    // 新市場追加ボタンを消す
+                    loadUrl("javascript:(function(){document.getElementsByClassName('___control-area___AqrGV')[0].remove()})()")
+                    // シークバー/コメント投稿欄消す
+                    loadUrl("javascript:(function(){document.getElementsByClassName('___player-display-footer___2DTQK')[0].remove()})()")
+                    //
+                    loadUrl("javascript:(function(){document.getElementsByClassName('___launch-item-area___tiVih')[0].style.paddingRight='10px'})()")
+                    // 何故か遅延実行しないと削除できないギフト・ニコニ広告ボタン
+                    postDelayed({
+                        loadUrl("javascript:(function(){document.getElementsByClassName('___official-locked-item-area___wS6uH')[0].remove()})()")
+                    },5000)
+
                     // 読み込み完了したので表示
                     view?.isVisible = true
                 }
             }
+
+            setInitialScale(210)
+
         }
     }
 

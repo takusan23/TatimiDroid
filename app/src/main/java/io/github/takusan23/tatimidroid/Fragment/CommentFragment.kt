@@ -19,8 +19,6 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
@@ -273,6 +271,9 @@ class CommentFragment : Fragment() {
 
     // 全部屋接続
     lateinit var allRoomComment: AllRoomComment
+
+    // SurfaceView(ExoPlayer) + CommentCanvasのLayoutParams
+    lateinit var surfaceViewLayoutParams: FrameLayout.LayoutParams
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -697,7 +698,17 @@ class CommentFragment : Fragment() {
 
     // ニコ生ゲーム有効
     fun setNicoNamaGame() {
-        nicoNamaGameWebView = NicoNamaGameWebView(context, liveId)
+        // WebViewのためにFrameLayout広げるけど動画とコメントCanvasはサイズそのまま
+        surfaceViewLayoutParams.apply {
+            live_surface_view.layoutParams = this
+            commentCanvas.layoutParams = this
+        }
+        // WebViewように少し広げる
+        val frameLayoutParams = liveFrameLayout.layoutParams
+        frameLayoutParams.height += 140
+        liveFrameLayout.layoutParams = frameLayoutParams
+        // ニコ生WebView
+        nicoNamaGameWebView = NicoNamaGameWebView(context, liveId, live_framelayout)
         live_framelayout.addView(nicoNamaGameWebView.webView)
         isAddedNicoNamaGame = true
     }
@@ -705,6 +716,11 @@ class CommentFragment : Fragment() {
     // ニコ生ゲーム削除
     fun removeNicoNamaGame() {
         live_framelayout.removeView(nicoNamaGameWebView.webView)
+        // FrameLayout戻す
+        live_framelayout.layoutParams.apply {
+            height = surfaceViewLayoutParams.height
+            width = surfaceViewLayoutParams.width
+        }
         isAddedNicoNamaGame = false
     }
 
@@ -1669,6 +1685,12 @@ class CommentFragment : Fragment() {
                     backgroundPlay.play(hls_address.toUri())
                 }
             }
+
+            // 16:9のLayoutParams
+            val height = liveFrameLayout.layoutParams.height
+            val width = liveFrameLayout.layoutParams.width
+            surfaceViewLayoutParams = FrameLayout.LayoutParams(width, height)
+
         }
     }
 
