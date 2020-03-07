@@ -3,7 +3,10 @@ package io.github.takusan23.tatimidroid.Fragment
 import android.content.ContentValues
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.database.sqlite.SQLiteDatabase
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.provider.CalendarContract
@@ -12,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
@@ -19,8 +23,10 @@ import io.github.takusan23.tatimidroid.AutoAdmissionService
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveTimeShiftAPI
+import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
+import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_program_reservation.*
 import org.json.JSONObject
 
@@ -47,9 +53,7 @@ class ProgramReservationBottomFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // ダークモードなど
-        val darkModeSupport = DarkModeSupport(context!!)
-        bottom_fragment_program_reservation_parent_linearlayout.background =
-            ColorDrawable(darkModeSupport.getThemeColor())
+        initDarkMode()
 
         // 初期化とか
         initDB()
@@ -124,6 +128,30 @@ class ProgramReservationBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_program_reservation_add_calender_button.setOnClickListener {
             addCalendar()
         }
+
+        // 共有
+        bottom_fragment_program_reservation_share_button.setOnClickListener {
+            showShareScreen()
+        }
+
+    }
+
+    // ダークモードなど
+    private fun initDarkMode() {
+        val darkModeSupport = DarkModeSupport(context!!)
+        bottom_fragment_program_reservation_parent_linearlayout.background =
+            ColorDrawable(darkModeSupport.getThemeColor())
+        // ボタンの色
+        if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            ColorStateList.valueOf(Color.parseColor("#ffffff")).let {
+                bottom_fragment_program_reservation_auto_admission_tatimidroid_button.setTextColor(it)
+                bottom_fragment_program_reservation_auto_admission_nicolive_button.setTextColor(it)
+                bottom_fragment_program_reservation_add_ts_button.setTextColor(it)
+                bottom_fragment_program_reservation_add_calender_button.setTextColor(it)
+                bottom_fragment_program_reservation_share_button.setTextColor(it)
+            }
+        }
+
     }
 
     /**
@@ -159,13 +187,13 @@ class ProgramReservationBottomFragment : BottomSheetDialogFragment() {
             context?.startService(intent)
         } else {
             // DB登録済み
-            Snackbar.make(bottom_fragment_program_reservation_parent_linearlayout, "追加済みです。（${nicoLiveHTML.iso8601ToFormat(dbBeginTime)}）\nお楽しみに！", Snackbar.LENGTH_SHORT)
+            Snackbar.make(bottom_fragment_program_reservation_parent_linearlayout, "${getString(R.string.already_added)}（${nicoLiveHTML.iso8601ToFormat(dbBeginTime)}）\nお楽しみに！", Snackbar.LENGTH_SHORT)
                 .setAction(R.string.delete) {
                     // 削除する
                     deleteAutoAdmissionDB()
                     Toast.makeText(
                         context,
-                        "予約枠自動入場リストから削除しました。",
+                        R.string.remove_auto_admission,
                         Toast.LENGTH_SHORT
                     ).show()
                 }.show()
@@ -218,10 +246,17 @@ class ProgramReservationBottomFragment : BottomSheetDialogFragment() {
         val intent = Intent(Intent.ACTION_INSERT).apply {
             data = CalendarContract.Events.CONTENT_URI
             putExtra(CalendarContract.Events.TITLE, programName)
-            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime * 1000L)
-            putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime * 1000L)
+            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime * 1000L) // ミリ秒らしい。
+            putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime * 1000L) // ミリ秒らしい。
         }
         startActivity(intent)
+    }
+
+    // 共有画面出す
+    fun showShareScreen() {
+        val programShare =
+            ProgramShare(activity as AppCompatActivity, bottom_fragment_program_reservation_share_button, programName, liveId)
+        programShare.showShareScreen()
     }
 
 }

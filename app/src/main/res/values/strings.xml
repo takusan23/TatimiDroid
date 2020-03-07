@@ -271,4 +271,8 @@
     <string name="disabled_ts_reservation">Time shift is disabled</string>
     <string name="official_program">Official program</string>
     <string name="reservation_program">Reserved program</string>
+    <string name="program_reservation_calendar">Add event to calendar</string>
+    <string name="others">others</string>
+    <string name="already_added">Already added</string>
+    <string name="remove_auto_admission">Removed from the reservation frame automatic admission list.</string>
 </resources>

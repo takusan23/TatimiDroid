@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -47,7 +48,8 @@
         <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10sp">
+                android:layout_margin="10sp"
+                app:cardCornerRadius="10sp">
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -90,7 +92,8 @@
         <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10sp">
+                android:layout_margin="10sp"
+                app:cardCornerRadius="10sp">
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -102,7 +105,7 @@
                         android:id="@+id/textView20"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="そのほか"
+                        android:text="@string/others"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -110,7 +113,7 @@
                         android:id="@+id/bottom_fragment_program_reservation_add_calender_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="カレンダーに予定追加" />
+                        android:text="@string/program_reservation_calendar" />
 
                 <Button
                         android:id="@+id/bottom_fragment_program_reservation_add_ts_button"
@@ -119,7 +122,7 @@
                         android:text="@string/timeshift_reservation_button" />
 
                 <Button
-                        android:id="@+id/button6"
+                        android:id="@+id/bottom_fragment_program_reservation_share_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/share" />

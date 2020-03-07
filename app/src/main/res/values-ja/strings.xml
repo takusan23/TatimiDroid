@@ -271,4 +271,8 @@
     <string name="disabled_ts_reservation">タイムシフトが無効になっています</string>
     <string name="official_program">公式番組</string>
     <string name="reservation_program">予約枠</string>
+    <string name="program_reservation_calendar">カレンダーに予定を追加</string>
+    <string name="others">そのほか</string>
+    <string name="already_added">追加済みです</string>
+    <string name="remove_auto_admission">予約枠自動入場リストから削除しました。</string>
 </resources>
