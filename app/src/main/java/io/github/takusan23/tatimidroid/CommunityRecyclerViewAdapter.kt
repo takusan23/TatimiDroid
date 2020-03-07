@@ -71,48 +71,12 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
 
         //Cardを選択したらコメントビューワーに
         holder.communityCard.setOnClickListener {
-            // 放送中
-            if (liveNow.contains("ON_AIR") || liveNow.contains("Begun")) {
-                //ダイアログ
-                val bundle = Bundle()
-                bundle.putString("liveId", liveId)
-                val dialog = BottomSheetDialogWatchMode()
-                dialog.arguments = bundle
-                dialog.show((content as AppCompatActivity).supportFragmentManager, "watchmode")
-            } else {
-                if (datetime.isNotEmpty()) {
-                    //予約枠自動入場機能つかうか？
-                    Snackbar.make(
-                        holder.timeTextView,
-                        content.getText(R.string.timeshift_wait),
-                        Snackbar.LENGTH_SHORT
-                    )
-                        .setAction(
-                            content.getText(R.string.auto_admission)
-                        ) {
-
-                            //文字列（時間）->ミリ秒
-                            val calender = Calendar.getInstance(TimeZone.getDefault())
-                            calender.timeInMillis = live_time.toLong()
-                            val startTime = (calender.time.time).toString()
-
-                            //追加BottomSheet
-                            val bundle = Bundle()
-                            bundle.putString("program", name)
-                            bundle.putString("liveId", liveId)
-                            bundle.putString("start", startTime)
-                            bundle.putString("description", "")
-
-                            val autoAdmissionBottomFragment = AutoAdmissionBottomFragment()
-                            autoAdmissionBottomFragment.arguments = bundle
-                            autoAdmissionBottomFragment.show(
-                                (content as AppCompatActivity).supportFragmentManager,
-                                "auto_admission"
-                            )
-                        }.setAnchorView(activity.main_activity_bottom_navigationview).show()
-                    //Toast.makeText(content, content.getText(R.string.timeshift_wait), Toast.LENGTH_SHORT).show()
-                }
-            }
+            //ダイアログ
+            val bundle = Bundle()
+            bundle.putString("liveId", liveId)
+            val dialog = BottomSheetDialogWatchMode()
+            dialog.arguments = bundle
+            dialog.show((content as AppCompatActivity).supportFragmentManager, "watchmode")
         }
 
         /*

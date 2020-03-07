@@ -5,6 +5,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
@@ -36,6 +37,29 @@ class NicoLiveHTML {
                 return@async response.body?.string() ?: ""
             } else {
                 return@async ""
+            }
+        }
+
+    /**
+     * OkHttpのレスポンスを返す。nullの可能性あり
+     * @param liveId 番組ID
+     * @param usersession ユーザーセッション。なければ非ログイン？
+     * */
+    fun getNicoLiveResponse(liveId: String, usersession: String?): Deferred<Response?> =
+        GlobalScope.async {
+            val url = "https://live2.nicovideo.jp/watch/$liveId"
+            val request = Request.Builder()
+                .get()
+                .url(url)
+                .addHeader("User-Agent", "TatimiDroid;@takusan_23")
+                .addHeader("Cookie", "user_session=$usersession")
+                .build()
+            val okHttpClient = OkHttpClient()
+            val response = okHttpClient.newCall(request).execute()
+            if (response.isSuccessful) {
+                return@async response
+            } else {
+                return@async null
             }
         }
 
