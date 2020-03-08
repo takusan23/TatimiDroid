@@ -1489,8 +1489,9 @@ class CommentFragment : Fragment() {
                             val isInfo = commentJSONParse.comment.contains("/info")
                             val isUadPoint = commentJSONParse.comment.contains("/uadpoint")
                             val isSpi = commentJSONParse.comment.contains("/spi")
+                            val isGift = commentJSONParse.comment.contains("/gift")
                             // 上に表示されるやつ
-                            if (!isNicoad && !isInfo && !isUadPoint && !isSpi) {
+                            if (!isNicoad && !isInfo && !isUadPoint && !isSpi && !isGift) {
                                 // 生主コメント
                                 setUnneiComment(commentJSONParse.comment)
                             } else {
@@ -1512,6 +1513,18 @@ class CommentFragment : Fragment() {
                                     // spi (ニコニコ新市場に商品が貼られたとき)
                                     if (isSpi) {
                                         showInfoComment(commentJSONParse.comment.replace("/spi ", ""))
+                                    }
+                                    // 投げ銭
+                                    if (isGift) {
+                                        // スペース区切り配列
+                                        val list = commentJSONParse.comment.replace("/gift ", "")
+                                            .split(" ")
+                                        val userName = list[2]
+                                        val giftPoint = list[3]
+                                        val giftName = list[5]
+                                        val message =
+                                            "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
+                                        showInfoComment(message)
                                     }
                                 }
                             }
