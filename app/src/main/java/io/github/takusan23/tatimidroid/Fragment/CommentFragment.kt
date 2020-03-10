@@ -73,6 +73,7 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
 import java.net.URI
+import java.security.PrivilegedAction
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
@@ -2221,6 +2222,30 @@ class CommentFragment : Fragment() {
                     popupView.overlay_button_layout.visibility = View.GONE
                 }
             }
+
+            // 大きさ変更。まず変更前を入れておく
+            val normalHeight = params.height
+            val normalWidth = params.width
+            popupView.overlay_size_seekbar.apply {
+                setOnSeekBarChangeListener(object :
+                    SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                        // 操作中
+                        params.height = normalHeight + (progress + 1) * 9
+                        params.width = normalWidth + (progress + 1) * 16
+                        windowManager.updateViewLayout(popupView, params)
+                    }
+
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+                    }
+
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                    }
+                })
+            }
+
         }
     }
 

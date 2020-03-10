@@ -711,11 +711,11 @@ class CommentViewFragment : Fragment() {
                                 commentFragment.overlay_commentcamvas!!.postComment(
                                     message, commentJSONParse
                                 )
-                                //コメント
-                                val textView =
-                                    commentFragment.popupView.overlay_comment_textview
-                                textView.text =
-                                    "$message\n${textView.text}"
+                               // //コメント
+                               // val textView =
+                               //     commentFragment.popupView.overlay_comment_textview
+                               // textView.text =
+                               //     "$message\n${textView.text}"
                             }
                         }
                     }
