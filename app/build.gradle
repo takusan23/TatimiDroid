@@ -31,6 +31,8 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // MediaSession
+    implementation "androidx.media:media:1.1.0"
     //GoogleCast
     implementation 'com.google.android.gms:play-services-cast-framework:18.0.0'
     // ExoPlayer

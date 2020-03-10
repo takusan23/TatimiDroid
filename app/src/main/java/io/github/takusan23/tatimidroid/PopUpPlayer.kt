@@ -6,13 +6,19 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
 import android.graphics.Point
+import android.media.MediaSession2Service
+import android.media.session.MediaSession
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -38,6 +44,8 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
     lateinit var popupView: View
     lateinit var popupExoPlayer: SimpleExoPlayer
     lateinit var commentCanvas: CommentCanvas
+    // MediaSession
+    lateinit var mediaSessionCompat: MediaSessionCompat
     // 通知
     private val overlayNotificationID = 865
     // manager
@@ -96,6 +104,8 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
             popupView.overlay_commentCanvas.isFloatingView = true
             commentCanvas = popupView.overlay_commentCanvas
 
+            // MediaSession
+            initMediaSession()
             //通知表示
             showPopUpPlayerNotification()
 
@@ -288,6 +298,25 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
         }
     }
 
+    /** MediaSession。音楽アプリの再生中のあれ */
+    private fun initMediaSession() {
+        mediaSessionCompat = MediaSessionCompat(context!!, "nicolive")
+        // メタデータ
+        val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
+            putString(MediaMetadataCompat.METADATA_KEY_TITLE, "${commentFragment.programTitle} / ${commentFragment.liveId}")
+            putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, commentFragment.liveId)
+            putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, commentFragment.programTitle)
+            putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, commentFragment.programTitle)
+            putString(MediaMetadataCompat.METADATA_KEY_ARTIST, context?.getString(R.string.popup_player))
+        }.build()
+        mediaSessionCompat.apply {
+            setMetadata(mediaMetadataCompat) // メタデータ入れる
+            isActive = true // これつけないとAlways On Displayで表示されない
+            // 常に再生状態にしておく。これでAODで表示できる
+            setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 0L, 1F).build())
+        }
+    }
+
     /*ポップアップ再生通知*/
     private fun showPopUpPlayerNotification() {
 
@@ -305,13 +334,14 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
             val programNotification =
-                NotificationCompat.Builder(context!!, notificationChannelId)
-                    .setContentTitle(context?.getString(R.string.popup_notification_description))
-                    .setContentText(commentFragment.programTitle)
-                    .setSmallIcon(R.drawable.ic_popup_icon)
-                    .addAction(
+                NotificationCompat.Builder(context!!, notificationChannelId).apply {
+                    setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken))
+                    setContentTitle(context?.getString(R.string.popup_notification_description))
+                    setContentText(commentFragment.programTitle)
+                    setSmallIcon(R.drawable.ic_popup_icon)
+                    addAction(
                         NotificationCompat.Action(
-                            R.drawable.ic_outline_stop_24px,
+                            R.drawable.ic_clear_black,
                             context?.getString(R.string.finish),
                             PendingIntent.getBroadcast(
                                 context,
@@ -321,7 +351,7 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
                             )
                         )
                     )
-                    .build()
+                }.build()
 
             //消せないようにする
             programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
@@ -329,12 +359,13 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
             notificationManager.notify(overlayNotificationID, programNotification)
         } else {
             val programNotification = NotificationCompat.Builder(context)
+                .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken))
                 .setContentTitle(context?.getString(R.string.notification_background_play))
                 .setContentText(commentFragment.programTitle)
                 .setSmallIcon(R.drawable.ic_popup_icon)
                 .addAction(
                     NotificationCompat.Action(
-                        R.drawable.ic_outline_stop_24px,
+                        R.drawable.ic_clear_black,
                         context?.getString(R.string.finish),
                         PendingIntent.getBroadcast(
                             context,
@@ -372,6 +403,8 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
         }
         notificationManager.cancel(overlayNotificationID) // 通知削除
         isPopupPlay = false
+        // mediaSessionCompat.isActive = false
+        mediaSessionCompat.release()
     }
 
     /** ExoPlayer初期化済みか */
