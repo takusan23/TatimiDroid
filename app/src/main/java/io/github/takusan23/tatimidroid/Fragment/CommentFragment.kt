@@ -2,14 +2,12 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.app.*
 import android.content.*
-import android.content.Context.WINDOW_SERVICE
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
-import android.graphics.PixelFormat
 import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Icon
@@ -19,7 +17,6 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
@@ -58,7 +55,6 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
-import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -73,7 +69,6 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
 import java.net.URI
-import java.security.PrivilegedAction
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
@@ -155,13 +150,15 @@ class CommentFragment : Fragment() {
     //ユーザーNG配列
     val userNGList = arrayListOf<String>()
 
+/*
     //ポップアップ再生（オーバーレイ）
     var overlay_commentcamvas: CommentCanvas? = null
     lateinit var popupView: View
     lateinit var overlay_commentTextView: TextView
+*/
 
     //オーバーレイ再生中かどうか。
-    var isPopupPlay = false
+    // var isPopupPlay = false
     //オーバーレイ再生の通知ID
     val overlayNotificationID = 5678
 
@@ -276,6 +273,9 @@ class CommentFragment : Fragment() {
     // SurfaceView(ExoPlayer) + CommentCanvasのLayoutParams
     lateinit var surfaceViewLayoutParams: FrameLayout.LayoutParams
 
+    // ポップアップ再生をクラスに切り分けた
+    lateinit var popUpPlayer: PopUpPlayer
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -298,6 +298,7 @@ class CommentFragment : Fragment() {
         darkModeSupport.setActivityTheme(activity as AppCompatActivity)
 
         backgroundPlay = BackgroundPlay(context!!)
+        popUpPlayer = PopUpPlayer(context, this)
 
         //起動時の音量を保存しておく
         audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -637,14 +638,12 @@ class CommentFragment : Fragment() {
             override fun onReceive(p0: Context?, p1: Intent?) {
                 when (p1?.action) {
                     "program_popup_close" -> {
-                        if (isPopupPlay) {
-                            if (this@CommentFragment::notificationManager.isInitialized) {
-                                //ポップアップ再生終了
-                                notificationManager.cancel(overlayNotificationID)//削除
-                                val windowManager =
-                                    context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                                windowManager.removeView(popupView)
-                                isPopupPlay = false
+                        popUpPlayer.apply {
+                            if (isPopupPlay) {
+                                if (isInitializedExoPlayer()) {
+                                    //ポップアップ再生終了
+                                    destroy()
+                                }
                             }
                         }
                     }
@@ -1966,14 +1965,8 @@ class CommentFragment : Fragment() {
         //バックグラウンド再生止める
         backgroundPlay.release()
         //ポップアップ再生とめる
-        if (this@CommentFragment::popupView.isInitialized) {
-            if (isPopupPlay) {
-                notificationManager.cancel(overlayNotificationID)
-                val windowManager =
-                    context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                windowManager.removeView(popupView)
-                isPopupPlay = false
-            }
+        if (popUpPlayer.isPopupPlay) {
+            popUpPlayer.destroy()
         }
         if (this@CommentFragment::broadcastReceiver.isInitialized) {
             //中野ブロードキャスト終了
@@ -1987,15 +1980,6 @@ class CommentFragment : Fragment() {
         //止める
         if (this@CommentFragment::exoPlayer.isInitialized) {
             exoPlayer.apply {
-                playWhenReady = false
-                stop()
-                seekTo(0)
-                release()
-            }
-        }
-        //ポップアップ再生のExoPlayerも止める
-        if (this@CommentFragment::popupExoPlayer.isInitialized) {
-            popupExoPlayer.apply {
                 playWhenReady = false
                 stop()
                 seekTo(0)
@@ -2016,303 +2000,8 @@ class CommentFragment : Fragment() {
 
     /*オーバーレイ*/
     fun startOverlayPlayer() {
-        val windowManager = context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        //すでにある場合は消す
-        if (this@CommentFragment::popupExoPlayer.isInitialized) {
-            destroyExoPlayer(popupExoPlayer)
-            // windowManager.removeView(popupView)
-        }
-        if (Settings.canDrawOverlays(context)) {
-            // 画面の半分を利用するように
-            val wm = commentActivity.getSystemService(WINDOW_SERVICE) as WindowManager
-            val disp = wm.getDefaultDisplay()
-            val realSize = Point();
-            disp.getRealSize(realSize);
-            val width = realSize.x / 2
-
-            //アスペクト比16:9なので
-            val height = (width / 16) * 9
-            //レイアウト読み込み
-            val layoutInflater = LayoutInflater.from(context)
-            // オーバーレイViewの設定をする
-            val params = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                WindowManager.LayoutParams(
-                    width,
-                    height,
-                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                    PixelFormat.TRANSLUCENT
-                )
-            } else {
-                WindowManager.LayoutParams(
-                    width,
-                    height,
-                    WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                    PixelFormat.TRANSLUCENT
-                )
-            }
-            popupView = layoutInflater.inflate(R.layout.overlay_player_layout, null)
-
-
-            //表示
-            windowManager.addView(popupView, params)
-            isPopupPlay = true
-            popupView.overlay_commentCanvas.isFloatingView = true
-
-            //通知表示
-            showPopUpPlayerNotification()
-
-            //ポップアップ再生もExoPlayerにお引越し。
-            popupExoPlayer = ExoPlayerFactory.newSimpleInstance(context)
-            val sourceFactory = DefaultDataSourceFactory(
-                context,
-                "TatimiDroid;@takusan_23",
-                object : TransferListener {
-                    override fun onTransferInitializing(
-                        source: DataSource?,
-                        dataSpec: DataSpec?,
-                        isNetwork: Boolean
-                    ) {
-
-                    }
-
-                    override fun onTransferStart(
-                        source: DataSource?,
-                        dataSpec: DataSpec?,
-                        isNetwork: Boolean
-                    ) {
-
-                    }
-
-                    override fun onTransferEnd(
-                        source: DataSource?,
-                        dataSpec: DataSpec?,
-                        isNetwork: Boolean
-                    ) {
-
-                    }
-
-                    override fun onBytesTransferred(
-                        source: DataSource?,
-                        dataSpec: DataSpec?,
-                        isNetwork: Boolean,
-                        bytesTransferred: Int
-                    ) {
-
-                    }
-                })
-
-            val hlsMediaSource = HlsMediaSource.Factory(sourceFactory)
-                .setAllowChunklessPreparation(true)
-                .createMediaSource(hls_address.toUri());
-
-            //再生準備
-            popupExoPlayer.prepare(hlsMediaSource)
-            //SurfaceViewセット
-            popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
-            //再生
-            popupExoPlayer.playWhenReady = true
-
-            popupExoPlayer.addListener(object : Player.EventListener {
-
-                override fun onPlayerError(error: ExoPlaybackException?) {
-                    super.onPlayerError(error)
-                    error?.printStackTrace()
-                    println("生放送の再生が止まりました。")
-                    //それからニコ生視聴セッションWebSocketが切断されてなければ
-                    if (!connectionNicoLiveWebSocket.isClosed) {
-                        println("再度再生準備を行います")
-                        activity?.runOnUiThread {
-                            //再生準備
-                            popupExoPlayer.prepare(hlsMediaSource)
-                            //SurfaceViewセット
-                            popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
-                            //再生
-                            popupExoPlayer.playWhenReady = true
-                        }
-                    }
-                }
-            })
-
-            //閉じる
-            popupView.overlay_close_button.setOnClickListener {
-                isPopupPlay = false
-                windowManager.removeView(popupView)
-                notificationManager.cancel(overlayNotificationID)
-                popupExoPlayer.apply {
-                    playWhenReady = false
-                    stop()
-                    seekTo(0)
-                    release()
-                }
-            }
-
-            //アプリ起動
-            popupView.overlay_activity_launch.setOnClickListener {
-                onDestroy()
-                startActivity(activity?.intent)
-            }
-
-            //ミュート・ミュート解除
-            popupView.overlay_sound_button.setOnClickListener {
-                if (::popupExoPlayer.isInitialized) {
-                    popupExoPlayer.apply {
-                        //音が０のとき
-                        if (volume == 0f) {
-                            volume = 1f
-                            popupView.overlay_sound_button.setImageDrawable(context?.getDrawable(R.drawable.ic_volume_up_24px))
-                        } else {
-                            volume = 0f
-                            popupView.overlay_sound_button.setImageDrawable(context?.getDrawable(R.drawable.ic_volume_off_24px))
-                        }
-                    }
-                }
-            }
-
-            //画面サイズ
-            val displaySize: Point by lazy {
-                val display = windowManager.defaultDisplay
-                val size = Point()
-                display.getSize(size)
-                size
-            }
-
-            //コメント流し
-            overlay_commentcamvas = popupView.findViewById(R.id.overlay_commentCanvas)
-            overlay_commentcamvas?.isPopupView = true
-
-            //移動
-            popupView.setOnTouchListener { view, motionEvent ->
-                // タップした位置を取得する
-                val x = motionEvent.rawX.toInt()
-                val y = motionEvent.rawY.toInt()
-
-                when (motionEvent.action) {
-                    // Viewを移動させてるときに呼ばれる
-                    MotionEvent.ACTION_MOVE -> {
-                        // 中心からの座標を計算する
-                        val centerX = x - (displaySize.x / 2)
-                        val centerY = y - (displaySize.y / 2)
-
-                        // オーバーレイ表示領域の座標を移動させる
-                        params.x = centerX
-                        params.y = centerY
-
-                        // 移動した分を更新する
-                        windowManager.updateViewLayout(view, params)
-                    }
-                }
-                false
-            }
-
-            //ボタン表示
-            popupView.setOnClickListener {
-                if (popupView.overlay_button_layout.visibility == View.GONE) {
-                    //表示
-                    popupView.overlay_button_layout.visibility = View.VISIBLE
-                } else {
-                    //非表示
-                    popupView.overlay_button_layout.visibility = View.GONE
-                }
-            }
-
-            // 大きさ変更。まず変更前を入れておく
-            val normalHeight = params.height
-            val normalWidth = params.width
-            popupView.overlay_size_seekbar.apply {
-                setOnSeekBarChangeListener(object :
-                    SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                        // 操作中
-                        params.height = normalHeight + (progress + 1) * 9
-                        params.width = normalWidth + (progress + 1) * 16
-                        windowManager.updateViewLayout(popupView, params)
-                    }
-
-                    override fun onStartTrackingTouch(seekBar: SeekBar?) {
-
-                    }
-
-                    override fun onStopTrackingTouch(seekBar: SeekBar?) {
-
-                    }
-                })
-            }
-
-        }
+        popUpPlayer.showPopUpView(hls_address)
     }
-
-    /*ポップアップ再生通知*/
-    fun showPopUpPlayerNotification() {
-
-        val stopPopupIntent = Intent("program_popup_close")
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannelId = "program_popup"
-            val notificationChannel = NotificationChannel(
-                notificationChannelId, getString(R.string.popup_notification_title),
-                NotificationManager.IMPORTANCE_HIGH
-            )
-
-            //通知チャンネル登録
-            if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
-                notificationManager.createNotificationChannel(notificationChannel)
-            }
-            val programNotification =
-                NotificationCompat.Builder(context!!, notificationChannelId)
-                    .setContentTitle(getString(R.string.popup_notification_description))
-                    .setContentText(programTitle)
-                    .setSmallIcon(R.drawable.ic_popup_icon)
-                    .addAction(
-                        NotificationCompat.Action(
-                            R.drawable.ic_outline_stop_24px,
-                            getString(R.string.finish),
-                            PendingIntent.getBroadcast(
-                                context,
-                                24,
-                                stopPopupIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT
-                            )
-                        )
-                    )
-                    .build()
-
-            //消せないようにする
-            programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
-
-            notificationManager.notify(overlayNotificationID, programNotification)
-        } else {
-            val programNotification = NotificationCompat.Builder(context)
-                .setContentTitle(getString(R.string.notification_background_play))
-                .setContentText(programTitle)
-                .setSmallIcon(R.drawable.ic_popup_icon)
-                .addAction(
-                    NotificationCompat.Action(
-                        R.drawable.ic_outline_stop_24px,
-                        getString(R.string.finish),
-                        PendingIntent.getBroadcast(
-                            context,
-                            24,
-                            stopPopupIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT
-                        )
-                    )
-                ).build()
-
-            //消せないようにする
-            programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
-
-            notificationManager.notify(overlayNotificationID, programNotification)
-        }
-    }
-
 
     /*バックグラウンド再生*/
     fun setBackgroundProgramPlay() {
@@ -2449,29 +2138,18 @@ class CommentFragment : Fragment() {
 
         //ポップアップ再生止める
         //ポップアップ再生のExoPlayerも止める
-        if (this@CommentFragment::popupExoPlayer.isInitialized) {
-            popupExoPlayer.apply {
-                playWhenReady = false
-                stop()
-                seekTo(0)
-                release()
-            }
-            if (isPopupPlay) {
-                isPopupPlay = false
-                windowManager.removeView(popupView)
-                notificationManager.cancel(overlayNotificationID) //通知削除
-                Toast.makeText(
-                    context,
-                    getString(R.string.lunch_app_close_popup),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+        if (popUpPlayer.isInitializedExoPlayer()) {
+            popUpPlayer.destroy()
+            Toast.makeText(
+                context,
+                getString(R.string.lunch_app_close_popup),
+                Toast.LENGTH_SHORT
+            ).show()
         }
         //再生部分を作り直す
         if (hls_address.isNotEmpty()) {
             live_framelayout.visibility = View.VISIBLE
             setPlayVideoView()
-            // println("ExoPlayer開始")
         }
     }
 
@@ -3144,7 +2822,7 @@ class CommentFragment : Fragment() {
     }
 
     fun isPopupViewInit(): Boolean {
-        return ::popupView.isInitialized
+        return popUpPlayer.isInitializedPopUpView()
     }
 
     fun isAllRoomCommentInit(): Boolean {

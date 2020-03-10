@@ -314,15 +314,8 @@ class AllRoomComment(
                                 }
                             }
                             //ポップアップ再生
-                            if (commentFragment.overlay_commentcamvas != null) {
-                                commentFragment.overlay_commentcamvas!!.postComment(
-                                    message, commentJSONParse
-                                )
-                               // //コメント
-                               // val textView =
-                               //     commentFragment.popupView.overlay_comment_textview
-                               // textView.text =
-                               //     "$message\n${textView.text}"
+                            if (commentFragment.popUpPlayer.isPopupPlay) {
+                                commentFragment.popUpPlayer.commentCanvas.postComment(message, commentJSONParse)
                             }
                         }
                     }

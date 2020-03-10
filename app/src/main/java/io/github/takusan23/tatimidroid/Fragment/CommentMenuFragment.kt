@@ -181,9 +181,7 @@ class CommentMenuFragment : Fragment() {
                 }
                 if (isPopupViewInit()) {
                     try {
-                        val windowManager =
-                            context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                        windowManager.removeView(popupView)
+                        popUpPlayer.destroy()
                     } catch (e: IllegalArgumentException) {
                         e.printStackTrace()
                     }

@@ -37,6 +37,17 @@
                     android:orientation="horizontal">
 
                 <ImageButton
+                        android:id="@+id/overlay_send_comment_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10sp"
+                        android:tint="#ffffff"
+                        app:srcCompat="@drawable/ic_send_black" />
+
+                <ImageButton
                         android:id="@+id/overlay_sound_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
