@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nimado_live_id.*
@@ -74,44 +75,40 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
     fun addNimado(mode: String) {
         GlobalScope.launch(Dispatchers.Main) {
             // コミュIDのときはコミュIDを取ってから
-            val json = if (!isCommunityOrChannelID()) {
-                getProgramInfo("comment_viewer")
+            val nicoLiveHTML = NicoLiveHTML()
+            val user_session = pref_setting.getString("user_session", "")
+            val html = if (!isCommunityOrChannelID()) {
+                nicoLiveHTML.getNicoLiveHTML(getLiveIDRegex(), user_session).await()
             } else {
                 val liveID = getLiveIDFromCommunityID().await()
-                getProgramInfo("comment_viewer", liveID)
-            }.await()
+                nicoLiveHTML.getNicoLiveHTML(liveID, user_session).await()
+            }
             // JSONパース
-            if (json != null) {
-                val jsonObject = JSONObject(json)
-                //現在放送中か？
-                val status = jsonObject.getJSONObject("program").getString("status")
-                //公式番組かどうか
-                val type = jsonObject.getJSONObject("program").getString("providerType")
-                // 番組ID
-                val programId = jsonObject.getJSONObject("program").getString("nicoliveProgramId")
-                var isOfficial = false
-                if (type.contains("official")) {
-                    isOfficial = true
+            val jsonObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(html)
+            //現在放送中か？
+            val status = jsonObject.getJSONObject("program").getString("status")
+            //公式番組かどうか
+            val type = jsonObject.getJSONObject("program").getString("providerType")
+            // 番組ID
+            val programId = jsonObject.getJSONObject("program").getString("nicoliveProgramId")
+            var isOfficial = false
+            if (type.contains("official")) {
+                isOfficial = true
+            }
+            if (status == "ON_AIR") {
+                //生放送中！
+                //二窓追加ボタン有効
+                (activity as NimadoActivity).apply {
+                    runOnUiThread {
+                        addNimado(programId, mode, html, isOfficial, false)
+                        this@NimadoLiveIDBottomFragment.dismiss()
+                    }
                 }
-                if (status == "ON_AIR") {
-                    //生放送中！
-                    //二窓追加ボタン有効
-                    (activity as NimadoActivity).apply {
-                        runOnUiThread {
-                            addNimado(programId, mode, isOfficial, false)
-                            this@NimadoLiveIDBottomFragment.dismiss()
-                        }
-                    }
-                } else {
-                    activity?.runOnUiThread {
-                        dismiss()
-                        Toast.makeText(
-                            context,
-                            getString(R.string.program_end),
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
-                    }
+            } else {
+                activity?.runOnUiThread {
+                    dismiss()
+                    Toast.makeText(context, getString(R.string.program_end), Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }

@@ -299,23 +299,28 @@ class AllRoomComment(
                     if (commentJSONParse.origin != "C" || commentFragment.isOfficial) {
                         Handler(Looper.getMainLooper()).post {
                             if (!message.contains("\n")) {
-                                commentFragment.commentCanvas.postComment(
-                                    message,
-                                    commentJSONParse
-                                )
+                                commentFragment.commentCanvas.postComment(message, commentJSONParse)
+                                //ポップアップ再生
+                                if (commentFragment.popUpPlayer.isPopupPlay) {
+                                    commentFragment.popUpPlayer.commentCanvas.postComment(message, commentJSONParse)
+                                }
                             } else {
                                 // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
                                 // 豆先輩！！！！！！！！！！！！！！！！！！
-                                for (line in message.split("\n")) {
-                                    commentFragment.commentCanvas.postComment(
-                                        line,
-                                        commentJSONParse
-                                    )
+                                // 下固定コメントで複数行だとAA（アスキーアートの略 / CA(コメントアート)とも言う）がうまく動かない。配列の中身を逆にする必要がある
+                                // Kotlinのこの書き方ほんと好き
+                                val asciiArtComment = if (commentJSONParse.mail.contains("shita")) {
+                                    message.split("\n").reversed() // 下コメントだけ逆順にする
+                                } else {
+                                    message.split("\n")
                                 }
-                            }
-                            //ポップアップ再生
-                            if (commentFragment.popUpPlayer.isPopupPlay) {
-                                commentFragment.popUpPlayer.commentCanvas.postComment(message, commentJSONParse)
+                                for (line in asciiArtComment) {
+                                    commentFragment.commentCanvas.postComment(line, commentJSONParse)
+                                    //ポップアップ再生
+                                    if (commentFragment.popUpPlayer.isPopupPlay) {
+                                        commentFragment.popUpPlayer.commentCanvas.postComment(message, commentJSONParse)
+                                    }
+                                }
                             }
                         }
                     }

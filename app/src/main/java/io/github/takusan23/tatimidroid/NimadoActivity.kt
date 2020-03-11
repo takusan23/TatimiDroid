@@ -64,6 +64,8 @@ class NimadoActivity : AppCompatActivity() {
     var programNameList = arrayListOf<String>()
     //公式番組かどうか
     var officialList = arrayListOf<String>()
+    // HTML
+    var htmlList = arrayListOf<String>()
 
     var fragmentList = arrayListOf<Fragment>()
 
@@ -125,6 +127,7 @@ class NimadoActivity : AppCompatActivity() {
         intent.putStringArrayListExtra("watch_mode_list", watchModeList)
         intent.putStringArrayListExtra("program_name", programNameList)
         intent.putStringArrayListExtra("official_list", officialList)
+        intent.putStringArrayListExtra("html_list", htmlList)
         intent.putExtra("fragment_list", fragmentList)
         nimado_activity_linearlayout.removeAllViews()
         recyclerViewList.clear()
@@ -144,13 +147,15 @@ class NimadoActivity : AppCompatActivity() {
             programNameList = intent.getStringArrayListExtra("program_name")
             watchModeList = intent.getStringArrayListExtra("watch_mode_list")
             officialList = intent.getStringArrayListExtra("official_list")
+            htmlList = intent.getStringArrayListExtra("html_list")
 
             //復活させる
             for (index in 0 until programList.size) {
                 val liveID = programList[index]
                 val watchMode = watchModeList[index]
                 val isOfficial = officialList[index].toBoolean()
-                addNimado(liveID, watchMode, isOfficial, true)
+                val html = htmlList[index]
+                addNimado(liveID, watchMode, html, isOfficial, true)
             }
         }
     }
@@ -159,6 +164,7 @@ class NimadoActivity : AppCompatActivity() {
     fun addNimado(
         liveId: String,
         watchMode: String,
+        html: String,
         isOfficial: Boolean,
         isResume: Boolean = false
     ) {
@@ -168,6 +174,7 @@ class NimadoActivity : AppCompatActivity() {
             programList.add(liveId)
             watchModeList.add(watchMode)
             officialList.add(isOfficial.toString())
+            htmlList.add(html)
         }
         //動的にView作成
         val disp = windowManager.defaultDisplay
@@ -309,12 +316,15 @@ class NimadoActivity : AppCompatActivity() {
                     val liveID = programList[old]
                     val watchMode = watchModeList[old]
                     val isOfficial = officialList[old]
+                    val html = htmlList[old]
                     programList.removeAt(old)
                     watchModeList.removeAt(old)
                     officialList.removeAt(old)
+                    htmlList.removeAt(old)
                     programList.add(new, liveID)
                     watchModeList.add(new, watchMode)
                     officialList.add(new, isOfficial)
+                    htmlList.add(new, html)
                     //Fragmentが入るView再設置
                     //全部消すのでは無く移動するところだけ消す
                     val cardView = (nimado_activity_linearlayout[old] as CardView)

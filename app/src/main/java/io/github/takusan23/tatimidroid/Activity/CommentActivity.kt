@@ -230,6 +230,7 @@ class CommentActivity : AppCompatActivity() {
 
         val isOfficial = intent?.getBooleanExtra("isOfficial", false) ?: false
 
+        val html = intent?.getStringExtra("html")
 
         /*
         * なんか知らんけどnullチェックすればうまく動いてるっぽい？
@@ -243,6 +244,7 @@ class CommentActivity : AppCompatActivity() {
             bundle.putString("liveId", liveId)
             bundle.putString("watch_mode", watch_mode)
             bundle.putBoolean("isOfficial", isOfficial)
+            bundle.putString("html", html)
             commentFragment.arguments = bundle
             trans.replace(R.id.activity_comment_new_linearlayout, commentFragment, liveId)
             trans.commit()

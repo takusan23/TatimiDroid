@@ -448,35 +448,58 @@ class CommentFragment : Fragment() {
         //ログイン情報がなければ戻す
         if (pref_setting.getString("mail", "")?.contains("") != false) {
             usersession = pref_setting.getString("user_session", "") ?: ""
-            // ニコ生の視聴ページ（HTML）を取得する。
-            GlobalScope.launch {
-                // 取得できるまで待機
-                val response = getNicoLiveWebPage().await()
-                if (response.isSuccessful) {
-                    // 成功した
-                    // ログインできているかチェック（user_session切れなど）
-                    // コメント投稿モード以外でもユーザーセッションは必要なのでここで判断しておく
-                    var niconicoId = response.headers["x-niconico-id"]
-                    // 視聴モード以外のときは適当に入れておく（将来的に視聴モードのみにするため）
-                    if (!isWatchingMode) {
-                        niconicoId = "てきとうに"
-                    }
-                    // ログイン無い
-                    if (niconicoId == null) {
-                        // ログイン済みの場合はレスポンスヘッダーにユーザーIDが入ってる。なければ(null)ログイン出来てない。
-                        NicoLogin.login(context) {
-                            // ログイン成功時でコメント投稿モードの場合は再度HTML（ニコ生視聴ページ）をリクエスト
-                            if (isWatchingMode) {
-                                GlobalScope.launch {
-                                    val againResponse = getNicoLiveWebPage().await()
-                                    if (againResponse.isSuccessful && againResponse.headers["x-niconico-id"] != null) {
-                                        // HTMLパースする（HTMLの中にあるJSONをパース）
-                                        parseNicoLiveHTML(againResponse.body?.string())
-                                    } else {
-                                        showToast("ログインが切れたため再度ログインしました。しかし視聴ページの取得に失敗しました。\n${againResponse.code}")
+
+            // htmlを視聴モード切り替えBottomFragmentから持ってくる。これで二回取得する必要がなくなるのでネットが遅いときはすごく助かる
+            val html = arguments?.getString("html")
+            if (html != null) {
+                // HTMLパースする（HTMLの中にあるJSONをパース）
+                parseNicoLiveHTML(html)
+                // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
+                getplayerstatus()
+                // 全部屋表示Fragment表示
+                if (!isOfficial) {
+                    setAllRoomCommentFragment()
+                }
+            } else {
+                // ニコ生の視聴ページ（HTML）を取得する。
+                GlobalScope.launch {
+                    // 取得できるまで待機
+                    val response = getNicoLiveWebPage().await()
+                    if (response.isSuccessful) {
+                        // 成功した
+                        // ログインできているかチェック（user_session切れなど）
+                        // コメント投稿モード以外でもユーザーセッションは必要なのでここで判断しておく
+                        var niconicoId = response.headers["x-niconico-id"]
+                        // 視聴モード以外のときは適当に入れておく（将来的に視聴モードのみにするため）
+                        if (!isWatchingMode) {
+                            niconicoId = "てきとうに"
+                        }
+                        // ログイン無い
+                        if (niconicoId == null) {
+                            // ログイン済みの場合はレスポンスヘッダーにユーザーIDが入ってる。なければ(null)ログイン出来てない。
+                            NicoLogin.login(context) {
+                                // ログイン成功時でコメント投稿モードの場合は再度HTML（ニコ生視聴ページ）をリクエスト
+                                if (isWatchingMode) {
+                                    GlobalScope.launch {
+                                        val againResponse = getNicoLiveWebPage().await()
+                                        if (againResponse.isSuccessful && againResponse.headers["x-niconico-id"] != null) {
+                                            // HTMLパースする（HTMLの中にあるJSONをパース）
+                                            parseNicoLiveHTML(againResponse.body?.string())
+                                        } else {
+                                            showToast("ログインが切れたため再度ログインしました。しかし視聴ページの取得に失敗しました。\n${againResponse.code}")
+                                        }
                                     }
                                 }
+                                // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
+                                getplayerstatus()
+                                // 全部屋表示Fragment表示
+                                if (!isOfficial) {
+                                    setAllRoomCommentFragment()
+                                }
                             }
+                        } else {
+                            // HTMLパースする（HTMLの中にあるJSONをパース）
+                            parseNicoLiveHTML(response.body?.string())
                             // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
                             getplayerstatus()
                             // 全部屋表示Fragment表示
@@ -485,20 +508,12 @@ class CommentFragment : Fragment() {
                             }
                         }
                     } else {
-                        // HTMLパースする（HTMLの中にあるJSONをパース）
-                        parseNicoLiveHTML(response.body?.string())
-                        // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
-                        getplayerstatus()
-                        // 全部屋表示Fragment表示
-                        if (!isOfficial) {
-                            setAllRoomCommentFragment()
-                        }
+                        // 失敗。
+                        showToast("${getString(R.string.error)}\n${response.code}")
                     }
-                } else {
-                    // 失敗。
-                    showToast("${getString(R.string.error)}\n${response.code}")
                 }
             }
+
 
             //TabLayout選択
             //標準でコメントの欄を選んでおく
@@ -2138,7 +2153,7 @@ class CommentFragment : Fragment() {
 
         //ポップアップ再生止める
         //ポップアップ再生のExoPlayerも止める
-        if (popUpPlayer.isInitializedExoPlayer()) {
+        if (popUpPlayer.isPopupPlay) {
             popUpPlayer.destroy()
             Toast.makeText(
                 context,

@@ -75,7 +75,8 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
             // HTML->JSON
             val response = nicoLiveHTML.getNicoLiveResponse(liveId!!, user_session).await()
             if (response != null && response.isSuccessful) {
-                val jsonObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(response.body?.string())
+                val responseString = response.body?.string()
+                val jsonObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(responseString)
                 // ログイン済みか
                 var niconicoId = response.headers["x-niconico-id"]
                 //現在放送中か？
@@ -116,6 +117,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                             intent.putExtra("liveId", liveId)
                             intent.putExtra("watch_mode", "comment_viewer")
                             intent.putExtra("isOfficial", isOfficial)
+                            intent.putExtra("html", responseString)
                             startActivity(intent)
                             this@BottomSheetDialogWatchMode.dismiss()
                         }
@@ -132,6 +134,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                             intent.putExtra("liveId", liveId)
                             intent.putExtra("watch_mode", "comment_post")
                             intent.putExtra("isOfficial", isOfficial)
+                            intent.putExtra("html", responseString)
                             startActivity(intent)
                             this@BottomSheetDialogWatchMode.dismiss()
                         }
@@ -148,6 +151,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                             intent.putExtra("liveId", liveId)
                             intent.putExtra("watch_mode", "nicocas")
                             intent.putExtra("isOfficial", isOfficial)
+                            intent.putExtra("html", responseString)
                             startActivity(intent)
                             this@BottomSheetDialogWatchMode.dismiss()
                         }
@@ -190,6 +194,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                     }
                 } else {
                     // そもそもログインできてない（ユーザーセッションが切れたとか）
+                    Toast.makeText(context, "ニコニコへ再ログインしてます。ちょっとまってね", Toast.LENGTH_SHORT).show()
                     // ログインする
                     NicoLogin.login(context) {
                         // ログイン成功時はもう一回番組情報を取得する

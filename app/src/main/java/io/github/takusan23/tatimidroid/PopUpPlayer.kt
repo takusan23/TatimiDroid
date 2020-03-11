@@ -198,8 +198,8 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
             popupView.overlay_activity_launch.setOnClickListener {
                 destroy()
                 // アプリ起動
-                val intent = Intent(context, CommentActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT // すでにある場合は新しく生成しない
+                val intent = commentFragment.activity?.intent
+                intent?.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT // すでにある場合は新しく生成しない
                 context?.startActivity(intent)
             }
 
@@ -403,8 +403,10 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
         }
         notificationManager.cancel(overlayNotificationID) // 通知削除
         isPopupPlay = false
-        // mediaSessionCompat.isActive = false
-        mediaSessionCompat.release()
+        if (isInitializedMediaSession()) {
+            mediaSessionCompat.isActive = false
+            mediaSessionCompat.release()
+        }
     }
 
     /** ExoPlayer初期化済みか */
@@ -415,6 +417,11 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
     /** ポップアップのViewが初期化済みか */
     fun isInitializedPopUpView(): Boolean {
         return ::popupView.isInitialized
+    }
+
+    /** MediaSession初期化済みか */
+    fun isInitializedMediaSession(): Boolean {
+        return ::mediaSessionCompat.isInitialized
     }
 
 }
