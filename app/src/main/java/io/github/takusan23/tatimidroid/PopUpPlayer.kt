@@ -1,16 +1,13 @@
 package io.github.takusan23.tatimidroid
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.RemoteInput
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
 import android.graphics.Point
-import android.media.MediaSession2Service
-import android.media.session.MediaSession
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -26,13 +23,15 @@ import android.view.WindowManager
 import android.widget.SeekBar
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.ExoPlayerFactory
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
-import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 
@@ -267,6 +266,10 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
                 }
             }
 
+            popupView.overlay_send_comment_button.setOnClickListener {
+                showPopUpPlayerNotification()
+            }
+
             // 大きさ変更。まず変更前を入れておく
             val normalHeight = params.height
             val normalWidth = params.width
@@ -318,7 +321,7 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
     }
 
     /*ポップアップ再生通知*/
-    private fun showPopUpPlayerNotification() {
+    fun showPopUpPlayerNotification() {
 
         val stopPopupIntent = Intent("program_popup_close")
 
@@ -335,22 +338,12 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
             }
             val programNotification =
                 NotificationCompat.Builder(context!!, notificationChannelId).apply {
-                    setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken))
+                    // setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken))
                     setContentTitle(context?.getString(R.string.popup_notification_description))
                     setContentText(commentFragment.programTitle)
                     setSmallIcon(R.drawable.ic_popup_icon)
-                    addAction(
-                        NotificationCompat.Action(
-                            R.drawable.ic_clear_black,
-                            context?.getString(R.string.finish),
-                            PendingIntent.getBroadcast(
-                                context,
-                                24,
-                                stopPopupIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT
-                            )
-                        )
-                    )
+                    addAction(directReply())
+                    addAction(NotificationCompat.Action(R.drawable.ic_clear_black, context?.getString(R.string.finish), PendingIntent.getBroadcast(context, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
                 }.build()
 
             //消せないようにする
@@ -358,27 +351,40 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
 
             notificationManager.notify(overlayNotificationID, programNotification)
         } else {
-            val programNotification = NotificationCompat.Builder(context)
-                .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken))
-                .setContentTitle(context?.getString(R.string.notification_background_play))
-                .setContentText(commentFragment.programTitle)
-                .setSmallIcon(R.drawable.ic_popup_icon)
-                .addAction(
-                    NotificationCompat.Action(
-                        R.drawable.ic_clear_black,
-                        context?.getString(R.string.finish),
-                        PendingIntent.getBroadcast(
-                            context,
-                            24,
-                            stopPopupIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT
-                        )
-                    )
-                ).build()
+            val programNotification = NotificationCompat.Builder(context).apply {
+                setContentTitle(context?.getString(R.string.notification_background_play))
+                setContentText(commentFragment.programTitle)
+                setSmallIcon(R.drawable.ic_popup_icon)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    addAction(directReply()) // Android ぬがあー以降でDirect Replyが使える
+                }
+                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, context?.getString(R.string.finish), PendingIntent.getBroadcast(context, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+            }.build()
             //消せないようにする
             programNotification.flags = NotificationCompat.FLAG_ONGOING_EVENT
             notificationManager.notify(overlayNotificationID, programNotification)
         }
+    }
+
+    /**
+     *
+     * https://qiita.com/syarihu/items/9e7eb50ac97148687475
+     * */
+    fun directReply(): NotificationCompat.Action? {
+        val intent = Intent("direct_reply_comment")
+        // 入力されたテキストを受け取るPendingIntent
+        val replyPendingIntent =
+            PendingIntent.getBroadcast(context, 334, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        // 入力受ける
+        val remoteInput = androidx.core.app.RemoteInput.Builder("direct_reply_comment").apply {
+            setLabel("コメントを投稿")
+        }.build()
+        val action =
+            NotificationCompat.Action.Builder(R.drawable.ic_send_black, "コメントを投稿", replyPendingIntent)
+                .apply {
+                    addRemoteInput(remoteInput)
+                }.build()
+        return action
     }
 
     //ExoPlayerを破棄するときに

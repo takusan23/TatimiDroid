@@ -649,6 +649,7 @@ class CommentFragment : Fragment() {
         intentFilter.addAction("background_program_stop")
         intentFilter.addAction("background_program_pause")
         intentFilter.addAction("program_popup_close")
+        intentFilter.addAction("direct_reply_comment")
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(p0: Context?, p1: Intent?) {
                 when (p1?.action) {
@@ -685,6 +686,13 @@ class CommentFragment : Fragment() {
                                 NotificationCompat.FLAG_ONGOING_EVENT
                             )
                         }
+                    }
+                    "direct_reply_comment" -> {
+                        // Direct Reply でポップアップ画面でもコメント投稿できるようにする。ぬがあー以降で使える
+                        val remoteInput = RemoteInput.getResultsFromIntent(p1)
+                        val comment = remoteInput.getCharSequence("direct_reply_comment")
+                        sendComment(comment as String, "") // コメント投稿
+                        popUpPlayer.showPopUpPlayerNotification() // 通知再設置
                     }
                 }
             }
