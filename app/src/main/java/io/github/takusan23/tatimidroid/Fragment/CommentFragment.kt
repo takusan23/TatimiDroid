@@ -2395,12 +2395,6 @@ class CommentFragment : Fragment() {
             }
         }
 
-        // コマンドリセットボタン
-        comment_cardview_comment_command_edit_reset_button.setOnClickListener {
-            comment_cardview_command_textinputlayout.setText("")
-            clearColorCommandSizeButton()
-            clearColorCommandPosButton()
-        }
 
         // 184が有効になっているときはコメントInputEditTextのHintに追記する
         if (isTokumeiComment) {
@@ -2414,6 +2408,15 @@ class CommentFragment : Fragment() {
         var commentColor = ""
         var commentPos = ""
 
+        // コマンドリセットボタン
+        comment_cardview_comment_command_edit_reset_button.setOnClickListener {
+            comment_cardview_command_textinputlayout.setText("")
+            clearColorCommandSizeButton()
+            clearColorCommandPosButton()
+            commentSize = ""
+            commentColor = ""
+            commentPos = ""
+        }
         // 大きさ
         comment_cardview_comment_command_big_button.setOnClickListener {
             commentSize = "big"
