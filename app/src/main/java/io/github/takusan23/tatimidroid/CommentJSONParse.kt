@@ -13,6 +13,7 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
     var vpos = ""
     var origin = ""
     var score = ""
+    var uneiComment = "" // ニコニ広告、ランクインなどをきれいにする
 
     init {
         val jsonObject = JSONObject(commentJson)
@@ -46,6 +47,35 @@ class CommentJSONParse(val commentJson: String, var roomName: String) {
             //mailの中に色コメントの色の情報があったりする
             if (chatObject.has("mail")) {
                 mail = chatObject.getString("mail")
+            }
+
+            // /nicoad、/info
+            if (premium == "生主" || premium == "運営") {
+                if (comment.contains("/info")) {
+                    // /info {数字}　を消す
+                    val regex = "/info \\d+ ".toRegex()
+                    uneiComment = comment.replace(regex, "")
+                }
+                if (comment.contains("/nicoad")) {
+                    // ニコニ広告
+                    val jsonObject = JSONObject(comment.replace("/nicoad ", ""))
+                    uneiComment = jsonObject.getString("message")
+                }
+                if (comment.contains("/spi")) {
+                    // 新市場に貼られたとき
+                    uneiComment = comment.replace("/spi ", "")
+                }
+                // 投げ銭
+                if (comment.contains("/gift")) {
+                    // スペース区切り配列
+                    val list = comment.replace("/gift ", "")
+                        .split(" ")
+                    val userName = list[2]
+                    val giftPoint = list[3]
+                    val giftName = list[5]
+                    uneiComment =
+                        "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
+                }
             }
         }
     }

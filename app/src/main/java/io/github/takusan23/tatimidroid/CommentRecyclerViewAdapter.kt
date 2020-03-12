@@ -129,9 +129,18 @@ class CommentRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<ArrayList<
 
             //公式番組のコメントはコメント番号存在しない
             if (commentJSONParse.commentNo.isEmpty()) {
-                comment = commentJSONParse.comment
+                if (commentJSONParse.uneiComment.isNotEmpty()) {
+                    comment = commentJSONParse.uneiComment // 運営コメントをきれいにしたやつ
+                } else {
+                    comment = commentJSONParse.comment
+                }
             } else {
-                comment = "${commentJSONParse.commentNo} : ${commentJSONParse.comment}"
+                if (commentJSONParse.uneiComment.isNotEmpty()) {
+                    comment =
+                        "${commentJSONParse.commentNo} : ${commentJSONParse.uneiComment}" // 運営コメントをきれいにしたやつ
+                } else {
+                    comment = "${commentJSONParse.commentNo} : ${commentJSONParse.comment}"
+                }
             }
 
             //NGスコア表示するか
@@ -144,7 +153,6 @@ class CommentRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<ArrayList<
             } else {
                 info = info
             }
-
 
             //プレ垢
             if (commentJSONParse.premium.isNotEmpty()) {

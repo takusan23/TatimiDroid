@@ -119,8 +119,15 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             // コメントを移動させる
             for (i in 0 until commentObjList.size) {
                 val obj = commentObjList[i]
-                if ((obj.xPos + obj.commentMeasure) > 0) {
-                    commentObjList[i].xPos -= speed + (obj.comment.length / 2)
+                if (obj.asciiArt) {
+                    // AAの場合は速度を固定する
+                    if ((obj.xPos + obj.commentMeasure) > 0) {
+                        commentObjList[i].xPos -= speed
+                    }
+                } else {
+                    if ((obj.xPos + obj.commentMeasure) > 0) {
+                        commentObjList[i].xPos -= speed + (obj.comment.length / 2)
+                    }
                 }
             }
 
@@ -266,11 +273,11 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     }
 
 
-    /*
-    * コメント投稿
-    * */
-
-    fun postComment(comment: String, commentJSONParse: CommentJSONParse) {
+    /**
+     * コメント投稿
+     * @param asciiArt アスキーアートのときはtrueにすると速度が一定になります
+     * */
+    fun postComment(comment: String, commentJSONParse: CommentJSONParse, asciiArt: Boolean = false) {
         // ポップアップ再生時はフォントサイズを小さく
         if (isPopupView) {
             fontsize = (finalHeight / 10).toFloat()
@@ -328,7 +335,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 yPos,
                 System.currentTimeMillis(),
                 measure,
-                command
+                command,
+                asciiArt
             )
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
@@ -353,7 +361,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     yPos,
                     System.currentTimeMillis(),
                     measure,
-                    command
+                    command,
+                    asciiArt
                 )
             ueCommentList.add(commentObj)
             ueCommentLine[yPos] = System.currentTimeMillis()
@@ -378,7 +387,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     yPos,
                     System.currentTimeMillis(),
                     measure,
-                    command
+                    command,
+                    asciiArt
                 )
             sitaCommentList.add(commentObj)
             sitaCommentLine[yPos] = System.currentTimeMillis()
@@ -565,7 +575,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         var yPos: Float,
         var unixTime: Long,
         var commentMeasure: Float,
-        var command: String
+        var command: String,
+        var asciiArt: Boolean = false
     )
 
 }

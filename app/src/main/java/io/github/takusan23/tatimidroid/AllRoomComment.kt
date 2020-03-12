@@ -315,10 +315,10 @@ class AllRoomComment(
                                     message.split("\n")
                                 }
                                 for (line in asciiArtComment) {
-                                    commentFragment.commentCanvas.postComment(line, commentJSONParse)
+                                    commentFragment.commentCanvas.postComment(line, commentJSONParse, true)
                                     //ポップアップ再生
                                     if (commentFragment.popUpPlayer.isPopupPlay) {
-                                        commentFragment.popUpPlayer.commentCanvas.postComment(message, commentJSONParse)
+                                        commentFragment.popUpPlayer.commentCanvas.postComment(message, commentJSONParse, true)
                                     }
                                 }
                             }
