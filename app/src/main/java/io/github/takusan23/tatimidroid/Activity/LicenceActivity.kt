@@ -309,7 +309,18 @@ class LicenceActivity : AppCompatActivity() {
                             
         """
 
-        val material_licence = "material-components/material-components-android" +
+        val material_icon_license = """
+            
+----- google/material-design-icons -----
+                     Apache License
+               Version 2.0, January 2004
+            http://www.apache.org/licenses/
+
+
+        """.trimMargin()
+
+        val material_licence = "" +
+                "----- material-components/material-components-android -----" +
                 "\n\n" +
                 "                                 Apache License\n" +
                 "                           Version 2.0, January 2004\n" +
@@ -514,7 +525,7 @@ class LicenceActivity : AppCompatActivity() {
                 "   limitations under the License."
 
         fragment_license_textview.text =
-            "$java_WebSocket_licence $jsoup_licence $coroutines_licence $okhttp3_licence $exoplayer_licence $material_licence"
+            "$java_WebSocket_licence $jsoup_licence $coroutines_licence $okhttp3_licence $exoplayer_licence $material_icon_license $material_licence"
 
     }
 }

@@ -77,7 +77,7 @@ class ProgramReservationBottomFragment : BottomSheetDialogFragment() {
 
         bottom_fragment_program_reservation_title_textview.text = "$programName\n$liveId"
         bottom_fragment_program_reservation_time_textview.text =
-            "${beginTimeFormatted} 開始 / ${endTimeFormatted} 終了"
+            "${beginTimeFormatted} ${getString(R.string.program_start)}\n${endTimeFormatted} ${getString(R.string.end_of_program)}"
 
 
         // TS予約

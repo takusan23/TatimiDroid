@@ -41,6 +41,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.*
@@ -227,6 +228,7 @@ class CommentFragment : Fragment() {
     //lateinit var live_video_view: VideoView
     lateinit var commentCanvas: CommentCanvas
     lateinit var liveFrameLayout: FrameLayout
+    lateinit var fab: FloatingActionButton
 
     lateinit var rotationSensor: RotationSensor
 
@@ -289,6 +291,7 @@ class CommentFragment : Fragment() {
 
         commentCanvas = view.findViewById(R.id.comment_canvas)
         liveFrameLayout = view.findViewById(R.id.live_framelayout)
+        fab = view.findViewById(R.id.fab)
 
         isNimadoMode = activity is NimadoActivity
 

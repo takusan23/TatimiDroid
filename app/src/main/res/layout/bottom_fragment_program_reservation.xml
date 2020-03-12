@@ -110,18 +110,24 @@
                         android:textStyle="bold" />
 
                 <Button
+                        android:drawableLeft="@drawable/ic_event_available_24px"
+                        android:drawableTint="#fff"
                         android:id="@+id/bottom_fragment_program_reservation_add_calender_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/program_reservation_calendar" />
 
                 <Button
+                        android:drawableLeft="@drawable/ic_outline_query_builder_24px"
+                        android:drawableTint="#fff"
                         android:id="@+id/bottom_fragment_program_reservation_add_ts_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/timeshift_reservation_button" />
 
                 <Button
+                        android:drawableLeft="@drawable/ic_share"
+                        android:drawableTint="#fff"
                         android:id="@+id/bottom_fragment_program_reservation_share_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

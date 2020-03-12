@@ -167,8 +167,6 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                                 .show()
                         }
                     } else if (status == "RELEASED" && canWatchLive) {
-                        // けす
-                        dismiss()
                         // 予約枠で視聴が可能な場合（コミュ限とかではない場合）
                         // 予約枠BottomSheet展開。予約枠自動入場やタイムシフト予約ができますよー
                         val programReservationBottomFragment =
@@ -181,6 +179,8 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                         if (fragmentManager != null) {
                             programReservationBottomFragment.show(fragmentManager!!, "reservation")
                         }
+                        // けす
+                        dismiss()
                     } else {
                         activity?.runOnUiThread {
                             dismiss()
