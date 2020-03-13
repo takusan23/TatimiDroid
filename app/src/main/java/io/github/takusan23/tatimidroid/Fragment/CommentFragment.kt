@@ -85,33 +85,47 @@ class CommentFragment : Fragment() {
 
     //ユーザーセッション
     var usersession = ""
+
     //視聴に必要なデータ受信用WebSocket
     lateinit var connectionNicoLiveWebSocket: WebSocketClient
+
     //放送開始時間？こっちは放送開始前まである。
     var programStartTime: Long = 0
+
     //放送開始時間？こっちが正しい
     var programLiveTime: Long = 0
+
     //コメント送信用WebSocket
     lateinit var commentPOSTWebSocketClient: WebSocketClient
+
     //コメント送信時に必要なpostKeyを払い出す時に必要なthreadId
     var getPostKeyThreadId = ""
+
     //コメント投稿時につかうticketを入れておく
     //これはコメント送信用WebSocketにthreadメッセージ（過去コメントなど指定して）送信すると帰ってくるJSONObjectに入ってる
     var commentTicket = ""
+
     //コメント投稿に必須なユーザーID
     var userId = ""
+
     //コメント投稿に必須なプレミアム会員かどうか
     var premium = 0
+
     //コメントの内容
     var commentValue = ""
+
     //コマンド（匿名とか）
     var commentCommand = ""
+
     //視聴モード（コメント投稿機能付き）かどうか
     var isWatchingMode = false
+
     //視聴モードがnicocasの場合
     var isNicocasMode = false
+
     //hls
     var hls_address = ""
+
     //こてはん（固定ハンドルネーム　配列
     val kotehanMap = mutableMapOf<String, String>()
 
@@ -120,6 +134,7 @@ class CommentFragment : Fragment() {
 
     //TTS使うか
     var isTTS = false
+
     //Toast表示
     var isToast = false
 
@@ -136,18 +151,23 @@ class CommentFragment : Fragment() {
 
     //番組ID
     var liveId = ""
+
     //番組名
     var programTitle = ""
+
     //コミュニティID
     var communityID = ""
+
     //サムネイル
     var thumbnailURL = ""
 
     //NGデータベース
     lateinit var ngListSQLiteHelper: NGListSQLiteHelper
     lateinit var sqLiteDatabase: SQLiteDatabase
+
     //コメントNG配列
     val commentNGList = arrayListOf<String>()
+
     //ユーザーNG配列
     val userNGList = arrayListOf<String>()
 
@@ -166,6 +186,7 @@ class CommentFragment : Fragment() {
     // //バックグラウンド再生MediaPlayer
     // lateinit var mediaPlayer: MediaPlayer
     lateinit var broadcastReceiver: BroadcastReceiver
+
     // //バックグラウンド再生できてるか
     // var isBackgroundPlay = false
     //バックグラウンド再生の通知ID
@@ -188,8 +209,10 @@ class CommentFragment : Fragment() {
 
     //アンケートView
     lateinit var enquateView: View
+
     //運営コメント
     lateinit var uncomeTextView: TextView
+
     //下のコメント（広告貢献、ランクイン等）
     lateinit var infoTextView: TextView
 
@@ -212,10 +235,13 @@ class CommentFragment : Fragment() {
 
     //画質変更BottomSheetFragment
     lateinit var qualitySelectBottomSheet: QualitySelectBottomSheet
+
     //最初の画質
     var start_quality = ""
+
     //低遅延なのか。でふぉは低遅延有効
     var isLowLatency = true
+
     //モバイルデータなら最低画質の設定で一度だけ動かすように
     var mobileDataQualityCheck = false
 
@@ -240,6 +266,7 @@ class CommentFragment : Fragment() {
 
     //ExoPlayer
     lateinit var exoPlayer: SimpleExoPlayer
+
     //ポップアップ再生ようExoPlayer
     lateinit var popupExoPlayer: SimpleExoPlayer
 
@@ -389,7 +416,7 @@ class CommentFragment : Fragment() {
 
 */
         //生放送を視聴する場合はtrue
-        watchLive = pref_setting.getBoolean("setting_watch_live", false)
+        watchLive = pref_setting.getBoolean("setting_watch_live", true)
 
         //二窓モードではPreferenceの値を利用しない
         //いつかSharedPreferenceで視聴モードを管理するのやめようと思う。
@@ -1108,7 +1135,7 @@ class CommentFragment : Fragment() {
                         jsonObject.getJSONObject("body").getJSONObject("currentStream")
                     hls_address = currentObject.getString("uri")
                     //生放送再生
-                    if (pref_setting.getBoolean("setting_watch_live", false)) {
+                    if (watchLive) {
                         //モバイルデータは最低画質で読み込む設定　
                         sendMobileDataQuality()
                         setPlayVideoView()
@@ -1428,18 +1455,18 @@ class CommentFragment : Fragment() {
                         commentActivity.runOnUiThread {
                             if (status.toInt() == 0) {
                                 Snackbar.make(
-                                    fab,
-                                    getString(R.string.comment_post_success),
-                                    Snackbar.LENGTH_SHORT
-                                )
+                                        fab,
+                                        getString(R.string.comment_post_success),
+                                        Snackbar.LENGTH_SHORT
+                                    )
                                     .setAnchorView(getSnackbarAnchorView())
                                     .show()
                             } else {
                                 Snackbar.make(
-                                    fab,
-                                    "${getString(R.string.comment_post_error)}：${status}",
-                                    Snackbar.LENGTH_SHORT
-                                )
+                                        fab,
+                                        "${getString(R.string.comment_post_error)}：${status}",
+                                        Snackbar.LENGTH_SHORT
+                                    )
                                     .setAnchorView(getSnackbarAnchorView()).show()
                             }
                         }
@@ -1924,10 +1951,10 @@ class CommentFragment : Fragment() {
         clipboardManager.setPrimaryClip(ClipData.newPlainText("liveid", liveId))
         //コピーしました！
         Toast.makeText(
-            context,
-            "${getString(R.string.copy_program_id)} : $liveId",
-            Toast.LENGTH_SHORT
-        )
+                context,
+                "${getString(R.string.copy_program_id)} : $liveId",
+                Toast.LENGTH_SHORT
+            )
             .show()
     }
 
@@ -1937,10 +1964,10 @@ class CommentFragment : Fragment() {
         clipboardManager.setPrimaryClip(ClipData.newPlainText("communityid", communityID))
         //コピーしました！
         Toast.makeText(
-            context,
-            "${getString(R.string.copy_communityid)} : $communityID",
-            Toast.LENGTH_SHORT
-        )
+                context,
+                "${getString(R.string.copy_communityid)} : $communityID",
+                Toast.LENGTH_SHORT
+            )
             .show()
     }
 
@@ -2244,8 +2271,7 @@ class CommentFragment : Fragment() {
                         activity_comment_linearlayout,
                         getString(R.string.enquate) + " : " + jsonArray[i].toString(),
                         Snackbar.LENGTH_SHORT
-                    )
-                        .show()
+                    ).show()
                 }
                 val layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -2813,9 +2839,10 @@ class CommentFragment : Fragment() {
                     context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 //ろりぽっぷとましゅまろ以上で分岐
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)?.hasTransport(
-                            NetworkCapabilities.TRANSPORT_CELLULAR
-                        ) == true
+                    if (connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+                            ?.hasTransport(
+                                NetworkCapabilities.TRANSPORT_CELLULAR
+                            ) == true
                     ) {
                         //モバイルデータ通信なら画質変更メッセージ送信
                         sendQualityMessage("super_low")

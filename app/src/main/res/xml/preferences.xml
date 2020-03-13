@@ -52,7 +52,7 @@
             android:title="@string/setting_disconnect_activity_finish_title" />
 
     <SwitchPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:icon="@drawable/ic_outline_live_tv_24px_black"
             android:key="setting_watch_live"
             android:summary="@string/setting_watch_view_description"
