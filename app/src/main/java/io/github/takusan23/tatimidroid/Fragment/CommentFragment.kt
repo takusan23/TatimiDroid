@@ -17,6 +17,8 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
@@ -478,15 +480,14 @@ class CommentFragment : Fragment() {
             //旧式はサポート切ります！
         }
 
-        if (!isOfficial) {
-            // ViewPager
-            commentViewPager =
-                CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
-            comment_viewpager.adapter = commentViewPager
-            activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
-            // コメントを指定しておく
-            comment_viewpager.currentItem = 1
-        }
+        // ViewPager
+        commentViewPager =
+            CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
+        comment_viewpager.adapter = commentViewPager
+        activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
+        // コメントを指定しておく
+        comment_viewpager.currentItem = 1
+
 
         //ログイン情報がなければ戻す
         if (pref_setting.getString("mail", "")?.contains("") != false) {
@@ -1232,16 +1233,13 @@ class CommentFragment : Fragment() {
 
                         // 公式番組のとき
                         if (isOfficial) {
+                            // ViewPager
                             commentActivity.runOnUiThread {
-                                // ViewPager
-                                commentViewPager =
-                                    CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
-                                comment_viewpager.adapter = commentViewPager
-                                activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
-                                // コメントを指定しておく
-                                comment_viewpager.currentItem = 1
+                                // WebSocketで流れてきたアドレスへ接続する
+                                allRoomComment.connectCommentServer(commentMessageServerUri, commentThreadId, commentRoomName)
                             }
                         }
+
 
                     }
                 }

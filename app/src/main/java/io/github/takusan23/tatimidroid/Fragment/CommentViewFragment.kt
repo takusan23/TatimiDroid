@@ -60,6 +60,8 @@ class CommentViewFragment : Fragment() {
 
     lateinit var commentFragment: CommentFragment
 
+    lateinit var recyclerView: RecyclerView
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -76,7 +78,7 @@ class CommentViewFragment : Fragment() {
         liveId = arguments?.getString("liveId") ?: ""
         //println("なんでええええええええ$liveId")
 
-        val recyclerView = view.findViewById<RecyclerView>(R.id.fragment_comment_recyclerview)
+        recyclerView = view.findViewById<RecyclerView>(R.id.fragment_comment_recyclerview)
 
         stringArena = getString(R.string.arena)
 

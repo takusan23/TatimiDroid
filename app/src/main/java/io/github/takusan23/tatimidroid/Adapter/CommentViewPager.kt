@@ -11,8 +11,6 @@ import io.github.takusan23.tatimidroid.R
 class CommentViewPager(val activity: AppCompatActivity, val liveId: String, val isOfficial: Boolean = false) :
     FragmentStatePagerAdapter(activity.supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
-    lateinit var commentViewFragment: CommentViewFragment
-
     fun liveIdBundle(): Bundle {
         val bundle = Bundle()
         bundle.putString("liveId", liveId)
@@ -20,7 +18,7 @@ class CommentViewPager(val activity: AppCompatActivity, val liveId: String, val 
     }
 
     override fun getItem(position: Int): Fragment {
-        commentViewFragment = CommentViewFragment()
+        val commentViewFragment = CommentViewFragment()
         commentViewFragment.arguments = liveIdBundle()
         if (isOfficial) {
             when (position) {
@@ -92,7 +90,7 @@ class CommentViewPager(val activity: AppCompatActivity, val liveId: String, val 
                 3 -> return activity.getString(R.string.nicoads)
                 4 -> return activity.getString(R.string.program_info)
             }
-        }else{
+        } else {
             when (position) {
                 0 -> return activity.getString(R.string.menu)
                 1 -> return activity.getString(R.string.comment)
@@ -106,13 +104,10 @@ class CommentViewPager(val activity: AppCompatActivity, val liveId: String, val 
     }
 
     override fun getCount(): Int {
-        val fragment =
-            (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId)
-        val commentFragment = fragment as CommentFragment
-        if (commentFragment.arguments?.getBoolean("isOfficial", false) == false) {
-            return 6
-        } else {
+        if (isOfficial) {
             return 5
+        } else {
+            return 6
         }
     }
 }

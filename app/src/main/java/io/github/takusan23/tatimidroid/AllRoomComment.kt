@@ -43,10 +43,13 @@ class AllRoomComment(
 
     // 接続中の部屋の文字れつ
     var connectingRoomName = ""
+
     // 接続済みWebSocketアドレスが入る
     val connectedWebSocketAddressList = arrayListOf<String>()
+
     // WebSocketClientが入る
     val connectionWebSocketLink = arrayListOf<WebSocketClient>()
+
     // RecyclerView関係。CommentRecyclerViewAdapterを使ってね。
     var recyclerView: RecyclerView? = null
 
@@ -125,7 +128,7 @@ class AllRoomComment(
     }
 
     // WebSocket接続
-    private fun connectCommentServer(address: String, thread: String, room: String) {
+    fun connectCommentServer(address: String, thread: String, room: String) {
         //過去コメントか流れてきたコメントか
         var historyComment = -100
         //過去コメントだとtrue
