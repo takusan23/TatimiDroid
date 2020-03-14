@@ -147,7 +147,7 @@ class AllRoomComment(
                 // SnackBar表示。live_video_viewを使ってるので注意
                 Handler(Looper.getMainLooper()).post {
                     Snackbar.make(
-                        recyclerView!!,
+                        commentFragment.getSnackbarAnchorView()!!,
                         context?.getString(R.string.connected) + ": $connectingRoomName",
                         Snackbar.LENGTH_LONG
                     ).setAnchorView(commentFragment.getSnackbarAnchorView()).show()

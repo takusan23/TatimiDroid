@@ -88,14 +88,6 @@ class CommentViewFragment : Fragment() {
         commentFragment = fragment as CommentFragment
 
         commentFragment.apply {
-            if (!isAllRoomCommentInit()) {
-                // 初期化してないとき
-                allRoomComment = AllRoomComment(
-                    context,
-                    liveId,
-                    this
-                )
-            }
             // RecyclerView初期化
             recyclerView.setHasFixedSize(true)
             val mLayoutManager = LinearLayoutManager(context)

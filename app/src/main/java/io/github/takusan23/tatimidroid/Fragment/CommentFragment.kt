@@ -487,7 +487,8 @@ class CommentFragment : Fragment() {
         activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
         // コメントを指定しておく
         comment_viewpager.currentItem = 1
-
+        // 初期化してないとき
+        allRoomComment = AllRoomComment(context, liveId, this)
 
         //ログイン情報がなければ戻す
         if (pref_setting.getString("mail", "")?.contains("") != false) {
