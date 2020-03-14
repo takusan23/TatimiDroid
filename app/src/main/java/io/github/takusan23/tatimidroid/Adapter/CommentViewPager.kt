@@ -84,13 +84,23 @@ class CommentViewPager(val activity: AppCompatActivity, val liveId: String, val 
     }
 
     override fun getPageTitle(position: Int): CharSequence? {
-        when (position) {
-            0 -> return activity.getString(R.string.menu)
-            1 -> return activity.getString(R.string.comment)
-            2 -> return activity.getString(R.string.room_comment)
-            3 -> return activity.getString(R.string.gift)
-            4 -> return activity.getString(R.string.nicoads)
-            5 -> return activity.getString(R.string.program_info)
+        if (isOfficial) {
+            when (position) {
+                0 -> return activity.getString(R.string.menu)
+                1 -> return activity.getString(R.string.comment)
+                2 -> return activity.getString(R.string.gift)
+                3 -> return activity.getString(R.string.nicoads)
+                4 -> return activity.getString(R.string.program_info)
+            }
+        }else{
+            when (position) {
+                0 -> return activity.getString(R.string.menu)
+                1 -> return activity.getString(R.string.comment)
+                2 -> return activity.getString(R.string.room_comment)
+                3 -> return activity.getString(R.string.gift)
+                4 -> return activity.getString(R.string.nicoads)
+                5 -> return activity.getString(R.string.program_info)
+            }
         }
         return activity.getString(R.string.menu)
     }
