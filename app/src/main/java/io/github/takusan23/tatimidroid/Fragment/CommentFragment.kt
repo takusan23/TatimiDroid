@@ -47,6 +47,7 @@ import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
+import io.github.takusan23.tatimidroid.Adapter.CommentViewPager
 import io.github.takusan23.tatimidroid.Background.BackgroundPlay
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
 import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLogin
@@ -56,6 +57,7 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
+import kotlinx.android.synthetic.main.fragment_comment_room_layout.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -305,6 +307,8 @@ class CommentFragment : Fragment() {
     // ポップアップ再生をクラスに切り分けた
     lateinit var popUpPlayer: PopUpPlayer
 
+    lateinit var commentViewPager: CommentViewPager
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -315,7 +319,6 @@ class CommentFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         commentCanvas = view.findViewById(R.id.comment_canvas)
         liveFrameLayout = view.findViewById(R.id.live_framelayout)
         fab = view.findViewById(R.id.fab)
@@ -488,7 +491,7 @@ class CommentFragment : Fragment() {
                 getplayerstatus()
                 // 全部屋表示Fragment表示
                 if (!isOfficial) {
-                    setAllRoomCommentFragment()
+                    // setAllRoomCommentFragment()
                 }
             } else {
                 // ニコ生の視聴ページ（HTML）を取得する。
@@ -524,7 +527,7 @@ class CommentFragment : Fragment() {
                                 getplayerstatus()
                                 // 全部屋表示Fragment表示
                                 if (!isOfficial) {
-                                    setAllRoomCommentFragment()
+                                    // setAllRoomCommentFragment()
                                 }
                             }
                         } else {
@@ -534,7 +537,7 @@ class CommentFragment : Fragment() {
                             getplayerstatus()
                             // 全部屋表示Fragment表示
                             if (!isOfficial) {
-                                setAllRoomCommentFragment()
+                                // setAllRoomCommentFragment()
                             }
                         }
                     } else {
@@ -545,7 +548,7 @@ class CommentFragment : Fragment() {
             }
 
 
-            //TabLayout選択
+/*            //TabLayout選択
             //標準でコメントの欄を選んでおく
             activity_comment_tab_layout.selectTab(activity_comment_tab_layout.getTabAt(1))
             activity_comment_tab_layout.addOnTabSelectedListener(object :
@@ -661,7 +664,7 @@ class CommentFragment : Fragment() {
                         }
                     }
                 }
-            })
+            })*/
         } else {
             showToast(getString(R.string.mail_pass_error))
             commentActivity.finish()
@@ -733,6 +736,7 @@ class CommentFragment : Fragment() {
 
     }
 
+/*
     fun setAllRoomCommentFragment() {
         //LiveIDを詰める
         val bundle = Bundle()
@@ -748,6 +752,7 @@ class CommentFragment : Fragment() {
         )
         fragmentTransaction.commit()
     }
+*/
 
     // ニコ生ゲーム有効
     fun setNicoNamaGame() {
@@ -1042,15 +1047,19 @@ class CommentFragment : Fragment() {
             val program = jsonObject.getJSONObject("program")
             //公式番組かどうか
             val providerType = program.getString("providerType")
+            isOfficial = providerType == "official"
+/*
             if (providerType == "official") {
                 isOfficial = true
                 //公式番組では全部屋取得APIが使えないので部屋別表示を無効にする。
                 activity?.runOnUiThread {
                     if (isOfficial) {
-                        activity_comment_tab_layout.removeTabAt(2)
+                        view?.findViewById<TabLayout>(R.id.activity_comment_tab_layout)
+                            ?.removeTabAt(2)
                     }
                 }
             }
+*/
             //broadcastId
             val broadcastId = program.getString("broadcastId")
             connectionNicoLiveWebSocket(websocketUrl, broadcastId)
@@ -1211,10 +1220,17 @@ class CommentFragment : Fragment() {
                         commentThreadId = threadId
                         commentRoomName = roomName
 
-                        // 全部屋Fragment
-                        if (isOfficial) {
-                            setAllRoomCommentFragment()
+                        // ViewPager
+                        commentActivity.runOnUiThread {
+                            // ViewPager
+                            commentViewPager =
+                                CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
+                            comment_viewpager.adapter = commentViewPager
+                            activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
+                            // コメントを指定しておく
+                            comment_viewpager.currentItem = 1
                         }
+
                     }
                 }
 
@@ -2268,7 +2284,7 @@ class CommentFragment : Fragment() {
                     live_framelayout.removeView(enquateView)
                     //Snackbar
                     Snackbar.make(
-                        activity_comment_linearlayout,
+                        liveFrameLayout,
                         getString(R.string.enquate) + " : " + jsonArray[i].toString(),
                         Snackbar.LENGTH_SHORT
                     ).show()
@@ -2339,7 +2355,7 @@ class CommentFragment : Fragment() {
             }
             //アンケ結果を共有
             Snackbar.make(
-                activity_comment_linearlayout,
+                liveFrameLayout,
                 getString(R.string.enquate_result),
                 Snackbar.LENGTH_LONG
             ).setAction(getString(R.string.share)) {

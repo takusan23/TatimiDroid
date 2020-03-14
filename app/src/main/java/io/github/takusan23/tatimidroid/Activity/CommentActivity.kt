@@ -248,7 +248,6 @@ class CommentActivity : AppCompatActivity() {
             commentFragment.arguments = bundle
             trans.replace(R.id.activity_comment_new_linearlayout, commentFragment, liveId)
             trans.commit()
-
         }
 
 

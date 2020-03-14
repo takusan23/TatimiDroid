@@ -117,7 +117,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                             intent.putExtra("liveId", liveId)
                             intent.putExtra("watch_mode", "comment_viewer")
                             intent.putExtra("isOfficial", isOfficial)
-                            intent.putExtra("html", responseString)
+                            // intent.putExtra("html", responseString)
                             startActivity(intent)
                             this@BottomSheetDialogWatchMode.dismiss()
                         }
@@ -134,7 +134,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                             intent.putExtra("liveId", liveId)
                             intent.putExtra("watch_mode", "comment_post")
                             intent.putExtra("isOfficial", isOfficial)
-                            intent.putExtra("html", responseString)
+                            //  intent.putExtra("html", responseString)
                             startActivity(intent)
                             this@BottomSheetDialogWatchMode.dismiss()
                         }
@@ -151,7 +151,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                             intent.putExtra("liveId", liveId)
                             intent.putExtra("watch_mode", "nicocas")
                             intent.putExtra("isOfficial", isOfficial)
-                            intent.putExtra("html", responseString)
+                            // intent.putExtra("html", responseString)
                             startActivity(intent)
                             this@BottomSheetDialogWatchMode.dismiss()
                         }
@@ -159,11 +159,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                         //フォロワー限定番組だった
                         activity?.runOnUiThread {
                             dismiss()
-                            Toast.makeText(
-                                context,
-                                getString(R.string.error_follower_only),
-                                Toast.LENGTH_SHORT
-                            )
+                            Toast.makeText(context, getString(R.string.error_follower_only), Toast.LENGTH_SHORT)
                                 .show()
                         }
                     } else if (status == "RELEASED" && canWatchLive) {
@@ -185,10 +181,10 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                         activity?.runOnUiThread {
                             dismiss()
                             Toast.makeText(
-                                context,
-                                getString(R.string.program_end),
-                                Toast.LENGTH_SHORT
-                            )
+                                    context,
+                                    getString(R.string.program_end),
+                                    Toast.LENGTH_SHORT
+                                )
                                 .show()
                         }
                     }
