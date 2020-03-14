@@ -357,7 +357,7 @@ class CommentFragment : Fragment() {
         }
 
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
-        // isOfficial = arguments?.getBoolean("isOfficial") ?: false
+        isOfficial = arguments?.getBoolean("isOfficial") ?: false
         // if (isOfficial) {
         //     activity_comment_tab_layout.getTabAt(2)?.tabLabelVisibility =
         //         TabLayout.TAB_LABEL_VISIBILITY_UNLABELED
@@ -476,6 +476,16 @@ class CommentFragment : Fragment() {
             //コメント投稿など
             commentCardView()
             //旧式はサポート切ります！
+        }
+
+        if (!isOfficial) {
+            // ViewPager
+            commentViewPager =
+                CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
+            comment_viewpager.adapter = commentViewPager
+            activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
+            // コメントを指定しておく
+            comment_viewpager.currentItem = 1
         }
 
         //ログイン情報がなければ戻す
@@ -1220,15 +1230,17 @@ class CommentFragment : Fragment() {
                         commentThreadId = threadId
                         commentRoomName = roomName
 
-                        // ViewPager
-                        commentActivity.runOnUiThread {
-                            // ViewPager
-                            commentViewPager =
-                                CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
-                            comment_viewpager.adapter = commentViewPager
-                            activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
-                            // コメントを指定しておく
-                            comment_viewpager.currentItem = 1
+                        // 公式番組のとき
+                        if (isOfficial) {
+                            commentActivity.runOnUiThread {
+                                // ViewPager
+                                commentViewPager =
+                                    CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
+                                comment_viewpager.adapter = commentViewPager
+                                activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
+                                // コメントを指定しておく
+                                comment_viewpager.currentItem = 1
+                            }
                         }
 
                     }

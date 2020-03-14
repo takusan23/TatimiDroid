@@ -105,6 +105,7 @@ class CommentViewFragment : Fragment() {
             recyclerView.setItemAnimator(null);
         }
     }
+
     fun showToast(message: String) {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
