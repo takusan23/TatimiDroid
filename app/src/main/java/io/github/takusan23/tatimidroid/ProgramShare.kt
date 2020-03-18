@@ -189,7 +189,7 @@ class ProgramShare(
         if (saveBitmap != null && saveUri != null) {
             val builder = ShareCompat.IntentBuilder.from(activity)
             builder.setChooserTitle(programName)
-            builder.setText("$programName\n$programId")
+            builder.setText("$programName\n$programId\nhttps://live2.nicovideo.jp/watch/$programId")
             builder.setStream(saveUri)
             builder.setType("text/jpeg")
             builder.startChooser()
@@ -200,7 +200,7 @@ class ProgramShare(
     fun showShareScreen() {
         val builder = ShareCompat.IntentBuilder.from(activity)
         builder.setChooserTitle(programName)
-        builder.setText("$programName\n$programId")
+        builder.setText("$programName\n$programId\nhttps://live2.nicovideo.jp/watch/$programId")
         builder.setStream(saveUri)
         builder.setType("text/plain")
         builder.startChooser()
