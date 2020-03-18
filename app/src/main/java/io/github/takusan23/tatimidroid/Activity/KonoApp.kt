@@ -31,10 +31,11 @@ class KonoApp : AppCompatActivity() {
     val mastodonLink = "https://best-friends.chat/@takusan_23"
     val source = "https://github.com/takusan23/TatimiDroid"
     val privacy_policy = "https://github.com/takusan23/TatimiDroid/blob/master/privacy_policy.md"
+
     /*
     * バージョンとか
     * */
-    val version = "2020/03/15"
+    val version = "2020/03/18"
     val codeName1 = "（夏）"
 
     override fun onCreate(savedInstanceState: Bundle?) {
