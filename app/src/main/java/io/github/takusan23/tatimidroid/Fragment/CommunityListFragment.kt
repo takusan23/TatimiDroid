@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.NicoLiveAPI.ProgramAPI
 import io.github.takusan23.tatimidroid.NicoLiveAPI.ProgramData
@@ -32,6 +33,7 @@ class CommunityListFragment : Fragment() {
     lateinit var communityRecyclerViewAdapter: CommunityRecyclerViewAdapter
     lateinit var autoAdmissionAdapter: AutoAdmissionAdapter
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
+    lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     lateinit var autoAdmissionSQLiteSQLite: AutoAdmissionSQLiteSQLite
     lateinit var sqLiteDatabase: SQLiteDatabase
@@ -57,13 +59,15 @@ class CommunityListFragment : Fragment() {
         community_recyclerview.adapter = communityRecyclerViewAdapter
         recyclerViewLayoutManager = community_recyclerview.layoutManager!!
 
+        swipeRefreshLayout = view.findViewById(R.id.community_swipe)
+
         user_session = pref_setting.getString("user_session", "") ?: ""
 
         (activity as AppCompatActivity).supportActionBar?.title =
             getString(R.string.follow_program)
 
-        community_swipe.isRefreshing = true
-        community_swipe.setOnRefreshListener {
+        swipeRefreshLayout.isRefreshing = true
+        swipeRefreshLayout.setOnRefreshListener {
             setNicoLoad()
         }
 
@@ -104,7 +108,7 @@ class CommunityListFragment : Fragment() {
                 arrayList.forEach {
                     recyclerViewList.add(it)
                 }
-                community_swipe.isRefreshing = false
+                swipeRefreshLayout.isRefreshing = false
             }
         }
     }
@@ -122,7 +126,7 @@ class CommunityListFragment : Fragment() {
                 arrayList.forEach {
                     recyclerViewList.add(it)
                 }
-                community_swipe.isRefreshing = false
+                swipeRefreshLayout.isRefreshing = false
             }
         }
     }
@@ -137,7 +141,7 @@ class CommunityListFragment : Fragment() {
                 arrayList.forEach {
                     recyclerViewList.add(it)
                 }
-                community_swipe.isRefreshing = false
+                swipeRefreshLayout.isRefreshing = false
             }
         }
     }
@@ -152,7 +156,7 @@ class CommunityListFragment : Fragment() {
                 arrayList.forEach {
                     recyclerViewList.add(it)
                 }
-                community_swipe.isRefreshing = false
+                swipeRefreshLayout.isRefreshing = false
             }
         }
     }
@@ -170,7 +174,7 @@ class CommunityListFragment : Fragment() {
                 arrayList.forEach {
                     recyclerViewList.add(it)
                 }
-                community_swipe.isRefreshing = false
+                swipeRefreshLayout.isRefreshing = false
             }
         }
     }
@@ -185,7 +189,7 @@ class CommunityListFragment : Fragment() {
                 arrayList.forEach {
                     recyclerViewList.add(it)
                 }
-                community_swipe.isRefreshing = false
+                swipeRefreshLayout.isRefreshing = false
             }
         }
     }
@@ -235,7 +239,7 @@ class CommunityListFragment : Fragment() {
         activity?.runOnUiThread {
             autoAdmissionAdapter.notifyDataSetChanged()
             community_recyclerview.adapter = autoAdmissionAdapter
-            community_swipe.isRefreshing = false
+            swipeRefreshLayout.isRefreshing = false
         }
     }
 

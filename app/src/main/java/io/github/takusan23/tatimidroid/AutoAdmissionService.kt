@@ -4,8 +4,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.IBinder
@@ -131,9 +133,9 @@ class AutoAdmissionService : Service() {
 
             //通知作成
             var notification = NotificationCompat.Builder(
-                applicationContext,
-                "auto_admission_one_minute_notification"
-            )
+                    applicationContext,
+                    "auto_admission_one_minute_notification"
+                )
                 .setSmallIcon(R.drawable.ic_auto_admission_start_icon)
                 .setContentTitle(getString(R.string.auto_admission_one_minute_notification_description))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(programInfo))
@@ -234,9 +236,21 @@ class AutoAdmissionService : Service() {
                     .setSmallIcon(R.drawable.ic_icon_large)
                     .setContentTitle(getString(R.string.auto_admission_notification_message))
                     .setStyle(NotificationCompat.BigTextStyle().bigText(programList))
+                    .addAction(R.drawable.ic_clear_black, getString(R.string.end), PendingIntent.getBroadcast(this, 865, Intent("close_auto_admission"), PendingIntent.FLAG_UPDATE_CURRENT))
                     .build()
             //表示
             startForeground(1, notification)
+
+            // ブロードキャスト受け取る
+            val intentFilter = IntentFilter()
+            intentFilter.addAction("close_auto_admission")
+            val receiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    stopSelf()
+                }
+            }
+            registerReceiver(receiver, intentFilter)
+
         }
     }
 
