@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                         val fragmentTransaction = supportFragmentManager.beginTransaction()
                         fragmentTransaction.replace(
                             R.id.main_activity_linearlayout,
-                            CommunityListFragment()
+                            ProgramListFragment()
                         )
                         fragmentTransaction.commit()
                     } else {

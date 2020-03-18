@@ -14,7 +14,6 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.NicoLiveAPI.ProgramAPI
 import io.github.takusan23.tatimidroid.NicoLiveAPI.ProgramData
@@ -49,12 +48,6 @@ class CommunityListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
-        val darkModeSupport = DarkModeSupport(context!!)
-        program_tablayout.backgroundTintList =
-            ColorStateList.valueOf(darkModeSupport.getThemeColor())
-
-        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.follow_program)
-
         recyclerViewList = ArrayList()
         community_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
@@ -69,80 +62,31 @@ class CommunityListFragment : Fragment() {
         (activity as AppCompatActivity).supportActionBar?.title =
             getString(R.string.follow_program)
 
-        //参加中のコミュニティ読み込み
-        getFavouriteCommunity()
-
         community_swipe.isRefreshing = true
-
-        program_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabReselected(tab: TabLayout.Tab?) {
-
-            }
-
-            override fun onTabUnselected(tab: TabLayout.Tab?) {
-            }
-
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                //クリア
-                recyclerViewList.clear()
-                community_recyclerview.adapter?.notifyDataSetChanged()
-                setNicoLoad(tab?.text.toString() ?: getString(R.string.follow_program))
-            }
-        })
-
         community_swipe.setOnRefreshListener {
-            val pos = program_tablayout.selectedTabPosition
-            val text = program_tablayout.getTabAt(pos)?.text ?: getString(R.string.follow_program)
-            setNicoLoad(text.toString())
+            setNicoLoad()
         }
 
+        setNicoLoad()
 
     }
 
-    fun setNicoLoad(text: String) {
-        //くるくる
-        community_swipe.isRefreshing = true
-        when (text) {
-            getString(R.string.follow_program) -> {
-                getFavouriteCommunity()
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.follow_program)
-            }
-            getString(R.string.nicorepo) -> {
-                getNicorepo()
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.nicorepo)
-            }
-            getString(R.string.auto_admission) -> {
+    fun setNicoLoad() {
+        // 読み込むTL
+        val pos = arguments?.getInt("page") ?: 0
+        when (pos) {
+            0 -> getFavouriteCommunity()
+            1 -> getNicorepo()
+            2 -> getRecommend()
+            3 -> getRanking()
+            4 -> getNicoNamaGameMatching()
+            5 -> getNicoNamaGamePlaying()
+            6 -> {
                 getAutoAdmissionList()
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.auto_admission)
                 //Service再起動
                 val intent = Intent(context, AutoAdmissionService::class.java)
                 context?.stopService(intent)
                 context?.startService(intent)
-            }
-            getString(R.string.osusume) -> {
-                getRecommend()
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.osusume)
-            }
-            getString(R.string.ranking) -> {
-                getRanking()
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.ranking)
-            }
-            getString(R.string.nico_nama_game_recruiting_program) -> {
-                // 募集中
-                getNicoNamaGameMatching()
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.nico_nama_game_recruiting_program)
-            }
-            getString(R.string.nico_nama_game_playing_program) -> {
-                // プレイ中
-                getNicoNamaGamePlaying()
-                (activity as AppCompatActivity).supportActionBar?.title =
-                    getString(R.string.nico_nama_game_playing_program)
             }
         }
     }
@@ -215,8 +159,8 @@ class CommunityListFragment : Fragment() {
 
 
     // 参加中コミュニティから放送中、予約枠を取得する。
-    // 今まではスマホサイトにアクセスしてJSON取ってたけど動かなくなった。
-    // のでPC版にアクセスしてJSONを取得する（PC版にもJSON存在した。）
+// 今まではスマホサイトにアクセスしてJSON取ってたけど動かなくなった。
+// のでPC版にアクセスしてJSONを取得する（PC版にもJSON存在した。）
     fun getFavouriteCommunity() {
         recyclerViewList.clear()
         ProgramAPI(context).getFollowProgram(null) { response, arrayList ->
@@ -234,7 +178,7 @@ class CommunityListFragment : Fragment() {
     //ニコレポ取得
     fun getNicorepo() {
         recyclerViewList.clear()
-        ProgramAPI(context)?.getNicorepo(null) { response, arrayList ->
+        ProgramAPI(context).getNicorepo(null) { response, arrayList ->
             //リスト更新
             activity?.runOnUiThread {
                 communityRecyclerViewAdapter.notifyDataSetChanged()
