@@ -17,11 +17,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Fragment.AutoAdmissionBottomFragment
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
+import io.github.takusan23.tatimidroid.NicoLiveAPI.ProgramData
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
+class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ProgramData>) :
     RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -39,15 +40,15 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         val activity = (content as MainActivity)
         val darkModeSupport = DarkModeSupport(content)
 
-        val item = arrayListArrayAdapter[position] as ArrayList<String>
-        val title = item.get(1)
-        val name = item.get(2)
-        val live = item.get(3)
-        val live_time = item.get(4)
-        val timeshift = item.get(5)
-        val liveId = item.get(6)
-        val datetime = item.get(7)
-        val liveNow = item.get(8)
+        val item = arrayListArrayAdapter[position]
+        val title = item.title
+        val name = item.communityName
+        // val live = item.get(3)
+        val live_time = item.beginAt
+        // val timeshift = item.get(5)
+        val liveId = item.programId
+        val datetime = item.beginAt
+        val liveNow = item.lifeCycle
 
         //時間を文字列に
         val simpleDateFormat = SimpleDateFormat("MM/dd HH:mm:ss")
@@ -84,9 +85,9 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         * */
         holder.communityCard.setOnLongClickListener {
             Toast.makeText(
-                content, "${content.getString(R.string.copy_program_id)} : $liveId",
-                Toast.LENGTH_SHORT
-            )
+                    content, "${content.getString(R.string.copy_program_id)} : $liveId",
+                    Toast.LENGTH_SHORT
+                )
                 .show()
             val clipboardManager =
                 content.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
