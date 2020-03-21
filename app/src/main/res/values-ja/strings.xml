@@ -278,4 +278,6 @@
     <string name="setting_always_show_program_info">常に番組名・放送時間・来場者等を表示する</string>
     <string name="nicoad_total">広告累計ポイント</string>
     <string name="nicoad_active">広告期間中ポイント</string>
+    <string name="setting_display_cutout_title">ノッチ、切り欠き領域に侵略する</string>
+    <string name="setting_display_cutoutdesciprion">ステータスバーやナビゲーションバーを非表示にして表示領域を広げます。一部の端末では逆光名になります。（ノッチが大きい端末など）</string>
 </resources>

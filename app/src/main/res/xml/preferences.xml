@@ -130,6 +130,13 @@
             android:summary="@string/setting_rotation_sensor_description"
             android:title="@string/setting_rotation_sensor_title" />
 
+    <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_aspect_ratio_24px"
+            android:key="setting_display_cutout"
+            android:summary="@string/setting_display_cutoutdesciprion"
+            android:title="@string/setting_display_cutout_title" />
+
     <EditTextPreference
             android:defaultValue="5"
             android:icon="@drawable/ic_speed_24px"

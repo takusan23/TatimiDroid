@@ -278,4 +278,6 @@
     <string name="setting_always_show_program_info">Always display program name, broadcast time, visitors, etc.</string>
     <string name="nicoad_total">Ad total points</string>
     <string name="nicoad_active">Points during the advertising period</string>
+    <string name="setting_display_cutout_title">Notch invades cutout area</string>
+    <string name="setting_display_cutoutdesciprion">Hide the status bar and navigation bar to expand the display area. Some devices have backlit names. (E.g. terminals with large notches)</string>
 </resources>

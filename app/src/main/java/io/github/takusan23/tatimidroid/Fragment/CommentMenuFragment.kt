@@ -239,6 +239,16 @@ class CommentMenuFragment : Fragment() {
             commentFragment.setAlwaysShowProgramInfo()
         }
 
+        // ノッチ領域に侵略する
+        fragment_comment_fragment_menu_display_cutout_info_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            commentFragment.pref_setting.edit {
+                putBoolean("setting_display_cutout", isChecked)
+            }
+            activity?.runOnUiThread {
+                commentFragment.hideStatusBarAndSetFullScreen()
+            }
+        }
+
         // ニコ生ゲーム
         fragment_comment_fragment_nico_nama_game_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             commentFragment.apply {
@@ -304,6 +314,9 @@ class CommentMenuFragment : Fragment() {
         // 常に番組情報表示
         fragment_comment_fragment_menu_always_program_info_switch.isChecked =
             commentFragment.pref_setting.getBoolean("setting_always_program_info", false)
+        // ノッチ領域に侵略
+        fragment_comment_fragment_menu_display_cutout_info_switch.isChecked =
+            commentFragment.pref_setting.getBoolean("setting_display_cutout", false)
     }
 
     //CommentFragmentへ値を渡す

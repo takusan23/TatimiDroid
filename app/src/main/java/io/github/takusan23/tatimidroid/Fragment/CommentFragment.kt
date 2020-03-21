@@ -487,6 +487,9 @@ class CommentFragment : Fragment() {
         // 初期化してないとき
         allRoomComment = AllRoomComment(context, liveId, this)
 
+        // ステータスバー透明化＋タイトルバー非表示＋ノッチ領域にも侵略。関数名にAndがつくことはあんまりない
+        hideStatusBarAndSetFullScreen()
+
         //ログイン情報がなければ戻す
         if (pref_setting.getString("mail", "")?.contains("") != false) {
             usersession = pref_setting.getString("user_session", "") ?: ""
@@ -563,7 +566,6 @@ class CommentFragment : Fragment() {
         //アクティブ人数クリアなど、追加部分はCommentViewFragmentです
         activeUserClear()
 
-
         /*
         * ブロードキャスト
         * */
@@ -621,6 +623,28 @@ class CommentFragment : Fragment() {
         }
         commentActivity.registerReceiver(broadcastReceiver, intentFilter)
 
+    }
+
+    /**
+     * 全画面UI
+     * */
+    fun hideStatusBarAndSetFullScreen() {
+        if (pref_setting.getBoolean("setting_display_cutout", false)) {
+            activity?.window?.decorView?.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val attrib = activity?.window?.attributes
+                attrib?.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        } else {
+            activity?.window?.decorView?.systemUiVisibility = 0
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val attrib = activity?.window?.attributes
+                attrib?.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT
+            }
+        }
     }
 
     fun setAlwaysShowProgramInfo() {
