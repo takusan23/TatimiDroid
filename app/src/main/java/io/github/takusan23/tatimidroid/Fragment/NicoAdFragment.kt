@@ -9,7 +9,9 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
+import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoAdAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_gift_layout.*
 import kotlinx.android.synthetic.main.fragment_nicoad_layout.*
@@ -39,9 +41,15 @@ class NicoAdFragment : Fragment() {
         nicoad_recyclerview.adapter = giftRecyclerViewAdapter
         recyclerViewLayoutManager = nicoad_recyclerview.layoutManager!!
 
-
         //貢献度ランキング
         getNicoAdRanking()
+
+        // 情報取得
+        getNicoAd()
+
+        val darkModeSupport = DarkModeSupport(context!!)
+        nicoad_tablayout.setBackgroundColor(darkModeSupport.getThemeColor())
+
         //TabLayout
         nicoad_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
@@ -64,7 +72,22 @@ class NicoAdFragment : Fragment() {
             }
 
         })
+    }
 
+    private fun getNicoAd() {
+        val nicoAdAPI = NicoAdAPI()
+        nicoAdAPI.getNicoAdInfo(liveId, null) {
+            if (it.isSuccessful) {
+                val jsonObject = JSONObject(it.body?.string())
+                val data = jsonObject.getJSONObject("data")
+                val totalPoint = data.getInt("totalPoint")
+                val activePoint = data.getInt("activePoint")
+                activity?.runOnUiThread {
+                    gift_total_point.text = "${getString(R.string.nicoad_total)}：${totalPoint}点"
+                    gift_active_point.text = "${getString(R.string.nicoad_active)}：${activePoint}点"
+                }
+            }
+        }
     }
 
     //貢献度ランキング

@@ -402,9 +402,11 @@ class CommentFragment : Fragment() {
         * IDを作り直す
         * */
         // fragment_comment_fragment_linearlayout.id = View.generateViewId()
-        if (fragment_comment_fragment_linearlayout != null) {
+        // 縦画面のときのみやる作業
+        if (fragment_comment_fragment_linearlayout != null && comment_activity_fragment_layout_motionlayout != null) {
             fragment_comment_fragment_linearlayout.background =
                 ColorDrawable(darkModeSupport.getThemeColor())
+            setAlwaysShowProgramInfo()
         }
 
         //とりあえずコメントViewFragmentへ
@@ -619,6 +621,25 @@ class CommentFragment : Fragment() {
         }
         commentActivity.registerReceiver(broadcastReceiver, intentFilter)
 
+    }
+
+    fun setAlwaysShowProgramInfo() {
+        // MotionLayout固定
+        if (comment_activity_fragment_layout_motionlayout != null) {
+            val isAlwaysShowProgramInfo =
+                pref_setting.getBoolean("setting_always_program_info", false)
+            if (isAlwaysShowProgramInfo) {
+                // Start->End
+                comment_activity_fragment_layout_motionlayout.transitionToEnd()
+                // バー消す
+                fragment_comment_bar.visibility = View.GONE
+            } else {
+                // End->Start
+                comment_activity_fragment_layout_motionlayout.transitionToStart()
+                // バー消す
+                fragment_comment_bar.visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun initBottomSheet() {

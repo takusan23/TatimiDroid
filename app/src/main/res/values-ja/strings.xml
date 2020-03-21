@@ -275,4 +275,7 @@
     <string name="others">そのほか</string>
     <string name="already_added">追加済みです</string>
     <string name="remove_auto_admission">予約枠自動入場リストから削除しました。</string>
+    <string name="setting_always_show_program_info">常に番組名・放送時間・来場者等を表示する</string>
+    <string name="nicoad_total">広告累計ポイント</string>
+    <string name="nicoad_active">広告期間中ポイント</string>
 </resources>

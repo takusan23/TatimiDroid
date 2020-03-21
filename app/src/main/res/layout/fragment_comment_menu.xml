@@ -164,6 +164,13 @@
                             android:padding="5sp"
                             android:text="@string/low_latency" />
 
+                    <Switch
+                            android:id="@+id/fragment_comment_fragment_menu_always_program_info_switch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="5sp"
+                            android:text="@string/setting_always_show_program_info" />
+
                     <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

@@ -231,6 +231,14 @@ class CommentMenuFragment : Fragment() {
             }
         }
 
+        // 常に番組情報（放送時間、来場者数）を表示する
+        fragment_comment_fragment_menu_always_program_info_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            commentFragment.pref_setting.edit {
+                putBoolean("setting_always_program_info", isChecked)
+            }
+            commentFragment.setAlwaysShowProgramInfo()
+        }
+
         // ニコ生ゲーム
         fragment_comment_fragment_nico_nama_game_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             commentFragment.apply {
@@ -293,6 +301,9 @@ class CommentMenuFragment : Fragment() {
         //ニコ生ゲーム有効時
         fragment_comment_fragment_nico_nama_game_switch.isChecked =
             commentFragment.isAddedNicoNamaGame
+        // 常に番組情報表示
+        fragment_comment_fragment_menu_always_program_info_switch.isChecked =
+            commentFragment.pref_setting.getBoolean("setting_always_program_info", false)
     }
 
     //CommentFragmentへ値を渡す

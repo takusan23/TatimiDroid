@@ -186,10 +186,10 @@
                         app:layout_constraintTop_toTopOf="parent">
 
                     <LinearLayout
-                            android:layout_width="match_parent"
-                            android:gravity="center"
                             android:id="@+id/fragment_comment_bar"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:gravity="center"
                             android:orientation="horizontal">
 
                         <View
@@ -212,17 +212,26 @@
 
                 </LinearLayout>
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                        android:id="@+id/fab"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="bottom|right"
-                        android:layout_margin="16dp"
-                        android:src="@drawable/ic_outline_create_24px"
-                        app:backgroundTint="@color/colorAccent"
+                <androidx.coordinatorlayout.widget.CoordinatorLayout
+                        android:id="@+id/comment_fragment_fab_coordinator"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
-                        tools:visibility="gone" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:id="@+id/fab"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|right"
+                            android:layout_margin="16dp"
+                            android:src="@drawable/ic_outline_create_24px"
+                            app:backgroundTint="@color/colorAccent"
+                            tools:visibility="visible" />
+
+                </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 
             </androidx.constraintlayout.motion.widget.MotionLayout>
@@ -230,6 +239,8 @@
     </LinearLayout>
 
     <!-- コメント投稿部分だけ別のレイアウトを参照  -->
-    <include layout="@layout/comment_card_layout" />
+    <include
+            layout="@layout/comment_card_layout"
+            tools:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

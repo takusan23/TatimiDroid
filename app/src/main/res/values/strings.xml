@@ -275,4 +275,7 @@
     <string name="others">others</string>
     <string name="already_added">Already added</string>
     <string name="remove_auto_admission">Removed from the reservation frame automatic admission list.</string>
+    <string name="setting_always_show_program_info">Always display program name, broadcast time, visitors, etc.</string>
+    <string name="nicoad_total">Ad total points</string>
+    <string name="nicoad_active">Points during the advertising period</string>
 </resources>
