@@ -47,7 +47,7 @@
 
 
             <androidx.constraintlayout.motion.widget.MotionLayout
-                    android:id="@+id/comment_activity_fragment_layout"
+                    android:id="@+id/comment_activity_fragment_layout_motionlayout"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     app:layoutDescription="@xml/comment_fragment_comment_motion">
