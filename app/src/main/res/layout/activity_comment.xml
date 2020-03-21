@@ -46,18 +46,22 @@
             </FrameLayout>
 
 
-            <androidx.coordinatorlayout.widget.CoordinatorLayout
+            <androidx.constraintlayout.motion.widget.MotionLayout
                     android:id="@+id/comment_activity_fragment_layout"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    app:layoutDescription="@xml/comment_fragment_comment_motion">
 
                 <LinearLayout
                         android:id="@+id/comment_fragment_program_info"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:paddingLeft="10sp"
-                        android:paddingRight="10sp">
+                        android:paddingRight="10sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
 
                     <LinearLayout
                             android:layout_width="match_parent"
@@ -173,19 +177,27 @@
                 </LinearLayout>
 
                 <LinearLayout
-                        android:id="@+id/activity_comment_linearlayout"
+                        android:id="@+id/fragment_comment_fragment_linearlayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
 
-                    <View
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:gravity="center"
                             android:id="@+id/fragment_comment_bar"
-                            android:layout_width="50sp"
-                            android:layout_height="5sp"
-                            android:layout_gravity="center"
-                            android:layout_margin="5sp"
-                            android:background="@drawable/bottom_sheet_bar" />
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                        <View
+                                android:layout_width="100sp"
+                                android:layout_height="10sp"
+                                android:layout_margin="5sp"
+                                android:background="@drawable/bottom_sheet_bar" />
+                    </LinearLayout>
 
                     <com.google.android.material.tabs.TabLayout
                             android:id="@+id/activity_comment_tab_layout"
@@ -208,10 +220,12 @@
                         android:layout_margin="16dp"
                         android:src="@drawable/ic_outline_create_24px"
                         app:backgroundTint="@color/colorAccent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
                         tools:visibility="gone" />
 
 
-            </androidx.coordinatorlayout.widget.CoordinatorLayout>
+            </androidx.constraintlayout.motion.widget.MotionLayout>
         </LinearLayout>
     </LinearLayout>
 

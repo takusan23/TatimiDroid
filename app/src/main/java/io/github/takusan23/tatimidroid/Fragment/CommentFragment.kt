@@ -401,7 +401,11 @@ class CommentFragment : Fragment() {
         * ID同じだと２窓のときなぜか隣のFragmentが置き換わるなどするので
         * IDを作り直す
         * */
-        activity_comment_linearlayout.id = View.generateViewId()
+        // fragment_comment_fragment_linearlayout.id = View.generateViewId()
+        if (fragment_comment_fragment_linearlayout != null) {
+            fragment_comment_fragment_linearlayout.background =
+                ColorDrawable(darkModeSupport.getThemeColor())
+        }
 
         //とりあえずコメントViewFragmentへ
         val checkCommentViewFragment =
@@ -618,30 +622,31 @@ class CommentFragment : Fragment() {
     }
 
     private fun initBottomSheet() {
-        // このUIは縦画面のみ。ので横になったらNull出るんでチェック
-        if (comment_fragment_program_info != null) {
-            val bottomSheet = BottomSheetBehavior.from(activity_comment_linearlayout)
-            // 広げとく
-            bottomSheet.state = BottomSheetBehavior.STATE_EXPANDED
-            activity_comment_linearlayout.background =
-                ColorDrawable(darkModeSupport.getThemeColor())
-            comment_fragment_program_info.viewTreeObserver.addOnGlobalLayoutListener {
-                val infoHeight = comment_fragment_program_info.height
-                activity_comment_linearlayout.viewTreeObserver.addOnDrawListener {
-                    val commentHeight = activity_comment_linearlayout.height
-                    // 高さ設定
-                    bottomSheet.peekHeight = commentHeight - infoHeight
-                }
-            }
-            // 押しても開けるように
-            fragment_comment_bar.setOnClickListener {
-                bottomSheet.state = when (bottomSheet.state) {
-                    BottomSheetBehavior.STATE_EXPANDED -> BottomSheetBehavior.STATE_COLLAPSED
-                    BottomSheetBehavior.STATE_COLLAPSED -> BottomSheetBehavior.STATE_EXPANDED
-                    else -> BottomSheetBehavior.STATE_EXPANDED
-                }
-            }
-        }
+//        // このUIは縦画面のみ。ので横になったらNull出るんでチェック
+//        if (comment_fragment_program_info != null) {
+//            val bottomSheet = BottomSheetBehavior.from(activity_comment_linearlayout)
+//            // 広げとく
+//            bottomSheet.state = BottomSheetBehavior.STATE_EXPANDED
+//            //bottomSheet.isDraggable = false
+//            activity_comment_linearlayout.background =
+//                ColorDrawable(darkModeSupport.getThemeColor())
+//            comment_fragment_program_info.viewTreeObserver.addOnGlobalLayoutListener {
+//                val infoHeight = comment_fragment_program_info.height
+//                activity_comment_linearlayout.viewTreeObserver.addOnDrawListener {
+//                    val commentHeight = activity_comment_linearlayout.height
+//                    // 高さ設定
+//                    bottomSheet.peekHeight = commentHeight - infoHeight
+//                }
+//            }
+//            // 押しても開けるように
+//            fragment_comment_bar.setOnClickListener {
+//                bottomSheet.state = when (bottomSheet.state) {
+//                    BottomSheetBehavior.STATE_EXPANDED -> BottomSheetBehavior.STATE_COLLAPSED
+//                    BottomSheetBehavior.STATE_COLLAPSED -> BottomSheetBehavior.STATE_EXPANDED
+//                    else -> BottomSheetBehavior.STATE_EXPANDED
+//                }
+//            }
+//        }
     }
 
     // ニコ生ゲーム有効
