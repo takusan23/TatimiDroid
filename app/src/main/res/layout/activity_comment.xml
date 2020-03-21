@@ -52,17 +52,38 @@
                     android:layout_height="match_parent">
 
                 <LinearLayout
-                        android:id="@+id/activity_comment_linearlayout"
+                        android:id="@+id/comment_fragment_program_info"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:paddingLeft="10sp"
+                        android:paddingRight="10sp">
 
                     <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:orientation="horizontal"
-                            android:paddingLeft="10sp"
-                            android:paddingRight="10sp">
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5sp"
+                            android:orientation="vertical">
+
+                        <TextView
+                                android:id="@+id/comment_fragment_program_title"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="TextView"
+                                android:textSize="18sp" />
+
+                        <TextView
+                                android:id="@+id/comment_fragment_program_id"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="TextView"
+                                android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
 
                         <ImageView
                                 android:layout_width="wrap_content"
@@ -96,10 +117,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:paddingLeft="10sp"
-                            android:paddingRight="10sp"
                             android:visibility="visible">
-
 
                         <ImageView
                                 android:layout_width="wrap_content"
@@ -152,11 +170,28 @@
 
                     </LinearLayout>
 
+                </LinearLayout>
+
+                <LinearLayout
+                        android:id="@+id/activity_comment_linearlayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+                    <View
+                            android:id="@+id/fragment_comment_bar"
+                            android:layout_width="50sp"
+                            android:layout_height="5sp"
+                            android:layout_gravity="center"
+                            android:layout_margin="5sp"
+                            android:background="@drawable/bottom_sheet_bar" />
+
                     <com.google.android.material.tabs.TabLayout
                             android:id="@+id/activity_comment_tab_layout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:tabMode="scrollable"/>
+                            app:tabMode="scrollable" />
 
                     <androidx.viewpager.widget.ViewPager
                             android:id="@+id/comment_viewpager"

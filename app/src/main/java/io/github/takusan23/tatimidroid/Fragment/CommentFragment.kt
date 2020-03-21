@@ -41,6 +41,7 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -332,6 +333,12 @@ class CommentFragment : Fragment() {
         darkModeSupport = DarkModeSupport(context!!)
         darkModeSupport.setActivityTheme(activity as AppCompatActivity)
 
+        // ActionBarが邪魔という意見があった（私も思う）ので消す
+        commentActivity.supportActionBar?.hide()
+        //コメントビューアーを広げる
+        initBottomSheet()
+
+
         backgroundPlay = BackgroundPlay(context!!)
         popUpPlayer = PopUpPlayer(context, this)
 
@@ -410,16 +417,6 @@ class CommentFragment : Fragment() {
         //NGデータベース読み込み
         loadNGDataBase()
 
-/*
-        //コメント投稿モード、nicocas式コメント投稿モード以外でFAB非表示
-        var watchingmode = pref_setting.getBoolean("setting_watching_mode", false)
-        var nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
-
-        //視聴モードならtrue
-        isWatchingMode = pref_setting.getBoolean("setting_watching_mode", false)
-
-
-*/
         //生放送を視聴する場合はtrue
         watchLive = pref_setting.getBoolean("setting_watch_live", true)
 
@@ -454,12 +451,6 @@ class CommentFragment : Fragment() {
         infoTextView = TextView(context!!)
         live_framelayout.addView(infoTextView)
         infoTextView.visibility = View.GONE
-
-        //アンケートテスト
-        //testEnquate()
-        //showInfoComment("！！！！！！！！！！！！！！！！！！！！！！！！！")
-        //setUnneiComment("\uD83D\uDC4C\uD83D\uDC7D\uD83D\uDC4C sm34995245 037_ヨーグルトプリン【オリメ】 投稿さ 対馬  残リク数 12件 1時間59分21秒")
-
 
         //視聴しない場合は非表示
         if (!watchLive) {
@@ -558,129 +549,9 @@ class CommentFragment : Fragment() {
                     }
                 }
             }
-
-
-/*            //TabLayout選択
-            //標準でコメントの欄を選んでおく
-            activity_comment_tab_layout.selectTab(activity_comment_tab_layout.getTabAt(1))
-            activity_comment_tab_layout.addOnTabSelectedListener(object :
-                TabLayout.OnTabSelectedListener {
-                override fun onTabReselected(tab: TabLayout.Tab?) {
-
-                }
-
-                override fun onTabUnselected(tab: TabLayout.Tab?) {
-
-                }
-
-                override fun onTabSelected(tab: TabLayout.Tab?) {
-                    when (tab?.text) {
-                        getString(R.string.menu) -> {
-                            //メニュー
-                            //コメント
-                            val fragmentTransaction =
-                                childFragmentManager.beginTransaction()
-                            //LiveIDを詰める
-                            val bundle = Bundle()
-                            bundle.putString("liveId", liveId)
-                            //LiveID付きで
-                            val commentMenuFragment = CommentMenuFragment()
-                            commentMenuFragment.arguments = bundle
-                            fragmentTransaction.replace(
-                                activity_comment_linearlayout.id,
-                                commentMenuFragment
-                            )
-                            fragmentTransaction.commit()
-                        }
-                        getString(R.string.comment) -> {
-                            //コメント
-                            val fragmentTransaction =
-                                childFragmentManager.beginTransaction()
-                            //LiveIDを詰める
-                            val bundle = Bundle()
-                            bundle.putString("liveId", liveId)
-                            //LiveID付きで
-                            val commentViewFragment = CommentViewFragment()
-                            commentViewFragment.arguments = bundle
-                            fragmentTransaction.replace(
-                                activity_comment_linearlayout.id,
-                                commentViewFragment
-                            )
-                            fragmentTransaction.commit()
-                        }
-                        getString(R.string.room_comment) -> {
-                            //部屋べつ
-                            val fragmentTransaction =
-                                childFragmentManager.beginTransaction()
-                            //LiveIDを詰める
-                            val bundle = Bundle()
-                            bundle.putString("liveId", liveId)
-                            //LiveID付きで
-                            val commentRoomFragment = CommentRoomFragment()
-                            commentRoomFragment.arguments = bundle
-                            fragmentTransaction.replace(
-                                activity_comment_linearlayout.id,
-                                commentRoomFragment
-                            )
-                            fragmentTransaction.commit()
-
-                        }
-                        getString(R.string.gift) -> {
-                            //ギフト
-                            val fragmentTransaction =
-                                childFragmentManager.beginTransaction()
-                            //LiveIDを詰める
-                            val bundle = Bundle()
-                            bundle.putString("liveId", liveId)
-                            //LiveID付きで
-                            val giftFragment = GiftFragment()
-                            giftFragment.arguments = bundle
-                            fragmentTransaction.replace(
-                                activity_comment_linearlayout.id,
-                                giftFragment
-                            )
-                            fragmentTransaction.commit()
-                        }
-                        getString(R.string.nicoads) -> {
-                            //広告
-                            val fragmentTransaction =
-                                childFragmentManager.beginTransaction()
-                            //LiveIDを詰める
-                            val bundle = Bundle()
-                            bundle.putString("liveId", liveId)
-                            //LiveID付きで
-                            val nicoAdFragment = NicoAdFragment()
-                            nicoAdFragment.arguments = bundle
-                            fragmentTransaction.replace(
-                                activity_comment_linearlayout.id,
-                                nicoAdFragment
-                            )
-                            fragmentTransaction.commit()
-                        }
-                        getString(R.string.program_info) -> {
-                            //番組情報
-                            val fragmentTransaction =
-                                childFragmentManager.beginTransaction()
-                            //LiveIDを詰める
-                            val bundle = Bundle()
-                            bundle.putString("liveId", liveId)
-                            //LiveIDを詰める
-                            val programInfoFragment = ProgramInfoFragment()
-                            programInfoFragment.arguments = bundle
-                            fragmentTransaction.replace(
-                                activity_comment_linearlayout.id,
-                                programInfoFragment,
-                                "program_info"
-                            )
-                            fragmentTransaction.commit()
-                        }
-                    }
-                }
-            })*/
         } else {
             showToast(getString(R.string.mail_pass_error))
             commentActivity.finish()
-            //startActivity(Intent(context!!@CommentActivity, MainActivity::class.java))
         }
 
         //アクティブ人数クリアなど、追加部分はCommentViewFragmentです
@@ -744,27 +615,34 @@ class CommentFragment : Fragment() {
         }
         commentActivity.registerReceiver(broadcastReceiver, intentFilter)
 
-        // testEnquate()
-
     }
 
-/*
-    fun setAllRoomCommentFragment() {
-        //LiveIDを詰める
-        val bundle = Bundle()
-        bundle.putString("liveId", liveId)
-        val commentViewFragment = CommentViewFragment()
-        commentViewFragment.arguments = bundle
-        val fragmentTransaction =
-            childFragmentManager.beginTransaction()
-        fragmentTransaction.replace(
-            activity_comment_linearlayout.id,
-            commentViewFragment,
-            "${liveId}_comment_view_fragment"
-        )
-        fragmentTransaction.commit()
+    private fun initBottomSheet() {
+        // このUIは縦画面のみ。ので横になったらNull出るんでチェック
+        if (comment_fragment_program_info != null) {
+            val bottomSheet = BottomSheetBehavior.from(activity_comment_linearlayout)
+            // 広げとく
+            bottomSheet.state = BottomSheetBehavior.STATE_EXPANDED
+            activity_comment_linearlayout.background =
+                ColorDrawable(darkModeSupport.getThemeColor())
+            comment_fragment_program_info.viewTreeObserver.addOnGlobalLayoutListener {
+                val infoHeight = comment_fragment_program_info.height
+                activity_comment_linearlayout.viewTreeObserver.addOnDrawListener {
+                    val commentHeight = activity_comment_linearlayout.height
+                    // 高さ設定
+                    bottomSheet.peekHeight = commentHeight - infoHeight
+                }
+            }
+            // 押しても開けるように
+            fragment_comment_bar.setOnClickListener {
+                bottomSheet.state = when (bottomSheet.state) {
+                    BottomSheetBehavior.STATE_EXPANDED -> BottomSheetBehavior.STATE_COLLAPSED
+                    BottomSheetBehavior.STATE_COLLAPSED -> BottomSheetBehavior.STATE_EXPANDED
+                    else -> BottomSheetBehavior.STATE_EXPANDED
+                }
+            }
+        }
     }
-*/
 
     // ニコ生ゲーム有効
     fun setNicoNamaGame() {
@@ -928,21 +806,18 @@ class CommentFragment : Fragment() {
                             document.select("stream").select("start_time").text().toLong()
                         //経過時間計算
                         setLiveTime()
-                        commentActivity.runOnUiThread {
-                            //二窓モードでは表示させない
-                            if (activity !is NimadoActivity) {
-                                if (activity is AppCompatActivity) {
-                                    (activity as AppCompatActivity).supportActionBar?.subtitle =
-                                        "$room - $seet"
-                                    (activity as AppCompatActivity).supportActionBar?.title =
-                                        "$programTitle - $liveId"
-                                }
-                            }
-                        }
                         //サムネもほしい
                         thumbnailURL = document.getElementsByTag("thumb_url")[0].text()
                         //履歴追加
                         insertDB()
+                        // 番組情報
+                        commentActivity.runOnUiThread {
+                            if (activity !is NimadoActivity) {
+                                // 二窓モードでは利用しない
+                                comment_fragment_program_title.text = "$programTitle - $liveId"
+                                comment_fragment_program_id.text = "$communityID - $seet"
+                            }
+                        }
                     } else {
                         // エラーの原因取る。
                         val code = document.getElementsByTag("code")[0].text()
@@ -1015,12 +890,11 @@ class CommentFragment : Fragment() {
     fun getNicoLiveWebPage(): Deferred<Response> = GlobalScope.async {
         //番組ID
         val id = arguments?.getString("liveId") ?: ""
-        var request: Request
 
         //コメビュモードの場合はユーザーセッション無いので
-        if (isWatchingMode) {
+        val request = if (isWatchingMode) {
             //視聴モード（ユーザーセッション付き）
-            request = Request.Builder()
+            Request.Builder()
                 .url("https://live2.nicovideo.jp/watch/${id}")
                 .header("User-Agent", "TatimiDroid;@takusan_23")
                 .header("Cookie", "user_session=${usersession}")
@@ -1028,7 +902,7 @@ class CommentFragment : Fragment() {
                 .build()
         } else {
             //コメビュモード（ユーザーセッションなし）
-            request = Request.Builder()
+            Request.Builder()
                 .url("https://live2.nicovideo.jp/watch/${id}")
                 .header("User-Agent", "TatimiDroid;@takusan_23")
                 .get()
@@ -1060,22 +934,9 @@ class CommentFragment : Fragment() {
             //公式番組かどうか
             val providerType = program.getString("providerType")
             isOfficial = providerType == "official"
-/*
-            if (providerType == "official") {
-                isOfficial = true
-                //公式番組では全部屋取得APIが使えないので部屋別表示を無効にする。
-                activity?.runOnUiThread {
-                    if (isOfficial) {
-                        view?.findViewById<TabLayout>(R.id.activity_comment_tab_layout)
-                            ?.removeTabAt(2)
-                    }
-                }
-            }
-*/
             //broadcastId
             val broadcastId = program.getString("broadcastId")
             connectionNicoLiveWebSocket(websocketUrl, broadcastId)
-            //println("取得した $liveId")
         }
     }
 

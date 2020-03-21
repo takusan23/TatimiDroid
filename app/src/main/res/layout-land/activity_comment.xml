@@ -14,32 +14,159 @@
             android:layout_weight="1"
             android:orientation="horizontal">
 
-        <FrameLayout
-                android:id="@+id/live_framelayout"
+        <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:layout_gravity="center"
-                android:layout_weight="1">
+                android:orientation="vertical">
 
-            <VideoView
-                    android:id="@+id/live_video_view"
+            <FrameLayout
+                    android:id="@+id/live_framelayout"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:visibility="gone" />
+                    android:layout_weight="1">
+
+                <VideoView
+                        android:id="@+id/live_video_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:visibility="gone" />
 
 
-            <SurfaceView
-                    android:id="@+id/live_surface_view"
+                <SurfaceView
+                        android:id="@+id/live_surface_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                <io.github.takusan23.tatimidroid.CommentCanvas
+                        android:id="@+id/comment_canvas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent" />
+            </FrameLayout>
+
+            <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5sp"
+                    android:orientation="vertical">
 
-            <io.github.takusan23.tatimidroid.CommentCanvas
-                    android:id="@+id/comment_canvas"
+                <TextView
+                        android:id="@+id/comment_fragment_program_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="TextView"
+                        android:textSize="18sp" />
+
+                <TextView
+                        android:id="@+id/comment_fragment_program_id"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="TextView"
+                        android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent" />
-        </FrameLayout>
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingLeft="10sp"
+                    android:paddingRight="10sp"
+                    android:visibility="visible">
+
+
+                <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        app:srcCompat="@drawable/ic_outline_account_circle_24px" />
+
+                <TextView
+                        android:id="@+id/activity_comment_watch_count"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text=""
+                        android:textSize="18sp"
+                        android:tooltipText="@string/watch_count" />
+
+                <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        app:srcCompat="@drawable/ic_active_icon" />
+
+                <TextView
+                        android:id="@+id/activity_comment_comment_active_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="計算中"
+                        android:textSize="18sp"
+                        android:tooltipText="@string/active" />
+
+
+                <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        app:srcCompat="@drawable/ic_outline_comment_24px" />
+
+                <TextView
+                        android:id="@+id/activity_comment_comment_count"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text=""
+                        android:textSize="18sp"
+                        android:tooltipText="@string/comment_count" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingLeft="10sp"
+                    android:paddingRight="10sp">
+
+                <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        app:srcCompat="@drawable/ic_outline_query_builder_24px" />
+
+                <TextView
+                        android:id="@+id/activity_comment_comment_time"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="00:00"
+                        android:textSize="18sp"
+                        android:tooltipText="@string/livetime" />
+
+
+                <TextView
+                        android:id="@+id/activity_comment_comment_end_time"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="00:00"
+                        android:textSize="18sp"
+                        android:tooltipText="@string/end_time_tooltip" />
+            </LinearLayout>
+
+
+        </LinearLayout>
 
 
         <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -53,102 +180,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:paddingLeft="10sp"
-                        android:paddingRight="10sp">
-
-                    <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            app:srcCompat="@drawable/ic_outline_query_builder_24px" />
-
-                    <TextView
-                            android:id="@+id/activity_comment_comment_time"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:maxLines="1"
-                            android:text="00:00"
-                            android:textSize="18sp"
-                            android:tooltipText="@string/livetime" />
-
-
-                    <TextView
-                            android:id="@+id/activity_comment_comment_end_time"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:maxLines="1"
-                            android:text="00:00"
-                            android:textSize="18sp"
-                            android:tooltipText="@string/end_time_tooltip" />
-                </LinearLayout>
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:paddingLeft="10sp"
-                        android:paddingRight="10sp"
-                        android:visibility="visible">
-
-
-                    <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            app:srcCompat="@drawable/ic_outline_account_circle_24px" />
-
-                    <TextView
-                            android:id="@+id/activity_comment_watch_count"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:maxLines="1"
-                            android:text=""
-                            android:textSize="18sp"
-                            android:tooltipText="@string/watch_count" />
-
-                    <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            app:srcCompat="@drawable/ic_active_icon" />
-
-                    <TextView
-                            android:id="@+id/activity_comment_comment_active_text"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:maxLines="1"
-                            android:text="計算中"
-                            android:textSize="18sp"
-                            android:tooltipText="@string/active" />
-
-
-                    <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            app:srcCompat="@drawable/ic_outline_comment_24px" />
-
-                    <TextView
-                            android:id="@+id/activity_comment_comment_count"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:maxLines="1"
-                            android:text=""
-                            android:textSize="18sp"
-                            android:tooltipText="@string/comment_count" />
-
-                </LinearLayout>
 
                 <com.google.android.material.tabs.TabLayout
                         android:id="@+id/activity_comment_tab_layout"
