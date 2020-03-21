@@ -865,7 +865,7 @@ class CommentFragment : Fragment() {
                             if (activity !is NimadoActivity) {
                                 // 二窓モードでは利用しない
                                 comment_fragment_program_title.text = "$programTitle - $liveId"
-                                comment_fragment_program_id.text = "$communityID - $seet"
+                                comment_fragment_program_id.text = "$room - $seet"
                             }
                         }
                     } else {

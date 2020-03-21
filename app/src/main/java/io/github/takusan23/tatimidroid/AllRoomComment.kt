@@ -350,35 +350,36 @@ class AllRoomComment(
         * */
         // もしくは公式番組の場合は関係なく入れる（公式番組では全部屋見ることが出来ないため）
         if (commentJSONParse.origin != "C" || commentFragment.isOfficial) {
-            var roomName = roomName
-            if (commentFragment.isOfficial) {
-                roomName = context?.getString(R.string.official_program) ?: "公式番組"
-            }
-            val size = recyclerViewList.size
-            val item = arrayListOf<String>()
-            item.add("")
-            item.add(json)
-            item.add(roomName)
-            item.add(userId)
-            item.add(liveId)
-
-            recyclerViewList.add(0, item)
-
-            //ロックオンできるように
-            //ロックオン中は自動更新できるようにする
-            val fragment = commentFragment.fragmentManager?.findFragmentByTag("comment_menu")
-            if (fragment != null) {
-                if (fragment is CommentMenuBottomFragment) {
-                    if (fragment.userId == commentJSONParse.userId) {
-                        //更新する
-                        fragment.setLockOnComment()
-                    }
-                }
-            }
-
             //RecyclerView更新
             recyclerView?.post {
-                if (recyclerViewList.size <= size + 1) {
+
+                var roomName = roomName
+                if (commentFragment.isOfficial) {
+                    roomName = context?.getString(R.string.official_program) ?: "公式番組"
+                }
+                val size = recyclerViewList.size
+                val item = arrayListOf<String>()
+                item.add("")
+                item.add(json)
+                item.add(roomName)
+                item.add(userId)
+                item.add(liveId)
+
+                recyclerViewList.add(0, item)
+
+                //ロックオンできるように
+                //ロックオン中は自動更新できるようにする
+                val fragment = commentFragment.fragmentManager?.findFragmentByTag("comment_menu")
+                if (fragment != null) {
+                    if (fragment is CommentMenuBottomFragment) {
+                        if (fragment.userId == commentJSONParse.userId) {
+                            //更新する
+                            fragment.setLockOnComment()
+                        }
+                    }
+                }
+
+                if (recyclerViewList.size <= size + 1 && recyclerView != null && recyclerView?.adapter != null) {
                     recyclerView?.adapter?.notifyItemInserted(0)
                 }
                 // 画面上で最上部に表示されているビューのポジションとTopを記録しておく
