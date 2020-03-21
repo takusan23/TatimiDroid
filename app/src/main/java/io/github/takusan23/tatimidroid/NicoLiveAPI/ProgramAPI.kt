@@ -123,7 +123,7 @@ class ProgramAPI(val context: Context?) {
 
                                 //変換
                                 val simpleDateFormat =
-                                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:SS.sssX")
+                                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
                                 val date_calender =
                                     simpleDateFormat.parse(program.getString("beginAt"))
                                 val calender = Calendar.getInstance(TimeZone.getDefault())
@@ -152,7 +152,7 @@ class ProgramAPI(val context: Context?) {
 
     private fun parseTime(startTime: String): String {
         //SimpleDataFormat
-        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:SS.sssX")
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
         val date_calender = simpleDateFormat.parse(startTime)
         val calender = Calendar.getInstance(TimeZone.getDefault())
         calender.time = date_calender
