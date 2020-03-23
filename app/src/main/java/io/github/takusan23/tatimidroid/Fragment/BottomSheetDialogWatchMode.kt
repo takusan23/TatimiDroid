@@ -190,17 +190,26 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                     }
                 } else {
                     // そもそもログインできてない（ユーザーセッションが切れたとか）
-                    Toast.makeText(context, "ニコニコへ再ログインしてます。ちょっとまってね", Toast.LENGTH_SHORT).show()
+                    activity?.runOnUiThread {
+                        Toast.makeText(context, "ニコニコへ再ログインしてます。ちょっとまってね", Toast.LENGTH_SHORT)
+                            .show()
+                    }
                     // ログインする
                     NicoLogin.login(context) {
+                        activity?.runOnUiThread {
+                            Toast.makeText(context, "ログインしました", Toast.LENGTH_SHORT)
+                                .show()
+                        }
                         // ログイン成功時はもう一回番組情報を取得する
                         getProgram()
                     }
                 }
             } else if (response != null && !response.isSuccessful) {
                 // 取得できたけど成功していない(500で負荷かかってるとか)場合
-                Toast.makeText(context, "${getString(R.string.error)}\n${response.code}", Toast.LENGTH_SHORT)
-                    .show()
+                activity?.runOnUiThread {
+                    Toast.makeText(context, "${getString(R.string.error)}\n${response.code}", Toast.LENGTH_SHORT)
+                        .show()
+                }
             }
         }
     }

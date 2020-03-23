@@ -41,9 +41,6 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
         //クリップボード
         setClipBoardProgramID()
 
-        //放送中であるかをAPIを叩き確認
-        //番組IDだった
-
         nimado_liveid_bottom_fragment_button_comment_post_mode.setOnClickListener {
             addNimado("comment_post")
             allButtonDisable()

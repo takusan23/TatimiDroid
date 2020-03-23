@@ -793,8 +793,6 @@ class CommentFragment : Fragment() {
             .get()
             .build()
         val okHttpClient = OkHttpClient()
-
-
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 showToast("${getString(R.string.error)}")
