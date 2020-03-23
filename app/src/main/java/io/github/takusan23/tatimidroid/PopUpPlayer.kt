@@ -39,20 +39,27 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
 
     // 表示されてればTrue
     var isPopupPlay = false
+
     // View
     lateinit var popupView: View
     lateinit var popupExoPlayer: SimpleExoPlayer
     lateinit var commentCanvas: CommentCanvas
+
     // MediaSession
     lateinit var mediaSessionCompat: MediaSessionCompat
+
     // 通知
     private val overlayNotificationID = 865
+
     // manager
     private val windowManager = context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val notificationManager =
         context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     fun showPopUpView(hlsAddress: String) {
+        if (context == null) {
+            return
+        }
         //すでにある場合は消す
         if (::popupExoPlayer.isInitialized) {
             destroyExoPlayer(popupExoPlayer)
@@ -109,7 +116,7 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
             showPopUpPlayerNotification()
 
             //ポップアップ再生もExoPlayerにお引越し。
-            popupExoPlayer = ExoPlayerFactory.newSimpleInstance(context)
+            popupExoPlayer = SimpleExoPlayer.Builder(context!!).build()
             val sourceFactory = DefaultDataSourceFactory(
                 context,
                 "TatimiDroid;@takusan_23",
@@ -160,10 +167,9 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
             popupExoPlayer.playWhenReady = true
 
             popupExoPlayer.addListener(object : Player.EventListener {
-
-                override fun onPlayerError(error: ExoPlaybackException?) {
+                override fun onPlayerError(error: ExoPlaybackException) {
                     super.onPlayerError(error)
-                    error?.printStackTrace()
+                    error.printStackTrace()
                     println("生放送の再生が止まりました。")
                     // 番組終了していなければ
                     if ((System.currentTimeMillis() / 1000L) < commentFragment.programEndUnixTime) {
@@ -316,7 +322,10 @@ class PopUpPlayer(var context: Context?, var commentFragment: CommentFragment) {
             setMetadata(mediaMetadataCompat) // メタデータ入れる
             isActive = true // これつけないとAlways On Displayで表示されない
             // 常に再生状態にしておく。これでAODで表示できる
-            setPlaybackState(PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 0L, 1F).build())
+            setPlaybackState(
+                PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 0L, 1F)
+                    .build()
+            )
         }
     }
 

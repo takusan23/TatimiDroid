@@ -1541,6 +1541,9 @@ class CommentFragment : Fragment() {
 
     //視聴モード
     fun setPlayVideoView() {
+        if (context == null) {
+            return
+        }
         //設定で読み込むかどうか
         commentActivity.runOnUiThread {
             live_surface_view.visibility = View.VISIBLE
@@ -1576,7 +1579,7 @@ class CommentFragment : Fragment() {
                 liveFrameLayout.layoutParams = frameLayoutParams
             }
 
-            exoPlayer = ExoPlayerFactory.newSimpleInstance(context)
+            exoPlayer = SimpleExoPlayer.Builder(context!!).build()
             val sourceFactory = DefaultDataSourceFactory(
                 context,
                 "TatimiDroid;@takusan_23",
@@ -1627,10 +1630,9 @@ class CommentFragment : Fragment() {
             exoPlayer.playWhenReady = true
 
             exoPlayer.addListener(object : Player.EventListener {
-
-                override fun onPlayerError(error: ExoPlaybackException?) {
+                override fun onPlayerError(error: ExoPlaybackException) {
                     super.onPlayerError(error)
-                    error?.printStackTrace()
+                    error.printStackTrace()
                     println("生放送の再生が止まりました。")
                     //再接続する？
                     //それからニコ生視聴セッションWebSocketが切断されてなければ

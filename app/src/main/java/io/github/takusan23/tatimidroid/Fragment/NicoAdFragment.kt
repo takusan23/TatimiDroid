@@ -83,8 +83,8 @@ class NicoAdFragment : Fragment() {
                 val totalPoint = data.getInt("totalPoint")
                 val activePoint = data.getInt("activePoint")
                 activity?.runOnUiThread {
-                    gift_total_point.text = "${getString(R.string.nicoad_total)}：${totalPoint}点"
-                    gift_active_point.text = "${getString(R.string.nicoad_active)}：${activePoint}点"
+                    gift_total_point.text = "${getString(R.string.nicoad_total)}：${totalPoint}pt"
+                    gift_active_point.text = "${getString(R.string.nicoad_active)}：${activePoint}pt"
                 }
             }
         }
