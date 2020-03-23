@@ -334,10 +334,9 @@ class CommentFragment : Fragment() {
         darkModeSupport.setActivityTheme(activity as AppCompatActivity)
 
         // ActionBarが邪魔という意見があった（私も思う）ので消す
-        commentActivity.supportActionBar?.hide()
-        //コメントビューアーを広げる
-        initBottomSheet()
-
+        if (activity !is NimadoActivity) {
+            commentActivity.supportActionBar?.hide()
+        }
 
         backgroundPlay = BackgroundPlay(context!!)
         popUpPlayer = PopUpPlayer(context, this)
@@ -478,6 +477,7 @@ class CommentFragment : Fragment() {
         }
 
         // ViewPager
+        comment_viewpager.id = View.generateViewId()
         commentViewPager =
             CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
         comment_viewpager.adapter = commentViewPager
@@ -664,34 +664,6 @@ class CommentFragment : Fragment() {
                 fragment_comment_bar.visibility = View.VISIBLE
             }
         }
-    }
-
-    private fun initBottomSheet() {
-//        // このUIは縦画面のみ。ので横になったらNull出るんでチェック
-//        if (comment_fragment_program_info != null) {
-//            val bottomSheet = BottomSheetBehavior.from(activity_comment_linearlayout)
-//            // 広げとく
-//            bottomSheet.state = BottomSheetBehavior.STATE_EXPANDED
-//            //bottomSheet.isDraggable = false
-//            activity_comment_linearlayout.background =
-//                ColorDrawable(darkModeSupport.getThemeColor())
-//            comment_fragment_program_info.viewTreeObserver.addOnGlobalLayoutListener {
-//                val infoHeight = comment_fragment_program_info.height
-//                activity_comment_linearlayout.viewTreeObserver.addOnDrawListener {
-//                    val commentHeight = activity_comment_linearlayout.height
-//                    // 高さ設定
-//                    bottomSheet.peekHeight = commentHeight - infoHeight
-//                }
-//            }
-//            // 押しても開けるように
-//            fragment_comment_bar.setOnClickListener {
-//                bottomSheet.state = when (bottomSheet.state) {
-//                    BottomSheetBehavior.STATE_EXPANDED -> BottomSheetBehavior.STATE_COLLAPSED
-//                    BottomSheetBehavior.STATE_COLLAPSED -> BottomSheetBehavior.STATE_EXPANDED
-//                    else -> BottomSheetBehavior.STATE_EXPANDED
-//                }
-//            }
-//        }
     }
 
     // ニコ生ゲーム有効

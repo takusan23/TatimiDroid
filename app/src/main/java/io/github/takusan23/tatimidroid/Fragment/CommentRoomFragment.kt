@@ -95,6 +95,8 @@ class CommentRoomFragment : Fragment() {
         //番組情報取得
         getProgramInfo()
 
+        comment_room_tablayout.removeAllTabs()
+
         //定期的に立ち見席が出てないかチェック
         timer.schedule(60000, 60000) {
             getProgramInfo()
