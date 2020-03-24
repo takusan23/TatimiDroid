@@ -77,21 +77,24 @@ class CommunityListFragment : Fragment() {
 
     fun setNicoLoad() {
         // 読み込むTL
-        val pos = arguments?.getInt("page") ?: 0
+        val pos = arguments?.getInt("page") ?: FOLLOW
         when (pos) {
-            0 -> getFavouriteCommunity()
-            1 -> getNicorepo()
-            2 -> getRecommend()
-            3 -> getRanking()
-            4 -> getNicoNamaGameMatching()
-            5 -> getNicoNamaGamePlaying()
-            6 -> {
+            FOLLOW -> getFavouriteCommunity()
+            NICOREPO -> getNicorepo()
+            RECOMMEND -> getRecommend()
+            RANKING -> getRanking()
+            GAME_MATCHING -> getNicoNamaGameMatching()
+            GAME_PLAYING -> getNicoNamaGamePlaying()
+            ADMISSION -> {
                 getAutoAdmissionList()
                 //Service再起動
                 val intent = Intent(context, AutoAdmissionService::class.java)
                 context?.stopService(intent)
                 context?.startService(intent)
             }
+            CHUMOKU -> getChumoku()
+            YOYAKU -> getBeforeOpen()
+            KOREKARA -> getKorekara()
         }
     }
 
@@ -162,7 +165,7 @@ class CommunityListFragment : Fragment() {
     }
 
     // 放送中の注目番組
-    fun getChumoku(){
+    fun getChumoku() {
         recyclerViewList.clear()
         ProgramAPI(context).getFocusProgramListState(null) { arrayList ->
             //リスト更新
@@ -176,10 +179,25 @@ class CommunityListFragment : Fragment() {
         }
     }
 
-
-    fun getBeforeOpen(){
+    // 人気の予約番組
+    fun getBeforeOpen() {
         recyclerViewList.clear()
         ProgramAPI(context).getPopularBeforeOpenBroadcastStatusProgramListState(null) { arrayList ->
+            //リスト更新
+            activity?.runOnUiThread {
+                communityRecyclerViewAdapter.notifyDataSetChanged()
+                arrayList.forEach {
+                    recyclerViewList.add(it)
+                }
+                swipeRefreshLayout.isRefreshing = false
+            }
+        }
+    }
+
+    // これからの注目番組
+    fun getKorekara() {
+        recyclerViewList.clear()
+        ProgramAPI(context).getRecentJustBeforeBroadcastStatusProgramListState(null) { arrayList ->
             //リスト更新
             activity?.runOnUiThread {
                 communityRecyclerViewAdapter.notifyDataSetChanged()
@@ -277,4 +295,18 @@ class CommunityListFragment : Fragment() {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
+
+    companion object {
+        val FOLLOW = 0 // フォロー中番組
+        val NICOREPO = 1 // ニコレポ
+        val RECOMMEND = 2 // おすすめ
+        val RANKING = 3 // ランキング
+        val GAME_MATCHING = 4 // ゲームマッチング
+        val GAME_PLAYING = 5 // ゲームプレイ中
+        val ADMISSION = 6 // 予約枠自動入場
+        val CHUMOKU = 7 // 放送中の注目番組
+        val YOYAKU = 8 // 人気の予約されてる番組
+        val KOREKARA = 9 // これから
+    }
+
 }

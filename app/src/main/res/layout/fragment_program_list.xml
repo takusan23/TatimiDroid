@@ -5,7 +5,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        app:layoutDescription="@xml/fragment_program_backdrop_motion">
+        app:layoutDescription="@xml/fragment_program_backdrop_motion"
+        tools:showPaths="true">
 
     <LinearLayout
             android:id="@+id/fragment_program_backdrop"
@@ -23,7 +24,7 @@
                 android:orientation="horizontal">
 
             <Button
-                    android:id="@+id/button6"
+                    android:id="@+id/fragment_program_follow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="5sp"
@@ -31,7 +32,7 @@
                     android:text="@string/follow_program" />
 
             <Button
-                    android:id="@+id/button7"
+                    android:id="@+id/fragment_program_nicorepo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="5sp"
@@ -40,25 +41,31 @@
         </LinearLayout>
 
         <Button
-                android:id="@+id/button2"
+                android:id="@+id/fragment_program_osusume"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/osusume" />
 
         <Button
-                android:id="@+id/button3"
+                android:id="@+id/fragment_program_ranking"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/ranking" />
 
         <Button
-                android:id="@+id/button4"
+                android:id="@+id/fragment_program_nicolive_top"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="ニコ生TOP" />
 
         <Button
-                android:id="@+id/button5"
+                android:id="@+id/fragment_program_korekara"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="これからの注目番組" />
+
+        <Button
+                android:id="@+id/fragment_program_ninki_yoyaku"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="人気の予約番組" />
@@ -95,13 +102,15 @@
     <LinearLayout
             android:id="@+id/fragment_program_list"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:background="#fff"
             android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/fragment_program_bar">
 
+        <!--
         <com.google.android.material.tabs.TabLayout
                 android:id="@+id/fragment_program_list_tab_layout"
                 android:layout_width="match_parent"
@@ -112,6 +121,7 @@
                 android:id="@+id/fragment_program_list_view_pager"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+-->
     </LinearLayout>
 
 </androidx.constraintlayout.motion.widget.MotionLayout>
