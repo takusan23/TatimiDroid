@@ -1,10 +1,8 @@
 package io.github.takusan23.tatimidroid
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.content.res.Configuration
+import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -27,8 +25,11 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Fragment.AutoAdmissionBottomFragment
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
+import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveTimeShiftAPI
 import io.github.takusan23.tatimidroid.NicoLiveAPI.ProgramData
+import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionDBUtil
+import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.bottom_fragment_program_reservation.*
 import java.text.SimpleDateFormat
@@ -194,76 +195,25 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
     }
 
     private fun initTSButton(holder: ViewHolder, item: ProgramData) {
+        val context = holder.calendarButton.context
+        val reservationUtil = ReservationUtil(context)
         holder.apply {
-            val context = calendarButton.context
             calendarButton.setOnClickListener {
-                addCalendar(context, item)
+                reservationUtil.addCalendar(context, item)
             }
             shareButton.setOnClickListener {
-                showShareScreen(context, it, item)
+                reservationUtil.showShareScreen(context, it, item)
             }
             timeShiftButton.setOnClickListener {
-                registerTimeShift(context, item, it)
+                reservationUtil.registerTimeShift(context, item, it)
             }
-        }
-    }
-
-    /**
-     * カレンダーに予定を追加する
-     * https://developer.android.com/guide/components/intents-common?hl=ja#AddEvent
-     * */
-    private fun addCalendar(context: Context?, programData: ProgramData) {
-        val intent = Intent(Intent.ACTION_INSERT).apply {
-            data = CalendarContract.Events.CONTENT_URI
-            putExtra(CalendarContract.Events.TITLE, programData.title)
-            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, programData.beginAt.toLong() * 1000L) // ミリ秒らしい。
-            putExtra(CalendarContract.EXTRA_EVENT_END_TIME, programData.endAt.toLong() * 1000L) // ミリ秒らしい。
-        }
-        context?.startActivity(intent)
-    }
-
-    // 共有画面出す
-    private fun showShareScreen(context: Context?, view: View?, programData: ProgramData) {
-        if (view == null) {
-            return
-        }
-        val programShare =
-            ProgramShare(context as AppCompatActivity, view, programData.title, programData.programId)
-        programShare.showShareScreen()
-    }
-
-    // TS登録
-    private fun registerTimeShift(context: Context?, programData: ProgramData, view: View) {
-        val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-        val user_session = prefSetting.getString("user_session", "")
-        if (user_session != null) {
-            val nicoLiveTimeShiftAPI =
-                NicoLiveTimeShiftAPI(context, user_session, programData.programId)
-            // API叩く
-            nicoLiveTimeShiftAPI.registerTimeShift {
-                if (it.isSuccessful) {
-                    // 成功時。登録成功
-                    Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(context, R.string.timeshift_reservation_successful, Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                } else if (it.code == 500) {
-                    // 失敗時。(500エラー)すでに登録済み
-                    Handler(Looper.getMainLooper()).post {
-                        // 削除するか？Snackbar出す
-                        Snackbar.make(view, R.string.timeshift_reserved, Snackbar.LENGTH_SHORT)
-                            .setAction(R.string.timeshift_delete_reservation_button) {
-                                // TS取り消しAPI叩く
-                                nicoLiveTimeShiftAPI.deleteTimeShift {
-                                    Handler(Looper.getMainLooper()).post {
-                                        // 削除成功
-                                        Toast.makeText(context, R.string.timeshift_delete_reservation_successful, Toast.LENGTH_LONG)
-                                            .show()
-                                    }
-                                }
-                            }.show()
-                    }
-                }
+            autoNicoLiveButton.setOnClickListener {
+                // ニコ生アプリで開く
+                reservationUtil.admissionDBUtil.addAutoAdmissionDB("nicolive_app", context, item, it)
+            }
+            autoTatimiButton.setOnClickListener {
+                // たちみどろいどでひらく
+                reservationUtil.admissionDBUtil.addAutoAdmissionDB("tatimidroid_app", context, item, it)
             }
         }
     }

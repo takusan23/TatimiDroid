@@ -1,18 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        app:layoutDescription="@xml/fragment_program_backdrop_motion">
 
-    <com.google.android.material.tabs.TabLayout
-            android:id="@+id/fragment_program_list_tab_layout"
+    <LinearLayout
+            android:id="@+id/fragment_program_backdrop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:tabMode="scrollable" />
+            android:layout_margin="10sp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-    <androidx.viewpager.widget.ViewPager
-            android:id="@+id/fragment_program_list_view_pager"
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+            <Button
+                    android:id="@+id/button6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5sp"
+                    android:layout_weight="1"
+                    android:text="@string/follow_program" />
+
+            <Button
+                    android:id="@+id/button7"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5sp"
+                    android:layout_weight="1"
+                    android:text="@string/nicorepo" />
+        </LinearLayout>
+
+        <Button
+                android:id="@+id/button2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/osusume" />
+
+        <Button
+                android:id="@+id/button3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/ranking" />
+
+        <Button
+                android:id="@+id/button4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ニコ生TOP" />
+
+        <Button
+                android:id="@+id/button5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="人気の予約番組" />
+    </LinearLayout>
+
+    <LinearLayout
+            android:id="@+id/fragment_program_bar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-</LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50sp"
+            android:background="#fff"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="5sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        <View
+                android:layout_width="100sp"
+                android:layout_height="10sp"
+                android:background="@drawable/bottom_sheet_bar"
+                android:padding="10sp" />
+
+        <TextView
+                android:id="@+id/textView16"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10sp"
+                android:text="おすすめ・ランキング・公式番組はここから" />
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:id="@+id/fragment_program_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#fff"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/fragment_program_bar">
+
+        <com.google.android.material.tabs.TabLayout
+                android:id="@+id/fragment_program_list_tab_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:tabMode="scrollable" />
+
+        <androidx.viewpager.widget.ViewPager
+                android:id="@+id/fragment_program_list_view_pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+    </LinearLayout>
+
+</androidx.constraintlayout.motion.widget.MotionLayout>
