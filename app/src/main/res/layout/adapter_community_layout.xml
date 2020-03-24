@@ -1,38 +1,174 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
             android:id="@+id/adapter_community_card"
-            android:layout_margin="2dp"
-            android:foreground="?android:attr/selectableItemBackground"
-            android:clickable="true"
-            app:cardCornerRadius="5dp"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_margin="2dp"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:cardCornerRadius="5dp">
 
-        <LinearLayout
-                android:padding="10dp"
-                android:orientation="vertical"
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/adapter_community_before_motion"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content">
 
-            <TextView
-                    android:text="読み込み中"
-                    android:textSize="14dp"
+            <LinearLayout
+                    android:id="@+id/adapter_community_program_name_linearlayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/adapter_community_time_textview"/>
+                    android:orientation="vertical"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                    android:text="読み込み中"
-                    android:textSize="18dp"
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="10dp">
+
+                    <TextView
+                            android:id="@+id/adapter_community_time_textview"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="読み込み中"
+                            android:textSize="14dp" />
+
+                    <TextView
+                            android:id="@+id/adapter_community_title_textview"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="読み込み中"
+                            android:textSize="18dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                        android:id="@+id/adapter_community_watchmode_linearlayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                    <Button
+                            android:id="@+id/adapter_community_watchmode_comeview"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2sp"
+                            android:text="@string/mode_comeview" />
+
+                    <Button
+                            android:id="@+id/adapter_community_watchmode_comepost"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2sp"
+                            android:text="@string/mode_post" />
+
+                    <Button
+                            android:id="@+id/adapter_community_watchmode_nicocas"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2sp"
+                            android:text="@string/mode_nicocas" />
+
+                    <Button
+                            android:id="@+id/adapter_community_watchmode_description"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2sp"
+                            android:text="？" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                    android:id="@+id/adapter_community_before_linearlayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/adapter_community_title_textview"/>
-        </LinearLayout>
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/adapter_community_program_name_linearlayout">
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                        <Button
+                                android:id="@+id/adapter_community_ts"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:text="@string/ts_add"
+                                app:icon="@drawable/ic_outline_query_builder_24px" />
+
+                        <Button
+                                android:id="@+id/adapter_community_calendar"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:text="@string/add_calendar"
+                                app:icon="@drawable/ic_event_available_24px" />
+
+                        <Button
+                                android:id="@+id/adapter_community_share"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:text="@string/share"
+                                app:icon="@drawable/ic_share" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                        <Button
+                                android:id="@+id/adapter_community_auto"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:layout_weight="1"
+                                android:text="@string/auto_tatimidroid" />
+
+                        <Button
+                                android:id="@+id/adapter_community_auto_nicocas"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:layout_weight="1"
+                                android:text="@string/auto_nicolive" />
+
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
     </androidx.cardview.widget.CardView>
 </LinearLayout>

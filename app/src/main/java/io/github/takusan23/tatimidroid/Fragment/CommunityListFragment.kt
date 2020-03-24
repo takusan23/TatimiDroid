@@ -149,7 +149,22 @@ class CommunityListFragment : Fragment() {
     //おすすめの番組
     fun getRecommend() {
         recyclerViewList.clear()
-        ProgramAPI(context).getRecommend(null) { response, arrayList ->
+        ProgramAPI(context).getRecommend(null) { arrayList ->
+            //リスト更新
+            activity?.runOnUiThread {
+                communityRecyclerViewAdapter.notifyDataSetChanged()
+                arrayList.forEach {
+                    recyclerViewList.add(it)
+                }
+                swipeRefreshLayout.isRefreshing = false
+            }
+        }
+    }
+
+    // 放送中の注目番組
+    fun getChumoku(){
+        recyclerViewList.clear()
+        ProgramAPI(context).getFocusProgramListState(null) { arrayList ->
             //リスト更新
             activity?.runOnUiThread {
                 communityRecyclerViewAdapter.notifyDataSetChanged()
@@ -162,12 +177,26 @@ class CommunityListFragment : Fragment() {
     }
 
 
+    fun getBeforeOpen(){
+        recyclerViewList.clear()
+        ProgramAPI(context).getPopularBeforeOpenBroadcastStatusProgramListState(null) { arrayList ->
+            //リスト更新
+            activity?.runOnUiThread {
+                communityRecyclerViewAdapter.notifyDataSetChanged()
+                arrayList.forEach {
+                    recyclerViewList.add(it)
+                }
+                swipeRefreshLayout.isRefreshing = false
+            }
+        }
+    }
+
     // 参加中コミュニティから放送中、予約枠を取得する。
 // 今まではスマホサイトにアクセスしてJSON取ってたけど動かなくなった。
 // のでPC版にアクセスしてJSONを取得する（PC版にもJSON存在した。）
     fun getFavouriteCommunity() {
         recyclerViewList.clear()
-        ProgramAPI(context).getFollowProgram(null) { response, arrayList ->
+        ProgramAPI(context).getFollowProgram(null) { arrayList ->
             //リスト更新
             activity?.runOnUiThread {
                 communityRecyclerViewAdapter.notifyDataSetChanged()

@@ -280,4 +280,13 @@
     <string name="nicoad_active">Points during the advertising period</string>
     <string name="setting_display_cutout_title">Notch invades cutout area</string>
     <string name="setting_display_cutoutdesciprion">Hide the status bar and navigation bar to expand the display area. Some devices have backlit names. (E.g. terminals with large notches)</string>
+    <string name="relogin">Re-login to Nico Nico</string>
+    <string name="mode_comeview">View</string>
+    <string name="mode_post">Post</string>
+    <string name="mode_nicocas">Cas</string>
+    <string name="auto">Auto Admission</string>
+    <string name="add_calendar">Calendar</string>
+    <string name="ts_add">TS</string>
+    <string name="auto_tatimidroid">Automatic admission (opens at Tachimidorido)</string>
+    <string name="auto_nicolive">Automatic admission (open with Nico Nico)</string>
 </resources>

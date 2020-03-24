@@ -280,4 +280,13 @@
     <string name="nicoad_active">広告期間中ポイント</string>
     <string name="setting_display_cutout_title">ノッチ、切り欠き領域に侵略する</string>
     <string name="setting_display_cutoutdesciprion">ステータスバーやナビゲーションバーを非表示にして表示領域を広げます。一部の端末では逆光名になります。（ノッチが大きい端末など）</string>
+    <string name="relogin">ニコニコに再ログインしました</string>
+    <string name="mode_comeview">コメビュ</string>
+    <string name="mode_post">コメ投稿</string>
+    <string name="mode_nicocas">cas</string>
+    <string name="auto">自動入場</string>
+    <string name="add_calendar">予定追加</string>
+    <string name="ts_add">TS追加</string>
+    <string name="auto_tatimidroid">自動入場（たちみどろいどで開く）</string>
+    <string name="auto_nicolive">自動入場（ニコ生アプリで開く）</string>
 </resources>

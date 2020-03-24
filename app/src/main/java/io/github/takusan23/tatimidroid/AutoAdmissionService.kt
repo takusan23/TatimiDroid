@@ -24,6 +24,7 @@ class AutoAdmissionService : Service() {
     lateinit var autoAdmissionSQLiteSQLite: AutoAdmissionSQLiteSQLite
     lateinit var sqLiteDatabase: SQLiteDatabase
     lateinit var notificationManager: NotificationManager
+    lateinit var broadcastReceiver: BroadcastReceiver
 
     override fun onCreate() {
         super.onCreate()
@@ -244,14 +245,19 @@ class AutoAdmissionService : Service() {
             // ブロードキャスト受け取る
             val intentFilter = IntentFilter()
             intentFilter.addAction("close_auto_admission")
-            val receiver = object : BroadcastReceiver() {
+            broadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
                     stopSelf()
                 }
             }
-            registerReceiver(receiver, intentFilter)
+            registerReceiver(broadcastReceiver, intentFilter)
 
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(broadcastReceiver)
     }
 
 
