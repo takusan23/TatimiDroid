@@ -27,7 +27,7 @@
                     android:id="@+id/fragment_program_follow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="5sp"
+                    android:layout_margin="2sp"
                     android:layout_weight="1"
                     android:text="@string/follow_program" />
 
@@ -35,40 +35,76 @@
                     android:id="@+id/fragment_program_nicorepo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="5sp"
+                    android:layout_margin="2sp"
                     android:layout_weight="1"
                     android:text="@string/nicorepo" />
         </LinearLayout>
 
-        <Button
-                android:id="@+id/fragment_program_osusume"
+        <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/osusume" />
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
 
-        <Button
-                android:id="@+id/fragment_program_ranking"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/ranking" />
+            <Button
+                    android:id="@+id/fragment_program_osusume"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2sp"
+                    android:layout_weight="1"
+                    android:text="@string/osusume" />
 
-        <Button
-                android:id="@+id/fragment_program_nicolive_top"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="ニコ生TOP" />
+            <Button
+                    android:id="@+id/fragment_program_ranking"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2sp"
+                    android:layout_weight="1"
+                    android:text="@string/ranking" />
+        </LinearLayout>
 
-        <Button
-                android:id="@+id/fragment_program_korekara"
+        <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="これからの注目番組" />
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
 
-        <Button
-                android:id="@+id/fragment_program_ninki_yoyaku"
+            <Button
+                    android:id="@+id/fragment_program_nicolive_top"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2sp"
+                    android:layout_weight="1"
+                    android:text="@string/nicolive_top" />
+
+            <Button
+                    android:id="@+id/fragment_program_korekara"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2sp"
+                    android:layout_weight="1"
+                    android:text="@string/upcoming_programs" />
+        </LinearLayout>
+
+        <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="人気の予約番組" />
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+            <Button
+                    android:id="@+id/fragment_program_ninki_yoyaku"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2sp"
+                    android:layout_weight="1"
+                    android:text="@string/popular_reservation_program" />
+
+            <Button
+                    android:id="@+id/fragment_program_auto_admission"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="2sp"
+                    android:layout_weight="1"
+                    android:text="@string/auto_admission" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -91,11 +127,12 @@
                 android:padding="10sp" />
 
         <TextView
+                android:drawableStart="@drawable/ic_filter_list_black_24dp"
                 android:id="@+id/textView16"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="10sp"
-                android:text="おすすめ・ランキング・公式番組はここから" />
+                android:text="@string/dropdown_title" />
 
     </LinearLayout>
 

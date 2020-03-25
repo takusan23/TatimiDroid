@@ -289,4 +289,8 @@
     <string name="ts_add">TS</string>
     <string name="auto_tatimidroid">Automatic admission (opens at Tachimidorido)</string>
     <string name="auto_nicolive">Automatic admission (open with Nico Nico)</string>
+    <string name="nicolive_top">Nico Live Top</string>
+    <string name="upcoming_programs">Upcoming programs</string>
+    <string name="popular_reservation_program">Popular reservation programs</string>
+    <string name="dropdown_title">Click here for recommended / ranked / official programs</string>
 </resources>

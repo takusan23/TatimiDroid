@@ -252,7 +252,6 @@ class CommunityListFragment : Fragment() {
             sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
             autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
         }
-
         //SQLite読み出し
         val cursor = sqLiteDatabase.query(
             "auto_admission",

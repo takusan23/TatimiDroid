@@ -289,4 +289,8 @@
     <string name="ts_add">TS追加</string>
     <string name="auto_tatimidroid">自動入場（たちみどろいどで開く）</string>
     <string name="auto_nicolive">自動入場（ニコ生アプリで開く）</string>
+    <string name="nicolive_top">ニコ生トップ</string>
+    <string name="upcoming_programs">これからの注目番組</string>
+    <string name="popular_reservation_program">人気の予約番組</string>
+    <string name="dropdown_title">おすすめ・ランキング・公式番組等はここから</string>
 </resources>

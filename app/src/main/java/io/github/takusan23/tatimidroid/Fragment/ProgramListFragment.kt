@@ -67,6 +67,9 @@ class ProgramListFragment : Fragment() {
         fragment_program_korekara.setOnClickListener {
             setFragment(CommunityListFragment.KOREKARA)
         }
+        fragment_program_auto_admission.setOnClickListener {
+            setFragment(CommunityListFragment.ADMISSION)
+        }
 
     }
 
