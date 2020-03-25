@@ -46,19 +46,20 @@
             </FrameLayout>
 
 
-            <androidx.constraintlayout.motion.widget.MotionLayout
+            <LinearLayout
                     android:id="@+id/comment_activity_fragment_layout_motionlayout"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    app:layoutDescription="@xml/comment_fragment_comment_motion">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
                 <LinearLayout
                         android:id="@+id/comment_fragment_program_info"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:paddingLeft="10sp"
                         android:paddingRight="10sp"
+                        android:visibility="gone"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
@@ -176,11 +177,24 @@
 
                 </LinearLayout>
 
+
+            </LinearLayout>
+
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                    android:id="@+id/comment_fragment_fab_coordinator"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
                 <LinearLayout
                         android:id="@+id/fragment_comment_fragment_linearlayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
@@ -212,29 +226,18 @@
 
                 </LinearLayout>
 
-                <androidx.coordinatorlayout.widget.CoordinatorLayout
-                        android:id="@+id/comment_fragment_fab_coordinator"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/fab"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|right"
+                        android:layout_margin="16dp"
+                        android:src="@drawable/ic_outline_create_24px"
+                        app:backgroundTint="@color/colorAccent"
+                        tools:visibility="visible" />
 
-                    <com.google.android.material.floatingactionbutton.FloatingActionButton
-                            android:id="@+id/fab"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="bottom|right"
-                            android:layout_margin="16dp"
-                            android:src="@drawable/ic_outline_create_24px"
-                            app:backgroundTint="@color/colorAccent"
-                            tools:visibility="visible" />
+            </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-                </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-
-            </androidx.constraintlayout.motion.widget.MotionLayout>
         </LinearLayout>
     </LinearLayout>
 

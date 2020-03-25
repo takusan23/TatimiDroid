@@ -25,6 +25,8 @@ import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.motion.widget.MotionLayout
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
@@ -312,6 +314,8 @@ class CommentFragment : Fragment() {
 
     lateinit var commentViewPager: CommentViewPager
 
+    var isOpen = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -405,7 +409,16 @@ class CommentFragment : Fragment() {
         if (fragment_comment_fragment_linearlayout != null && comment_activity_fragment_layout_motionlayout != null) {
             fragment_comment_fragment_linearlayout.background =
                 ColorDrawable(darkModeSupport.getThemeColor())
-            setAlwaysShowProgramInfo()
+            // setAlwaysShowProgramInfo()
+            fragment_comment_fragment_linearlayout.setOnClickListener {
+                // 表示、非表示
+                comment_fragment_program_info.visibility =
+                    if (comment_fragment_program_info.visibility == View.GONE) {
+                        View.VISIBLE
+                    } else {
+                        View.GONE
+                    }
+            }
         }
 
         //とりあえずコメントViewFragmentへ
@@ -648,6 +661,7 @@ class CommentFragment : Fragment() {
     }
 
     fun setAlwaysShowProgramInfo() {
+/*
         // MotionLayout固定
         if (comment_activity_fragment_layout_motionlayout != null) {
             val isAlwaysShowProgramInfo =
@@ -664,6 +678,7 @@ class CommentFragment : Fragment() {
                 fragment_comment_bar.visibility = View.VISIBLE
             }
         }
+*/
     }
 
     // ニコ生ゲーム有効

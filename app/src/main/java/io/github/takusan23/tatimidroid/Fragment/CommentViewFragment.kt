@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -98,6 +99,7 @@ class CommentViewFragment : Fragment() {
             allRoomComment.recyclerView = recyclerView
             recyclerView.setItemAnimator(null);
         }
+
     }
 
     fun showToast(message: String) {

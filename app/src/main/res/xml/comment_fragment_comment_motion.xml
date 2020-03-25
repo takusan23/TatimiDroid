@@ -7,7 +7,7 @@
             motion:constraintSetEnd="@id/end"
             motion:constraintSetStart="@id/start"
             motion:duration="500">
-        <OnClick motion:targetId="@+id/fragment_comment_bar" />
+<!--        <OnClick motion:targetId="@+id/fragment_comment_bar" />-->
     </Transition>
 
     <ConstraintSet android:id="@+id/start">
