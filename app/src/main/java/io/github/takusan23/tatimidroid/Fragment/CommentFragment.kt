@@ -845,11 +845,8 @@ class CommentFragment : Fragment() {
                         insertDB()
                         // 番組情報
                         commentActivity.runOnUiThread {
-                            if (activity !is NimadoActivity) {
-                                // 二窓モードでは利用しない
-                                comment_fragment_program_title.text = "$programTitle - $liveId"
-                                comment_fragment_program_id.text = "$room - $seet"
-                            }
+                            comment_fragment_program_title.text = "$programTitle - $liveId"
+                            comment_fragment_program_id.text = "$room - $seet"
                         }
                     } else {
                         // エラーの原因取る。

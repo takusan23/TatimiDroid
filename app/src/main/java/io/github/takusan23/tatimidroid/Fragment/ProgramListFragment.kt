@@ -13,14 +13,23 @@ import io.github.takusan23.tatimidroid.Adapter.ProgramListViewPager
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_list.*
+import java.lang.IllegalArgumentException
 
 /**
- * 番組検索にViewPager乗せるためのFragment
+ * 番組検索
  * */
 class ProgramListFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_program_list, container, false)
+    }
+
+    /**
+     * 画面回転対策
+     * */
+    override fun onStart() {
+        super.onStart()
+        setFragment(CommunityListFragment.FOLLOW)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -42,9 +51,10 @@ class ProgramListFragment : Fragment() {
         // 背景
         fragment_program_backdrop.background = ColorDrawable(darkModeSupport.getThemeColor())
         fragment_program_bar.background = ColorDrawable(darkModeSupport.getThemeColor())
-        fragment_program_list.background = ColorDrawable(darkModeSupport.getThemeColor())
+        fragment_program_list_linearlayout.background =
+            ColorDrawable(darkModeSupport.getThemeColor())
 
-        setFragment(CommunityListFragment.FOLLOW)
+        //setFragment(CommunityListFragment.FOLLOW)
 
         fragment_program_follow.setOnClickListener {
             setFragment(CommunityListFragment.FOLLOW)
@@ -83,7 +93,7 @@ class ProgramListFragment : Fragment() {
         bundle.putInt("page", page)
         communityListFragment.arguments = bundle
         fragmentManager?.beginTransaction()
-            ?.replace(fragment_program_list.id, communityListFragment)?.commit()
+            ?.replace(fragment_program_list_linearlayout.id, communityListFragment)?.commit()
     }
 
 }

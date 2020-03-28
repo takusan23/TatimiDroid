@@ -292,5 +292,6 @@
     <string name="nicolive_top">Nico Live Top</string>
     <string name="upcoming_programs">Upcoming programs</string>
     <string name="popular_reservation_program">Popular reservation programs</string>
-    <string name="dropdown_title">Click here for recommended / ranked / official programs</string>
+    <string name="dropdown_title">Open recommendations, rankings, official programs, etc.</string>
+    <string name="nicoad_advertise">Advertise</string>
 </resources>

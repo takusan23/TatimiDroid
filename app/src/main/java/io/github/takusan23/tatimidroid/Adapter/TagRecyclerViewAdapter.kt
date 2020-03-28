@@ -64,6 +64,7 @@ class TagRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayL
                 bottomFragment.apply {
                     // 再読み込み
                     tagCoroutine()
+                    programFragment.programInfoCoroutine()
                 }
             }
         }

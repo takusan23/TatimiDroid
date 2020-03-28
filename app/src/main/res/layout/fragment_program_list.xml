@@ -137,7 +137,7 @@
     </LinearLayout>
 
     <LinearLayout
-            android:id="@+id/fragment_program_list"
+            android:id="@+id/fragment_program_list_linearlayout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:background="#fff"
