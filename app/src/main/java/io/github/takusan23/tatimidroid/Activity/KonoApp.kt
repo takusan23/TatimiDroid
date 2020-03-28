@@ -35,7 +35,7 @@ class KonoApp : AppCompatActivity() {
     /*
     * バージョンとか
     * */
-    val version = "2020/03/23"
+    val version = "2020/03/29"
     val codeName1 = "（夏）"
 
     override fun onCreate(savedInstanceState: Bundle?) {
