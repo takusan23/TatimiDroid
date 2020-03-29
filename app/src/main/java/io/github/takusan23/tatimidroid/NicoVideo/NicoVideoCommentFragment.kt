@@ -2,14 +2,14 @@ package io.github.takusan23.tatimidroid.NicoVideo
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.*
-import android.widget.AdapterView
-import android.widget.AdapterView.OnItemSelectedListener
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.menu.MenuPopupHelper
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,7 +28,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-
+/**
+ * ニコ動のコメント一覧Fragment
+ * */
 class NicoVideoCommentFragment : Fragment() {
 
     var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
@@ -74,6 +76,52 @@ class NicoVideoCommentFragment : Fragment() {
         // スクレイピングしてコメント取得に必要な情報を取得する
         getNicoVideoWebPage()
 
+        // コメント検索
+        initSearchButton()
+
+    }
+
+    /**
+     * コメント検索関係
+     * */
+    private fun initSearchButton() {
+        activity_nicovideo_comment_serch_button.setOnClickListener {
+            // 検索UI表示・非表示
+            activity_nicovideo_comment_serch_linearlayout.visibility =
+                if (activity_nicovideo_comment_serch_linearlayout.visibility == View.GONE) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+        }
+        // テキストボックス監視
+        var tmpList = arrayListOf<ArrayList<*>>()
+        activity_nicovideo_comment_serch_input.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // 一時的に
+                tmpList.clear()
+                recyclerViewList.forEach {
+                    tmpList.add(it)
+                }
+                if (s?.isNotEmpty() == true) {
+                    // フィルター
+                    tmpList = recyclerViewList.filter { arrayList ->
+                        (arrayList[2] as String).contains(s)
+                    } as ArrayList<ArrayList<*>>
+                }
+                // Adapter更新
+                nicoVideoAdapter = NicoVideoAdapter(tmpList)
+                activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
+            }
+        })
     }
 
 

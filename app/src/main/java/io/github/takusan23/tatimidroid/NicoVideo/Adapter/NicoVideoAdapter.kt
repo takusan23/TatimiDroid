@@ -56,6 +56,8 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>
         val date = item.get(3)
         val vpos = item.get(4)
         val time = vpos.toFloat() / 100 //再生時間。100で割ればいいっぽい？
+        // きれいな形へ
+        val formattedTime = formatTime(time)
         val mail = item.get(5)
         var nicoruCount = item.get(6)
         val no = item.get(7)
@@ -66,8 +68,18 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>
 
         holder.commentTextView.text = comment
         holder.userNameTextView.text =
-            "${setTimeFormat(date.toLong())} | $time | $mail | $nicoruCount"
+            "${setTimeFormat(date.toLong())} | $formattedTime | $mail | $nicoruCount"
 
+    }
+
+    /**
+     * 時間表記をきれいにする関数
+     * */
+    private fun formatTime(time: Float): String {
+        val minutes = time / 60
+        val hour = (minutes / 60).toInt()
+        val simpleDateFormat = SimpleDateFormat("mm:ss")
+        return "${hour}:${simpleDateFormat.format(time * 1000)}"
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

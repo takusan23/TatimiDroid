@@ -1417,7 +1417,7 @@ class CommentFragment : Fragment() {
                             if (content.contains("/vote stop")) {
                                 commentActivity.runOnUiThread {
                                     if (this@CommentFragment::enquateView.isInitialized) {
-                                        live_framelayout.removeView(enquateView)
+                                        comment_fragment_enquate_framelayout.removeView(enquateView)
                                     }
                                 }
                             }
@@ -2163,7 +2163,8 @@ class CommentFragment : Fragment() {
             layoutInflater.inflate(R.layout.bottom_fragment_enquate_layout, null, false)
         if (type.contains("start")) {
             //アンケ開始
-            live_framelayout.addView(enquateView)
+            comment_fragment_enquate_framelayout.removeAllViews()
+            comment_fragment_enquate_framelayout.addView(enquateView)
             // /vote start ～なんとか　を配列にする
             val voteString = message.replace("/vote start ", "")
             val voteList = voteString.split(" ") // 空白の部分で分けて配列にする
@@ -2185,7 +2186,7 @@ class CommentFragment : Fragment() {
                     //投票
                     //enquatePOST(i - 1)
                     //アンケ画面消す
-                    live_framelayout.removeView(enquateView)
+                    comment_fragment_enquate_framelayout.removeAllViews()
                     //Snackbar
                     Snackbar.make(
                         liveFrameLayout,
@@ -2213,11 +2214,11 @@ class CommentFragment : Fragment() {
                     enquateView.enquate_linearlayout_3.addView(button)
                 }
             }
-        } else {
+        } else if(enquateJSONArray.isNotEmpty()) {
             //println(enquateJSONArray)
             //アンケ結果
-            live_framelayout.removeView(enquateView)
-            live_framelayout.addView(enquateView)
+            comment_fragment_enquate_framelayout.removeAllViews()
+            comment_fragment_enquate_framelayout.addView(enquateView)
             // /vote showresult ~なんとか を　配列にする
             val voteString = message.replace("/vote showresult per ", "")
             val voteList = voteString.split(" ")

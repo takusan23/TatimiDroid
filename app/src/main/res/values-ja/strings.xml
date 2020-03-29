@@ -294,4 +294,6 @@
     <string name="popular_reservation_program">人気の予約番組</string>
     <string name="dropdown_title">おすすめ・ランキング・公式番組等を開く</string>
     <string name="nicoad_advertise">広告を打つ</string>
+    <string name="serch">検索</string>
+    <string name="comment_serch">コメント検索</string>
 </resources>
