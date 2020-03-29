@@ -1416,9 +1416,7 @@ class CommentFragment : Fragment() {
                             //アンケ終了
                             if (content.contains("/vote stop")) {
                                 commentActivity.runOnUiThread {
-                                    if (this@CommentFragment::enquateView.isInitialized) {
-                                        comment_fragment_enquate_framelayout.removeView(enquateView)
-                                    }
+                                    comment_fragment_enquate_framelayout.removeAllViews()
                                 }
                             }
                         }

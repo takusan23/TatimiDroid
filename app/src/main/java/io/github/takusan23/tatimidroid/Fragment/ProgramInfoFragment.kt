@@ -16,6 +16,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoLiveAPI.User
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_info.*
 import kotlinx.coroutines.Dispatchers
@@ -157,6 +158,7 @@ class ProgramInfoFragment : Fragment() {
             // 放送者
             val supplier = program.getJSONObject("supplier")
             val name = supplier.getString("name")
+            userId = supplier.getString("programProviderId")
             var level = 0
             // 公式番組対応版
             if (supplier.has("level")) {
@@ -167,6 +169,10 @@ class ProgramInfoFragment : Fragment() {
             // フォーマット済み
             val formattedBeginTime = simpleDateFormat.format(beginTime * 1000)
             val formattedEndTime = simpleDateFormat.format(endTime * 1000)
+
+            // ユーザー情報取得。フォロー中かどうか判断するため
+            val user = User(context, userId)
+            val userData = user.getUserCoroutine().await()
 
             //UI
             activity?.runOnUiThread {
@@ -205,6 +211,14 @@ class ProgramInfoFragment : Fragment() {
                     fragment_program_info_community_follow_button.isEnabled = false
                     fragment_program_info_community_follow_button.text =
                         getString(R.string.followed)
+                }
+            }
+            // ユーザーフォロー中？
+            if (userData?.isFollowing == true) {
+                activity?.runOnUiThread {
+                    fragment_program_info_broadcaster_follow_button.isEnabled = false
+                    fragment_program_info_broadcaster_follow_button.text =
+                        getString(R.string.is_following)
                 }
             }
             //たぐ

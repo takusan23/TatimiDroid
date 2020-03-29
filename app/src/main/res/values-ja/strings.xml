@@ -296,4 +296,5 @@
     <string name="nicoad_advertise">広告を打つ</string>
     <string name="serch">検索</string>
     <string name="comment_serch">コメント検索</string>
+    <string name="is_following">フォロー中です</string>
 </resources>
