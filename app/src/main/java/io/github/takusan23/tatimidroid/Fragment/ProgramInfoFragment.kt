@@ -158,7 +158,21 @@ class ProgramInfoFragment : Fragment() {
             // 放送者
             val supplier = program.getJSONObject("supplier")
             val name = supplier.getString("name")
-            userId = supplier.getString("programProviderId")
+            // 公式では使わない
+            if (supplier.has("programProviderId")) {
+                userId = supplier.getString("programProviderId")
+                // ユーザー情報取得。フォロー中かどうか判断するため
+                val user = User(context, userId)
+                val userData = user.getUserCoroutine().await()
+                // ユーザーフォロー中？
+                if (userData?.isFollowing == true) {
+                    activity?.runOnUiThread {
+                        fragment_program_info_broadcaster_follow_button.isEnabled = false
+                        fragment_program_info_broadcaster_follow_button.text =
+                            getString(R.string.is_following)
+                    }
+                }
+            }
             var level = 0
             // 公式番組対応版
             if (supplier.has("level")) {
@@ -170,9 +184,6 @@ class ProgramInfoFragment : Fragment() {
             val formattedBeginTime = simpleDateFormat.format(beginTime * 1000)
             val formattedEndTime = simpleDateFormat.format(endTime * 1000)
 
-            // ユーザー情報取得。フォロー中かどうか判断するため
-            val user = User(context, userId)
-            val userData = user.getUserCoroutine().await()
 
             //UI
             activity?.runOnUiThread {
@@ -213,14 +224,7 @@ class ProgramInfoFragment : Fragment() {
                         getString(R.string.followed)
                 }
             }
-            // ユーザーフォロー中？
-            if (userData?.isFollowing == true) {
-                activity?.runOnUiThread {
-                    fragment_program_info_broadcaster_follow_button.isEnabled = false
-                    fragment_program_info_broadcaster_follow_button.text =
-                        getString(R.string.is_following)
-                }
-            }
+
             //たぐ
             val tag = jsonObject.getJSONObject("program").getJSONObject("tag")
             val isTagNotEditable = tag.getBoolean("isLocked") // タグ編集が可能か？
