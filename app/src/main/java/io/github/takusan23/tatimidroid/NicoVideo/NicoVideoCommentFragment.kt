@@ -15,6 +15,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
@@ -42,7 +43,7 @@ class NicoVideoCommentFragment : Fragment() {
 
     var id = "sm157"
 
-    lateinit var nicoVideoFragment: NicoVideoFragment
+    // lateinit var nicoVideoFragment: NicoVideoFragment
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -61,9 +62,9 @@ class NicoVideoCommentFragment : Fragment() {
         //動画ID受け取る（sm9とかsm157とか）
         id = arguments?.getString("id") ?: "sm157"
 
-        //nicovideoFragment取る。
-        nicoVideoFragment =
-            activity?.supportFragmentManager?.findFragmentByTag(id) as NicoVideoFragment
+        // //nicovideoFragment取る。
+        // nicoVideoFragment =
+        //     activity?.supportFragmentManager?.findFragmentByTag(id) as NicoVideoFragment
 
         usersession = pref_setting.getString("user_session", "") ?: ""
 
@@ -79,6 +80,17 @@ class NicoVideoCommentFragment : Fragment() {
         // コメント検索
         initSearchButton()
 
+    }
+
+    /**
+     * 3DSのコメントを表示するかどうか
+     * */
+    fun isShow3DSComment(): Boolean {
+        if (pref_setting.getBoolean("fragment_dev_niconico_video", false)) {
+            return false
+        } else {
+            return (activity?.supportFragmentManager?.findFragmentByTag(id) as NicoVideoFragment).isHide3DSComment
+        }
     }
 
     /**
@@ -419,7 +431,7 @@ class NicoVideoCommentFragment : Fragment() {
                             //追加可能か
                             var addable = true
                             //3DSのコメント非表示機能有効時
-                            if (nicoVideoFragment.isHide3DSComment) {
+                            if (isShow3DSComment()) {
                                 if (mail.contains("device:3DS")) {
                                     addable = false
                                 }
@@ -441,6 +453,7 @@ class NicoVideoCommentFragment : Fragment() {
                                 item.add(mail)
                                 item.add(nicoruCount)
                                 item.add(no)
+                                item.add(chat.toString())
                                 commentListList.add(item)
                             }
                         }
@@ -462,6 +475,12 @@ class NicoVideoCommentFragment : Fragment() {
                         recyclerViewList.add(it)
                     }
 
+                // 配列をDevNicoVideoFragmentへ
+                (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).commentList =
+                    ArrayList(commentListList)
+                (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).commentList.sortBy { arrayList ->
+                    arrayList[4].toInt()
+                }
 
                 activity?.runOnUiThread {
                     nicoVideoAdapter.notifyDataSetChanged()
@@ -522,7 +541,7 @@ class NicoVideoCommentFragment : Fragment() {
                     //追加可能か
                     var addable = true
                     //3DSのコメント非表示機能有効時
-                    if (nicoVideoFragment.isHide3DSComment) {
+                    if (isShow3DSComment()) {
                         if (mail.contains("device:3DS")) {
                             addable = false
                         }

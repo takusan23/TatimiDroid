@@ -452,7 +452,7 @@ class NicoVideoSelectFragment : Fragment() {
                             add("mylist")//マイリストだよ
                             add(videoId)
                             add(title)
-                            add(createTime)
+                            add((createTime.toLong() * 1000).toString())
                             add(registeredAt)
                             add(watchCount)
                             add(thumbnailUrl)
@@ -643,7 +643,8 @@ class NicoVideoSelectFragment : Fragment() {
                         }
                     }
                     //次のページへ移動
-                    if (document.getElementsByClass("outer VideoListHeadMenuContainer").isNotEmpty() && document.getElementsByClass(
+                    if (document.getElementsByClass("outer VideoListHeadMenuContainer")
+                            .isNotEmpty() && document.getElementsByClass(
                             "outer VideoListHeadMenuContainer"
                         )[0].getElementsByClass("pager").isNotEmpty()
                     ) {

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:motion="http://schemas.android.com/apk/res-auto">
+
+    <Transition
+            motion:constraintSetEnd="@id/community_card_end"
+            motion:constraintSetStart="@id/community_card_start"
+            motion:duration="500">
+        <OnClick motion:targetId="@id/adapter_community_program_name_linearlayout" />
+    </Transition>
+
+    <ConstraintSet android:id="@+id/community_card_start">
+        <Constraint
+                android:id="@+id/adapter_community_before_linearlayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"/>
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/community_card_end">
+        <Constraint
+                android:id="@+id/adapter_community_before_linearlayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/adapter_community_program_name_linearlayout"/>
+    </ConstraintSet>
+</MotionScene>

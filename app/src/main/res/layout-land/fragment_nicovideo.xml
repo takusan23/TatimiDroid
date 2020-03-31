@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+    <FrameLayout
+            android:id="@+id/fragment_nicovideo_framelayout"
+            android:layout_width="match_parent"
+            android:layout_height="300sp"
+            android:layout_gravity="center"
+            android:layout_weight="1">
+
+        <SurfaceView
+                android:id="@+id/fragment_nicovideo_surfaceview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        <io.github.takusan23.tatimidroid.CommentCanvas
+                android:id="@+id/fragment_nicovideo_comment_canvas"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+    </FrameLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+        <com.google.android.material.tabs.TabLayout
+                android:id="@+id/fragment_nicovideo_tablayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <com.google.android.material.tabs.TabItem
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/menu" />
+
+            <com.google.android.material.tabs.TabItem
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/comment" />
+
+            <com.google.android.material.tabs.TabItem
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nicovideo_info" />
+
+            <com.google.android.material.tabs.TabItem
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/parent_contents" />
+        </com.google.android.material.tabs.TabLayout>
+
+        <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            <LinearLayout
+                    android:id="@+id/fragment_nicovideo_fragment_linearlayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+            </LinearLayout>
+
+            <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center"
+                    android:layout_margin="20sp">
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="10sp"
+                        android:orientation="vertical">
+
+                    <SeekBar
+                            android:id="@+id/fragment_nicovideo_seek"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+
+                    <ImageView
+                            android:id="@+id/fragment_nicovideo_play_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="20sp"
+                            app:srcCompat="@drawable/ic_play_arrow_24px" />
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+        </FrameLayout>
+    </LinearLayout>
+</LinearLayout>

@@ -18,12 +18,15 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     //白色テキストPaint
     lateinit var paint: Paint
+
     //白色テキストの下に描画する黒色テキストPaint
     lateinit var blackPaint: Paint
     val textList = arrayListOf<String>()
+
     //座標？
     val xList = arrayListOf<Int>()
     val yList = arrayListOf<Int>()
+
     //色とか
     val commandList = arrayListOf<String>()
 
@@ -72,16 +75,19 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     // コメントの配列
     val commentObjList = arrayListOf<CommentObject>()
+
     // 高さ：横の位置
     val commentLine = mutableMapOf<Float, CommentObject>()
 
     // 上付きコメントの配列
     val ueCommentList = arrayListOf<CommentObject>()
+
     // 高さ：追加時間（UnixTime）
     val ueCommentLine = mutableMapOf<Float, Long>()
 
     // 下付きコメントの配列
     val sitaCommentList = arrayListOf<CommentObject>()
+
     // 高さ：追加時間（UnixTime）
     val sitaCommentLine = mutableMapOf<Float, Long>()
 
@@ -90,6 +96,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     // ポップアップ再生時はtrue
     var isPopupView = false
+
+    // コメントを流さないときはtrue
+    var isPause = false
 
     init {
         //文字サイズ計算。端末によって変わるので
@@ -116,6 +125,12 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         isCommentColorRoom = pref_setting.getBoolean("setting_command_room_color", false)
 
         Timer().schedule(10, 10) {
+
+            // コメント移動止めるやつ
+            if (isPause) {
+                return@schedule
+            }
+
             // コメントを移動させる
             for (i in 0 until commentObjList.size) {
                 val obj = commentObjList[i]
