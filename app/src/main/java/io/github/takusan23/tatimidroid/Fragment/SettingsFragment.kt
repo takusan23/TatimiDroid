@@ -36,6 +36,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val konoapp_privacy = findPreference<Preference>("konoapp_privacy")
         // フォント設定へ行くPreference
         val fontPreference = findPreference<Preference>("font_preference")
+        // 開発者用項目
+        val devSetting = findPreference<Preference>("dev_setting")
 
         val darkmode_switch_preference = findPreference<SwitchPreference>("setting_darkmode")
 
@@ -72,6 +74,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     R.id.main_activity_linearlayout,
                     FontSettingFragment(),
                     "font_preference"
+                )
+                addToBackStack(null)
+            }?.commit()
+            true
+        }
+
+        // 開発者用設定項目
+        devSetting?.setOnPreferenceClickListener {
+            // フォント設定へ切り替え
+            fragmentManager?.beginTransaction()?.apply {
+                replace(
+                    R.id.main_activity_linearlayout,
+                    DevSettingFragment(),
+                    "dev_preference"
                 )
                 addToBackStack(null)
             }?.commit()

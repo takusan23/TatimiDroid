@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoLiveAPI
+package io.github.takusan23.tatimidroid.NicoAPI
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope

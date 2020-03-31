@@ -94,6 +94,8 @@ class ProgramListFragment : Fragment() {
         communityListFragment.arguments = bundle
         fragmentManager?.beginTransaction()
             ?.replace(fragment_program_list_linearlayout.id, communityListFragment)?.commit()
+        fragment_program_motionlayout.transitionToStart()
+
     }
 
 }

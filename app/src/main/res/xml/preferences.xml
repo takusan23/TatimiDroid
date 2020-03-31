@@ -252,6 +252,11 @@
 
     </PreferenceCategory>
 
+    <Preference
+            android:icon="@drawable/ic_policy_black"
+            android:key="dev_setting"
+            android:summary="フリとかじゃなくて"
+            android:title="開発者用実験項目" />
 
     <!--
         <SwitchPreference

@@ -2,12 +2,8 @@ package io.github.takusan23.tatimidroid
 
 import android.content.*
 import android.content.res.Configuration
-import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.provider.CalendarContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,21 +13,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
-import androidx.constraintlayout.motion.widget.MotionLayout
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
-import io.github.takusan23.tatimidroid.Fragment.AutoAdmissionBottomFragment
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
-import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
-import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveTimeShiftAPI
-import io.github.takusan23.tatimidroid.NicoLiveAPI.ProgramData
-import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionDBUtil
-import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.bottom_fragment_program_reservation.*
+import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import java.text.SimpleDateFormat
 import java.util.*
 

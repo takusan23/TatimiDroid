@@ -11,9 +11,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
-import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoAdAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoAdAPI
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_gift_layout.*
 import kotlinx.android.synthetic.main.fragment_nicoad_layout.*
 import okhttp3.*
 import org.json.JSONObject

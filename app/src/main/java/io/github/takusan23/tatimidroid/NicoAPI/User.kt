@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoLiveAPI
+package io.github.takusan23.tatimidroid.NicoAPI
 
 import android.content.Context
 import android.os.Handler
@@ -12,7 +12,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import okhttp3.*
 import org.json.JSONObject
-import java.io.IOException
 
 /**
  * ニコニコのユーザー情報を取得するAPI

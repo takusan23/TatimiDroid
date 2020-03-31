@@ -1,7 +1,6 @@
-package io.github.takusan23.tatimidroid.NicoLiveAPI
+package io.github.takusan23.tatimidroid.NicoAPI
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast

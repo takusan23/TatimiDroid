@@ -8,8 +8,8 @@ import android.view.View
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.AutoAdmissionService
-import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
-import io.github.takusan23.tatimidroid.NicoLiveAPI.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import io.github.takusan23.tatimidroid.R
 
 /**

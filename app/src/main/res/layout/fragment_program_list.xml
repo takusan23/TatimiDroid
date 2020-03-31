@@ -5,6 +5,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:id="@+id/fragment_program_motionlayout"
         app:layoutDescription="@xml/fragment_program_backdrop_motion"
         tools:showPaths="true">
 

@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.res.ColorStateList
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -16,10 +15,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import io.github.takusan23.tatimidroid.*
-import io.github.takusan23.tatimidroid.NicoLiveAPI.ProgramAPI
-import io.github.takusan23.tatimidroid.NicoLiveAPI.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.ProgramAPI
+import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
-import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
 import kotlinx.android.synthetic.main.fragment_community_list_layout.community_recyclerview
 import java.util.*
 import kotlin.collections.ArrayList

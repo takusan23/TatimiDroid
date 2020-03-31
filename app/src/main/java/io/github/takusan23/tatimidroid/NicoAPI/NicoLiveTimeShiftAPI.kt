@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoLiveAPI
+package io.github.takusan23.tatimidroid.NicoAPI
 
 import android.content.Context
 import android.os.Looper
@@ -6,7 +6,6 @@ import android.widget.Toast
 import io.github.takusan23.tatimidroid.R
 import okhttp3.*
 import java.io.IOException
-import java.util.logging.Handler
 
 /**
  * タイムシフト予約をするAPIまとめ

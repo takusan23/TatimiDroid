@@ -1,6 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoLiveAPI
-
-import android.icu.text.CaseMap
+package io.github.takusan23.tatimidroid.NicoAPI
 
 data class ProgramData(
     val title: String,

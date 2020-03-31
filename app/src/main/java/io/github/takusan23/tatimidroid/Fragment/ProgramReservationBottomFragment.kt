@@ -13,7 +13,6 @@ import android.provider.CalendarContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
@@ -21,12 +20,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.AutoAdmissionService
 import io.github.takusan23.tatimidroid.DarkModeSupport
-import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
-import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveTimeShiftAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLiveTimeShiftAPI
 import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
-import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_program_reservation.*
 import org.json.JSONObject
 

@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoLiveAPI
+package io.github.takusan23.tatimidroid.NicoAPI
 
 import okhttp3.*
 import java.io.IOException

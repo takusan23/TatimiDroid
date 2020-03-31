@@ -11,13 +11,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nimado_live_id.*
 import kotlinx.coroutines.*
 import okhttp3.*
-import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.util.regex.Pattern
 

@@ -12,16 +12,12 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.DarkModeSupport
-import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLiveHTML
-import io.github.takusan23.tatimidroid.NicoLiveAPI.NicoLogin
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.*
-import org.json.JSONObject
-import org.jsoup.Jsoup
-import java.io.IOException
 
 class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
 
