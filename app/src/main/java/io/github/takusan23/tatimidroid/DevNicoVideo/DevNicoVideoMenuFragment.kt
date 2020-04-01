@@ -41,6 +41,8 @@ class DevNicoVideoMenuFragment : Fragment() {
     fun getValue() {
         fragment_nicovideo_menu_3ds_switch.isChecked =
             prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
+        fragment_nicovideo_menu_scroll.isChecked =
+            prefSetting.getBoolean("nicovideo_comment_scroll", false)
     }
 
     /**
@@ -48,6 +50,7 @@ class DevNicoVideoMenuFragment : Fragment() {
      * */
     fun setValue() {
         switchListener(fragment_nicovideo_menu_3ds_switch, "nicovideo_comment_3ds_hidden")
+        switchListener(fragment_nicovideo_menu_scroll, "nicovideo_comment_scroll")
     }
 
     private fun switchListener(switch: Switch, key: String) {

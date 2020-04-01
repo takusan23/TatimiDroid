@@ -28,6 +28,7 @@ import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.collections.ArrayList
@@ -86,12 +87,36 @@ class DevNicoVideoFragment : Fragment() {
             fragmentTransaction.commit()
         }
 
+        // ActionBar消す
+        (activity as AppCompatActivity).supportActionBar?.hide()
+
         // Fragmentセットする
         initViewPager()
 
         // データ取得
         coroutine()
 
+    }
+
+    /**
+     * 縦画面のみ。動画のタイトルなど表示・非表示やタイトル設定など
+     * @param jsonObject NicoVideoHTML#parseJSON()の戻り値
+     * */
+    fun initTitleArea(jsonObject: JSONObject) {
+        if (fragment_nicovideo_bar != null && fragment_nicovideo_video_title_linearlayout != null) {
+            fragment_nicovideo_bar.setOnClickListener {
+                // バー押したら動画のタイトルなど表示・非表示
+                fragment_nicovideo_video_title_linearlayout.apply {
+                    visibility = if (visibility == View.GONE) {
+                        View.VISIBLE
+                    } else {
+                        View.GONE
+                    }
+                }
+            }
+        }
+        fragment_nicovideo_comment_title.text = jsonObject.getJSONObject("video").getString("title")
+        fragment_nicovideo_comment_videoid.text = videoId
     }
 
     /**
@@ -141,6 +166,8 @@ class DevNicoVideoFragment : Fragment() {
                     }
                     initRecyclerView(recyclerViewList)
                 }
+                // タイトル
+                initTitleArea(jsonObject)
             }
         }
     }
@@ -233,6 +260,11 @@ class DevNicoVideoFragment : Fragment() {
      * @param millSeconds 再生時間（秒）。
      * */
     fun scroll(seconds: Long) {
+        // スクロールしない設定？
+        if (prefSetting.getBoolean("nicovideo_comment_scroll", false)) {
+            return
+        }
+        // Nullチェック
         if ((viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as? DevNicoVideoCommentFragment)?.view?.findViewById<RecyclerView>(R.id.activity_nicovideo_recyclerview) != null) {
             val recyclerView =
                 (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as? DevNicoVideoCommentFragment)?.activity_nicovideo_recyclerview
