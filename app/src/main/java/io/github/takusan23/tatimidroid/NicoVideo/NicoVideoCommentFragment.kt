@@ -9,13 +9,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.menu.MenuPopupHelper
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.CommentCanvas
+import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
@@ -34,7 +33,7 @@ import kotlin.collections.ArrayList
  * */
 class NicoVideoCommentFragment : Fragment() {
 
-    var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
+    var recyclerViewList: ArrayList<ArrayList<String>> = arrayListOf()
     lateinit var nicoVideoAdapter: NicoVideoAdapter
 
     lateinit var pref_setting: SharedPreferences
@@ -74,9 +73,21 @@ class NicoVideoCommentFragment : Fragment() {
         //ポップアップメニュー初期化
         initSortPopupMenu()
 
-        // スクレイピングしてコメント取得に必要な情報を取得する
-        getNicoVideoWebPage()
-
+        if (pref_setting.getBoolean("fragment_dev_niconico_video", false)) {
+            recyclerViewList =
+                (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).commentList
+            activity?.runOnUiThread {
+                initRecyclerView()
+                Snackbar.make(
+                    activity?.findViewById(android.R.id.content)!!,
+                    "${getString(R.string.get_comment_count)}：${recyclerViewList.size}",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+            }
+        } else {
+            // スクレイピングしてコメント取得に必要な情報を取得する
+            getNicoVideoWebPage()
+        }
         // コメント検索
         initSearchButton()
 
@@ -107,7 +118,7 @@ class NicoVideoCommentFragment : Fragment() {
                 }
         }
         // テキストボックス監視
-        var tmpList = arrayListOf<ArrayList<*>>()
+        var tmpList = arrayListOf<ArrayList<String>>()
         activity_nicovideo_comment_serch_input.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
 
@@ -127,7 +138,7 @@ class NicoVideoCommentFragment : Fragment() {
                     // フィルター
                     tmpList = recyclerViewList.filter { arrayList ->
                         (arrayList[2] as String).contains(s)
-                    } as ArrayList<ArrayList<*>>
+                    } as ArrayList<ArrayList<String>>
                 }
                 // Adapter更新
                 nicoVideoAdapter = NicoVideoAdapter(tmpList)
@@ -474,13 +485,6 @@ class NicoVideoCommentFragment : Fragment() {
                     .forEach {
                         recyclerViewList.add(it)
                     }
-
-                // 配列をDevNicoVideoFragmentへ
-                (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).commentList =
-                    ArrayList(commentListList)
-                (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).commentList.sortBy { arrayList ->
-                    arrayList[4].toInt()
-                }
 
                 activity?.runOnUiThread {
                     nicoVideoAdapter.notifyDataSetChanged()

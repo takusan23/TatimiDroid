@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoVideo
+package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -6,31 +6,35 @@ import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
+import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
-import com.google.android.material.tabs.TabLayout
-import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
+import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.*
 import kotlin.collections.ArrayList
 
+/**
+ * 開発中のニコ動クライアント（？）
+ * */
 class DevNicoVideoFragment : Fragment() {
     lateinit var prefSetting: SharedPreferences
     lateinit var exoPlayer: SimpleExoPlayer
@@ -39,13 +43,22 @@ class DevNicoVideoFragment : Fragment() {
     var userSession = ""
     var videoId = ""
 
-    // データ取得
+    // データ取得からハートビートまで扱う
     val nicoVideoHTML = NicoVideoHTML()
 
     // コメント配列
     var commentList = arrayListOf<ArrayList<String>>()
 
+    // ViewPager
+    lateinit var viewPager: DevNicoVideoViewPager
+
+    // 閉じたならtrue
     var isDestory = false
+
+    // 設定項目
+    // 3DSコメント非表示
+    var is3DSCommentHide = false
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
@@ -59,11 +72,25 @@ class DevNicoVideoFragment : Fragment() {
         videoId = arguments?.getString("id") ?: ""
         userSession = prefSetting.getString("user_session", "") ?: ""
 
-        // データ取得
-        coroutine()
+        // スリープにしない
+        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // とりあえずコメントViewFragmentへ
+        val checkCommentViewFragment =
+            childFragmentManager.findFragmentByTag(videoId)
+        // Fragmentは画面回転しても存在するのでremoveして終了させる。
+        if (checkCommentViewFragment != null) {
+            val fragmentTransaction =
+                childFragmentManager.beginTransaction()
+            fragmentTransaction.remove(checkCommentViewFragment)
+            fragmentTransaction.commit()
+        }
 
         // Fragmentセットする
-        initFragment()
+        initViewPager()
+
+        // データ取得
+        coroutine()
 
     }
 
@@ -77,12 +104,43 @@ class DevNicoVideoFragment : Fragment() {
             val response = nicoVideoHTML.getHTML(videoId, userSession).await()
             val nicoHistory = nicoVideoHTML.getNicoHistory(response)
             val jsonObject = nicoVideoHTML.parseJSON(response?.body?.string())
-            // 動画URL
-            val contentUrl = nicoVideoHTML.getContentURI(jsonObject).await()
-            println(contentUrl)
-            // ExoPlayer
+            var contentUrl = ""
+            // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
+            if (nicoVideoHTML.isDMCServer(jsonObject)) {
+                // https://api.dmc.nico/api/sessions のレスポンス
+                val sessionAPIJSONObject = nicoVideoHTML.callSessionAPI(jsonObject).await()
+                if (sessionAPIJSONObject != null) {
+                    // 動画URL
+                    contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
+                    val heartBeatURL =
+                        nicoVideoHTML.getHeartBeatURL(jsonObject, sessionAPIJSONObject)
+                    val postData =
+                        nicoVideoHTML.getSessionAPIDataObject(jsonObject, sessionAPIJSONObject)
+                    // ハートビート処理
+                    activity?.runOnUiThread {
+                        heatBeat(heartBeatURL, postData)
+                    }
+                }
+            } else {
+                // Smileサーバー。動画URL取得
+                contentUrl = nicoVideoHTML.getContentURI(jsonObject, null)
+            }
+            // コメント取得
+            val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject).await()
+            if (commentJSON != null) {
+                commentList =
+                    ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!))
+            }
             activity?.runOnUiThread {
+                // ExoPlayer
                 initVideoPlayer(contentUrl, nicoHistory)
+                // コメントFragmentにコメント配列を渡す
+                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {
+                    commentList.forEach {
+                        recyclerViewList.add(it)
+                    }
+                    initRecyclerView(recyclerViewList)
+                }
             }
         }
     }
@@ -108,18 +166,14 @@ class DevNicoVideoFragment : Fragment() {
             exoPlayer.playWhenReady = !exoPlayer.playWhenReady
             fragment_nicovideo_comment_canvas.isPause = !exoPlayer.playWhenReady
             // アイコン入れ替え
-            val drawable = if (exoPlayer.playWhenReady) {
-                context?.getDrawable(R.drawable.ic_pause_black_24dp)
-            } else {
-                context?.getDrawable(R.drawable.ic_play_arrow_24px)
-            }
-            fragment_nicovideo_play_button.setImageDrawable(drawable)
+            setPlayIcon()
         }
 
         exoPlayer.addListener(object : Player.EventListener {
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                 super.onPlayerStateChanged(playWhenReady, playbackState)
                 initSeekBar()
+                setPlayIcon()
             }
         })
         // 縦、横取得
@@ -131,7 +185,8 @@ class DevNicoVideoFragment : Fragment() {
                 val calc = width.toFloat() / height.toFloat()
                 // 小数点第二位を捨てる
                 val round = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
-                activity?.runOnUiThread {
+                // View#post()すればLayoutParamsが動くようになるらしい
+                fragment_nicovideo_framelayout.post {
                     when (round) {
                         1.3 -> {
                             // 4:3動画
@@ -157,22 +212,79 @@ class DevNicoVideoFragment : Fragment() {
                 }
             }
         })
-
-        // 進捗
         val handler = Handler()
         val runnable = object : Runnable {
             override fun run() {
                 if (!isDestory) {
-                    if (exoPlayer.playWhenReady) {
+                    if (exoPlayer.isPlaying) {
                         setProgress()
                         drawComment()
+                        scroll(exoPlayer.currentPosition / 1000L)
                     }
                     handler.postDelayed(this, 1000)
                 }
             }
         }
         handler.postDelayed(runnable, 0)
+    }
 
+    /**
+     * RecyclerViewをスクロールする
+     * @param millSeconds 再生時間（秒）。
+     * */
+    fun scroll(seconds: Long) {
+        if ((viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as? DevNicoVideoCommentFragment)?.view?.findViewById<RecyclerView>(R.id.activity_nicovideo_recyclerview) != null) {
+            val recyclerView =
+                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as? DevNicoVideoCommentFragment)?.activity_nicovideo_recyclerview
+            val list =
+                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).recyclerViewList
+            // findを使って条件に合うコメントのはじめの値を取得する。この例では今の時間と同じか大きいくて最初の値。
+            val find =
+                list.find { arrayList -> (arrayList[4].toFloat() / 100).toInt() >= seconds.toInt() }
+            // 配列から位置をとる
+            val pos = list.indexOf(find)
+            // スクロール
+            (recyclerView?.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(pos, 0)
+        }
+    }
+
+    /**
+     * ハートビート処理を行う。
+     * 40秒ごとに送信するらしい。POSTする内容はsession_apiでAPI叩いた後のJSONのdataの中身。
+     * jsonの中身全てではない。
+     * @param url ハートビート用URL
+     * @param json POSTする内容
+     * */
+    private fun heatBeat(url: String?, json: String?) {
+        if (url == null && json == null) {
+            return
+        }
+        val runnable = object : Runnable {
+            override fun run() {
+                // 終了したら使わない。
+                if (!isDestory) {
+                    nicoVideoHTML.postHeartBeat(url, json) {
+                        activity?.runOnUiThread {
+                            Handler().postDelayed(this, 40 * 1000)
+                        }
+                    }
+                }
+            }
+        }
+        Handler().postDelayed(runnable, 40 * 1000)
+    }
+
+
+    /**
+     * アイコン入れ替え
+     * */
+    private fun setPlayIcon() {
+        val drawable = if (exoPlayer.playWhenReady) {
+            context?.getDrawable(R.drawable.ic_pause_black_24dp)
+        } else {
+            context?.getDrawable(R.drawable.ic_play_arrow_24px)
+        }
+        fragment_nicovideo_play_button.setImageDrawable(drawable)
     }
 
     /**
@@ -237,14 +349,33 @@ class DevNicoVideoFragment : Fragment() {
     }
 
     /**
-     * Fragmentをセットする
+     * ViewPager初期化
      * */
+    private fun initViewPager() {
+        viewPager = DevNicoVideoViewPager(activity as AppCompatActivity, videoId)
+        fragment_nicovideo_viewpager.adapter = viewPager
+        fragment_nicovideo_tablayout.setupWithViewPager(fragment_nicovideo_viewpager)
+        // コメントを指定しておく
+        fragment_nicovideo_viewpager.currentItem = 1
+    }
+
+/*
+    */
+    /**
+     * Fragmentをセットする
+     * *//*
+
     private fun initFragment() {
         //FragmentにID詰める
         val bundle = Bundle()
         bundle.putString("id", videoId)
-        val fragment = NicoVideoCommentFragment()
+        val fragment =
+            NicoVideoCommentFragment()
         fragment.arguments = bundle
+        (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_nicovideo_fragment_linearlayout, fragment)
+            .commit()
+        fragment_nicovideo_tablayout.selectTab(fragment_nicovideo_tablayout.getTabAt(1))
         fragment_nicovideo_tablayout.addOnTabSelectedListener(object :
             TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
@@ -265,21 +396,24 @@ class DevNicoVideoFragment : Fragment() {
                     }
                     getString(R.string.nicovideo_info) -> {
                         //動画情報
-                        val fragment = NicoVideoInfoFragment()
+                        val fragment =
+                            NicoVideoInfoFragment()
                         fragment.arguments = bundle
                         (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
                             .replace(R.id.fragment_nicovideo_fragment_linearlayout, fragment)
                             .commit()
                     }
                     getString(R.string.menu) -> {
-                        val fragment = NicoVideoMenuFragment()
+                        val fragment =
+                            NicoVideoMenuFragment()
                         fragment.arguments = bundle
                         (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
                             .replace(R.id.fragment_nicovideo_fragment_linearlayout, fragment)
                             .commit()
                     }
                     getString(R.string.parent_contents) -> {
-                        val fragment = NicoVideoContentTreeFragment()
+                        val fragment =
+                            NicoVideoContentTreeFragment()
                         fragment.arguments = bundle
                         (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
                             .replace(R.id.fragment_nicovideo_fragment_linearlayout, fragment)
@@ -289,11 +423,14 @@ class DevNicoVideoFragment : Fragment() {
             }
         })
     }
+*/
 
     override fun onDestroy() {
         super.onDestroy()
         // Fragment終了のち止める
-        exoPlayer.release()
+        if (::exoPlayer.isInitialized) {
+            exoPlayer.release()
+        }
         nicoVideoHTML.destory()
         isDestory = true
     }

@@ -104,11 +104,11 @@ class NicoVideoContentTreeFragment : Fragment() {
 
                     activity?.runOnUiThread {
                         nicoVideoSelectAdapter.notifyDataSetChanged()
-                        Snackbar.make(
-                            activity?.findViewById(android.R.id.content)!!,
-                            "${getString(R.string.get_parent_count)}：${recyclerViewList.size}",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
+                        //Snackbar.make(
+                        //    activity?.findViewById(android.R.id.content)!!,
+                        //    "${getString(R.string.get_parent_count)}：${recyclerViewList.size}",
+                        //    Snackbar.LENGTH_SHORT
+                        //).show()
                     }
 
 

@@ -27,7 +27,7 @@ import android.os.Message
 import androidx.appcompat.app.AppCompatActivity
 
 
-class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
+class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :
     RecyclerView.Adapter<NicoVideoAdapter.ViewHolder>() {
 
     //ニコるようThreadId
@@ -173,4 +173,5 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
+
 }
