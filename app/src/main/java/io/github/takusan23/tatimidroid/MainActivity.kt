@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.google.android.material.transition.MaterialFadeThrough
+import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
@@ -115,12 +116,22 @@ class MainActivity : AppCompatActivity() {
                     //ニコ動コメント
                     //ログイン情報がない場合は押させない
                     if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
-                        val fragmentTransaction = supportFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(
-                            R.id.main_activity_linearlayout,
-                            NicoVideoSelectFragment()
-                        )
-                        fragmentTransaction.commit()
+                        // 開発中のニコ動クライアント有効時
+                        if (pref_setting.getBoolean("fragment_dev_niconico_video", false)) {
+                            val fragmentTransaction = supportFragmentManager.beginTransaction()
+                            fragmentTransaction.replace(
+                                R.id.main_activity_linearlayout,
+                                DevNicoVideoSelectFragment()
+                            )
+                            fragmentTransaction.commit()
+                        } else {
+                            val fragmentTransaction = supportFragmentManager.beginTransaction()
+                            fragmentTransaction.replace(
+                                R.id.main_activity_linearlayout,
+                                NicoVideoSelectFragment()
+                            )
+                            fragmentTransaction.commit()
+                        }
                     } else {
                         //メアド設定してね！
                         Toast.makeText(

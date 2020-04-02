@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:motion="http://schemas.android.com/apk/res-auto">
+
+    <Transition
+            motion:constraintSetEnd="@id/video_backdrop_end"
+            motion:constraintSetStart="@id/video_backdrop_start"
+            motion:duration="500">
+        <OnClick motion:targetId="@+id/fragment_video_bar" />
+    </Transition>
+
+    <ConstraintSet android:id="@+id/video_backdrop_start">
+        <Constraint
+                android:id="@+id/fragment_video_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#fff"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="5sp"
+                android:layout_marginTop="50sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/fragment_video_backdrop"/>
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/video_backdrop_end">
+        <Constraint
+                android:id="@+id/fragment_video_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#fff"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="5sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/fragment_video_backdrop" />
+    </ConstraintSet>
+</MotionScene>

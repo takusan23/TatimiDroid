@@ -298,4 +298,6 @@
     <string name="comment_serch">コメント検索</string>
     <string name="is_following">フォロー中です</string>
     <string name="menu_scroll_comment">再生時間に合わせてコメント欄をスクロールしない</string>
+    <string name="view_count">再生回数</string>
+    <string name="mylist_count">マイリス数</string>
 </resources>
