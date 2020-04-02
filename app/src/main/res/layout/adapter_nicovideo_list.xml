@@ -10,6 +10,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="2sp"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
             app:cardCornerRadius="5sp">
 
         <LinearLayout

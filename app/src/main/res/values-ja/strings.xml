@@ -300,4 +300,9 @@
     <string name="menu_scroll_comment">再生時間に合わせてコメント欄をスクロールしない</string>
     <string name="view_count">再生回数</string>
     <string name="mylist_count">マイリス数</string>
+    <string name="prev_page">前のページ</string>
+    <string name="next_page">次のページ</string>
+    <string name="page">ページ目</string>
+    <string name="cache">キャッシュ</string>
+    <string name="video_dropdown">ランキング、マイリスト等はここを押して展開</string>
 </resources>

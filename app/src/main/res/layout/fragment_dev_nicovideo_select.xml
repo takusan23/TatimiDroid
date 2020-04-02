@@ -29,25 +29,25 @@
                     android:orientation="vertical">
 
                 <Button
-                        android:id="@+id/fragment_nicovideo_ranking_button"
+                        android:id="@+id/fragment_nicovideo_ranking"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/ranking" />
 
                 <Button
-                        android:id="@+id/button3"
+                        android:id="@+id/fragment_nicovideo_post"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/post_video" />
 
                 <Button
-                        android:id="@+id/button4"
+                        android:id="@+id/fragment_nicovideo_mylist"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/mylist" />
 
                 <Button
-                        android:id="@+id/button5"
+                        android:id="@+id/fragment_nicovideo_history"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/history" />
@@ -56,7 +56,7 @@
                         android:id="@+id/button6"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="キャッシュ" />
+                        android:text="@string/cache" />
             </LinearLayout>
         </ScrollView>
     </LinearLayout>
@@ -85,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/ic_filter_list_black_24dp"
                 android:padding="10sp"
-                android:text="ランキングなどはここを選択して展開" />
+                android:text="@string/video_dropdown" />
 
     </LinearLayout>
 

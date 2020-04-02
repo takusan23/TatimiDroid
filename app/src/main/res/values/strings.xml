@@ -300,4 +300,9 @@
     <string name="menu_scroll_comment">Don\'t scroll the comment field according to the playback time</string>
     <string name="view_count">Views</string>
     <string name="mylist_count">Mylists</string>
+    <string name="prev_page">Previous page</string>
+    <string name="next_page">Following page</string>
+    <string name="page">page</string>
+    <string name="cache">Cache</string>
+    <string name="video_dropdown">Click here to expand rankings, my lists, etc.</string>
 </resources>

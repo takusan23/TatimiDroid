@@ -6,14 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoRanking
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoRSS
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_ranking.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
  * */
 class DevNicoVideoRankingFragment : Fragment() {
 
-    val nicoRanking = NicoVideoRanking()
+    val nicoRSS = NicoVideoRSS()
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     val recyclerViewList = arrayListOf<NicoVideoData>()
 
@@ -73,20 +73,25 @@ class DevNicoVideoRankingFragment : Fragment() {
         }
         // ジャンル
         val genre =
-            nicoRanking.rankingGenreUrlList[fragment_nicovideo_ranking_spinner.selectedItemPosition]
+            nicoRSS.rankingGenreUrlList[fragment_nicovideo_ranking_spinner.selectedItemPosition]
         // 集計期間
         val time =
-            nicoRanking.rankingTimeList[fragment_nicovideo_ranking_time_spinner.selectedItemPosition]
+            nicoRSS.rankingTimeList[fragment_nicovideo_ranking_time_spinner.selectedItemPosition]
         // RSS取得
         launch = GlobalScope.launch {
-            val list = nicoRanking.getRanking(genre, time).await()
-            list?.forEach {
-                recyclerViewList.add(it)
+            val response = nicoRSS.getRanking(genre, time).await()
+            if (response.isSuccessful) {
+                nicoRSS.parseHTML(response).forEach {
+                    recyclerViewList.add(it)
+                }
+                activity?.runOnUiThread {
+                    nicoVideoListAdapter.notifyDataSetChanged()
+                    fragment_video_ranking_swipe.isRefreshing = false
+                }
+            } else {
+                showToast("${getString(R.string.error)}\n${response.code}")
             }
-            activity?.runOnUiThread {
-                nicoVideoListAdapter.notifyDataSetChanged()
-                fragment_video_ranking_swipe.isRefreshing = false
-            }
+
         }
     }
 
@@ -130,6 +135,12 @@ class DevNicoVideoRankingFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             nicoVideoListAdapter = DevNicoVideoListAdapter(recyclerViewList)
             adapter = nicoVideoListAdapter
+        }
+    }
+
+    private fun showToast(message: String) {
+        activity?.runOnUiThread {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 

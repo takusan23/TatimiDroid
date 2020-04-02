@@ -233,13 +233,13 @@ class ProgramInfoFragment : Fragment() {
                         val tag = tagsList.getJSONObject(i)
                         val text = tag.getString("text")
                         val isNicopedia = tag.getBoolean("existsNicopediaArticle")
-                        val nicopediaUrl =
-                            "https://dic.nicovideo.jp/${tag.getString("nicopediaArticlePageUrlPath")}"
                         //ボタン作成
                         val button = MaterialButton(context!!)
                         button.text = text
                         button.isAllCaps = false
                         if (isNicopedia) {
+                            val nicopediaUrl =
+                                tag.getString("nicopediaArticlePageUrl")
                             button.setOnClickListener {
                                 val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
                                 startActivity(intent)
