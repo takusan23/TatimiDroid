@@ -123,7 +123,7 @@ class NicoVideoInfoFragment : Fragment() {
                         //タグ
                         val tagArray = json.getJSONArray("tags")
 
-                        (activity as AppCompatActivity).runOnUiThread {
+                        activity?.runOnUiThread {
                             //UIスレッド
                             fragment_nicovideo_info_title_textview.text = title
                             fragment_nicovideo_info_description_textview.text =
