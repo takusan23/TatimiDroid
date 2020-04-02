@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.os.Handler
 import android.view.LayoutInflater
@@ -21,6 +22,7 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
 import io.github.takusan23.tatimidroid.R
@@ -39,6 +41,7 @@ import kotlin.collections.ArrayList
 class DevNicoVideoFragment : Fragment() {
     lateinit var prefSetting: SharedPreferences
     lateinit var exoPlayer: SimpleExoPlayer
+    lateinit var darkModeSupport: DarkModeSupport
 
     // 必要なやつ
     var userSession = ""
@@ -55,6 +58,12 @@ class DevNicoVideoFragment : Fragment() {
 
     // 閉じたならtrue
     var isDestory = false
+
+    // 画面回転したあとの再生時間
+    var rotationProgress = 0L
+
+    // 再生時間を適用したらtrue。一度だけ動くように
+    var isRotationProgressSuccessful = false
 
     // 設定項目
     // 3DSコメント非表示
@@ -76,26 +85,28 @@ class DevNicoVideoFragment : Fragment() {
         // スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // とりあえずコメントViewFragmentへ
-        val checkCommentViewFragment =
-            childFragmentManager.findFragmentByTag(videoId)
-        // Fragmentは画面回転しても存在するのでremoveして終了させる。
-        if (checkCommentViewFragment != null) {
-            val fragmentTransaction =
-                childFragmentManager.beginTransaction()
-            fragmentTransaction.remove(checkCommentViewFragment)
-            fragmentTransaction.commit()
-        }
-
         // ActionBar消す
         (activity as AppCompatActivity).supportActionBar?.hide()
+
+        // ダークモード
+        initDarkmode()
 
         // Fragmentセットする
         initViewPager()
 
         // データ取得
+        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
         coroutine()
 
+    }
+
+    /**
+     *
+     * */
+    private fun initDarkmode() {
+        darkModeSupport = DarkModeSupport(context!!)
+        fragment_nicovideo_tablayout.backgroundTintList =
+            ColorStateList.valueOf(darkModeSupport.getThemeColor())
     }
 
     /**
@@ -164,7 +175,7 @@ class DevNicoVideoFragment : Fragment() {
                     commentList.forEach {
                         recyclerViewList.add(it)
                     }
-                    initRecyclerView(recyclerViewList)
+                    initRecyclerView(recyclerViewList, true)
                 }
                 // タイトル
                 initTitleArea(jsonObject)
@@ -176,7 +187,6 @@ class DevNicoVideoFragment : Fragment() {
      * ExoPlayer初期化
      * */
     private fun initVideoPlayer(videoUrl: String?, nicohistory: String?) {
-        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
         exoPlayer.setVideoSurfaceView(fragment_nicovideo_surfaceview)
         // SmileサーバーはCookieつけないと見れないため
         val dataSourceFactory =
@@ -201,6 +211,11 @@ class DevNicoVideoFragment : Fragment() {
                 super.onPlayerStateChanged(playWhenReady, playbackState)
                 initSeekBar()
                 setPlayIcon()
+                if (!isRotationProgressSuccessful) {
+                    // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
+                    exoPlayer.seekTo(rotationProgress)
+                    isRotationProgressSuccessful = true
+                }
             }
         })
         // 縦、横取得
@@ -465,6 +480,21 @@ class DevNicoVideoFragment : Fragment() {
         }
         nicoVideoHTML.destory()
         isDestory = true
+    }
+
+    /**
+     * onSaveInstanceState / onViewStateRestored を使って画面回転に耐えるアプリを作る。
+     * */
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // 保存する値をセット。今回は再生時間
+        outState.putLong("progress", exoPlayer.currentPosition)
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        // 保存した値を取得。今回は再生時間
+        rotationProgress = (savedInstanceState?.getLong("progress")) ?: 0L
     }
 
 }

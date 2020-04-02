@@ -26,17 +26,24 @@ class NicoVideoActivity : AppCompatActivity() {
 
         val id = intent.getStringExtra("id")
         if (prefSetting.getBoolean("fragment_dev_niconico_video", false)) {
-            if (savedInstanceState == null) {
+            // Fragment再生成するかどうか
+            val checkCommentViewFragment =
+                supportFragmentManager.findFragmentByTag(id)
+            val fragment = if (checkCommentViewFragment != null) {
+                checkCommentViewFragment as DevNicoVideoFragment
+            } else {
                 val nicoVideoFragment =
                     DevNicoVideoFragment()
                 val bundle = Bundle()
                 bundle.putString("id", id)
                 nicoVideoFragment.arguments = bundle
-                //あとから探せるように第三引数にID入れる
-                supportFragmentManager.beginTransaction()
-                    .replace(activity_nicovideo_parent_linearlayout.id, nicoVideoFragment, id)
-                    .commit()
+                nicoVideoFragment
             }
+            //あとから探せるように第三引数にID入れる
+            supportFragmentManager.beginTransaction()
+                .replace(activity_nicovideo_parent_linearlayout.id, fragment, id)
+                .commit()
+
         } else {
             val nicoVideoFragment = NicoVideoFragment()
             val bundle = Bundle()

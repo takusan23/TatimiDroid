@@ -61,7 +61,12 @@ class DevNicoVideoCommentFragment : Fragment() {
         initSearchButton()
     }
 
-    fun initRecyclerView(recyclerViewList: ArrayList<ArrayList<String>> = this.recyclerViewList) {
+    /**
+     * RecyclerView初期化とか
+     * @param recyclerViewList RecyclerViewに表示させる中身の配列。省略時はDevNicoVideoCommentFragment.recyclerViewListを使います。
+     * @param snackbarShow SnackBar（取得コメント数）を表示させる場合はtrue、省略時はfalse
+     * */
+    fun initRecyclerView(recyclerViewList: ArrayList<ArrayList<String>> = this.recyclerViewList, snackbarShow: Boolean = false) {
         activity_nicovideo_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
         activity_nicovideo_recyclerview.layoutManager = mLayoutManager
@@ -75,11 +80,13 @@ class DevNicoVideoCommentFragment : Fragment() {
         nicoVideoAdapter = NicoVideoAdapter(list)
         activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
         //  Snackbar
-        Snackbar.make(
-            activity_nicovideo_sort_button,
-            "${getString(R.string.get_comment_count)}：${recyclerViewList.size}",
-            Snackbar.LENGTH_SHORT
-        ).show()
+        if (snackbarShow) {
+            Snackbar.make(
+                activity_nicovideo_sort_button,
+                "${getString(R.string.get_comment_count)}：${recyclerViewList.size}",
+                Snackbar.LENGTH_SHORT
+            ).show()
+        }
     }
 
     override fun onResume() {

@@ -297,5 +297,5 @@
     <string name="serch">Serch</string>
     <string name="comment_serch">Comment search</string>
     <string name="is_following">Following</string>
-    <string name="menu_scroll_comment">Scroll the comment field according to the playback time</string>
+    <string name="menu_scroll_comment">Don\'t scroll the comment field according to the playback time</string>
 </resources>

@@ -297,5 +297,5 @@
     <string name="serch">検索</string>
     <string name="comment_serch">コメント検索</string>
     <string name="is_following">フォロー中です</string>
-    <string name="menu_scroll_comment">再生時間に合わせてコメント欄をスクロールする</string>
+    <string name="menu_scroll_comment">再生時間に合わせてコメント欄をスクロールしない</string>
 </resources>
