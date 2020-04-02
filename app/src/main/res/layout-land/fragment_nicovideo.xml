@@ -62,41 +62,62 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-        <FrameLayout
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/fragment_nicovideo_swipe"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-            <androidx.viewpager.widget.ViewPager
-                    android:id="@+id/fragment_nicovideo_viewpager"
+            <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent">
 
-            <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom|center"
-                    android:layout_margin="20sp">
-
-                <LinearLayout
+                <androidx.viewpager.widget.ViewPager
+                        android:id="@+id/fragment_nicovideo_viewpager"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_margin="10sp"
-                        android:orientation="vertical">
+                        android:layout_height="match_parent" />
 
-                    <SeekBar
-                            android:id="@+id/fragment_nicovideo_seek"
+                <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center"
+                        android:layout_margin="20sp">
+
+                    <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="match_parent"
+                            android:layout_margin="10sp"
+                            android:orientation="vertical">
 
-                    <ImageView
-                            android:id="@+id/fragment_nicovideo_play_button"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:padding="20sp"
-                            app:srcCompat="@drawable/ic_play_arrow_24px" />
-                </LinearLayout>
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal">
 
-            </androidx.cardview.widget.CardView>
-        </FrameLayout>
+                            <SeekBar
+                                    android:id="@+id/fragment_nicovideo_seek"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1" />
+
+                            <TextView
+                                    android:id="@+id/fragment_nicovideo_progress_text"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="00:00" />
+                        </LinearLayout>
+
+                        <ImageView
+                                android:id="@+id/fragment_nicovideo_play_button"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:padding="20sp"
+                                app:srcCompat="@drawable/ic_play_arrow_24px" />
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+            </FrameLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
     </LinearLayout>
 </LinearLayout>

@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.text.SimpleDateFormat
 import kotlin.collections.ArrayList
 
 /**
@@ -88,6 +89,9 @@ class DevNicoVideoFragment : Fragment() {
         // ActionBar消す
         (activity as AppCompatActivity).supportActionBar?.hide()
 
+        // View初期化
+        showSwipeToRefresh()
+
         // ダークモード
         initDarkmode()
 
@@ -100,9 +104,23 @@ class DevNicoVideoFragment : Fragment() {
 
     }
 
-    /**
-     *
-     * */
+    // Progress表示
+    private fun showSwipeToRefresh() {
+        fragment_nicovideo_swipe.apply {
+            isRefreshing = true
+            isEnabled = true
+        }
+    }
+
+    // Progress非表示
+    private fun hideSwipeToRefresh() {
+        fragment_nicovideo_swipe.apply {
+            isRefreshing = false
+            isEnabled = false
+        }
+    }
+
+    // ダークモード
     private fun initDarkmode() {
         darkModeSupport = DarkModeSupport(context!!)
         fragment_nicovideo_tablayout.backgroundTintList =
@@ -131,7 +149,7 @@ class DevNicoVideoFragment : Fragment() {
     }
 
     /**
-     * データ取得
+     * データ取得から動画再生/コメント取得まで
      * */
     fun coroutine() {
         // HTML取得
@@ -215,6 +233,12 @@ class DevNicoVideoFragment : Fragment() {
                     // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
                     exoPlayer.seekTo(rotationProgress)
                     isRotationProgressSuccessful = true
+                }
+                if (playbackState == Player.STATE_BUFFERING) {
+                    // STATE_BUFFERING はシークした位置からすぐに再生できないとき。読込み中のこと。
+                    showSwipeToRefresh()
+                } else {
+                    hideSwipeToRefresh()
                 }
             }
         })
@@ -377,6 +401,10 @@ class DevNicoVideoFragment : Fragment() {
         if (fragment_nicovideo_seek != null) {
             fragment_nicovideo_seek.progress = (exoPlayer.currentPosition / 1000L).toInt()
         }
+        // 再生時間TextView
+        val simpleDateFormat = SimpleDateFormat("mm:ss")
+        val formattedTime = simpleDateFormat.format(exoPlayer.currentPosition)
+        fragment_nicovideo_progress_text.text = formattedTime
     }
 
     /**
