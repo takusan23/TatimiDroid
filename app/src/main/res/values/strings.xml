@@ -305,4 +305,12 @@
     <string name="page">page</string>
     <string name="cache">Cache</string>
     <string name="video_dropdown">Click here to expand rankings, my lists, etc.</string>
+    <string name="get_cache">Get cache</string>
+    <string name="get_cache_video">Getting video cache</string>
+    <string name="get_cache_comment_ok">Video comment obtained</string>
+    <string name="get_cache_thum_ok">Got video thumbnail</string>
+    <string name="get_cache_video_info_ok">Video information obtained</string>
+    <string name="get_cache_video_ok">Video cache obtained</string>
+    <string name="delete_cache">Clear cache</string>
+    <string name="internet_not_connection_cache">The cache list is displayed because there is no Internet connection.</string>
 </resources>

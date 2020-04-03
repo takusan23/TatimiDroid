@@ -16,8 +16,7 @@
             android:theme="@style/AppTheme">
 
         <meta-data
-                android:name=
-                        "com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+                android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
                 android:value="io.github.takusan23.tatimidroid.GoogleCast.CastOptionsProvider" />
 
         <activity android:name=".NicoVideo.NicoVideoActivity"></activity>

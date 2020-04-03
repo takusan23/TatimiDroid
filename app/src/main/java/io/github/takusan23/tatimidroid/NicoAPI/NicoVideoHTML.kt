@@ -295,14 +295,15 @@ class NicoVideoHTML {
             }
         }
 
+
     /**
-     * コメント取得API。コルーチン。JSON形式の方です。xmlではない（ニコるくん取れないしCommentJSONParse使い回せない）。
-     * コメント取得くっっっっそめんどくせえ
+     * コメント取得に必要なJSONを作成する関数。
+     * @param videoId 動画ID
      * @param userSession ユーザーセッション
      * @param jsonObject js-initial-watch-dataのdata-api-dataのJSON
      * @return 取得失敗時はnull。成功時はResponse
      * */
-    fun getComment(videoId: String, userSession: String, jsonObject: JSONObject): Deferred<Response?> =
+    fun makeCommentAPIJSON(videoId: String, userSession: String, jsonObject: JSONObject): Deferred<JSONArray> =
         GlobalScope.async {
             /**
              * dmcInfoが存在するかで分ける。たまによくない動画に当たる。ちなみにこいつ無くてもThreadIdとかuser_id取れるけど、
@@ -446,12 +447,26 @@ class NicoVideoHTML {
                     postJSONArray.put(thread_leaves)
                 }
             }
+            return@async postJSONArray
+        }
+
+    /**
+     * コメント取得API。コルーチン。JSON形式の方です。xmlではない（ニコるくん取れないしCommentJSONParse使い回せない）。
+     * コメント取得くっっっっそめんどくせえ
+     * @param userSession ユーザーセッション
+     * @param jsonObject js-initial-watch-dataのdata-api-dataのJSON
+     * @return 取得失敗時はnull。成功時はResponse
+     * */
+    fun getComment(videoId: String, userSession: String, jsonObject: JSONObject): Deferred<Response?> =
+        GlobalScope.async {
+            val postData = makeCommentAPIJSON(videoId, userSession, jsonObject).await().toString()
+                .toRequestBody()
             // リクエスト
             val request = Request.Builder().apply {
                 url("https://nmsg.nicovideo.jp/api.json/")
                 header("Cookie", "user_session=${userSession}")
                 header("User-Agent", "TatimiDroid;@takusan_23")
-                post(postJSONArray.toString().toRequestBody())
+                post(postData)
             }.build()
             val okHttpClient = OkHttpClient()
             val response = okHttpClient.newCall(request).execute()
@@ -467,7 +482,6 @@ class NicoVideoHTML {
         val jsonArray = JSONArray(responseString)
         //RecyclerViewに入れる配列には並び替えをしてから入れるのでそれまで一時的に入れておく配列
         val commentListList = arrayListOf<ArrayList<String>>()
-
         for (i in 0 until jsonArray.length()) {
             val jsonObject = jsonArray.getJSONObject(i)
             if (jsonObject.has("chat")) {
@@ -575,6 +589,14 @@ class NicoVideoHTML {
                 }
             }
         })
+    }
+
+    /**
+     * video.postedDateTimeの日付をUnixTime(ミリ秒)に変換する
+     * */
+    fun postedDateTimeToUnixTime(postedDateTime: String): Long {
+        val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+        return simpleDateFormat.parse(postedDateTime).time
     }
 
 

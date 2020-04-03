@@ -8,13 +8,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
-import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoHistoryFragment
-import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListFragment
-import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
-import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoRankingFragment
+import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.*
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_select.*
 
 
@@ -31,8 +32,18 @@ class DevNicoVideoSelectFragment : Fragment() {
             // ランキング
             setFragment(DevNicoVideoRankingFragment())
         } else {
-            // キャッシュ一覧
-
+            // キャッシュ一覧。インターネット接続無いとき
+            fragment_nicovideo_ranking.isEnabled = false
+            fragment_nicovideo_post.isEnabled = false
+            fragment_nicovideo_mylist.isEnabled = false
+            fragment_nicovideo_history.isEnabled = false
+            setFragment(DevNicoVideoCacheFragment())
+            // インターネット接続無いよメッセージ
+            Snackbar.make(fragment_nicovideo_ranking, R.string.internet_not_connection_cache, Snackbar.LENGTH_SHORT)
+                .apply {
+                    anchorView = (activity as MainActivity).main_activity_bottom_navigationview
+                    show()
+                }
         }
 
         fragment_nicovideo_ranking.setOnClickListener {
@@ -49,6 +60,10 @@ class DevNicoVideoSelectFragment : Fragment() {
 
         fragment_nicovideo_history.setOnClickListener {
             setFragment(DevNicoVideoHistoryFragment())
+        }
+
+        fragment_nicovideo_cache.setOnClickListener {
+            setFragment(DevNicoVideoCacheFragment())
         }
 
     }

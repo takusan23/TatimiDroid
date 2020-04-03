@@ -55,10 +55,11 @@ class DevNicoVideoCommentFragment : Fragment() {
         initSortPopupMenu()
 
         // RecyclerView
-        // initRecyclerView()
+        initRecyclerView()
 
         // コメント検索
         initSearchButton()
+
     }
 
     /**
@@ -66,7 +67,11 @@ class DevNicoVideoCommentFragment : Fragment() {
      * @param recyclerViewList RecyclerViewに表示させる中身の配列。省略時はDevNicoVideoCommentFragment.recyclerViewListを使います。
      * @param snackbarShow SnackBar（取得コメント数）を表示させる場合はtrue、省略時はfalse
      * */
-    fun initRecyclerView(recyclerViewList: ArrayList<ArrayList<String>> = this.recyclerViewList, snackbarShow: Boolean = false) {
+    fun initRecyclerView(snackbarShow: Boolean = false) {
+        recyclerViewList.clear()
+        (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).commentList.forEach {
+            recyclerViewList.add(it)
+        }
         activity_nicovideo_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
         activity_nicovideo_recyclerview.layoutManager = mLayoutManager
@@ -91,9 +96,7 @@ class DevNicoVideoCommentFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (this.recyclerViewList.isNotEmpty()) {
-            initRecyclerView()
-        }
+        // initRecyclerView()
     }
 
     private fun initSortPopupMenu() {

@@ -16,19 +16,40 @@
                 android:padding="10sp">
 
 
-            <Switch
-                    android:id="@+id/fragment_nicovideo_menu_3ds_switch"
+            <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="5sp"
-                    android:text="@string/menu_device_3ds_block" />
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
 
-            <Switch
-                    android:id="@+id/fragment_nicovideo_menu_scroll"
+                <Switch
+                        android:id="@+id/fragment_nicovideo_menu_3ds_switch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5sp"
+                        android:text="@string/menu_device_3ds_block" />
+
+                <Switch
+                        android:id="@+id/fragment_nicovideo_menu_scroll"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5sp"
+                        android:text="@string/menu_scroll_comment" />
+
+            </LinearLayout>
+
+            <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="5sp"
-                    android:text="@string/menu_scroll_comment" />
+                    android:layout_height="match_parent"
+                    android:layout_margin="10sp"
+                    android:orientation="vertical">
+
+                <Button
+                        android:id="@+id/fragment_nicovideo_menu_get_cache"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/get_cache" />
+            </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 

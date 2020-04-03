@@ -26,11 +26,11 @@ class NicoVideoMenuFragment : Fragment() {
 
         val id = arguments?.getString("id")
 
-        //nicovideoFragment取る。
+        // nicovideoFragment取る。
         val nicoVideoFragment =
             (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(id) as NicoVideoFragment
 
-        //3DSのコメントを非表示にする
+        // 3DSのコメントを非表示にする
         nicoVideoFragment.apply {
 
             fragment_nicovideo_menu_3ds_switch.isChecked = isHide3DSComment
@@ -40,7 +40,6 @@ class NicoVideoMenuFragment : Fragment() {
             }
 
         }
-
 
     }
 

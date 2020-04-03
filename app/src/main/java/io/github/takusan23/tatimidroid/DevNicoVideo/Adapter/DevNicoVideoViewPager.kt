@@ -13,7 +13,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoContentTreeFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoInfoFragment
 import io.github.takusan23.tatimidroid.R
 
-class DevNicoVideoViewPager(val activity: AppCompatActivity, val videoId: String) :
+class DevNicoVideoViewPager(val activity: AppCompatActivity, val videoId: String, val isCache: Boolean) :
     FragmentPagerAdapter(activity.supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
     // Fragmentを返す
@@ -21,43 +21,85 @@ class DevNicoVideoViewPager(val activity: AppCompatActivity, val videoId: String
         val devNicoVideoCommentFragment = DevNicoVideoCommentFragment()
         val bundle = Bundle()
         bundle.putString("id", videoId)
+        bundle.putBoolean("cache", isCache)
         devNicoVideoCommentFragment.arguments = bundle
-        when (position) {
-            0 -> {
-                val commentMenuFragment = DevNicoVideoMenuFragment()
-                commentMenuFragment.arguments = bundle
-                return commentMenuFragment
+
+        // インターネット接続とキャッシュ再生で分岐
+        if (isCache) {
+            // キャッシュ再生
+            when (position) {
+                0 -> {
+                    val commentMenuFragment = DevNicoVideoMenuFragment()
+                    commentMenuFragment.arguments = bundle
+                    return commentMenuFragment
+                }
+                1 -> {
+                    return devNicoVideoCommentFragment
+                }
+                2 -> {
+                    val nicoVideoInfoFragment = NicoVideoInfoFragment()
+                    nicoVideoInfoFragment.arguments = bundle
+                    return nicoVideoInfoFragment
+                }
             }
-            1 -> {
-                return devNicoVideoCommentFragment
+            return devNicoVideoCommentFragment
+        } else {
+            // インターネット接続
+            when (position) {
+                0 -> {
+                    val commentMenuFragment = DevNicoVideoMenuFragment()
+                    commentMenuFragment.arguments = bundle
+                    return commentMenuFragment
+                }
+                1 -> {
+                    return devNicoVideoCommentFragment
+                }
+                2 -> {
+                    val nicoVideoInfoFragment = NicoVideoInfoFragment()
+                    nicoVideoInfoFragment.arguments = bundle
+                    return nicoVideoInfoFragment
+                }
+                3 -> {
+                    val nicoAdFragment = NicoVideoContentTreeFragment()
+                    nicoAdFragment.arguments = bundle
+                    return nicoAdFragment
+                }
             }
-            2 -> {
-                val giftFragment = NicoVideoInfoFragment()
-                giftFragment.arguments = bundle
-                return giftFragment
-            }
-            3 -> {
-                val nicoAdFragment = NicoVideoContentTreeFragment()
-                nicoAdFragment.arguments = bundle
-                return nicoAdFragment
-            }
+            return devNicoVideoCommentFragment
         }
-        return devNicoVideoCommentFragment
+
     }
 
     // Fragment数
     override fun getCount(): Int {
-        return 4
+        if (isCache) {
+            // キャッシュ再生
+            return 3
+        } else {
+            // インターネット接続
+            return 4
+        }
     }
 
     // TabLayoutの名前
     override fun getPageTitle(position: Int): CharSequence? {
-        when (position) {
-            0 -> return activity.getString(R.string.menu)
-            1 -> return activity.getString(R.string.comment)
-            2 -> return activity.getString(R.string.nicovideo_info)
-            3 -> return activity.getString(R.string.parent_contents)
-            else -> return activity.getString(R.string.comment)
+        if (isCache) {
+            // キャッシュ再生
+            when (position) {
+                0 -> return activity.getString(R.string.menu)
+                1 -> return activity.getString(R.string.comment)
+                2 -> return activity.getString(R.string.nicovideo_info)
+                else -> return activity.getString(R.string.comment)
+            }
+        } else {
+            // インターネット接続
+            when (position) {
+                0 -> return activity.getString(R.string.menu)
+                1 -> return activity.getString(R.string.comment)
+                2 -> return activity.getString(R.string.nicovideo_info)
+                3 -> return activity.getString(R.string.parent_contents)
+                else -> return activity.getString(R.string.comment)
+            }
         }
     }
 

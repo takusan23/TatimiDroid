@@ -4,9 +4,12 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
+import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
@@ -23,6 +26,7 @@ class DevNicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideo
         val infoTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_info)
         val dateTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_date)
         val cardView = itemView.findViewById<CardView>(R.id.adapter_nicovideo_list_cardview)
+        val menuImageView = itemView.findViewById<ImageView>(R.id.adapter_nicovideo_list_menu)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DevNicoVideoListAdapter.ViewHolder {
@@ -50,7 +54,18 @@ class DevNicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideo
             cardView.setOnClickListener {
                 val intent = Intent(context, NicoVideoActivity::class.java)
                 intent.putExtra("id", data.videoId)
+                intent.putExtra("cache", data.isCache)
                 context?.startActivity(intent)
+            }
+
+            // メニュー画面表示
+            menuImageView.setOnClickListener {
+                val menuBottomSheet = DevNicoVideoListMenuBottomFragment()
+                // データ渡す
+                menuBottomSheet.apply {
+                    nicoVideoData = data
+                    show((context as AppCompatActivity).supportFragmentManager, "menu")
+                }
             }
 
         }

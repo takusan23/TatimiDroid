@@ -25,6 +25,7 @@ class NicoVideoActivity : AppCompatActivity() {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(this)
 
         val id = intent.getStringExtra("id")
+        val isCache = intent?.getBooleanExtra("cache", false) ?: false
         if (prefSetting.getBoolean("fragment_dev_niconico_video", false)) {
             // Fragment再生成するかどうか
             val checkCommentViewFragment =
@@ -36,6 +37,7 @@ class NicoVideoActivity : AppCompatActivity() {
                     DevNicoVideoFragment()
                 val bundle = Bundle()
                 bundle.putString("id", id)
+                bundle.putBoolean("cache", isCache)
                 nicoVideoFragment.arguments = bundle
                 nicoVideoFragment
             }

@@ -102,7 +102,7 @@ class NicoVideoRSS {
             val mylistCount =
                 descriptionJsoup.getElementsByClass("nico-info-total-mylist")[0].text()
             val nicoVideoData =
-                NicoVideoData(title, videoId, thum, stringToUnixTime(date), viewCount, commentCount, mylistCount)
+                NicoVideoData(false, title, videoId, thum, stringToUnixTime(date), viewCount, commentCount, mylistCount)
             rankingList.add(nicoVideoData)
         }
         return rankingList

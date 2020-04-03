@@ -19,11 +19,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPager
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
@@ -47,6 +49,16 @@ class DevNicoVideoFragment : Fragment() {
     // 必要なやつ
     var userSession = ""
     var videoId = ""
+
+    // 一度だけ実行する
+    var isInit = true
+
+    // キャッシュ取得用
+    lateinit var nicoVideoCache: NicoVideoCache
+    var isCache = false
+    var contentUrl = ""
+    var nicoHistory = ""
+    lateinit var jsonObject: JSONObject
 
     // データ取得からハートビートまで扱う
     val nicoVideoHTML = NicoVideoHTML()
@@ -79,9 +91,12 @@ class DevNicoVideoFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context!!)
+        nicoVideoCache = NicoVideoCache(context)
+        userSession = prefSetting.getString("user_session", "") ?: ""
         // 動画ID
         videoId = arguments?.getString("id") ?: ""
-        userSession = prefSetting.getString("user_session", "") ?: ""
+        // キャッシュ再生が有効ならtrue
+        isCache = arguments?.getBoolean("cache") ?: false
 
         // スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -98,10 +113,18 @@ class DevNicoVideoFragment : Fragment() {
         // Fragmentセットする
         initViewPager()
 
-        // データ取得
-        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
-        coroutine()
+        // ブロードキャスト初期化
+        initBroadCastReceiver()
 
+        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
+        // キャッシュ再生のときとそうじゃないとき
+        if (isCache) {
+            // キャッシュ再生
+            cachePlay()
+        } else {
+            // データ取得
+            coroutine()
+        }
     }
 
     // Progress表示
@@ -156,9 +179,8 @@ class DevNicoVideoFragment : Fragment() {
         val nicoVideoHTML = NicoVideoHTML()
         GlobalScope.launch {
             val response = nicoVideoHTML.getHTML(videoId, userSession).await()
-            val nicoHistory = nicoVideoHTML.getNicoHistory(response)
-            val jsonObject = nicoVideoHTML.parseJSON(response?.body?.string())
-            var contentUrl = ""
+            nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
+            jsonObject = nicoVideoHTML.parseJSON(response?.body?.string())
             // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
             if (nicoVideoHTML.isDMCServer(jsonObject)) {
                 // https://api.dmc.nico/api/sessions のレスポンス
@@ -193,7 +215,6 @@ class DevNicoVideoFragment : Fragment() {
                     commentList.forEach {
                         recyclerViewList.add(it)
                     }
-                    initRecyclerView(recyclerViewList, true)
                 }
                 // タイトル
                 initTitleArea(jsonObject)
@@ -202,17 +223,54 @@ class DevNicoVideoFragment : Fragment() {
     }
 
     /**
+     * キャッシュ再生
+     * */
+    fun cachePlay() {
+        val cacheVideoPath = nicoVideoCache.getCacheFolderVideoFilePath(videoId)
+        initVideoPlayer(cacheVideoPath, "")
+        // コメント取得
+        val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
+        commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON))
+        // コメントFragmentにコメント配列を渡す
+        (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {
+            commentList.forEach {
+                recyclerViewList.add(it)
+            }
+            /**
+             * 本来ならここでRecyclerViewの更新をかけますが、
+             * 残念ながらViewPagerのDevNicoVideoCommentFragment初期化より速くここまでだどりつくため初期化してないエラーでちゃう
+             * ので更新はコメントアウトした
+             * */
+            // nicoVideoAdapter.notifyDataSetChanged()
+        }
+        // タイトル
+        initTitleArea(JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)))
+    }
+
+    /**
      * ExoPlayer初期化
      * */
     private fun initVideoPlayer(videoUrl: String?, nicohistory: String?) {
         exoPlayer.setVideoSurfaceView(fragment_nicovideo_surfaceview)
-        // SmileサーバーはCookieつけないと見れないため
-        val dataSourceFactory =
-            DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
-        dataSourceFactory.defaultRequestProperties.set("Cookie", nicohistory)
-        val videoSource =
-            ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(videoUrl?.toUri())
-        exoPlayer.prepare(videoSource)
+        // キャッシュ再生と分ける
+        if (isCache) {
+            // キャッシュ再生
+            val dataSourceFactory =
+                DefaultDataSourceFactory(context, "TatimiDroid;@takusan_23")
+            val videoSource =
+                ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(videoUrl?.toUri())
+            exoPlayer.prepare(videoSource)
+        } else {
+            // SmileサーバーはCookieつけないと見れないため
+            val dataSourceFactory =
+                DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
+            dataSourceFactory.defaultRequestProperties.set("Cookie", nicohistory)
+            val videoSource =
+                ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(videoUrl?.toUri())
+            exoPlayer.prepare(videoSource)
+        }
         // 自動再生
         exoPlayer.playWhenReady = true
         // 再生ボタン押したとき
@@ -427,7 +485,7 @@ class DevNicoVideoFragment : Fragment() {
      * ViewPager初期化
      * */
     private fun initViewPager() {
-        viewPager = DevNicoVideoViewPager(activity as AppCompatActivity, videoId)
+        viewPager = DevNicoVideoViewPager(activity as AppCompatActivity, videoId, isCache)
         fragment_nicovideo_viewpager.adapter = viewPager
         fragment_nicovideo_tablayout.setupWithViewPager(fragment_nicovideo_viewpager)
         // コメントを指定しておく
@@ -500,12 +558,35 @@ class DevNicoVideoFragment : Fragment() {
     }
 */
 
+    /**
+     * BroadCastReceiver初期化
+     * */
+    fun initBroadCastReceiver() {
+        nicoVideoCache.initBroadcastReceiver()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::exoPlayer.isInitialized) {
+            exoPlayer.playWhenReady = true
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (::exoPlayer.isInitialized) {
+            exoPlayer.playWhenReady = false
+        }
+    }
+
+
     override fun onDestroy() {
         super.onDestroy()
         // Fragment終了のち止める
         if (::exoPlayer.isInitialized) {
             exoPlayer.release()
         }
+        nicoVideoCache.destroy()
         nicoVideoHTML.destory()
         isDestory = true
     }

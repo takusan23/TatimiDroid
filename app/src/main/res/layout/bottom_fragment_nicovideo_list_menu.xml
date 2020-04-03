@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10sp"
+        android:orientation="vertical">
+
+    <TextView
+            android:id="@+id/bottom_fragment_nicovideo_list_menu_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="動画タイトル"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+    <TextView
+            android:id="@+id/bottom_fragment_nicovideo_list_menu_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="動画ID" />
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5sp"
+            android:orientation="vertical">
+
+        <TextView
+                android:id="@+id/bottom_fragment_nicovideo_list_menu_mylist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:padding="10sp"
+                android:text="マイリスト登録" />
+
+        <TextView
+                android:id="@+id/bottom_fragment_nicovideo_list_menu_get_cache"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:padding="10sp"
+                android:text="キャッシュを取得" />
+
+        <LinearLayout
+                android:id="@+id/bottom_fragment_nicovideo_list_menu_cache_menu"
+                android:layout_width="match_parent"
+                android:visibility="gone"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+            <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_re_get_cache"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="動画情報、コメントを再取得" />
+
+            <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_delete_cache"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="キャッシュを削除" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -305,4 +305,12 @@
     <string name="page">ページ目</string>
     <string name="cache">キャッシュ</string>
     <string name="video_dropdown">ランキング、マイリスト等はここを押して展開</string>
+    <string name="get_cache">キャッシュ取得</string>
+    <string name="get_cache_video">動画のキャッシュを取得しています</string>
+    <string name="get_cache_comment_ok">動画のコメントを取得しました</string>
+    <string name="get_cache_thum_ok">動画のサムネイルを取得しました</string>
+    <string name="get_cache_video_info_ok">動画情報を取得しました</string>
+    <string name="get_cache_video_ok">動画のキャッシュを取得しました</string>
+    <string name="delete_cache">キャッシュを削除する</string>
+    <string name="internet_not_connection_cache">インターネット接続がないためキャッシュ一覧を表示しています。</string>
 </resources>

@@ -133,10 +133,42 @@ class NicoVideoMyListAPI {
             val commentCount = itemData.getString("num_res")
             val mylistCount = itemData.getString("mylist_counter")
             val data =
-                NicoVideoData(title, videoId, thum, date, viewCount, commentCount, mylistCount)
+                NicoVideoData(false, title, videoId, thum, date, viewCount, commentCount, mylistCount)
             myListList.add(data)
         }
         return myListList
     }
+
+    /**
+     * マイリストに追加する。コルーチンです。
+     * 注意：成功、失敗に関わらず200が帰ってくる模様。
+     * {"status":"ok"}　なら成功
+     * {"error":{"code":"EXIST","description":"\u3059\u3067\u306b\u767b\u9332\u3055\u308c\u3066\u3044\u307e\u3059"},"status":"fail"}
+     * は失敗（descriptionがエスケープ文字になってるけど戻せば読めます。）
+     * @param mylistId マイリストのID
+     * @param threadId threadId。動画IDではない。js-initial-watch-dataのdata-api-dataのthread.ids.defaultの値。
+     * @param description マイリストコメント。空白で良いんじゃね？
+     * @param token getMyListHTML()とgetToken()を使って取得できるToken
+     * @param userSession ユーザーセッション
+     * */
+    fun mylistAddVideo(mylistId: String, threadId: String, description: String, token: String, userSession: String): Deferred<Response> =
+        GlobalScope.async {
+            val formBody = FormBody.Builder().apply {
+                add("group_id", mylistId)
+                add("item_type", "0") // 0が動画らしい
+                add("item_id", threadId)
+                add("description", description)
+                add("token", token)
+            }.build()
+            val request = Request.Builder().apply {
+                url("https://www.nicovideo.jp/api/mylist/add")
+                header("Cookie", "user_session=${userSession}")
+                header("User-Agent", "TatimiDroid;@takusan_23")
+                post(formBody)
+            }.build()
+            val okHttpClient = OkHttpClient()
+            val response = okHttpClient.newCall(request).execute()
+            return@async response
+        }
 
 }
