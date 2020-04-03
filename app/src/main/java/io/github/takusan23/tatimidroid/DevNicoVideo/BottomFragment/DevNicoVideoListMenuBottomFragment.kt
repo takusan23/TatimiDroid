@@ -36,7 +36,6 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
 
-
         // タイトル、ID設定
         bottom_fragment_nicovideo_list_menu_title.text = nicoVideoData.title
         bottom_fragment_nicovideo_list_menu_id.text = nicoVideoData.videoId

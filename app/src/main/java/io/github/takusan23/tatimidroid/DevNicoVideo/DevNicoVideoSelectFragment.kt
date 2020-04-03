@@ -8,8 +8,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.*
@@ -36,6 +34,7 @@ class DevNicoVideoSelectFragment : Fragment() {
             fragment_nicovideo_ranking.isEnabled = false
             fragment_nicovideo_post.isEnabled = false
             fragment_nicovideo_mylist.isEnabled = false
+            fragment_nicovideo_search.isEnabled = false
             fragment_nicovideo_history.isEnabled = false
             setFragment(DevNicoVideoCacheFragment())
             // インターネット接続無いよメッセージ
@@ -60,6 +59,10 @@ class DevNicoVideoSelectFragment : Fragment() {
 
         fragment_nicovideo_history.setOnClickListener {
             setFragment(DevNicoVideoHistoryFragment())
+        }
+
+        fragment_nicovideo_search.setOnClickListener {
+            setFragment(DevNicoVideoSearchFragment())
         }
 
         fragment_nicovideo_cache.setOnClickListener {
