@@ -40,11 +40,11 @@
 
             <Button
                     android:id="@+id/adapter_nicovideo_comment_nicoru"
-                    android:layout_margin="2sp"
                     android:layout_width="wrap_content"
-                    android:visibility="gone"
                     android:layout_height="match_parent"
-                    android:text="ニコる" />
+                    android:layout_margin="2sp"
+                    android:text=":-)"
+                    android:visibility="gone" />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

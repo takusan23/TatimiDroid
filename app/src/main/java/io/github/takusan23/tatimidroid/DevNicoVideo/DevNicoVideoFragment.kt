@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
@@ -116,6 +117,9 @@ class DevNicoVideoFragment : Fragment() {
         // ブロードキャスト初期化
         initBroadCastReceiver()
 
+        // コントローラー表示
+        initController()
+
         exoPlayer = SimpleExoPlayer.Builder(context!!).build()
         // キャッシュ再生のときとそうじゃないとき
         if (isCache) {
@@ -124,6 +128,31 @@ class DevNicoVideoFragment : Fragment() {
         } else {
             // データ取得
             coroutine()
+        }
+    }
+
+    private fun initController() {
+        fragment_nicovideo_fab.setOnClickListener {
+            fragment_nicovideo_controller.apply {
+                // 表示。
+                val showAnimation =
+                    AnimationUtils.loadAnimation(context!!, R.anim.comment_cardview_show_animation)
+                //表示
+                fragment_nicovideo_controller.startAnimation(showAnimation)
+                fragment_nicovideo_controller.visibility = View.VISIBLE
+                fragment_nicovideo_fab.hide()
+            }
+        }
+        fragment_nicovideo_controller_close.setOnClickListener {
+            fragment_nicovideo_controller.apply {
+                // 非表示
+                val showAnimation =
+                    AnimationUtils.loadAnimation(context!!, R.anim.comment_cardview_hide_animation)
+                //表示
+                fragment_nicovideo_controller.startAnimation(showAnimation)
+                fragment_nicovideo_controller.visibility = View.GONE
+                fragment_nicovideo_fab.show()
+            }
         }
     }
 
@@ -462,7 +491,8 @@ class DevNicoVideoFragment : Fragment() {
         // 再生時間TextView
         val simpleDateFormat = SimpleDateFormat("mm:ss")
         val formattedTime = simpleDateFormat.format(exoPlayer.currentPosition)
-        fragment_nicovideo_progress_text.text = formattedTime
+        val videoLengthFormattedTime = simpleDateFormat.format(exoPlayer.duration)
+        fragment_nicovideo_progress_text.text = "$formattedTime / $videoLengthFormattedTime"
     }
 
     /**

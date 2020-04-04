@@ -26,10 +26,12 @@ import kotlinx.coroutines.launch
 class DevNicoVideoPOSTFragment : Fragment() {
 
     val post = NicoVideoPOST()
-    lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
+
     lateinit var prefSetting: SharedPreferences
     var userSession = ""
+
     val recyclerViewList = arrayListOf<NicoVideoData>()
+    lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
 
     // 今のページ
     var isNowPageNum = 1

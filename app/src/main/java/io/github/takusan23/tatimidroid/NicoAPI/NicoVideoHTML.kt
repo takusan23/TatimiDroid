@@ -27,7 +27,7 @@ class NicoVideoHTML {
     /**
      * HTML取得
      * */
-    fun getHTML(videoId: String, userSession: String): Deferred<Response?> = GlobalScope.async {
+    fun getHTML(videoId: String, userSession: String): Deferred<Response> = GlobalScope.async {
         val request = Request.Builder().apply {
             url("https://www.nicovideo.jp/watch/$videoId")
             header("Cookie", "user_session=$userSession")
@@ -477,6 +477,11 @@ class NicoVideoHTML {
             }
         }
 
+    /**
+     * コメントJSONをパースする
+     * @param responseString JSON
+     * @return NicoVideoDataの配列
+     * */
     fun parseCommentJSON(responseString: String): ArrayList<ArrayList<String>> {
         val recyclerViewList = arrayListOf<ArrayList<*>>()
         val jsonArray = JSONArray(responseString)

@@ -72,6 +72,7 @@ class DevNicoVideoSelectFragment : Fragment() {
     }
 
     fun setFragment(fragment: Fragment) {
+        fragment_video_motionlayout.transitionToStart()
         activity?.supportFragmentManager?.beginTransaction()
             ?.replace(fragment_video_list_linearlayout.id, fragment)?.commit()
     }

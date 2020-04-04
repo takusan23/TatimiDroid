@@ -70,6 +70,9 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<St
         holder.userNameTextView.text =
             "${setTimeFormat(date.toLong())} | $formattedTime | $mail | $nicoruCount"
 
+        // JSONぱーす
+
+
     }
 
     /**

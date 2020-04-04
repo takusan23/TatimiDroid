@@ -90,19 +90,31 @@ class NicoVideoCache(val context: Context?) {
      * @param nicoHistory レスポンスヘッダーのCookieにあるnicohistoryを入れてね。
      * */
     fun getCache(videoId: String, json: String, url: String, userSession: String, nicoHistory: String) {
-        // 保存先
-        val path = getCacheFolderPath()
-        // 動画IDフォルダー作成
-        val videoIdFolder = File("$path/$videoId")
-        videoIdFolder.mkdir()
-        // コメント取得
-        getCacheComment(videoIdFolder, videoId, json, userSession)
-        // 動画情報取得
-        saveVideoInfo(videoIdFolder, videoId, json)
-        // 動画のサ胸取得
-        getThumbnail(videoIdFolder, videoId, json, userSession)
-        // 動画取得
-        getVideoCache(videoIdFolder, videoId, url, userSession, nicoHistory)
+        // 公式動画は落とせない。
+        if (!isEncryption(json)) {
+            // 保存先
+            val path = getCacheFolderPath()
+            // 動画IDフォルダー作成
+            val videoIdFolder = File("$path/$videoId")
+            videoIdFolder.mkdir()
+            // コメント取得
+            getCacheComment(videoIdFolder, videoId, json, userSession)
+            // 動画情報取得
+            saveVideoInfo(videoIdFolder, videoId, json)
+            // 動画のサ胸取得
+            getThumbnail(videoIdFolder, videoId, json, userSession)
+            // 動画取得
+            getVideoCache(videoIdFolder, videoId, url, userSession, nicoHistory)
+        } else {
+            showToast(context?.getString(R.string.encryption_not_download) ?: "")
+        }
+    }
+
+    /**
+     * 動画が暗号化されているか
+     * */
+    fun isEncryption(json: String): Boolean {
+        return JSONObject(json).getJSONObject("video").getJSONObject("dmcInfo").has("encryption")
     }
 
     /**
@@ -229,11 +241,16 @@ class NicoVideoCache(val context: Context?) {
         return cacheFolder.path
     }
 
-    // ブロードキャスト初期化
-    fun initBroadcastReceiver() {
+    /**
+     * ブロードキャスト初期化
+     * */
+    fun initBroadcastReceiver(call: (() -> Unit)? = null) {
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 showToast("${context?.getString(R.string.get_cache_video_ok)}")
+                if (call != null) {
+                    call()
+                }
             }
         }
         context?.registerReceiver(broadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))

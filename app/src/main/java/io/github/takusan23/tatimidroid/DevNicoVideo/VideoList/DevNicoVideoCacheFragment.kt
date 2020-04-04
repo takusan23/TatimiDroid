@@ -34,7 +34,14 @@ class DevNicoVideoCacheFragment : Fragment() {
         nicoVideoCache = NicoVideoCache(context)
         initRecyclerView()
 
+        load()
+
+    }
+
+    // 読み込む
+    fun load() {
         launch = GlobalScope.launch {
+            recyclerViewList.clear()
             nicoVideoCache.loadCache().await().forEach {
                 recyclerViewList.add(it)
             }
@@ -42,7 +49,6 @@ class DevNicoVideoCacheFragment : Fragment() {
                 nicoVideoListAdapter.notifyDataSetChanged()
             }
         }
-
     }
 
     override fun onDestroy() {
