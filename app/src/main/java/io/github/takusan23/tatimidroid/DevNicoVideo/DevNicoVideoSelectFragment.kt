@@ -1,15 +1,19 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.content.Context
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.*
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
@@ -24,6 +28,9 @@ class DevNicoVideoSelectFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // ダークモード
+        initDarkMode()
 
         // インターネット接続確認
         if (isConnectionInternet()) {
@@ -71,10 +78,21 @@ class DevNicoVideoSelectFragment : Fragment() {
 
     }
 
+    private fun initDarkMode() {
+        val darkModeSupport = DarkModeSupport(context!!)
+        fragment_video_list_linearlayout.background = ColorDrawable(darkModeSupport.getThemeColor())
+        fragment_video_bar.background = ColorDrawable(darkModeSupport.getThemeColor())
+    }
+
     fun setFragment(fragment: Fragment) {
-        fragment_video_motionlayout.transitionToStart()
-        activity?.supportFragmentManager?.beginTransaction()
-            ?.replace(fragment_video_list_linearlayout.id, fragment)?.commit()
+        // Handler(UIスレッド指定)で実行するとダークモード、画面切り替えに耐えるアプリが作れる。
+        Handler(Looper.getMainLooper()).post {
+            if (fragment_video_motionlayout != null) {
+                fragment_video_motionlayout.transitionToStart()
+            }
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(fragment_video_list_linearlayout.id, fragment)?.commit()
+        }
     }
 
     /**

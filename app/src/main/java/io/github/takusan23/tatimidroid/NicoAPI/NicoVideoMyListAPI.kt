@@ -124,6 +124,7 @@ class NicoVideoMyListAPI {
         val myListItem = jsonObject.getJSONArray("mylistitem")
         for (i in 0 until myListItem.length()) {
             val video = myListItem.getJSONObject(i)
+            val itemId = video.getString("item_id")
             val itemData = video.getJSONObject("item_data")
             val title = itemData.getString("title")
             val videoId = itemData.getString("video_id")
@@ -133,7 +134,7 @@ class NicoVideoMyListAPI {
             val commentCount = itemData.getString("num_res")
             val mylistCount = itemData.getString("mylist_counter")
             val data =
-                NicoVideoData(false, title, videoId, thum, date, viewCount, commentCount, mylistCount)
+                NicoVideoData(false,true, title, videoId, thum, date, viewCount, commentCount, mylistCount,itemId)
             myListList.add(data)
         }
         return myListList
@@ -165,6 +166,32 @@ class NicoVideoMyListAPI {
                 header("Cookie", "user_session=${userSession}")
                 header("User-Agent", "TatimiDroid;@takusan_23")
                 post(formBody)
+            }.build()
+            val okHttpClient = OkHttpClient()
+            val response = okHttpClient.newCall(request).execute()
+            return@async response
+        }
+
+    /**
+     * マイリストから動画を消す。
+     * @param mylistId マイリストのID
+     * @param itemId getMyListItems()で取得したJSONのJSON配列の中のitem_idの値。
+     * @param token マイリストToken
+     * @param userSession ユーザーセッション
+     * @return Response
+     * */
+    fun mylistDeleteVideo(mylistId: String, itemId: String, token: String, userSession: String): Deferred<Response> =
+        GlobalScope.async {
+            val form = FormBody.Builder().apply {
+                add("group_id", mylistId)
+                add("id_list[0][]", itemId)
+                add("token", token)
+            }.build()
+            val request = Request.Builder().apply {
+                url("https://www.nicovideo.jp/api/mylist/delete")
+                header("Cookie", "user_session=${userSession}")
+                header("User-Agent", "TatimiDroid;@takusan_23")
+                post(form)
             }.build()
             val okHttpClient = OkHttpClient()
             val response = okHttpClient.newCall(request).execute()

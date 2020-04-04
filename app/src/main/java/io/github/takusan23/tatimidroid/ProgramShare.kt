@@ -24,10 +24,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
 import androidx.core.graphics.drawable.toDrawable
+import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import java.lang.Exception
 import java.net.URI
 import java.security.cert.Extension
+import java.text.SimpleDateFormat
 import java.util.*
 
 class ProgramShare(
@@ -157,17 +159,17 @@ class ProgramShare(
     //ここで保存するのではなくUriを生成してonActivityResult()で保存するらしい。
     fun saveStorageAccessFramework() {
         //時間
-        val date = Calendar.getInstance()
-        val hour = date.get(Calendar.HOUR_OF_DAY)
-        val minute = date.get(Calendar.MINUTE)
-        val second = date.get(Calendar.SECOND)
+        val simpleDateFormat = SimpleDateFormat("HH:mm:ss")
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
         intent.type = "image/*"
-        intent.putExtra(Intent.EXTRA_TITLE, "$programId-$hour:$minute:$second.png")
+        intent.putExtra(Intent.EXTRA_TITLE, "$programId-${simpleDateFormat.format(System.currentTimeMillis())}.png")
         //Fragmentにする
-        val commentFragment =
+        val fragment = if (programId.contains("lv")) {
             activity.supportFragmentManager.findFragmentByTag(programId) as CommentFragment
-        commentFragment.startActivityForResult(intent, requestCode)
+        } else {
+            activity.supportFragmentManager.findFragmentByTag(programId) as DevNicoVideoFragment
+        }
+        fragment.startActivityForResult(intent, requestCode)
     }
 
     //保存
@@ -189,7 +191,7 @@ class ProgramShare(
         if (saveBitmap != null && saveUri != null) {
             val builder = ShareCompat.IntentBuilder.from(activity)
             builder.setChooserTitle(programName)
-            builder.setText("$programName\n$programId\nhttps://live2.nicovideo.jp/watch/$programId")
+            builder.setText("$programName\n$programId\nhttp://nico.ms/$programId")
             builder.setStream(saveUri)
             builder.setType("text/jpeg")
             builder.startChooser()
@@ -200,7 +202,7 @@ class ProgramShare(
     fun showShareScreen() {
         val builder = ShareCompat.IntentBuilder.from(activity)
         builder.setChooserTitle(programName)
-        builder.setText("$programName\n$programId\nhttps://live2.nicovideo.jp/watch/$programId")
+        builder.setText("$programName\n$programId\nhttp://nico.ms/$programId")
         builder.setStream(saveUri)
         builder.setType("text/plain")
         builder.startChooser()

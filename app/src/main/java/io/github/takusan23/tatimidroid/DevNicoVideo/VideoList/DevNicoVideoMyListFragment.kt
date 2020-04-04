@@ -23,11 +23,17 @@ import org.json.JSONObject
 class DevNicoVideoMyListFragment : Fragment() {
 
     val mylistAPI = NicoVideoMyListAPI()
+
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     val recyclerViewList = arrayListOf<NicoVideoData>()
+
     lateinit var prefSetting: SharedPreferences
     var userSession = ""
     var token = ""
+
+    // 今開いているMylistのID。とりあえずマイリストは空文字。
+    var myListId = ""
+
     lateinit var coroutine: Job
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -107,7 +113,7 @@ class DevNicoVideoMyListFragment : Fragment() {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 fragment_nicovideo_mylist_swipe_to_refresh.isRefreshing = true
                 recyclerViewList.clear()
-                val myListId = if (tab?.text == getString(R.string.toriaezu_mylist)) {
+                myListId = if (tab?.text == getString(R.string.toriaezu_mylist)) {
                     // とりあえずマイリスト
                     ""
                 } else {
@@ -138,7 +144,7 @@ class DevNicoVideoMyListFragment : Fragment() {
     }
 
     // マイリストの中身取得
-    private fun getMylistItems(myListId: String) {
+    fun getMylistItems(myListId: String) {
         // 初期化
         recyclerViewList.clear()
         nicoVideoListAdapter.notifyDataSetChanged()

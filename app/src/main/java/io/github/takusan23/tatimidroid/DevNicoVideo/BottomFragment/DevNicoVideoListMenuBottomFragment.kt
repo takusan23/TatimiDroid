@@ -13,9 +13,11 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.coroutines.GlobalScope
@@ -58,13 +60,46 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     // マイリスト。そのうち作る
     private fun mylistButton() {
+        if (nicoVideoData.isMylist) {
+            bottom_fragment_nicovideo_list_menu_mylist.text = getString(R.string.mylist_delete)
+        }
         bottom_fragment_nicovideo_list_menu_mylist.setOnClickListener {
-            val mylistBottomFragment = DevNicoVideoAddMylistBottomFragment()
-            val bundle = Bundle().apply {
-                putString("id", nicoVideoData.videoId)
+            if (nicoVideoData.isMylist) {
+                // マイリスト一覧。削除ボタン
+                GlobalScope.launch {
+                    val myListAPI = NicoVideoMyListAPI()
+                    val tokenHTML = myListAPI.getMyListHTML(userSession).await()
+                    if (tokenHTML.isSuccessful) {
+                        val token = myListAPI.getToken(tokenHTML.body?.string()) ?: ""
+                        val fragment =
+                            fragmentManager?.findFragmentById(R.id.fragment_video_list_linearlayout)
+                        if (fragment is DevNicoVideoMyListFragment) {
+                            // 削除API叩く
+                            val deleteResponse =
+                                myListAPI.mylistDeleteVideo(fragment.myListId, nicoVideoData.mylistItemId, token, userSession)
+                                    .await()
+                            if (deleteResponse.isSuccessful) {
+                                showToast(getString(R.string.mylist_delete_ok))
+                                activity?.runOnUiThread {
+                                    // BottomSheet消して再読み込み
+                                    this@DevNicoVideoListMenuBottomFragment.dismiss()
+                                    fragment.getMylistItems(fragment.myListId)
+                                }
+                            } else {
+                                showToast("${getString(R.string.error)}\n${deleteResponse.code}")
+                            }
+                        }
+                    }
+                }
+            } else {
+                // マイリスト一覧以外。追加ボタン
+                val mylistBottomFragment = DevNicoVideoAddMylistBottomFragment()
+                val bundle = Bundle().apply {
+                    putString("id", nicoVideoData.videoId)
+                }
+                mylistBottomFragment.arguments = bundle
+                mylistBottomFragment.show((activity as AppCompatActivity).supportFragmentManager, "mylist")
             }
-            mylistBottomFragment.arguments = bundle
-            mylistBottomFragment.show((activity as AppCompatActivity).supportFragmentManager, "mylist")
         }
     }
 
@@ -151,40 +186,17 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             dismiss()
         }
 
-        // キャッシュの動画情報、コメント更新（未実装）
+        // キャッシュの動画情報、コメント更新
         bottom_fragment_nicovideo_list_menu_re_get_cache.setOnClickListener {
             // キャッシュ取得中はBottomFragmentを消させないようにする
             this.isCancelable = false
             bottom_fragment_nicovideo_list_menu_re_get_cache.text =
                 getString(R.string.cache_updateing)
-            GlobalScope.launch {
-                // 動画HTML取得
-                val response = nicoVideoHTML.getHTML(nicoVideoData.videoId, userSession).await()
-                if (response?.isSuccessful == true) {
-                    // 動画情報更新
-                    val jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
-                    val videoIdFolder =
-                        File("${nicoVideoCache.getCacheFolderPath()}/${nicoVideoData.videoId}")
-                    nicoVideoCache.saveVideoInfo(videoIdFolder, nicoVideoData.videoId, jsonObject.toString())
-
-                    // コメント取得
-                    val commentResponse =
-                        nicoVideoHTML.getComment(nicoVideoData.videoId, userSession, jsonObject)
-                            .await()
-                    val commentString = commentResponse?.body?.string()
-                    if (commentResponse?.isSuccessful == true && commentString != null) {
-                        // コメント更新
-                        nicoVideoCache.getCacheComment(videoIdFolder, nicoVideoData.videoId, jsonObject.toString(), userSession)
-                        showToast(getString(R.string.cache_update_ok))
-                        // 取得できたら閉じる
-                        Handler(Looper.getMainLooper()).post {
-                            this@DevNicoVideoListMenuBottomFragment.dismiss()
-                        }
-                    } else {
-                        showToast("${getString(R.string.error)}\n${response.code}")
-                    }
-                } else {
-                    showToast("${getString(R.string.error)}\n${response?.code}")
+            // 再取得
+            nicoVideoCache.getReGetVideoInfoComment(nicoVideoData.videoId, userSession, context) {
+                // 取得できたら閉じる
+                Handler(Looper.getMainLooper()).post {
+                    this@DevNicoVideoListMenuBottomFragment.dismiss()
                 }
             }
         }

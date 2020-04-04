@@ -319,4 +319,8 @@
     <string name="add_mylist">My list registration</string>
     <string name="get_cache_re_get">Reacquire video information and comments</string>
     <string name="mylist_add_ok">Added to my list</string>
+    <string name="mylist_delete_ok">Removed from My List</string>
+    <string name="mylist_delete">Remove from My List</string>
+    <string name="nicovideo">Video</string>
+    <string name="nicolive">Live</string>
 </resources>

@@ -319,4 +319,8 @@
     <string name="add_mylist">マイリスト登録</string>
     <string name="get_cache_re_get">動画情報、コメントを再取得</string>
     <string name="mylist_add_ok">マイリストに追加しました</string>
+    <string name="mylist_delete_ok">マイリストから削除しました</string>
+    <string name="mylist_delete">マイリストから削除する</string>
+    <string name="nicovideo">動画</string>
+    <string name="nicolive">生放送</string>
 </resources>

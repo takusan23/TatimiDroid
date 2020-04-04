@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
                             )
                             fragmentTransaction.commit()
                             //タイトル
-                            supportActionBar?.title = getString(R.string.video_comment_get)
+                            supportActionBar?.title = getString(R.string.nicovideo)
                         } else {
                             val fragmentTransaction = supportFragmentManager.beginTransaction()
                             fragmentTransaction.replace(

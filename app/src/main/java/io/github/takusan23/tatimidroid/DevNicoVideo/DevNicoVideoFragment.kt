@@ -1,7 +1,10 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
+import android.app.Activity
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.view.LayoutInflater
@@ -28,6 +31,7 @@ import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
+import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
@@ -50,6 +54,7 @@ class DevNicoVideoFragment : Fragment() {
     // 必要なやつ
     var userSession = ""
     var videoId = ""
+    var videoTitle = ""
 
     // 一度だけ実行する
     var isInit = true
@@ -82,6 +87,9 @@ class DevNicoVideoFragment : Fragment() {
     // 設定項目
     // 3DSコメント非表示
     var is3DSCommentHide = false
+
+    // 共有
+    lateinit var share: ProgramShare
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -183,7 +191,7 @@ class DevNicoVideoFragment : Fragment() {
      * 縦画面のみ。動画のタイトルなど表示・非表示やタイトル設定など
      * @param jsonObject NicoVideoHTML#parseJSON()の戻り値
      * */
-    fun initTitleArea(jsonObject: JSONObject) {
+    fun initTitleArea() {
         if (fragment_nicovideo_bar != null && fragment_nicovideo_video_title_linearlayout != null) {
             fragment_nicovideo_bar.setOnClickListener {
                 // バー押したら動画のタイトルなど表示・非表示
@@ -196,7 +204,7 @@ class DevNicoVideoFragment : Fragment() {
                 }
             }
         }
-        fragment_nicovideo_comment_title.text = jsonObject.getJSONObject("video").getString("title")
+        fragment_nicovideo_comment_title.text = videoTitle
         fragment_nicovideo_comment_videoid.text = videoId
     }
 
@@ -246,7 +254,11 @@ class DevNicoVideoFragment : Fragment() {
                     }
                 }
                 // タイトル
-                initTitleArea(jsonObject)
+                videoTitle = jsonObject.getJSONObject("video").getString("title")
+                initTitleArea()
+                // 共有
+                share =
+                    ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
             }
         }
     }
@@ -273,7 +285,13 @@ class DevNicoVideoFragment : Fragment() {
             // nicoVideoAdapter.notifyDataSetChanged()
         }
         // タイトル
-        initTitleArea(JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)))
+        videoTitle =
+            JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video")
+                .getString("title")
+        initTitleArea()
+        // 共有
+        share =
+            ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
     }
 
     /**
@@ -609,7 +627,6 @@ class DevNicoVideoFragment : Fragment() {
         }
     }
 
-
     override fun onDestroy() {
         super.onDestroy()
         // Fragment終了のち止める
@@ -619,6 +636,22 @@ class DevNicoVideoFragment : Fragment() {
         nicoVideoCache.destroy()
         nicoVideoHTML.destory()
         isDestory = true
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            ProgramShare.requestCode -> {
+                //画像共有
+                if (resultCode == Activity.RESULT_OK) {
+                    if (data?.data != null) {
+                        val uri: Uri = data.data!!
+                        //保存＆共有画面表示
+                        share.saveActivityResult(uri)
+                    }
+                }
+            }
+        }
     }
 
     /**

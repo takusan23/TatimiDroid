@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.FileUtils
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -19,10 +18,6 @@ import okhttp3.*
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
-import java.net.URLConnection
-import javax.net.ssl.HttpsURLConnection
 
 /**
  * キャッシュ取得など。
@@ -73,7 +68,7 @@ class NicoVideoCache(val context: Context?) {
                     jsonObject.getJSONObject("thread").getInt("commentCount").toString()
                 val mylistCount = video.getInt("mylistCount").toString()
                 val data =
-                    NicoVideoData(isCache, title, videoId, thum, date, viewCount, commentCount, mylistCount)
+                    NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "")
                 list.add(data)
             }
         }
@@ -112,9 +107,18 @@ class NicoVideoCache(val context: Context?) {
 
     /**
      * 動画が暗号化されているか
+     * dmcInfoが無いときもfalse
+     * 暗号化されているときはtrue
+     * されてないときはfalse
+     * @param json js-initial-watch-dataのdata-api-data
      * */
     fun isEncryption(json: String): Boolean {
-        return JSONObject(json).getJSONObject("video").getJSONObject("dmcInfo").has("encryption")
+        return when {
+            JSONObject(json).getJSONObject("video").isNull("dmcInfo") -> false
+            JSONObject(json).getJSONObject("video").getJSONObject("dmcInfo")
+                .has("encryption") -> true
+            else -> false
+        }
     }
 
     /**
@@ -298,6 +302,46 @@ class NicoVideoCache(val context: Context?) {
      * */
     fun getCacheFolderVideoCommentText(videoId: String): String {
         return File("${getCacheFolderPath()}/$videoId/${videoId}_comment.json").readText()
+    }
+
+    /**
+     * 動画情報、コメント再取得まとめたやつ。
+     * 二回も書かないと行けないのでここに書いた。
+     * @param videoId 動画ID
+     * @param userSession ユーザーセッション
+     * @param context Context。ActivityなりTextViewとかのViewだとView#getContext()あるし。。。
+     * @param completeFun 終了時に呼ばれる高階関数。
+     * */
+    fun getReGetVideoInfoComment(videoId: String, userSession: String, context: Context?, completeFun: (() -> Unit)? = null) {
+        GlobalScope.launch {
+            val nicoVideoHTML = NicoVideoHTML()
+            // 動画HTML取得
+            val response = nicoVideoHTML.getHTML(videoId, userSession).await()
+            if (response.isSuccessful) {
+                // 動画情報更新
+                val jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
+                val videoIdFolder =
+                    File("${getCacheFolderPath()}/${videoId}")
+                saveVideoInfo(videoIdFolder, videoId, jsonObject.toString())
+                // コメント取得
+                val commentResponse =
+                    nicoVideoHTML.getComment(videoId, userSession, jsonObject)
+                        .await()
+                val commentString = commentResponse?.body?.string()
+                if (commentResponse?.isSuccessful == true && commentString != null) {
+                    // コメント更新
+                    getCacheComment(videoIdFolder, videoId, jsonObject.toString(), userSession)
+                    showToast(context?.getString(R.string.cache_update_ok) ?: "取得できたよ")
+                    if (completeFun != null) {
+                        completeFun()
+                    }
+                } else {
+                    showToast("${context?.getString(R.string.error)}\n${response.code}")
+                }
+            } else {
+                showToast("${context?.getString(R.string.error)}\n${response?.code}")
+            }
+        }
     }
 
 }

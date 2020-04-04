@@ -41,7 +41,7 @@ class ProgramListFragment : Fragment() {
         fragment_program_list_tab_layout.setupWithViewPager(fragment_program_list_view_pager)
 */
 
-        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.follow_program)
+        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.nicolive)
 
         // ダークモード
         val darkModeSupport = DarkModeSupport(context!!)
