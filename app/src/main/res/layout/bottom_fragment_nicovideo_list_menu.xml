@@ -51,6 +51,15 @@
                 android:visibility="gone">
 
             <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_xml_to_json"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="XML形式のコメントを変換する" />
+
+            <TextView
                     android:id="@+id/bottom_fragment_nicovideo_list_menu_re_get_cache"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

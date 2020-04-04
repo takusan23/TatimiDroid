@@ -14,10 +14,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListFragment
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoMyListAPI
+import io.github.takusan23.tatimidroid.NicoAPI.*
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.coroutines.GlobalScope
@@ -200,6 +197,17 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                 }
             }
         }
+
+        // XML形式をJSON形式に変換する
+        bottom_fragment_nicovideo_list_menu_xml_to_json.setOnClickListener {
+            val xmlCommentJSON = XMLCommentJSON(context)
+            GlobalScope.launch {
+                val status = xmlCommentJSON.xmlToJSON(nicoVideoData.videoId).await()
+                println(status)
+                showToast("XMLに変換が完了しました : $status")
+            }
+        }
+
     }
 
     private fun showToast(message: String?) {
