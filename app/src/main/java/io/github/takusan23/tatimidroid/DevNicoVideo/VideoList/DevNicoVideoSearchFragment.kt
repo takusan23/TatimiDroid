@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,16 +18,27 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoSearchHTML
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_search.*
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class DevNicoVideoSearchFragment : Fragment() {
 
+    // RecyclerView
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
+    val recyclerViewList = arrayListOf<NicoVideoData>()
+
+    // Preference
     lateinit var prefSetting: SharedPreferences
     var userSession = ""
-    val recyclerViewList = arrayListOf<NicoVideoData>()
+
+    // 検索結果スクレイピング
     val nicoVideoSearchHTML = NicoVideoSearchHTML()
 
+    // ページ数
+    var page = 1
+
+    // Coroutine
+    lateinit var coroutine: Job
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_search, container, false)
@@ -41,15 +54,71 @@ class DevNicoVideoSearchFragment : Fragment() {
         initRecyclerView()
 
         fragment_nicovideo_search.setOnClickListener {
-            GlobalScope.launch {
-                recyclerViewList.clear()
+            page = 1
+            search()
+        }
+
+        fragment_nicovideo_search_prev_page.setOnClickListener {
+            // 前のページ
+            if (page - 1 > 0) {
+                page--
+                search()
+            }
+        }
+        fragment_nicovideo_search_next_page.setOnClickListener {
+            // 次のページ
+            page++
+            search()
+        }
+
+        // 引っ張って更新
+        fragment_nicovideo_search_swipe_refresh.setOnRefreshListener {
+            search()
+        }
+
+        // Spinner選択でも検索できるように
+        val spinnerListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                search()
+            }
+        }
+        fragment_nicovideo_search_tag_key_spinner.onItemSelectedListener = spinnerListener
+        fragment_nicovideo_search_sort_spinner.onItemSelectedListener = spinnerListener
+    }
+
+    // 検索
+    fun search() {
+        val searchText = fragment_nicovideo_search_input.text.toString()
+        if (searchText.isNotEmpty()) {
+            // クリア
+            fragment_nicovideo_search_swipe_refresh.isRefreshing = true
+            recyclerViewList.clear()
+            nicoVideoListAdapter.notifyDataSetChanged()
+            if (::coroutine.isInitialized) {
+                coroutine.cancel()
+            }
+            // ソート条件生成
+            val sort =
+                nicoVideoSearchHTML.makeSortOrder(fragment_nicovideo_search_sort_spinner.selectedItem as String)
+            // タグかキーワードか
+            val tagOrKeyword =
+                if (fragment_nicovideo_search_tag_key_spinner.selectedItemPosition == 0) {
+                    "tag"
+                } else {
+                    "search"
+                }
+            coroutine = GlobalScope.launch {
                 val response = nicoVideoSearchHTML.getHTML(
                     userSession,
-                    fragment_nicovideo_search_input.text.toString(),
-                    "tag",
-                    "h",
-                    "d",
-                    "1"
+                    searchText,
+                    tagOrKeyword,
+                    sort.first,
+                    sort.second,
+                    page.toString()
                 ).await()
                 if (response.isSuccessful) {
                     nicoVideoSearchHTML.parseHTML(response.body?.string()).forEach {
@@ -57,13 +126,13 @@ class DevNicoVideoSearchFragment : Fragment() {
                     }
                     activity?.runOnUiThread {
                         nicoVideoListAdapter.notifyDataSetChanged()
+                        fragment_nicovideo_search_swipe_refresh.isRefreshing = false
                     }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                 }
             }
         }
-
     }
 
     // RecyclerView初期化

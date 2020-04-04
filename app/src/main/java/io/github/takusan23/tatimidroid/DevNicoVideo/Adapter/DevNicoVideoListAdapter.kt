@@ -18,7 +18,7 @@ import org.w3c.dom.Text
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 
-class DevNicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideoData>) :
+class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
     RecyclerView.Adapter<DevNicoVideoListAdapter.ViewHolder>() {
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -64,6 +64,7 @@ class DevNicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideo
                 // データ渡す
                 menuBottomSheet.apply {
                     nicoVideoData = data
+                    nicoVideoListAdapter = this@DevNicoVideoListAdapter
                     show((context as AppCompatActivity).supportFragmentManager, "menu")
                 }
             }

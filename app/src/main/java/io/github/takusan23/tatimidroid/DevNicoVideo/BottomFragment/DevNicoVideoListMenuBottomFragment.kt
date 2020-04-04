@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoMyListAPI
@@ -23,6 +24,7 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     // データもらう
     lateinit var nicoVideoData: NicoVideoData
+    lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     lateinit var prefSetting: SharedPreferences
     var userSession = ""
 

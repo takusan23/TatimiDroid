@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.FileUtils
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -114,6 +115,9 @@ class NicoVideoCache(val context: Context?) {
         }
         // 削除
         val videoIdFolder = File("${getCacheFolderPath()}/$videoId")
+        videoIdFolder.listFiles().forEach {
+            it.delete()
+        }
         videoIdFolder.delete()
     }
 

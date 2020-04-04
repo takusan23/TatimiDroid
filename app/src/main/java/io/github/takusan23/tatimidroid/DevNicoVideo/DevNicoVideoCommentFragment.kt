@@ -96,7 +96,7 @@ class DevNicoVideoCommentFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // initRecyclerView()
+        initRecyclerView()
     }
 
     private fun initSortPopupMenu() {

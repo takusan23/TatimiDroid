@@ -62,7 +62,8 @@ class NicoVideoSearchHTML {
                 val mylistCount =
                     it.getElementsByClass("count mylist")[0].getElementsByClass("value")[0].text()
                 val isCache = false
-                val data = NicoVideoData(isCache, title, videoId, thum, date, viewCount, commentCount, mylistCount)
+                val data =
+                    NicoVideoData(isCache, title, videoId, thum, date, viewCount, commentCount, mylistCount)
                 list.add(data)
             }
         }
@@ -73,6 +74,31 @@ class NicoVideoSearchHTML {
     fun toUnixTime(time: String): Long {
         val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
         return simpleDateFormat.parse(time).time
+    }
+
+    /**
+     * ソートの文字列から検索内容を生成。返り値はPairで最初がsort,二個目がorderになります。
+     * 例：コメントの新しい順→Pair("n","d")
+     * @param sort コメントが新しい順、再生数が多い順など。
+     * */
+    fun makeSortOrder(sort: String): Pair<String, String> {
+        return when (sort) {
+            "人気が高い順" -> Pair("h", "d")
+            "あなたへのおすすめ順" -> Pair("p", "d")
+            "投稿日時が新しい順" -> Pair("f", "d")
+            "再生数が多い順" -> Pair("v", "d")
+            "マイリスト数が多い順" -> Pair("m", "d")
+            "コメントが新しい順" -> Pair("n", "d")
+            "コメントが古い順" -> Pair("n", "a")
+            "再生数が少ない順" -> Pair("v", "a")
+            "コメント数が多い順" -> Pair("r", "d")
+            "コメント数が少ない順" -> Pair("r", "a")
+            "マイリスト数が少ない順" -> Pair("m", "a")
+            "投稿日時が古い順" -> Pair("f", "a")
+            "再生時間が長い順" -> Pair("l", "d")
+            "再生時間が短い順" -> Pair("l", "a")
+            else -> Pair("h", "d")
+        }
     }
 
 }
