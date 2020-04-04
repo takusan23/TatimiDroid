@@ -162,6 +162,14 @@ class DevNicoVideoFragment : Fragment() {
                 fragment_nicovideo_fab.show()
             }
         }
+        fragment_nicovideo_controller_replay.setOnClickListener {
+            // 5秒戻す
+            exoPlayer.seekTo(exoPlayer.currentPosition - 5000)
+        }
+        fragment_nicovideo_controller_forward.setOnClickListener {
+            // 5秒進める
+            exoPlayer.seekTo(exoPlayer.currentPosition + 5000)
+        }
     }
 
     // Progress表示
