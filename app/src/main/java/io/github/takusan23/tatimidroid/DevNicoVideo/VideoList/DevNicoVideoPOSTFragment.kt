@@ -13,6 +13,7 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdap
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoPOST
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoRSS
+import io.github.takusan23.tatimidroid.NicoAPI.User
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_post.*
 import kotlinx.coroutines.CoroutineScope
@@ -22,6 +23,8 @@ import kotlinx.coroutines.launch
 
 /**
  * 投稿動画取得
+ * argumentsにputBoolean("my",true)で入れると自分の投稿動画を取りに行きます。（非公開は無理）
+ * argumentsにputString("userId","ユーザーID")で入れると入れたユーザーIDの投稿動画を取りに行きます。
  * */
 class DevNicoVideoPOSTFragment : Fragment() {
 
@@ -77,9 +80,17 @@ class DevNicoVideoPOSTFragment : Fragment() {
             coroutine.cancel()
         }
         coroutine = GlobalScope.launch {
-            if (userSession.isNotEmpty()) {
+            val url = if (arguments?.getBoolean("my", false) == true) {
+                "https://nvapi.nicovideo.jp/v1/users/me"
+            } else {
+                "https://nvapi.nicovideo.jp/v1/users/${arguments?.getString("userId")}"
+            }
+            // ユーザーID取得
+            val user =
+                User(context, "").getUserCoroutine(url).await()
+            if (userSession.isNotEmpty() && user?.userId != null) {
                 recyclerViewList.clear()
-                val response = post.getList(page, userSession).await()
+                val response = post.getList(page, user.userId.toString(), userSession).await()
                 if (response.isSuccessful) {
                     post.parseHTML(response).forEach {
                         recyclerViewList.add(it)

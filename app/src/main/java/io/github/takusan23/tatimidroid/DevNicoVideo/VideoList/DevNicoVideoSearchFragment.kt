@@ -21,6 +21,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
+/**
+ * ニコ動検索Fragment
+ * argumentにputString("search","検索したい内容")を入れるとその値を検索します。なおタグ検索、人気の高い順です。
+ * */
 class DevNicoVideoSearchFragment : Fragment() {
 
     // RecyclerView
@@ -52,6 +56,13 @@ class DevNicoVideoSearchFragment : Fragment() {
 
         // RecyclerView初期化
         initRecyclerView()
+
+        // argumentの値を使って検索。
+        val searchText = arguments?.getString("search")
+        if (searchText != null && searchText.isNotEmpty()) {
+            fragment_nicovideo_search_input.setText(searchText)
+            search(searchText)
+        }
 
         fragment_nicovideo_search.setOnClickListener {
             page = 1
@@ -90,9 +101,11 @@ class DevNicoVideoSearchFragment : Fragment() {
         fragment_nicovideo_search_sort_spinner.onItemSelectedListener = spinnerListener
     }
 
-    // 検索
-    fun search() {
-        val searchText = fragment_nicovideo_search_input.text.toString()
+    /**
+     * 検索関数。
+     * @param searchText 検索内容。省略すると「fragment_nicovideo_search_input」の値を使います。
+     * */
+    fun search(searchText: String = fragment_nicovideo_search_input.text.toString()) {
         if (searchText.isNotEmpty()) {
             // クリア
             fragment_nicovideo_search_swipe_refresh.isRefreshing = true

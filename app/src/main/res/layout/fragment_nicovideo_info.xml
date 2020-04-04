@@ -44,9 +44,9 @@
                 <TextView
                         android:id="@+id/fragment_nicovideo_info_description_textview"
                         android:layout_width="match_parent"
-                        android:textIsSelectable="true"
                         android:layout_height="wrap_content"
-                        android:text="せつめいぶん" />
+                        android:text="せつめいぶん"
+                        android:textIsSelectable="true" />
             </LinearLayout>
 
             <LinearLayout
@@ -79,6 +79,7 @@
             </LinearLayout>
 
             <LinearLayout
+                    android:id="@+id/fragment_nicovideo_info_owner_linearlayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="10sp"

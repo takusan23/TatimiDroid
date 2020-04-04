@@ -29,6 +29,7 @@ import com.google.android.exoplayer2.video.VideoListener
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPager
+import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
 import io.github.takusan23.tatimidroid.ProgramShare
@@ -55,6 +56,7 @@ class DevNicoVideoFragment : Fragment() {
     var userSession = ""
     var videoId = ""
     var videoTitle = ""
+
 
     // 一度だけ実行する
     var isInit = true
@@ -267,6 +269,8 @@ class DevNicoVideoFragment : Fragment() {
                 // 共有
                 share =
                     ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
+                // 投稿動画をViewPagerに追加
+                viewPagerAddAccountFragment(jsonObject)
             }
         }
     }
@@ -280,18 +284,22 @@ class DevNicoVideoFragment : Fragment() {
         // コメント取得
         val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
         commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON))
+/*
         // コメントFragmentにコメント配列を渡す
         (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {
             commentList.forEach {
                 recyclerViewList.add(it)
             }
-            /**
-             * 本来ならここでRecyclerViewの更新をかけますが、
-             * 残念ながらViewPagerのDevNicoVideoCommentFragment初期化より速くここまでだどりつくため初期化してないエラーでちゃう
-             * ので更新はコメントアウトした
-             * */
+            */
+        /**
+         * 本来ならここでRecyclerViewの更新をかけますが、
+         * 残念ながらViewPagerのDevNicoVideoCommentFragment初期化より速くここまでだどりつくため初期化してないエラーでちゃう
+         * ので更新はコメントアウトした
+         * *//*
+
             // nicoVideoAdapter.notifyDataSetChanged()
         }
+*/
         // タイトル
         videoTitle =
             JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video")
@@ -546,6 +554,25 @@ class DevNicoVideoFragment : Fragment() {
         fragment_nicovideo_tablayout.setupWithViewPager(fragment_nicovideo_viewpager)
         // コメントを指定しておく
         fragment_nicovideo_viewpager.currentItem = 1
+    }
+
+    /**
+     * ViewPagerにアカウントを追加する
+     * */
+    private fun viewPagerAddAccountFragment(jsonObject: JSONObject) {
+        val ownerObject = jsonObject.getJSONObject("owner")
+        val userId = ownerObject.getInt("id").toString()
+        val nickname = ownerObject.getString("nickname")
+        // DevNicoVideoFragment
+        val fragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+        val postFragment = DevNicoVideoPOSTFragment().apply {
+            arguments = Bundle().apply {
+                putString("userId", userId)
+            }
+        }
+        fragment.viewPager.fragmentList.add(3,postFragment)
+        fragment.viewPager.fragmentTabName.add(3,nickname)
+        fragment.viewPager.notifyDataSetChanged() // 更新！
     }
 
 /*

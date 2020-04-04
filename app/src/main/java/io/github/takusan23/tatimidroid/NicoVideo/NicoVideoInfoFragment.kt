@@ -16,8 +16,13 @@ import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
+import kotlinx.android.synthetic.main.fragment_comment_menu.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
 import okhttp3.*
 import org.json.JSONArray
@@ -149,76 +154,92 @@ class NicoVideoInfoFragment : Fragment() {
         val tagArray = json.getJSONArray("tags")
 
         activity?.runOnUiThread {
-            //UIスレッド
-            fragment_nicovideo_info_title_textview.text = title
-            fragment_nicovideo_info_description_textview.text =
-                HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT)
-            fragment_nicovideo_info_upload_textview.text =
-                "${getString(R.string.post_date)}：$postedDateTime"
+            // Fragmentがアタッチされているか確認する。
+            if (!isDetached) {
+                //UIスレッド
+                fragment_nicovideo_info_title_textview.text = title
+                fragment_nicovideo_info_description_textview.text =
+                    HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                fragment_nicovideo_info_upload_textview.text =
+                    "${getString(R.string.post_date)}：$postedDateTime"
 
 
-            fragment_nicovideo_info_play_count_textview.text =
-                "${getString(R.string.play_count)}：$viewCount"
+                fragment_nicovideo_info_play_count_textview.text =
+                    "${getString(R.string.play_count)}：$viewCount"
 
-            fragment_nicovideo_info_mylist_count_textview.text =
-                "${getString(R.string.mylist)}：$mylistCount"
+                fragment_nicovideo_info_mylist_count_textview.text =
+                    "${getString(R.string.mylist)}：$mylistCount"
 
-            fragment_nicovideo_info_comment_count_textview.text =
-                "${getString(R.string.comment_count)}：$commentCount"
+                fragment_nicovideo_info_comment_count_textview.text =
+                    "${getString(R.string.comment_count)}：$commentCount"
 
-            fragment_nicovideo_info_owner_textview.text = nickname
+                fragment_nicovideo_info_owner_textview.text = nickname
 
-            //たぐ
-            for (i in 0 until tagArray.length()) {
-                val tag = tagArray.getJSONObject(i)
-                val name = tag.getString("name")
-                val isDictionaryExists =
-                    tag.getBoolean("isDictionaryExists") //大百科があるかどうか
+                //たぐ
+                for (i in 0 until tagArray.length()) {
+                    val tag = tagArray.getJSONObject(i)
+                    val name = tag.getString("name")
+                    val isDictionaryExists =
+                        tag.getBoolean("isDictionaryExists") //大百科があるかどうか
+                    val linearLayout = LinearLayout(context)
+                    linearLayout.orientation = LinearLayout.HORIZONTAL
+                    //ボタン
+                    val button = Button(context)
+                    //大きさとか
+                    val linearLayoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    linearLayoutParams.weight = 1F
+                    button.layoutParams = linearLayoutParams
+                    button.text = name
+                    linearLayout.addView(button)
+                    if (isDictionaryExists) {
+                        val dictionaryButton = Button(context)
+                        dictionaryButton.text = getString(R.string.dictionary)
+                        linearLayout.addView(dictionaryButton)
+                        //大百科ひらく
+                        dictionaryButton.setOnClickListener {
+                            openBrowser("https://dic.nicovideo.jp/a/$name")
+                        }
+                    }
+                    fragment_nicovideo_info_title_linearlayout.addView(linearLayout)
 
-
-                val linearLayout = LinearLayout(context)
-                linearLayout.orientation = LinearLayout.HORIZONTAL
-
-                //ボタン
-                val button = Button(context)
-                //大きさとか
-                val linearLayoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                linearLayoutParams.weight = 1F
-
-                button.layoutParams = linearLayoutParams
-                button.text = name
-                linearLayout.addView(button)
-
-                if (isDictionaryExists) {
-                    val dictionaryButton = Button(context)
-                    dictionaryButton.text = getString(R.string.dictionary)
-                    linearLayout.addView(dictionaryButton)
-                    //大百科ひらく
-                    dictionaryButton.setOnClickListener {
-                        openBrowser("https://dic.nicovideo.jp/a/$name")
+                    // タグ検索FragmentをViewPagerに追加する
+                    button.setOnClickListener {
+                        // DevNicoVideoFragment
+                        val fragment =
+                            fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+                        val postFragment = DevNicoVideoSearchFragment().apply {
+                            arguments = Bundle().apply {
+                                putString("search", name)
+                            }
+                        }
+                        // 追加位置
+                        val addPos = fragment.viewPager.fragmentList.size - 1
+                        // ViewPager追加
+                        fragment.viewPager.fragmentList.add(addPos, postFragment)
+                        fragment.viewPager.fragmentTabName.add(addPos, "${getString(R.string.tag)}：$name")
+                        fragment.viewPager.notifyDataSetChanged()
                     }
                 }
 
-                fragment_nicovideo_info_title_linearlayout.addView(linearLayout)
-            }
 
-
-            //ブラウザで再生。このアプリで再生できるようにするかは考え中。
-            fragment_nicovideo_info_open_browser.setOnClickListener {
-                openBrowser("https://www.nicovideo.jp/watch/$id")
-            }
-
-            //ユーザーページ
-            fragment_nicovideo_info_owner_textview.setOnClickListener {
-                if (userId.contains("co")) {
-                    openBrowser("https://www.nicovideo.jp/user/$userId")
-                } else {
-                    //チャンネルの時、ch以外にもそれぞれアニメの名前を入れても通る。例：te-kyu2 / gochiusa など
-                    openBrowser("https://ch.nicovideo.jp/$userId")
+                //ブラウザで再生。このアプリで再生できるようにするかは考え中。
+                fragment_nicovideo_info_open_browser.setOnClickListener {
+                    openBrowser("https://www.nicovideo.jp/watch/$id")
                 }
+
+                //ユーザーページ
+                fragment_nicovideo_info_owner_textview.setOnClickListener {
+                    if (userId.contains("co")) {
+                        openBrowser("https://www.nicovideo.jp/user/$userId")
+                    } else {
+                        //チャンネルの時、ch以外にもそれぞれアニメの名前を入れても通る。例：te-kyu2 / gochiusa など
+                        openBrowser("https://ch.nicovideo.jp/$userId")
+                    }
+                }
+
             }
         }
     }

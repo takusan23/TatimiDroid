@@ -22,10 +22,9 @@ class NicoVideoPOST {
      * @param page ページ数。。何もなければ空でいいよ。
      * @param userSession ユーザーセッション
      * */
-    fun getList(page: Int, userSession: String): Deferred<Response> =
+    fun getList(page: Int, userId: String, userSession: String): Deferred<Response> =
         GlobalScope.async {
-            // 200件最大まで取得する
-            val url = "https://www.nicovideo.jp/my/video?page=$page"
+            val url = "https://www.nicovideo.jp/user/$userId/video?page=$page"
             val request = Request.Builder().apply {
                 url(url)
                 header("Cookie", "user_session=${userSession}")
@@ -33,7 +32,6 @@ class NicoVideoPOST {
                 header("User-Agent", "TatimiDroid;@takusan_23")
                 get()
             }.build()
-
             val okHttpClient = OkHttpClient()
             val response = okHttpClient.newCall(request).execute()
             return@async response
@@ -45,40 +43,20 @@ class NicoVideoPOST {
         //動画のDiv要素を取り出す
         val divList = document.getElementsByClass("outer VideoItem")
         divList.forEach {
-            if (it.getElementsByClass("ct").isNotEmpty()) {
-                //一つずつ見ていく
-                var videoId = it.getElementsByClass("ct").first().attr("href")
-                videoId = videoId.replace("http://commons.nicovideo.jp/tree/", "")
-                val title =
-                    it.getElementsByTag("h5").first().getElementsByTag("a").text()
-                val postDate =
-                    it.getElementsByClass("posttime").first().text().replace(" 投稿", "")
-                val thumbnailUrl = it.getElementsByTag("img").first().attr("src")
-                val commentCount = it.getElementsByClass("comment").first().text()
-                val playCount = it.getElementsByClass("play").first().text()
-                val mylistCount = it.getElementsByClass("mylist").first().text()
-                val data =
-                    NicoVideoData(false,false,title, videoId, thumbnailUrl, toUnixTime(postDate), playCount, commentCount, mylistCount,"")
-                videoList.add(data)
-            }
-
-            //次のページへ移動
-            if (document.getElementsByClass("outer VideoListHeadMenuContainer")
-                    .isNotEmpty() &&
-                document.getElementsByClass("outer VideoListHeadMenuContainer")[0].getElementsByClass("pager")
-                    .isNotEmpty()
-            ) {
-                val videoListButtonDiv =
-                    document.getElementsByClass("outer VideoListHeadMenuContainer")[0].getElementsByClass(
-                        "pager"
-                    )[0]
-                val nextButton = videoListButtonDiv.children().last()
-                //href取得。次のページへ
-                //最後かどうか判断しないと無限に取得しに行くので。最後は要素が「span」になる。最後の要素が「span」なら取得しない。
-                if (nextButton.tagName() != "span") {
-                    val link = nextButton.attr("href")
-                }
-            }
+            // 動画ID
+            val videoId = it.getElementsByTag("a")[0].attr("href").replace("watch/", "")
+            //一つずつ見ていく
+            val title =
+                it.getElementsByTag("h5").first().getElementsByTag("a").text()
+            val postDate =
+                it.getElementsByClass("posttime").first().text().replace(" 投稿", "")
+            val thumbnailUrl = it.getElementsByTag("img").first().attr("src")
+            val commentCount = it.getElementsByClass("comment").first().text()
+            val playCount = it.getElementsByClass("play").first().text()
+            val mylistCount = it.getElementsByClass("mylist").first().text()
+            val data =
+                NicoVideoData(false, false, title, videoId, thumbnailUrl, toUnixTime(postDate), playCount, commentCount, mylistCount, "")
+            videoList.add(data)
         }
         return videoList
     }

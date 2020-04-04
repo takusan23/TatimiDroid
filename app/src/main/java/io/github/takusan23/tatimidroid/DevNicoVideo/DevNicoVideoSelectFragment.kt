@@ -17,6 +17,7 @@ import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.*
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.isConnectionInternet
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_select.*
 
@@ -33,7 +34,7 @@ class DevNicoVideoSelectFragment : Fragment() {
         initDarkMode()
 
         // インターネット接続確認
-        if (isConnectionInternet()) {
+        if (isConnectionInternet(context)) {
             // ランキング
             setFragment(DevNicoVideoRankingFragment())
         } else {
@@ -57,7 +58,11 @@ class DevNicoVideoSelectFragment : Fragment() {
         }
 
         fragment_nicovideo_post.setOnClickListener {
-            setFragment(DevNicoVideoPOSTFragment())
+            setFragment(DevNicoVideoPOSTFragment().apply {
+                arguments = Bundle().apply {
+                    putBoolean("my", true)
+                }
+            })
         }
 
         fragment_nicovideo_mylist.setOnClickListener {
@@ -95,10 +100,13 @@ class DevNicoVideoSelectFragment : Fragment() {
         }
     }
 
+/*
+    */
     /**
      * ネットワーク接続確認
      * https://stackoverflow.com/questions/57277759/getactivenetworkinfo-is-deprecated-in-api-29
-     * */
+     * *//*
+
     fun isConnectionInternet(): Boolean {
         val connectivityManager =
             context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
@@ -120,5 +128,6 @@ class DevNicoVideoSelectFragment : Fragment() {
             return connectivityManager?.activeNetworkInfo != null && connectivityManager.activeNetworkInfo.isConnected
         }
     }
+*/
 
 }
