@@ -31,6 +31,8 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // Glide
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
     // MotionLayout
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta4'
     // MediaSession
@@ -38,7 +40,6 @@ dependencies {
     //GoogleCast
     implementation 'com.google.android.gms:play-services-cast-framework:18.1.0'
     // ExoPlayer
-//    implementation 'com.google.android.exoplayer:exoplayer-ui:2.11.3'
     implementation 'com.google.android.exoplayer:exoplayer-core:2.11.3'
     implementation 'com.google.android.exoplayer:exoplayer-hls:2.11.3'
     implementation 'com.google.android.exoplayer:extension-mediasession:2.10.4'

@@ -26,7 +26,7 @@ class XMLCommentJSON(val context: Context?) {
         // コメントXML
         val xmlFile = File("${media?.path}/cache/$fileName/${fileName}.xml")
         // ファイル存在するか
-        if (!xmlFile.exists()) {
+        if (!commentXmlFileExists(fileName)) {
             return@async 1
         }
         // 読み込む
@@ -67,13 +67,39 @@ class XMLCommentJSON(val context: Context?) {
                 put("content", content)
                 put("premium", premium)
             }
-            jsonArray.put(chatObject)
+            jsonArray.put(JSONObject().put("chat", chatObject))
             // 保存。
             val jsonFile = File("${media?.path}/cache/$fileName/${fileName}_comment.json")
             jsonFile.writeText(jsonArray.toString())
             println("${chat.size} / ${jsonArray.length()}")
         }
         return@async 0
+    }
+
+    /**
+     * XML形式のコメントファイルが存在するか。存在するときはtrue
+     * @param fileName ファイル名。基本動画ID
+     * */
+    fun commentXmlFileExists(fileName: String): Boolean {
+        // ScopedStorage
+        val media = context?.getExternalFilesDir(null)
+        // コメントXML
+        val xmlFile = File("${media?.path}/cache/$fileName/${fileName}.xml")
+        // ファイル存在するか
+        return xmlFile.exists()
+    }
+
+    /**
+     * JSON形式のコメントが存在するか。存在するとtrue
+     * @param fileName ファイル名。基本動画ID
+     * */
+    fun commentJSONFileExists(fileName: String): Boolean {
+        // ScopedStorage
+        val media = context?.getExternalFilesDir(null)
+        // コメントXML
+        val xmlFile = File("${media?.path}/cache/$fileName/${fileName}_comment.json")
+        // ファイル存在するか
+        return xmlFile.exists()
     }
 
 }

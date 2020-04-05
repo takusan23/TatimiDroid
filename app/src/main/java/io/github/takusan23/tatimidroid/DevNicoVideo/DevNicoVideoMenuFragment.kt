@@ -13,10 +13,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.isConnectionInternet
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_menu.*
 
@@ -59,10 +62,23 @@ class DevNicoVideoMenuFragment : Fragment() {
             fragment_nicovideo_menu_get_cache.visibility = View.GONE
         }
 
+        // マイリスト追加ボタン。インターネット未接続時は非表示にする
+        if (!isConnectionInternet(context)) {
+            fragment_nicovideo_menu_add_mylist.visibility = View.GONE
+        }
+        fragment_nicovideo_menu_add_mylist.setOnClickListener {
+            val addMylistBottomFragment = DevNicoVideoAddMylistBottomFragment()
+            val bundle = Bundle()
+            bundle.putString("id", videoId)
+            addMylistBottomFragment.arguments = bundle
+            addMylistBottomFragment.show(fragmentManager!!, "mylist")
+        }
+
         // キャッシュ
         val isCache = arguments?.getBoolean("cache") ?: false
         if (isCache) {
-            fragment_nicovideo_menu_get_cache.text = getString(R.string.delete_cache)
+            // キャッシュ取得ボタン塞ぐ
+            fragment_nicovideo_menu_get_cache.isEnabled = false
             // キャッシュ（動画情報、コメント）再取得ボタン表示
             fragment_nicovideo_menu_re_get_cache.visibility = View.VISIBLE
         } else {
@@ -72,30 +88,25 @@ class DevNicoVideoMenuFragment : Fragment() {
         val cache = NicoVideoCache(context)
         fragment_nicovideo_menu_get_cache.setOnClickListener {
             if (!isCache) {
-                // インターネット接続
-                if (id != null) {
-                    // DevNicoVideoFragment取得
-                    val devNicoVideoFragment =
-                        fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
-                    // キャッシュ取得。動画+コメント+動画情報
-                    cache.getCache(
-                        videoId,
-                        devNicoVideoFragment.jsonObject.toString(),
-                        devNicoVideoFragment.contentUrl,
-                        devNicoVideoFragment.userSession,
-                        devNicoVideoFragment.nicoHistory
-                    )
-                }
-            } else {
-                // キャッシュ再生
-                // 削除
-                cache.deleteCache(videoId)
-                // Activity終了
-                activity?.finish()
+                // DevNicoVideoFragment取得
+                val devNicoVideoFragment =
+                    fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+                // キャッシュ取得。動画+コメント+動画情報
+                cache.getCache(
+                    videoId,
+                    devNicoVideoFragment.jsonObject.toString(),
+                    devNicoVideoFragment.contentUrl,
+                    devNicoVideoFragment.userSession,
+                    devNicoVideoFragment.nicoHistory
+                )
             }
         }
 
         // 再取得
+        // インターネットに繋がってなければ非表示
+        if (!isConnectionInternet(context)) {
+            fragment_nicovideo_menu_re_get_cache.visibility = View.GONE
+        }
         fragment_nicovideo_menu_re_get_cache.setOnClickListener {
             val nicoVideoCache = NicoVideoCache(context)
             nicoVideoCache.getReGetVideoInfoComment(videoId, userSession, context)

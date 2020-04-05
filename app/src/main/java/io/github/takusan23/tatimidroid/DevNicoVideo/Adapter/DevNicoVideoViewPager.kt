@@ -9,6 +9,8 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.viewpager.widget.ViewPager
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoCommentFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoMenuFragment
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoContentTreeFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoInfoFragment
 import io.github.takusan23.tatimidroid.R
@@ -26,6 +28,9 @@ class DevNicoVideoViewPager(val activity: AppCompatActivity, val videoId: String
     init {
         bundle.putString("id", videoId)
         bundle.putBoolean("cache", isCache)
+        // 動画情報JSONがあるかどうか。なければ動画情報Fragmentを非表示にするため
+        val nicoVideoCache = NicoVideoCache(activity)
+        val exists = nicoVideoCache.existsCacheVideoInfoJSON(videoId)
         // インターネット接続とキャッシュ再生で分岐
         if (isCache) {
             val commentMenuFragment = DevNicoVideoMenuFragment().apply {
@@ -34,18 +39,22 @@ class DevNicoVideoViewPager(val activity: AppCompatActivity, val videoId: String
             val devNicoVideoCommentFragment = DevNicoVideoCommentFragment().apply {
                 arguments = bundle
             }
-            val nicoVideoInfoFragment = NicoVideoInfoFragment().apply {
-                arguments = bundle
-            }
+
             fragmentList.apply {
                 add(commentMenuFragment)
                 add(devNicoVideoCommentFragment)
-                add(nicoVideoInfoFragment)
             }
             fragmentTabName.apply {
                 add(activity.getString(R.string.menu))
                 add(activity.getString(R.string.comment))
-                add(activity.getString(R.string.nicovideo_info))
+            }
+            if (exists) {
+                // 動画情報JSONがあれば動画情報Fragmentを表示させる
+                val nicoVideoInfoFragment = NicoVideoInfoFragment().apply {
+                    arguments = bundle
+                }
+                fragmentList.add(nicoVideoInfoFragment)
+                fragmentTabName.add(activity.getString(R.string.nicovideo_info))
             }
         } else {
             val commentMenuFragment = DevNicoVideoMenuFragment().apply {
@@ -64,13 +73,13 @@ class DevNicoVideoViewPager(val activity: AppCompatActivity, val videoId: String
                 add(commentMenuFragment)
                 add(devNicoVideoCommentFragment)
                 add(nicoVideoInfoFragment)
-                add(nicoContentTree)
+                // add(nicoContentTree)
             }
             fragmentTabName.apply {
                 add(activity.getString(R.string.menu))
                 add(activity.getString(R.string.comment))
                 add(activity.getString(R.string.nicovideo_info))
-                add(activity.getString(R.string.parent_contents))
+                // add(activity.getString(R.string.parent_contents))
             }
         }
     }

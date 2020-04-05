@@ -38,6 +38,12 @@
 
             </LinearLayout>
 
+            <Button
+                    android:id="@+id/fragment_nicovideo_menu_add_mylist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/add_mylist" />
+
             <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -70,6 +76,7 @@
                             tools:visibility="visible" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
+
 
             <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"

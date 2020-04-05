@@ -57,7 +57,8 @@
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10sp"
-                    android:text="XML形式のコメントを変換する" />
+                    android:text="@string/xml_to_json"
+                    android:visibility="gone" />
 
             <TextView
                     android:id="@+id/bottom_fragment_nicovideo_list_menu_re_get_cache"

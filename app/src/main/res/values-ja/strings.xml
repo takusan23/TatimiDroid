@@ -323,4 +323,10 @@
     <string name="mylist_delete">マイリストから削除する</string>
     <string name="nicovideo">動画</string>
     <string name="nicolive">生放送</string>
+    <string name="xml_to_json">XML形式のコメントをJSON形式に変換する（時間がかかる場合があります）</string>
+    <string name="xml_to_json_complete">JSON形式に変換が終わりました。</string>
+    <string name="xml_comment_play">XML形式のコメントは再生前に変換してください。キャッシュ一覧の動画から「XML形式のコメントをJSON形式に変換する」を選んで変換してから再生してください。</string>
+    <string name="wait">ちょっとまってね</string>
+    <string name="encryption_video_not_play">暗号化されている動画は再生できません。</string>
+    <string name="cache_delete_message">キャッシュを削除してもいいですか？</string>
 </resources>

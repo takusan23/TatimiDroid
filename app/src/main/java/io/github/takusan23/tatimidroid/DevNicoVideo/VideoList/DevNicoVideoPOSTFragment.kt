@@ -67,6 +67,10 @@ class DevNicoVideoPOSTFragment : Fragment() {
             getPostList(isNowPageNum)
         }
 
+        fragment_nicovideo_post_swipe_to_refresh.setOnRefreshListener {
+            getPostList(isNowPageNum)
+        }
+
     }
 
     /**

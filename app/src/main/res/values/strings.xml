@@ -323,4 +323,10 @@
     <string name="mylist_delete">Remove from My List</string>
     <string name="nicovideo">Video</string>
     <string name="nicolive">Live</string>
+    <string name="xml_to_json">Convert XML format comments to JSON format</string>
+    <string name="xml_to_json_complete">Conversion to JSON format is complete.</string>
+    <string name="xml_comment_play">Convert comments in XML format before playback. Select \"Convert XML format comments to JSON format\" from the video in the cache list and convert it before playing.</string>
+    <string name="wait">Wait a moment</string>
+    <string name="encryption_video_not_play">Encrypted videos cannot be played.</string>
+    <string name="cache_delete_message">Can I delete the cache?</string>
 </resources>

@@ -7,6 +7,7 @@ import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -32,6 +34,7 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPage
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
+import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
@@ -230,18 +233,27 @@ class DevNicoVideoFragment : Fragment() {
             jsonObject = nicoVideoHTML.parseJSON(response?.body?.string())
             // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
             if (nicoVideoHTML.isDMCServer(jsonObject)) {
-                // https://api.dmc.nico/api/sessions のレスポンス
-                val sessionAPIJSONObject = nicoVideoHTML.callSessionAPI(jsonObject).await()
-                if (sessionAPIJSONObject != null) {
-                    // 動画URL
-                    contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
-                    val heartBeatURL =
-                        nicoVideoHTML.getHeartBeatURL(jsonObject, sessionAPIJSONObject)
-                    val postData =
-                        nicoVideoHTML.getSessionAPIDataObject(jsonObject, sessionAPIJSONObject)
-                    // ハートビート処理
+                // 公式アニメは暗号化されてて見れないので落とす
+                if (nicoVideoHTML.isEncryption(jsonObject.toString())) {
+                    showToast(getString(R.string.encryption_video_not_play))
                     activity?.runOnUiThread {
-                        heatBeat(heartBeatURL, postData)
+                        activity?.finish()
+                    }
+                    return@launch
+                } else {
+                    // https://api.dmc.nico/api/sessions のレスポンス
+                    val sessionAPIJSONObject = nicoVideoHTML.callSessionAPI(jsonObject).await()
+                    if (sessionAPIJSONObject != null) {
+                        // 動画URL
+                        contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
+                        val heartBeatURL =
+                            nicoVideoHTML.getHeartBeatURL(jsonObject, sessionAPIJSONObject)
+                        val postData =
+                            nicoVideoHTML.getSessionAPIDataObject(jsonObject, sessionAPIJSONObject)
+                        // ハートビート処理
+                        activity?.runOnUiThread {
+                            heatBeat(heartBeatURL, postData)
+                        }
                     }
                 }
             } else {
@@ -279,11 +291,19 @@ class DevNicoVideoFragment : Fragment() {
      * キャッシュ再生
      * */
     fun cachePlay() {
-        val cacheVideoPath = nicoVideoCache.getCacheFolderVideoFilePath(videoId)
-        initVideoPlayer(cacheVideoPath, "")
-        // コメント取得
-        val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
-        commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON))
+        // コメントファイルがxmlならActivity終了
+        val xmlCommentJSON = XMLCommentJSON(context)
+        if (xmlCommentJSON.commentXmlFileExists(videoId) && !xmlCommentJSON.commentJSONFileExists(videoId)) {
+            // xml形式はあるけどjson形式がないときは落とす
+            Toast.makeText(context, R.string.xml_comment_play, Toast.LENGTH_SHORT).show()
+            activity?.finish()
+            return
+        } else {
+            val cacheVideoPath = nicoVideoCache.getCacheFolderVideoFilePath(videoId)
+            initVideoPlayer(cacheVideoPath, "")
+            // コメント取得
+            val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
+            commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON))
 /*
         // コメントFragmentにコメント配列を渡す
         (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {
@@ -291,23 +311,27 @@ class DevNicoVideoFragment : Fragment() {
                 recyclerViewList.add(it)
             }
             */
-        /**
-         * 本来ならここでRecyclerViewの更新をかけますが、
-         * 残念ながらViewPagerのDevNicoVideoCommentFragment初期化より速くここまでだどりつくため初期化してないエラーでちゃう
-         * ので更新はコメントアウトした
-         * *//*
+            /**
+             * 本来ならここでRecyclerViewの更新をかけますが、
+             * 残念ながらViewPagerのDevNicoVideoCommentFragment初期化より速くここまでだどりつくため初期化してないエラーでちゃう
+             * ので更新はコメントアウトした
+             * *//*
 
             // nicoVideoAdapter.notifyDataSetChanged()
         }
 */
-        // タイトル
-        videoTitle =
-            JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video")
-                .getString("title")
-        initTitleArea()
-        // 共有
-        share =
-            ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
+            // タイトル
+            videoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+                JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video")
+                    .getString("title")
+            } else {
+                videoId
+            }
+            initTitleArea()
+            // 共有
+            share =
+                ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
+        }
     }
 
     /**
@@ -560,19 +584,21 @@ class DevNicoVideoFragment : Fragment() {
      * ViewPagerにアカウントを追加する
      * */
     private fun viewPagerAddAccountFragment(jsonObject: JSONObject) {
-        val ownerObject = jsonObject.getJSONObject("owner")
-        val userId = ownerObject.getInt("id").toString()
-        val nickname = ownerObject.getString("nickname")
-        // DevNicoVideoFragment
-        val fragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
-        val postFragment = DevNicoVideoPOSTFragment().apply {
-            arguments = Bundle().apply {
-                putString("userId", userId)
+        if (!jsonObject.isNull("owner")) {
+            val ownerObject = jsonObject.getJSONObject("owner")
+            val userId = ownerObject.getInt("id").toString()
+            val nickname = ownerObject.getString("nickname")
+            // DevNicoVideoFragment
+            val fragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+            val postFragment = DevNicoVideoPOSTFragment().apply {
+                arguments = Bundle().apply {
+                    putString("userId", userId)
+                }
             }
+            fragment.viewPager.fragmentList.add(3, postFragment)
+            fragment.viewPager.fragmentTabName.add(3, nickname)
+            fragment.viewPager.notifyDataSetChanged() // 更新！
         }
-        fragment.viewPager.fragmentList.add(3,postFragment)
-        fragment.viewPager.fragmentTabName.add(3,nickname)
-        fragment.viewPager.notifyDataSetChanged() // 更新！
     }
 
 /*
@@ -688,6 +714,13 @@ class DevNicoVideoFragment : Fragment() {
             }
         }
     }
+
+    private fun showToast(message: String?) {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     /**
      * onSaveInstanceState / onViewStateRestored を使って画面回転に耐えるアプリを作る。

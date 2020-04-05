@@ -55,25 +55,45 @@ class NicoVideoCache(val context: Context?) {
                 val videoId = videoFolder.name
                 // 動画情報JSONパース
                 val jsonString = File("${videoFolder.path}/${videoId}.json")
-                val jsonObject = JSONObject(jsonString.readText())
-                // NicoVideo
-                val video = jsonObject.getJSONObject("video")
-                val isCache = true
-                val title = video.getString("title")
-                val thum = "${videoFolder.path}/${videoId}.jpg"
-                val date =
-                    NicoVideoHTML().postedDateTimeToUnixTime(video.getString("postedDateTime"))
-                val viewCount = video.getInt("viewCount").toString()
-                val commentCount =
-                    jsonObject.getJSONObject("thread").getInt("commentCount").toString()
-                val mylistCount = video.getInt("mylistCount").toString()
-                val data =
-                    NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "")
-                list.add(data)
+                if (jsonString.exists()) {
+                    val jsonObject = JSONObject(jsonString.readText())
+                    // NicoVideo
+                    val video = jsonObject.getJSONObject("video")
+                    val isCache = true
+                    val title = video.getString("title")
+                    val thum = "${videoFolder.path}/${videoId}.jpg"
+                    val date =
+                        NicoVideoHTML().postedDateTimeToUnixTime(video.getString("postedDateTime"))
+                    val viewCount = video.getInt("viewCount").toString()
+                    val commentCount =
+                        jsonObject.getJSONObject("thread").getInt("commentCount").toString()
+                    val mylistCount = video.getInt("mylistCount").toString()
+                    val data =
+                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "")
+                    list.add(data)
+                } else {
+                    /**
+                     * 動画情報JSON、サムネイルがない場合で読み込みたいときに使う。主にニコ生TSを見るときに使って。
+                     * */
+                    val isCache = true
+                    val isMylist = false
+                    val title = it.name
+                    val videoId = it.name
+                    val thum = ""
+                    val date = it.lastModified()
+                    val viewCount = "0"
+                    val commentCount = "0"
+                    val mylistCount = "0"
+                    val mylistItemId = ""
+                    val data =
+                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, mylistItemId)
+                    list.add(data)
+                }
             }
         }
         return@async list
     }
+
 
     /**
      * キャッシュ取得
@@ -287,6 +307,13 @@ class NicoVideoCache(val context: Context?) {
      * */
     fun getCacheFolderVideoInfoText(videoId: String): String {
         return File("${getCacheFolderPath()}/$videoId/$videoId.json").readText()
+    }
+
+    /**
+     * 動画情報JSONがあるか。あればtrue
+     * */
+    fun existsCacheVideoInfoJSON(videoId: String): Boolean {
+        return File("${getCacheFolderPath()}/$videoId/$videoId.json").exists()
     }
 
     /**

@@ -21,8 +21,11 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
+import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.isConnectionInternet
 import kotlinx.android.synthetic.main.fragment_comment_menu.*
+import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
 import okhttp3.*
 import org.json.JSONArray
@@ -59,8 +62,11 @@ class NicoVideoInfoFragment : Fragment() {
         if (isCache) {
             // キャッシュから取得
             val nicoVideoCache = NicoVideoCache(context)
-            val jsonVideoInfo = nicoVideoCache.getCacheFolderVideoInfoText(id)
-            parseJSONApplyUI(jsonVideoInfo)
+            if (nicoVideoCache.existsCacheVideoInfoJSON(id)) {
+                // JSONファイルある
+                val jsonVideoInfo = nicoVideoCache.getCacheFolderVideoInfoText(id)
+                parseJSONApplyUI(jsonVideoInfo)
+            }
         } else {
             // インターネットから取得
             getNicoVideoWebPage()
@@ -207,20 +213,25 @@ class NicoVideoInfoFragment : Fragment() {
 
                     // タグ検索FragmentをViewPagerに追加する
                     button.setOnClickListener {
-                        // DevNicoVideoFragment
-                        val fragment =
-                            fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
-                        val postFragment = DevNicoVideoSearchFragment().apply {
-                            arguments = Bundle().apply {
-                                putString("search", name)
+                        // オフライン時は動かさない
+                        if (isConnectionInternet(context)) {
+                            // DevNicoVideoFragment
+                            val fragment =
+                                fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+                            val postFragment = DevNicoVideoSearchFragment().apply {
+                                arguments = Bundle().apply {
+                                    putString("search", name)
+                                }
                             }
+                            // 追加位置
+                            val addPos = fragment.viewPager.fragmentList.size
+                            // ViewPager追加
+                            fragment.viewPager.fragmentList.add(postFragment)
+                            fragment.viewPager.fragmentTabName.add("${getString(R.string.tag)}：$name")
+                            fragment.viewPager.notifyDataSetChanged()
+                            // ViewPager移動
+                            fragment.fragment_nicovideo_viewpager.currentItem = addPos
                         }
-                        // 追加位置
-                        val addPos = fragment.viewPager.fragmentList.size - 1
-                        // ViewPager追加
-                        fragment.viewPager.fragmentList.add(addPos, postFragment)
-                        fragment.viewPager.fragmentTabName.add(addPos, "${getString(R.string.tag)}：$name")
-                        fragment.viewPager.notifyDataSetChanged()
                     }
                 }
 

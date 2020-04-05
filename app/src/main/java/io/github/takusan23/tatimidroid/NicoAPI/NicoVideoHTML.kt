@@ -38,6 +38,21 @@ class NicoVideoHTML {
         return@async response
     }
 
+    /**
+     * 動画が暗号化されているか
+     * dmcInfoが無いときもfalse
+     * 暗号化されているときはtrue
+     * されてないときはfalse
+     * @param json js-initial-watch-dataのdata-api-data
+     * */
+    fun isEncryption(json: String): Boolean {
+        return when {
+            JSONObject(json).getJSONObject("video").isNull("dmcInfo") -> false
+            JSONObject(json).getJSONObject("video").getJSONObject("dmcInfo")
+                .has("encryption") -> true
+            else -> false
+        }
+    }
 
     /**
      * レスポンスヘッダーのSet-Cookieの中からnicohistoryを取得する関数

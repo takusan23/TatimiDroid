@@ -13,5 +13,5 @@ data class NicoVideoData(
     val viewCount: String,
     val commentCount: String,
     val mylistCount: String,
-    val mylistItemId:String // マイリストのitem_idの値。マイリスト以外は空文字。
+    val mylistItemId: String // マイリストのitem_idの値。マイリスト以外は空文字。
 )

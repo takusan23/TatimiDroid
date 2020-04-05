@@ -9,6 +9,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
@@ -26,6 +29,7 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
         val infoTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_info)
         val dateTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_date)
         val cardView = itemView.findViewById<CardView>(R.id.adapter_nicovideo_list_cardview)
+        val thumImageView = itemView.findViewById<ImageView>(R.id.adapter_nicovideo_list_thum)
         val menuImageView = itemView.findViewById<ImageView>(R.id.adapter_nicovideo_list_menu)
     }
 
@@ -68,6 +72,12 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
                     show((context as AppCompatActivity).supportFragmentManager, "menu")
                 }
             }
+
+            // サムネイル
+            Glide.with(thumImageView)
+                .load(data.thum)
+                .apply(RequestOptions.bitmapTransform(RoundedCorners(30)))
+                .into(thumImageView)
 
         }
     }

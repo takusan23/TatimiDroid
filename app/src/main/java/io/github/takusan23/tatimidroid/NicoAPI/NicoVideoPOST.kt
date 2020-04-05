@@ -50,7 +50,7 @@ class NicoVideoPOST {
                 it.getElementsByTag("h5").first().getElementsByTag("a").text()
             val postDate =
                 it.getElementsByClass("posttime").first().text().replace(" 投稿", "")
-            val thumbnailUrl = it.getElementsByTag("img").first().attr("src")
+            val thumbnailUrl = it.getElementsByTag("img")[0].attr("data-original")
             val commentCount = it.getElementsByClass("comment").first().text()
             val playCount = it.getElementsByClass("play").first().text()
             val mylistCount = it.getElementsByClass("mylist").first().text()

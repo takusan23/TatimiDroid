@@ -199,12 +199,22 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         }
 
         // XML形式をJSON形式に変換する
+        // コメントファイル（XML）があれば表示させる
+        val xmlCommentJSON = XMLCommentJSON(context)
+        if (xmlCommentJSON.commentXmlFileExists(nicoVideoData.videoId)) {
+            bottom_fragment_nicovideo_list_menu_xml_to_json.visibility = View.VISIBLE
+        }
         bottom_fragment_nicovideo_list_menu_xml_to_json.setOnClickListener {
-            val xmlCommentJSON = XMLCommentJSON(context)
+            // BottomSheet消えないように。
+            this@DevNicoVideoListMenuBottomFragment.isCancelable = false
+            showToast(getString(R.string.wait))
             GlobalScope.launch {
                 val status = xmlCommentJSON.xmlToJSON(nicoVideoData.videoId).await()
-                println(status)
-                showToast("XMLに変換が完了しました : $status")
+                showToast(getString(R.string.xml_to_json_complete))
+                // 消す
+                activity?.runOnUiThread {
+                    this@DevNicoVideoListMenuBottomFragment.dismiss()
+                }
             }
         }
 
