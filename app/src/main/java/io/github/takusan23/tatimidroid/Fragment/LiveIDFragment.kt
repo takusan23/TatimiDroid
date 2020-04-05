@@ -15,6 +15,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialFadeThrough
 import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
@@ -54,56 +55,68 @@ class LiveIDFragment : Fragment() {
             //liveIdを取る。「https://live2.nicovideo.jp/watch/」をからの文字に置き換えてもいいんだけど後ろにパラメーターあるかもだし
             //スマホ用ページもあるからなあ
 
-            val nicoID_Matcher = Pattern.compile("(lv)([0-9]+)")
+            // 正規表現
+            val nicoIDMatcher = Pattern.compile("(lv)([0-9]+)")
                 .matcher(SpannableString(main_activity_liveid_inputedittext.text.toString()))
-            val communityID_Matcher = Pattern.compile("(co|ch)([0-9]+)")
+            val communityIDMatcher = Pattern.compile("(co|ch)([0-9]+)")
                 .matcher(SpannableString(main_activity_liveid_inputedittext.text.toString()))
-            if (nicoID_Matcher.find()) {
-                val liveId = nicoID_Matcher.group()
-                //メアド、パスワードがあるか
-                if (pref_setting.getString("password", "")?.isNotEmpty() ?: false) {
-                    // SnackbarProgress(context!!, main_activity_button, getString(R.string.loading)).show()
-                    //ダイアログ
-                    val bundle = Bundle()
-                    bundle.putString("liveId", liveId)
-                    val dialog = BottomSheetDialogWatchMode()
-                    dialog.arguments = bundle
-                    dialog.show((activity as AppCompatActivity).supportFragmentManager, "watchmode")
-                    //val intent = Intent(context, CommentActivity::class.java)
-                    //intent.putExtra("liveId", liveId)
-                    //startActivity(intent)
-                } else {
-                    Toast.makeText(context, getString(R.string.mail_pass_error), Toast.LENGTH_SHORT)
-                        .show()
-                }
-            } else if (communityID_Matcher.find()) {
-                //コニュニティIDから生放送IDを出す。
-                //getPlayerStatusで放送中の場合はコミュニティIDを入れれば使える
-                Toast.makeText(
-                    context,
-                    getString(R.string.program_id_from_community_id),
-                    Toast.LENGTH_SHORT
-                ).show()
-                GlobalScope.launch {
-                    var liveId = ""
-                    async {
-                        liveId = getProgramIDfromCommunityID() ?: ""
-                    }.await()
-                    if (liveId.isNotEmpty()) {
+            val nicoVideoIdMatcher = Pattern.compile("(sm|so)([0-9]+)")
+                .matcher(SpannableString(main_activity_liveid_inputedittext.text.toString()))
+            when {
+                nicoIDMatcher.find() -> {
+                    val liveId = nicoIDMatcher.group()
+                    //メアド、パスワードがあるか
+                    if (pref_setting.getString("password", "")?.isNotEmpty() == true) {
+                        // SnackbarProgress(context!!, main_activity_button, getString(R.string.loading)).show()
                         //ダイアログ
                         val bundle = Bundle()
                         bundle.putString("liveId", liveId)
                         val dialog = BottomSheetDialogWatchMode()
                         dialog.arguments = bundle
-                        dialog.show(
-                            (activity as AppCompatActivity).supportFragmentManager,
-                            "watchmode"
-                        )
+                        dialog.show((activity as AppCompatActivity).supportFragmentManager, "watchmode")
+                        //val intent = Intent(context, CommentActivity::class.java)
+                        //intent.putExtra("liveId", liveId)
+                        //startActivity(intent)
+                    } else {
+                        Toast.makeText(context, getString(R.string.mail_pass_error), Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
-            } else {
-                //正規表現失敗
-                Toast.makeText(context, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
+                communityIDMatcher.find() -> {
+                    //コニュニティIDから生放送IDを出す。
+                    //getPlayerStatusで放送中の場合はコミュニティIDを入れれば使える
+                    Toast.makeText(context, R.string.program_id_from_community_id, Toast.LENGTH_SHORT)
+                        .show()
+                    GlobalScope.launch {
+                        var liveId = ""
+                        async {
+                            liveId = getProgramIDfromCommunityID() ?: ""
+                        }.await()
+                        if (liveId.isNotEmpty()) {
+                            //ダイアログ
+                            val bundle = Bundle()
+                            bundle.putString("liveId", liveId)
+                            val dialog = BottomSheetDialogWatchMode()
+                            dialog.arguments = bundle
+                            dialog.show(
+                                (activity as AppCompatActivity).supportFragmentManager,
+                                "watchmode"
+                            )
+                        }
+                    }
+                }
+                nicoVideoIdMatcher.find() -> {
+                    val nicoVideo = nicoVideoIdMatcher.group()
+                    val intent = Intent(context, NicoVideoActivity::class.java)
+                    intent.putExtra("id", nicoVideo)
+                    intent.putExtra("cache", false)
+                    context?.startActivity(intent)
+                }
+                else -> {
+                    //正規表現失敗
+                    Toast.makeText(context, getString(R.string.regix_error), Toast.LENGTH_SHORT)
+                        .show()
+                }
             }
         }
 
@@ -130,37 +143,63 @@ class LiveIDFragment : Fragment() {
         val clipboard = context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clipdata = clipboard.primaryClip
         if (clipdata != null) {
-            //正規表現で取り出す
-            val nicoID_Matcher = Pattern.compile("(lv)([0-9]+)")
-                .matcher(SpannableString(clipdata.getItemAt(0)?.text ?: ""))
-            val communityID_Matcher = Pattern.compile("(co|ch)([0-9]+)")
-                .matcher(SpannableString(clipdata.getItemAt(0)?.text ?: ""))
-            if (nicoID_Matcher.find()) {
-                //取り出してEditTextに入れる
-                val liveId = nicoID_Matcher.group()
-                main_activity_liveid_inputedittext.setText(liveId)
-                //テキスト入れたよSnackbar
-                val snackbar = Snackbar.make(
-                    main_activity_liveid_inputedittext,
-                    getString(R.string.set_clipbord_programid),
-                    Snackbar.LENGTH_SHORT
-                )
-                snackbar.setAnchorView((activity as MainActivity).main_activity_bottom_navigationview)
-                snackbar.show()
+            val clipboardText = clipdata.getItemAt(0)?.text
+
+
+            // 正規表現
+            val nicoIDMatcher = Pattern.compile("(lv)([0-9]+)")
+                .matcher(SpannableString(clipboardText))
+            val communityIDMatcher = Pattern.compile("(co|ch)([0-9]+)")
+                .matcher(SpannableString(clipboardText))
+            val nicoVideoIdMatcher = Pattern.compile("(sm|so)([0-9]+)")
+                .matcher(SpannableString(clipboardText))
+            when {
+                nicoIDMatcher.find() -> {
+                    //取り出してEditTextに入れる
+                    val liveId = nicoIDMatcher.group()
+                    main_activity_liveid_inputedittext.setText(liveId)
+                    //テキスト入れたよSnackbar
+                    val snackbar = Snackbar.make(
+                        main_activity_liveid_inputedittext,
+                        getString(R.string.set_clipbord_programid),
+                        Snackbar.LENGTH_SHORT
+                    )
+                    snackbar.setAnchorView((activity as MainActivity).main_activity_bottom_navigationview)
+                    snackbar.show()
+                }
+                communityIDMatcher.find() -> {
+                    //取り出してEditTextに入れる
+                    val liveId = communityIDMatcher.group()
+                    main_activity_liveid_inputedittext.setText(liveId)
+                    //テキスト入れたよSnackbar
+                    val snackbar = Snackbar.make(
+                        main_activity_liveid_inputedittext,
+                        getString(R.string.set_clipbord_programid),
+                        Snackbar.LENGTH_SHORT
+                    )
+                    snackbar.setAnchorView((activity as MainActivity).main_activity_bottom_navigationview)
+                    snackbar.show()
+                }
+                nicoVideoIdMatcher.find() -> {
+                    //取り出してEditTextに入れる
+                    val liveId = nicoVideoIdMatcher.group()
+                    main_activity_liveid_inputedittext.setText(liveId)
+                    //テキスト入れたよSnackbar
+                    val snackbar = Snackbar.make(
+                        main_activity_liveid_inputedittext,
+                        getString(R.string.set_clipbord_programid),
+                        Snackbar.LENGTH_SHORT
+                    )
+                    snackbar.setAnchorView((activity as MainActivity).main_activity_bottom_navigationview)
+                    snackbar.show()
+                }
+                else -> {
+                    //正規表現失敗
+                    Toast.makeText(context, getString(R.string.regix_error), Toast.LENGTH_SHORT)
+                        .show()
+                }
             }
-            if (communityID_Matcher.find()) {
-                //取り出してEditTextに入れる
-                val liveId = communityID_Matcher.group()
-                main_activity_liveid_inputedittext.setText(liveId)
-                //テキスト入れたよSnackbar
-                val snackbar = Snackbar.make(
-                    main_activity_liveid_inputedittext,
-                    getString(R.string.set_clipbord_programid),
-                    Snackbar.LENGTH_SHORT
-                )
-                snackbar.setAnchorView((activity as MainActivity).main_activity_bottom_navigationview)
-                snackbar.show()
-            }
+
         }
     }
 

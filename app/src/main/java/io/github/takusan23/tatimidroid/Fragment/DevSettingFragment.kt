@@ -26,8 +26,8 @@ class DevSettingFragment : Fragment() {
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context!!)
 
-        setSetting(fragment_dev_niconico_video, "fragment_dev_niconico_video")
-        setSetting(fragment_dev_intent_mime,"fragment_dev_intent_mime")
+        // setSetting(fragment_dev_niconico_video, "fragment_dev_niconico_video")
+        setSetting(fragment_dev_intent_mime, "fragment_dev_intent_mime")
 
     }
 

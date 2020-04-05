@@ -50,7 +50,7 @@ class ProgramListFragment : Fragment() {
 
         // 背景
         fragment_program_backdrop.background = ColorDrawable(darkModeSupport.getThemeColor())
-        fragment_program_bar.background = ColorDrawable(darkModeSupport.getThemeColor())
+        fragment_program_bar?.background = ColorDrawable(darkModeSupport.getThemeColor())
         fragment_program_list_linearlayout.background =
             ColorDrawable(darkModeSupport.getThemeColor())
 
@@ -94,7 +94,7 @@ class ProgramListFragment : Fragment() {
         communityListFragment.arguments = bundle
         fragmentManager?.beginTransaction()
             ?.replace(fragment_program_list_linearlayout.id, communityListFragment)?.commit()
-        fragment_program_motionlayout.transitionToStart()
+        fragment_program_motionlayout?.transitionToStart()
 
     }
 

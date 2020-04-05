@@ -44,6 +44,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:maxLines="2"
+                        android:scrollbars="none"
                         android:text=""
                         android:textSize="18sp" />
 

@@ -26,35 +26,25 @@ class NicoVideoActivity : AppCompatActivity() {
 
         val id = intent.getStringExtra("id")
         val isCache = intent?.getBooleanExtra("cache", false) ?: false
-        if (prefSetting.getBoolean("fragment_dev_niconico_video", false)) {
-            // Fragment再生成するかどうか
-            val checkCommentViewFragment =
-                supportFragmentManager.findFragmentByTag(id)
-            val fragment = if (checkCommentViewFragment != null) {
-                checkCommentViewFragment as DevNicoVideoFragment
-            } else {
-                val nicoVideoFragment =
-                    DevNicoVideoFragment()
-                val bundle = Bundle()
-                bundle.putString("id", id)
-                bundle.putBoolean("cache", isCache)
-                nicoVideoFragment.arguments = bundle
-                nicoVideoFragment
-            }
-            //あとから探せるように第三引数にID入れる
-            supportFragmentManager.beginTransaction()
-                .replace(activity_nicovideo_parent_linearlayout.id, fragment, id)
-                .commit()
 
+        // Fragment再生成するかどうか
+        val checkCommentViewFragment =
+            supportFragmentManager.findFragmentByTag(id)
+        val fragment = if (checkCommentViewFragment != null) {
+            checkCommentViewFragment as DevNicoVideoFragment
         } else {
-            val nicoVideoFragment = NicoVideoFragment()
+            val nicoVideoFragment =
+                DevNicoVideoFragment()
             val bundle = Bundle()
             bundle.putString("id", id)
+            bundle.putBoolean("cache", isCache)
             nicoVideoFragment.arguments = bundle
-            //あとから探せるように第三引数にID入れる
-            supportFragmentManager.beginTransaction()
-                .replace(activity_nicovideo_parent_linearlayout.id, nicoVideoFragment, id).commit()
+            nicoVideoFragment
         }
+        //あとから探せるように第三引数にID入れる
+        supportFragmentManager.beginTransaction()
+            .replace(activity_nicovideo_parent_linearlayout.id, fragment, id)
+            .commit()
 
     }
 }

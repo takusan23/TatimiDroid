@@ -16,6 +16,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.transition.MaterialFadeThrough
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.Fragment.*
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
@@ -116,24 +117,15 @@ class MainActivity : AppCompatActivity() {
                     //ニコ動コメント
                     //ログイン情報がない場合は押させない
                     if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
-                        // 開発中のニコ動クライアント有効時
-                        if (pref_setting.getBoolean("fragment_dev_niconico_video", false)) {
-                            val fragmentTransaction = supportFragmentManager.beginTransaction()
-                            fragmentTransaction.replace(
-                                R.id.main_activity_linearlayout,
-                                DevNicoVideoSelectFragment()
-                            )
-                            fragmentTransaction.commit()
-                            //タイトル
-                            supportActionBar?.title = getString(R.string.nicovideo)
-                        } else {
-                            val fragmentTransaction = supportFragmentManager.beginTransaction()
-                            fragmentTransaction.replace(
-                                R.id.main_activity_linearlayout,
-                                NicoVideoSelectFragment()
-                            )
-                            fragmentTransaction.commit()
-                        }
+                        // ニコ動クライアント有効時
+                        val fragmentTransaction = supportFragmentManager.beginTransaction()
+                        fragmentTransaction.replace(
+                            R.id.main_activity_linearlayout,
+                            DevNicoVideoSelectFragment()
+                        )
+                        fragmentTransaction.commit()
+                        //タイトル
+                        supportActionBar?.title = getString(R.string.nicovideo)
                     } else {
                         //メアド設定してね！
                         Toast.makeText(
@@ -156,55 +148,65 @@ class MainActivity : AppCompatActivity() {
     private fun lunchShareIntent() {
         if (Intent.ACTION_SEND.equals(intent.action)) {
             val extras = intent.extras
-            //URL
+            // URL
             val url = extras?.getCharSequence(Intent.EXTRA_TEXT)
-            //生放送ID取得
-            //正規表現で取り出す
-            val nicoID_Matcher = Pattern.compile("(lv)([0-9]+)")
+            // ID取得
+            // 正規表現で取り出す
+            val nicoLiveIDIDMatcher = Pattern.compile("(lv)([0-9]+)")
                 .matcher(SpannableString(url ?: ""))
-            val communityID_Matcher = Pattern.compile("(co|ch)([0-9]+)")
+            val communityIDMatcher = Pattern.compile("(co|ch)([0-9]+)")
                 .matcher(SpannableString(url ?: ""))
-            if (nicoID_Matcher.find()) {
-                //ダイアログ
-                val liveId = nicoID_Matcher.group()
-                val bundle = Bundle()
-                bundle.putString("liveId", liveId)
-                val dialog = BottomSheetDialogWatchMode()
-                dialog.arguments = bundle
-                dialog.show(supportFragmentManager, "watchmode")
-            } else {
-                //なかった。
-                Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
-            }
-            if (communityID_Matcher.find()) {
-                //コミュIDから
-                val communityID = communityID_Matcher.group()
-                //getPlayerStatusで放送中の場合はコミュニティIDを入れれば使える
-                Toast.makeText(
-                    this,
-                    getString(R.string.program_id_from_community_id),
-                    Toast.LENGTH_SHORT
-                ).show()
-                GlobalScope.launch {
-                    var liveId = ""
-                    async {
-                        liveId = getProgramIDfromCommunityID(communityID) ?: ""
-                    }.await()
-                    if (liveId.isNotEmpty()) {
-                        //ダイアログ
-                        val bundle = Bundle()
-                        bundle.putString("liveId", liveId)
-                        val dialog = BottomSheetDialogWatchMode()
-                        dialog.arguments = bundle
-                        dialog.show(
-                            supportFragmentManager,
-                            "watchmode"
-                        )
+            val nicoVideoIdMatcher = Pattern.compile("(sm|so)([0-9]+)")
+                .matcher(SpannableString(url ?: ""))
+
+            when {
+                nicoLiveIDIDMatcher.find() -> {
+                    //ダイアログ
+                    val liveId = nicoLiveIDIDMatcher.group()
+                    val bundle = Bundle()
+                    bundle.putString("liveId", liveId)
+                    val dialog = BottomSheetDialogWatchMode()
+                    dialog.arguments = bundle
+                    dialog.show(supportFragmentManager, "watchmode")
+                }
+                communityIDMatcher.find() -> {
+                    //コミュIDから
+                    val communityID = communityIDMatcher.group()
+                    //getPlayerStatusで放送中の場合はコミュニティIDを入れれば使える
+                    Toast.makeText(
+                        this,
+                        getString(R.string.program_id_from_community_id),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    GlobalScope.launch {
+                        var liveId = ""
+                        async {
+                            liveId = getProgramIDfromCommunityID(communityID) ?: ""
+                        }.await()
+                        if (liveId.isNotEmpty()) {
+                            //ダイアログ
+                            val bundle = Bundle()
+                            bundle.putString("liveId", liveId)
+                            val dialog = BottomSheetDialogWatchMode()
+                            dialog.arguments = bundle
+                            dialog.show(
+                                supportFragmentManager,
+                                "watchmode"
+                            )
+                        }
                     }
                 }
-            } else {
-                //なかった。
-                Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
+                nicoVideoIdMatcher.find() -> {
+                    //ダイアログ
+                    val nicoVideo = nicoVideoIdMatcher.group()
+                    val intent = Intent(this, NicoVideoActivity::class.java)
+                    intent.putExtra("id", nicoVideo)
+                    intent.putExtra("cache", false)
+                    startActivity(intent)
+                }
+                else -> {
+                    Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

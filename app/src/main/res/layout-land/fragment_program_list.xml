@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/fragment_program_motionlayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         app:layoutDescription="@xml/fragment_program_backdrop_motion"
         tools:showPaths="true">
 
@@ -14,6 +13,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
+            android:layout_weight="1"
             android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -26,12 +26,14 @@
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_margin="10sp"
                     android:orientation="vertical">
 
                 <Button
                         android:id="@+id/fragment_program_follow"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_margin="2sp"
                         android:layout_weight="1"
                         android:text="@string/follow_program" />
 
@@ -39,6 +41,7 @@
                         android:id="@+id/fragment_program_nicorepo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_margin="2sp"
                         android:layout_weight="1"
                         android:text="@string/nicorepo" />
 
@@ -46,6 +49,7 @@
                         android:id="@+id/fragment_program_osusume"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_margin="2sp"
                         android:layout_weight="1"
                         android:text="@string/osusume" />
 
@@ -53,6 +57,7 @@
                         android:id="@+id/fragment_program_ranking"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_margin="2sp"
                         android:layout_weight="1"
                         android:text="@string/ranking" />
 
@@ -60,6 +65,7 @@
                         android:id="@+id/fragment_program_nicolive_top"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_margin="2sp"
                         android:layout_weight="1"
                         android:text="@string/nicolive_top" />
 
@@ -67,60 +73,35 @@
                         android:id="@+id/fragment_program_korekara"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_margin="2sp"
                         android:layout_weight="1"
                         android:text="@string/upcoming_programs" />
-
-                <Button
-                        android:id="@+id/fragment_program_auto_admission"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/auto_admission" />
 
                 <Button
                         android:id="@+id/fragment_program_ninki_yoyaku"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_margin="2sp"
                         android:layout_weight="1"
                         android:text="@string/popular_reservation_program" />
+
+                <Button
+                        android:id="@+id/fragment_program_auto_admission"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="2sp"
+                        android:layout_weight="1"
+                        android:text="@string/auto_admission" />
             </LinearLayout>
         </ScrollView>
 
     </LinearLayout>
 
     <LinearLayout
-            android:id="@+id/fragment_program_bar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="50sp"
-            android:background="#fff"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="5sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-        <View
-                android:layout_width="100sp"
-                android:layout_height="10sp"
-                android:background="@drawable/bottom_sheet_bar"
-                android:padding="10sp" />
-
-        <TextView
-                android:id="@+id/textView16"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_filter_list_black_24dp"
-                android:padding="10sp"
-                android:text="@string/dropdown_title" />
-
-    </LinearLayout>
-
-    <LinearLayout
             android:id="@+id/fragment_program_list_linearlayout"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="#fff"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -142,4 +123,4 @@
 -->
     </LinearLayout>
 
-</androidx.constraintlayout.motion.widget.MotionLayout>
+</LinearLayout>

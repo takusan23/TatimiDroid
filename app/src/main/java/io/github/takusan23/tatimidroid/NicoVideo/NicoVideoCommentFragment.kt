@@ -73,18 +73,7 @@ class NicoVideoCommentFragment : Fragment() {
         //ポップアップメニュー初期化
         initSortPopupMenu()
 
-        if (pref_setting.getBoolean("fragment_dev_niconico_video", false)) {
-            recyclerViewList =
-                (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).commentList
-            activity?.runOnUiThread {
-                initRecyclerView()
-                Snackbar.make(
-                    activity?.findViewById(android.R.id.content)!!,
-                    "${getString(R.string.get_comment_count)}：${recyclerViewList.size}",
-                    Snackbar.LENGTH_SHORT
-                ).show()
-            }
-        } else {
+        if (!pref_setting.getBoolean("fragment_dev_niconico_video", false)) {
             // スクレイピングしてコメント取得に必要な情報を取得する
             getNicoVideoWebPage()
         }
@@ -98,7 +87,7 @@ class NicoVideoCommentFragment : Fragment() {
      * */
     fun isShow3DSComment(): Boolean {
         if (pref_setting.getBoolean("fragment_dev_niconico_video", false)) {
-            return false
+            return pref_setting.getBoolean("nicovideo_comment_3ds_hidden", false)
         } else {
             return (activity?.supportFragmentManager?.findFragmentByTag(id) as NicoVideoFragment).isHide3DSComment
         }

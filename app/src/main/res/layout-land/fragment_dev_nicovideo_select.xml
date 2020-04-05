@@ -1,18 +1,17 @@
-<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/fragment_video_motionlayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layoutDescription="@xml/fragment_video_backdrop_motion"
+        android:orientation="horizontal"
         tools:showPaths="true">
 
     <LinearLayout
             android:id="@+id/fragment_video_backdrop"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_margin="10sp"
+            android:layout_weight="1"
             android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -25,6 +24,7 @@
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_margin="10sp"
                     android:orientation="vertical">
 
                 <Button
@@ -67,37 +67,10 @@
     </LinearLayout>
 
     <LinearLayout
-            android:id="@+id/fragment_video_bar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="50sp"
-            android:background="#fff"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="5sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/fragment_video_backdrop">
-
-        <View
-                android:layout_width="100sp"
-                android:layout_height="10sp"
-                android:background="@drawable/bottom_sheet_bar"
-                android:padding="10sp" />
-
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_filter_list_black_24dp"
-                android:padding="10sp"
-                android:text="@string/video_dropdown" />
-
-    </LinearLayout>
-
-    <LinearLayout
             android:id="@+id/fragment_video_list_linearlayout"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="#fff"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -119,4 +92,4 @@
 -->
     </LinearLayout>
 
-</androidx.constraintlayout.motion.widget.MotionLayout>
+</LinearLayout>

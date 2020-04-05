@@ -25,8 +25,8 @@
     <string name="open_browser">Open in browser</string>
     <string name="watching_mode_title">Use viewing mode</string>
     <string name="watching_mode_description">If enabled, comments can be posted.\nHowever, you will not be able to play the same broadcast on other devices.</string>
-    <string name="regix_error">The live broadcast ID was not found from the URL.</string>
-    <string name="liveid_fragment">Live broadcast ID input</string>
+    <string name="regix_error">The ID was not found from the URL.</string>
+    <string name="liveid_fragment">Live broadcast / video ID input</string>
     <string name="follow_program">Followed programs</string>
     <string name="timeshift_wait">Please wait until the start time.</string>
     <string name="comment_post_success">You have successfully posted a comment.</string>
@@ -168,7 +168,7 @@
     <string name="setting_mobiledata_quality_description">When using mobile data, it automatically switches to the lowest image quality.</string>
     <string name="re_login">Log in again</string>
     <string name="program_id_from_community_id">Getting program ID from community ID</string>
-    <string name="liveid_or_communityid">Program ID or community ID</string>
+    <string name="liveid_or_communityid">Program ID, community ID, or video ID</string>
     <string name="setting_comment_collection_useage">Enable comment collection</string>
     <string name="setting_comment_collection_useage_description">You can register comments that you enter frequently.</string>
     <string name="floating_comment_viewer">Floating comment viewer</string>

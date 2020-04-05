@@ -28,12 +28,14 @@
                     android:layout_margin="10sp"
                     android:text="ここの項目は実験用の項目なのでいじってはいけません。あなたの端末に何が起こるかわからないので戻ってね。" />
 
+<!--
             <Switch
                     android:id="@+id/fragment_dev_niconico_video"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="10sp"
                     android:text="ニコニコ動画を再生する" />
+-->
 
             <Switch
                     android:id="@+id/fragment_dev_intent_mime"

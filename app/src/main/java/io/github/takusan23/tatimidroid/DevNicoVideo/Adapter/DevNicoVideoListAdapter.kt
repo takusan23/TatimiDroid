@@ -76,7 +76,7 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
             // サムネイル
             Glide.with(thumImageView)
                 .load(data.thum)
-                .apply(RequestOptions.bitmapTransform(RoundedCorners(30)))
+                .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
                 .into(thumImageView)
 
         }
