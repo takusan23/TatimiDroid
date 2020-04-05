@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoRSS
 import io.github.takusan23.tatimidroid.R
@@ -71,6 +72,12 @@ class DevNicoVideoRankingFragment : Fragment() {
         if (::launch.isInitialized) {
             launch.cancel()
         }
+
+        loadRanking()
+
+    }
+
+    fun loadRanking() {
         // ジャンル
         val genre =
             nicoRSS.rankingGenreUrlList[fragment_nicovideo_ranking_spinner.selectedItemPosition]
@@ -91,7 +98,6 @@ class DevNicoVideoRankingFragment : Fragment() {
             } else {
                 showToast("${getString(R.string.error)}\n${response.code}")
             }
-
         }
     }
 
