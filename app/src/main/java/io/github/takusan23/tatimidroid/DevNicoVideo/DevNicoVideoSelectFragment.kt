@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -12,17 +13,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.*
-import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.isConnectionInternet
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_select.*
 
 
 class DevNicoVideoSelectFragment : Fragment() {
+
+    lateinit var prefSetting: SharedPreferences
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_dev_nicovideo_select, container, false)
     }
@@ -33,24 +36,44 @@ class DevNicoVideoSelectFragment : Fragment() {
         // ダークモード
         initDarkMode()
 
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+        // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効かどうか
+        val isMobileDataShowCacheList =
+            prefSetting.getBoolean("setting_mobile_data_show_cache", false)
+
         // インターネット接続確認
-        if (isConnectionInternet(context)) {
-            // ランキング
-            setFragment(DevNicoVideoRankingFragment())
-        } else {
-            // キャッシュ一覧。インターネット接続無いとき
-            fragment_nicovideo_ranking.isEnabled = false
-            fragment_nicovideo_post.isEnabled = false
-            fragment_nicovideo_mylist.isEnabled = false
-            fragment_nicovideo_search.isEnabled = false
-            fragment_nicovideo_history.isEnabled = false
-            setFragment(DevNicoVideoCacheFragment())
-            // インターネット接続無いよメッセージ
-            Snackbar.make(fragment_nicovideo_ranking, R.string.internet_not_connection_cache, Snackbar.LENGTH_SHORT)
-                .apply {
-                    anchorView = (activity as MainActivity).main_activity_bottom_navigationview
-                    show()
+        when {
+            // モバイルデータでWi-Fiは未接続
+            isMobileDataShowCacheList -> {
+                if (isConnectionMobileDataInternet(context)) {
+                    // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効のとき
+                    setFragment(DevNicoVideoCacheFragment())
+                } else {
+                    // ランキング
+                    setFragment(DevNicoVideoRankingFragment())
                 }
+            }
+            // 何らかの方法でインターネットにはつながっている
+            isConnectionInternet(context) -> {
+                // ランキング
+                setFragment(DevNicoVideoRankingFragment())
+            }
+            // インターネットに繋がっていない。自分だけどこか取り残された
+            else -> {
+                // キャッシュ一覧。インターネット接続無いとき
+                fragment_nicovideo_ranking.isEnabled = false
+                fragment_nicovideo_post.isEnabled = false
+                fragment_nicovideo_mylist.isEnabled = false
+                fragment_nicovideo_search.isEnabled = false
+                fragment_nicovideo_history.isEnabled = false
+                setFragment(DevNicoVideoCacheFragment())
+                // インターネット接続無いよメッセージ
+                Snackbar.make(fragment_nicovideo_ranking, R.string.internet_not_connection_cache, Snackbar.LENGTH_SHORT)
+                    .apply {
+                        anchorView = (activity as MainActivity).main_activity_bottom_navigationview
+                        show()
+                    }
+            }
         }
 
         fragment_nicovideo_ranking.setOnClickListener {

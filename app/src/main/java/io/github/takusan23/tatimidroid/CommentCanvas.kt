@@ -121,10 +121,12 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         //コメントの流れる速度
         val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         val speed = pref_setting.getString("setting_comment_speed", "5")?.toInt() ?: 5
+        // コメントキャンバスの更新頻度
+        val update = pref_setting.getString("setting_comment_canvas_timer", "10")?.toLong() ?: 10
         // コメントの色を部屋の色にする設定が有効ならtrue
         isCommentColorRoom = pref_setting.getBoolean("setting_command_room_color", false)
 
-        Timer().schedule(10, 10) {
+        Timer().schedule(update, update) {
 
             // コメント移動止めるやつ
             if (isPause) {

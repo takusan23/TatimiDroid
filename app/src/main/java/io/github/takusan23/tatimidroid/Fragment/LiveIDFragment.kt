@@ -194,9 +194,9 @@ class LiveIDFragment : Fragment() {
                     snackbar.show()
                 }
                 else -> {
-                    //正規表現失敗
-                    Toast.makeText(context, getString(R.string.regix_error), Toast.LENGTH_SHORT)
-                        .show()
+                   // //正規表現失敗
+                   // Toast.makeText(context, getString(R.string.regix_error), Toast.LENGTH_SHORT)
+                   //     .show()
                 }
             }
 

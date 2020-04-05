@@ -29,3 +29,27 @@ internal fun isConnectionInternet(context: Context?): Boolean {
         return connectivityManager?.activeNetworkInfo != null && connectivityManager.activeNetworkInfo.isConnected
     }
 }
+
+/**
+ * モバイルデータ接続かどうかを返す関数。モバイルデータ接続の場合はtrue
+ * */
+internal fun isConnectionMobileDataInternet(context: Context?): Boolean {
+    //今の接続状態を取得
+    val connectivityManager =
+        context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    //ろりぽっぷとましゅまろ以上で分岐
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val networkCapabilities =
+            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        if (networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true) {
+            //モバイルデータ通信なら画質変更メッセージ送信
+            return true
+        }
+    } else {
+        if (connectivityManager.activeNetworkInfo.type == ConnectivityManager.TYPE_MOBILE) {
+            //モバイルデータ通信なら画質変更メッセージ送信
+            return true
+        }
+    }
+    return false
+}

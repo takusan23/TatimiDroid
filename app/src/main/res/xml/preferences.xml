@@ -2,6 +2,15 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <PreferenceCategory android:title="@string/video">
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_signal_cellular_null_24px"
+                android:key="setting_mobile_data_show_cache"
+                android:title="@string/setting_mobile_data_show_cache" />
+    </PreferenceCategory>
+
+
     <PreferenceCategory android:title="@string/comment_viewer_setting">
 
         <SwitchPreference
@@ -137,13 +146,6 @@
             android:summary="@string/setting_display_cutoutdesciprion"
             android:title="@string/setting_display_cutout_title" />
 
-    <EditTextPreference
-            android:defaultValue="5"
-            android:icon="@drawable/ic_speed_24px"
-            android:key="setting_comment_speed"
-            android:summary="@string/setting_comment_speed_description"
-            android:title="@string/setting_comment_speed_title" />
-
     <Preference
             android:icon="@drawable/ic_outline_stop_24px"
             android:key="auto_admission_stop_preference"
@@ -172,6 +174,23 @@
                 android:targetClass="io.github.takusan23.tatimidroid.Activity.CommentCollectionListActivity"
                 android:targetPackage="io.github.takusan23.tatimidroid" />
     </Preference>
+
+
+    <PreferenceCategory android:title="@string/setting_comment_canvas">
+        <EditTextPreference
+                android:defaultValue="10"
+                android:icon="@drawable/ic_outline_query_builder_24px"
+                android:key="setting_comment_canvas_timer"
+                android:summary="@string/setting_comment_canvas_timer_description"
+                android:title="@string/setting_comment_canvas_timer_title" />
+
+        <EditTextPreference
+                android:defaultValue="5"
+                android:icon="@drawable/ic_speed_24px"
+                android:key="setting_comment_speed"
+                android:summary="@string/setting_comment_speed_description"
+                android:title="@string/setting_comment_speed_title" />
+    </PreferenceCategory>
 
     <!--
         <PreferenceCategory

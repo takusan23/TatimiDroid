@@ -180,7 +180,7 @@
     <string name="setting_rotation_sensor_title">Forced screen rotation using sensor</string>
     <string name="setting_rotation_sensor_description">The screen is rotated using the sensor even when the screen rotation is disabled.</string>
     <string name="nimado">2-window comment view</string>
-    <string name="setting_comment_speed_title">Comment flow speed</string>
+    <string name="setting_comment_speed_title">Movement size of comment</string>
     <string name="setting_comment_speed_description">The default is 5</string>
     <string name="entyou_message">I confirmed the extension.</string>
     <string name="end_time">End time</string>
@@ -329,4 +329,9 @@
     <string name="wait">Wait a moment</string>
     <string name="encryption_video_not_play">Encrypted videos cannot be played.</string>
     <string name="cache_delete_message">Can I delete the cache?</string>
+    <string name="video">Video</string>
+    <string name="setting_mobile_data_show_cache">Display cache list first when connected to mobile data</string>
+    <string name="setting_comment_canvas">Comment drawing settings</string>
+    <string name="setting_comment_canvas_timer_title">Change the update frequency of comment drawing</string>
+    <string name="setting_comment_canvas_timer_description">Default is 10</string>
 </resources>
