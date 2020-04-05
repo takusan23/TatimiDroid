@@ -45,7 +45,7 @@
             </intent-filter>
 
             <!-- 共有を受け取る labelが共有するときのアプリの名前になる（TwitterとかだとTwiiterじゃなくてツイートになってる部分。あれ） -->
-            <intent-filter android:label="@string/open_comment_viewer">
+            <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
                 <category android:name="android.intent.category.DEFAULT" />

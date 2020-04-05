@@ -143,7 +143,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     }
                 } else {
                     if ((obj.xPos + obj.commentMeasure) > 0) {
-                        commentObjList[i].xPos -= speed + (obj.comment.length / 2)
+                        commentObjList[i].xPos -= speed + (obj.comment.length / 4)
                     }
                 }
             }

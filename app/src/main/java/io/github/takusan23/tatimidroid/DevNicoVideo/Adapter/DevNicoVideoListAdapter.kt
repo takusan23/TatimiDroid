@@ -56,6 +56,10 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
 
             // 再生画面表示
             cardView.setOnClickListener {
+                // すでにあるActivityを消す？
+                if (context is NicoVideoActivity) {
+                    context.finish()
+                }
                 val intent = Intent(context, NicoVideoActivity::class.java)
                 intent.putExtra("id", data.videoId)
                 intent.putExtra("cache", data.isCache)
