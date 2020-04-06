@@ -635,7 +635,7 @@ class NicoVideoHTML {
 
 
     /**
-     * 画質変更メッセージの送信をする関数。
+     * 多分使わない。本当はここで画質変更してると思ってたけどそんなこと無いっぽい？
      * @param sessionAPIJSON session_apiのレスポンスJSONのdataの中身。
      * */
     fun postQualityChange(videoQualityId: String, audioQualityId: String, sessionAPIJSON: JSONObject): Deferred<Response> =
