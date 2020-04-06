@@ -334,4 +334,5 @@
     <string name="setting_comment_canvas">Comment drawing settings</string>
     <string name="setting_comment_canvas_timer_title">Change the update frequency of comment drawing</string>
     <string name="setting_comment_canvas_timer_description">Default is 10</string>
+    <string name="not_found_video">I couldn\'t find the video</string>
 </resources>

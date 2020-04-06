@@ -77,7 +77,7 @@ class NicoVideoCache(val context: Context?) {
                      * */
                     val isCache = true
                     val isMylist = false
-                    val title = it.name
+                    val title = getCacheFolderVideoFileName(videoId) ?: it.name
                     val videoId = it.name
                     val thum = ""
                     val date = it.lastModified()
@@ -329,6 +329,21 @@ class NicoVideoCache(val context: Context?) {
      * */
     fun getCacheFolderVideoCommentText(videoId: String): String {
         return File("${getCacheFolderPath()}/$videoId/${videoId}_comment.json").readText()
+    }
+
+    /**
+     * キャッシュフォルダから動画の名前を取得する関数。ニコ生のTSのときに使って。
+     * @return 動画ファイルの名前。ない場合はnull
+     * */
+    fun getCacheFolderVideoFileName(videoId: String): String? {
+        // 見つける
+        val videoFolder = File("${getCacheFolderPath()}/$videoId").listFiles()
+        for (i in videoFolder.indices) {
+            if (videoFolder[i].extension == "mp4") {
+                return videoFolder[i].name
+            }
+        }
+        return null
     }
 
     /**

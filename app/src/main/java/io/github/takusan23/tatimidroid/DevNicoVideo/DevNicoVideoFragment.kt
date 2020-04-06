@@ -299,11 +299,21 @@ class DevNicoVideoFragment : Fragment() {
             activity?.finish()
             return
         } else {
-            val cacheVideoPath = nicoVideoCache.getCacheFolderVideoFilePath(videoId)
-            initVideoPlayer(cacheVideoPath, "")
-            // コメント取得
-            val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
-            commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON))
+            // 動画のファイル名取得
+            val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
+            if (videoFileName != null) {
+                val cacheVideoPath =
+                    "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
+                initVideoPlayer(cacheVideoPath, "")
+                // コメント取得
+                val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
+                commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON))
+            } else {
+                // 動画が見つからなかった
+                Toast.makeText(context, R.string.not_found_video, Toast.LENGTH_SHORT).show()
+                activity?.finish()
+                return
+            }
 /*
         // コメントFragmentにコメント配列を渡す
         (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {

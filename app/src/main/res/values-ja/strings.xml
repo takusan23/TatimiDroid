@@ -334,4 +334,5 @@
     <string name="setting_comment_canvas">コメント描画設定</string>
     <string name="setting_comment_canvas_timer_title">コメント描画の更新頻度の変更</string>
     <string name="setting_comment_canvas_timer_description">デフォルトは10です</string>
+    <string name="not_found_video">動画が見つからなかったよ</string>
 </resources>

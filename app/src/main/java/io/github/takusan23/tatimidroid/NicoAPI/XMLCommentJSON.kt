@@ -8,7 +8,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 import java.io.File
+import java.io.StringReader
+
 
 /**
  * xml形式のコメントをJSON形式に変換する。
@@ -21,6 +25,7 @@ class XMLCommentJSON(val context: Context?) {
      * @return 0=成功 / 1=ファイル無いよ
      * */
     fun xmlToJSON(fileName: String): Deferred<Int> = GlobalScope.async {
+        println(System.currentTimeMillis())
         // ScopedStorage
         val media = context?.getExternalFilesDir(null)
         // コメントXML
@@ -29,28 +34,27 @@ class XMLCommentJSON(val context: Context?) {
         if (!commentXmlFileExists(fileName)) {
             return@async 1
         }
+/*
         // 読み込む
         val xmlData = xmlFile.readText()
         val xmlDocument = Jsoup.parse(xmlData, "", Parser.xmlParser())
         val chat = xmlDocument.getElementsByTag("chat")
         // 出力JSON
         val jsonArray = JSONArray()
-        chat.forEach {
-            val thread = it.attr("thread")
-            val vpos = it.attr("vpos")
-            val date = it.attr("date")
-            val date_usec = it.attr("date_usec")
-            val userId = it.attr("user_id")
-            val anonymity = it.attr("anonymity")
-            val score = if (it.hasAttr("score")) {
-                it.attr("score")
-            } else {
-                ""
-            }
-            val mail = it.attr("mail")
-            val origin = it.attr("origin")
-            val premium = it.attr("premium")
-            val content = it.text()
+        // forEachは遅いらしいのでやめる
+        for (i in chat.indices) {
+            val comment = chat[i]
+            val thread = comment.attr("thread")
+            val vpos = comment.attr("vpos")
+            val date = comment.attr("date")
+            val date_usec = comment.attr("date_usec")
+            val userId = comment.attr("user_id")
+            val anonymcommenty = comment.attr("anonymcommenty")
+            val score = ""
+            val mail = comment.attr("mail")
+            val origin = comment.attr("origin")
+            val premium = comment.attr("premium")
+            val content = comment.text()
             // JSONのchatオブジェクト作成
             val chatObject = JSONObject().apply {
                 put("thread", thread)
@@ -59,7 +63,7 @@ class XMLCommentJSON(val context: Context?) {
                 put("leaf", 1)
                 put("date", date)
                 put("date_usec", date_usec)
-                put("anonymity", anonymity)
+                put("anonymcommenty", anonymcommenty)
                 put("user_id", userId)
                 put("mail", mail)
                 put("origin", origin)
@@ -71,8 +75,67 @@ class XMLCommentJSON(val context: Context?) {
             // 保存。
             val jsonFile = File("${media?.path}/cache/$fileName/${fileName}_comment.json")
             jsonFile.writeText(jsonArray.toString())
-            println("${chat.size} / ${jsonArray.length()}")
+            //println("${chat.size} / ${jsonArray.length()}")
         }
+*/
+
+        // 出力JSON
+        val jsonArray = JSONArray()
+
+        /**
+         * Android標準でXMLをパースする。
+         * 本当はJsoup使いたかったんだけど遅すぎた
+         * */
+        val factory =
+            XmlPullParserFactory.newInstance()
+        val parser = factory.newPullParser()
+        parser.setInput(StringReader(xmlFile.readText()));
+        var eventType = parser.eventType
+        // 終了まで繰り返す
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            // コメントのみ選ぶ
+            if (parser.name == "chat") {
+                val thread = parser.getAttributeValue(null, "thread")
+                val vpos = parser.getAttributeValue(null, "vpos")
+                val date = parser.getAttributeValue(null, "date")
+                val date_usec = parser.getAttributeValue(null, "date_usec")
+                val userId = parser.getAttributeValue(null, "user_id")
+                val anonymcommenty = parser.getAttributeValue(null, "anonymcommenty")
+                val score = if (parser.getAttributeValue(null, "score") != null) {
+                    parser.getAttributeValue(null, "score")
+                } else {
+                    ""
+                }
+                val mail = parser.getAttributeValue(null, "mail")
+                val origin = parser.getAttributeValue(null, "origin")
+                val premium = parser.getAttributeValue(null, "premium")
+                val content = parser.nextText()
+                // JSONのchatオブジェクト作成
+                val chatObject = JSONObject().apply {
+                    put("thread", thread)
+                    put("no", -1)
+                    put("vpos", vpos)
+                    put("leaf", 1)
+                    put("date", date)
+                    put("date_usec", date_usec)
+                    put("anonymcommenty", anonymcommenty)
+                    put("user_id", userId)
+                    put("mail", mail)
+                    put("origin", origin)
+                    put("score", score)
+                    put("content", content)
+                    put("premium", premium)
+                }
+                jsonArray.put(JSONObject().put("chat", chatObject))
+            }
+            eventType = parser.next()
+        }
+        // 保存。
+        val jsonFile = File("${media?.path}/cache/$fileName/${fileName}_comment.json")
+        jsonFile.writeText(jsonArray.toString())
+
+
+        println(System.currentTimeMillis())
         return@async 0
     }
 
