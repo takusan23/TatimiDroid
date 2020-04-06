@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -44,8 +45,11 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.sql.Time
 import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.concurrent.timerTask
 
 /**
  * 開発中のニコ動クライアント（？）
@@ -54,6 +58,10 @@ class DevNicoVideoFragment : Fragment() {
     lateinit var prefSetting: SharedPreferences
     lateinit var exoPlayer: SimpleExoPlayer
     lateinit var darkModeSupport: DarkModeSupport
+
+    // ハートビート
+    var heartBeatTimer = Timer()
+    var seekTimer = Timer()
 
     // 必要なやつ
     var userSession = ""
@@ -70,6 +78,9 @@ class DevNicoVideoFragment : Fragment() {
     var contentUrl = ""
     var nicoHistory = ""
     lateinit var jsonObject: JSONObject
+
+    // session_apiのレスポンス
+    lateinit var sessionAPIJSONObject: JSONObject
 
     // データ取得からハートビートまで扱う
     val nicoVideoHTML = NicoVideoHTML()
@@ -223,8 +234,12 @@ class DevNicoVideoFragment : Fragment() {
 
     /**
      * データ取得から動画再生/コメント取得まで
+     * @param isGetComment 「コ　メ　ン　ト　を　取　得　し　な　い　」場合はfalse。省略時はtrueです。
+     * @param videoQualityId 画質変更する場合はIDを入れてね。省略しても大丈夫です。
+     * @param audioQualityId 音質変更する場合はIDを入れてね。省略しても大丈夫です。
+     * @param smileServerLowRequest DMCサーバーじゃなくてSmileサーバーの動画で低画質をリクエストする場合はtrue。DMCサーバーおよびSmileサーバーでも低画質をリクエストしない場合はfalseでいいよ
      * */
-    fun coroutine() {
+    fun coroutine(isGetComment: Boolean = true, videoQualityId: String = "", audioQualityId: String = "", smileServerLowRequest: Boolean = false) {
         // HTML取得
         val nicoVideoHTML = NicoVideoHTML()
         GlobalScope.launch {
@@ -242,8 +257,11 @@ class DevNicoVideoFragment : Fragment() {
                     return@launch
                 } else {
                     // https://api.dmc.nico/api/sessions のレスポンス
-                    val sessionAPIJSONObject = nicoVideoHTML.callSessionAPI(jsonObject).await()
-                    if (sessionAPIJSONObject != null) {
+                    val sessionAPIResponse =
+                        nicoVideoHTML.callSessionAPI(jsonObject, videoQualityId, audioQualityId)
+                            .await()
+                    if (sessionAPIResponse != null) {
+                        sessionAPIJSONObject = sessionAPIResponse
                         // 動画URL
                         contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
                         val heartBeatURL =
@@ -259,12 +277,18 @@ class DevNicoVideoFragment : Fragment() {
             } else {
                 // Smileサーバー。動画URL取得
                 contentUrl = nicoVideoHTML.getContentURI(jsonObject, null)
+                // 低画質が必要な場合。URLに「low」を足せば良い模様
+                if (smileServerLowRequest) {
+                    contentUrl += "low"
+                }
             }
             // コメント取得
-            val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject).await()
-            if (commentJSON != null) {
-                commentList =
-                    ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!))
+            if (isGetComment) {
+                val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject).await()
+                if (commentJSON != null) {
+                    commentList =
+                        ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!))
+                }
             }
             activity?.runOnUiThread {
                 // ExoPlayer
@@ -348,6 +372,7 @@ class DevNicoVideoFragment : Fragment() {
      * ExoPlayer初期化
      * */
     private fun initVideoPlayer(videoUrl: String?, nicohistory: String?) {
+        isRotationProgressSuccessful = false
         exoPlayer.setVideoSurfaceView(fragment_nicovideo_surfaceview)
         // キャッシュ再生と分ける
         if (isCache) {
@@ -433,20 +458,19 @@ class DevNicoVideoFragment : Fragment() {
                 }
             }
         })
-        val handler = Handler()
-        val runnable = object : Runnable {
-            override fun run() {
+        seekTimer.cancel()
+        seekTimer = Timer()
+        seekTimer.schedule(timerTask {
+            Handler(Looper.getMainLooper()).post {
                 if (!isDestory) {
                     if (exoPlayer.isPlaying) {
                         setProgress()
                         drawComment()
                         scroll(exoPlayer.currentPosition / 1000L)
                     }
-                    handler.postDelayed(this, 1000)
                 }
             }
-        }
-        handler.postDelayed(runnable, 0)
+        }, 1000, 1000)
     }
 
     /**
@@ -485,6 +509,15 @@ class DevNicoVideoFragment : Fragment() {
         if (url == null && json == null) {
             return
         }
+        heartBeatTimer.cancel()
+        heartBeatTimer = Timer()
+        heartBeatTimer.schedule(timerTask {
+            nicoVideoHTML.postHeartBeat(url, json) {
+
+            }
+        }, 40 * 1000, 40 * 1000)
+
+/*
         val runnable = object : Runnable {
             override fun run() {
                 // 終了したら使わない。
@@ -498,6 +531,7 @@ class DevNicoVideoFragment : Fragment() {
             }
         }
         Handler().postDelayed(runnable, 40 * 1000)
+*/
     }
 
 
@@ -605,9 +639,12 @@ class DevNicoVideoFragment : Fragment() {
                     putString("userId", userId)
                 }
             }
-            fragment.viewPager.fragmentList.add(3, postFragment)
-            fragment.viewPager.fragmentTabName.add(3, nickname)
-            fragment.viewPager.notifyDataSetChanged() // 更新！
+            // すでにあれば追加しない
+            if (!fragment.viewPager.fragmentTabName.contains(nickname)) {
+                fragment.viewPager.fragmentList.add(3, postFragment)
+                fragment.viewPager.fragmentTabName.add(3, nickname)
+                fragment.viewPager.notifyDataSetChanged() // 更新！
+            }
         }
     }
 
@@ -704,6 +741,7 @@ class DevNicoVideoFragment : Fragment() {
         if (::exoPlayer.isInitialized) {
             exoPlayer.release()
         }
+        heartBeatTimer.cancel()
         nicoVideoCache.destroy()
         nicoVideoHTML.destory()
         isDestory = true

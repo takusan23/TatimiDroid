@@ -1391,7 +1391,7 @@ class CommentFragment : Fragment() {
                         val content = chatObject.getString("content")
                         val premium = chatObject.getInt("premium")
                         if (premium == 3) {
-                            println(content)
+                            // println(content)
                             //運営コメント
                             //アンケ開始
                             if (content.contains("/vote start")) {
@@ -2204,7 +2204,7 @@ class CommentFragment : Fragment() {
                     enquateView.enquate_linearlayout_3.addView(button)
                 }
             }
-        } else if(enquateJSONArray.isNotEmpty()) {
+        } else if (enquateJSONArray.isNotEmpty()) {
             //println(enquateJSONArray)
             //アンケ結果
             comment_fragment_enquate_framelayout.removeAllViews()

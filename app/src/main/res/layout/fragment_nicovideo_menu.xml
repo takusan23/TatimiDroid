@@ -44,6 +44,12 @@
                     android:layout_height="wrap_content"
                     android:text="@string/add_mylist" />
 
+            <Button
+                    android:id="@+id/fragment_nicovideo_menu_quality"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/quality" />
+
             <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

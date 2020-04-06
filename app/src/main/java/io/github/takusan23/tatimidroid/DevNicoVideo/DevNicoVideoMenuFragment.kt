@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoAddMylistBottomFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoQualityBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.ProgramShare
@@ -33,6 +34,9 @@ class DevNicoVideoMenuFragment : Fragment() {
     var userSession = ""
     var videoId = ""
 
+    // キャッシュ再生ならtrue
+    var isCache = false
+
     // 共有
     lateinit var share: ProgramShare
 
@@ -50,6 +54,9 @@ class DevNicoVideoMenuFragment : Fragment() {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
 
+        // キャッシュ
+        isCache = arguments?.getBoolean("cache") ?: false
+
         // 設定保存、取得
         getValue()
         setValue()
@@ -62,6 +69,25 @@ class DevNicoVideoMenuFragment : Fragment() {
             fragment_nicovideo_menu_get_cache.visibility = View.GONE
         }
 
+        // マイリスト追加ボタン
+        initMylistButton()
+
+        // キャッシュ取得ボタン
+        initCacheButton()
+
+        // 再取得ボタン
+        initReGetButton()
+
+        // 画質変更
+        initQualityButton()
+
+        // 共有できるようにする
+        initShare()
+
+    }
+
+    // マイリスト追加ボタン初期化
+    private fun initMylistButton() {
         // マイリスト追加ボタン。インターネット未接続時は非表示にする
         if (!isConnectionInternet(context)) {
             fragment_nicovideo_menu_add_mylist.visibility = View.GONE
@@ -73,9 +99,11 @@ class DevNicoVideoMenuFragment : Fragment() {
             addMylistBottomFragment.arguments = bundle
             addMylistBottomFragment.show(fragmentManager!!, "mylist")
         }
+    }
 
+    // キャッシュボタン初期化
+    private fun initCacheButton() {
         // キャッシュ
-        val isCache = arguments?.getBoolean("cache") ?: false
         if (isCache) {
             // キャッシュ取得ボタン塞ぐ
             fragment_nicovideo_menu_get_cache.isEnabled = false
@@ -101,8 +129,10 @@ class DevNicoVideoMenuFragment : Fragment() {
                 )
             }
         }
+    }
 
-        // 再取得
+    // 再取得ボタン初期化
+    private fun initReGetButton() {
         // インターネットに繋がってなければ非表示
         if (!isConnectionInternet(context)) {
             fragment_nicovideo_menu_re_get_cache.visibility = View.GONE
@@ -111,10 +141,40 @@ class DevNicoVideoMenuFragment : Fragment() {
             val nicoVideoCache = NicoVideoCache(context)
             nicoVideoCache.getReGetVideoInfoComment(videoId, userSession, context)
         }
+    }
 
-        // 共有できるようにする
-        initShare()
 
+    // 画質変更ボタン初期化
+    private fun initQualityButton() {
+        val devNicoVideoFragment =
+            fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+        // キャッシュ再生時は非表示
+        if (isCache) {
+            fragment_nicovideo_menu_quality.visibility = View.GONE
+        }
+        fragment_nicovideo_menu_quality.setOnClickListener {
+            // DevNicoVideoFragmentから持ってくる
+            val json = devNicoVideoFragment.jsonObject
+            // DmcInfoかSmileサーバーか
+            val isDmcInfo = devNicoVideoFragment.nicoVideoHTML.isDMCServer(json)
+            // 画質一覧取得
+            val qualityList = if (isDmcInfo) {
+                json.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality")
+                    .toString()
+            } else {
+                json.getJSONObject("video").getJSONObject("smileInfo").getJSONArray("qualityIds")
+                    .toString()
+            }
+            // 画質変更BottomSheet
+            val qualityBottomFragment = DevNicoVideoQualityBottomFragment()
+            val bundle = Bundle().apply {
+                putString("video_id", videoId)
+                putBoolean("is_dmc", isDmcInfo)
+                putString("quality", qualityList)
+            }
+            qualityBottomFragment.arguments = bundle
+            qualityBottomFragment.show(fragmentManager!!, "quality")
+        }
     }
 
     // 共有
