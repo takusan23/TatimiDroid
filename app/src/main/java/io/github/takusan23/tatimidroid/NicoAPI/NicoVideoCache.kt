@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Bitmap
+import android.media.ThumbnailUtils
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -85,6 +87,8 @@ class NicoVideoCache(val context: Context?) {
                     val commentCount = "0"
                     val mylistCount = "0"
                     val mylistItemId = ""
+                    // 動画からサムネイルを取得する
+
                     val data =
                         NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, mylistItemId)
                     list.add(data)
