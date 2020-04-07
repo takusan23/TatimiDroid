@@ -91,22 +91,7 @@ class MainActivity : AppCompatActivity() {
                     fragmentTransaction.commit()
                 }
                 R.id.menu_community -> {
-                    //ログイン情報がない場合は押させない
-                    if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
-                        val fragmentTransaction = supportFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(
-                            R.id.main_activity_linearlayout,
-                            ProgramListFragment()
-                        )
-                        fragmentTransaction.commit()
-                    } else {
-                        //メアド設定してね！
-                        Toast.makeText(
-                            this,
-                            getString(R.string.mail_pass_error),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    showProgramListFragment()
                 }
                 R.id.menu_setting -> {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
@@ -114,34 +99,80 @@ class MainActivity : AppCompatActivity() {
                     fragmentTransaction.commit()
                 }
                 R.id.menu_nicovideo -> {
-                    //ニコ動コメント
-                    //ログイン情報がない場合は押させない
-                    if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
-                        // ニコ動クライアント有効時
-                        val fragmentTransaction = supportFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(
-                            R.id.main_activity_linearlayout,
-                            DevNicoVideoSelectFragment()
-                        )
-                        fragmentTransaction.commit()
-                        //タイトル
-                        supportActionBar?.title = getString(R.string.nicovideo)
-                    } else {
-                        //メアド設定してね！
-                        Toast.makeText(
-                            this,
-                            getString(R.string.mail_pass_error),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    showVideoListFragment()
                 }
             }
             true
         }
 
+        // App Shortcutから起動
+        when (intent?.getStringExtra("app_shortcut")) {
+            "nicolive" -> {
+                main_activity_bottom_navigationview.selectedItemId = R.id.menu_liveid
+                showProgramListFragment()
+            }
+            "nicovideo" -> {
+                main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
+                showVideoListFragment()
+            }
+            "cache" -> {
+                main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
+                val fragment = DevNicoVideoSelectFragment()
+                val bundle = Bundle().apply {
+                    putBoolean("cache", true)
+                }
+                fragment.arguments = bundle
+                val fragmentTransaction = supportFragmentManager.beginTransaction()
+                fragmentTransaction.replace(R.id.main_activity_linearlayout, fragment)
+                fragmentTransaction.commit()
+            }
+        }
+
         //データベース移行
         convertCommentPOSTListToCommentCollection()
 
+    }
+
+    // 番組一覧
+    private fun showProgramListFragment() {
+        //ログイン情報がない場合は押させない
+        if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
+            val fragmentTransaction = supportFragmentManager.beginTransaction()
+            fragmentTransaction.replace(
+                R.id.main_activity_linearlayout,
+                ProgramListFragment()
+            )
+            fragmentTransaction.commit()
+        } else {
+            //メアド設定してね！
+            Toast.makeText(
+                this,
+                getString(R.string.mail_pass_error),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    // 動画一覧
+    private fun showVideoListFragment() {
+        if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
+            // ニコ動クライアント有効時
+            val fragmentTransaction = supportFragmentManager.beginTransaction()
+            fragmentTransaction.replace(
+                R.id.main_activity_linearlayout,
+                DevNicoVideoSelectFragment()
+            )
+            fragmentTransaction.commit()
+            //タイトル
+            supportActionBar?.title = getString(R.string.nicovideo)
+        } else {
+            //メアド設定してね！
+            Toast.makeText(
+                this,
+                getString(R.string.mail_pass_error),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     //共有から起動した場合

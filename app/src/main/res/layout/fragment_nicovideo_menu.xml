@@ -45,6 +45,12 @@
             </LinearLayout>
 
             <Button
+                    android:id="@+id/fragment_nicovideo_menu_copy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/video_id_copy" />
+
+            <Button
                     android:id="@+id/fragment_nicovideo_menu_add_mylist"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

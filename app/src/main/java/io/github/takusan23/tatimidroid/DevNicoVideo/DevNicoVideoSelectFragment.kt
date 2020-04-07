@@ -43,6 +43,10 @@ class DevNicoVideoSelectFragment : Fragment() {
 
         // インターネット接続確認
         when {
+            // App Shortcutで起動したのでキャッシュを開く
+            arguments?.getBoolean("cache", false) ?: false -> {
+                setFragment(DevNicoVideoCacheFragment())
+            }
             // モバイルデータでWi-Fiは未接続
             isMobileDataShowCacheList -> {
                 if (isConnectionMobileDataInternet(context)) {

@@ -1,5 +1,8 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
@@ -47,6 +50,9 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_nicovideo_list_menu_title.text = nicoVideoData.title
         bottom_fragment_nicovideo_list_menu_id.text = nicoVideoData.videoId
 
+        // コピーボタン
+        initCopyButton()
+
         // マイリスト登録ボタン
         mylistButton()
 
@@ -55,8 +61,26 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     }
 
+    // IDコピーボタン
+    private fun initCopyButton() {
+        bottom_fragment_nicovideo_list_menu_copy.setOnClickListener {
+            val clipboardManager =
+                context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboardManager.setPrimaryClip(ClipData.newPlainText("videoId", nicoVideoData.videoId))
+            Toast.makeText(context, "${getString(R.string.video_id_copy_ok)}：${nicoVideoData.videoId}", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
     // マイリスト。そのうち作る
     private fun mylistButton() {
+        // 動画ID以外はマイリスト登録ボタンを消す
+        if (nicoVideoData.videoId.contains("sm") || nicoVideoData.videoId.contains("so")) {
+            bottom_fragment_nicovideo_list_menu_mylist.visibility = View.VISIBLE
+        } else {
+            bottom_fragment_nicovideo_list_menu_mylist.visibility = View.GONE
+        }
+        // マイリスト画面の場合は消すに切り替える
         if (nicoVideoData.isMylist) {
             bottom_fragment_nicovideo_list_menu_mylist.text = getString(R.string.mylist_delete)
         }
@@ -183,6 +207,12 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             dismiss()
         }
 
+        // 動画ID以外は非表示にする処理
+        if (nicoVideoData.videoId.contains("sm") || nicoVideoData.videoId.contains("so")) {
+            bottom_fragment_nicovideo_list_menu_re_get_cache.visibility = View.VISIBLE
+        } else {
+            bottom_fragment_nicovideo_list_menu_re_get_cache.visibility = View.GONE
+        }
         // キャッシュの動画情報、コメント更新
         bottom_fragment_nicovideo_list_menu_re_get_cache.setOnClickListener {
             // キャッシュ取得中はBottomFragmentを消させないようにする

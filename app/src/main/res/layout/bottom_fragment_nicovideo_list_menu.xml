@@ -26,6 +26,15 @@
             android:orientation="vertical">
 
         <TextView
+                android:id="@+id/bottom_fragment_nicovideo_list_menu_copy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:padding="10sp"
+                android:text="@string/video_id_copy" />
+
+        <TextView
                 android:id="@+id/bottom_fragment_nicovideo_list_menu_mylist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

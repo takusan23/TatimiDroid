@@ -1,5 +1,8 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
@@ -87,6 +90,19 @@ class DevNicoVideoMenuFragment : Fragment() {
         // 動画再生
         initPlayButton()
 
+        // コピーボタン
+        initCopyButton()
+
+    }
+
+    private fun initCopyButton() {
+        fragment_nicovideo_menu_copy.setOnClickListener {
+            val clipboardManager =
+                context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboardManager.setPrimaryClip(ClipData.newPlainText("videoId", videoId))
+            Toast.makeText(context, "${getString(R.string.video_id_copy_ok)}：${videoId}", Toast.LENGTH_SHORT)
+                .show()
+        }
     }
 
     // 動画再生ボタン

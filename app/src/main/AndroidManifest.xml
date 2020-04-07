@@ -52,6 +52,10 @@
 
                 <data android:mimeType="text/*" />
             </intent-filter>
+            <!-- AppShortcut -->
+            <meta-data
+                    android:name="android.app.shortcuts"
+                    android:resource="@xml/app_shortcut" />
         </activity>
     </application>
 

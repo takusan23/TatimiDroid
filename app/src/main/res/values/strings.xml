@@ -338,4 +338,6 @@
     <string name="setting_comment_only_title">Show only comments</string>
     <string name="setting_comment_only_description">Display only the comment screen without playing the video</string>
     <string name="play_video">Play video</string>
+    <string name="video_id_copy">Copy video ID</string>
+    <string name="video_id_copy_ok">Video ID copy</string>
 </resources>

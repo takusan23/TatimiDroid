@@ -348,22 +348,6 @@ class DevNicoVideoFragment : Fragment() {
                 activity?.finish()
                 return
             }
-/*
-        // コメントFragmentにコメント配列を渡す
-        (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {
-            commentList.forEach {
-                recyclerViewList.add(it)
-            }
-            */
-            /**
-             * 本来ならここでRecyclerViewの更新をかけますが、
-             * 残念ながらViewPagerのDevNicoVideoCommentFragment初期化より速くここまでだどりつくため初期化してないエラーでちゃう
-             * ので更新はコメントアウトした
-             * *//*
-
-            // nicoVideoAdapter.notifyDataSetChanged()
-        }
-*/
             // タイトル
             videoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                 JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video")

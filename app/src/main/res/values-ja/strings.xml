@@ -338,4 +338,6 @@
     <string name="setting_comment_only_title">コメントのみを表示させる</string>
     <string name="setting_comment_only_description">動画は再生せずにコメント画面のみを表示させます</string>
     <string name="play_video">動画を再生する</string>
+    <string name="video_id_copy">動画IDをコピー</string>
+    <string name="video_id_copy_ok">動画IDコピー</string>
 </resources>
