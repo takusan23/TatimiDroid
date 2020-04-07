@@ -84,6 +84,24 @@ class DevNicoVideoMenuFragment : Fragment() {
         // 共有できるようにする
         initShare()
 
+        // 動画再生
+        initPlayButton()
+
+    }
+
+    // 動画再生ボタン
+    private fun initPlayButton() {
+        val devNicoVideoFragment =
+            fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+        fragment_nicovideo_menu_video_play.setOnClickListener {
+            devNicoVideoFragment.apply {
+                if (fragment_nicovideo_framelayout.visibility == View.GONE) {
+                    commentOnlyModeDisable()
+                } else {
+                    commentOnlyModeEnable()
+                }
+            }
+        }
     }
 
     // マイリスト追加ボタン初期化

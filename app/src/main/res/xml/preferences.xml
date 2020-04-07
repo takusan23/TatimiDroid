@@ -8,6 +8,12 @@
                 android:icon="@drawable/ic_signal_cellular_null_24px"
                 android:key="setting_mobile_data_show_cache"
                 android:title="@string/setting_mobile_data_show_cache" />
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_outline_comment_24px"
+                android:key="setting_nicovideo_comment_only"
+                android:summary="@string/setting_comment_only_description"
+                android:title="@string/setting_comment_only_title" />
     </PreferenceCategory>
 
 

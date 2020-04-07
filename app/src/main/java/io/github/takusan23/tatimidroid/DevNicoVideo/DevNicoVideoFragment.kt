@@ -144,7 +144,6 @@ class DevNicoVideoFragment : Fragment() {
         // コントローラー表示
         initController()
 
-        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
         // キャッシュ再生のときとそうじゃないとき
         if (isCache) {
             // キャッシュ再生
@@ -291,8 +290,13 @@ class DevNicoVideoFragment : Fragment() {
                 }
             }
             activity?.runOnUiThread {
-                // ExoPlayer
-                initVideoPlayer(contentUrl, nicoHistory)
+                if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
+                    // 動画を再生しない場合
+                    commentOnlyModeEnable()
+                } else {
+                    // ExoPlayer
+                    initVideoPlayer(contentUrl, nicoHistory)
+                }
                 // コメントFragmentにコメント配列を渡す
                 (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {
                     commentList.forEach {
@@ -328,7 +332,13 @@ class DevNicoVideoFragment : Fragment() {
             if (videoFileName != null) {
                 val cacheVideoPath =
                     "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
-                initVideoPlayer(cacheVideoPath, "")
+                if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
+                    // 動画を再生しない場合
+                    commentOnlyModeEnable()
+                } else {
+                    // ExoPlayer
+                    initVideoPlayer(cacheVideoPath, "")
+                }
                 // コメント取得
                 val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
                 commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON))
@@ -369,9 +379,36 @@ class DevNicoVideoFragment : Fragment() {
     }
 
     /**
+     * コメントのみの表示に切り替える
+     * */
+    fun commentOnlyModeEnable() {
+        if (::exoPlayer.isInitialized) {
+            exoPlayer.release()
+        }
+        fragment_nicovideo_framelayout.visibility = View.GONE
+        hideSwipeToRefresh()
+        fragment_nicovideo_fab.hide()
+    }
+
+    /**
+     * コメントのみの表示を無効にする。動画を再生する
+     * */
+    fun commentOnlyModeDisable() {
+        if (isCache) {
+            initVideoPlayer(contentUrl, "")
+        } else {
+            initVideoPlayer(contentUrl, nicoHistory)
+        }
+        fragment_nicovideo_framelayout.visibility = View.VISIBLE
+        showSwipeToRefresh()
+        fragment_nicovideo_fab.show()
+    }
+
+    /**
      * ExoPlayer初期化
      * */
     private fun initVideoPlayer(videoUrl: String?, nicohistory: String?) {
+        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
         isRotationProgressSuccessful = false
         exoPlayer.setVideoSurfaceView(fragment_nicovideo_surfaceview)
         // キャッシュ再生と分ける

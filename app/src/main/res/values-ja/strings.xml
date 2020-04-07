@@ -335,4 +335,7 @@
     <string name="setting_comment_canvas_timer_title">コメント描画の更新頻度の変更</string>
     <string name="setting_comment_canvas_timer_description">デフォルトは10です</string>
     <string name="not_found_video">動画が見つからなかったよ</string>
+    <string name="setting_comment_only_title">コメントのみを表示させる</string>
+    <string name="setting_comment_only_description">動画は再生せずにコメント画面のみを表示させます</string>
+    <string name="play_video">動画を再生する</string>
 </resources>

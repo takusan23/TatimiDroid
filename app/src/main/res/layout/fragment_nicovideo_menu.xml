@@ -17,6 +17,12 @@
                 android:padding="10sp">
 
 
+            <Button
+                    android:id="@+id/fragment_nicovideo_menu_video_play"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/play_video" />
+
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
