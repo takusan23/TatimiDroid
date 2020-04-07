@@ -330,14 +330,14 @@ class DevNicoVideoFragment : Fragment() {
             // 動画のファイル名取得
             val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
             if (videoFileName != null) {
-                val cacheVideoPath =
+                contentUrl =
                     "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
                 if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
                     // 動画を再生しない場合
                     commentOnlyModeEnable()
                 } else {
                     // ExoPlayer
-                    initVideoPlayer(cacheVideoPath, "")
+                    initVideoPlayer(contentUrl, "")
                 }
                 // コメント取得
                 val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
