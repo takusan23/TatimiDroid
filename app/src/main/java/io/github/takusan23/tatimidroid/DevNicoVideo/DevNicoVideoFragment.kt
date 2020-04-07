@@ -622,7 +622,11 @@ class DevNicoVideoFragment : Fragment() {
         fragment_nicovideo_seek.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                //exoPlayer.seekTo(progress * 1000L)
+                // シークいじったら時間反映されるように
+                val formattedTime = DateUtils.formatElapsedTime((seekBar?.progress ?: 0).toLong())
+                val videoLengthFormattedTime =
+                    DateUtils.formatElapsedTime(exoPlayer.duration / 1000L)
+                fragment_nicovideo_progress_text.text = "$formattedTime / $videoLengthFormattedTime"
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
