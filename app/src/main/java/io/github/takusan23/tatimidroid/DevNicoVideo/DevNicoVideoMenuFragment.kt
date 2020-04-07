@@ -4,6 +4,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -93,6 +95,28 @@ class DevNicoVideoMenuFragment : Fragment() {
         // コピーボタン
         initCopyButton()
 
+        // 強制画面回転ボタン
+        initRotationButton()
+
+    }
+
+    private fun initRotationButton() {
+        fragment_nicovideo_menu_rotation.setOnClickListener {
+            val conf = resources.configuration
+            //live_video_view.stopPlayback()
+            when (conf.orientation) {
+                Configuration.ORIENTATION_PORTRAIT -> {
+                    //縦画面
+                    activity?.requestedOrientation =
+                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                }
+                Configuration.ORIENTATION_LANDSCAPE -> {
+                    //横画面
+                    activity?.requestedOrientation =
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                }
+            }
+        }
     }
 
     private fun initCopyButton() {

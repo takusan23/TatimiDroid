@@ -28,56 +28,10 @@ class XMLCommentJSON(val context: Context?) {
         println(System.currentTimeMillis())
         // ScopedStorage
         val media = context?.getExternalFilesDir(null)
+
         // コメントXML
-        val xmlFile = File("${media?.path}/cache/$fileName/${fileName}.xml")
-        // ファイル存在するか
-        if (!commentXmlFileExists(fileName)) {
-            return@async 1
-        }
-/*
-        // 読み込む
-        val xmlData = xmlFile.readText()
-        val xmlDocument = Jsoup.parse(xmlData, "", Parser.xmlParser())
-        val chat = xmlDocument.getElementsByTag("chat")
-        // 出力JSON
-        val jsonArray = JSONArray()
-        // forEachは遅いらしいのでやめる
-        for (i in chat.indices) {
-            val comment = chat[i]
-            val thread = comment.attr("thread")
-            val vpos = comment.attr("vpos")
-            val date = comment.attr("date")
-            val date_usec = comment.attr("date_usec")
-            val userId = comment.attr("user_id")
-            val anonymcommenty = comment.attr("anonymcommenty")
-            val score = ""
-            val mail = comment.attr("mail")
-            val origin = comment.attr("origin")
-            val premium = comment.attr("premium")
-            val content = comment.text()
-            // JSONのchatオブジェクト作成
-            val chatObject = JSONObject().apply {
-                put("thread", thread)
-                put("no", -1)
-                put("vpos", vpos)
-                put("leaf", 1)
-                put("date", date)
-                put("date_usec", date_usec)
-                put("anonymcommenty", anonymcommenty)
-                put("user_id", userId)
-                put("mail", mail)
-                put("origin", origin)
-                put("score", score)
-                put("content", content)
-                put("premium", premium)
-            }
-            jsonArray.put(JSONObject().put("chat", chatObject))
-            // 保存。
-            val jsonFile = File("${media?.path}/cache/$fileName/${fileName}_comment.json")
-            jsonFile.writeText(jsonArray.toString())
-            //println("${chat.size} / ${jsonArray.length()}")
-        }
-*/
+        val xmlPath = commentXmlFilePath(fileName) ?: return@async 1
+        val xmlFile = File(xmlPath)
 
         // 出力JSON
         val jsonArray = JSONArray()
@@ -139,10 +93,13 @@ class XMLCommentJSON(val context: Context?) {
         return@async 0
     }
 
-    /**
+/*
+    */
+/**
      * XML形式のコメントファイルが存在するか。存在するときはtrue
      * @param fileName ファイル名。基本動画ID
-     * */
+     * *//*
+
     fun commentXmlFileExists(fileName: String): Boolean {
         // ScopedStorage
         val media = context?.getExternalFilesDir(null)
@@ -150,6 +107,24 @@ class XMLCommentJSON(val context: Context?) {
         val xmlFile = File("${media?.path}/cache/$fileName/${fileName}.xml")
         // ファイル存在するか
         return xmlFile.exists()
+    }
+*/
+
+    /**
+     * コメントXMLファイルのパスを返す関数。ない場合はnull
+     * @param fileName フォルダ名。基本動画ID
+     * */
+    fun commentXmlFilePath(fileName: String): String? {
+        // ScopedStorage
+        val media = context?.getExternalFilesDir(null)
+        // ふぉるだ
+        val videoFile = File("${media?.path}/cache/$fileName")
+        videoFile.listFiles().forEach {
+            if (it.extension == "xml") {
+                return it.path
+            }
+        }
+        return null
     }
 
     /**

@@ -65,6 +65,8 @@ class ProgramAPI(val context: Context?) {
                                 val time = context?.getString(R.string.nicorepo)
                                 val timeshift = parseTime(program.getString("beginAt"))
                                 val liveId = program.getString("id")
+                                val thum =
+                                    community.getJSONObject("thumbnailUrl").getString("small")
                                 //変換
                                 val simpleDateFormat =
                                     SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
@@ -74,7 +76,7 @@ class ProgramAPI(val context: Context?) {
                                 calender.time = date_calender
                                 val beginAt = calender.time.time.toString()
                                 val data =
-                                    ProgramData(title, name, beginAt, beginAt, liveId, name, "Begun")
+                                    ProgramData(title, name, beginAt, beginAt, liveId, name, "Begun", thum)
                                 dataList.add(data)
                             }
                         }
@@ -163,9 +165,10 @@ class ProgramAPI(val context: Context?) {
                         val communityName = jsonObject.getString("socialGroupName")
                         val liveNow = jsonObject.getString("liveCycle") //放送中か？
                         val rank = jsonObject.getString("rank")
+                        val thum = jsonObject.getString("thumbnailUrl")
                         // データクラス
                         val data =
-                            ProgramData(title, communityName, beginAt, beginAt, programId, "", liveNow)
+                            ProgramData(title, communityName, beginAt, beginAt, programId, "", liveNow, thum)
                         dataList.add(data)
                     }
                     responseFun(response, dataList)
@@ -214,6 +217,7 @@ class ProgramAPI(val context: Context?) {
                         val startedAt = program.getString("startedAt") // 番組開始時間
                         val providerName = program.getString("providerName") // 放送者
                         val productName = program.getString("productName") // ゲーム名
+                        val contentThumbnailUrl = program.getString("contentThumbnailUrl")
                         // ISO 8601の形式からUnixTimeへ変換（Adapterの方で必要）
                         val simpleDateFormat =
                             SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
@@ -222,7 +226,7 @@ class ProgramAPI(val context: Context?) {
                         calender.time = date_calender
                         // データクラス
                         val data =
-                            ProgramData("$contentTitle\n\uD83C\uDFAE：$productName", providerName, calender.time.time.toString(), calender.time.time.toString(), contentId, providerName, "ON_AIR")
+                            ProgramData("$contentTitle\n\uD83C\uDFAE：$productName", providerName, calender.time.time.toString(), calender.time.time.toString(), contentId, providerName, "ON_AIR", contentThumbnailUrl)
                         dataList.add(data)
                     }
                     responseFun(response, dataList)
@@ -333,9 +337,25 @@ class ProgramAPI(val context: Context?) {
             val liveNow = jsonObject.getString("liveCycle") //放送中か？
             val official =
                 jsonObject.getString("providerType") == "official" // community / channel は false
+
+            val liveScreenShot = jsonObject.getJSONObject("screenshotThumbnail")
+                .getString("liveScreenshotThumbnailUrl")
+            // サムネ。放送中はスクショを取得するけどそれ以外はアイコン取得？
+            val thum = when {
+                liveScreenShot == "null" -> {
+                    jsonObject.getString("thumbnailUrl")
+                }
+                liveNow == "ON_AIR" -> {
+                    jsonObject.getJSONObject("screenshotThumbnail")
+                        .getString("liveScreenshotThumbnailUrl")
+                }
+                else -> {
+                    jsonObject.getString("thumbnailUrl")
+                }
+            }
             // データクラス
             val data =
-                ProgramData(title, communityName, beginAt, endAt, programId, "", liveNow, official)
+                ProgramData(title, communityName, beginAt, endAt, programId, "", liveNow, thum, official)
             dataList.add(data)
         }
         return dataList

@@ -46,14 +46,18 @@ class NicoVideoHistoryAPI {
             val video = items.getJSONObject(i).getJSONObject("video")
             val title = video.getString("title")
             val videoId = video.getString("id")
-            val thum = video.getJSONObject("thumbnail").getString("largeUrl")
+            val thum = if (video.getJSONObject("thumbnail").isNull("largeUrl")) {
+                video.getJSONObject("thumbnail").getString("url")
+            } else {
+                video.getJSONObject("thumbnail").getString("largeUrl")
+            }
             val date = toUnixTime(video.getString("registeredAt"))
             val count = video.getJSONObject("count")
             val viewCount = count.getInt("view").toString()
             val commentCount = count.getInt("comment").toString()
             val mylistCount = count.getInt("mylist").toString()
             val data =
-                NicoVideoData(false,false,title, videoId, thum, date, viewCount, commentCount, mylistCount,"")
+                NicoVideoData(false, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "")
             list.add(data)
         }
         return list

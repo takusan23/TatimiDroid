@@ -5,7 +5,7 @@
     <PreferenceCategory android:title="@string/video">
         <SwitchPreference
                 android:defaultValue="false"
-                android:icon="@drawable/ic_signal_cellular_null_24px"
+                android:icon="@drawable/ic_folder_open_black_24dp"
                 android:key="setting_mobile_data_show_cache"
                 android:title="@string/setting_mobile_data_show_cache" />
         <SwitchPreference
@@ -14,6 +14,12 @@
                 android:key="setting_nicovideo_comment_only"
                 android:summary="@string/setting_comment_only_description"
                 android:title="@string/setting_comment_only_title" />
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_signal_cellular_null_24px"
+                android:key="setting_nicovideo_low_quality"
+                android:summary="@string/setting_mobiledata_quality_description"
+                android:title="@string/setting_mobiledata_quality" />
     </PreferenceCategory>
 
 

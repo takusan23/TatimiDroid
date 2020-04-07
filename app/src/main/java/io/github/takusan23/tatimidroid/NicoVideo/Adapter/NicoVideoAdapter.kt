@@ -25,6 +25,8 @@ import java.util.*
 import android.R.string.no
 import android.os.Message
 import androidx.appcompat.app.AppCompatActivity
+import io.github.takusan23.tatimidroid.CustomFont
+import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 
 
 class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :
@@ -35,6 +37,8 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<St
     var user_session = ""
     var isPremium = false
     var userId = ""
+
+    lateinit var font: CustomFont
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view =
@@ -49,6 +53,10 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<St
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
         val context = holder.commentTextView.context
+
+        if (!::font.isInitialized) {
+            font = CustomFont(context)
+        }
 
         val item = arrayListArrayAdapter[position] as ArrayList<String>
         val name = item.get(1)
@@ -70,8 +78,16 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<St
         holder.userNameTextView.text =
             "${setTimeFormat(date.toLong())} | $formattedTime | $mail | $nicoruCount"
 
-        // JSONぱーす
-
+        // ユーザーの設定したフォントサイズ
+        font.apply {
+            holder.commentTextView.textSize = commentFontSize
+            holder.userNameTextView.textSize = userIdFontSize
+        }
+        // フォント
+        font.apply {
+            setTextViewFont(holder.commentTextView)
+            setTextViewFont(holder.userNameTextView)
+        }
 
     }
 

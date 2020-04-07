@@ -53,7 +53,7 @@ class NicoVideoSearchHTML {
             if (it.attr("data-video-id").isNotEmpty()) {
                 val title = it.getElementsByClass("itemTitle")[0].text()
                 val videoId = it.attr("data-video-id")
-                val thum = it.getElementsByTag("img")[0].attr("src")
+                val thum = it.getElementsByTag("img")[0].attr("data-original")
                 val date = toUnixTime(it.getElementsByClass("time")[0].text())
                 val viewCount =
                     it.getElementsByClass("count view")[0].getElementsByClass("value")[0].text()

@@ -30,6 +30,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clickable="true"
+                android:drawableStart="@drawable/ic_content_paste_black_24dp"
                 android:foreground="?android:attr/selectableItemBackground"
                 android:padding="10sp"
                 android:text="@string/video_id_copy" />
@@ -39,6 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clickable="true"
+                android:drawableStart="@drawable/ic_folder_open_black_24dp"
                 android:foreground="?android:attr/selectableItemBackground"
                 android:padding="10sp"
                 android:text="@string/add_mylist" />
@@ -48,6 +50,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clickable="true"
+                android:drawableStart="@drawable/ic_save_alt_black_24dp"
                 android:foreground="?android:attr/selectableItemBackground"
                 android:padding="10sp"
                 android:text="@string/get_cache" />
@@ -64,6 +67,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clickable="true"
+                    android:drawableStart="@drawable/ic_outline_comment_24px"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10sp"
                     android:text="@string/xml_to_json"
@@ -74,6 +78,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clickable="true"
+                    android:drawableStart="@drawable/ic_refresh_black_24dp"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10sp"
                     android:text="@string/get_cache_re_get" />
@@ -83,6 +88,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clickable="true"
+                    android:drawableStart="@drawable/ic_outline_delete_24px"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10sp"
                     android:text="@string/delete_cache" />

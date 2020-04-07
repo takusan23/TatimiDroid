@@ -26,17 +26,19 @@ class NicoVideoHTML {
 
     /**
      * HTML取得
+     * @param eco 「１」を入れるとエコノミー
      * */
-    fun getHTML(videoId: String, userSession: String): Deferred<Response> = GlobalScope.async {
-        val request = Request.Builder().apply {
-            url("https://www.nicovideo.jp/watch/$videoId")
-            header("Cookie", "user_session=$userSession")
-            get()
-        }.build()
-        val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        return@async response
-    }
+    fun getHTML(videoId: String, userSession: String, eco: String = ""): Deferred<Response> =
+        GlobalScope.async {
+            val request = Request.Builder().apply {
+                url("https://www.nicovideo.jp/watch/$videoId?eco=$eco")
+                header("Cookie", "user_session=$userSession")
+                get()
+            }.build()
+            val okHttpClient = OkHttpClient()
+            val response = okHttpClient.newCall(request).execute()
+            return@async response
+        }
 
     /**
      * 動画が暗号化されているか
@@ -771,9 +773,26 @@ class NicoVideoHTML {
             println(sessionAPIJSON.toString(4))
             return@async response
 
-
         }
 
+    /**
+     * 画質一覧を返す。
+     * 注意：DMCサーバーの動画で使ってね。
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * @return video.dmcInfo.quality.videos の値（配列）
+     * */
+    fun parseVideoQualityDMC(jsonObject: JSONObject): JSONArray {
+        return jsonObject.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality")
+            .getJSONArray("videos")
+    }
+
+    /**
+     * 音質一覧を返す
+     * */
+    fun parseAudioQualityDMC(jsonObject: JSONObject): JSONArray {
+        return jsonObject.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality")
+            .getJSONArray("audios")
+    }
 
     /**
      * 終了時に呼んで

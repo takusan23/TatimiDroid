@@ -7,13 +7,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
@@ -47,6 +47,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         val liveId = item.programId
         val datetime = item.beginAt
         val liveNow = item.lifeCycle
+        val thumb = item.thum
         val isOfficial = item.isOfficial // 公式ならtrue
         val isOnAir = liveNow.contains("ON_AIR") || liveNow.contains("Begun")
 
@@ -107,6 +108,12 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
             true
         }
 
+        // サムネ
+        Glide.with(holder.thumbImageView)
+            .load(thumb)
+            .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
+            .into(holder.thumbImageView)
+
 
         // 視聴モードボタン
         initWatchModeButton(holder, item)
@@ -141,6 +148,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         val shareButton: Button = itemView.findViewById(R.id.adapter_community_share)
         val autoTatimiButton: Button = itemView.findViewById(R.id.adapter_community_auto)
         val autoNicoLiveButton: Button = itemView.findViewById(R.id.adapter_community_auto_nicocas)
+        val thumbImageView: ImageView = itemView.findViewById(R.id.adapter_community_program_thumb)
     }
 
     // 視聴モード選択ボタン初期化

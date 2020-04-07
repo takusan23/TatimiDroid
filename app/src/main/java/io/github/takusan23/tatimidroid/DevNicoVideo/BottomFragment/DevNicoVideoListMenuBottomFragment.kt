@@ -231,7 +231,7 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // XML形式をJSON形式に変換する
         // コメントファイル（XML）があれば表示させる
         val xmlCommentJSON = XMLCommentJSON(context)
-        if (xmlCommentJSON.commentXmlFileExists(nicoVideoData.videoId)) {
+        if (xmlCommentJSON.commentXmlFilePath(nicoVideoData.videoId) != null) {
             bottom_fragment_nicovideo_list_menu_xml_to_json.visibility = View.VISIBLE
         }
         bottom_fragment_nicovideo_list_menu_xml_to_json.setOnClickListener {

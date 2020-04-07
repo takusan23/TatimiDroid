@@ -84,7 +84,7 @@ class DevNicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                         // 今の再生時間控える
                         devNicoVideoFragment.apply {
                             rotationProgress = exoPlayer.currentPosition
-                            coroutine(false, "", "", name == "低画質")
+                            coroutine(false, "", "", name == "low")
                         }
                         this@DevNicoVideoQualityBottomFragment.dismiss()
                     }

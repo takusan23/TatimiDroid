@@ -8,5 +8,6 @@ data class ProgramData(
     val programId: String,
     val broadCaster: String,
     val lifeCycle: String,
+    val thum: String,
     val isOfficial: Boolean = false
 )

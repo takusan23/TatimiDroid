@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,24 +30,24 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
-import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.DarkModeSupport
+import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPager
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
-import io.github.takusan23.tatimidroid.ProgramShare
-import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.sql.Time
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.timerTask
@@ -100,13 +101,11 @@ class DevNicoVideoFragment : Fragment() {
     // 再生時間を適用したらtrue。一度だけ動くように
     var isRotationProgressSuccessful = false
 
-    // 設定項目
-    // 3DSコメント非表示
-    var is3DSCommentHide = false
-
     // 共有
     lateinit var share: ProgramShare
 
+    // フォント
+    lateinit var font: CustomFont
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
@@ -118,6 +117,9 @@ class DevNicoVideoFragment : Fragment() {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context!!)
         nicoVideoCache = NicoVideoCache(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
+
+        font = CustomFont(context)
+
         // 動画ID
         videoId = arguments?.getString("id") ?: ""
         // キャッシュ再生が有効ならtrue
@@ -145,6 +147,7 @@ class DevNicoVideoFragment : Fragment() {
         initController()
 
         // キャッシュ再生のときとそうじゃないとき
+        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
         if (isCache) {
             // キャッシュ再生
             cachePlay()
@@ -232,7 +235,8 @@ class DevNicoVideoFragment : Fragment() {
     }
 
     /**
-     * データ取得から動画再生/コメント取得まで
+     * データ取得から動画再生/コメント取得まで。
+     * 注意：モバイルデータ接続で強制的に低画質にする設定が有効になっている場合は引数に関係なく低画質がリクエストされます。
      * @param isGetComment 「コ　メ　ン　ト　を　取　得　し　な　い　」場合はfalse。省略時はtrueです。
      * @param videoQualityId 画質変更する場合はIDを入れてね。省略しても大丈夫です。
      * @param audioQualityId 音質変更する場合はIDを入れてね。省略しても大丈夫です。
@@ -240,9 +244,15 @@ class DevNicoVideoFragment : Fragment() {
      * */
     fun coroutine(isGetComment: Boolean = true, videoQualityId: String = "", audioQualityId: String = "", smileServerLowRequest: Boolean = false) {
         // HTML取得
-        val nicoVideoHTML = NicoVideoHTML()
+        // val nicoVideoHTML = NicoVideoHTML()
         GlobalScope.launch {
-            val response = nicoVideoHTML.getHTML(videoId, userSession).await()
+            // smileサーバーの動画は多分最初の視聴ページHTML取得のときに?eco=1をつけないと低画質リクエストできない
+            var eco = if (smileServerLowRequest) {
+                "1"
+            } else {
+                ""
+            }
+            val response = nicoVideoHTML.getHTML(videoId, userSession, eco).await()
             nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
             jsonObject = nicoVideoHTML.parseJSON(response?.body?.string())
             // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
@@ -255,9 +265,33 @@ class DevNicoVideoFragment : Fragment() {
                     }
                     return@launch
                 } else {
+
+                    // モバイルデータで最低画質をリクエスト！
+                    var videoQuality = videoQualityId
+                    var audioQuality = audioQualityId
+
+                    // モバイルデータ接続のときは強制的に低画質にする
+                    if (prefSetting.getBoolean("setting_nicovideo_low_quality", false)) {
+                        if (isConnectionMobileDataInternet(context)) {
+                            // モバイルデータ
+                            val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
+                            val audioQualityList = nicoVideoHTML.parseAudioQualityDMC(jsonObject)
+                            videoQuality =
+                                videoQualityList.getJSONObject(videoQualityList.length() - 1)
+                                    .getString("id")
+                            audioQuality =
+                                audioQualityList.getJSONObject(audioQualityList.length() - 1)
+                                    .getString("id")
+                        }
+                        activity?.runOnUiThread {
+                            Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.quality)}：$videoQuality", Snackbar.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+
                     // https://api.dmc.nico/api/sessions のレスポンス
                     val sessionAPIResponse =
-                        nicoVideoHTML.callSessionAPI(jsonObject, videoQualityId, audioQualityId)
+                        nicoVideoHTML.callSessionAPI(jsonObject, videoQuality, audioQuality)
                             .await()
                     if (sessionAPIResponse != null) {
                         sessionAPIJSONObject = sessionAPIResponse
@@ -274,12 +308,8 @@ class DevNicoVideoFragment : Fragment() {
                     }
                 }
             } else {
-                // Smileサーバー。動画URL取得
+                // Smileサーバー。動画URL取得。自動or低画質は最初の視聴ページHTMLのURLのうしろに「?eco=1」をつければ低画質が送られてくる
                 contentUrl = nicoVideoHTML.getContentURI(jsonObject, null)
-                // 低画質が必要な場合。URLに「low」を足せば良い模様
-                if (smileServerLowRequest) {
-                    contentUrl += "low"
-                }
             }
             // コメント取得
             if (isGetComment) {
@@ -321,7 +351,7 @@ class DevNicoVideoFragment : Fragment() {
     fun cachePlay() {
         // コメントファイルがxmlならActivity終了
         val xmlCommentJSON = XMLCommentJSON(context)
-        if (xmlCommentJSON.commentXmlFileExists(videoId) && !xmlCommentJSON.commentJSONFileExists(videoId)) {
+        if (xmlCommentJSON.commentXmlFilePath(videoId) != null && !xmlCommentJSON.commentJSONFileExists(videoId)) {
             // xml形式はあるけどjson形式がないときは落とす
             Toast.makeText(context, R.string.xml_comment_play, Toast.LENGTH_SHORT).show()
             activity?.finish()
@@ -353,7 +383,8 @@ class DevNicoVideoFragment : Fragment() {
                 JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video")
                     .getString("title")
             } else {
-                videoId
+                // 動画ファイルの名前
+                nicoVideoCache.getCacheFolderVideoFileName(videoId) ?: videoId
             }
             initTitleArea()
             // 共有
@@ -378,6 +409,7 @@ class DevNicoVideoFragment : Fragment() {
      * コメントのみの表示を無効にする。動画を再生する
      * */
     fun commentOnlyModeDisable() {
+        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
         if (isCache) {
             initVideoPlayer(contentUrl, "")
         } else {
@@ -392,7 +424,6 @@ class DevNicoVideoFragment : Fragment() {
      * ExoPlayer初期化
      * */
     private fun initVideoPlayer(videoUrl: String?, nicohistory: String?) {
-        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
         isRotationProgressSuccessful = false
         exoPlayer.setVideoSurfaceView(fragment_nicovideo_surfaceview)
         // キャッシュ再生と分ける
@@ -612,9 +643,9 @@ class DevNicoVideoFragment : Fragment() {
             fragment_nicovideo_seek.progress = (exoPlayer.currentPosition / 1000L).toInt()
         }
         // 再生時間TextView
-        val simpleDateFormat = SimpleDateFormat("mm:ss")
-        val formattedTime = simpleDateFormat.format(exoPlayer.currentPosition)
-        val videoLengthFormattedTime = simpleDateFormat.format(exoPlayer.duration)
+        // val simpleDateFormat = SimpleDateFormat("hh:mm:ss", Locale("UTC"))
+        val formattedTime = DateUtils.formatElapsedTime(exoPlayer.currentPosition / 1000L)
+        val videoLengthFormattedTime = DateUtils.formatElapsedTime(exoPlayer.duration / 1000L)
         fragment_nicovideo_progress_text.text = "$formattedTime / $videoLengthFormattedTime"
     }
 

@@ -6,6 +6,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:drawablePadding">5sp</item>
     </style>
 
     <!--いつもつかうやつ-->
@@ -18,6 +19,9 @@
         <item name="android:textColor">#ffffff</item>
         <item name="materialButtonStyle">@style/ButtonStyle</item>
         <item name="materialButtonOutlinedStyle">@style/OutlineButtonStyle</item>
+        <!-- DrawableStartの色とPadding -->
+        <item name="drawableTint">#ffffff</item>
+        <item name="android:drawablePadding">5sp</item>
     </style>
 
     <!--にまど用レイアウト。SupportActionBarを消すために-->
@@ -25,12 +29,13 @@
         <!-- Customize your theme here. -->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-<!--
-        <item name="android:statusBarColor">@android:color/transparent</item>
--->
+        <!--
+                <item name="android:statusBarColor">@android:color/transparent</item>
+        -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:drawablePadding">5sp</item>
     </style>
 
     <!--にまど用レイアウト。上記のダークモード版-->
@@ -38,9 +43,9 @@
         <!-- Customize your theme here. -->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-<!--
-        <item name="android:statusBarColor">@android:color/transparent</item>
--->
+        <!--
+                <item name="android:statusBarColor">@android:color/transparent</item>
+        -->
         <item name="colorAccent">@color/colorPrimaryDark</item>
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="android:tint">#ffffff</item>
@@ -48,7 +53,9 @@
         <item name="android:textColor">#ffffff</item>
         <item name="materialButtonStyle">@style/ButtonStyle</item>
         <item name="materialButtonOutlinedStyle">@style/OutlineButtonStyle</item>
-
+        <!-- DrawableStartの色とPadding -->
+        <item name="drawableTint">#ffffff</item>
+        <item name="android:drawablePadding">5sp</item>
     </style>
 
     <!--ボタンのテキスト色-->

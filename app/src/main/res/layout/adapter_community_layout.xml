@@ -24,70 +24,83 @@
                     android:id="@+id/adapter_community_program_name_linearlayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
 
+                <ImageView
+                        android:id="@+id/adapter_community_program_thumb"
+                        android:layout_width="100sp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="5sp" />
+
                 <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="10dp">
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
-                    <TextView
-                            android:id="@+id/adapter_community_time_textview"
+                    <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="読み込み中"
-                            android:textSize="14dp" />
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:padding="10dp">
 
-                    <TextView
-                            android:id="@+id/adapter_community_title_textview"
+                        <TextView
+                                android:id="@+id/adapter_community_time_textview"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="読み込み中"
+                                android:textSize="14dp" />
+
+                        <TextView
+                                android:id="@+id/adapter_community_title_textview"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="読み込み中"
+                                android:textSize="18dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                            android:id="@+id/adapter_community_watchmode_linearlayout"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="読み込み中"
-                            android:textSize="18dp" />
-                </LinearLayout>
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:visibility="gone"
+                            tools:visibility="visible">
 
-                <LinearLayout
-                        android:id="@+id/adapter_community_watchmode_linearlayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="horizontal"
-                        android:visibility="gone"
-                        tools:visibility="visible">
+                        <Button
+                                android:id="@+id/adapter_community_watchmode_comeview"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:text="@string/mode_comeview" />
 
-                    <Button
-                            android:id="@+id/adapter_community_watchmode_comeview"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="2sp"
-                            android:text="@string/mode_comeview" />
+                        <Button
+                                android:id="@+id/adapter_community_watchmode_comepost"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:text="@string/mode_post" />
 
-                    <Button
-                            android:id="@+id/adapter_community_watchmode_comepost"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="2sp"
-                            android:text="@string/mode_post" />
+                        <Button
+                                android:id="@+id/adapter_community_watchmode_nicocas"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:text="@string/mode_nicocas" />
 
-                    <Button
-                            android:id="@+id/adapter_community_watchmode_nicocas"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="2sp"
-                            android:text="@string/mode_nicocas" />
+                        <Button
+                                android:id="@+id/adapter_community_watchmode_description"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2sp"
+                                android:text="？" />
 
-                    <Button
-                            android:id="@+id/adapter_community_watchmode_description"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="2sp"
-                            android:text="？" />
+                    </LinearLayout>
 
                 </LinearLayout>
 
