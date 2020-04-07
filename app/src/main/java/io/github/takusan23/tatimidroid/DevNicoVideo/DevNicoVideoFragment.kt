@@ -237,6 +237,7 @@ class DevNicoVideoFragment : Fragment() {
     /**
      * データ取得から動画再生/コメント取得まで。
      * 注意：モバイルデータ接続で強制的に低画質にする設定が有効になっている場合は引数に関係なく低画質がリクエストされます。
+     *      だたし、第２引数、第３引数に空文字以外を入れた場合は「モバイルデータ接続で最低画質」の設定は無視します。
      * @param isGetComment 「コ　メ　ン　ト　を　取　得　し　な　い　」場合はfalse。省略時はtrueです。
      * @param videoQualityId 画質変更する場合はIDを入れてね。省略しても大丈夫です。
      * @param audioQualityId 音質変更する場合はIDを入れてね。省略しても大丈夫です。
@@ -247,7 +248,7 @@ class DevNicoVideoFragment : Fragment() {
         // val nicoVideoHTML = NicoVideoHTML()
         GlobalScope.launch {
             // smileサーバーの動画は多分最初の視聴ページHTML取得のときに?eco=1をつけないと低画質リクエストできない
-            var eco = if (smileServerLowRequest) {
+            val eco = if (smileServerLowRequest) {
                 "1"
             } else {
                 ""
@@ -270,22 +271,27 @@ class DevNicoVideoFragment : Fragment() {
                     var videoQuality = videoQualityId
                     var audioQuality = audioQualityId
 
-                    // モバイルデータ接続のときは強制的に低画質にする
-                    if (prefSetting.getBoolean("setting_nicovideo_low_quality", false)) {
-                        if (isConnectionMobileDataInternet(context)) {
-                            // モバイルデータ
-                            val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
-                            val audioQualityList = nicoVideoHTML.parseAudioQualityDMC(jsonObject)
-                            videoQuality =
-                                videoQualityList.getJSONObject(videoQualityList.length() - 1)
-                                    .getString("id")
-                            audioQuality =
-                                audioQualityList.getJSONObject(audioQualityList.length() - 1)
-                                    .getString("id")
-                        }
-                        activity?.runOnUiThread {
-                            Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.quality)}：$videoQuality", Snackbar.LENGTH_SHORT)
-                                .show()
+                    // 画質が指定している場合はモバイルデータ接続で最低画質の設定は無視
+                    if (videoQuality.isEmpty() && audioQuality.isEmpty()) {
+                        // モバイルデータ接続のときは強制的に低画質にする
+                        if (prefSetting.getBoolean("setting_nicovideo_low_quality", false)) {
+                            if (isConnectionMobileDataInternet(context)) {
+                                // モバイルデータ
+                                val videoQualityList =
+                                    nicoVideoHTML.parseVideoQualityDMC(jsonObject)
+                                val audioQualityList =
+                                    nicoVideoHTML.parseAudioQualityDMC(jsonObject)
+                                videoQuality =
+                                    videoQualityList.getJSONObject(videoQualityList.length() - 1)
+                                        .getString("id")
+                                audioQuality =
+                                    audioQualityList.getJSONObject(audioQualityList.length() - 1)
+                                        .getString("id")
+                            }
+                            activity?.runOnUiThread {
+                                Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.quality)}：$videoQuality", Snackbar.LENGTH_SHORT)
+                                    .show()
+                            }
                         }
                     }
 
