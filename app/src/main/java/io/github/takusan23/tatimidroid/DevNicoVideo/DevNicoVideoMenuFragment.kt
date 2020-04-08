@@ -191,12 +191,16 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     // 再取得ボタン初期化
     private fun initReGetButton() {
+        val nicoVideoCache = NicoVideoCache(context)
         // インターネットに繋がってなければ非表示
         if (!isConnectionInternet(context)) {
             fragment_nicovideo_menu_re_get_cache.visibility = View.GONE
         }
+        // 動画IDじゃない場合も非表示
+        if (!nicoVideoCache.checkVideoId(videoId)) {
+            fragment_nicovideo_menu_re_get_cache.visibility = View.GONE
+        }
         fragment_nicovideo_menu_re_get_cache.setOnClickListener {
-            val nicoVideoCache = NicoVideoCache(context)
             nicoVideoCache.getReGetVideoInfoComment(videoId, userSession, context)
         }
     }

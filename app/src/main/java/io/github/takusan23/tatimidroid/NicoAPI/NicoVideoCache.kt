@@ -390,4 +390,18 @@ class NicoVideoCache(val context: Context?) {
         }
     }
 
+    /**
+     * 動画IDかどうか（smかsoかnmのもじが入ってるかどうか）
+     * @param videoId 動画IDかどうか確かめたい文字列
+     * @return 動画IDの場合はtrue。違ったらfalse
+     * */
+    fun checkVideoId(videoId: String): Boolean {
+        return when {
+            videoId.contains("sm") -> true
+            videoId.contains("so") -> true
+            videoId.contains("nm") -> true
+            else -> false
+        }
+    }
+
 }
