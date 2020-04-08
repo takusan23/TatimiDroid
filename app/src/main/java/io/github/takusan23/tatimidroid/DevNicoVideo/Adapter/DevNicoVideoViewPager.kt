@@ -1,18 +1,13 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.Adapter
 
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
-import androidx.fragment.app.FragmentStatePagerAdapter
-import androidx.viewpager.widget.ViewPager
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoCommentFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoMenuFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoContentTreeFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoInfoFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoInfoFragment
 import io.github.takusan23.tatimidroid.R
 
 class DevNicoVideoViewPager(val activity: AppCompatActivity, val videoId: String, val isCache: Boolean) :
@@ -50,7 +45,8 @@ class DevNicoVideoViewPager(val activity: AppCompatActivity, val videoId: String
             }
             if (exists) {
                 // 動画情報JSONがあれば動画情報Fragmentを表示させる
-                val nicoVideoInfoFragment = NicoVideoInfoFragment().apply {
+                val nicoVideoInfoFragment = NicoVideoInfoFragment()
+                    .apply {
                     arguments = bundle
                 }
                 fragmentList.add(nicoVideoInfoFragment)
@@ -63,10 +59,8 @@ class DevNicoVideoViewPager(val activity: AppCompatActivity, val videoId: String
             val devNicoVideoCommentFragment = DevNicoVideoCommentFragment().apply {
                 arguments = bundle
             }
-            val nicoVideoInfoFragment = NicoVideoInfoFragment().apply {
-                arguments = bundle
-            }
-            val nicoContentTree = NicoVideoContentTreeFragment().apply {
+            val nicoVideoInfoFragment = NicoVideoInfoFragment()
+                .apply {
                 arguments = bundle
             }
             fragmentList.apply {

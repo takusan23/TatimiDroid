@@ -10,9 +10,8 @@ import androidx.appcompat.view.menu.MenuPopupHelper
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
+import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 
@@ -82,7 +81,8 @@ class DevNicoVideoCommentFragment : Fragment() {
         } else {
             recyclerViewList
         } as ArrayList<ArrayList<String>>
-        nicoVideoAdapter = NicoVideoAdapter(list)
+        nicoVideoAdapter =
+            NicoVideoAdapter(list)
         activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
         //  Snackbar
         if (snackbarShow) {
@@ -201,7 +201,8 @@ class DevNicoVideoCommentFragment : Fragment() {
                     } as ArrayList<ArrayList<String>>
                 }
                 // Adapter更新
-                nicoVideoAdapter = NicoVideoAdapter(tmpList)
+                nicoVideoAdapter =
+                    NicoVideoAdapter(tmpList)
                 activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
             }
         })

@@ -5,7 +5,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context=".NicoVideo.NicoVideoActivity">
+        tools:context=".DevNicoVideo.NicoVideoActivity">
 
     <com.google.android.material.tabs.TabLayout
             android:id="@+id/nicovieo_fragment_comment_tab_layout"

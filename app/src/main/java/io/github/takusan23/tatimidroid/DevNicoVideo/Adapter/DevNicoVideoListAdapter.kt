@@ -14,10 +14,8 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
-import org.w3c.dom.Text
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 

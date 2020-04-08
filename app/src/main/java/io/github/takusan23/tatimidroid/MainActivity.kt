@@ -13,11 +13,9 @@ import android.text.SpannableString
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
-import com.google.android.material.transition.MaterialFadeThrough
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.Fragment.*
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_main.*
@@ -27,8 +25,6 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
-import java.text.SimpleDateFormat
-import java.util.*
 import java.util.regex.Pattern
 
 

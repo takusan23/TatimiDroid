@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoVideo
+package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity

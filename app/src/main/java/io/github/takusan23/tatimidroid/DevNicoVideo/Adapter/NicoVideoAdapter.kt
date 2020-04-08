@@ -1,8 +1,6 @@
-package io.github.takusan23.tatimidroid.NicoVideo.Adapter
+package io.github.takusan23.tatimidroid.DevNicoVideo.Adapter
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +12,6 @@ import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -22,11 +19,8 @@ import org.json.JSONObject
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-import android.R.string.no
-import android.os.Message
 import androidx.appcompat.app.AppCompatActivity
 import io.github.takusan23.tatimidroid.CustomFont
-import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 
 
 class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :

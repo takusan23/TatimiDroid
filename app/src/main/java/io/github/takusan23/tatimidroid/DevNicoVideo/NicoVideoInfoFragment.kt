@@ -1,9 +1,8 @@
-package io.github.takusan23.tatimidroid.NicoVideo
+package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
@@ -11,24 +10,17 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
-import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
-import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
-import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.isConnectionInternet
-import kotlinx.android.synthetic.main.fragment_comment_menu.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
 import okhttp3.*
-import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
