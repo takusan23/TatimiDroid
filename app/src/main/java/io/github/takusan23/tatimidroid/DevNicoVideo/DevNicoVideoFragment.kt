@@ -18,6 +18,7 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
@@ -303,14 +304,8 @@ class DevNicoVideoFragment : Fragment() {
                         sessionAPIJSONObject = sessionAPIResponse
                         // 動画URL
                         contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
-                        val heartBeatURL =
-                            nicoVideoHTML.getHeartBeatURL(jsonObject, sessionAPIJSONObject)
-                        val postData =
-                            nicoVideoHTML.getSessionAPIDataObject(jsonObject, sessionAPIJSONObject)
-                        // ハートビート処理
-                        activity?.runOnUiThread {
-                            heatBeat(heartBeatURL, postData)
-                        }
+                        // ハートビート処理。これしないと切られる。
+                        nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSONObject)
                     }
                 }
             } else {
@@ -471,6 +466,21 @@ class DevNicoVideoFragment : Fragment() {
                     // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
                     exoPlayer.seekTo(rotationProgress)
                     isRotationProgressSuccessful = true
+                    // 前回見た位置から再生
+                    // 画面回転時に２回目以降表示されると邪魔なので制御
+                    if (rotationProgress == 0L) {
+                        val progress = prefSetting.getLong("progress_$videoId", 0)
+                        if (progress != 0L) {
+                            Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", Snackbar.LENGTH_LONG)
+                                .apply {
+                                    anchorView = fragment_nicovideo_fab
+                                    setAction(R.string.play) {
+                                        exoPlayer.seekTo(progress)
+                                    }
+                                    show()
+                                }
+                        }
+                    }
                 }
                 if (playbackState == Player.STATE_BUFFERING) {
                     // STATE_BUFFERING はシークした位置からすぐに再生できないとき。読込み中のこと。
@@ -554,42 +564,6 @@ class DevNicoVideoFragment : Fragment() {
             // スクロール
             (recyclerView?.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(pos, 0)
         }
-    }
-
-    /**
-     * ハートビート処理を行う。
-     * 40秒ごとに送信するらしい。POSTする内容はsession_apiでAPI叩いた後のJSONのdataの中身。
-     * jsonの中身全てではない。
-     * @param url ハートビート用URL
-     * @param json POSTする内容
-     * */
-    private fun heatBeat(url: String?, json: String?) {
-        if (url == null && json == null) {
-            return
-        }
-        heartBeatTimer.cancel()
-        heartBeatTimer = Timer()
-        heartBeatTimer.schedule(timerTask {
-            nicoVideoHTML.postHeartBeat(url, json) {
-
-            }
-        }, 40 * 1000, 40 * 1000)
-
-/*
-        val runnable = object : Runnable {
-            override fun run() {
-                // 終了したら使わない。
-                if (!isDestory) {
-                    nicoVideoHTML.postHeartBeat(url, json) {
-                        activity?.runOnUiThread {
-                            Handler().postDelayed(this, 40 * 1000)
-                        }
-                    }
-                }
-            }
-        }
-        Handler().postDelayed(runnable, 40 * 1000)
-*/
     }
 
 
@@ -794,6 +768,12 @@ class DevNicoVideoFragment : Fragment() {
         super.onPause()
         if (::exoPlayer.isInitialized) {
             exoPlayer.playWhenReady = false
+            // キャッシュ再生の場合は位置を保存する
+            if (isCache) {
+                prefSetting.edit {
+                    putLong("progress_$videoId", exoPlayer.currentPosition)
+                }
+            }
         }
     }
 

@@ -340,4 +340,7 @@
     <string name="play_video">動画を再生する</string>
     <string name="video_id_copy">動画IDをコピー</string>
     <string name="video_id_copy_ok">動画IDコピー</string>
+    <string name="setting_cache_position_title">キャッシュ再生では再生位置を保存する</string>
+    <string name="last_time_position_message">前回見た位置から再生する</string>
+    <string name="play">再生</string>
 </resources>

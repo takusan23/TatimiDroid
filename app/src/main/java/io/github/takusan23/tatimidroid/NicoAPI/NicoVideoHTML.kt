@@ -13,6 +13,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.concurrent.timerTask
 
 /**
  * ニコ動の情報取得
@@ -21,8 +22,7 @@ import kotlin.collections.ArrayList
 class NicoVideoHTML {
 
     // 定期実行（今回はハートビート処理）に必要なやつ
-    var runnable: Runnable? = null
-    var isDestory = false
+    var heartBeatTimer = Timer()
 
     /**
      * HTML取得
@@ -122,7 +122,7 @@ class NicoVideoHTML {
      * @param sessionJSONObject callSessionAPI()の戻り値
      * @return DMCの場合はハートビート用URLを返します。Smileサーバーの動画はnull
      * */
-    fun getHeartBeatURL(jsonObject: JSONObject, sessionJSONObject: JSONObject): String? {
+    private fun getHeartBeatURL(jsonObject: JSONObject, sessionJSONObject: JSONObject): String? {
         if (!jsonObject.getJSONObject("video").isNull("dmcInfo")) {
             //DMC Info
             val data = sessionJSONObject.getJSONObject("data")
@@ -141,7 +141,7 @@ class NicoVideoHTML {
      * @param sessionJSONObject callSessionAPI()の戻り値
      * @return DMCサーバーならPOSTする中身を返します。Smileサーバーならnullです。
      * */
-    fun getSessionAPIDataObject(jsonObject: JSONObject, sessionJSONObject: JSONObject): String? {
+    private fun getSessionAPIDataObject(jsonObject: JSONObject, sessionJSONObject: JSONObject): String? {
         if (!jsonObject.getJSONObject("video").isNull("dmcInfo")) {
             val data = sessionJSONObject.getJSONObject("data")
             return data.toString()
@@ -253,55 +253,26 @@ class NicoVideoHTML {
             }
         }
 
-/*
-    */
+
     /**
-     * ハートビート処理を行う。
-     * 40秒ごとに送信するらしい。POSTする内容はsession_apiでAPI叩いた後のJSONのdataの中身。
-     * jsonの中身全てではない。
-     * @param url ハートビート用URL
-     * @param json
-     * *//*
-
-    private fun heatBeat(url: String, json: String) {
-        runnable = Runnable {
-            if (isDestory) {
-                return@Runnable
-            }
-            val request = Request.Builder()
-                .url(url)
-                .post(json.toRequestBody("application/json".toMediaTypeOrNull()))
-                .addHeader("User-Agent", "TatimiDroid;@takusan_23")
-                .build()
-            val okHttpClient = OkHttpClient()
-            okHttpClient.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    println("ハートビート ${response.code}")
-                    Handler(Looper.getMainLooper()).post {
-                        if (!isDestory) {
-                            Handler().postDelayed(runnable, 40 * 1000)
-                        }
-                    }
-                }
-            })
-        }
-        Handler().postDelayed(runnable, 40 * 1000)
-
-        val handler = Handler()
-        val runnable = object : Runnable {
-            override fun run() {
-                println(isDestory)
-                handler.postDelayed(this, 1000)
-            }
-        }
-        handler.postDelayed(runnable, 1000)
-
+     * ハートビート処理を行う。これをしないとサーバーから切られてしまう。最後にdestroy()呼ぶ必要があるのはこれを終了させるため
+     * 40秒ごとに送信するらしい。
+     * @param jsonObject parseJSON()の戻り値
+     * @param sessionAPIJSONObject callSessionAPI()の戻り値
+     * */
+    fun heartBeat(jsonObject: JSONObject, sessionAPIJSONObject: JSONObject) {
+        heartBeatTimer.cancel()
+        heartBeatTimer = Timer()
+        val heartBeatURL =
+            getHeartBeatURL(jsonObject, sessionAPIJSONObject)
+        val postData =
+            getSessionAPIDataObject(jsonObject, sessionAPIJSONObject)
+        heartBeatTimer.schedule(timerTask {
+            // ハートビート処理
+            postHeartBeat(heartBeatURL, postData) {}
+        }, 40 * 1000, 40 * 1000)
     }
-*/
+
 
     /**
      * getthumbinfoを叩く。コルーチン。
@@ -798,10 +769,7 @@ class NicoVideoHTML {
      * 終了時に呼んで
      * */
     fun destory() {
-        isDestory = true
-        if (runnable != null) {
-            runnable = null
-        }
+        heartBeatTimer.cancel()
     }
 
 }

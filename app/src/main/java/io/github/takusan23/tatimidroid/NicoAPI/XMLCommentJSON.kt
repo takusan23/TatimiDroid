@@ -95,7 +95,7 @@ class XMLCommentJSON(val context: Context?) {
 
 /*
     */
-/**
+    /**
      * XML形式のコメントファイルが存在するか。存在するときはtrue
      * @param fileName ファイル名。基本動画ID
      * *//*
@@ -119,9 +119,11 @@ class XMLCommentJSON(val context: Context?) {
         val media = context?.getExternalFilesDir(null)
         // ふぉるだ
         val videoFile = File("${media?.path}/cache/$fileName")
-        videoFile.listFiles().forEach {
-            if (it.extension == "xml") {
-                return it.path
+        if (videoFile.listFiles() != null) {
+            videoFile.listFiles().forEach {
+                if (it.extension == "xml") {
+                    return it.path
+                }
             }
         }
         return null

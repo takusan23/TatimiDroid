@@ -163,14 +163,8 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                                 // 動画URL
                                 contentUrl =
                                     nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
-                                val heartBeatURL =
-                                    nicoVideoHTML.getHeartBeatURL(jsonObject, sessionAPIJSONObject)
-                                val postData =
-                                    nicoVideoHTML.getSessionAPIDataObject(jsonObject, sessionAPIJSONObject)
                                 // ハートビート処理
-                                timer.schedule(timerTask {
-                                    nicoVideoHTML.postHeartBeat(heartBeatURL, postData) {}
-                                }, 40 * 1000, 40 * 1000)
+                                nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSONObject)
                             }
                         } else {
                             // Smileサーバー。動画URL取得

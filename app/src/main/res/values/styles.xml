@@ -61,10 +61,13 @@
     <!--ボタンのテキスト色-->
     <style name="ButtonStyle" parent="@style/Widget.MaterialComponents.Button">
         <item name="android:textColor">#ffffff</item>
+        <item name="iconTint">#ffffff</item>
     </style>
 
     <style name="OutlineButtonStyle" parent="@style/Widget.MaterialComponents.Button.OutlinedButton">
         <item name="android:textColor">#ffffff</item>
+        <item name="iconTint">#ffffff</item>
+        <item name="backgroundTint">#ffffff</item>
     </style>
 
 

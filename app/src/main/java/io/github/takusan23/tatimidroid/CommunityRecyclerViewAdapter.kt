@@ -109,6 +109,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         }
 
         // サムネ
+        holder.thumbImageView.imageTintList = null
         Glide.with(holder.thumbImageView)
             .load(thumb)
             .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
