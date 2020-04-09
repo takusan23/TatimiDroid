@@ -24,7 +24,8 @@ class DevNicoVideoViewPager(val activity: AppCompatActivity, val videoId: String
         bundle.putString("id", videoId)
         bundle.putBoolean("cache", isCache)
         // 動画情報JSONがあるかどうか。なければ動画情報Fragmentを非表示にするため
-        val nicoVideoCache = NicoVideoCache(activity)
+        val nicoVideoCache =
+            NicoVideoCache(activity)
         val exists = nicoVideoCache.existsCacheVideoInfoJSON(videoId)
         // インターネット接続とキャッシュ再生で分岐
         if (isCache) {

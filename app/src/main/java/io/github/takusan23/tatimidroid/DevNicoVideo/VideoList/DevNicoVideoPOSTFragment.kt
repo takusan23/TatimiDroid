@@ -11,12 +11,10 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoPOST
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoRSS
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoPOST
 import io.github.takusan23.tatimidroid.NicoAPI.User
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_post.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

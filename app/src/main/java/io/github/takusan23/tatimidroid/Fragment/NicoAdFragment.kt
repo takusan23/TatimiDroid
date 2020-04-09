@@ -10,8 +10,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.DarkModeSupport
-import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
-import io.github.takusan23.tatimidroid.NicoAPI.NicoAdAPI
+import io.github.takusan23.tatimidroid.Adapter.GiftRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoAdAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicoad_layout.*
 import okhttp3.*
@@ -36,7 +36,8 @@ class NicoAdFragment : Fragment() {
         nicoad_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
         nicoad_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
-        giftRecyclerViewAdapter = GiftRecyclerViewAdapter(recyclerViewList)
+        giftRecyclerViewAdapter =
+            GiftRecyclerViewAdapter(recyclerViewList)
         nicoad_recyclerview.adapter = giftRecyclerViewAdapter
         recyclerViewLayoutManager = nicoad_recyclerview.layoutManager!!
 
@@ -74,7 +75,8 @@ class NicoAdFragment : Fragment() {
     }
 
     private fun getNicoAd() {
-        val nicoAdAPI = NicoAdAPI()
+        val nicoAdAPI =
+            NicoAdAPI()
         nicoAdAPI.getNicoAdInfo(liveId, null) {
             if (it.isSuccessful) {
                 val jsonObject = JSONObject(it.body?.string())

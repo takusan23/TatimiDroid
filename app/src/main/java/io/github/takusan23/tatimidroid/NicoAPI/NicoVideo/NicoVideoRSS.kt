@@ -1,5 +1,6 @@
-package io.github.takusan23.tatimidroid.NicoAPI
+package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -9,7 +10,6 @@ import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.collections.ArrayList
 
 /**
@@ -102,7 +102,7 @@ class NicoVideoRSS {
             val mylistCount =
                 descriptionJsoup.getElementsByClass("nico-info-total-mylist")[0].text()
             val nicoVideoData =
-                NicoVideoData(false,false, title, videoId, thum, stringToUnixTime(date), viewCount, commentCount, mylistCount,"")
+                NicoVideoData(false, false, title, videoId, thum, stringToUnixTime(date), viewCount, commentCount, mylistCount, "")
             rankingList.add(nicoVideoData)
         }
         return rankingList

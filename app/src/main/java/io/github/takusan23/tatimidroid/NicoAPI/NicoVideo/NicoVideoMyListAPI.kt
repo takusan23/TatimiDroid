@@ -1,5 +1,6 @@
-package io.github.takusan23.tatimidroid.NicoAPI
+package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -8,7 +9,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONObject
-import org.jsoup.Jsoup
 import java.util.regex.Pattern
 
 /**
@@ -134,7 +134,7 @@ class NicoVideoMyListAPI {
             val commentCount = itemData.getString("num_res")
             val mylistCount = itemData.getString("mylist_counter")
             val data =
-                NicoVideoData(false,true, title, videoId, thum, date, viewCount, commentCount, mylistCount,itemId)
+                NicoVideoData(false, true, title, videoId, thum, date, viewCount, commentCount, mylistCount, itemId)
             myListList.add(data)
         }
         return myListList

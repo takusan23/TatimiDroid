@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
@@ -9,30 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
-import kotlinx.android.synthetic.main.activity_comment.*
-import kotlinx.android.synthetic.main.fragment_commentview.*
-import kotlinx.android.synthetic.main.overlay_player_layout.view.*
-import kotlinx.coroutines.runBlocking
-import okhttp3.*
+import io.github.takusan23.tatimidroid.Adapter.CommentRecyclerViewAdapter
 import org.java_websocket.client.WebSocketClient
-import org.java_websocket.drafts.Draft_6455
-import org.java_websocket.handshake.ServerHandshake
-import org.java_websocket.protocols.IProtocol
-import org.java_websocket.protocols.Protocol
-import org.json.JSONObject
-import org.jsoup.Jsoup
-import java.io.IOException
-import java.net.URI
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.concurrent.schedule
 
 class CommentViewFragment : Fragment() {
     //接続中の部屋名
@@ -84,9 +68,9 @@ class CommentViewFragment : Fragment() {
         stringArena = getString(R.string.arena)
 
         //CommentFragment取得
-        val fragment =
+        commentFragment =
             (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId)
-        commentFragment = fragment as CommentFragment
+                    as CommentFragment
 
         commentFragment.apply {
             // RecyclerView初期化
@@ -94,9 +78,9 @@ class CommentViewFragment : Fragment() {
             val mLayoutManager = LinearLayoutManager(context)
             recyclerView.layoutManager = mLayoutManager
             commentRecyclerViewAdapter =
-                CommentRecyclerViewAdapter(allRoomComment.recyclerViewList)
+                CommentRecyclerViewAdapter(commentFragment.commentJSONList)
             recyclerView.adapter = commentRecyclerViewAdapter
-            allRoomComment.recyclerView = recyclerView
+            // allRoomComment.recyclerView = recyclerView
             recyclerView.setItemAnimator(null);
         }
 
@@ -119,4 +103,36 @@ class CommentViewFragment : Fragment() {
             tts.shutdown()
         }
     }
+
+    // Adapter初期化済みかどうか
+    fun isInitAdapter(): Boolean {
+        return ::commentRecyclerViewAdapter.isInitialized
+    }
+
+    /**
+     * スクロール位置をゴニョゴニョする関数。追加時に呼んでね
+     * もし一番上なら->新しいコメント来ても一番上に追従する
+     * 一番上にいない->この位置に留まる
+     * */
+    fun recyclerViewScrollPos() {
+        // 画面上で最上部に表示されているビューのポジションとTopを記録しておく
+        val pos =
+            (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+        var top = 0
+        if ((recyclerView.layoutManager as LinearLayoutManager).childCount > 0) {
+            top = (recyclerView.layoutManager as LinearLayoutManager).getChildAt(0)!!.top
+        }
+        //一番上なら追いかける
+        if (pos == 0 || pos == 1) {
+            recyclerView.scrollToPosition(0)
+        } else {
+            recyclerView.post {
+                (recyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(
+                    pos + 1,
+                    top
+                )
+            }
+        }
+    }
+
 }

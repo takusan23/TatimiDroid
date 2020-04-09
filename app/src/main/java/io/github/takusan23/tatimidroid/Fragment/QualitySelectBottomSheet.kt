@@ -69,7 +69,7 @@ class QualitySelectBottomSheet : BottomSheetDialogFragment() {
             //押したとき
             textView.setOnClickListener {
                 //送信
-                commentFragment.sendQualityMessage(text)
+                commentFragment.nicoLiveHTML.sendQualityMessage(text)
                 //println(text)
                 dismiss()
             }

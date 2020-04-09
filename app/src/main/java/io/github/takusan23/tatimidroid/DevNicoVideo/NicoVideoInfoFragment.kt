@@ -53,7 +53,8 @@ class NicoVideoInfoFragment : Fragment() {
 
         if (isCache) {
             // キャッシュから取得
-            val nicoVideoCache = NicoVideoCache(context)
+            val nicoVideoCache =
+                NicoVideoCache(context)
             if (nicoVideoCache.existsCacheVideoInfoJSON(id)) {
                 // JSONファイルある
                 val jsonVideoInfo = nicoVideoCache.getCacheFolderVideoInfoText(id)

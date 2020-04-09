@@ -10,7 +10,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLiveTimeShiftAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionDBUtil
 

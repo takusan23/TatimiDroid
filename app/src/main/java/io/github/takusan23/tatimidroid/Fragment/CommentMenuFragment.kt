@@ -212,7 +212,7 @@ class CommentMenuFragment : Fragment() {
         }
 
         fragment_comment_fragment_menu_low_latency_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            commentFragment.sendLowLatency()
+            commentFragment.nicoLiveHTML.sendLowLatency()
         }
 
         // コメント一行モード on/off
@@ -291,7 +291,7 @@ class CommentMenuFragment : Fragment() {
             commentFragment.hideInfoUnnkome
         //匿名で投稿するか
         fragment_comment_fragment_menu_iyayo_comment_switch.isChecked =
-            commentFragment.isTokumeiComment
+            commentFragment.nicoLiveHTML.isTokumeiComment
         //匿名コメントを非表示にするか
         fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = commentFragment.isTokumeiHide
         //低遅延モードの有効無効
@@ -332,7 +332,7 @@ class CommentMenuFragment : Fragment() {
         }
         fragment_comment_fragment_menu_iyayo_comment_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             //匿名かどうか。
-            commentFragment.isTokumeiComment = isChecked
+            commentFragment.nicoLiveHTML.isTokumeiComment = isChecked
             /*when (isChecked) {
                 true -> {
                     commentFragment.commentCommand = "184"

@@ -7,17 +7,14 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.cardview.widget.CardView
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoAddMylistBottomFragment
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoMyListAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -28,8 +25,10 @@ class DevNicoVideoMylistAdapter(val mylistList: ArrayList<Pair<String, String>>)
     RecyclerView.Adapter<DevNicoVideoMylistAdapter.ViewHolder>() {
 
     // マイリスAPI
-    val myListAPI = NicoVideoMyListAPI()
-    val nicoVideoHTML = NicoVideoHTML()
+    val myListAPI =
+        NicoVideoMyListAPI()
+    val nicoVideoHTML =
+        NicoVideoHTML()
 
     // 動画ID
     var id = ""

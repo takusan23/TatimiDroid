@@ -7,7 +7,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.CommentPOSTListRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.Adapter.CommentPOSTListRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
@@ -41,7 +41,8 @@ class CommentCollectionListActivity : AppCompatActivity() {
         val mLayoutManager = LinearLayoutManager(this)
         activity_comment_post_list_recyclerview.layoutManager =
             mLayoutManager as RecyclerView.LayoutManager?
-        commentPOSTListRecyclerViewAdapter = CommentPOSTListRecyclerViewAdapter(recyclerViewList)
+        commentPOSTListRecyclerViewAdapter =
+            CommentPOSTListRecyclerViewAdapter(recyclerViewList)
         activity_comment_post_list_recyclerview.adapter = commentPOSTListRecyclerViewAdapter
         recyclerViewLayoutManager = activity_comment_post_list_recyclerview.layoutManager!!
 

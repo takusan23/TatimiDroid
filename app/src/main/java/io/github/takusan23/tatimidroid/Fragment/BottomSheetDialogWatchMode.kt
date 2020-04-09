@@ -12,7 +12,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.DarkModeSupport
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
@@ -66,7 +66,8 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
         val user_session = pref_setting.getString("user_session", "")
 
         // 番組情報取得
-        val nicoLiveHTML = NicoLiveHTML()
+        val nicoLiveHTML =
+            NicoLiveHTML()
         GlobalScope.launch {
             // HTML->JSON
             val response = nicoLiveHTML.getNicoLiveResponse(liveId!!, user_session).await()

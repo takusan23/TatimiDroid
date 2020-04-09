@@ -8,7 +8,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
 import java.text.SimpleDateFormat
 import java.util.ArrayList

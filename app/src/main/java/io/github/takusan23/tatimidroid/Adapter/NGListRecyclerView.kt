@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.tatimidroid.Adapter
 
 import android.database.sqlite.SQLiteDatabase
 import android.view.LayoutInflater
@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import java.util.ArrayList
 
@@ -21,7 +22,8 @@ class NGListRecyclerView(private val arrayListArrayAdapter: ArrayList<ArrayList<
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_ng_list_layout, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.adapter_ng_list_layout, parent, false)
         return ViewHolder(view)
     }
 

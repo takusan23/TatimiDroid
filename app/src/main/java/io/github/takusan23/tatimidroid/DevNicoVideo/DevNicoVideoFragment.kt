@@ -24,7 +24,6 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -36,19 +35,15 @@ import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPager
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.sql.Time
-import java.text.SimpleDateFormat
-import java.time.LocalDateTime
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.timerTask
@@ -85,7 +80,8 @@ class DevNicoVideoFragment : Fragment() {
     lateinit var sessionAPIJSONObject: JSONObject
 
     // データ取得からハートビートまで扱う
-    val nicoVideoHTML = NicoVideoHTML()
+    val nicoVideoHTML =
+        NicoVideoHTML()
 
     // コメント配列
     var commentList = arrayListOf<ArrayList<String>>()
@@ -116,7 +112,8 @@ class DevNicoVideoFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context!!)
-        nicoVideoCache = NicoVideoCache(context)
+        nicoVideoCache =
+            NicoVideoCache(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
 
         font = CustomFont(context)
@@ -587,7 +584,7 @@ class DevNicoVideoFragment : Fragment() {
             (arrayList[4].toInt() / 100) == (exoPlayer.contentPosition / 1000L).toInt()
         }
         drawList.forEach {
-            val commentJSONParse = CommentJSONParse(it[8], "アリーナ")
+            val commentJSONParse = CommentJSONParse(it[8], "アリーナ",videoId)
             fragment_nicovideo_comment_canvas.postComment(it[2], commentJSONParse)
         }
     }

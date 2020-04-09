@@ -111,19 +111,7 @@ class BackgroundPlay(val context: Context) {
 
 
     fun start(uri: Uri) {
-        if (this@BackgroundPlay::exoPlayer.isInitialized) {
-            if (pref_setting.getBoolean("setting_leave_background_v2", false)) {
-                if (playable) {
-                    //新しい再生方法
-                    exoPlayer.volume = 1f
-                    isPlaying = true
-                }
-            } else {
-                play(uri, true)
-            }
-        } else {
-            play(uri, true)
-        }
+        play(uri, true)
     }
 
 }

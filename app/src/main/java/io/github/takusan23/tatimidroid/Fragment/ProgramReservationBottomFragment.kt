@@ -20,8 +20,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.AutoAdmissionService
 import io.github.takusan23.tatimidroid.DarkModeSupport
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLiveHTML
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLiveTimeShiftAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
 import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
@@ -37,7 +37,8 @@ class ProgramReservationBottomFragment : BottomSheetDialogFragment() {
     var user_session = ""
 
     var liveId = ""
-    val nicoLiveHTML = NicoLiveHTML()
+    val nicoLiveHTML =
+        NicoLiveHTML()
 
     var programName = ""
     var beginTime = 0L
@@ -79,7 +80,8 @@ class ProgramReservationBottomFragment : BottomSheetDialogFragment() {
 
 
         // TS予約
-        val nicoLiveTimeShiftAPI = NicoLiveTimeShiftAPI(context, user_session, liveId)
+        val nicoLiveTimeShiftAPI =
+            NicoLiveTimeShiftAPI(context, user_session, liveId)
 
         // 予約枠自動入場追加
         bottom_fragment_program_reservation_auto_admission_tatimidroid_button.setOnClickListener {

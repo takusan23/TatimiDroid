@@ -12,11 +12,11 @@ import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Icon
 import android.media.AudioManager
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
@@ -48,6 +48,8 @@ import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Adapter.CommentViewPager
 import io.github.takusan23.tatimidroid.Background.BackgroundPlay
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
@@ -56,19 +58,9 @@ import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.coroutines.*
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.java_websocket.client.WebSocketClient
-import org.java_websocket.drafts.Draft_6455
-import org.java_websocket.handshake.ServerHandshake
-import org.java_websocket.protocols.IProtocol
-import org.java_websocket.protocols.Protocol
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
-import java.io.IOException
-import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
@@ -77,44 +69,17 @@ import kotlin.concurrent.timerTask
 class CommentFragment : Fragment() {
 
     lateinit var commentActivity: AppCompatActivity
-
     lateinit var pref_setting: SharedPreferences
-
     lateinit var darkModeSupport: DarkModeSupport
 
     //ユーザーセッション
     var usersession = ""
-
-    //視聴に必要なデータ受信用WebSocket
-    lateinit var connectionNicoLiveWebSocket: WebSocketClient
-
-    //放送開始時間？こっちは放送開始前まである。
-    var programStartTime: Long = 0
-
-    //放送開始時間？こっちが正しい
-    var programLiveTime: Long = 0
-
-    //コメント送信用WebSocket
-    lateinit var commentPOSTWebSocketClient: WebSocketClient
-
-    //コメント送信時に必要なpostKeyを払い出す時に必要なthreadId
-    var getPostKeyThreadId = ""
-
-    //コメント投稿時につかうticketを入れておく
-    //これはコメント送信用WebSocketにthreadメッセージ（過去コメントなど指定して）送信すると帰ってくるJSONObjectに入ってる
-    var commentTicket = ""
 
     //コメント投稿に必須なユーザーID
     var userId = ""
 
     //コメント投稿に必須なプレミアム会員かどうか
     var premium = 0
-
-    //コメントの内容
-    var commentValue = ""
-
-    //コマンド（匿名とか）
-    var commentCommand = ""
 
     //視聴モード（コメント投稿機能付き）かどうか
     var isWatchingMode = false
@@ -123,7 +88,7 @@ class CommentFragment : Fragment() {
     var isNicocasMode = false
 
     //hls
-    var hls_address = ""
+    var hlsAddress = ""
 
     //こてはん（固定ハンドルネーム　配列
     val kotehanMap = mutableMapOf<String, String>()
@@ -131,34 +96,19 @@ class CommentFragment : Fragment() {
     //生放送を見る場合はtrue
     var watchLive = false
 
-    //TTS使うか
-    var isTTS = false
-
-    //Toast表示
-    var isToast = false
-
-    //定期的に投稿するやつ
-    //視聴続けてますよ送信用
-    var timer = Timer()
-
     //経過時間
     var programTimer = Timer()
 
     //アクティブ計算
     val activeTimer = Timer()
-    val activeList = arrayListOf<String>()
 
-    //番組ID
-    var liveId = ""
-
-    //番組名
-    var programTitle = ""
-
-    //コミュニティID
-    var communityID = ""
-
-    //サムネイル
-    var thumbnailURL = ""
+    // 番組情報
+    var liveId = ""          // 番組ID
+    var programTitle = ""    // 番組名
+    var communityID = ""     // コミュニティID
+    var thumbnailURL = ""    // サムネイル
+    var roomName = ""         // 部屋の名前
+    var chairNo = ""         // 席の場所
 
     //NGデータベース
     lateinit var ngListSQLiteHelper: NGListSQLiteHelper
@@ -170,24 +120,8 @@ class CommentFragment : Fragment() {
     //ユーザーNG配列
     val userNGList = arrayListOf<String>()
 
-/*
-    //ポップアップ再生（オーバーレイ）
-    var overlay_commentcamvas: CommentCanvas? = null
-    lateinit var popupView: View
-    lateinit var overlay_commentTextView: TextView
-*/
-
-    //オーバーレイ再生中かどうか。
-    // var isPopupPlay = false
-    //オーバーレイ再生の通知ID
-    val overlayNotificationID = 5678
-
-    // //バックグラウンド再生MediaPlayer
-    // lateinit var mediaPlayer: MediaPlayer
     lateinit var broadcastReceiver: BroadcastReceiver
 
-    // //バックグラウンド再生できてるか
-    // var isBackgroundPlay = false
     //バックグラウンド再生の通知ID
     val backgroundNotificationID = 1234
 
@@ -215,10 +149,6 @@ class CommentFragment : Fragment() {
     //下のコメント（広告貢献、ランクイン等）
     lateinit var infoTextView: TextView
 
-    //自動次枠移動
-    var isAutoNextProgram = false
-    var autoNextProgramTimer = Timer()
-
     //ミュート用
     lateinit var audioManager: AudioManager
     var volume = 0
@@ -226,23 +156,17 @@ class CommentFragment : Fragment() {
     //運コメ・infoコメント非表示
     var hideInfoUnnkome = false
 
-    //いやよ
-    var isTokumeiComment = true
-
     //共有
     lateinit var programShare: ProgramShare
 
     //画質変更BottomSheetFragment
     lateinit var qualitySelectBottomSheet: QualitySelectBottomSheet
 
-    //最初の画質
-    var start_quality = ""
+    // 現在の画質
+    var beginQuality = ""
 
     //低遅延なのか。でふぉは低遅延有効
     var isLowLatency = true
-
-    //モバイルデータなら最低画質の設定で一度だけ動かすように
-    var mobileDataQualityCheck = false
 
     //二窓モードになっている場合
     var isNimadoMode = false
@@ -266,21 +190,14 @@ class CommentFragment : Fragment() {
     //ExoPlayer
     lateinit var exoPlayer: SimpleExoPlayer
 
-    //ポップアップ再生ようExoPlayer
-    lateinit var popupExoPlayer: SimpleExoPlayer
-
     //番組終了時刻（UnixTime
     var programEndUnixTime: Long = 0
 
     // GoogleCast使うか？
     lateinit var googleCast: GoogleCast
 
+    // 公式かどうか
     var isOfficial = false
-
-    //コメントWebSocket
-    var commentMessageServerUri = ""
-    var commentThreadId = ""
-    var commentRoomName = ""
 
     //履歴機能
     lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
@@ -295,18 +212,28 @@ class CommentFragment : Fragment() {
     // ニコ生ゲームが有効になっているか
     var isAddedNicoNamaGame = false
 
-    // 全部屋接続
-    lateinit var allRoomComment: AllRoomComment
-
     // SurfaceView(ExoPlayer) + CommentCanvasのLayoutParams
     lateinit var surfaceViewLayoutParams: FrameLayout.LayoutParams
 
     // ポップアップ再生をクラスに切り分けた
     lateinit var popUpPlayer: PopUpPlayer
 
+    // スワイプで画面切り替えるやつ
     lateinit var commentViewPager: CommentViewPager
 
-    var isOpen = false
+    // ニコ生視聴セッション接続とかコメント投稿まで
+    val nicoLiveHTML =
+        NicoLiveHTML()
+
+    // ニコ生前部屋接続など
+    val nicoLiveComment =
+        NicoLiveComment()
+
+    // コメントサーバーあるか定期巡回
+    var programInfoTimer = Timer()
+
+    // コメント配列。これをRecyclerViewにいれるんじゃ
+    val commentJSONList = arrayListOf<CommentJSONParse>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -342,8 +269,6 @@ class CommentFragment : Fragment() {
         volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
         //ダークモード対応
-//        activity_comment_bottom_navigation_bar.backgroundTintList =
-//            ColorStateList.valueOf(darkModeSupport.getThemeColor())
         if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
             commentActivity.supportActionBar?.setBackgroundDrawable(
                 ColorDrawable(
@@ -362,10 +287,6 @@ class CommentFragment : Fragment() {
 
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
         isOfficial = arguments?.getBoolean("isOfficial") ?: false
-        // if (isOfficial) {
-        //     activity_comment_tab_layout.getTabAt(2)?.tabLabelVisibility =
-        //         TabLayout.TAB_LABEL_VISIBILITY_UNLABELED
-        // }
 
         notificationManager =
             context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -380,9 +301,8 @@ class CommentFragment : Fragment() {
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context!!)
 
-        isLowLatency = !pref_setting.getBoolean("setting_low_latency_off", false)
+        nicoLiveHTML.isLowLatency = !pref_setting.getBoolean("setting_low_latency_off", false)
 
-        // println("低遅延$isLowLatency")
 
         //センサーによる画面回転
         if (pref_setting.getBoolean("setting_rotation_sensor", false)) {
@@ -482,15 +402,7 @@ class CommentFragment : Fragment() {
         }
 
         // ViewPager
-        comment_viewpager.id = View.generateViewId()
-        commentViewPager =
-            CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
-        comment_viewpager.adapter = commentViewPager
-        activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
-        // コメントを指定しておく
-        comment_viewpager.currentItem = 1
-        // 初期化してないとき
-        allRoomComment = AllRoomComment(context, liveId, this)
+        initViewPager()
 
         // ステータスバー透明化＋タイトルバー非表示＋ノッチ領域にも侵略。関数名にAndがつくことはあんまりない
         hideStatusBarAndSetFullScreen()
@@ -499,70 +411,9 @@ class CommentFragment : Fragment() {
         if (pref_setting.getString("mail", "")?.contains("") != false) {
             usersession = pref_setting.getString("user_session", "") ?: ""
 
-            // htmlを視聴モード切り替えBottomFragmentから持ってくる。これで二回取得する必要がなくなるのでネットが遅いときはすごく助かる
-            val html = arguments?.getString("html")
-            if (html != null) {
-                // HTMLパースする（HTMLの中にあるJSONをパース）
-                parseNicoLiveHTML(html)
-                // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
-                getplayerstatus()
-                // 全部屋表示Fragment表示
-                if (!isOfficial) {
-                    // setAllRoomCommentFragment()
-                }
-            } else {
-                // ニコ生の視聴ページ（HTML）を取得する。
-                GlobalScope.launch {
-                    // 取得できるまで待機
-                    val response = getNicoLiveWebPage().await()
-                    if (response.isSuccessful) {
-                        // 成功した
-                        // ログインできているかチェック（user_session切れなど）
-                        // コメント投稿モード以外でもユーザーセッションは必要なのでここで判断しておく
-                        var niconicoId = response.headers["x-niconico-id"]
-                        // 視聴モード以外のときは適当に入れておく（将来的に視聴モードのみにするため）
-                        if (!isWatchingMode) {
-                            niconicoId = "てきとうに"
-                        }
-                        // ログイン無い
-                        if (niconicoId == null) {
-                            // ログイン済みの場合はレスポンスヘッダーにユーザーIDが入ってる。なければ(null)ログイン出来てない。
-                            NicoLogin.login(context) {
-                                // ログイン成功時でコメント投稿モードの場合は再度HTML（ニコ生視聴ページ）をリクエスト
-                                if (isWatchingMode) {
-                                    GlobalScope.launch {
-                                        val againResponse = getNicoLiveWebPage().await()
-                                        if (againResponse.isSuccessful && againResponse.headers["x-niconico-id"] != null) {
-                                            // HTMLパースする（HTMLの中にあるJSONをパース）
-                                            parseNicoLiveHTML(againResponse.body?.string())
-                                        } else {
-                                            showToast("ログインが切れたため再度ログインしました。しかし視聴ページの取得に失敗しました。\n${againResponse.code}")
-                                        }
-                                    }
-                                }
-                                // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
-                                getplayerstatus()
-                                // 全部屋表示Fragment表示
-                                if (!isOfficial) {
-                                    // setAllRoomCommentFragment()
-                                }
-                            }
-                        } else {
-                            // HTMLパースする（HTMLの中にあるJSONをパース）
-                            parseNicoLiveHTML(response.body?.string())
-                            // 部屋の名前と部屋番号を取得（これにユーザーセッションが必要）
-                            getplayerstatus()
-                            // 全部屋表示Fragment表示
-                            if (!isOfficial) {
-                                // setAllRoomCommentFragment()
-                            }
-                        }
-                    } else {
-                        // 失敗。
-                        showToast("${getString(R.string.error)}\n${response.code}")
-                    }
-                }
-            }
+            // データ取得からコメント取得など
+            coroutine()
+
         } else {
             showToast(getString(R.string.mail_pass_error))
             commentActivity.finish()
@@ -608,7 +459,7 @@ class CommentFragment : Fragment() {
                             )
                         } else {
                             //Liveで再生
-                            backgroundPlay.play(hls_address.toUri())
+                            backgroundPlay.play(hlsAddress.toUri())
                             //通知作成
                             backgroundPlayNotification(
                                 getString(R.string.background_play_pause),
@@ -628,6 +479,550 @@ class CommentFragment : Fragment() {
         }
         commentActivity.registerReceiver(broadcastReceiver, intentFilter)
 
+    }
+
+    /**
+     * ニコ生視聴するぞ！
+     * */
+    private fun coroutine() {
+        GlobalScope.launch {
+            // ニコ生視聴ページリクエスト
+            // isWatchingModeには
+            val livePageResponse =
+                nicoLiveHTML.getNicoLiveHTML(liveId, usersession, isWatchingMode).await()
+            if (!livePageResponse.isSuccessful) {
+                // 失敗のときは落とす
+                activity?.finish()
+                showToast("${getString(R.string.error)}\n${livePageResponse.code}")
+                return@launch
+            }
+            if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
+                // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
+                NicoLogin.loginCoroutine(context).await()
+                // 視聴モードなら再度視聴ページリクエスト
+                if (isWatchingMode) {
+                    coroutine()
+                    // コルーチン終了
+                    return@launch
+                }
+            }
+            // HTMLからJSON取得する
+            val nicoLiveJSON =
+                nicoLiveHTML.nicoLiveHTMLtoJSONObject(livePageResponse.body?.string())
+
+            // コメント投稿の際に使う値を初期化する
+            // 番組名取得など
+            nicoLiveHTML.initNicoLiveData(nicoLiveJSON)
+            programTitle = nicoLiveHTML.programTitle
+            communityID = nicoLiveHTML.communityId
+            thumbnailURL = nicoLiveHTML.thumb
+
+            // 経過時間
+            setLiveTime()
+
+            // データ流してくれるWebSocketに接続する
+            nicoLiveHTML.apply {
+                connectionWebSocket(nicoLiveJSON) { command, message ->
+                    // メッセージ受け取り
+                    when {
+                        command == "currentstream" -> {
+                            // HLSアドレス取得
+                            hlsAddress = getHlsAddress(message) ?: ""
+                            // 生放送再生
+                            if (watchLive) {
+                                // モバイルデータは最低画質で読み込む設定
+                                if (pref_setting.getBoolean("setting_mobiledata_quality_low", false)) {
+                                    if (isConnectionInternet(context)) {
+                                        // 最低画質指定
+                                        nicoLiveHTML.sendQualityMessage("super_low")
+                                    }
+                                }
+                                setPlayVideoView()
+                            } else {
+                                //レイアウト消す
+                                live_framelayout.visibility = View.GONE
+                            }
+                            // 画質一覧と今の画質
+                            val currentQuality = getCurrentQuality(message)
+                            initQualityChangeBottomFragment(getCurrentQuality(message), getQualityListJSONArray(message))
+                            // 最初の画質を控える
+                            if (beginQuality.isEmpty()) {
+                                beginQuality = currentQuality
+                            } else {
+                                // 画質変更SnackBar表示
+                                showQualityChangeSnackBar(currentQuality)
+                            }
+                            // GoogleCast関係。Gappsなくてもやる
+                            commentActivity.runOnUiThread {
+                                googleCast.apply {
+                                    programTitle = this@CommentFragment.programTitle
+                                    programSubTitle = this@CommentFragment.liveId
+                                    programThumbnail = this@CommentFragment.thumbnailURL
+                                    hlsAddress = this@CommentFragment.hlsAddress
+                                    resume()
+                                }
+                            }
+                        }
+                        command == "currentroom" -> {
+                            // threadId、WebSocketURL受信。コメント送信時に使うWebSocketに接続する
+                            val jsonObject = JSONObject(message)
+                            // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
+                            if (jsonObject.getJSONObject("body").has("room")) {
+                                val commentMessageServerUri =
+                                    getCommentServerWebSocketAddress(message)
+                                val commentThreadId = getCommentServerThreadId(message)
+                                val commentRoomName = getCommentRoomName(message)
+                                // 公式番組のとき
+                                if (isOfficial) {
+                                    commentActivity.runOnUiThread {
+                                        // WebSocketで流れてきたアドレスへ接続する
+                                        nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
+                                    }
+                                }
+                                // コメント投稿時に使うWebSocketに接続する
+                                commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
+                            }
+                        }
+                        command == "statistics" -> {
+                            // 総来場者数、コメント数を表示させる
+                            initStatisticsInfo(message)
+                        }
+                        command == "schedule" -> {
+                            // 延長を検知
+                            showSchedule(message)
+                        }
+                        message.contains("disconnect") -> {
+                            // 番組終了
+                            programEnd(message)
+                        }
+                    }
+                }
+            }
+
+            // getPlayerStatus叩いて座席番号取得
+            val getPlayerStatusResponse = nicoLiveHTML.getPlayerStatus(liveId, usersession).await()
+            if (getPlayerStatusResponse.isSuccessful) {
+                val document =
+                    Jsoup.parse(getPlayerStatusResponse.body?.string())
+                // 番組が終わっててもレスポンスは200を返すのでチェック
+                if (document.getElementsByTag("getplayerstatus ")[0].attr("status") == "ok") {
+                    roomName = document.getElementsByTag("room_label")[0].text() // 部屋名
+                    chairNo = document.getElementsByTag("room_seetno")[0].text() // 座席番号
+                    // 番組情報を表示させる
+                    commentActivity.runOnUiThread {
+                        comment_fragment_program_title.text = "$programTitle - $liveId"
+                        comment_fragment_program_id.text = "$roomName - $chairNo"
+                        // 履歴に追加
+                        insertDB()
+                    }
+                }
+            }
+
+            // 全部屋接続。定期的にAPIを叩く
+            programInfoTimer.schedule(timerTask { initAllRoomConenct() }, 0, 60 * 1000)
+
+        }
+    }
+
+    /**
+     * 全部屋接続！！！
+     * */
+    private fun initAllRoomConenct() {
+        GlobalScope.launch {
+            // 全部屋接続
+            val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, usersession).await()
+            if (!allRoomResponse.isSuccessful) {
+                showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
+                return@launch
+            }
+            // JSONパース
+            val jsonObject = JSONObject(allRoomResponse.body?.string())
+            val data = jsonObject.getJSONObject("data")
+            val room = data.getJSONArray("rooms")
+            // アリーナ、立ち見のコメントサーバーへ接続
+            for (index in 0 until room.length()) {
+                val roomObject = room.getJSONObject(index)
+                val webSocketUri = roomObject.getString("webSocketUri")
+                var roomName = roomObject.getString("name")
+                val threadId = roomObject.getString("threadId")
+                // 現在接続中のアドレスから同じのがないかちぇっく
+                // 定期的に新しい部屋が無いか確認しに行くため
+                nicoLiveComment.apply {
+                    if (connectedWebSocketAddressList.indexOf(webSocketUri) == -1) {
+                        connectedWebSocketAddressList.add(webSocketUri)
+                        //アリーナの場合は部屋名がコミュニティ番号なので直す
+                        if (roomName.contains("co") || roomName.contains("ch")) {
+                            roomName = context?.getString(R.string.arena) ?: "アリーナ"
+                        }
+                        //WebSocket接続。::関数 で高階関数を引数に入れられる
+                        connectionWebSocket(webSocketUri, threadId, roomName, ::commentFun)
+                    }
+                }
+            }
+        }
+    }
+
+    // コメントが来たらこの関数が呼ばれる
+    fun commentFun(comment: String, roomName: String, isHistoryComment: Boolean) {
+        val commentJSONParse = CommentJSONParse(comment, roomName, liveId)
+        /*
+         * 重複しないように。
+         * 令和元年8月中旬からアリーナに一般のコメントが流れ込むように（じゃあ枠の仕様なくせ栗田さん）
+         * 令和元年12月中旬から立ち見部屋にアリーナのコメントが流れ込むように（だから枠の仕様無くせよ）
+         * というわけで同じコメントが追加されてしまうので対策する。
+         * 12月中旬のメンテで立ち見部屋にアリーナコメントが出るように（とさり気なく枠の時間復活）なったとき、JSONにoriginが追加されて、
+         * 多分originの値がC以外のときに元の部屋のコメントだと
+         * */
+        Handler(Looper.getMainLooper()).post {
+            // UI Thread
+            if (commentJSONParse.origin != "C" || nicoLiveHTML.isOfficial) {
+                // RecyclerViewに追加
+                commentJSONList.add(0, commentJSONParse)
+                // CommentFragment更新かける
+                (commentViewPager.instantiateItem(comment_viewpager, 1) as CommentViewFragment).apply {
+                    // Adapter初期化済みなら（ViewPager多分Fragment切り替えると破棄する？ので多分必要）
+                    if (isInitAdapter()) {
+                        commentRecyclerViewAdapter.notifyItemInserted(0)
+                        recyclerViewScrollPos()
+                    }
+                }
+
+                // 豆先輩とか
+                if (!commentJSONParse.comment.contains("\n")) {
+                    commentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
+                    //ポップアップ再生
+                    if (popUpPlayer.isPopupPlay) {
+                        popUpPlayer.commentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
+                    }
+                } else {
+                    // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
+                    // 豆先輩！！！！！！！！！！！！！！！！！！
+                    // 下固定コメントで複数行だとAA（アスキーアートの略 / CA(コメントアート)とも言う）がうまく動かない。配列の中身を逆にする必要がある
+                    // Kotlinのこの書き方ほんと好き
+                    val asciiArtComment = if (commentJSONParse.mail.contains("shita")) {
+                        commentJSONParse.comment.split("\n").reversed() // 下コメントだけ逆順にする
+                    } else {
+                        commentJSONParse.comment.split("\n")
+                    }
+                    for (line in asciiArtComment) {
+                        commentCanvas.postComment(line, commentJSONParse, true)
+                        //ポップアップ再生
+                        if (popUpPlayer.isPopupPlay) {
+                            popUpPlayer.commentCanvas.postComment(line, commentJSONParse, true)
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    /**
+     * コメント投稿用WebSocketに接続する関数。ここのWebSocketにコメントを投稿する。
+     * @param url getCommentServerWebSocketAddress()の戻り値
+     * @param threadId getCommentServerThreadId()の戻り値
+     * @param userId ニコニコユーザーID
+     * */
+    fun commentPOSTWebSocketConnection(url: String, threadId: String, userId: String?) {
+        if (userId == null) {
+            return
+        }
+        nicoLiveHTML.apply {
+            // コメントサーバー接続
+            connectionCommentPOSTWebSocket(url, threadId, userId) { message ->
+                val commentJSONParse = CommentJSONParse(message, getString(R.string.arena), liveId)
+                when {
+                    message.contains("chat_result") -> {
+                        // コメント投稿に成功したかを表示するやつ
+                        showCommentPOSTResultSnackBar(message)
+                    }
+                    message.contains("/vote") -> {
+                        // アンケート
+                        showEnquate(message)
+                    }
+                    message.contains("/disconnect") -> {
+                        // disconnect受け取ったらSnackBar表示
+                        showProgramEndMessageSnackBar(message, commentJSONParse)
+                    }
+                }
+                if (!hideInfoUnnkome) {
+                    //運営コメント
+                    if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
+                        initUneiComment(commentJSONParse)
+                    }
+                    //運営コメントけす
+                    if (commentJSONParse.comment.contains("/clear")) {
+                        removeUnneiComment()
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 運営コメント表示
+     * */
+    fun initUneiComment(commentJSONParse: CommentJSONParse) {
+        val isNicoad = commentJSONParse.comment.contains("/nicoad")
+        val isInfo = commentJSONParse.comment.contains("/info")
+        val isUadPoint = commentJSONParse.comment.contains("/uadpoint")
+        val isSpi = commentJSONParse.comment.contains("/spi")
+        val isGift = commentJSONParse.comment.contains("/gift")
+        // 上に表示されるやつ
+        if (!isNicoad && !isInfo && !isUadPoint && !isSpi && !isGift) {
+            // 生主コメント
+            setUnneiComment(commentJSONParse.comment)
+        } else {
+            // UIスレッド
+            activity?.runOnUiThread {
+                // 下に表示するやつ
+                if (isInfo) {
+                    // /info {数字}　を消す
+                    val regex = "/info \\d+ ".toRegex()
+                    showInfoComment(commentJSONParse.comment.replace(regex, ""))
+                }
+                // ニコニ広告
+                if (isNicoad) {
+                    val json =
+                        JSONObject(commentJSONParse.comment.replace("/nicoad ", ""))
+                    val comment = json.getString("message")
+                    showInfoComment(comment)
+                }
+                // spi (ニコニコ新市場に商品が貼られたとき)
+                if (isSpi) {
+                    showInfoComment(commentJSONParse.comment.replace("/spi ", ""))
+                }
+                // 投げ銭
+                if (isGift) {
+                    // スペース区切り配列
+                    val list = commentJSONParse.comment.replace("/gift ", "")
+                        .split(" ")
+                    val userName = list[2]
+                    val giftPoint = list[3]
+                    val giftName = list[5]
+                    val message =
+                        "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
+                    showInfoComment(message)
+                }
+            }
+        }
+    }
+
+    /**
+     * disconnectのSnackBarを表示
+     * */
+    fun showProgramEndMessageSnackBar(message: String, commentJSONParse: CommentJSONParse) {
+        if (commentJSONParse.premium.contains("運営")) {
+            //終了メッセージ
+            Snackbar.make(
+                live_video_view,
+                context?.getString(R.string.program_disconnect) ?: "",
+                Snackbar.LENGTH_SHORT
+            ).setAction(context?.getString(R.string.end)) {
+                //終了
+                if (activity !is NimadoActivity) {
+                    //二窓Activity以外では終了できるようにする。
+                    activity?.finish()
+                }
+            }.setAnchorView(getSnackbarAnchorView()).show()
+        }
+    }
+
+    /**
+     * アンケート表示
+     * @param message /voteが文字列に含まれていることが必須
+     * */
+    fun showEnquate(message: String) {
+        // コメント取得
+        val jsonObject = JSONObject(message)
+        val chatObject = jsonObject.getJSONObject("chat")
+        val content = chatObject.getString("content")
+        val premium = chatObject.getInt("premium")
+        if (premium == 3) {
+            // 運営コメントに表示
+            // アンケ開始
+            if (content.contains("/vote start")) {
+                commentActivity.runOnUiThread {
+                    setEnquetePOSTLayout(content, "start")
+                }
+            }
+            // アンケ結果
+            if (content.contains("/vote showresult")) {
+                commentActivity.runOnUiThread {
+                    setEnquetePOSTLayout(content, "showresult")
+                }
+            }
+            // アンケ終了
+            if (content.contains("/vote stop")) {
+                commentActivity.runOnUiThread {
+                    comment_fragment_enquate_framelayout.removeAllViews()
+                }
+            }
+        }
+    }
+
+    /**
+     * コメント投稿成功SnackBar
+     * @param message chat_resultが文字列に含まれている必要がある
+     * */
+    private fun showCommentPOSTResultSnackBar(message: String) {
+        val jsonObject = JSONObject(message)
+        val status =
+            jsonObject.getJSONObject("chat_result").getString("status")
+        commentActivity.runOnUiThread {
+            if (status.toInt() == 0) {
+                Snackbar.make(
+                        fab,
+                        getString(R.string.comment_post_success),
+                        Snackbar.LENGTH_SHORT
+                    )
+                    .setAnchorView(getSnackbarAnchorView())
+                    .show()
+            } else {
+                Snackbar.make(
+                        fab,
+                        "${getString(R.string.comment_post_error)}：${status}",
+                        Snackbar.LENGTH_SHORT
+                    )
+                    .setAnchorView(getSnackbarAnchorView()).show()
+            }
+        }
+    }
+
+    /**
+     * 番組終了
+     * @param message onMessageの内容。scheduleが含まれていることが必要。
+     * */
+    fun programEnd(message: String?) {
+        val jsonObject = JSONObject(message)
+        val command = jsonObject.getJSONObject("body").getString("command")
+        if (command == "disconnect") {
+            // 終了メッセージ
+            if (pref_setting.getBoolean("setting_disconnect_activity_finish", false)) {
+                if (activity is CommentActivity) {
+                    // Activity が CommentActivity なら消す。二窓Activityは動かないように
+                    activity?.finish()
+                }
+            }
+        }
+    }
+
+    /**
+     * 延長を検知したら表示させる
+     * @param message onMessageの内容。scheduleが含まれていることが必要。
+     * */
+    fun showSchedule(message: String?) {
+        //時間出す場所確保したので終了時刻書く。
+        val jsonObject = JSONObject(message)
+        val endTime =
+            jsonObject.getJSONObject("body").getJSONObject("update")
+                .getLong("endtime")
+        val beginTime = jsonObject.getJSONObject("body").getJSONObject("update")
+            .getLong("begintime")
+        if (isEntyouKenti) {
+            //終了時刻計算
+            val simpleDateFormat = SimpleDateFormat("MM/dd HH:mm:ss")
+            val date = Date(endTime)
+            val time = simpleDateFormat.format(date)
+            val message =
+                "${getString(R.string.entyou_message)}\n${getString(R.string.end_time)} $time"
+            commentActivity.runOnUiThread {
+                Snackbar.make(live_surface_view, message, Snackbar.LENGTH_LONG)
+                    .apply {
+                        anchorView = getSnackbarAnchorView()
+                        //複数行へ
+                        val textview = view.findViewById<TextView>(R.id.snackbar_text)
+                        textview.isSingleLine = false
+                        show()
+                    }
+            }
+
+        } else {
+            isEntyouKenti = true
+        }
+        // 延長したら残り時間再計算する
+        // 割り算！
+        val calc = (endTime - beginTime) / 1000
+        //時間/分
+        val hour = calc / 3600
+        var hourString = hour.toString()
+        if (hourString.length == 1) {
+            hourString = "0$hourString"
+        }
+        val minute = calc % 3600 / 60
+        var minuteString = minute.toString()
+        if (minuteString.length == 1) {
+            minuteString = "0$minuteString"
+        }
+        commentActivity.runOnUiThread {
+            activity_comment_comment_end_time?.text =
+                "${hourString}:${minuteString}:00"
+        }
+        // 番組終了時刻を入れる
+        programEndUnixTime = endTime / 1000
+    }
+
+    /**
+     * 総来場者数、コメント数を表示させる
+     * @param message onMessageの内容。statisticsが含まれていることが必要。
+     * */
+    fun initStatisticsInfo(message: String?) {
+        val jsonObject = JSONObject(message)
+        val params = jsonObject.getJSONObject("body").getJSONArray("params")
+        val watchCount = params[0]
+        val commentCount = params[1]
+        commentActivity.runOnUiThread {
+            if (activity_comment_watch_count != null && activity_comment_comment_count != null) {
+                activity_comment_watch_count.text = watchCount.toString()
+                activity_comment_comment_count.text = commentCount.toString()
+            }
+        }
+    }
+
+    /**
+     * 画質変更SnackBar表示
+     * @param selectQuality 選択した画質
+     * */
+    private fun showQualityChangeSnackBar(selectQuality: String?) {
+        if (selectQuality == null) {
+            return
+        }
+        //画質変更した。Snackbarでユーザーに教える
+        val oldQuality = QualitySelectBottomSheet.getQualityText(
+            beginQuality,
+            context!!
+        )
+        val newQuality = QualitySelectBottomSheet.getQualityText(
+            selectQuality,
+            context!!
+        )
+        Snackbar.make(
+            live_surface_view,
+            "${getString(R.string.successful_quality)}\n${oldQuality}→${newQuality}",
+            Snackbar.LENGTH_SHORT
+        ).show()
+        beginQuality = selectQuality
+    }
+
+    // 画質変更BottomFragment初期化
+    private fun initQualityChangeBottomFragment(selectQuality: String?, qualityTypesJSONArray: Any) {
+        // 画質変更BottomFragmentに詰める
+        val bundle = Bundle()
+        bundle.putString("select_quality", selectQuality)
+        bundle.putString("quality_list", qualityTypesJSONArray.toString())
+        bundle.putString("liveId", liveId)
+        qualitySelectBottomSheet = QualitySelectBottomSheet()
+        qualitySelectBottomSheet.arguments = bundle
+    }
+
+    private fun initViewPager() {
+        comment_viewpager.id = View.generateViewId()
+        commentViewPager =
+            CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
+        comment_viewpager.adapter = commentViewPager
+        activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
+        // コメントを指定しておく
+        comment_viewpager.currentItem = 1
     }
 
     /**
@@ -730,32 +1125,26 @@ class CommentFragment : Fragment() {
             commentActivity.runOnUiThread {
                 //println(activeList)
                 // 指定した時間の配列の要素を取得する
-                if (::allRoomComment.isInitialized) {
-                    // 一分前のUnixTime
-                    val calender = Calendar.getInstance()
-                    calender.add(Calendar.MINUTE, -1)
-                    val unixTime = calender.timeInMillis / 1000L
-                    // 今のUnixTime
-                    val nowUnixTime = System.currentTimeMillis() / 1000L
-                    // 範囲内のコメントを取得する
-                    val timeList = allRoomComment.recyclerViewList.toList().filter { arrayList ->
-                        if (arrayList != null) {
-                            val commentJSONParse = CommentJSONParse(arrayList[1], "")
-                            if (commentJSONParse.date.toFloatOrNull() != null) {
-                                commentJSONParse.date.toLong() in unixTime..nowUnixTime
-                            } else {
-                                false
-                            }
-                        } else {
-                            false
-                        }
+                // 一分前のUnixTime
+                val calender = Calendar.getInstance()
+                calender.add(Calendar.MINUTE, -1)
+                val unixTime = calender.timeInMillis / 1000L
+                // 今のUnixTime
+                val nowUnixTime = System.currentTimeMillis() / 1000L
+                // 範囲内のコメントを取得する
+                val timeList = commentJSONList.toList().filter { comment ->
+                    if (comment.date.toFloatOrNull() != null) {
+                        comment.date.toLong() in unixTime..nowUnixTime
+                    } else {
+                        false
                     }
-                    // 同じIDを取り除く
-                    val idList =
-                        timeList.distinctBy { arrayList -> CommentJSONParse(arrayList[1], "").userId }
-                    activity_comment_comment_active_text.text =
-                        "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
                 }
+                // 同じIDを取り除く
+                val idList =
+                    timeList.distinctBy { comment -> comment.userId }
+                // 数えた結果
+                activity_comment_comment_active_text.text =
+                    "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
             }
         }
     }
@@ -787,78 +1176,7 @@ class CommentFragment : Fragment() {
         cursor.close()
     }
 
-    //getplayerstatus
-    fun getplayerstatus() {
-
-        val liveId = arguments?.getString("liveId") ?: ""
-
-        val request = Request.Builder()
-            .url("https://live.nicovideo.jp/api/getplayerstatus/$liveId")   //getplayerstatus、httpsでつながる？
-            .header("Cookie", "user_session=$usersession")
-            .get()
-            .build()
-        val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                showToast("${getString(R.string.error)}")
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val response_string = response.body?.string()
-                if (response.isSuccessful) {
-                    //必要なものを取り出していく
-                    //add,port,thread
-                    val document = Jsoup.parse(response_string)
-                    // コミュ限など、視聴ができない場合はgetplayerstatusタグの属性「status」にOK以外が入るのでちぇっく。
-                    if (document.getElementsByTag("getplayerstatus")[0].attr("status") == "ok") {
-                        //ひつようなやつ
-                        val ms = document.select("ms")
-                        val user = document.select("user")
-                        val room = user.select("room_label").text()
-                        val seet = user.select("room_seetno").text()
-                        //番組名もほしい
-                        val stream = document.select("stream")
-                        programTitle = stream.select("title").text()
-                        //コミュニティID
-                        communityID = stream.select("default_community").text()
-                        //コメント投稿に必須なゆーざーID、プレミアム会員かどうか
-                        userId = user.select("user_id").text()
-                        premium = user.select("is_premium").text().toInt()
-                        //vpos
-                        programStartTime =
-                            document.select("stream").select("open_time").text().toLong()
-                        programLiveTime =
-                            document.select("stream").select("start_time").text().toLong()
-                        //経過時間計算
-                        setLiveTime()
-                        //サムネもほしい
-                        thumbnailURL = document.getElementsByTag("thumb_url")[0].text()
-                        //履歴追加
-                        insertDB()
-                        // 番組情報
-                        commentActivity.runOnUiThread {
-                            comment_fragment_program_title.text = "$programTitle - $liveId"
-                            comment_fragment_program_id.text = "$room - $seet"
-                        }
-                    } else {
-                        // エラーの原因取る。
-                        val code = document.getElementsByTag("code")[0].text()
-                        commentActivity.runOnUiThread {
-                            Toast.makeText(
-                                context,
-                                "${getString(R.string.error)}\n$code",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                } else {
-                    showToast("${getString(R.string.error)}\n${response.code}")
-                }
-            }
-        })
-    }
-
-
+    // データベースに履歴追加
     fun insertDB() {
         var type = "live"
         val unixTime = System.currentTimeMillis() / 1000
@@ -882,11 +1200,7 @@ class CommentFragment : Fragment() {
 
             val unixtime = System.currentTimeMillis() / 1000L
 
-            val calc = unixtime - programLiveTime
-
-            //分、秒だけCalendar使う
-            //val cale = Calendar.getInstance()
-            //cale.timeInMillis = calc * 1000L
+            val calc = unixtime - nicoLiveHTML.programStartTime
 
             val date = Date(calc * 1000L)
 
@@ -895,7 +1209,6 @@ class CommentFragment : Fragment() {
 
             val simpleDateFormat = SimpleDateFormat("mm:ss")
 
-
             commentActivity.runOnUiThread {
                 if (activity_comment_comment_time != null) {
                     activity_comment_comment_time.text =
@@ -903,634 +1216,6 @@ class CommentFragment : Fragment() {
                 }
             }
         }
-
-    }
-
-    //ニコ生の視聴用の情報を流してくれるWebSocketに接続する
-//コメントに投稿したり、HLSのアドレスはWebSocketから取得する必要がある。
-//で、WebSocketのアドレスはHTMLを解析する必要がある！？！？！？
-    fun getNicoLiveWebPage(): Deferred<Response> = GlobalScope.async {
-        //番組ID
-        val id = arguments?.getString("liveId") ?: ""
-
-        //コメビュモードの場合はユーザーセッション無いので
-        val request = if (isWatchingMode) {
-            //視聴モード（ユーザーセッション付き）
-            Request.Builder()
-                .url("https://live2.nicovideo.jp/watch/${id}")
-                .header("User-Agent", "TatimiDroid;@takusan_23")
-                .header("Cookie", "user_session=${usersession}")
-                .get()
-                .build()
-        } else {
-            //コメビュモード（ユーザーセッションなし）
-            Request.Builder()
-                .url("https://live2.nicovideo.jp/watch/${id}")
-                .header("User-Agent", "TatimiDroid;@takusan_23")
-                .get()
-                .build()
-        }
-
-        val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        return@async response
-    }
-
-    // HTMLから必要な情報を取得する
-    fun parseNicoLiveHTML(responseHTML: String?) {
-        //HTML解析
-        val html = Jsoup.parse(responseHTML)
-        //謎のJSON取得
-        //この部分長すぎてChromeだとうまくコピーできないんだけど、Edgeだと完璧にコピーできたぞ！
-        //F12押してConsole選んで以下のJavaScriptを実行すれば取れます。
-        //console.log(document.getElementById('embedded-data').getAttribute('data-props'))
-        if (html.getElementById("embedded-data") != null) {
-            val json = html.getElementById("embedded-data").attr("data-props")
-            val jsonObject = JSONObject(json)
-            val site = jsonObject.getJSONObject("site")
-            val relive = site.getJSONObject("relive")
-            //WebSocketリンク
-            val websocketUrl = relive.getString("webSocketUrl")
-            //番組情報
-            val program = jsonObject.getJSONObject("program")
-            //公式番組かどうか
-            val providerType = program.getString("providerType")
-            isOfficial = providerType == "official"
-            //broadcastId
-            val broadcastId = program.getString("broadcastId")
-            connectionNicoLiveWebSocket(websocketUrl, broadcastId)
-        }
-    }
-
-    //ニコ生の視聴に必要なデータを流してくれるWebSocket
-    //視聴セッションWebSocket
-    fun connectionNicoLiveWebSocket(url: String, broadcastId: String) {
-        val uri = URI(url)
-        connectionNicoLiveWebSocket = object : WebSocketClient(uri) {
-            override fun onOpen(handshakedata: ServerHandshake?) {
-                // System.out.println("ニコ生視聴セッションWebSocket接続開始 $liveId")
-                //最初にクライアント側からサーバーにメッセージを送る必要がある
-                val jsonObject = JSONObject()
-                jsonObject.put("type", "watch")
-                //body
-                val bodyObject = JSONObject()
-                bodyObject.put("command", "getpermit")
-                //requirement
-                val requirementObject = JSONObject()
-                requirementObject.put("broadcastId", broadcastId)
-                requirementObject.put("route", "")
-                //stream
-                val streamObject = JSONObject()
-                streamObject.put("protocol", "hls")
-                streamObject.put("requireNewStream", true)
-                streamObject.put("priorStreamQuality", "high")
-                streamObject.put("isLowLatency", isLowLatency)
-                streamObject.put("isChasePlay", false)
-                //room
-                val roomObject = JSONObject()
-                roomObject.put("isCommentable", true)
-                roomObject.put("protocol", "webSocket")
-
-                requirementObject.put("stream", streamObject)
-                requirementObject.put("room", roomObject)
-
-                bodyObject.put("requirement", requirementObject)
-                jsonObject.put("body", bodyObject)
-
-                //もう一個
-                val secondObject = JSONObject()
-                secondObject.put("type", "watch")
-                val secondbodyObject = JSONObject()
-                secondbodyObject.put("command", "playerversion")
-                val paramsArray = JSONArray()
-                paramsArray.put("leo")
-                secondbodyObject.put("params", paramsArray)
-                secondObject.put("body", secondbodyObject)
-
-                /*    println(
-                        """
-
-                        JSON情報
-                        $liveId------
-                        ${jsonObject.toString()}
-                        ------
-                        $secondObject
-                        ----
-
-                    """.trimIndent()
-                    )*/
-
-                //送信
-                this.send(secondObject.toString())
-                this.send(jsonObject.toString())
-            }
-
-            override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                // System.out.println("ニコ生視聴セッション終了：$liveId")
-            }
-
-            override fun onMessage(message: String?) {
-                // println("$message $liveId $url")
-                //HLSのアドレス　と　変更可能な画質一覧取る
-                if (message?.contains("currentStream") == true) {
-                    //System.out.println("HLSアドレス：$liveId")
-                    val jsonObject = JSONObject(message)
-                    val currentObject =
-                        jsonObject.getJSONObject("body").getJSONObject("currentStream")
-                    hls_address = currentObject.getString("uri")
-                    //生放送再生
-                    if (watchLive) {
-                        //モバイルデータは最低画質で読み込む設定　
-                        sendMobileDataQuality()
-                        setPlayVideoView()
-                    } else {
-                        //レイアウト消す
-                        live_framelayout.visibility = View.GONE
-                    }
-                    //画質変更一覧
-                    val qualityTypesJSONArray = currentObject.getJSONArray("qualityTypes")
-                    val selectQuality = currentObject.getString("quality")
-                    // 画質変更BottomFragmentに詰める
-                    val bundle = Bundle()
-                    bundle.putString("select_quality", selectQuality)
-                    bundle.putString("quality_list", qualityTypesJSONArray.toString())
-                    bundle.putString("liveId", liveId)
-                    qualitySelectBottomSheet = QualitySelectBottomSheet()
-                    qualitySelectBottomSheet.arguments = bundle
-                    //画質変更成功？
-                    if (start_quality.isEmpty()) {
-                        //最初の読み込みは入れるだけ
-                        start_quality = selectQuality
-                    } else {
-                        //画質変更した。Snackbarでユーザーに教える
-                        val oldQuality = QualitySelectBottomSheet.getQualityText(
-                            start_quality,
-                            context!!
-                        )
-                        val newQuality = QualitySelectBottomSheet.getQualityText(
-                            selectQuality,
-                            context!!
-                        )
-                        Snackbar.make(
-                            live_surface_view,
-                            "${getString(R.string.successful_quality)}\n${oldQuality}→${newQuality}",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
-                        start_quality = selectQuality
-                    }
-
-                    //GoogleCast
-                    commentActivity.runOnUiThread {
-                        googleCast.apply {
-                            programTitle = this@CommentFragment.programTitle
-                            programSubTitle = this@CommentFragment.liveId
-                            programThumbnail = this@CommentFragment.thumbnailURL
-                            hlsAddress = this@CommentFragment.hls_address
-                            resume()
-                        }
-                    }
-
-                }
-
-                //threadId、WebSocketURL受信
-                //コメント投稿時に使う。
-                if (message?.contains("messageServerUri") == true) {
-                    val jsonObject = JSONObject(message)
-                    // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
-                    if (jsonObject.getJSONObject("body").has("room")) {
-                        val room = jsonObject.getJSONObject("body").getJSONObject("room")
-                        val threadId = room.getString("threadId")
-                        val messageServerUri = room.getString("messageServerUri")
-                        val roomName = room.getString("roomName")
-
-                        //コメント投稿時に必要なpostKeyを取得するために使う
-                        getPostKeyThreadId = threadId
-
-                        // System.out.println("コメントWebSocket情報 ${threadId} ${messageServerUri}")
-
-                        //コメント投稿時に使うWebSocketに接続する
-                        connectionCommentPOSTWebSocket(messageServerUri, threadId)
-
-                        commentMessageServerUri = messageServerUri
-                        commentThreadId = threadId
-                        commentRoomName = roomName
-
-                        // 公式番組のとき
-                        if (isOfficial) {
-                            // ViewPager
-                            commentActivity.runOnUiThread {
-                                // WebSocketで流れてきたアドレスへ接続する
-                                allRoomComment.connectCommentServer(commentMessageServerUri, commentThreadId, commentRoomName)
-                            }
-                        }
-
-
-                    }
-                }
-
-
-                //postKey受信
-                //今回は受信してpostKeyが取得できたらコメントを送信する仕様にします。
-                //postKeyをもらう イコール　コメントを送信する
-                if (message?.contains("postkey") == true) {
-                    val jsonObject = JSONObject(message)
-                    val command = jsonObject.getJSONObject("body").getString("command")
-                    //コメント送信なので２重チェック
-                    if (command.contains("postkey")) {
-
-                        //JSON配列の０番目にpostkeyが入ってる。
-                        val paramsArray =
-                            jsonObject.getJSONObject("body").getJSONArray("params")
-                        val postkey = paramsArray.getString(0)
-                        //コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
-                        // 100=1秒らしい。 例：300->3秒
-                        val unixTime = System.currentTimeMillis() / 1000L
-                        val vpos = (unixTime - programStartTime) * 100
-                        // println(vpos)
-                        val jsonObject = JSONObject()
-                        val chatObject = JSONObject()
-                        chatObject.put(
-                            "thread",
-                            getPostKeyThreadId
-                        )    //視聴用セッションWebSocketからとれる
-                        chatObject.put(
-                            "vpos",
-                            vpos
-                        )     //番組情報取得で取得した値 - = System.currentTimeMillis() UNIX時間
-                        // 匿名が有効の場合は184をつける
-                        if (isTokumeiComment) {
-                            commentCommand = "184 $commentCommand"
-                        }
-                        chatObject.put("mail", commentCommand)
-                        chatObject.put(
-                            "ticket",
-                            commentTicket
-                        )     //視聴用セッションWebSocketからとれるコメントが流れるWebSocketに接続して最初に必要な情報を送ったら取得できる
-                        chatObject.put("content", commentValue)
-                        chatObject.put("postkey", postkey)
-                        //この２つ、ユーザーIDとプレミアム会員かどうか。これどうやってとる？gatPlayerStatus？　もしgetPlayerStatusなくなってもHTML解析すればとれそう？
-                        chatObject.put("premium", premium)
-                        chatObject.put("user_id", userId)
-                        jsonObject.put("chat", chatObject)
-
-                        //System.out.println(jsonObject.toString())
-
-                        //送信
-                        //println(jsonObject.toString())
-                        commentPOSTWebSocketClient.send(jsonObject.toString())
-                    }
-                }
-
-                //総来場者数、コメント数
-                if (message?.contains("statistics") == true) {
-                    val jsonObject = JSONObject(message)
-                    val params = jsonObject.getJSONObject("body").getJSONArray("params")
-                    val watchCount = params[0]
-                    val commentCount = params[1]
-                    commentActivity.runOnUiThread {
-                        if (activity_comment_watch_count != null && activity_comment_comment_count != null) {
-                            activity_comment_watch_count.text = watchCount.toString()
-                            activity_comment_comment_count.text = commentCount.toString()
-                        }
-                    }
-                }
-
-                //延長を検知
-                if (message?.contains("schedule") == true) {
-                    //時間出す場所確保したので終了時刻書く。
-                    val jsonObject = JSONObject(message)
-                    val endTime =
-                        jsonObject.getJSONObject("body").getJSONObject("update")
-                            .getLong("endtime")
-                    val beginTime = jsonObject.getJSONObject("body").getJSONObject("update")
-                        .getLong("begintime")
-                    if (isEntyouKenti) {
-                        //終了時刻計算
-                        val simpleDateFormat = SimpleDateFormat("MM/dd HH:mm:ss")
-                        val date = Date(endTime)
-                        val time = simpleDateFormat.format(date)
-                        val message =
-                            "${getString(R.string.entyou_message)}\n${getString(R.string.end_time)} $time"
-                        commentActivity.runOnUiThread {
-                            Snackbar.make(live_surface_view, message, Snackbar.LENGTH_LONG)
-                                .apply {
-                                    anchorView = getSnackbarAnchorView()
-                                    //複数行へ
-                                    val textview = view.findViewById<TextView>(R.id.snackbar_text)
-                                    textview.isSingleLine = false
-                                    show()
-                                }
-                        }
-
-                    } else {
-                        isEntyouKenti = true
-                    }
-
-                    //延長したら残り時間再計算する
-                    //割り算！
-                    val calc = (endTime - beginTime) / 1000
-                    //時間/分
-                    val hour = calc / 3600
-                    var hourString = hour.toString()
-                    if (hourString.length == 1) {
-                        hourString = "0$hourString"
-                    }
-                    val minute = calc % 3600 / 60
-                    var minuteString = minute.toString()
-                    if (minuteString.length == 1) {
-                        minuteString = "0$minuteString"
-                    }
-                    commentActivity.runOnUiThread {
-                        activity_comment_comment_end_time?.text =
-                            "${hourString}:${minuteString}:00"
-                    }
-
-                    //番組終了時刻を入れる
-                    programEndUnixTime = endTime / 1000
-
-                }
-
-                // 自動終了
-                if (message?.contains("disconnect") == true) {
-                    val jsonObject = JSONObject(message)
-                    val command = jsonObject.getJSONObject("body").getString("command")
-                    if (command == "disconnect") {
-                        // 終了メッセージ
-                        if (pref_setting.getBoolean("setting_disconnect_activity_finish", false)) {
-                            if (activity is CommentActivity) {
-                                // Activity が CommentActivity なら消す。二窓Activityは動かないように
-                                activity?.finish()
-                            }
-                        }
-                    }
-                }
-
-            }
-
-            override fun onError(ex: Exception?) {
-                ex?.printStackTrace()
-                System.out.println("ニコ生視聴セッションWebSocket　えらー")
-            }
-        }
-
-        //それと別に30秒間隔で視聴を続けてますよメッセージを送信する必要がある模様
-        timer = Timer()
-        timer.schedule(30000, 30000) {
-            if (!connectionNicoLiveWebSocket.isClosed) {
-                //ひとつめ
-                val jsonObject = JSONObject()
-                jsonObject.put("type", "watch")
-
-                val bodyJSONObject = JSONObject()
-                bodyJSONObject.put("command", "watching")
-
-                val paramsArray = JSONArray()
-                paramsArray.put(broadcastId)
-                paramsArray.put("-1")
-                paramsArray.put("0")
-
-                bodyJSONObject.put("params", paramsArray)
-                jsonObject.put("body", bodyJSONObject)
-
-                //ふたつめ
-                val secondJSONObject = JSONObject()
-                secondJSONObject.put("type", "pong")
-                secondJSONObject.put("body", JSONObject())
-
-                //それぞれを３０秒ごとに送る
-                //なお他の環境と同時に視聴すると片方切断される（片方の画面に同じ番組を開くとだめ的なメッセージ出る）
-                connectionNicoLiveWebSocket.send(jsonObject.toString())
-                connectionNicoLiveWebSocket.send(secondJSONObject.toString())
-                //System.out.println(jsonObject.toString())
-            }
-        }
-        //接続
-        connectionNicoLiveWebSocket.connect()
-    }
-
-    //コメント送信用WebSocket。今の部屋に繋がってる（アリーナならアリーナ）
-    fun connectionCommentPOSTWebSocket(url: String, threadId: String) {
-        //過去コメントか流れてきたコメントか
-        var historyComment = 0
-        // 過去コメント0にしたので常に
-        //
-        val uri = URI(url)
-        //これはプロトコルの設定が必要
-        val protocol = Draft_6455(
-            Collections.emptyList(),
-            Collections.singletonList(Protocol("msg.nicovideo.jp#json")) as List<IProtocol>?
-        )
-        commentPOSTWebSocketClient = object : WebSocketClient(uri, protocol) {
-            override fun onOpen(handshakedata: ServerHandshake?) {
-                //System.out.println("コメント送信用WebSocket接続開始")
-
-                //スレッド番号、過去コメントなど必要なものを最初に送る
-                val sendJSONObject = JSONObject()
-                val jsonObject = JSONObject()
-                jsonObject.put("version", "20061206")
-                jsonObject.put("thread", threadId)
-                //jsonObject.put("service", "LIVE")
-                jsonObject.put("score", 1)
-                jsonObject.put("nicoru", 0)
-                jsonObject.put("with_global", 1)
-                jsonObject.put("fork", 0)
-                jsonObject.put("user_id", userId)
-                jsonObject.put("res_from", historyComment)
-                sendJSONObject.put("thread", jsonObject)
-                commentPOSTWebSocketClient.send(sendJSONObject.toString())
-            }
-
-            override fun onClose(code: Int, reason: String?, remote: Boolean) {
-
-            }
-
-            override fun onMessage(message: String?) {
-                //コメント送信に使うticketを取得する
-                if (message != null) {
-                    // JSONぱーす
-                    val commentJSONParse = CommentJSONParse(message, getString(R.string.arena))
-
-                    //thread
-                    if (message.contains("ticket")) {
-                        val jsonObject = JSONObject(message)
-                        val thread = jsonObject.getJSONObject("thread")
-                        commentTicket = thread.getString("ticket")
-                    }
-                    //chat_result
-                    //コメント送信できたか
-                    if (message.contains("chat_result")) {
-                        val jsonObject = JSONObject(message)
-                        val status =
-                            jsonObject.getJSONObject("chat_result").getString("status")
-                        commentActivity.runOnUiThread {
-                            if (status.toInt() == 0) {
-                                Snackbar.make(
-                                        fab,
-                                        getString(R.string.comment_post_success),
-                                        Snackbar.LENGTH_SHORT
-                                    )
-                                    .setAnchorView(getSnackbarAnchorView())
-                                    .show()
-                            } else {
-                                Snackbar.make(
-                                        fab,
-                                        "${getString(R.string.comment_post_error)}：${status}",
-                                        Snackbar.LENGTH_SHORT
-                                    )
-                                    .setAnchorView(getSnackbarAnchorView()).show()
-                            }
-                        }
-                    }
-
-                    // /voteが流れてきたとき（アンケート）
-                    // だたし過去コメントには反応しないようにする
-                    if (message.contains("/vote")) {
-                        //コメント取得
-                        val jsonObject = JSONObject(message)
-                        val chatObject = jsonObject.getJSONObject("chat")
-                        val content = chatObject.getString("content")
-                        val premium = chatObject.getInt("premium")
-                        if (premium == 3) {
-                            // println(content)
-                            //運営コメント
-                            //アンケ開始
-                            if (content.contains("/vote start")) {
-                                commentActivity.runOnUiThread {
-                                    setEnquetePOSTLayout(content, "start")
-                                }
-                            }
-                            //アンケ結果
-                            if (content.contains("/vote showresult")) {
-                                commentActivity.runOnUiThread {
-                                    setEnquetePOSTLayout(content, "showresult")
-                                }
-                            }
-                            //アンケ終了
-                            if (content.contains("/vote stop")) {
-                                commentActivity.runOnUiThread {
-                                    comment_fragment_enquate_framelayout.removeAllViews()
-                                }
-                            }
-                        }
-                    }
-
-                    //disconnectを検知
-                    if (commentJSONParse.comment.contains("/disconnect")) {
-                        if (commentJSONParse.premium.contains("運営")) {
-                            //自動次枠移動が有効なら使う
-                            if (isAutoNextProgram) {
-                                checkNextProgram()
-                                Snackbar.make(
-                                    live_video_view,
-                                    context?.getString(R.string.next_program_message) ?: "",
-                                    Snackbar.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                //終了メッセージ
-                                Snackbar.make(
-                                    live_video_view,
-                                    context?.getString(R.string.program_disconnect) ?: "",
-                                    Snackbar.LENGTH_SHORT
-                                ).setAction(context?.getString(R.string.end)) {
-                                    //終了
-                                    if (activity !is NimadoActivity) {
-                                        //二窓Activity以外では終了できるようにする。
-                                        activity?.finish()
-                                    }
-                                }.setAnchorView(getSnackbarAnchorView()).show()
-                            }
-                        }
-                    }
-
-                    //運営コメント、Infoコメント　表示・非表示
-                    if (!hideInfoUnnkome) {
-                        //運営コメント
-                        if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
-                            val isNicoad = commentJSONParse.comment.contains("/nicoad")
-                            val isInfo = commentJSONParse.comment.contains("/info")
-                            val isUadPoint = commentJSONParse.comment.contains("/uadpoint")
-                            val isSpi = commentJSONParse.comment.contains("/spi")
-                            val isGift = commentJSONParse.comment.contains("/gift")
-                            // 上に表示されるやつ
-                            if (!isNicoad && !isInfo && !isUadPoint && !isSpi && !isGift) {
-                                // 生主コメント
-                                setUnneiComment(commentJSONParse.comment)
-                            } else {
-                                // UIスレッド
-                                activity?.runOnUiThread {
-                                    // 下に表示するやつ
-                                    if (isInfo) {
-                                        // /info {数字}　を消す
-                                        val regex = "/info \\d+ ".toRegex()
-                                        showInfoComment(commentJSONParse.comment.replace(regex, ""))
-                                    }
-                                    // ニコニ広告
-                                    if (isNicoad) {
-                                        val json =
-                                            JSONObject(commentJSONParse.comment.replace("/nicoad ", ""))
-                                        val comment = json.getString("message")
-                                        showInfoComment(comment)
-                                    }
-                                    // spi (ニコニコ新市場に商品が貼られたとき)
-                                    if (isSpi) {
-                                        showInfoComment(commentJSONParse.comment.replace("/spi ", ""))
-                                    }
-                                    // 投げ銭
-                                    if (isGift) {
-                                        // スペース区切り配列
-                                        val list = commentJSONParse.comment.replace("/gift ", "")
-                                            .split(" ")
-                                        val userName = list[2]
-                                        val giftPoint = list[3]
-                                        val giftName = list[5]
-                                        val message =
-                                            "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
-                                        showInfoComment(message)
-                                    }
-                                }
-                            }
-                        }
-                        //運営コメントけす
-                        if (commentJSONParse.comment.contains("/clear")) {
-                            removeUnneiComment()
-                        }
-
-/*
-                        //infoコメントを表示
-                        if (commentJSONParse.comment.contains("/nicoad")) {
-                            activity?.runOnUiThread {
-                                val json =
-                                    JSONObject(
-                                        commentJSONParse.comment.replace(
-                                            "/nicoad ",
-                                            ""
-                                        )
-                                    )
-                                val comment = json.getString("message")
-                                showInfoComment(comment)
-                            }
-                        }
-                        if (commentJSONParse.comment.contains("/info")) {
-                            activity?.runOnUiThread {
-                                showInfoComment(
-                                    commentJSONParse.comment.replace(
-                                        "/info \\d+ ".toRegex(), // /info {数字}　を消す
-                                        ""
-                                    )
-                                )
-                            }
-                        }
-*/
-                    }
-                }
-            }
-
-            override fun onError(ex: Exception?) {
-
-            }
-        }
-        //忘れがちな接続
-        commentPOSTWebSocketClient.connect()
     }
 
     //16:9で横の大きさがわかるときに縦の大きさを返す
@@ -1620,7 +1305,7 @@ class CommentFragment : Fragment() {
 
             val hlsMediaSource = HlsMediaSource.Factory(sourceFactory)
                 .setAllowChunklessPreparation(true)
-                .createMediaSource(hls_address.toUri());
+                .createMediaSource(hlsAddress.toUri());
 
             //再生準備
             exoPlayer.prepare(hlsMediaSource)
@@ -1636,7 +1321,7 @@ class CommentFragment : Fragment() {
                     println("生放送の再生が止まりました。")
                     //再接続する？
                     //それからニコ生視聴セッションWebSocketが切断されてなければ
-                    if (!connectionNicoLiveWebSocket.isClosed) {
+                    if (!nicoLiveHTML.nicoLiveWebSocketClient.isClosed) {
                         println("再度再生準備を行います")
                         activity?.runOnUiThread {
                             //再生準備
@@ -1657,9 +1342,7 @@ class CommentFragment : Fragment() {
 
             //新しいバックグラウンド再生。バッググラウンドで常にExoPlayerを動かして離れた瞬間に再生をする。
             if (pref_setting.getBoolean("setting_leave_background", false)) {
-                if (pref_setting.getBoolean("setting_leave_background_v2", false)) {
-                    backgroundPlay.play(hls_address.toUri())
-                }
+
             }
 
             // 16:9のLayoutParams
@@ -1678,21 +1361,6 @@ class CommentFragment : Fragment() {
         super.onStop()
         if (this@CommentFragment::exoPlayer.isInitialized) {
             exoPlayer.release()
-            // println("ExoPlayerリリース")
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        //// WebView（ニコ生ゲーム用）リロード
-        //activity?.runOnUiThread {
-        //    if (::nicoNamaGameWebView.isInitialized) {
-        //        nicoNamaGameWebView.reload()
-        //    }
-        //}
-
-        if (this@CommentFragment::exoPlayer.isInitialized) {
-            //exoPlayer.playWhenReady = true
         }
     }
 
@@ -1704,69 +1372,23 @@ class CommentFragment : Fragment() {
     //コメント投稿用
     fun sendComment(comment: String, command: String) {
         if (comment != "\n") {
-            commentValue = comment
-            commentCommand = command
-            //コメント投稿モード（コメントWebSocketに送信）
-            // val watchmode = pref_setting.getBoolean("setting_watching_mode", false)
-            //nicocas式コメント投稿モード
-            // val nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
             if (isWatchingMode) {
-                //postKeyを視聴用セッションWebSocketに払い出してもらう
-                //PC版ニコ生だとコメントを投稿のたびに取得してるので
-                val postKeyObject = JSONObject()
-                postKeyObject.put("type", "watch")
-                val bodyObject = JSONObject()
-                bodyObject.put("command", "getpostkey")
-                val paramsArray = JSONArray()
-                paramsArray.put(getPostKeyThreadId)
-                bodyObject.put("params", paramsArray)
-                postKeyObject.put("body", bodyObject)
-                //送信する
-                //この後の処理は視聴用セッションWebSocketでpostKeyを受け取る処理に行きます。
-                connectionNicoLiveWebSocket.send(postKeyObject.toString())
+                // postKeyを視聴用セッションWebSocketに払い出してもらう
+                // PC版ニコ生だとコメントを投稿のたびに取得してるので
+                nicoLiveHTML.sendPOSTWebSocketComment(comment, command)
             } else if (isNicocasMode) {
-                //コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
-                // 100=1秒らしい。 例：300->3秒
-                val unixTime = System.currentTimeMillis() / 1000L
-                val vpos = (unixTime - programStartTime) * 100
-                val jsonObject = JSONObject()
-                jsonObject.put("message", commentValue)
-                if (isTokumeiComment) {
-                    commentCommand = "184 $commentCommand"
-                }
-                jsonObject.put("command", commentCommand)
-                jsonObject.put("vpos", vpos.toString())
-
-                val requestBodyJSON = jsonObject.toString()
-                    .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-                //println(jsonObject.toString())
-
-                val request = Request.Builder()
-                    .url("https://api.cas.nicovideo.jp/v1/services/live/programs/${liveId}/comments")
-                    .header("Cookie", "user_session=${usersession}")
-                    .post(requestBodyJSON)
-                    .build()
-                val okHttpClient = OkHttpClient()
-                okHttpClient.newCall(request).enqueue(object : Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-                        showToast("${getString(R.string.error)}")
-                    }
-
-                    override fun onResponse(call: Call, response: Response) {
-                        //System.out.println(response.body?.string())
-                        if (response.isSuccessful) {
-                            //成功
-                            val snackbar =
-                                Snackbar.make(
-                                    fab,
-                                    getString(R.string.comment_post_success),
-                                    Snackbar.LENGTH_SHORT
-                                )
-                            snackbar.anchorView = getSnackbarAnchorView()
-                            snackbar.show()
-                        } else {
-                            showToast("${getString(R.string.error)}\n${response.code}")
-                        }
+                // ニコキャスのAPIを叩いてコメントを投稿する
+                nicoLiveHTML.sendCommentNicocasAPI(comment, command, liveId, usersession, { showToast(getString(R.string.error)) }, { response ->
+                    // 成功時
+                    if (response.isSuccessful) {
+                        //成功
+                        Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT)
+                            .apply {
+                                anchorView = getSnackbarAnchorView()
+                                show()
+                            }
+                    } else {
+                        showToast("${getString(R.string.error)}\n${response.code}")
                     }
                 })
             }
@@ -1860,11 +1482,7 @@ class CommentFragment : Fragment() {
             context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboardManager.setPrimaryClip(ClipData.newPlainText("liveid", liveId))
         //コピーしました！
-        Toast.makeText(
-                context,
-                "${getString(R.string.copy_program_id)} : $liveId",
-                Toast.LENGTH_SHORT
-            )
+        Toast.makeText(context, "${getString(R.string.copy_program_id)} : $liveId", Toast.LENGTH_SHORT)
             .show()
     }
 
@@ -1873,23 +1491,11 @@ class CommentFragment : Fragment() {
             context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboardManager.setPrimaryClip(ClipData.newPlainText("communityid", communityID))
         //コピーしました！
-        Toast.makeText(
-                context,
-                "${getString(R.string.copy_communityid)} : $communityID",
-                Toast.LENGTH_SHORT
-            )
+        Toast.makeText(context, "${getString(R.string.copy_communityid)} : $communityID", Toast.LENGTH_SHORT)
             .show()
     }
 
-    fun setSound(volume: Int) {
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
-    }
-
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
-    ) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         //println(requestCode)
         when (requestCode) {
@@ -1918,11 +1524,6 @@ class CommentFragment : Fragment() {
     }
 
     fun destroyCode() {
-        if (this@CommentFragment::commentPOSTWebSocketClient.isInitialized) {
-            connectionNicoLiveWebSocket.close()
-            commentPOSTWebSocketClient.close()
-        }
-        timer.cancel()
         programTimer.cancel()
         activeTimer.cancel()
         //バックグラウンド再生止める
@@ -1935,7 +1536,6 @@ class CommentFragment : Fragment() {
             //中野ブロードキャスト終了
             commentActivity.unregisterReceiver(broadcastReceiver)
         }
-        autoNextProgramTimer.cancel()
         //センサーによる画面回転が有効になってる場合は最後に
         if (this@CommentFragment::rotationSensor.isInitialized) {
             rotationSensor.destroy()
@@ -1949,9 +1549,9 @@ class CommentFragment : Fragment() {
                 release()
             }
         }
-        if (::allRoomComment.isInitialized) {
-            allRoomComment.destory()
-        }
+        nicoLiveHTML.destroy()
+        nicoLiveComment.destroy()
+        programInfoTimer.cancel()
         // println("とじます")
     }
 
@@ -1963,13 +1563,13 @@ class CommentFragment : Fragment() {
 
     /*オーバーレイ*/
     fun startOverlayPlayer() {
-        popUpPlayer.showPopUpView(hls_address)
+        popUpPlayer.showPopUpView(hlsAddress)
     }
 
     /*バックグラウンド再生*/
     fun setBackgroundProgramPlay() {
         //再生。
-        backgroundPlay.start(hls_address.toUri())
+        backgroundPlay.start(hlsAddress.toUri())
         //Nougatと分岐
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannelId = "program_background"
@@ -1977,7 +1577,6 @@ class CommentFragment : Fragment() {
                 notificationChannelId, getString(R.string.notification_background_play),
                 NotificationManager.IMPORTANCE_HIGH
             )
-
             //通知チャンネル登録
             if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
                 notificationManager.createNotificationChannel(notificationChannel)
@@ -2091,12 +1690,7 @@ class CommentFragment : Fragment() {
                 getString(R.string.lunch_app_close_background),
                 Toast.LENGTH_SHORT
             ).show()
-            if (pref_setting.getBoolean("setting_leave_background_v2", false)) {
-                //新しいバッググラウンド再生。
-                backgroundPlay.pause()
-            } else {
-                backgroundPlay.release()
-            }
+            backgroundPlay.release()
         }
 
         //ポップアップ再生止める
@@ -2110,43 +1704,11 @@ class CommentFragment : Fragment() {
             ).show()
         }
         //再生部分を作り直す
-        if (hls_address.isNotEmpty()) {
+        if (hlsAddress.isNotEmpty()) {
             live_framelayout.visibility = View.VISIBLE
             setPlayVideoView()
         }
     }
-
-
-/*
-    //ホームボタンおした
-    override fun onUserLeaveHint() {
-        //別アプリを開いた時の処理
-        if (pref_setting.getBoolean("setting_leave_background", false)) {
-            //バックグラウンド再生
-            setBackgroundProgramPlay()
-        }
-        if (pref_setting.getBoolean("setting_leave_popup", false)) {
-            //ポップアップ再生
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!Settings.canDrawOverlays(context)) {
-                    //RuntimePermissionに対応させる
-                    // 権限取得
-                    val intent =
-                        Intent(
-                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:${context?.packageName}")
-                        )
-                    this@CommentFragment.startActivityForResult(intent, 114)
-                } else {
-                    startOverlayPlayer()
-                }
-            } else {
-                //ろりぽっぷ
-                startOverlayPlayer()
-            }
-        }
-    }
-*/
 
     fun setEnquetePOSTLayout(message: String, type: String) {
         enquateView =
@@ -2174,7 +1736,7 @@ class CommentFragment : Fragment() {
                 button.text = jsonArray.getString(i)
                 button.setOnClickListener {
                     //投票
-                    //enquatePOST(i - 1)
+                    enquatePOST(i - 1)
                     //アンケ画面消す
                     comment_fragment_enquate_framelayout.removeAllViews()
                     //Snackbar
@@ -2276,7 +1838,7 @@ class CommentFragment : Fragment() {
         val jsonObject = JSONObject()
         jsonObject.put("type", "watch")
         jsonObject.put("body", bodyObject)
-        connectionNicoLiveWebSocket.send(jsonObject.toString())
+        nicoLiveHTML.nicoLiveWebSocketClient.send(jsonObject.toString())
     }
 
     fun share(shareText: String, shareTitle: String) {
@@ -2343,9 +1905,8 @@ class CommentFragment : Fragment() {
             }
         }
 
-
         // 184が有効になっているときはコメントInputEditTextのHintに追記する
-        if (isTokumeiComment) {
+        if (nicoLiveHTML.isTokumeiComment) {
             comment_cardview_comment_textinput_layout.hint = getString(R.string.comment)
         } else {
             comment_cardview_comment_textinput_layout.hint =
@@ -2490,7 +2051,6 @@ class CommentFragment : Fragment() {
         }
     }
 
-
     fun loadCommentPOSTList() {
         //データベース
         val commentCollection = CommentCollectionSQLiteHelper(context!!)
@@ -2528,22 +2088,6 @@ class CommentFragment : Fragment() {
         }
     }
 
-/*
-    override fun onBackPressed() {
-        AlertDialog.Builder(context!!)
-            .setTitle(getString(R.string.back_dialog))
-            .setMessage(getString(R.string.back_dialog_description))
-            .setPositiveButton(getString(R.string.end)) { dialogInterface: DialogInterface, i: Int ->
-                finish()
-                super.onBackPressed()
-            }
-            .setNegativeButton(getString(android.R.string.cancel)) { dialogInterface: DialogInterface, i: Int ->
-                dialogInterface.dismiss()
-            }
-            .show()
-    }
-*/
-
     fun getSnackbarAnchorView(): View? {
         if (fab.isShown) {
             return fab
@@ -2558,13 +2102,6 @@ class CommentFragment : Fragment() {
         commentActivity.runOnUiThread {
             //テキスト、背景色
             uncomeTextView.visibility = View.VISIBLE
-/*
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            uncomeTextView.text = Html.fromHtml(comment, Html.FROM_HTML_MODE_COMPACT)
-        } else {
-            uncomeTextView.text = Html.fromHtml(comment)
-        }
-*/
             uncomeTextView.text =
                 HtmlCompat.fromHtml(comment, HtmlCompat.FROM_HTML_MODE_COMPACT)
             uncomeTextView.textSize = 20F
@@ -2651,149 +2188,8 @@ class CommentFragment : Fragment() {
     }
 
 
-    //次枠移動機能
-    fun checkNextProgram() {
-        //getplayerstatusは番組ID以外にも放送開始していればコミュIDを入力すれば利用可能
-        //１分ぐらいで取りに行く
-        autoNextProgramTimer.schedule(0, 60000) {
-            val request = Request.Builder()
-                .url("https://live.nicovideo.jp/api/getplayerstatus/$communityID")   //getplayerstatus、httpsでつながる？
-                .header("Cookie", "user_session=$usersession")
-                .get()
-                .build()
-            val okHttpClient = OkHttpClient()
-
-
-            okHttpClient.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    showToast("${getString(R.string.error)}")
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    val response_string = response.body?.string()
-                    if (response.isSuccessful) {
-                        //HTMLパース
-                        val document = Jsoup.parse(response_string)
-                        //ひつようなやつ
-                        val stream = document.select("stream")
-                        val liveId = stream.select("id")
-                        //成功
-                        //Activity再起動
-                        commentActivity.finish()
-                        val intent = Intent(context, CommentActivity::class.java)
-                        intent.putExtra("liveId", liveId)
-                        startActivity(intent)
-                    } else {
-                        showToast("${getString(R.string.error)}\n${response.code}")
-                    }
-                }
-            })
-        }
-        //１時間経ったら止める
-        Timer().schedule(timerTask {
-            this.cancel()
-            autoNextProgramTimer.cancel()
-        }, 3600000)
-    }
-
-    /**
-     * 画質変更メッセージ送信
-     * */
-    fun sendQualityMessage(quality: String) {
-        val jsonObject = JSONObject()
-        jsonObject.put("type", "watch")
-        //body
-        val bodyObject = JSONObject()
-        bodyObject.put("command", "getstream")
-        //requirement
-        val requirementObjects = JSONObject()
-        requirementObjects.put("protocol", "hls")
-        requirementObjects.put("quality", quality)
-        requirementObjects.put("isLowLatency", isLowLatency)
-        requirementObjects.put("isChasePlay", false)
-        bodyObject.put("requirement", requirementObjects)
-        jsonObject.put("body", bodyObject)
-        //送信
-        connectionNicoLiveWebSocket.send(jsonObject.toString())
-    }
-
-    /**
-     * 低遅延モード。trueで有効
-     * */
-    fun sendLowLatency() {
-        val jsonObject = JSONObject()
-        jsonObject.put("type", "watch")
-        //body
-        val bodyObject = JSONObject()
-        bodyObject.put("command", "getstream")
-        //requirement
-        val requirementObjects = JSONObject()
-        requirementObjects.put("protocol", "hls")
-        requirementObjects.put("quality", start_quality)
-        requirementObjects.put("isLowLatency", !isLowLatency)
-        requirementObjects.put("isChasePlay", false)
-        bodyObject.put("requirement", requirementObjects)
-        jsonObject.put("body", bodyObject)
-        //送信
-        connectionNicoLiveWebSocket.send(jsonObject.toString())
-        //反転
-        isLowLatency = !isLowLatency
-    }
-
-
-    fun sendMobileDataQuality() {
-        if (!mobileDataQualityCheck) {
-            //モバイルデータのときは最低画質で再生する設定
-            if (pref_setting.getBoolean("setting_mobiledata_quality_low", false)) {
-                //今の接続状態を取得
-                val connectivityManager =
-                    context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-                //ろりぽっぷとましゅまろ以上で分岐
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-                            ?.hasTransport(
-                                NetworkCapabilities.TRANSPORT_CELLULAR
-                            ) == true
-                    ) {
-                        //モバイルデータ通信なら画質変更メッセージ送信
-                        sendQualityMessage("super_low")
-                    }
-                } else {
-                    if (connectivityManager.activeNetworkInfo.type == ConnectivityManager.TYPE_MOBILE) {
-                        //モバイルデータ通信なら画質変更メッセージ送信
-                        sendQualityMessage("super_low")
-                    }
-                }
-            }
-        }
-        mobileDataQualityCheck = true
-    }
-
-    /**
-     * フラグメントが入るLinearLayoutのIDを返す。
-     * */
-    fun getFragmentLinearLayoutId(): Int {
-        return activity_comment_linearlayout.id
-    }
-
-    //ExoPlayerを破棄するときに
-    //初期化済みか確認してから
-    fun destroyExoPlayer(exoPlayer: SimpleExoPlayer) {
-        //止める
-        exoPlayer.apply {
-            playWhenReady = false
-            stop()
-            seekTo(0)
-            release()
-        }
-    }
-
     fun isPopupViewInit(): Boolean {
         return popUpPlayer.isInitializedPopUpView()
-    }
-
-    fun isAllRoomCommentInit(): Boolean {
-        return ::allRoomComment.isInitialized
     }
 
 }

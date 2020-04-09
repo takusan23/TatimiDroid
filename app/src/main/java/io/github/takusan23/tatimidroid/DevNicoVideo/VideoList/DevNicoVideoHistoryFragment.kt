@@ -9,10 +9,9 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import io.github.takusan23.tatimidroid.Adapter.TagRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHistoryAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHistoryAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_history.*
 import kotlinx.coroutines.GlobalScope
@@ -29,7 +28,8 @@ class DevNicoVideoHistoryFragment : Fragment() {
 
     // API
     var userSession = ""
-    val nicoVideoHistoryAPI = NicoVideoHistoryAPI()
+    val nicoVideoHistoryAPI =
+        NicoVideoHistoryAPI()
     lateinit var coroutine: Job
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

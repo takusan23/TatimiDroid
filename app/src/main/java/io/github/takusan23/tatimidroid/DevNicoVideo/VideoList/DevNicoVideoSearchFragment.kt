@@ -7,14 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Spinner
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoHTML
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoSearchHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSearchHTML
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_search.*
 import kotlinx.coroutines.GlobalScope
@@ -36,7 +34,8 @@ class DevNicoVideoSearchFragment : Fragment() {
     var userSession = ""
 
     // 検索結果スクレイピング
-    val nicoVideoSearchHTML = NicoVideoSearchHTML()
+    val nicoVideoSearchHTML =
+        NicoVideoSearchHTML()
 
     // ページ数
     var page = 1

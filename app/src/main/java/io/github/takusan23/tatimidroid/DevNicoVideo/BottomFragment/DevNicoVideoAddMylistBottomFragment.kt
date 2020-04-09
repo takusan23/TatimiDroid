@@ -9,10 +9,8 @@ import android.widget.Toast
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoMylistAdapter
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoMyListAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_mylist.*
 import kotlinx.coroutines.GlobalScope
@@ -30,7 +28,8 @@ class DevNicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
     var userSession = ""
 
     // マイリスト
-    val myListAPI = NicoVideoMyListAPI()
+    val myListAPI =
+        NicoVideoMyListAPI()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_nicovideo_mylist, container, false)

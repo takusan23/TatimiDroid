@@ -8,30 +8,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.bottom_fragment_comment_menu_layout.*
-import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
-import android.R.attr.label
 import android.content.*
-import android.content.Context.CLIPBOARD_SERVICE
-import androidx.core.content.ContextCompat.getSystemService
-import android.opengl.Visibility
 import android.text.SpannableString
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.github.takusan23.tatimidroid.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.CommentRecyclerViewAdapter
-import kotlinx.android.synthetic.main.activity_comment.*
-import kotlinx.android.synthetic.main.fragment_commentview.*
 import okhttp3.*
-import okhttp3.internal.notify
 import org.json.JSONObject
 import java.io.IOException
 import java.lang.NullPointerException
@@ -44,16 +33,18 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
 
     //こてはん
     lateinit var kotehanMap: MutableMap<String, String>
+
     //それぞれ
     var comment = ""
     var userId = ""
     var liveId = ""
+
     //NGデータベース
     lateinit var ngListSQLiteHelper: NGListSQLiteHelper
     lateinit var sqLiteDatabase: SQLiteDatabase
 
     //RecyclerView
-    lateinit var recyclerViewList: ArrayList<ArrayList<String>>
+    var recyclerViewList = arrayListOf<CommentJSONParse>()
     lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
 
     override fun onCreateView(
@@ -75,21 +66,34 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_comment_menu_parent_linearlayout.background =
             ColorDrawable(darkModeSupport.getThemeColor())
 
-        //RecyclerView
-        recyclerViewList = arrayListOf()
-        bottom_fragment_comment_menu_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(context)
-        bottom_fragment_comment_menu_recyclerview.layoutManager =
-            mLayoutManager as RecyclerView.LayoutManager?
-        commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
-        bottom_fragment_comment_menu_recyclerview.adapter = commentRecyclerViewAdapter
-        commentRecyclerViewAdapter.setActivity((activity as AppCompatActivity?)!!)
-
         //Map
         kotehanMap = commentFragment.kotehanMap
         //取り出す
         comment = arguments?.getString("comment") ?: ""
         userId = arguments?.getString("user_id") ?: ""
+
+        // ロックオンできるようにする
+        // ロックオンとはある一人のユーザーのコメントだけ見ることである
+        // 生主が効いたときによくある
+
+        //まずCommentFragmentを取る。この上に全部屋、部屋別のFragmentが乗る。
+        val fragment =
+            activity?.supportFragmentManager?.findFragmentByTag(liveId)
+        //全部屋、部屋別のFragmentが表示されるレイアウトのIDを取る
+        val commentFragment = (fragment as CommentFragment)
+        recyclerViewList =
+            commentFragment.commentJSONList.filter { commentJSONParse -> commentJSONParse.userId == userId } as ArrayList<CommentJSONParse>
+
+        //RecyclerView
+        bottom_fragment_comment_menu_recyclerview.setHasFixedSize(true)
+        val mLayoutManager = LinearLayoutManager(context)
+        bottom_fragment_comment_menu_recyclerview.layoutManager =
+            mLayoutManager as RecyclerView.LayoutManager?
+        commentRecyclerViewAdapter =
+            CommentRecyclerViewAdapter(recyclerViewList)
+        bottom_fragment_comment_menu_recyclerview.adapter = commentRecyclerViewAdapter
+        commentRecyclerViewAdapter.setActivity((activity as AppCompatActivity?)!!)
+
 
         //データベース
         ngListSQLiteHelper = NGListSQLiteHelper(context!!)
@@ -115,14 +119,13 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         //ユーザー情報出す
         getUserProfile()
 
-        //ロックオンできるようにする
-        //ロックオンとはある一人のユーザーのコメントだけ見ることである
-        //生主が効いたときによくある
+/*
         try {
             setLockOnComment()
         } catch (e: NullPointerException) {
             e.printStackTrace()
         }
+*/
     }
 
     fun setLockOnComment() {
@@ -133,6 +136,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         //全部屋、部屋別のFragmentが表示されるレイアウトのIDを取る
         val commentFragment = (fragment as CommentFragment)
 
+/*
         //全部屋コメントRecyclerViewを取得
         val adapterList: ArrayList<ArrayList<String>> =
             commentFragment.allRoomComment.recyclerViewList
@@ -160,6 +164,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
                 }
             }
         }
+*/
     }
 
 
@@ -217,10 +222,10 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
             kotehanMap.put(userId, kotehan)
             //登録しました！
             Toast.makeText(
-                context,
-                "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}",
-                Toast.LENGTH_SHORT
-            )
+                    context,
+                    "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}",
+                    Toast.LENGTH_SHORT
+                )
                 .show()
         }
     }

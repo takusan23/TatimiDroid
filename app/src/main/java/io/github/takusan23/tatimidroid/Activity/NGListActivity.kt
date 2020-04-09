@@ -7,13 +7,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.DarkModeSupport
-import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
-import io.github.takusan23.tatimidroid.NGListRecyclerView
+import io.github.takusan23.tatimidroid.Adapter.NGListRecyclerView
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_nglist.*
-import kotlinx.android.synthetic.main.fragment_commnunity_list_layout.*
-import kotlinx.android.synthetic.main.fragment_gift_layout.*
 
 class NGListActivity : AppCompatActivity() {
     var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
@@ -36,7 +33,8 @@ class NGListActivity : AppCompatActivity() {
         activity_ng_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(this)
         activity_ng_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
-        ngListRecyclerView = NGListRecyclerView(recyclerViewList)
+        ngListRecyclerView =
+            NGListRecyclerView(recyclerViewList)
         activity_ng_recyclerview.adapter = ngListRecyclerView
         recyclerViewLayoutManager = activity_ng_recyclerview.layoutManager!!
 

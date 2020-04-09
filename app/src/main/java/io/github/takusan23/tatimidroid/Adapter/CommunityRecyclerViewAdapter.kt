@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.tatimidroid.Adapter
 
 import android.content.*
 import android.content.res.Configuration
@@ -15,8 +15,12 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
+import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.ReservationUtil
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -36,7 +40,8 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val content = holder.timeTextView.context
         val activity = (content as MainActivity)
-        val darkModeSupport = DarkModeSupport(content)
+        val darkModeSupport =
+            DarkModeSupport(content)
 
         val item = arrayListArrayAdapter[position]
         val title = item.title
@@ -153,7 +158,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
     }
 
     // 視聴モード選択ボタン初期化
-    fun initWatchModeButton(itemHolder: CommunityRecyclerViewAdapter.ViewHolder, programData: ProgramData) {
+    fun initWatchModeButton(itemHolder: ViewHolder, programData: ProgramData) {
         itemHolder.apply {
             val context = itemHolder.watchModeComeCas.context
             watchModeComeView.setOnClickListener {
@@ -190,7 +195,8 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
 
     private fun initTSButton(holder: ViewHolder, item: ProgramData) {
         val context = holder.calendarButton.context
-        val reservationUtil = ReservationUtil(context)
+        val reservationUtil =
+            ReservationUtil(context)
         holder.apply {
             calendarButton.setOnClickListener {
                 reservationUtil.addCalendar(context, item)

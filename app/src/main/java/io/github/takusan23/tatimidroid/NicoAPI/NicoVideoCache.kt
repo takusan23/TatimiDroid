@@ -5,12 +5,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Bitmap
-import android.media.ThumbnailUtils
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.core.net.toUri
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
@@ -65,7 +64,8 @@ class NicoVideoCache(val context: Context?) {
                     val title = video.getString("title")
                     val thum = "${videoFolder.path}/${videoId}.jpg"
                     val date =
-                        NicoVideoHTML().postedDateTimeToUnixTime(video.getString("postedDateTime"))
+                        NicoVideoHTML()
+                            .postedDateTimeToUnixTime(video.getString("postedDateTime"))
                     val viewCount = video.getInt("viewCount").toString()
                     val commentCount =
                         jsonObject.getJSONObject("thread").getInt("commentCount").toString()
@@ -250,7 +250,8 @@ class NicoVideoCache(val context: Context?) {
         GlobalScope.launch {
             // POSTするJSON作成
             val response =
-                NicoVideoHTML().getComment(videoId, userSession, JSONObject(json)).await()
+                NicoVideoHTML()
+                    .getComment(videoId, userSession, JSONObject(json)).await()
             if (response != null && response.isSuccessful) {
                 // 動画情報JSON作成
                 val videoJSONFile = File("${videoIdFolder.path}/${videoId}_comment.json")
@@ -360,7 +361,8 @@ class NicoVideoCache(val context: Context?) {
      * */
     fun getReGetVideoInfoComment(videoId: String, userSession: String, context: Context?, completeFun: (() -> Unit)? = null) {
         GlobalScope.launch {
-            val nicoVideoHTML = NicoVideoHTML()
+            val nicoVideoHTML =
+                NicoVideoHTML()
             // 動画HTML取得
             val response = nicoVideoHTML.getHTML(videoId, userSession).await()
             if (response.isSuccessful) {

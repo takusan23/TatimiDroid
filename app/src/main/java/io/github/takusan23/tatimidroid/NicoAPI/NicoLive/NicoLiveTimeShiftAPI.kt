@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoAPI
+package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import android.content.Context
 import android.os.Looper

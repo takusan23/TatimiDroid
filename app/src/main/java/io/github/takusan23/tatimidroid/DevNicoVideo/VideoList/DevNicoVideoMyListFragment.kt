@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoMyListAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
 import kotlinx.coroutines.GlobalScope
@@ -22,7 +22,8 @@ import org.json.JSONObject
 
 class DevNicoVideoMyListFragment : Fragment() {
 
-    val mylistAPI = NicoVideoMyListAPI()
+    val mylistAPI =
+        NicoVideoMyListAPI()
 
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     val recyclerViewList = arrayListOf<NicoVideoData>()

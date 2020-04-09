@@ -2,7 +2,7 @@ package io.github.takusan23.tatimidroid
 
 import org.json.JSONObject
 
-class CommentJSONParse(val commentJson: String, var roomName: String) {
+class CommentJSONParse(val commentJson: String, var roomName: String,val videoOrLiveId:String) {
 
     var comment = ""
     var commentNo = ""

@@ -15,6 +15,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import io.github.takusan23.tatimidroid.*
+import io.github.takusan23.tatimidroid.Adapter.AutoAdmissionAdapter
+import io.github.takusan23.tatimidroid.Adapter.CommunityRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramAPI
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
@@ -52,8 +54,10 @@ class CommunityListFragment : Fragment() {
         community_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
         community_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
-        communityRecyclerViewAdapter = CommunityRecyclerViewAdapter(recyclerViewList)
-        autoAdmissionAdapter = AutoAdmissionAdapter(autoAdmissionRecyclerViewList)
+        communityRecyclerViewAdapter =
+            CommunityRecyclerViewAdapter(recyclerViewList)
+        autoAdmissionAdapter =
+            AutoAdmissionAdapter(autoAdmissionRecyclerViewList)
         community_recyclerview.adapter = communityRecyclerViewAdapter
         recyclerViewLayoutManager = community_recyclerview.layoutManager!!
 

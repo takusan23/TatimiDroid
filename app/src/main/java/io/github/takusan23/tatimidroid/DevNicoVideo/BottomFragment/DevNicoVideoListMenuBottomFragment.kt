@@ -18,13 +18,14 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdap
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListFragment
 import io.github.takusan23.tatimidroid.NicoAPI.*
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.io.File
 import java.util.*
-import kotlin.concurrent.timerTask
 
 class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
@@ -44,7 +45,8 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
-        nicoVideoHTML = NicoVideoHTML()
+        nicoVideoHTML =
+            NicoVideoHTML()
 
         // タイトル、ID設定
         bottom_fragment_nicovideo_list_menu_title.text = nicoVideoData.title
@@ -88,7 +90,8 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             if (nicoVideoData.isMylist) {
                 // マイリスト一覧。削除ボタン
                 GlobalScope.launch {
-                    val myListAPI = NicoVideoMyListAPI()
+                    val myListAPI =
+                        NicoVideoMyListAPI()
                     val tokenHTML = myListAPI.getMyListHTML(userSession).await()
                     if (tokenHTML.isSuccessful) {
                         val token = myListAPI.getToken(tokenHTML.body?.string()) ?: ""
@@ -127,7 +130,8 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     // キャッシュ再取得とか削除とか（削除以外未実装）
     private fun cacheButton() {
         // キャッシュ関係
-        val nicoVideoCache = NicoVideoCache(context)
+        val nicoVideoCache =
+            NicoVideoCache(context)
 
         if (nicoVideoData.isCache) {
             // キャッシュのときは再取得メニュー表示させる

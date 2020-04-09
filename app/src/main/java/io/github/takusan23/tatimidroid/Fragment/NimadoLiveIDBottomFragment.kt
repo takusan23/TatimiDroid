@@ -11,7 +11,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nimado_live_id.*
@@ -71,7 +71,8 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
     fun addNimado(mode: String) {
         GlobalScope.launch(Dispatchers.Main) {
             // コミュIDのときはコミュIDを取ってから
-            val nicoLiveHTML = NicoLiveHTML()
+            val nicoLiveHTML =
+                NicoLiveHTML()
             val user_session = pref_setting.getString("user_session", "")
             val html = if (!isCommunityOrChannelID()) {
                 nicoLiveHTML.getNicoLiveHTML(getLiveIDRegex(), user_session).await()

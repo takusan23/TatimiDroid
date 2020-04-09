@@ -10,9 +10,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoRSS
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRSS
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_ranking.*
 import kotlinx.coroutines.GlobalScope
@@ -24,7 +23,8 @@ import kotlinx.coroutines.launch
  * */
 class DevNicoVideoRankingFragment : Fragment() {
 
-    val nicoRSS = NicoVideoRSS()
+    val nicoRSS =
+        NicoVideoRSS()
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     val recyclerViewList = arrayListOf<NicoVideoData>()
 

@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
-import io.github.takusan23.tatimidroid.GiftRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.Adapter.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_gift_layout.*
 import okhttp3.*
@@ -40,7 +40,8 @@ class GiftFragment : Fragment() {
         gift_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
         gift_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
-        giftRecyclerViewAdapter = GiftRecyclerViewAdapter(recyclerViewList)
+        giftRecyclerViewAdapter =
+            GiftRecyclerViewAdapter(recyclerViewList)
         gift_recyclerview.adapter = giftRecyclerViewAdapter
         recyclerViewLayoutManager = gift_recyclerview.layoutManager!!
 

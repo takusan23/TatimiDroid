@@ -9,15 +9,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoRSS
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRSS
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_comment_cache.*
 import kotlinx.coroutines.*
-import java.io.File
 
 class DevNicoVideoCacheFragment : Fragment() {
 
-    val nicoRSS = NicoVideoRSS()
+    val nicoRSS =
+        NicoVideoRSS()
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     val recyclerViewList = arrayListOf<NicoVideoData>()
     lateinit var nicoVideoCache: NicoVideoCache
@@ -31,7 +31,8 @@ class DevNicoVideoCacheFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        nicoVideoCache = NicoVideoCache(context)
+        nicoVideoCache =
+            NicoVideoCache(context)
         initRecyclerView()
 
         load()
