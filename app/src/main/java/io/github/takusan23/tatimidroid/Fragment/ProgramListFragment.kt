@@ -4,6 +4,8 @@ import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.CpuUsageInfo
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,29 +26,13 @@ class ProgramListFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_program_list, container, false)
     }
 
-    /**
-     * 画面回転対策
-     * */
-    override fun onStart() {
-        super.onStart()
-        setFragment(CommunityListFragment.FOLLOW)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-/*
-        val adapter = ProgramListViewPager(activity as AppCompatActivity)
-        fragment_program_list_view_pager.adapter = adapter
-        fragment_program_list_tab_layout.setupWithViewPager(fragment_program_list_view_pager)
-*/
 
         (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.nicolive)
 
         // ダークモード
         val darkModeSupport = DarkModeSupport(context!!)
-        // fragment_program_list_view_pager.backgroundTintList =
-        //     ColorStateList.valueOf(darkModeSupport.getThemeColor())
 
         // 背景
         fragment_program_backdrop.background = ColorDrawable(darkModeSupport.getThemeColor())
@@ -54,7 +40,7 @@ class ProgramListFragment : Fragment() {
         fragment_program_list_linearlayout.background =
             ColorDrawable(darkModeSupport.getThemeColor())
 
-        //setFragment(CommunityListFragment.FOLLOW)
+        setFragment(CommunityListFragment.FOLLOW)
 
         fragment_program_follow.setOnClickListener {
             setFragment(CommunityListFragment.FOLLOW)
@@ -88,14 +74,15 @@ class ProgramListFragment : Fragment() {
      * @param page CommunityListFragment#FOLLOW など
      * */
     fun setFragment(page: Int) {
-        val communityListFragment = CommunityListFragment()
-        val bundle = Bundle()
-        bundle.putInt("page", page)
-        communityListFragment.arguments = bundle
-        fragmentManager?.beginTransaction()
-            ?.replace(fragment_program_list_linearlayout.id, communityListFragment)?.commit()
-        fragment_program_motionlayout?.transitionToStart()
-
+        Handler(Looper.getMainLooper()).post {
+            val communityListFragment = CommunityListFragment()
+            val bundle = Bundle()
+            bundle.putInt("page", page)
+            communityListFragment.arguments = bundle
+            fragmentManager?.beginTransaction()
+                ?.replace(fragment_program_list_linearlayout.id, communityListFragment)?.commit()
+            fragment_program_motionlayout?.transitionToStart()
+        }
     }
 
 }

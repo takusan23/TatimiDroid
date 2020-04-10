@@ -24,8 +24,8 @@ import java.util.*
 import kotlin.concurrent.schedule
 
 /**
- *  ニコ生のHTMLページを取得する
- * コルーチンで使ってね
+ *  ニコ生のHTMLページを取得したりWebSocketに接続したりするクラス。
+ *  コルーチンで使ってね
  * */
 class NicoLiveHTML {
 
@@ -68,52 +68,6 @@ class NicoLiveHTML {
     // 現在の画質
     private var currentQuality = "super_low"
 
-
-    /**
-     * HTML取得
-     * @param liveId 番組ID
-     * @param usersession ユーザーセッション。なければ非ログイン？
-     * */
-    fun getNicoLiveHTML(liveId: String, usersession: String?): Deferred<String> =
-        GlobalScope.async {
-            val url = "https://live2.nicovideo.jp/watch/$liveId"
-            val request = Request.Builder()
-                .get()
-                .url(url)
-                .addHeader("User-Agent", "TatimiDroid;@takusan_23")
-                .addHeader("Cookie", "user_session=$usersession")
-                .build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            if (response.isSuccessful) {
-                return@async response.body?.string() ?: ""
-            } else {
-                return@async ""
-            }
-        }
-
-    /**
-     * OkHttpのレスポンスを返す。nullの可能性あり
-     * @param liveId 番組ID
-     * @param usersession ユーザーセッション。なければ非ログイン？
-     * */
-    fun getNicoLiveResponse(liveId: String, usersession: String?): Deferred<Response?> =
-        GlobalScope.async {
-            val url = "https://live2.nicovideo.jp/watch/$liveId"
-            val request = Request.Builder()
-                .get()
-                .url(url)
-                .addHeader("User-Agent", "TatimiDroid;@takusan_23")
-                .addHeader("Cookie", "user_session=$usersession")
-                .build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            if (response.isSuccessful) {
-                return@async response
-            } else {
-                return@async null
-            }
-        }
 
     /**
      * HTMLの中からJSONを見つけてくる関数

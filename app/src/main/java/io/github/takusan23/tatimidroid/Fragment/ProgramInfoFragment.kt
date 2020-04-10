@@ -147,7 +147,7 @@ class ProgramInfoFragment : Fragment() {
             val nicolive =
                 NicoLiveHTML()
             val responseString = nicolive.getNicoLiveHTML(liveId, usersession).await()
-            val jsonObject = nicolive.nicoLiveHTMLtoJSONObject(responseString)
+            val jsonObject = nicolive.nicoLiveHTMLtoJSONObject(responseString.body?.string())
             // 番組情報取得
             val program = jsonObject.getJSONObject("program")
             val title = program.getString("title")
