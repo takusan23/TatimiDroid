@@ -143,7 +143,7 @@ class ProgramInfoFragment : Fragment() {
     /** コルーチン */
     fun programInfoCoroutine() {
         fragment_program_info_tag_linearlayout.removeAllViews()
-        GlobalScope.launch(Dispatchers.Main) {
+        GlobalScope.launch {
             val nicolive =
                 NicoLiveHTML()
             val responseString = nicolive.getNicoLiveHTML(liveId, usersession).await()
@@ -257,8 +257,10 @@ class ProgramInfoFragment : Fragment() {
             // タグが変更できない場合はボタンをグレーアウトする
             if (isTagNotEditable) {
                 fragment_program_info_tag_add_button.apply {
-                    isEnabled = false
-                    text = getString(R.string.not_tag_editable)
+                    activity?.runOnUiThread {
+                        isEnabled = false
+                        text = getString(R.string.not_tag_editable)
+                    }
                 }
             }
 

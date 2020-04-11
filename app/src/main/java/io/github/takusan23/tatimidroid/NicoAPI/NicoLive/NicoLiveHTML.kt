@@ -453,15 +453,21 @@ class NicoLiveHTML {
 
     /**
      * ニコニコのユーザーID取得。
-     * @param jsonObject nicoLiveHTMLtoJSONObject()の値
+     * 重要　コメント投稿モード以外でこの関数を呼ぶとnull出ます。ログインしてないから仕方ないね。
+     * @param jsonObject nicoLiveHTMLtoJSONObject()の値。
      * @return ニコニコのユーザーID
      * */
     fun getNiconicoID(jsonObject: JSONObject): String? {
-        return jsonObject.getJSONObject("user").getString("id")
+        return if (jsonObject.getJSONObject("user").has("id")) {
+            jsonObject.getJSONObject("user").getString("id")
+        } else {
+            null
+        }
     }
 
     /**
      * プレ垢かどうか
+     * 重要　コメント投稿モード以外でこの関数を呼ぶと正しい値が帰ってこないと思います。
      * @param jsonObject nicoLiveHTMLtoJSONObject()の値
      * @return プレ垢ならtrue。そうじゃなければfalse
      * */
