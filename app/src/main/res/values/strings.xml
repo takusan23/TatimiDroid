@@ -343,4 +343,5 @@
     <string name="setting_cache_position_title">Cache playback saves playback position</string>
     <string name="last_time_position_message">Play from the position you last saw</string>
     <string name="play">Play</string>
+    <string name="setting_landscape_hide_program_info">Hide program information on landscape screen</string>
 </resources>

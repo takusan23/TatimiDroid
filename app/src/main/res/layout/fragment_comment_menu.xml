@@ -178,6 +178,14 @@
                             android:padding="5sp"
                             android:text="@string/setting_display_cutout_title" />
 
+                    <Switch
+                            android:id="@+id/fragment_comment_fragment_menu_hide_program_info"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="5sp"
+                            android:text="@string/setting_landscape_hide_program_info" />
+
+
                     <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

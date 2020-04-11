@@ -249,6 +249,13 @@ class CommentMenuFragment : Fragment() {
             }
         }
 
+        fragment_comment_fragment_menu_hide_program_info.setOnCheckedChangeListener { buttonView, isChecked ->
+            commentFragment.pref_setting.edit {
+                putBoolean("setting_landscape_hide_program_info", isChecked)
+            }
+            commentFragment.hideProgramInfo()
+        }
+
         // ニコ生ゲーム
         fragment_comment_fragment_nico_nama_game_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             commentFragment.apply {
@@ -317,6 +324,9 @@ class CommentMenuFragment : Fragment() {
         // ノッチ領域に侵略
         fragment_comment_fragment_menu_display_cutout_info_switch.isChecked =
             commentFragment.pref_setting.getBoolean("setting_display_cutout", false)
+        // 横画面UIで番組情報非表示
+        fragment_comment_fragment_menu_hide_program_info.isChecked =
+            commentFragment.pref_setting.getBoolean("setting_landscape_hide_program_info", false)
     }
 
     //CommentFragmentへ値を渡す

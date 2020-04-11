@@ -343,4 +343,5 @@
     <string name="setting_cache_position_title">キャッシュ再生では再生位置を保存する</string>
     <string name="last_time_position_message">前回見た位置から再生する</string>
     <string name="play">再生</string>
+    <string name="setting_landscape_hide_program_info">横画面で番組情報を非表示にする</string>
 </resources>

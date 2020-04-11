@@ -138,7 +138,7 @@ class LiveIDFragment : Fragment() {
     private fun setClipBoardProgramID() {
         val clipboard = context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clipdata = clipboard.primaryClip
-        if (clipdata?.getItemAt(0) != null) {
+        if (clipdata?.getItemAt(0)?.text != null) {
             val clipboardText = clipdata.getItemAt(0).text
 
             // 正規表現

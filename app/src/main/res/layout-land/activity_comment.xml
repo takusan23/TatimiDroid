@@ -55,131 +55,139 @@
             </FrameLayout>
 
             <LinearLayout
+                    android:id="@+id/comment_fragment_program_info"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="5sp"
+                    android:visibility="visible"
+                    tools:visibility="visible"
                     android:orientation="vertical">
 
-                <TextView
-                        android:id="@+id/comment_fragment_program_title"
+                <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="TextView"
-                        android:textSize="18sp" />
+                        android:layout_margin="5sp"
+                        android:orientation="vertical">
 
-                <TextView
-                        android:id="@+id/comment_fragment_program_id"
+                    <TextView
+                            android:id="@+id/comment_fragment_program_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="TextView"
+                            android:textSize="18sp" />
+
+                    <TextView
+                            android:id="@+id/comment_fragment_program_id"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="TextView"
+                            android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="TextView"
-                        android:textSize="14sp" />
-            </LinearLayout>
+                        android:orientation="horizontal"
+                        android:paddingLeft="10sp"
+                        android:paddingRight="10sp"
+                        android:visibility="visible">
 
-            <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingLeft="10sp"
-                    android:paddingRight="10sp"
-                    android:visibility="visible">
+                    <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            app:srcCompat="@drawable/ic_outline_account_circle_24px" />
 
+                    <TextView
+                            android:id="@+id/activity_comment_watch_count"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:maxLines="1"
+                            android:text=""
+                            android:textSize="18sp"
+                            android:tooltipText="@string/watch_count" />
 
-                <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        app:srcCompat="@drawable/ic_outline_account_circle_24px" />
+                    <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            app:srcCompat="@drawable/ic_active_icon" />
 
-                <TextView
-                        android:id="@+id/activity_comment_watch_count"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:text=""
-                        android:textSize="18sp"
-                        android:tooltipText="@string/watch_count" />
-
-                <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        app:srcCompat="@drawable/ic_active_icon" />
-
-                <TextView
-                        android:id="@+id/activity_comment_comment_active_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:text="計算中"
-                        android:textSize="18sp"
-                        android:tooltipText="@string/active" />
+                    <TextView
+                            android:id="@+id/activity_comment_comment_active_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:maxLines="1"
+                            android:text="計算中"
+                            android:textSize="18sp"
+                            android:tooltipText="@string/active" />
 
 
-                <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        app:srcCompat="@drawable/ic_outline_comment_24px" />
+                    <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            app:srcCompat="@drawable/ic_outline_comment_24px" />
 
-                <TextView
-                        android:id="@+id/activity_comment_comment_count"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:text=""
-                        android:textSize="18sp"
-                        android:tooltipText="@string/comment_count" />
+                    <TextView
+                            android:id="@+id/activity_comment_comment_count"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:maxLines="1"
+                            android:text=""
+                            android:textSize="18sp"
+                            android:tooltipText="@string/comment_count" />
 
-            </LinearLayout>
+                </LinearLayout>
 
-            <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingLeft="10sp"
-                    android:paddingRight="10sp">
-
-                <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        app:srcCompat="@drawable/ic_outline_query_builder_24px" />
-
-                <TextView
-                        android:id="@+id/activity_comment_comment_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:text="00:00"
-                        android:textSize="18sp"
-                        android:tooltipText="@string/livetime" />
-
-
-                <TextView
-                        android:id="@+id/activity_comment_comment_end_time"
+                <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:text="00:00"
-                        android:textSize="18sp"
-                        android:tooltipText="@string/end_time_tooltip" />
+                        android:orientation="horizontal"
+                        android:paddingLeft="10sp"
+                        android:paddingRight="10sp">
+
+                    <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            app:srcCompat="@drawable/ic_outline_query_builder_24px" />
+
+                    <TextView
+                            android:id="@+id/activity_comment_comment_time"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:maxLines="1"
+                            android:text="00:00"
+                            android:textSize="18sp"
+                            android:tooltipText="@string/livetime" />
+
+
+                    <TextView
+                            android:id="@+id/activity_comment_comment_end_time"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:maxLines="1"
+                            android:text="00:00"
+                            android:textSize="18sp"
+                            android:tooltipText="@string/end_time_tooltip" />
+                </LinearLayout>
             </LinearLayout>
 
 
         </LinearLayout>
-
 
         <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:id="@+id/comment_activity_fragment_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1">
+
 
             <LinearLayout
                     android:id="@+id/activity_comment_linearlayout"

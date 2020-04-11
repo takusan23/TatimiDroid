@@ -312,16 +312,11 @@ class CommentFragment : Fragment() {
         // ユーザーの設定したフォント読み込み
         customFont = CustomFont(context)
 
-        /*
-        * ID同じだと２窓のときなぜか隣のFragmentが置き換わるなどするので
-        * IDを作り直す
-        * */
-        // fragment_comment_fragment_linearlayout.id = View.generateViewId()
+        setAlwaysShowProgramInfo()
         // 縦画面のときのみやる作業
-        if (fragment_comment_fragment_linearlayout != null && comment_activity_fragment_layout_motionlayout != null) {
+        if (fragment_comment_fragment_linearlayout != null) {
             fragment_comment_fragment_linearlayout.background =
                 ColorDrawable(darkModeSupport.getThemeColor())
-            setAlwaysShowProgramInfo()
             fragment_comment_fragment_linearlayout.setOnClickListener {
                 // 表示、非表示
                 comment_fragment_program_info.visibility =
@@ -331,6 +326,11 @@ class CommentFragment : Fragment() {
                         View.GONE
                     }
             }
+        }
+
+        // 横画面番組情報非表示設定有効時
+        if (pref_setting.getBoolean("setting_landscape_hide_program_info", false)) {
+            hideProgramInfo()
         }
 
         //とりあえずコメントViewFragmentへ
@@ -605,7 +605,6 @@ class CommentFragment : Fragment() {
                 // なおステータスコード200でも中身がgetPlayerStatusのものかどうかはまだわからないので、、、
                 val document =
                     Jsoup.parse(getPlayerStatusResponse.body?.string())
-                println(document.html())
                 // 番組開始直後（開始数秒でアクセス）すると何故か視聴ページにリダイレクト（302）されるのでチェック
                 val hasGetPlayerStatusTag =
                     document.getElementsByTag("getplayerstatus ").isNotEmpty()
@@ -1062,7 +1061,6 @@ class CommentFragment : Fragment() {
     }
 
     fun setAlwaysShowProgramInfo() {
-        // MotionLayout固定
         if (comment_activity_fragment_layout_motionlayout != null) {
             val isAlwaysShowProgramInfo =
                 pref_setting.getBoolean("setting_always_program_info", false)
@@ -2204,6 +2202,19 @@ class CommentFragment : Fragment() {
 
     fun isPopupViewInit(): Boolean {
         return popUpPlayer.isInitializedPopUpView()
+    }
+
+    // 番組情報部分を非表示。横画面のときのみ利用可能
+    fun hideProgramInfo() {
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            comment_fragment_program_info.apply {
+                if (visibility == View.GONE) {
+                    visibility = View.VISIBLE
+                } else {
+                    visibility = View.GONE
+                }
+            }
+        }
     }
 
 }
