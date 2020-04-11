@@ -36,7 +36,7 @@
         <activity android:name=".Activity.LicenceActivity" />
 
         <service android:name=".AutoAdmissionService" />
-        <service android:name=".Service.NicoLivePopupService" />
+        <service android:name=".Service.NicoLivePlayService" />
 
         <activity android:name=".MainActivity">
             <intent-filter>

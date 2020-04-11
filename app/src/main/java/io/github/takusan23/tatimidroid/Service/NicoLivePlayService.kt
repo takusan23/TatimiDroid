@@ -1,9 +1,6 @@
 package io.github.takusan23.tatimidroid.Service
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.content.*
 import android.graphics.PixelFormat
 import android.graphics.Point
@@ -49,10 +46,19 @@ import kotlin.concurrent.timerTask
 
 
 /**
- * ニコ生をポップアップで再生するやつ。
+ * ニコ生をポップアップ、バックグラウンドで再生するやつ。
  * FragmentからServiceに移動させる
+ *
+ * Intentに詰めてほしいもの↓
+ * mode           |String |"popup"（ポップアップ再生）か"background"(バッググラウンド再生)のどっちか。
+ * live_id        |String |生放送ID
+ * is_comment_post|Boolean|コメント投稿モードならtrue
+ * is_nicocas     |Boolean|ニコキャス式コメント投稿モードならtrue
+ * オプション。任意で
+ * is_tokumei     |Boolean|184で投稿するか（省略時はtrue。匿名で投稿する。）
+ *
  * */
-class NicoLivePopupService : Service() {
+class NicoLivePlayService : Service() {
 
     // 通知ID
     private val NOTIFICAION_ID = 865
@@ -68,7 +74,7 @@ class NicoLivePopupService : Service() {
 
     // ニコ生前部屋接続など
     val nicoLiveComment = NicoLiveComment()
-    val timer = Timer()
+    val timer = Timer() // 定期的に新しい部屋が出てないか確認
 
     // View
     private lateinit var popupView: View
@@ -84,6 +90,10 @@ class NicoLivePopupService : Service() {
     var communityID = ""
     var thumbnailURL = ""
     var hlsAddress = ""
+
+    // 再生モード。ポップアップかバッググラウンド
+    var playMode = "popup"
+
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -104,9 +114,13 @@ class NicoLivePopupService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
+        playMode = intent?.getStringExtra("mode") ?: "popup"
         liveId = intent?.getStringExtra("live_id") ?: ""
         isCommentPOSTMode = intent?.getBooleanExtra("is_comment_post", true) ?: false
         isNicoCasMode = intent?.getBooleanExtra("is_nicocas", false) ?: false
+        // 184
+        val isTokumei = intent?.getBooleanExtra("is_tokumei", true) ?: true
+        nicoLiveHTML.isTokumeiComment = isTokumei
 
         coroutine()
 
@@ -123,13 +137,13 @@ class NicoLivePopupService : Service() {
                 nicoLiveHTML.getNicoLiveHTML(liveId, userSession, true).await()
             if (!livePageResponse.isSuccessful) {
                 // 失敗のときはService落とす
-                this@NicoLivePopupService.stopSelf()
+                this@NicoLivePlayService.stopSelf()
                 showToast("${getString(R.string.error)}\n${livePageResponse.code}")
                 return@launch
             }
             if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
                 // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
-                NicoLogin.loginCoroutine(this@NicoLivePopupService).await()
+                NicoLogin.loginCoroutine(this@NicoLivePlayService).await()
                 // 視聴モードなら再度視聴ページリクエスト
                 if (isCommentPOSTMode) {
                     coroutine()
@@ -161,7 +175,7 @@ class NicoLivePopupService : Service() {
                             hlsAddress = getHlsAddress(message) ?: ""
                             // モバイルデータは最低画質で読み込む設定
                             if (prefSetting.getBoolean("setting_mobiledata_quality_low", false)) {
-                                if (isConnectionInternet(this@NicoLivePopupService)) {
+                                if (isConnectionInternet(this@NicoLivePlayService)) {
                                     // 最低画質指定
                                     nicoLiveHTML.sendQualityMessage("super_low")
                                 }
@@ -169,38 +183,41 @@ class NicoLivePopupService : Service() {
                             // UI Thread
                             Handler(Looper.getMainLooper()).post {
                                 // 生放送再生
-                                initPopupPlayer()
+                                initPlayer()
                             }
                         }
                         command == "currentroom" -> {
-                            // threadId、WebSocketURL受信。コメント送信時に使うWebSocketに接続する
-                            val jsonObject = JSONObject(message)
-                            // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
-                            if (jsonObject.getJSONObject("body").has("room")) {
-                                val commentMessageServerUri =
-                                    getCommentServerWebSocketAddress(message)
-                                val commentThreadId = getCommentServerThreadId(message)
-                                val commentRoomName = getCommentRoomName(message)
-                                // 公式番組のとき
-                                if (isOfficial) {
-                                    Handler(Looper.getMainLooper()).post {
-                                        // WebSocketで流れてきたアドレスへ接続する
-                                        nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
+                            // ポップアップ再生ならコメントサーバーに接続する
+                            if (isPopupPlay()) {
+                                // threadId、WebSocketURL受信。コメント送信時に使うWebSocketに接続する
+                                val jsonObject = JSONObject(message)
+                                // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
+                                if (jsonObject.getJSONObject("body").has("room")) {
+                                    val commentMessageServerUri =
+                                        getCommentServerWebSocketAddress(message)
+                                    val commentThreadId = getCommentServerThreadId(message)
+                                    val commentRoomName = getCommentRoomName(message)
+                                    // 公式番組のとき
+                                    if (isOfficial) {
+                                        Handler(Looper.getMainLooper()).post {
+                                            // WebSocketで流れてきたアドレスへ接続する
+                                            nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
+                                        }
                                     }
+                                    // コメント投稿時に使うWebSocketに接続する
+                                    commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
                                 }
-                                // コメント投稿時に使うWebSocketに接続する
-                                commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
                             }
                         }
                         message.contains("disconnect") -> {
-                            this@NicoLivePopupService.stopSelf()
+                            this@NicoLivePlayService.stopSelf()
                         }
                     }
                 }
             }
             // 全部屋接続。定期的にAPIを叩く
-            // ただし公式番組では利用できないので分岐
-            if (!nicoLiveHTML.isOfficial) {
+            // ただし公式番組ではなくてなおポップアップ再生時は定期監視する
+            if (!nicoLiveHTML.isOfficial && isPopupPlay()) {
                 timer.schedule(timerTask { initAllRoomConenct() }, 0, 60 * 1000)
             }
         }
@@ -275,57 +292,19 @@ class NicoLivePopupService : Service() {
     }
 
     /**
+     * ポップアップ再生かどうかを返す
+     * @return ポップアップ再生ならtrue
+     * */
+    fun isPopupPlay(): Boolean {
+        return playMode == "popup"
+    }
+
+    /**
      * ポップアップView初期化。ぽっぴっぽーみたい（？）
      * */
-    private fun initPopupPlayer() {
+    private fun initPlayer() {
 
-        if (!Settings.canDrawOverlays(this)) {
-            return
-        }
-
-        // 画面の半分を利用するように
-        val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val disp = wm.getDefaultDisplay()
-        val realSize = Point();
-        disp.getRealSize(realSize);
-        val width = realSize.x / 2
-
-        //アスペクト比16:9なので
-        val height = (width / 16) * 9
-        //レイアウト読み込み
-        val layoutInflater = LayoutInflater.from(this)
-        // オーバーレイViewの設定をする
-        val params = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams(
-                width,
-                height,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT
-            )
-        } else {
-            WindowManager.LayoutParams(
-                width,
-                height,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT
-            )
-        }
-        popupView = layoutInflater.inflate(R.layout.overlay_player_layout, null)
-        //表示
-        windowManager.addView(popupView, params)
-        popupView.overlay_commentCanvas.isFloatingView = true
-        commentCanvas = popupView.overlay_commentCanvas
-
-        // MediaSession
-        initMediaSession()
+        // ポップアップ再生、バッググラウンド再生　共にExoPlayer、MediaSessionの初期化を行う。
 
         // ExoPlayer初期化
         popupExoPlayer = SimpleExoPlayer.Builder(this).build()
@@ -356,8 +335,6 @@ class NicoLivePopupService : Service() {
 
         //再生準備
         popupExoPlayer.prepare(hlsMediaSource)
-        //SurfaceViewセット
-        popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
         //再生
         popupExoPlayer.playWhenReady = true
         // エラーのとき
@@ -372,8 +349,10 @@ class NicoLivePopupService : Service() {
                     Handler(Looper.getMainLooper()).post {
                         // 再生準備
                         popupExoPlayer.prepare(hlsMediaSource)
-                        //SurfaceViewセット
-                        popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
+                        if (::popupView.isInitialized) {
+                            //SurfaceViewセット
+                            popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
+                        }
                         //再生
                         popupExoPlayer.playWhenReady = true
                     }
@@ -381,117 +360,181 @@ class NicoLivePopupService : Service() {
             }
         })
 
-        //閉じる
-        popupView.overlay_close_button.setOnClickListener {
-            stopSelf()
-        }
+        // MediaSession。通知もう一階出せばなんか表示されるようになった。Androidむずかちい
+        showNotification(programTitle)
+        initMediaSession()
 
-        //アプリ起動
-        popupView.overlay_activity_launch.setOnClickListener {
-            stopSelf()
-            // モード選ぶ
-            val mode = when {
-                isCommentPOSTMode -> "comment_post"
-                isNicoCasMode -> "nicocas"
-                else -> "comment_viewer"
+        // ポップアップ再生ならポップアップViewを用意する
+        if (isPopupPlay()) {
+
+            // 権限なければ落とす
+            if (!Settings.canDrawOverlays(this)) {
+                return
             }
-            // アプリ起動
-            val intent = Intent(this, CommentActivity::class.java)
-            intent.putExtra("liveId", liveId)
-            intent.putExtra("watch_mode", mode)
-            intent.putExtra("isOfficial", nicoLiveHTML.isOfficial)
-            startActivity(intent)
-        }
 
-        //ミュート・ミュート解除
-        popupView.overlay_sound_button.setOnClickListener {
-            if (::popupExoPlayer.isInitialized) {
-                popupExoPlayer.apply {
-                    //音が０のとき
-                    if (volume == 0f) {
-                        volume = 1f
-                        popupView.overlay_sound_button.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
-                    } else {
-                        volume = 0f
-                        popupView.overlay_sound_button.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
+            // 画面の半分を利用するように
+            val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val disp = wm.getDefaultDisplay()
+            val realSize = Point();
+            disp.getRealSize(realSize);
+            val width = realSize.x / 2
+
+            //アスペクト比16:9なので
+            val height = (width / 16) * 9
+            //レイアウト読み込み
+            val layoutInflater = LayoutInflater.from(this)
+            // オーバーレイViewの設定をする
+            val params = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                WindowManager.LayoutParams(
+                    width,
+                    height,
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                    PixelFormat.TRANSLUCENT
+                )
+            } else {
+                WindowManager.LayoutParams(
+                    width,
+                    height,
+                    WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                    PixelFormat.TRANSLUCENT
+                )
+            }
+            popupView = layoutInflater.inflate(R.layout.overlay_player_layout, null)
+            //表示
+            windowManager.addView(popupView, params)
+            popupView.overlay_commentCanvas.isFloatingView = true
+            commentCanvas = popupView.overlay_commentCanvas
+
+            //SurfaceViewセット
+            popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
+
+            //閉じる
+            popupView.overlay_close_button.setOnClickListener {
+                stopSelf()
+            }
+
+            //アプリ起動
+            popupView.overlay_activity_launch.setOnClickListener {
+                stopSelf()
+                // モード選ぶ
+                val mode = when {
+                    isCommentPOSTMode -> "comment_post"
+                    isNicoCasMode -> "nicocas"
+                    else -> "comment_viewer"
+                }
+                // アプリ起動
+                val intent = Intent(this, CommentActivity::class.java)
+                intent.putExtra("liveId", liveId)
+                intent.putExtra("watch_mode", mode)
+                intent.putExtra("isOfficial", nicoLiveHTML.isOfficial)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+            }
+
+            //ミュート・ミュート解除
+            popupView.overlay_sound_button.setOnClickListener {
+                if (::popupExoPlayer.isInitialized) {
+                    popupExoPlayer.apply {
+                        //音が０のとき
+                        if (volume == 0f) {
+                            volume = 1f
+                            popupView.overlay_sound_button.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
+                        } else {
+                            volume = 0f
+                            popupView.overlay_sound_button.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
+                        }
                     }
                 }
             }
-        }
 
-        //画面サイズ
-        val displaySize: Point by lazy {
-            val display = windowManager.defaultDisplay
-            val size = Point()
-            display.getSize(size)
-            size
-        }
+            //画面サイズ
+            val displaySize: Point by lazy {
+                val display = windowManager.defaultDisplay
+                val size = Point()
+                display.getSize(size)
+                size
+            }
 
-        //移動
-        popupView.setOnTouchListener { view, motionEvent ->
-            // タップした位置を取得する
-            val x = motionEvent.rawX.toInt()
-            val y = motionEvent.rawY.toInt()
+            //移動
+            popupView.setOnTouchListener { view, motionEvent ->
+                // タップした位置を取得する
+                val x = motionEvent.rawX.toInt()
+                val y = motionEvent.rawY.toInt()
 
-            when (motionEvent.action) {
-                // Viewを移動させてるときに呼ばれる
-                MotionEvent.ACTION_MOVE -> {
-                    // 中心からの座標を計算する
-                    val centerX = x - (displaySize.x / 2)
-                    val centerY = y - (displaySize.y / 2)
+                when (motionEvent.action) {
+                    // Viewを移動させてるときに呼ばれる
+                    MotionEvent.ACTION_MOVE -> {
+                        // 中心からの座標を計算する
+                        val centerX = x - (displaySize.x / 2)
+                        val centerY = y - (displaySize.y / 2)
 
-                    // オーバーレイ表示領域の座標を移動させる
-                    params.x = centerX
-                    params.y = centerY
+                        // オーバーレイ表示領域の座標を移動させる
+                        params.x = centerX
+                        params.y = centerY
 
-                    // 移動した分を更新する
-                    windowManager.updateViewLayout(view, params)
+                        // 移動した分を更新する
+                        windowManager.updateViewLayout(view, params)
+                    }
+                }
+                false
+            }
+
+            //ボタン表示
+            popupView.setOnClickListener {
+                if (popupView.overlay_button_layout.visibility == View.GONE) {
+                    //表示
+                    popupView.overlay_button_layout.visibility = View.VISIBLE
+                } else {
+                    //非表示
+                    popupView.overlay_button_layout.visibility = View.GONE
                 }
             }
-            false
-        }
 
-        //ボタン表示
-        popupView.setOnClickListener {
-            if (popupView.overlay_button_layout.visibility == View.GONE) {
-                //表示
-                popupView.overlay_button_layout.visibility = View.VISIBLE
-            } else {
-                //非表示
-                popupView.overlay_button_layout.visibility = View.GONE
+            popupView.overlay_send_comment_button.setOnClickListener {
+                showNotification(programTitle)
             }
-        }
 
-        popupView.overlay_send_comment_button.setOnClickListener {
-            showNotification(programTitle)
-        }
+            // 大きさ変更。まず変更前を入れておく
+            val normalHeight = params.height
+            val normalWidth = params.width
+            popupView.overlay_size_seekbar.apply {
+                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                        // 操作中
+                        params.height = normalHeight + (progress + 1) * 9
+                        params.width = normalWidth + (progress + 1) * 16
+                        windowManager.updateViewLayout(popupView, params)
+                    }
 
-        // 大きさ変更。まず変更前を入れておく
-        val normalHeight = params.height
-        val normalWidth = params.width
-        popupView.overlay_size_seekbar.apply {
-            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    // 操作中
-                    params.height = normalHeight + (progress + 1) * 9
-                    params.width = normalWidth + (progress + 1) * 16
-                    windowManager.updateViewLayout(popupView, params)
-                }
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) {
 
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    }
 
-                }
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) {
 
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    }
+                })
+            }
 
-                }
-            })
         }
 
     }
 
     /** MediaSession。音楽アプリの再生中のあれ */
     private fun initMediaSession() {
+        val mode = if (isPopupPlay()) {
+            getString(R.string.popup_notification_title)
+        } else {
+            getString(R.string.background_play)
+        }
         mediaSessionCompat = MediaSessionCompat(this, "nicolive")
         // メタデータ
         val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
@@ -499,7 +542,7 @@ class NicoLivePopupService : Service() {
             putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, liveId)
             putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, programTitle)
             putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, programTitle)
-            putString(MediaMetadataCompat.METADATA_KEY_ARTIST, getString(R.string.popup_player))
+            putString(MediaMetadataCompat.METADATA_KEY_ARTIST, mode)
         }.build()
         mediaSessionCompat.apply {
             setMetadata(mediaMetadataCompat) // メタデータ入れる
@@ -526,8 +569,20 @@ class NicoLivePopupService : Service() {
      * サービス実行中通知を送る関数。
      * まずこれを呼んでServiceを終了させないようにしないといけない。
      * */
-    private fun showNotification(title: String) {
+    private fun showNotification(message: String) {
+        // 停止Broadcast送信
         val stopPopupIntent = Intent("program_popup_close")
+        // 通知のタイトル設定
+        val title = if (isPopupPlay()) {
+            getString(R.string.popup_notification_title)
+        } else {
+            getString(R.string.background_play)
+        }
+        val icon = if (isPopupPlay()) {
+            R.drawable.ic_popup_icon
+        } else {
+            R.drawable.ic_background_icon
+        }
         // 通知作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannelId = "program_popup"
@@ -540,26 +595,25 @@ class NicoLivePopupService : Service() {
             }
             val programNotification =
                 NotificationCompat.Builder(this, notificationChannelId).apply {
-                    // setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken))
-                    setContentTitle(getString(R.string.popup_notification_description))
-                    setContentText(title)
-                    setSmallIcon(R.drawable.ic_popup_icon)
-                    addAction(directReply())
-                    addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoLivePopupService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                    setContentTitle(title)
+                    setContentText(message)
+                    setSmallIcon(icon)
+                    if (isPopupPlay()) {
+                        addAction(directReply())
+                    }
+                    addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoLivePlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
                 }.build()
-            //消せないようにする
             startForeground(NOTIFICAION_ID, programNotification)
         } else {
             val programNotification = NotificationCompat.Builder(this).apply {
-                setContentTitle(getString(R.string.notification_background_play))
-                setContentText(title)
-                setSmallIcon(R.drawable.ic_popup_icon)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                setContentTitle(title)
+                setContentText(message)
+                setSmallIcon(icon)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isPopupPlay()) {
                     addAction(directReply()) // Android ぬがあー以降でDirect Replyが使える
                 }
-                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoLivePopupService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoLivePlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
             }.build()
-            //消せないようにする
             startForeground(NOTIFICAION_ID, programNotification)
         }
     }
@@ -590,9 +644,6 @@ class NicoLivePopupService : Service() {
      * Direct Replyの返信を受け取ったりするため
      * */
     private fun initBroadcast() {
-        /*
-         * ブロードキャスト
-         * */
         val intentFilter = IntentFilter()
         intentFilter.addAction("program_popup_close")
         intentFilter.addAction("direct_reply_comment")
@@ -601,11 +652,25 @@ class NicoLivePopupService : Service() {
                 when (intent?.action) {
                     "program_popup_close" -> {
                         // 終了
-                        this@NicoLivePopupService.stopSelf()
-                        onDestroy()
+                        this@NicoLivePlayService.stopSelf()
                     }
                     "direct_reply_comment" -> {
-
+                        // コメント送信
+                        // Direct Reply でポップアップ画面でもコメント投稿できるようにする。ぬがあー以降で使える
+                        val remoteInput = RemoteInput.getResultsFromIntent(intent)
+                        val comment = remoteInput.getCharSequence("direct_reply_comment")
+                        when {
+                            isCommentPOSTMode -> {
+                                nicoLiveHTML.sendPOSTWebSocketComment(comment as String, "") // コメント投稿
+                                showNotification(programTitle) // 通知再設置
+                            }
+                            isNicoCasMode -> {
+                                // コメント投稿。nicocasのAPI叩く
+                                nicoLiveHTML.sendCommentNicocasAPI(comment as String, "", liveId, userSession, { showToast(getString(R.string.error)) }, {
+                                    showNotification(programTitle) // 通知再設置
+                                })
+                            }
+                        }
                     }
                 }
             }
@@ -616,7 +681,9 @@ class NicoLivePopupService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(broadcastReceiver)
-        windowManager.removeView(popupView)
+        if (::popupView.isInitialized) {
+            windowManager.removeView(popupView)
+        }
         popupExoPlayer.release()
         nicoLiveHTML.destroy()
         nicoLiveComment.destroy()

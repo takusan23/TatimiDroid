@@ -54,7 +54,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
-import io.github.takusan23.tatimidroid.Service.NicoLivePopupService
+import io.github.takusan23.tatimidroid.Service.NicoLivePlayService
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
@@ -1578,11 +1578,28 @@ class CommentFragment : Fragment() {
 
     /*オーバーレイ*/
     fun startOverlayPlayer() {
-        val intent = Intent(context, NicoLivePopupService::class.java).apply {
+        startPlayService("popup")
+    }
+
+    /*バックグラウンド再生*/
+    fun setBackgroundProgramPlay() {
+        startPlayService("background")
+    }
+
+    /**
+     * ポップアップ再生、バッググラウンド再生サービス起動用関数
+     * @param mode "popup"（ポップアップ再生）か"background"（バッググラウンド再生）
+     * */
+    private fun startPlayService(mode: String) {
+        val intent = Intent(context, NicoLivePlayService::class.java).apply {
+            putExtra("mode", mode)
             putExtra("live_id", liveId)
             putExtra("is_comment_post", isWatchingMode)
             putExtra("is_nicocas", isNicocasMode)
         }
+        // サービス終了（起動させてないときは何もならないと思う）させてから起動させる。（
+        // 起動してない状態でstopService呼ぶ分にはなんの問題もないっぽい？）
+        activity?.stopService(intent)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             activity?.startForegroundService(intent)
         } else {
@@ -1590,35 +1607,6 @@ class CommentFragment : Fragment() {
         }
         // Activity落とす
         activity?.finish()
-    }
-
-    /*バックグラウンド再生*/
-    fun setBackgroundProgramPlay() {
-        //再生。
-        backgroundPlay.start(hlsAddress.toUri())
-        //Nougatと分岐
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannelId = "program_background"
-            val notificationChannel = NotificationChannel(
-                notificationChannelId, getString(R.string.notification_background_play),
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            //通知チャンネル登録
-            if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
-                notificationManager.createNotificationChannel(notificationChannel)
-            }
-            //通知作成
-            backgroundPlayNotification(
-                getString(R.string.background_play_pause),
-                NotificationCompat.FLAG_ONGOING_EVENT
-            )
-        } else {
-            //通知作成
-            backgroundPlayNotification(
-                getString(R.string.background_play_pause),
-                NotificationCompat.FLAG_ONGOING_EVENT
-            )
-        }
     }
 
 
