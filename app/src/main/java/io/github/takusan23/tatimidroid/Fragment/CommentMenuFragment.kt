@@ -179,13 +179,6 @@ class CommentMenuFragment : Fragment() {
                     )
                     startActivity(intent)
                 }
-                if (isPopupViewInit()) {
-                    try {
-                        popUpPlayer.destroy()
-                    } catch (e: IllegalArgumentException) {
-                        e.printStackTrace()
-                    }
-                }
                 //ポップアップ再生。コメント付き
                 startOverlayPlayer()
                 if (isExoPlayerInitialized()) {

@@ -76,12 +76,6 @@ class CommentFragment : Fragment() {
     //ユーザーセッション
     var usersession = ""
 
-    //コメント投稿に必須なユーザーID
-    var userId = ""
-
-    //コメント投稿に必須なプレミアム会員かどうか
-    var premium = 0
-
     //視聴モード（コメント投稿機能付き）かどうか
     var isWatchingMode = false
 
@@ -120,16 +114,6 @@ class CommentFragment : Fragment() {
 
     //ユーザーNG配列
     val userNGList = arrayListOf<String>()
-
-    lateinit var broadcastReceiver: BroadcastReceiver
-
-    //バックグラウンド再生の通知ID
-    val backgroundNotificationID = 1234
-
-    lateinit var backgroundPlay: BackgroundPlay
-
-    //NotificationManager
-    lateinit var notificationManager: NotificationManager
 
     //コメント非表示？
     var isCommentHidden = false
@@ -216,9 +200,6 @@ class CommentFragment : Fragment() {
     // SurfaceView(ExoPlayer) + CommentCanvasのLayoutParams
     lateinit var surfaceViewLayoutParams: FrameLayout.LayoutParams
 
-    // ポップアップ再生をクラスに切り分けた
-    lateinit var popUpPlayer: PopUpPlayer
-
     // スワイプで画面切り替えるやつ
     lateinit var commentViewPager: CommentViewPager
 
@@ -262,9 +243,6 @@ class CommentFragment : Fragment() {
             commentActivity.supportActionBar?.hide()
         }
 
-        backgroundPlay = BackgroundPlay(context!!)
-        popUpPlayer = PopUpPlayer(context, this)
-
         //起動時の音量を保存しておく
         audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
@@ -288,9 +266,6 @@ class CommentFragment : Fragment() {
 
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
         isOfficial = arguments?.getBoolean("isOfficial") ?: false
-
-        notificationManager =
-            context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         //スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -422,63 +397,6 @@ class CommentFragment : Fragment() {
 
         //アクティブ人数クリアなど、追加部分はCommentViewFragmentです
         activeUserClear()
-
-        /*
-        * ブロードキャスト
-        * */
-        val intentFilter = IntentFilter()
-        intentFilter.addAction("background_program_stop")
-        intentFilter.addAction("background_program_pause")
-        intentFilter.addAction("program_popup_close")
-        intentFilter.addAction("direct_reply_comment")
-        broadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(p0: Context?, p1: Intent?) {
-                when (p1?.action) {
-                    "program_popup_close" -> {
-                        popUpPlayer.apply {
-                            if (isPopupPlay) {
-                                if (isInitializedExoPlayer()) {
-                                    //ポップアップ再生終了
-                                    destroy()
-                                }
-                            }
-                        }
-                    }
-                    "background_program_stop" -> {
-                        //停止
-                        backgroundPlay.pause()
-                        notificationManager.cancel(backgroundNotificationID)//削除
-                    }
-                    "background_program_pause" -> {
-                        if (backgroundPlay.exoPlayer.playWhenReady) {
-                            //一時停止
-                            backgroundPlay.pause()
-                            //通知作成
-                            backgroundPlayNotification(
-                                getString(R.string.background_play_play),
-                                NotificationCompat.FLAG_ONGOING_EVENT
-                            )
-                        } else {
-                            //Liveで再生
-                            backgroundPlay.play(hlsAddress.toUri())
-                            //通知作成
-                            backgroundPlayNotification(
-                                getString(R.string.background_play_pause),
-                                NotificationCompat.FLAG_ONGOING_EVENT
-                            )
-                        }
-                    }
-                    "direct_reply_comment" -> {
-                        // Direct Reply でポップアップ画面でもコメント投稿できるようにする。ぬがあー以降で使える
-                        val remoteInput = RemoteInput.getResultsFromIntent(p1)
-                        val comment = remoteInput.getCharSequence("direct_reply_comment")
-                        sendComment(comment as String, "") // コメント投稿
-                        popUpPlayer.showPopUpPlayerNotification() // 通知再設置
-                    }
-                }
-            }
-        }
-        commentActivity.registerReceiver(broadcastReceiver, intentFilter)
 
     }
 
@@ -706,10 +624,6 @@ class CommentFragment : Fragment() {
                 // 豆先輩とか
                 if (!commentJSONParse.comment.contains("\n")) {
                     commentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
-                    //ポップアップ再生
-                    if (popUpPlayer.isPopupPlay) {
-                        popUpPlayer.commentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
-                    }
                 } else {
                     // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
                     // 豆先輩！！！！！！！！！！！！！！！！！！
@@ -722,10 +636,6 @@ class CommentFragment : Fragment() {
                     }
                     for (line in asciiArtComment) {
                         commentCanvas.postComment(line, commentJSONParse, true)
-                        //ポップアップ再生
-                        if (popUpPlayer.isPopupPlay) {
-                            popUpPlayer.commentCanvas.postComment(line, commentJSONParse, true)
-                        }
                     }
                 }
 
@@ -1541,16 +1451,6 @@ class CommentFragment : Fragment() {
     fun destroyCode() {
         programTimer.cancel()
         activeTimer.cancel()
-        //バックグラウンド再生止める
-        backgroundPlay.release()
-        //ポップアップ再生とめる
-        if (popUpPlayer.isPopupPlay) {
-            popUpPlayer.destroy()
-        }
-        if (this@CommentFragment::broadcastReceiver.isInitialized) {
-            //中野ブロードキャスト終了
-            commentActivity.unregisterReceiver(broadcastReceiver)
-        }
         //センサーによる画面回転が有効になってる場合は最後に
         if (this@CommentFragment::rotationSensor.isInitialized) {
             rotationSensor.destroy()
@@ -1610,113 +1510,9 @@ class CommentFragment : Fragment() {
     }
 
 
-    fun backgroundPlayNotification(pausePlayString: String, flag: Int) {
-        //音楽コントロールブロードキャスト
-        val stopIntent = Intent("background_program_stop")
-        val pauseIntent = Intent("background_program_pause")
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannelId = "program_background"
-            val programNotification =
-                NotificationCompat.Builder(context!!, notificationChannelId)
-                    .setContentTitle(programTitle)
-                    .setContentText(liveId)
-                    .setSmallIcon(R.drawable.ic_background_icon)
-                    .addAction(
-                        NotificationCompat.Action(
-                            R.drawable.ic_outline_stop_24px,
-                            pausePlayString,
-                            PendingIntent.getBroadcast(
-                                context,
-                                12,
-                                pauseIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT
-                            )
-                        )
-                    )
-                    .addAction(
-                        NotificationCompat.Action(
-                            R.drawable.ic_clear_black,
-                            getString(R.string.background_play_finish),
-                            PendingIntent.getBroadcast(
-                                context,
-                                12,
-                                stopIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT
-                            )
-                        )
-                    )
-                    .build()
-            //消せないようにする
-            programNotification.flags = flag
-
-            notificationManager.notify(backgroundNotificationID, programNotification)
-        } else {
-            val programNotification = NotificationCompat.Builder(context!!)
-                .setContentTitle(programTitle)
-                .setContentText(liveId)
-                .setSmallIcon(R.drawable.ic_background_icon)
-                .addAction(
-                    NotificationCompat.Action(
-                        R.drawable.ic_outline_stop_24px,
-                        pausePlayString,
-                        PendingIntent.getBroadcast(
-                            context,
-                            12,
-                            pauseIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT
-                        )
-                    )
-                )
-                .addAction(
-                    NotificationCompat.Action(
-                        R.drawable.ic_outline_stop_24px,
-                        getString(R.string.background_play_finish),
-                        PendingIntent.getBroadcast(
-                            context,
-                            12,
-                            stopIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT
-                        )
-                    )
-                ).build()
-
-            //消せないようにする
-            programNotification.flags = flag
-
-            notificationManager.notify(backgroundNotificationID, programNotification)
-        }
-    }
-
     //Activity復帰した時に呼ばれる
     override fun onStart() {
         super.onStart()
-        //アプリ戻ってきたらバックグラウンド再生、ポップアップ再生を止める。
-        val windowManager =
-            context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-
-        //バックグラウンド再生から戻ってきた時
-        if (backgroundPlay.isPlaying) {
-            notificationManager.cancel(backgroundNotificationID) //通知削除
-            Toast.makeText(
-                context!!,
-                getString(R.string.lunch_app_close_background),
-                Toast.LENGTH_SHORT
-            ).show()
-            backgroundPlay.release()
-        }
-
-        //ポップアップ再生止める
-        //ポップアップ再生のExoPlayerも止める
-        if (popUpPlayer.isPopupPlay) {
-            popUpPlayer.destroy()
-            Toast.makeText(
-                context,
-                getString(R.string.lunch_app_close_popup),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
         //再生部分を作り直す
         if (hlsAddress.isNotEmpty()) {
             live_framelayout.visibility = View.VISIBLE
@@ -2201,11 +1997,6 @@ class CommentFragment : Fragment() {
         }
     }
 
-
-    fun isPopupViewInit(): Boolean {
-        return popUpPlayer.isInitializedPopUpView()
-    }
-
     // 番組情報部分を非表示。横画面のときのみ利用可能
     fun hideProgramInfo() {
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -2218,5 +2009,4 @@ class CommentFragment : Fragment() {
             }
         }
     }
-
 }
