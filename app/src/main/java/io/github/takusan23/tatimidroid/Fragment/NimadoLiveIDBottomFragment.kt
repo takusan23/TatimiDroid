@@ -69,7 +69,7 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
     }
 
     fun addNimado(mode: String) {
-        GlobalScope.launch(Dispatchers.Main) {
+        GlobalScope.launch {
             // コミュIDのときはコミュIDを取ってから
             val nicoLiveHTML =
                 NicoLiveHTML()

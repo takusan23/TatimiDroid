@@ -336,7 +336,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 }
                 if (yPos > finalHeight) {
                     // 画面外に行く場合はランダムで決定
-                    if (finalHeight > 0) {
+                    if (finalHeight > 0 && fontsize.toInt() < finalHeight) {
                         // Canvasの高さが取得できているとき
                         yPos = Random.nextInt(fontsize.toInt(), finalHeight).toFloat()
                     } else {

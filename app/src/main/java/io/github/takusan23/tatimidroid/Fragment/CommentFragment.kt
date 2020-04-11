@@ -54,6 +54,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
+import io.github.takusan23.tatimidroid.Service.NicoLivePopupService
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
@@ -487,7 +488,6 @@ class CommentFragment : Fragment() {
     private fun coroutine() {
         GlobalScope.launch {
             // ニコ生視聴ページリクエスト
-            // isWatchingModeには
             val livePageResponse =
                 nicoLiveHTML.getNicoLiveHTML(liveId, usersession, isWatchingMode).await()
             if (!livePageResponse.isSuccessful) {
@@ -1578,7 +1578,18 @@ class CommentFragment : Fragment() {
 
     /*オーバーレイ*/
     fun startOverlayPlayer() {
-        popUpPlayer.showPopUpView(hlsAddress)
+        val intent = Intent(context, NicoLivePopupService::class.java).apply {
+            putExtra("live_id", liveId)
+            putExtra("is_comment_post", isWatchingMode)
+            putExtra("is_nicocas", isNicocasMode)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            activity?.startForegroundService(intent)
+        } else {
+            activity?.startService(intent)
+        }
+        // Activity落とす
+        activity?.finish()
     }
 
     /*バックグラウンド再生*/

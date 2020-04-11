@@ -31,12 +31,13 @@
                 android:resizeableActivity="true" />
         <activity android:name=".Activity.CommentCollectionListActivity" />
         <activity android:name=".Activity.NGListActivity" />
-
-        <service android:name=".AutoAdmissionService" />
-
         <activity android:name=".Activity.KonoApp" />
         <activity android:name=".Activity.CommentActivity" />
         <activity android:name=".Activity.LicenceActivity" />
+
+        <service android:name=".AutoAdmissionService" />
+        <service android:name=".Service.NicoLivePopupService" />
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -36,7 +36,7 @@
                     android:gravity="end"
                     android:orientation="horizontal">
 
-                <ImageButton
+                <ImageView
                         android:id="@+id/overlay_send_comment_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -44,10 +44,10 @@
                         android:clickable="true"
                         android:foreground="?android:attr/selectableItemBackground"
                         android:padding="10sp"
-                        android:tint="#ffffff"
-                        app:srcCompat="@drawable/ic_send_black" />
+                        android:src="@drawable/ic_send_black"
+                        android:tint="#ffffff" />
 
-                <ImageButton
+                <ImageView
                         android:id="@+id/overlay_sound_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -55,10 +55,10 @@
                         android:clickable="true"
                         android:foreground="?android:attr/selectableItemBackground"
                         android:padding="10sp"
-                        android:tint="#ffffff"
-                        app:srcCompat="@drawable/ic_volume_up_24px" />
+                        android:src="@drawable/ic_volume_up_24px"
+                        android:tint="#ffffff" />
 
-                <ImageButton
+                <ImageView
                         android:id="@+id/overlay_activity_launch"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -66,10 +66,10 @@
                         android:clickable="true"
                         android:foreground="?android:attr/selectableItemBackground"
                         android:padding="10sp"
-                        android:tint="#ffffff"
-                        app:srcCompat="@drawable/ic_outline_open_in_browser_24px" />
+                        android:src="@drawable/ic_outline_open_in_browser_24px"
+                        android:tint="#ffffff" />
 
-                <ImageButton
+                <ImageView
                         android:id="@+id/overlay_close_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -77,8 +77,8 @@
                         android:clickable="true"
                         android:foreground="?android:attr/selectableItemBackground"
                         android:padding="10sp"
-                        android:tint="#ffffff"
-                        app:srcCompat="@drawable/ic_clear_black" />
+                        android:src="@drawable/ic_clear_black"
+                        android:tint="#ffffff" />
             </LinearLayout>
 
             <LinearLayout
@@ -91,8 +91,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:padding="5sp"
-                        android:tint="#ffffff"
-                        app:srcCompat="@drawable/ic_aspect_ratio_24px" />
+                        android:src="@drawable/ic_aspect_ratio_24px"
+                        android:tint="#ffffff" />
 
                 <SeekBar
                         android:id="@+id/overlay_size_seekbar"
@@ -108,7 +108,8 @@
                     android:id="@+id/overlay_comment_textview"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:textColor="#ffffff" />
+                    android:textColor="#ffffff"
+                    android:visibility="gone" />
 
 
         </LinearLayout>
