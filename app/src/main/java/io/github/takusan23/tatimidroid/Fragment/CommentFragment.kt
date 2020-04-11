@@ -632,7 +632,10 @@ class CommentFragment : Fragment() {
             insertDB()
 
             // 全部屋接続。定期的にAPIを叩く
-            programInfoTimer.schedule(timerTask { initAllRoomConenct() }, 0, 60 * 1000)
+            // ただし公式番組では利用できないので分岐
+            if (!nicoLiveHTML.isOfficial) {
+                programInfoTimer.schedule(timerTask { initAllRoomConenct() }, 0, 60 * 1000)
+            }
 
         }
     }

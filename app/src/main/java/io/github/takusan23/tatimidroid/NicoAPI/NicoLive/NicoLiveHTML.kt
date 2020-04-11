@@ -146,7 +146,11 @@ class NicoLiveHTML {
         programOpenTime = nicoLiveJSON.getJSONObject("program").getLong("openTime")
         programStartTime = nicoLiveJSON.getJSONObject("program").getLong("beginTime")
         programTitle = nicoLiveJSON.getJSONObject("program").getString("title")
-        communityId = nicoLiveJSON.getJSONObject("community").getString("id")
+        communityId = if(nicoLiveJSON.has("community")){
+            nicoLiveJSON.getJSONObject("community").getString("id")
+        }else{
+            nicoLiveJSON.getJSONObject("channel").getString("id")
+        }
         thumb = nicoLiveJSON.getJSONObject("program").getJSONObject("thumbnail").getString("small")
         isOfficial = isOfficial(nicoLiveJSON)
     }
