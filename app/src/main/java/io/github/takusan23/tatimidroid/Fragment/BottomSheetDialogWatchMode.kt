@@ -73,10 +73,12 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
             // 視聴ページHTML取得
             val nicoHTMLResponse = nicoLiveHTML.getNicoLiveHTML(liveId, user_session).await()
             if (!nicoHTMLResponse.isSuccessful) {
-                // 失敗時は落とす
-                Toast.makeText(context, "${getString(R.string.error)}\n${nicoHTMLResponse.code}", Toast.LENGTH_SHORT)
-                    .show()
-                this@BottomSheetDialogWatchMode.dismiss()
+                Handler(Looper.getMainLooper()).post {
+                    // 失敗時は落とす
+                    Toast.makeText(context, "${getString(R.string.error)}\n${nicoHTMLResponse.code}", Toast.LENGTH_SHORT)
+                        .show()
+                    this@BottomSheetDialogWatchMode.dismiss()
+                }
                 return@launch
             }
             // JSON取り出し

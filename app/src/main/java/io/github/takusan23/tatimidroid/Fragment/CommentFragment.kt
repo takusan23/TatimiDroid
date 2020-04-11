@@ -602,21 +602,35 @@ class CommentFragment : Fragment() {
             // getPlayerStatus叩いて座席番号取得
             val getPlayerStatusResponse = nicoLiveHTML.getPlayerStatus(liveId, usersession).await()
             if (getPlayerStatusResponse.isSuccessful) {
+                // なおステータスコード200でも中身がgetPlayerStatusのものかどうかはまだわからないので、、、
                 val document =
                     Jsoup.parse(getPlayerStatusResponse.body?.string())
+                println(document.html())
+                // 番組開始直後（開始数秒でアクセス）すると何故か視聴ページにリダイレクト（302）されるのでチェック
+                val hasGetPlayerStatusTag =
+                    document.getElementsByTag("getplayerstatus ").isNotEmpty()
                 // 番組が終わっててもレスポンスは200を返すのでチェック
-                if (document.getElementsByTag("getplayerstatus ")[0].attr("status") == "ok") {
+                if (hasGetPlayerStatusTag && document.getElementsByTag("getplayerstatus ")[0].attr("status") == "ok") {
                     roomName = document.getElementsByTag("room_label")[0].text() // 部屋名
                     chairNo = document.getElementsByTag("room_seetno")[0].text() // 座席番号
-                    // 番組情報を表示させる
-                    commentActivity.runOnUiThread {
-                        comment_fragment_program_title.text = "$programTitle - $liveId"
-                        comment_fragment_program_id.text = "$roomName - $chairNo"
-                        // 履歴に追加
-                        insertDB()
+                } else {
+                    // getPlayerStatus取得失敗時
+                    Handler(Looper.getMainLooper()).post {
+                        Snackbar.make(comment_fragment_program_title, R.string.error_getplayserstatus, Snackbar.LENGTH_SHORT)
+                            .apply {
+                                anchorView = getSnackbarAnchorView()
+                                show()
+                            }
                     }
                 }
             }
+            // 番組情報を表示させる
+            commentActivity.runOnUiThread {
+                comment_fragment_program_title.text = "$programTitle - $liveId"
+                comment_fragment_program_id.text = "$roomName - $chairNo"
+            }
+            // 履歴に追加
+            insertDB()
 
             // 全部屋接続。定期的にAPIを叩く
             programInfoTimer.schedule(timerTask { initAllRoomConenct() }, 0, 60 * 1000)

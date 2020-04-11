@@ -10,7 +10,7 @@
     <string name="mail_pass_error">メールアドレス、パスワードの設定をしてください。</string>
     <string name="loading">取得中</string>
     <string name="connected">接続しました。</string>
-    <string name="error_getplayserstatus">getplayerstatusの取得に失敗しました。</string>
+    <string name="error_getplayserstatus">getPlayerStatusの取得に失敗したため座席番号、現在の部屋が取得できませんでした。</string>
     <string name="gift_history">ギフト履歴</string>
     <string name="gift_ranking">ギフトランキング</string>
     <string name="nico_ad_ranking">貢献度ランキング</string>

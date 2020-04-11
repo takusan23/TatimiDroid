@@ -10,7 +10,7 @@
     <string name="mail_pass_error">Please set your email address and password.</string>
     <string name="loading">Loading</string>
     <string name="connected">Connected</string>
-    <string name="error_getplayserstatus">Failed to get getplayerstatus.</string>
+    <string name="error_getplayserstatus">The seat number and current room could not be obtained because getPlayerStatus could not be obtained.</string>
     <string name="gift_history">Gift History</string>
     <string name="gift_ranking">Gift Ranking</string>
     <string name="nico_ad_ranking">Contribution ranking</string>

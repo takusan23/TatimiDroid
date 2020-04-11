@@ -53,11 +53,11 @@ class LiveIDFragment : Fragment() {
 
             // 正規表現
             val nicoIDMatcher = Pattern.compile("(lv)([0-9]+)")
-                .matcher(SpannableString(main_activity_liveid_inputedittext.text.toString()))
+                .matcher(main_activity_liveid_inputedittext.text.toString())
             val communityIDMatcher = Pattern.compile("(co|ch)([0-9]+)")
-                .matcher(SpannableString(main_activity_liveid_inputedittext.text.toString()))
+                .matcher(main_activity_liveid_inputedittext.text.toString())
             val nicoVideoIdMatcher = Pattern.compile("(sm|so)([0-9]+)")
-                .matcher(SpannableString(main_activity_liveid_inputedittext.text.toString()))
+                .matcher(main_activity_liveid_inputedittext.text.toString())
             when {
                 nicoIDMatcher.find() -> {
                     val liveId = nicoIDMatcher.group()
@@ -138,17 +138,16 @@ class LiveIDFragment : Fragment() {
     private fun setClipBoardProgramID() {
         val clipboard = context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clipdata = clipboard.primaryClip
-        if (clipdata != null) {
-            val clipboardText = clipdata.getItemAt(0)?.text
-
+        if (clipdata?.getItemAt(0) != null) {
+            val clipboardText = clipdata.getItemAt(0).text
 
             // 正規表現
             val nicoIDMatcher = Pattern.compile("(lv)([0-9]+)")
-                .matcher(SpannableString(clipboardText))
+                .matcher(clipboardText)
             val communityIDMatcher = Pattern.compile("(co|ch)([0-9]+)")
-                .matcher(SpannableString(clipboardText))
+                .matcher(clipboardText)
             val nicoVideoIdMatcher = Pattern.compile("(sm|so)([0-9]+)")
-                .matcher(SpannableString(clipboardText))
+                .matcher(clipboardText)
             when {
                 nicoIDMatcher.find() -> {
                     //取り出してEditTextに入れる
@@ -190,12 +189,11 @@ class LiveIDFragment : Fragment() {
                     snackbar.show()
                 }
                 else -> {
-                   // //正規表現失敗
-                   // Toast.makeText(context, getString(R.string.regix_error), Toast.LENGTH_SHORT)
-                   //     .show()
+                    // //正規表現失敗
+                    // Toast.makeText(context, getString(R.string.regix_error), Toast.LENGTH_SHORT)
+                    //     .show()
                 }
             }
-
         }
     }
 
