@@ -44,8 +44,11 @@ class LiveIDFragment : Fragment() {
         (activity as AppCompatActivity).supportActionBar?.title =
             getString(R.string.liveid_fragment)
 
-        //クリップボードに番組IDが含まれてればテキストボックスに自動で入れる
-        setClipBoardProgramID()
+        // 一部の端末（LG製の端末？）で大量にエラーが出ているので。。。LG端末なんて持ってないのでわからん！
+        if (!pref_setting.getBoolean("setting_deprecated_clipbord_get_id", false)) {
+            //クリップボードに番組IDが含まれてればテキストボックスに自動で入れる
+            setClipBoardProgramID()
+        }
 
         main_activity_button.setOnClickListener {
             //liveIdを取る。「https://live2.nicovideo.jp/watch/」をからの文字に置き換えてもいいんだけど後ろにパラメーターあるかもだし

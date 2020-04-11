@@ -265,6 +265,15 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/deprecated">
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_content_paste_black_24dp"
+                android:key="setting_deprecated_clipbord_get_id"
+                android:title="【非推奨】クリップボードからIDを取得する機能を無効化する" />
+    </PreferenceCategory>
+
+
     <PreferenceCategory android:title="@string/sonta">
 
         <Preference
@@ -289,6 +298,7 @@
             android:key="dev_setting"
             android:summary="フリとかじゃなくて"
             android:title="開発者用実験項目" />
+
 
     <!--
         <SwitchPreference
