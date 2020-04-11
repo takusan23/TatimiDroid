@@ -283,62 +283,6 @@ class ProgramInfoFragment : Fragment() {
         }
     }
 
-    /*番組情報取得*/
-    fun getProgramInfo() {
-        val request = Request.Builder()
-            .url("https://live2.nicovideo.jp/watch/${liveId}/programinfo")
-            .header("Cookie", "user_session=${usersession}")
-            .get()
-            .build()
-        val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                showToast(getString(R.string.error))
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    //パース
-                    val jsonObject = JSONObject(response.body?.string())
-                    //番組情報。タグは取れない？
-                    //↑ゲーム機版niconicoのAPIなら取れるっぽいけどいつ終わるかわからん。getplayerstatus使ってるやつが言うなって話ですが
-                    val data = jsonObject.getJSONObject("data")
-                    val title = data.getString("title")
-                    val description = data.getString("description")
-                    val startTime = data.getString("beginAt")
-                    //UnixTime -> Calender
-                    //放送開始時刻
-                    val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
-                    val startTimeFormat = simpleDateFormat.format(startTime.toLong() * 1000)
-                    //コミュ
-                    val community = data.getJSONObject("socialGroup")
-                    communityId = community.getString("id")
-                    val community_name = community.getString("name")
-                    val community_level = community.getString("communityLevel")
-                    //配信者
-                    val broadcaster = data.getJSONObject("broadcaster")
-                    val name = broadcaster.getString("name")
-                    userId = broadcaster.getString("id")
-                    //UI
-                    activity?.runOnUiThread {
-                        fragment_program_info_broadcaster_name.text =
-                            "${getString(R.string.broadcaster)} : $name"
-                        fragment_program_info_time.text = startTimeFormat
-                        fragment_program_info_title.text = title
-                        fragment_program_info_description.text =
-                            HtmlCompat.fromHtml(description, FROM_HTML_MODE_COMPACT)
-                        fragment_program_info_community_name.text =
-                            "${getString(R.string.community_name)} : $community_name"
-                        fragment_program_info_community_level.text =
-                            "${getString(R.string.community_level)} : $community_level"
-                    }
-                } else {
-                    showToast("${getString(R.string.error)}\n${response.code}")
-                }
-            }
-        })
-    }
-
     fun showToast(message: String) {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
