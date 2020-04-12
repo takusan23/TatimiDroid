@@ -330,7 +330,6 @@ class NicoLivePlayService : Service() {
             })
 
         val hlsMediaSource = HlsMediaSource.Factory(sourceFactory)
-            .setAllowChunklessPreparation(true)
             .createMediaSource(hlsAddress.toUri())
 
         //再生準備
