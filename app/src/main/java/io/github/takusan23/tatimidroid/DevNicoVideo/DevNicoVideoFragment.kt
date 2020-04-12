@@ -112,8 +112,7 @@ class DevNicoVideoFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context!!)
-        nicoVideoCache =
-            NicoVideoCache(context)
+        nicoVideoCache = NicoVideoCache(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
 
         font = CustomFont(context)
@@ -237,8 +236,8 @@ class DevNicoVideoFragment : Fragment() {
      * 注意：モバイルデータ接続で強制的に低画質にする設定が有効になっている場合は引数に関係なく低画質がリクエストされます。
      *      だたし、第２引数、第３引数に空文字以外を入れた場合は「モバイルデータ接続で最低画質」の設定は無視します。
      * @param isGetComment 「コ　メ　ン　ト　を　取　得　し　な　い　」場合はfalse。省略時はtrueです。
-     * @param videoQualityId 画質変更する場合はIDを入れてね。省略しても大丈夫です。
-     * @param audioQualityId 音質変更する場合はIDを入れてね。省略しても大丈夫です。
+     * @param videoQualityId 画質変更する場合はIDを入れてね。省略（空文字）しても大丈夫です。
+     * @param audioQualityId 音質変更する場合はIDを入れてね。省略（空文字）しても大丈夫です。
      * @param smileServerLowRequest DMCサーバーじゃなくてSmileサーバーの動画で低画質をリクエストする場合はtrue。DMCサーバーおよびSmileサーバーでも低画質をリクエストしない場合はfalseでいいよ
      * */
     fun coroutine(isGetComment: Boolean = true, videoQualityId: String = "", audioQualityId: String = "", smileServerLowRequest: Boolean = false) {
@@ -253,7 +252,7 @@ class DevNicoVideoFragment : Fragment() {
             }
             val response = nicoVideoHTML.getHTML(videoId, userSession, eco).await()
             nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
-            jsonObject = nicoVideoHTML.parseJSON(response?.body?.string())
+            jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
             // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
             if (nicoVideoHTML.isDMCServer(jsonObject)) {
                 // 公式アニメは暗号化されてて見れないので落とす
@@ -467,7 +466,7 @@ class DevNicoVideoFragment : Fragment() {
                     // 画面回転時に２回目以降表示されると邪魔なので制御
                     if (rotationProgress == 0L) {
                         val progress = prefSetting.getLong("progress_$videoId", 0)
-                        if (progress != 0L) {
+                        if (progress != 0L && isCache) {
                             Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", Snackbar.LENGTH_LONG)
                                 .apply {
                                     anchorView = fragment_nicovideo_fab
@@ -497,7 +496,7 @@ class DevNicoVideoFragment : Fragment() {
                 // 小数点第二位を捨てる
                 val round = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
                 // View#post()すればLayoutParamsが動くようになるらしい
-                fragment_nicovideo_framelayout.post {
+                Handler(Looper.getMainLooper()).post {
                     when (round) {
                         1.3 -> {
                             // 4:3動画
@@ -584,7 +583,7 @@ class DevNicoVideoFragment : Fragment() {
             (arrayList[4].toInt() / 100) == (exoPlayer.contentPosition / 1000L).toInt()
         }
         drawList.forEach {
-            val commentJSONParse = CommentJSONParse(it[8], "アリーナ",videoId)
+            val commentJSONParse = CommentJSONParse(it[8], "アリーナ", videoId)
             fragment_nicovideo_comment_canvas.postComment(it[2], commentJSONParse)
         }
     }

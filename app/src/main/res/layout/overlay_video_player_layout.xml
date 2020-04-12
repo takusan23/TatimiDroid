@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+        <SurfaceView
+                android:id="@+id/overlay_video_surfaceview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        <io.github.takusan23.tatimidroid.CommentCanvas
+                android:id="@+id/overlay_video_commentCanvas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        <LinearLayout
+                android:id="@+id/overlay_video_button_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#80000000"
+                    android:gravity="end"
+                    android:orientation="horizontal">
+
+                <ImageView
+                        android:id="@+id/overlay_video_sound_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10sp"
+                        android:src="@drawable/ic_volume_up_24px"
+                        android:tint="#ffffff" />
+
+                <ImageView
+                        android:id="@+id/overlay_video_activity_launch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10sp"
+                        android:src="@drawable/ic_outline_open_in_browser_24px"
+                        android:tint="#ffffff" />
+
+                <ImageView
+                        android:id="@+id/overlay_video_close_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10sp"
+                        android:src="@drawable/ic_clear_black"
+                        android:tint="#ffffff" />
+            </LinearLayout>
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#80000000"
+                    android:orientation="horizontal">
+
+                <ImageView
+                        android:id="@+id/imageView6"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="5sp"
+                        android:src="@drawable/ic_aspect_ratio_24px"
+                        android:tint="#ffffff" />
+
+                <SeekBar
+                        android:id="@+id/overlay_video_size_seekbar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:max="20"
+                        android:padding="5sp"
+                        android:progress="0" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/overlay_video_controller_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:background="#80000000"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                <ImageView
+                        android:id="@+id/overlay_video_replay_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="5sp"
+                        android:src="@drawable/ic_replay_5_black_24dp"
+                        android:tint="#ffffff" />
+
+                <ImageView
+                        android:id="@+id/overlay_video_pause_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="5sp"
+                        android:src="@drawable/ic_play_arrow_24px"
+                        android:tint="#ffffff" />
+
+                <ImageView
+                        android:id="@+id/overlay_video_forward_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="5sp"
+                        android:src="@drawable/ic_forward_5_black_24dp"
+                        android:tint="#ffffff" />
+            </LinearLayout>
+
+            <SeekBar
+                    android:id="@+id/overlay_video_video_seek_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="5sp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</LinearLayout>

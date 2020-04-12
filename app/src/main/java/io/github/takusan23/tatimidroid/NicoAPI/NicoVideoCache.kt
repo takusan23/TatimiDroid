@@ -287,7 +287,9 @@ class NicoVideoCache(val context: Context?) {
 
     // 終了時に呼んでね
     fun destroy() {
-        context?.unregisterReceiver(broadcastReceiver)
+        if (::broadcastReceiver.isInitialized) {
+            context?.unregisterReceiver(broadcastReceiver)
+        }
     }
 
     // Toast表示

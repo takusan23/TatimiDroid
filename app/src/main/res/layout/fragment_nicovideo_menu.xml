@@ -21,12 +21,43 @@
                     android:layout_height="match_parent"
                     android:layout_margin="5sp">
 
-                <Button
-                        android:id="@+id/fragment_nicovideo_menu_video_play"
+                <LinearLayout
                         android:layout_width="match_parent"
+                        android:layout_height="match_parent"
                         android:layout_margin="10sp"
-                        android:layout_height="wrap_content"
-                        android:text="@string/play_video" />
+                        android:orientation="vertical">
+
+                    <Button
+                            android:id="@+id/fragment_nicovideo_menu_video_play"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/play_video" />
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                        <Button
+                                android:id="@+id/fragment_nicovideo_menu_popup"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2dp"
+                                android:layout_weight="1"
+                                app:icon="@drawable/ic_popup_icon"
+                                android:text="@string/popup_player" />
+
+                        <Button
+                                android:id="@+id/fragment_nicovideo_menu_background"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2dp"
+                                app:icon="@drawable/ic_background_icon"
+                                android:layout_weight="1"
+                                android:text="@string/background_play" />
+                    </LinearLayout>
+                </LinearLayout>
+
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
@@ -56,6 +87,7 @@
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
+
             <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -63,9 +95,9 @@
 
                 <LinearLayout
                         android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="10sp"
-                        android:layout_height="wrap_content">
+                        android:padding="10sp">
 
                     <Button
                             android:id="@+id/fragment_nicovideo_menu_copy"

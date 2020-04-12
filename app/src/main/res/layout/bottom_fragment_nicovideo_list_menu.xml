@@ -55,6 +55,26 @@
                 android:padding="10sp"
                 android:text="@string/get_cache" />
 
+        <TextView
+                android:id="@+id/bottom_fragment_nicovideo_list_menu_popup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_popup_icon_black"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:padding="10sp"
+                android:text="@string/popup_video_player" />
+
+        <TextView
+                android:id="@+id/bottom_fragment_nicovideo_list_menu_background"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_background_icon_black"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:padding="10sp"
+                android:text="@string/background_video_player" />
+
         <LinearLayout
                 android:id="@+id/bottom_fragment_nicovideo_list_menu_cache_menu"
                 android:layout_width="match_parent"

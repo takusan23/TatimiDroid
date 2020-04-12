@@ -1,11 +1,9 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.SharedPreferences
+import android.content.*
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -22,6 +20,9 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoQ
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Service.NicoLivePlayService
+import io.github.takusan23.tatimidroid.Service.NicoVideoPlayService
+import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.isConnectionInternet
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_menu.*
@@ -95,7 +96,54 @@ class DevNicoVideoMenuFragment : Fragment() {
         // 強制画面回転ボタン
         initRotationButton()
 
+        // ポップアップ再生、バッググラウンド再生ボタン
+        initVideoPlayServiceButton()
+
     }
+
+    // ポップアップ再生、バッググラウンド再生ボタン
+    private fun initVideoPlayServiceButton() {
+        fragment_nicovideo_menu_popup.setOnClickListener {
+            startVideoPlayService(context, "popup", videoId, isCache)
+            // Activity落とす
+            activity?.finish()
+        }
+        fragment_nicovideo_menu_background.setOnClickListener {
+            startVideoPlayService(context, "background", videoId, isCache)
+            // Activity落とす
+            activity?.finish()
+        }
+    }
+
+/*
+    */
+    /**
+     * ポップアップ再生、バッググラウンド再生サービス起動用関数
+     * @param mode "popup"（ポップアップ再生）か"background"（バッググラウンド再生）
+     * *//*
+
+    private fun startPlayService(mode: String) {
+        val devNicoVideoFragment =
+            fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+        val intent = Intent(context, NicoVideoPlayService::class.java).apply {
+            putExtra("mode", mode)
+            putExtra("video_id", videoId)
+            putExtra("is_cache", isCache)
+            putExtra("seek", devNicoVideoFragment.exoPlayer.currentPosition)
+        }
+        // サービス終了（起動させてないときは何もならないと思う）させてから起動させる。（
+        // 起動してない状態でstopService呼ぶ分にはなんの問題もないっぽい？）
+        activity?.stopService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            activity?.startForegroundService(intent)
+        } else {
+            activity?.startService(intent)
+        }
+        // Activity落とす
+        activity?.finish()
+    }
+*/
+
 
     private fun initRotationButton() {
         fragment_nicovideo_menu_rotation.setOnClickListener {

@@ -22,11 +22,15 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
 
+/**
+ * マイリスト、キャッシュ取得ボタンがあるBottomSheet
+ * */
 class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     // データもらう
@@ -61,6 +65,15 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // キャッシュ関係
         cacheButton()
 
+        // ポップアップ再生、バッググラウンド再生ボタン初期化
+        playServiceButton()
+
+    }
+
+    // ポップアップ再生、バッググラウンド再生ボタン初期化
+    private fun playServiceButton() {
+        bottom_fragment_nicovideo_list_menu_popup.setOnClickListener { startVideoPlayService(context, "popup", nicoVideoData.videoId, nicoVideoData.isCache) }
+        bottom_fragment_nicovideo_list_menu_background.setOnClickListener { startVideoPlayService(context, "background", nicoVideoData.videoId, nicoVideoData.isCache) }
     }
 
     // IDコピーボタン
