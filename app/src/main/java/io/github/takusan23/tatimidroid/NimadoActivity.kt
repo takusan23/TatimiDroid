@@ -202,28 +202,26 @@ class NimadoActivity : AppCompatActivity() {
         commentFragment.arguments = bundle
 
 
-        if (commentFragment != null) {
-            val trans = supportFragmentManager.beginTransaction()
-            trans.replace(linearLayout.id, commentFragment, liveId)
-            trans.commit()
-            fragmentList.add(commentFragment)
-            //RecyclerViewへアイテム追加
-            //onResumeから来たときはAPIを叩かない（非同期処理は難しすぎる）
-            if (isResume) {
-                val pos = programList.indexOf(liveId)
-                //RecyclerViewついか
-                val item = arrayListOf<String>()
-                item.add("")
-                item.add(programNameList[pos])
-                item.add(liveId)
-                //非同期処理なので順番を合わせる
-                recyclerViewList.add(item)
-                runOnUiThread {
-                    nimadoListRecyclerViewAdapter.notifyDataSetChanged()
-                }
-            } else {
-                addRecyclerViewItem(liveId)
+        val trans = supportFragmentManager.beginTransaction()
+        trans.replace(linearLayout.id, commentFragment, liveId)
+        trans.commit()
+        fragmentList.add(commentFragment)
+        //RecyclerViewへアイテム追加
+        //onResumeから来たときはAPIを叩かない（非同期処理は難しすぎる）
+        if (isResume) {
+            val pos = programList.indexOf(liveId)
+            //RecyclerViewついか
+            val item = arrayListOf<String>()
+            item.add("")
+            item.add(programNameList[pos])
+            item.add(liveId)
+            //非同期処理なので順番を合わせる
+            recyclerViewList.add(item)
+            runOnUiThread {
+                nimadoListRecyclerViewAdapter.notifyDataSetChanged()
             }
+        } else {
+            addRecyclerViewItem(liveId)
         }
 
     }
