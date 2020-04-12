@@ -279,6 +279,8 @@ class CommentFragment : Fragment() {
 
         nicoLiveHTML.isLowLatency = !pref_setting.getBoolean("setting_low_latency_off", false)
 
+        // ViewPager
+        initViewPager()
 
         //センサーによる画面回転
         if (pref_setting.getBoolean("setting_rotation_sensor", false)) {
@@ -376,9 +378,6 @@ class CommentFragment : Fragment() {
             commentCardView()
             //旧式はサポート切ります！
         }
-
-        // ViewPager
-        initViewPager()
 
         // ステータスバー透明化＋タイトルバー非表示＋ノッチ領域にも侵略。関数名にAndがつくことはあんまりない
         hideStatusBarAndSetFullScreen()
@@ -922,11 +921,8 @@ class CommentFragment : Fragment() {
             selectQuality,
             context!!
         )
-        Snackbar.make(
-            live_surface_view,
-            "${getString(R.string.successful_quality)}\n${oldQuality}→${newQuality}",
-            Snackbar.LENGTH_SHORT
-        ).show()
+        Snackbar.make(live_surface_view, "${getString(R.string.successful_quality)}\n${oldQuality}→${newQuality}", Snackbar.LENGTH_SHORT)
+            .show()
         beginQuality = selectQuality
     }
 
@@ -1151,11 +1147,12 @@ class CommentFragment : Fragment() {
 
     //視聴モード
     fun setPlayVideoView() {
+        println("きたきた")
         if (context == null) {
             return
         }
         //設定で読み込むかどうか
-        commentActivity.runOnUiThread {
+        Handler(Looper.getMainLooper()).post {
             live_surface_view.visibility = View.VISIBLE
             // println("生放送再生：HLSアドレス : $hls_address")
 
@@ -1170,7 +1167,7 @@ class CommentFragment : Fragment() {
             if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 //二窓モードのときはとりあえず更に小さくしておく
                 if (isNimadoMode) {
-                    frameLayoutParams.width = point.x / 2
+                    frameLayoutParams.width = point.x / 4
                     frameLayoutParams.height = getAspectHeightFromWidth(point.x / 4)
                 } else {
                     //16:9の9を計算
@@ -1194,42 +1191,25 @@ class CommentFragment : Fragment() {
                 context,
                 "TatimiDroid;@takusan_23",
                 object : TransferListener {
-                    override fun onTransferInitializing(
-                        source: DataSource?,
-                        dataSpec: DataSpec?,
-                        isNetwork: Boolean
-                    ) {
+                    override fun onTransferInitializing(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
 
                     }
 
-                    override fun onTransferStart(
-                        source: DataSource?,
-                        dataSpec: DataSpec?,
-                        isNetwork: Boolean
-                    ) {
+                    override fun onTransferStart(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
 
                     }
 
-                    override fun onTransferEnd(
-                        source: DataSource?,
-                        dataSpec: DataSpec?,
-                        isNetwork: Boolean
-                    ) {
+                    override fun onTransferEnd(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
 
                     }
 
-                    override fun onBytesTransferred(
-                        source: DataSource?,
-                        dataSpec: DataSpec?,
-                        isNetwork: Boolean,
-                        bytesTransferred: Int
-                    ) {
+                    override fun onBytesTransferred(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean, bytesTransferred: Int) {
 
                     }
                 })
 
             val hlsMediaSource = HlsMediaSource.Factory(sourceFactory)
-                .setAllowChunklessPreparation(true)
+                // .setAllowChunklessPreparation(true)
                 .createMediaSource(hlsAddress.toUri());
 
             //再生準備
@@ -1457,12 +1437,7 @@ class CommentFragment : Fragment() {
         }
         //止める
         if (this@CommentFragment::exoPlayer.isInitialized) {
-            exoPlayer.apply {
-                playWhenReady = false
-                stop()
-                seekTo(0)
-                release()
-            }
+            exoPlayer.release()
         }
         nicoLiveHTML.destroy()
         nicoLiveComment.destroy()
@@ -2009,4 +1984,9 @@ class CommentFragment : Fragment() {
             }
         }
     }
+
+    fun isInitGoogleCast(): Boolean {
+        return ::googleCast.isInitialized
+    }
+
 }

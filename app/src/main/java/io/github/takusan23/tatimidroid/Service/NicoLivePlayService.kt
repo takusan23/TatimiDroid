@@ -368,7 +368,12 @@ class NicoLivePlayService : Service() {
         if (isPopupPlay()) {
 
             // 権限なければ落とす
-            if (!Settings.canDrawOverlays(this)) {
+            if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    !Settings.canDrawOverlays(this)
+                } else {
+                    false
+                }
+            ) {
                 return
             }
 
@@ -412,6 +417,7 @@ class NicoLivePlayService : Service() {
             windowManager.addView(popupView, params)
             popupView.overlay_commentCanvas.isFloatingView = true
             commentCanvas = popupView.overlay_commentCanvas
+            commentCanvas.isFloatingView = true
 
             //SurfaceViewセット
             popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
@@ -512,6 +518,14 @@ class NicoLivePlayService : Service() {
                         params.height = normalHeight + (progress + 1) * 9
                         params.width = normalWidth + (progress + 1) * 16
                         windowManager.updateViewLayout(popupView, params)
+                        // サイズ変更をCommentCanvasに反映させる
+                        commentCanvas.viewTreeObserver.addOnGlobalLayoutListener {
+                            commentCanvas.apply {
+                                finalHeight = commentCanvas.height
+                                fontsize = (finalHeight / 10).toFloat()
+                                blackPaint.textSize = fontsize
+                            }
+                        }
                     }
 
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -559,7 +573,7 @@ class NicoLivePlayService : Service() {
     private fun commentPOSTWebSocketConnection(commentMessageServerUri: String, commentThreadId: String, userId: String) {
         nicoLiveHTML.apply {
             // コメントサーバー接続
-            connectionCommentPOSTWebSocket(commentMessageServerUri, threadId, userId) { message ->
+            connectionCommentPOSTWebSocket(commentMessageServerUri, commentThreadId, userId) { message ->
                 // アンケートとかはしないから。。。
             }
         }

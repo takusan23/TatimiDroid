@@ -74,14 +74,15 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
             val nicoLiveHTML =
                 NicoLiveHTML()
             val user_session = pref_setting.getString("user_session", "")
-            val html = if (!isCommunityOrChannelID()) {
+            val htmlResponse = if (!isCommunityOrChannelID()) {
                 nicoLiveHTML.getNicoLiveHTML(getLiveIDRegex(), user_session).await()
             } else {
                 val liveID = getLiveIDFromCommunityID().await()
                 nicoLiveHTML.getNicoLiveHTML(liveID, user_session).await()
             }
             // JSONパース
-            val jsonObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(html.body?.string())
+            val html = htmlResponse.body?.string()
+            val jsonObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(html)
             //現在放送中か？
             val status = jsonObject.getJSONObject("program").getString("status")
             //公式番組かどうか
@@ -96,7 +97,6 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
                 //生放送中！
                 //二窓追加ボタン有効
                 (activity as NimadoActivity).apply {
-                    val html = html.body?.string()
                     runOnUiThread {
                         if (html != null) {
                             addNimado(programId, mode, html, isOfficial, false)

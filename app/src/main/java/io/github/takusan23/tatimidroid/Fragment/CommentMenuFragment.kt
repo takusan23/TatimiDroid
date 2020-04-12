@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
@@ -18,6 +19,7 @@ import android.widget.SeekBar
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import com.google.android.gms.cast.framework.CastButtonFactory
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.DarkModeSupport
@@ -39,6 +41,7 @@ class CommentMenuFragment : Fragment() {
 
     lateinit var commentFragment: CommentFragment
     lateinit var darkModeSupport: DarkModeSupport
+    lateinit var prefSetting: SharedPreferences
 
     var liveId = ""
     override fun onCreateView(
@@ -53,6 +56,7 @@ class CommentMenuFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         darkModeSupport = DarkModeSupport(context!!)
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
         //CommentFragmentしゅとく～
         liveId = arguments?.getString("liveId") ?: ""
@@ -94,8 +98,10 @@ class CommentMenuFragment : Fragment() {
     //クリックイベント
     private fun setClick() {
         //キャスト
-        val googleCast = commentFragment.googleCast
-        googleCast.setUpCastButton(fragment_comment_fragment_menu_cast_button)
+        if (commentFragment.isInitGoogleCast()) {
+            val googleCast = commentFragment.googleCast
+            googleCast.setUpCastButton(fragment_comment_fragment_menu_cast_button)
+        }
 
         //画質変更
         fragment_comment_fragment_menu_quality_button.setOnClickListener {
@@ -171,19 +177,25 @@ class CommentMenuFragment : Fragment() {
         //ポップアップ再生。いつか怒られそう（プレ垢限定要素だし）
         fragment_comment_fragment_menu_popup_button.setOnClickListener {
             commentFragment.apply {
-                if (!Settings.canDrawOverlays(context)) {
+                if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        !Settings.canDrawOverlays(context)
+                    } else {
+                        false
+                    }
+                ) {
                     // 上に重ねる権限無いとき。取りに行く
                     val intent = Intent(
                         Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:${context?.packageName}")
                     )
                     startActivity(intent)
-                }
-                //ポップアップ再生。コメント付き
-                startOverlayPlayer()
-                if (isExoPlayerInitialized()) {
-                    exoPlayer.stop()
-                    live_framelayout.visibility = View.GONE
+                } else {
+                    //ポップアップ再生。コメント付き
+                    startOverlayPlayer()
+                    if (isExoPlayerInitialized()) {
+                        exoPlayer.stop()
+                        live_framelayout.visibility = View.GONE
+                    }
                 }
             }
         }
@@ -210,7 +222,7 @@ class CommentMenuFragment : Fragment() {
 
         // コメント一行モード on/off
         fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.setOnCheckedChangeListener { buttonView, isChecked ->
-            commentFragment.pref_setting.edit {
+            prefSetting.edit {
                 putBoolean("setting_id_hidden", isChecked)
                 apply()
             }
@@ -218,7 +230,7 @@ class CommentMenuFragment : Fragment() {
 
         // ユーザーID非表示モード
         fragment_comment_fragment_menu_setting_one_line_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            commentFragment.pref_setting.edit {
+            prefSetting.edit {
                 putBoolean("setting_one_line", isChecked)
                 apply()
             }
@@ -226,7 +238,7 @@ class CommentMenuFragment : Fragment() {
 
         // 常に番組情報（放送時間、来場者数）を表示する
         fragment_comment_fragment_menu_always_program_info_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            commentFragment.pref_setting.edit {
+            prefSetting.edit {
                 putBoolean("setting_always_program_info", isChecked)
             }
             commentFragment.setAlwaysShowProgramInfo()
@@ -234,7 +246,7 @@ class CommentMenuFragment : Fragment() {
 
         // ノッチ領域に侵略する
         fragment_comment_fragment_menu_display_cutout_info_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            commentFragment.pref_setting.edit {
+            prefSetting.edit {
                 putBoolean("setting_display_cutout", isChecked)
             }
             activity?.runOnUiThread {
@@ -243,7 +255,7 @@ class CommentMenuFragment : Fragment() {
         }
 
         fragment_comment_fragment_menu_hide_program_info.setOnCheckedChangeListener { buttonView, isChecked ->
-            commentFragment.pref_setting.edit {
+            prefSetting.edit {
                 putBoolean("setting_landscape_hide_program_info", isChecked)
             }
             commentFragment.hideProgramInfo()
@@ -298,10 +310,10 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_menu_low_latency_switch.isChecked = commentFragment.isLowLatency
         // コメント一行もーど
         fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.isChecked =
-            commentFragment.pref_setting.getBoolean("setting_id_hidden", false)
+            prefSetting.getBoolean("setting_id_hidden", false)
         // ユーザーID非表示モード
         fragment_comment_fragment_menu_setting_one_line_switch.isChecked =
-            commentFragment.pref_setting.getBoolean("setting_one_line", false)
+            prefSetting.getBoolean("setting_one_line", false)
         //音量
         commentFragment.apply {
             if (isExoPlayerInitialized()) {
@@ -313,13 +325,13 @@ class CommentMenuFragment : Fragment() {
             commentFragment.isAddedNicoNamaGame
         // 常に番組情報表示
         fragment_comment_fragment_menu_always_program_info_switch.isChecked =
-            commentFragment.pref_setting.getBoolean("setting_always_program_info", false)
+            prefSetting.getBoolean("setting_always_program_info", false)
         // ノッチ領域に侵略
         fragment_comment_fragment_menu_display_cutout_info_switch.isChecked =
-            commentFragment.pref_setting.getBoolean("setting_display_cutout", false)
+            prefSetting.getBoolean("setting_display_cutout", false)
         // 横画面UIで番組情報非表示
         fragment_comment_fragment_menu_hide_program_info.isChecked =
-            commentFragment.pref_setting.getBoolean("setting_landscape_hide_program_info", false)
+            prefSetting.getBoolean("setting_landscape_hide_program_info", false)
     }
 
     //CommentFragmentへ値を渡す

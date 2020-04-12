@@ -20,17 +20,11 @@ import kotlin.collections.ArrayList
 
 class CommentViewFragment : Fragment() {
     //接続中の部屋名
-    var connectingRoomName = ""
     var recyclerViewList: ArrayList<ArrayList<String>> = arrayListOf()
     lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
-    lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
 
     var websocketList: ArrayList<WebSocketClient> = arrayListOf()
     lateinit var pref_setting: SharedPreferences
-    lateinit var snackbarProgress: SnackbarProgress
-
-    //現在接続中のWebSocketのアドレス
-    val connectionWebSocketAddressList = arrayListOf<String>()
 
     //定期的に立ち見席があるか
     var timer = Timer()
@@ -61,7 +55,6 @@ class CommentViewFragment : Fragment() {
 
         //LiveIDとる
         liveId = arguments?.getString("liveId") ?: ""
-        //println("なんでええええええええ$liveId")
 
         recyclerView = view.findViewById<RecyclerView>(R.id.fragment_comment_recyclerview)
 
@@ -80,10 +73,8 @@ class CommentViewFragment : Fragment() {
             commentRecyclerViewAdapter =
                 CommentRecyclerViewAdapter(commentFragment.commentJSONList)
             recyclerView.adapter = commentRecyclerViewAdapter
-            // allRoomComment.recyclerView = recyclerView
             recyclerView.setItemAnimator(null);
         }
-
     }
 
     fun showToast(message: String) {

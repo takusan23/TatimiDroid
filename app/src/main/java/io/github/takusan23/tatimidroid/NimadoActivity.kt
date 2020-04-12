@@ -58,12 +58,16 @@ class NimadoActivity : AppCompatActivity() {
 
     //番組IDの配列
     var programList = ArrayList<String>()
+
     //視聴モードの配列
     var watchModeList = ArrayList<String>()
+
     //番組の名前
     var programNameList = arrayListOf<String>()
+
     //公式番組かどうか
     var officialList = arrayListOf<String>()
+
     // HTML
     var htmlList = arrayListOf<String>()
 
@@ -113,61 +117,37 @@ class NimadoActivity : AppCompatActivity() {
         }
     }
 
-    /*
-    * 画面回転に耐えるアプリを作る。
-    * ここで画面開店前にやりたいことを書く
-    * */
-    /*
-    * アプリから離れたらFragment終了/Fragmentを置いたViewを消す/RecyclerViewのItemを消す
-    * */
-    override fun onPause() {
-        super.onPause()
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
         //値をonCreateの引数「savedInstanceState」に値を入れる
-        intent.putStringArrayListExtra("program_list", programList)
-        intent.putStringArrayListExtra("watch_mode_list", watchModeList)
-        intent.putStringArrayListExtra("program_name", programNameList)
-        intent.putStringArrayListExtra("official_list", officialList)
-        intent.putStringArrayListExtra("html_list", htmlList)
-        intent.putExtra("fragment_list", fragmentList)
-        nimado_activity_linearlayout.removeAllViews()
-        recyclerViewList.clear()
-        fragmentList.forEach {
-            supportFragmentManager.beginTransaction().remove(it).commit()
-        }
+        outState.putStringArrayList("program_list", programList)
+        outState.putStringArrayList("watch_mode_list", watchModeList)
+        outState.putStringArrayList("program_name", programNameList)
+        outState.putStringArrayList("official_list", officialList)
+        outState.putStringArrayList("html_list", htmlList)
+        outState.putSerializable("fragment_list", fragmentList)
     }
 
-    /*
-    * アプリへ戻ってきたらFragmentを再設置する
-    * 戻ってきた以外で画面回転時もここを --通過-- する
-    * */
-    override fun onResume() {
-        super.onResume()
-        if (intent.getStringArrayListExtra("program_list") != null) {
-            programList = intent.getStringArrayListExtra("program_list")
-            programNameList = intent.getStringArrayListExtra("program_name")
-            watchModeList = intent.getStringArrayListExtra("watch_mode_list")
-            officialList = intent.getStringArrayListExtra("official_list")
-            htmlList = intent.getStringArrayListExtra("html_list")
-
-            //復活させる
-            for (index in 0 until programList.size) {
-                val liveID = programList[index]
-                val watchMode = watchModeList[index]
-                val isOfficial = officialList[index].toBoolean()
-                val html = htmlList[index]
-                addNimado(liveID, watchMode, html, isOfficial, true)
-            }
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        programList = savedInstanceState.getStringArrayList("program_list") as ArrayList<String>
+        programNameList = savedInstanceState.getStringArrayList("program_name") as ArrayList<String>
+        watchModeList =
+            savedInstanceState.getStringArrayList("watch_mode_list") as ArrayList<String>
+        officialList = savedInstanceState.getStringArrayList("official_list") as ArrayList<String>
+        htmlList = savedInstanceState.getStringArrayList("html_list") as ArrayList<String>
+        //復活させる
+        for (index in 0 until programList.size) {
+            val liveID = programList[index]
+            val watchMode = watchModeList[index]
+            val isOfficial = officialList[index].toBoolean()
+            val html = htmlList[index]
+            addNimado(liveID, watchMode, html, isOfficial, true)
         }
+
     }
 
-
-    fun addNimado(
-        liveId: String,
-        watchMode: String,
-        html: String,
-        isOfficial: Boolean,
-        isResume: Boolean = false
-    ) {
+    fun addNimado(liveId: String, watchMode: String, html: String, isOfficial: Boolean, isResume: Boolean = false) {
         //番組ID
         //二窓中の番組IDを入れる配列
         if (!programList.contains(liveId)) {
@@ -213,35 +193,37 @@ class NimadoActivity : AppCompatActivity() {
         nimado_activity_linearlayout.addView(cardView)
 
 
-        //Fragment設置
+        // Fragment設置
         val commentFragment = CommentFragment()
         val bundle = Bundle()
         bundle.putString("liveId", liveId)
         bundle.putString("watch_mode", watchMode)
         bundle.putBoolean("isOfficial", isOfficial)
         commentFragment.arguments = bundle
-        val trans = supportFragmentManager.beginTransaction()
-        trans.replace(linearLayout.id, commentFragment, liveId)
-        trans.commit()
 
-        fragmentList.add(commentFragment)
 
-        //RecyclerViewへアイテム追加
-        //onResumeから来たときはAPIを叩かない（非同期処理は難しすぎる）
-        if (isResume) {
-            val pos = programList.indexOf(liveId)
-            //RecyclerViewついか
-            val item = arrayListOf<String>()
-            item.add("")
-            item.add(programNameList[pos])
-            item.add(liveId)
-            //非同期処理なので順番を合わせる
-            recyclerViewList.add(item)
-            runOnUiThread {
-                nimadoListRecyclerViewAdapter.notifyDataSetChanged()
+        if (commentFragment != null) {
+            val trans = supportFragmentManager.beginTransaction()
+            trans.replace(linearLayout.id, commentFragment, liveId)
+            trans.commit()
+            fragmentList.add(commentFragment)
+            //RecyclerViewへアイテム追加
+            //onResumeから来たときはAPIを叩かない（非同期処理は難しすぎる）
+            if (isResume) {
+                val pos = programList.indexOf(liveId)
+                //RecyclerViewついか
+                val item = arrayListOf<String>()
+                item.add("")
+                item.add(programNameList[pos])
+                item.add(liveId)
+                //非同期処理なので順番を合わせる
+                recyclerViewList.add(item)
+                runOnUiThread {
+                    nimadoListRecyclerViewAdapter.notifyDataSetChanged()
+                }
+            } else {
+                addRecyclerViewItem(liveId)
             }
-        } else {
-            addRecyclerViewItem(liveId)
         }
 
     }
@@ -328,21 +310,24 @@ class NimadoActivity : AppCompatActivity() {
                     //Fragmentが入るView再設置
                     //全部消すのでは無く移動するところだけ消す
                     val cardView = (nimado_activity_linearlayout[old] as CardView)
-                    val fragment = supportFragmentManager.findFragmentByTag(liveID)
-                    if (fragment != null) {
-                        supportFragmentManager.beginTransaction().remove(fragment).commit()
+                    val fragment = if (supportFragmentManager.findFragmentByTag(liveID) != null) {
+                        supportFragmentManager.findFragmentByTag(liveID)
+                    } else {
+                        //Fragment再設置
+                        val commentFragment = CommentFragment()
+                        val bundle = Bundle()
+                        bundle.putString("liveId", liveID)
+                        bundle.putString("watch_mode", watchMode)
+                        commentFragment.arguments = bundle
+                        commentFragment
                     }
                     nimado_activity_linearlayout.removeView(cardView)
                     nimado_activity_linearlayout.addView(cardView, new)
-                    //Fragment再設置
-                    val commentFragment = CommentFragment()
-                    val bundle = Bundle()
-                    bundle.putString("liveId", liveID)
-                    bundle.putString("watch_mode", watchMode)
-                    commentFragment.arguments = bundle
                     val trans = supportFragmentManager.beginTransaction()
                     //cardViewの0番目のViewがFragmentを入れるViewなので
-                    trans.replace(cardView[0].id, commentFragment, liveID)
+                    if (fragment != null) {
+                        trans.replace(cardView[0].id, fragment, liveID)
+                    }
                     trans.commit()
 
 
