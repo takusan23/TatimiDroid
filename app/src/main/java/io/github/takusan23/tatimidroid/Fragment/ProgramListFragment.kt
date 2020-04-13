@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import io.github.takusan23.tatimidroid.Adapter.ProgramListViewPager
 import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.JK.NicoJKProgramListFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_list.*
 import java.lang.IllegalArgumentException
@@ -65,6 +66,13 @@ class ProgramListFragment : Fragment() {
         }
         fragment_program_auto_admission.setOnClickListener {
             setFragment(CommunityListFragment.ADMISSION)
+        }
+        fragment_program_jk.setOnClickListener {
+            // ニコニコ実況。ｊｋ
+            val nicoJKProgramListFragment = NicoJKProgramListFragment()
+            fragmentManager?.beginTransaction()
+                ?.replace(fragment_program_list_linearlayout.id, nicoJKProgramListFragment)?.commit()
+            fragment_program_motionlayout?.transitionToStart()
         }
 
     }

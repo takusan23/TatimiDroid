@@ -80,6 +80,26 @@ class CommentMenuFragment : Fragment() {
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP_MR1) {
             fragment_comment_fragment_nico_nama_game_switch.isEnabled = false
         }
+
+        // ニコニコ実況で使わないボタンを消す
+        hideNicoJK()
+
+    }
+
+    private fun hideNicoJK() {
+        if (isNicoJK()) {
+            fragment_comment_fragment_menu_background_button.isEnabled = false
+            fragment_comment_fragment_menu_cast_button.isEnabled = false
+            fragment_comment_fragment_menu_floating_button.isEnabled = false
+            fragment_comment_fragment_menu_iyayo_comment_switch.isEnabled = false
+            fragment_comment_fragment_menu_iyayo_hidden_switch.isEnabled = false
+            fragment_comment_fragment_menu_low_latency_switch.isEnabled = false
+            fragment_comment_fragment_menu_copy_liveid_button.isEnabled = false
+            fragment_comment_fragment_menu_copy_communityid_button.isEnabled = false
+            fragment_comment_fragment_menu_open_browser_button.isEnabled = false
+            fragment_comment_fragment_menu_ng_list_button.isEnabled = false
+            fragment_comment_fragment_nico_nama_game_switch.isEnabled = false
+        }
     }
 
     fun darkmode() {
@@ -156,7 +176,9 @@ class CommentMenuFragment : Fragment() {
             (activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment).apply {
                 if (live_framelayout.visibility == View.VISIBLE) {
                     live_framelayout.visibility = View.GONE
-                    exoPlayer.stop()
+                    if (isNicoJK()) {
+                        exoPlayer.stop()
+                    }
                 } else {
                     live_framelayout.visibility = View.VISIBLE
                     setPlayVideoView()
@@ -358,4 +380,10 @@ class CommentMenuFragment : Fragment() {
             }*/
         }
     }
+
+    // ニコニコ実況ならtrue
+    fun isNicoJK(): Boolean {
+        return commentFragment.isJK
+    }
+
 }

@@ -620,7 +620,9 @@ class NicoLiveHTML {
      * */
     fun destroy() {
         timer.cancel()
-        nicoLiveWebSocketClient.close()
+        if (::nicoLiveWebSocketClient.isInitialized) {
+            nicoLiveWebSocketClient.close()
+        }
         if (::commentPOSTWebSocketClient.isInitialized) {
             commentPOSTWebSocketClient.close()
         }

@@ -48,6 +48,8 @@ import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Adapter.CommentViewPager
 import io.github.takusan23.tatimidroid.Background.BackgroundPlay
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
+import io.github.takusan23.tatimidroid.JK.NicoJKData
+import io.github.takusan23.tatimidroid.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
@@ -62,6 +64,7 @@ import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
+import java.io.BufferedReader
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
@@ -81,6 +84,9 @@ class CommentFragment : Fragment() {
 
     //視聴モードがnicocasの場合
     var isNicocasMode = false
+
+    // ニコニコ実況ならtrue
+    var isJK = false
 
     //hls
     var hlsAddress = ""
@@ -204,18 +210,20 @@ class CommentFragment : Fragment() {
     lateinit var commentViewPager: CommentViewPager
 
     // ニコ生視聴セッション接続とかコメント投稿まで
-    val nicoLiveHTML =
-        NicoLiveHTML()
+    val nicoLiveHTML = NicoLiveHTML()
 
     // ニコ生前部屋接続など
-    val nicoLiveComment =
-        NicoLiveComment()
+    val nicoLiveComment = NicoLiveComment()
 
     // コメントサーバーあるか定期巡回
     var programInfoTimer = Timer()
 
     // コメント配列。これをRecyclerViewにいれるんじゃ
     val commentJSONList = arrayListOf<CommentJSONParse>()
+
+    // ニコニコ実況
+    val nicoJK = NicoJKHTML()
+    lateinit var getFlvData: NicoJKHTML.getFlvData
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -266,6 +274,9 @@ class CommentFragment : Fragment() {
 
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
         isOfficial = arguments?.getBoolean("isOfficial") ?: false
+
+        // ニコニコ実況ならtrue
+        isJK = arguments?.getBoolean("is_jk") ?: false
 
         //スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -387,8 +398,13 @@ class CommentFragment : Fragment() {
             usersession = pref_setting.getString("user_session", "") ?: ""
 
             // データ取得からコメント取得など
-            coroutine()
-
+            if (!isJK) {
+                // ニコ生
+                coroutine()
+            } else {
+                // ニコニコ実況
+                nicoJKCoroutine()
+            }
         } else {
             showToast(getString(R.string.mail_pass_error))
             commentActivity.finish()
@@ -397,6 +413,26 @@ class CommentFragment : Fragment() {
         //アクティブ人数クリアなど、追加部分はCommentViewFragmentです
         activeUserClear()
 
+    }
+
+    /**
+     * ニコニコ実況のデータ取得
+     * */
+    private fun nicoJKCoroutine() {
+        GlobalScope.launch {
+            // getflv叩く。
+            val getFlvResponse = nicoJK.getFlv(liveId, usersession).await()
+            if (!getFlvResponse.isSuccessful) {
+                // 失敗のときは落とす
+                activity?.finish()
+                showToast("${getString(R.string.error)}\n${getFlvResponse.code}")
+                return@launch
+            }
+            // getflvパースする
+            getFlvData = nicoJK.parseGetFlv(getFlvResponse.body?.string())!!
+            // 接続
+            nicoJK.connectionCommentServer(getFlvData, ::commentFun)
+        }
     }
 
     /**
@@ -940,7 +976,7 @@ class CommentFragment : Fragment() {
     private fun initViewPager() {
         comment_viewpager.id = View.generateViewId()
         commentViewPager =
-            CommentViewPager(activity as AppCompatActivity, liveId, isOfficial)
+            CommentViewPager(activity as AppCompatActivity, liveId, isOfficial, isJK)
         comment_viewpager.adapter = commentViewPager
         activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
         // コメントを指定しておく
@@ -1147,7 +1183,6 @@ class CommentFragment : Fragment() {
 
     //視聴モード
     fun setPlayVideoView() {
-        println("きたきた")
         if (context == null) {
             return
         }
@@ -1160,9 +1195,7 @@ class CommentFragment : Fragment() {
             val display = commentActivity.windowManager.defaultDisplay
             val point = Point()
             display.getSize(point)
-
             val frameLayoutParams = liveFrameLayout.layoutParams
-
             //横画面のときの対応
             if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 //二窓モードのときはとりあえず更に小さくしておく
@@ -1276,26 +1309,31 @@ class CommentFragment : Fragment() {
 
     //コメント投稿用
     fun sendComment(comment: String, command: String) {
-        if (comment != "\n") {
-            if (isWatchingMode) {
-                // postKeyを視聴用セッションWebSocketに払い出してもらう
-                // PC版ニコ生だとコメントを投稿のたびに取得してるので
-                nicoLiveHTML.sendPOSTWebSocketComment(comment, command)
-            } else if (isNicocasMode) {
-                // ニコキャスのAPIを叩いてコメントを投稿する
-                nicoLiveHTML.sendCommentNicocasAPI(comment, command, liveId, usersession, { showToast(getString(R.string.error)) }, { response ->
-                    // 成功時
-                    if (response.isSuccessful) {
-                        //成功
-                        Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT)
-                            .apply {
-                                anchorView = getSnackbarAnchorView()
-                                show()
-                            }
-                    } else {
-                        showToast("${getString(R.string.error)}\n${response.code}")
-                    }
-                })
+        if (isJK) {
+            // ニコニコ実況
+            nicoJK.postCommnet(comment, getFlvData.userId, getFlvData.baseTime.toLong(), getFlvData.threadId, usersession)
+        } else {
+            if (comment != "\n") {
+                if (isWatchingMode) {
+                    // postKeyを視聴用セッションWebSocketに払い出してもらう
+                    // PC版ニコ生だとコメントを投稿のたびに取得してるので
+                    nicoLiveHTML.sendPOSTWebSocketComment(comment, command)
+                } else if (isNicocasMode) {
+                    // ニコキャスのAPIを叩いてコメントを投稿する
+                    nicoLiveHTML.sendCommentNicocasAPI(comment, command, liveId, usersession, { showToast(getString(R.string.error)) }, { response ->
+                        // 成功時
+                        if (response.isSuccessful) {
+                            //成功
+                            Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT)
+                                .apply {
+                                    anchorView = getSnackbarAnchorView()
+                                    show()
+                                }
+                        } else {
+                            showToast("${getString(R.string.error)}\n${response.code}")
+                        }
+                    })
+                }
             }
         }
     }
@@ -1442,6 +1480,7 @@ class CommentFragment : Fragment() {
         nicoLiveHTML.destroy()
         nicoLiveComment.destroy()
         programInfoTimer.cancel()
+        nicoJK.destroy()
         // println("とじます")
     }
 
@@ -1471,6 +1510,7 @@ class CommentFragment : Fragment() {
             putExtra("live_id", liveId)
             putExtra("is_comment_post", isWatchingMode)
             putExtra("is_nicocas", isNicocasMode)
+            putExtra("is_jk", isJK)
         }
         // サービス終了（起動させてないときは何もならないと思う）させてから起動させる。（
         // 起動してない状態でstopService呼ぶ分にはなんの問題もないっぽい？）
