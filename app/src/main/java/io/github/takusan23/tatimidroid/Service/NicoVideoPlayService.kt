@@ -98,7 +98,7 @@ class NicoVideoPlayService : Service() {
     var videoId = ""
     var videoTitle = ""
     var seekMs = 0L
-    var commentList = arrayListOf<ArrayList<String>>() // コメント配列
+    var commentList = arrayListOf<CommentJSONParse>() // コメント配列
 
     // アスペクト比（横 / 縦）。なんか21:9並のほっそ長い動画があるっぽい？
     // 4:3 = 1.3 / 16:9 = 1.7
@@ -176,7 +176,7 @@ class NicoVideoPlayService : Service() {
             val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject).await()
             if (commentJSON != null) {
                 commentList =
-                    ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!))
+                    ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
             }
             // タイトル
             videoTitle = jsonObject.getJSONObject("video").getString("title")
@@ -214,7 +214,7 @@ class NicoVideoPlayService : Service() {
                 initVideoPlayer(contentUrl, "")
                 // コメント取得
                 val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
-                commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON))
+                commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
             } else {
                 // 動画が見つからなかった
                 Toast.makeText(this, R.string.not_found_video, Toast.LENGTH_SHORT).show()
@@ -485,19 +485,18 @@ class NicoVideoPlayService : Service() {
                     setProgress()
                     drawComment()
                 }
-            }, 1000, 1000)
+            }, 100, 100)
 
         }
     }
 
     // コメント描画あああ
     private fun drawComment() {
-        val drawList = commentList.filter { arrayList ->
-            (arrayList[4].toInt() / 100) == (exoPlayer.contentPosition / 1000L).toInt()
+        val drawList = commentList.filter { commentJSONParse ->
+            (commentJSONParse.vpos.toInt() / 10) == (exoPlayer.contentPosition / 100L).toInt()
         }
         drawList.forEach {
-            val commentJSONParse = CommentJSONParse(it[8], "アリーナ", videoId)
-            commentCanvas.postComment(it[2], commentJSONParse)
+            commentCanvas.postComment(it.comment, it)
         }
     }
 

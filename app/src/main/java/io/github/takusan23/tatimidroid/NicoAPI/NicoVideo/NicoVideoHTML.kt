@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
+import io.github.takusan23.tatimidroid.CommentJSONParse
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -482,71 +483,21 @@ class NicoVideoHTML {
     /**
      * コメントJSONをパースする
      * @param responseString JSON
-     * @return NicoVideoDataの配列
+     * @return CommentJSONParseの配列
      * */
-    fun parseCommentJSON(responseString: String): ArrayList<ArrayList<String>> {
-        val recyclerViewList = arrayListOf<ArrayList<*>>()
-        val jsonArray = JSONArray(responseString)
-        //RecyclerViewに入れる配列には並び替えをしてから入れるのでそれまで一時的に入れておく配列
-        val commentListList = arrayListOf<ArrayList<String>>()
+    fun parseCommentJSON(json: String, videoId: String): ArrayList<CommentJSONParse> {
+        val commentList = arrayListOf<CommentJSONParse>()
+        val jsonArray = JSONArray(json)
         for (i in 0 until jsonArray.length()) {
             val jsonObject = jsonArray.getJSONObject(i)
             if (jsonObject.has("chat")) {
-                val chat = jsonObject.getJSONObject("chat")
-                if (chat.has("content") && !chat.isNull("mail")) {
-                    val comment = chat.getString("content")
-                    val user_id = ""
-                    val date = chat.getString("date")
-                    val vpos = chat.getString("vpos")
-                    val no = chat.getString("no")
-
-                    //mail取る。
-                    val mail = chat.getString("mail")
-                    //追加可能か
-                    var addable = true
-
-                    // //3DSのコメント非表示機能有効時
-                    // if (isShow3DSComment()) {
-                    //     if (mail.contains("device:3DS")) {
-                    //         addable = false
-                    //     }
-                    // }
-
-                    //ニコる数
-                    var nicoruCount = "0"
-                    if (chat.has("nicoru")) {
-                        nicoruCount = chat.getInt("nicoru").toString()
-                    }
-
-                    if (addable) {
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(user_id)
-                        item.add(comment)
-                        item.add(date)
-                        item.add(vpos)
-                        item.add(mail)
-                        item.add(nicoruCount)
-                        item.add(no)
-                        item.add(chat.toString())
-                        commentListList.add(item)
-                    }
-                }
+                val commentJSONParse = CommentJSONParse(jsonObject.toString(), "ニコ動", videoId)
+                commentList.add(commentJSONParse)
             }
         }
-
-        /**
-         * コメントを動画再生と同じ用に並び替える。vposを若い順にする。
-         * vposだけの配列だと「.sorted()」が使えるんだけど、今回は配列に配列があるので無理です。
-         * 数字だけ（vposだけ）だと[0,10,30,20] -> sorted()後 [0,10,20,30]
-         *
-         * でも今回は配列の中のにある配列の4番目の値で並び替えてほしいのです。
-         * そこで「sortedBy{}」を使い、4番目の値で並び替えろと書いています。
-         * arrayListは配列の中の配列がそうみたい。printlnして確認した。forEach的な
-         *
-         * */
-        commentListList.sortBy { arrayList: ArrayList<*> -> (arrayList[4] as String).toInt() }
-        return commentListList
+        // 新しい順に並び替え
+        commentList.sortBy { commentJSONParse -> commentJSONParse.vpos.toInt() }
+        return commentList
     }
 
     /**

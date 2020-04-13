@@ -1,9 +1,12 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
+import android.content.res.Configuration
+import android.graphics.Point
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -84,7 +87,7 @@ class DevNicoVideoFragment : Fragment() {
         NicoVideoHTML()
 
     // コメント配列
-    var commentList = arrayListOf<ArrayList<String>>()
+    var commentList = arrayListOf<CommentJSONParse>()
 
     // ViewPager
     lateinit var viewPager: DevNicoVideoViewPager
@@ -313,7 +316,7 @@ class DevNicoVideoFragment : Fragment() {
                 val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject).await()
                 if (commentJSON != null) {
                     commentList =
-                        ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!))
+                        ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
                 }
             }
             activity?.runOnUiThread {
@@ -368,7 +371,7 @@ class DevNicoVideoFragment : Fragment() {
                 }
                 // コメント取得
                 val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
-                commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON))
+                commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
             } else {
                 // 動画が見つからなかった
                 Toast.makeText(context, R.string.not_found_video, Toast.LENGTH_SHORT).show()
@@ -500,9 +503,21 @@ class DevNicoVideoFragment : Fragment() {
                     when (round) {
                         1.3 -> {
                             // 4:3動画
-                            // 横の長さから縦の高さ計算
+                            // 4:3をそのまま出すと大きすぎるので調整（代わりに黒帯出るけど仕方ない）
                             fragment_nicovideo_framelayout.viewTreeObserver.addOnGlobalLayoutListener {
-                                val width = fragment_nicovideo_framelayout.width
+                                val width =
+                                    if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                                        // 縦画面
+                                        val wm =
+                                            context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                                        val disp = wm.getDefaultDisplay()
+                                        val realSize = Point();
+                                        disp.getRealSize(realSize);
+                                        (realSize.x / 1.2).toInt()
+                                    } else {
+                                        // 横画面
+                                        fragment_nicovideo_framelayout.width
+                                    }
                                 val height = getOldAspectHeightFromWidth(width)
                                 val params = LinearLayout.LayoutParams(width, height)
                                 fragment_nicovideo_framelayout.layoutParams = params
@@ -534,7 +549,7 @@ class DevNicoVideoFragment : Fragment() {
                     }
                 }
             }
-        }, 1000, 1000)
+        }, 100, 100)
     }
 
     /**
@@ -554,7 +569,7 @@ class DevNicoVideoFragment : Fragment() {
                 (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).recyclerViewList
             // findを使って条件に合うコメントのはじめの値を取得する。この例では今の時間と同じか大きいくて最初の値。
             val find =
-                list.find { arrayList -> (arrayList[4].toFloat() / 100).toInt() >= seconds.toInt() }
+                list.find { commentJSONParse -> (commentJSONParse.vpos.toInt() / 100) >= seconds }
             // 配列から位置をとる
             val pos = list.indexOf(find)
             // スクロール
@@ -579,12 +594,11 @@ class DevNicoVideoFragment : Fragment() {
      * コメント描画システム。
      * */
     fun drawComment() {
-        val drawList = commentList.filter { arrayList ->
-            (arrayList[4].toInt() / 100) == (exoPlayer.contentPosition / 1000L).toInt()
+        val drawList = commentList.filter { commentJSONParse ->
+            (commentJSONParse.vpos.toInt() / 10) == (exoPlayer.contentPosition / 100L).toInt()
         }
         drawList.forEach {
-            val commentJSONParse = CommentJSONParse(it[8], "アリーナ", videoId)
-            fragment_nicovideo_comment_canvas.postComment(it[2], commentJSONParse)
+            fragment_nicovideo_comment_canvas.postComment(it.comment, it)
         }
     }
 

@@ -38,6 +38,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val fontPreference = findPreference<Preference>("font_preference")
         // 開発者用項目
         val devSetting = findPreference<Preference>("dev_setting")
+        // キャッシュ再生について
+        val aboutCache = findPreference<Preference>("about_cache")
 
         val darkmode_switch_preference = findPreference<SwitchPreference>("setting_darkmode")
 
@@ -91,6 +93,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 )
                 addToBackStack(null)
             }?.commit()
+            true
+        }
+
+        aboutCache?.setOnPreferenceClickListener {
+            startBrowser("https://takusan23.github.io/Bibouroku/2020/04/08/たちみどろいどのキャッシュ機能について/")
             true
         }
 

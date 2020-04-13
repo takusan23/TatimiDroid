@@ -20,10 +20,11 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.appcompat.app.AppCompatActivity
+import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.CustomFont
 
 
-class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :
+class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONParse>) :
     RecyclerView.Adapter<NicoVideoAdapter.ViewHolder>() {
 
     //ニコるようThreadId
@@ -52,20 +53,19 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<St
             font = CustomFont(context)
         }
 
-        val item = arrayListArrayAdapter[position] as ArrayList<String>
-        val name = item.get(1)
-        val comment = item.get(2)
-        val date = item.get(3)
-        val vpos = item.get(4)
+        val item = arrayListArrayAdapter[position]
+        val comment = item.comment
+        val date = item.date
+        val vpos = item.vpos
         val time = vpos.toFloat() / 100 //再生時間。100で割ればいいっぽい？
         // きれいな形へ
         val formattedTime = formatTime(time)
-        val mail = item.get(5)
-        var nicoruCount = item.get(6)
-        val no = item.get(7)
+        val mail = item.mail
+        var nicoruCount = ""
+        val no = item.commentNo
 
-        if (nicoruCount.isNotEmpty()) {
-            nicoruCount = "${context.getString(R.string.nicoru)} $nicoruCount"
+        if (item.nicoru > 0) {
+            nicoruCount = "${context.getString(R.string.nicoru)} ${item.nicoru}"
         }
 
         holder.commentTextView.text = comment

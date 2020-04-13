@@ -2,7 +2,7 @@ package io.github.takusan23.tatimidroid
 
 import org.json.JSONObject
 
-class CommentJSONParse(val commentJson: String, var roomName: String,val videoOrLiveId:String) {
+class CommentJSONParse(val commentJson: String, var roomName: String, val videoOrLiveId: String) {
 
     var comment = ""
     var commentNo = ""
@@ -10,20 +10,21 @@ class CommentJSONParse(val commentJson: String, var roomName: String,val videoOr
     var date = ""
     var premium = ""
     var mail = ""
-    var vpos = ""
+    var vpos = "0"
     var origin = ""
     var score = ""
     var uneiComment = "" // ニコニ広告、ランクインなどをきれいにする
+    var nicoru = 0 // ニコ動のみ。ニコる
 
     init {
         val jsonObject = JSONObject(commentJson)
         if (jsonObject.has("chat")) {
             val chatObject = jsonObject.getJSONObject("chat")
-            comment = chatObject.getString("content")
+            comment = chatObject.optString("content","")
             if (chatObject.has("no")) {
                 commentNo = chatObject.getString("no")
             }
-            userId = chatObject.getString("user_id")
+            userId = chatObject.optString("user_id","")
             date = chatObject.getString("date")
             if (chatObject.has("vpos")) {
                 vpos = chatObject.getString("vpos")
@@ -47,6 +48,10 @@ class CommentJSONParse(val commentJson: String, var roomName: String,val videoOr
             //mailの中に色コメントの色の情報があったりする
             if (chatObject.has("mail")) {
                 mail = chatObject.getString("mail")
+            }
+            // ニコる
+            if (chatObject.has("nicoru")) {
+                nicoru = chatObject.getInt("nicoru")
             }
 
             // /nicoad、/info

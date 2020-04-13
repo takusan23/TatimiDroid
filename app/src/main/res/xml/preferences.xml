@@ -291,6 +291,12 @@
                 android:key="konoapp_privacy"
                 android:title="@string/privacy_policy" />
 
+        <Preference
+                android:icon="@drawable/ic_save_alt_black_24dp"
+                android:key="about_cache"
+                android:summary="@string/about_cache_description"
+                android:title="@string/about_cache" />
+
     </PreferenceCategory>
 
     <Preference

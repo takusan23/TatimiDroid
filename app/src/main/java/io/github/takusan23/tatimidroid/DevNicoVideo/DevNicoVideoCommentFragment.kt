@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
@@ -20,7 +21,7 @@ import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
  * */
 class DevNicoVideoCommentFragment : Fragment() {
 
-    var recyclerViewList: ArrayList<ArrayList<String>> = arrayListOf()
+    var recyclerViewList = arrayListOf<CommentJSONParse>()
     lateinit var nicoVideoAdapter: NicoVideoAdapter
     lateinit var prefSetting: SharedPreferences
     var usersession = ""
@@ -77,10 +78,10 @@ class DevNicoVideoCommentFragment : Fragment() {
         // 3DSコメント非表示を実現するための面倒なやつ
         val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
         val list = if (is3DSCommentHidden) {
-            recyclerViewList.filter { arrayList -> !arrayList[5].contains("device:3DS") }
+            recyclerViewList.filter { commentJSONParse -> commentJSONParse.mail.contains("device:3DS") }
         } else {
             recyclerViewList
-        } as ArrayList<ArrayList<String>>
+        } as ArrayList<CommentJSONParse>
         nicoVideoAdapter =
             NicoVideoAdapter(list)
         activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
@@ -113,45 +114,26 @@ class DevNicoVideoCommentFragment : Fragment() {
 
             override fun onMenuItemSelected(menu: MenuBuilder?, item: MenuItem?): Boolean {
 
-                //配列の中身全部コピーする
-                val tmp = arrayListOf<ArrayList<String>>()
-                recyclerViewList.forEach {
-                    tmp.add(it as ArrayList<String>)
-                }
-                //クリアに
-                recyclerViewList.clear()
                 when (item?.itemId) {
                     R.id.nicovideo_comment_sort_time -> {
                         //再生時間
-                        tmp.sortedBy { arrayList -> arrayList[4].toInt() }
-                            .forEach { recyclerViewList.add(it) }
+                        recyclerViewList.sortBy { commentJSONParse -> commentJSONParse.vpos }
                     }
                     R.id.nicovideo_comment_sort_reverse_time -> {
                         //再生時間逆順
-                        tmp.sortedByDescending { arrayList -> arrayList[4].toInt() }
-                            .forEach { recyclerViewList.add(it) }
+                        recyclerViewList.sortByDescending { commentJSONParse -> commentJSONParse.vpos }
                     }
                     R.id.nicovideo_comment_nicoru -> {
                         //ニコる数
-                        tmp.sortedByDescending { arrayList ->
-                            //ニコる数0の時対策
-                            val count = arrayList[6]
-                            if (count.isNotEmpty()) {
-                                arrayList[6].toInt()
-                            } else {
-                                0
-                            }
-                        }.forEach { recyclerViewList.add(it) }
+                        recyclerViewList.sortByDescending { commentJSONParse -> commentJSONParse.nicoru }
                     }
                     R.id.nicovideo_date -> {
                         //投稿日時(新→古)
-                        tmp.sortedByDescending { arrayList -> arrayList[3].toFloat() }
-                            .forEach { recyclerViewList.add(it) }
+                        recyclerViewList.sortByDescending { commentJSONParse -> commentJSONParse.date }
                     }
                     R.id.nicovideo_reverse_date -> {
                         //投稿日時(古→新)
-                        tmp.sortedBy { arrayList -> arrayList[3].toFloat() }
-                            .forEach { recyclerViewList.add(it) }
+                        recyclerViewList.sortBy { commentJSONParse -> commentJSONParse.date }
                     }
                 }
                 nicoVideoAdapter.notifyDataSetChanged()
@@ -178,7 +160,7 @@ class DevNicoVideoCommentFragment : Fragment() {
                 }
         }
         // テキストボックス監視
-        var tmpList = arrayListOf<ArrayList<String>>()
+        var tmpList = arrayListOf<CommentJSONParse>()
         activity_nicovideo_comment_serch_input.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
 
@@ -196,9 +178,9 @@ class DevNicoVideoCommentFragment : Fragment() {
                 }
                 if (s?.isNotEmpty() == true) {
                     // フィルター
-                    tmpList = recyclerViewList.filter { arrayList ->
-                        (arrayList[2] as String).contains(s)
-                    } as ArrayList<ArrayList<String>>
+                    tmpList = recyclerViewList.filter { commentJSONParse ->
+                        commentJSONParse.comment.contains(s)
+                    } as ArrayList<CommentJSONParse>
                 }
                 // Adapter更新
                 nicoVideoAdapter =

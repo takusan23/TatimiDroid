@@ -348,4 +348,6 @@
     <string name="popup_video_player">Video pop-up playback</string>
     <string name="background_video_player">Video background playback</string>
     <string name="video_popup_background_play_service">Video popup / background playback</string>
+    <string name="about_cache">About cache playback</string>
+    <string name="about_cache_description">Click here for information on playing your own videos and comment files with this app</string>
 </resources>
