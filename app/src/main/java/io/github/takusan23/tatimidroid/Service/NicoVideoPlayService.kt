@@ -339,7 +339,7 @@ class NicoVideoPlayService : Service() {
             //表示
             windowManager.addView(popupView, popupLayoutParams)
             commentCanvas = popupView.overlay_video_commentCanvas
-            commentCanvas.isFloatingView = true
+            commentCanvas.isPopupView = true
             //SurfaceViewセット
             exoPlayer.setVideoSurfaceView(popupView.overlay_video_surfaceview)
 
@@ -404,8 +404,11 @@ class NicoVideoPlayService : Service() {
                         commentCanvas.viewTreeObserver.addOnGlobalLayoutListener {
                             commentCanvas.apply {
                                 finalHeight = commentCanvas.height
-                                fontsize = (finalHeight / 10).toFloat()
-                                blackPaint.textSize = fontsize
+                                // コメントの高さの情報がある配列を消す。
+                                // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
+                                commentLine.clear()
+                                ueCommentLine.clear()
+                                sitaCommentLine.clear()
                             }
                         }
                     }

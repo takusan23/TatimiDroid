@@ -45,6 +45,7 @@ import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.net.URLDecoder
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -161,7 +162,7 @@ class NicoLivePlayService : Service() {
             getFlvData = nicoJK.parseGetFlv(getFlvResponse.body?.string())!!
             Handler(Looper.getMainLooper()).post {
                 // 通知の内容更新
-                showNotification(getFlvData.channelName)
+                showNotification(URLDecoder.decode(getFlvData.channelName, "UTF-8"))
                 initPopUpView()
             }
             // 接続。最後に呼べ。
@@ -459,9 +460,8 @@ class NicoLivePlayService : Service() {
         popupView = layoutInflater.inflate(R.layout.overlay_player_layout, null)
         //表示
         windowManager.addView(popupView, params)
-        popupView.overlay_commentCanvas.isFloatingView = true
         commentCanvas = popupView.overlay_commentCanvas
-        commentCanvas.isFloatingView = true
+        commentCanvas.isPopupView = true
 
         if (isJK) {
             // ニコニコ実況の場合はSurfaceView非表示
@@ -577,8 +577,11 @@ class NicoLivePlayService : Service() {
                     commentCanvas.viewTreeObserver.addOnGlobalLayoutListener {
                         commentCanvas.apply {
                             finalHeight = commentCanvas.height
-                            fontsize = (finalHeight / 10).toFloat()
-                            blackPaint.textSize = fontsize
+                            // コメントの高さの情報がある配列を消す。
+                            // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
+                            commentLine.clear()
+                            ueCommentLine.clear()
+                            sitaCommentLine.clear()
                         }
                     }
                 }
@@ -753,7 +756,9 @@ class NicoLivePlayService : Service() {
         if (::popupView.isInitialized) {
             windowManager.removeView(popupView)
         }
-        popupExoPlayer.release()
+        if (::popupExoPlayer.isInitialized) {
+            popupExoPlayer.release()
+        }
         nicoLiveHTML.destroy()
         nicoLiveComment.destroy()
         mediaSessionCompat.release()

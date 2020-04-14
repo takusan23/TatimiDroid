@@ -68,15 +68,16 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     var commentPosition_9 = 0L
     var commentPosition_10 = 0L
 
-    //フローティング表示
-    var isFloatingView = false
-
     var commentLines = arrayListOf<Long>()
 
     // コメントの配列
     val commentObjList = arrayListOf<CommentObject>()
 
-    // 高さ：横の位置
+    /**
+     * 高さ：横の位置
+     * 注意：コメントのフォントサイズ変更時はこの配列の中身をすべて消す必要があるよ。
+     * コメントサイズ変更してもこの配列から最初の縦の位置（コメントフォントサイズ）を決定するので一行目のコメント描画で見切れる文字が発生する。
+     * */
     val commentLine = mutableMapOf<Float, CommentObject>()
 
     // 上付きコメントの配列
