@@ -433,6 +433,8 @@ class CommentFragment : Fragment() {
             // 接続
             nicoJK.connectionCommentServer(getFlvData, ::commentFun)
         }
+        // コマンドいらないと思うし消す
+        comment_cardview_comment_command_edit_button.visibility = View.GONE
     }
 
     /**

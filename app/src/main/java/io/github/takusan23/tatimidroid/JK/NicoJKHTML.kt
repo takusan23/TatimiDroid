@@ -13,6 +13,7 @@ import java.io.BufferedReader
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketException
+import java.util.regex.Pattern
 
 /**
  * ニコニコ実況のHTML取得からgetflvのAPI叩くところからコメントサーバー接続。
@@ -23,6 +24,12 @@ class NicoJKHTML {
 
     // コメントのやり取りに使う
     lateinit var socket: Socket
+
+    /**
+     * コメント送信時に使う値。
+     * Socket通信すると最初に流れてくるらしい。
+     * */
+    var ticket = ""
 
     /**
      * チャンネル一覧のHTML取得。スクレイピング。コルーチンです。
@@ -110,13 +117,16 @@ class NicoJKHTML {
         val baseTime = list[13].split("=")[1]
         val userId = list[17].split("=")[1]
         val channelName = list[6].split("=")[1]
-        return getFlvData(threadId, ms, port, baseTime, userId, channelName)
+        val isPremium = list[18].split("=")[1].toInt()
+        return getFlvData(threadId, ms, port, baseTime, userId, channelName, isPremium)
     }
 
     lateinit var bufferedReader: BufferedReader
 
     /**
      * コメントサーバーに接続する。Socket通信だって。
+     * 注意：while(true)が含まれているので一番最後に呼ばないとこれ以降の処理が行われません。
+     * え？兵庫県警？アラートループ事件？知らないですね
      * @param flvData parseGetFlv()の戻り値
      * @param onMessageFunc コメントが来たときに来る高階関数。コメントの中身（JSON形式に変換された文字列が来ます。）
      * */
@@ -139,12 +149,24 @@ class NicoJKHTML {
                 // charが流れてくるので。readTextとかは使えないの？
                 if (c == 0) {
                     // 文字終了
-                    println(message)
-                    // chatオブジェクトなら
-                    if (message.contains("chat")) {
-                        onMessageFunc(xmlToJSON(message).toString(), "JK", false)
-                        message = ""
+                    when {
+                        message.contains("chat_result") -> {
+                        }
+                        message.contains("ticket") -> {
+                            // ticket流れてきたら
+                            val regex = "ticket=\"(.+?)\""
+                            val pattern = Pattern.compile(regex)
+                            val matcher = pattern.matcher(message)
+                            if (matcher.find()) {
+                                ticket = matcher.group(1) ?: ""
+                            }
+                        }
+                        message.contains("chat") -> {
+                            // chatオブジェクトなら
+                            onMessageFunc(xmlToJSON(message).toString(), "JK", false)
+                        }
                     }
+                    message = ""
                 } else {
                     // 文字足していく
                     message += (c.toChar())
@@ -197,6 +219,9 @@ class NicoJKHTML {
         return JSONObject().put("chat", chatObject)
     }
 
+    /**
+     * 終了時に呼んでね。
+     * */
     fun destroy() {
         if (::socket.isInitialized) {
             socket.close()
@@ -204,22 +229,26 @@ class NicoJKHTML {
     }
 
     /**
-     * PostKeyを取得する関数。
+     * PostKeyを取得する関数。postComment()関数の中で使っているのでこの関数を単体で使うことはないと思う。
      * @param threadId getFlvで取得できる値。
      * @param userSession ユーザーセッション
      * */
-    fun getPostKey(threadId: String, userSession: String): Deferred<Response> = GlobalScope.async {
-        val request = Request.Builder().apply {
-            url("http://jk.nicovideo.jp/api/v2/getpostkey?thread=$threadId")
-            header("User-Agent", "TatimiDroid;@takusan_23")
-            header("Cookie", "user_session=$userSession")
-            get()
-        }.build()
-        val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        return@async response
-    }
+    private fun getPostKey(threadId: String, userSession: String): Deferred<Response> =
+        GlobalScope.async {
+            val request = Request.Builder().apply {
+                url("http://jk.nicovideo.jp/api/v2/getpostkey?thread=$threadId")
+                header("User-Agent", "TatimiDroid;@takusan_23")
+                header("Cookie", "user_session=$userSession")
+                get()
+            }.build()
+            val okHttpClient = OkHttpClient()
+            val response = okHttpClient.newCall(request).execute()
+            return@async response
+        }
 
+    /**
+     * コメントを投稿する関数。
+     * */
     fun postCommnet(comment: String, userId: String, baseTime: Long, threadId: String, userSession: String) {
         GlobalScope.launch {
             val postKeyResponse = getPostKey(threadId, userSession).await()
@@ -232,7 +261,7 @@ class NicoJKHTML {
             val unixTime = System.currentTimeMillis() / 1000L
             val vpos = (unixTime - baseTime) * 100
             val post =
-                "<chat thread=\"${threadId}\" vpos=\"${vpos}\" postkey=\"${postKey}\" mail=\"184\" user_id=\"${userId}\">${comment}</chat>\u0000"
+                "<chat thread=\"${threadId}\" ticket=\"${ticket}\"  vpos=\"${vpos}\" postkey=\"${postKey}\" mail=\"  184\" user_id=\"${userId}\" premium=\"1\">${comment}</chat>\u0000"
             // XML送信
             val outputStream = socket.getOutputStream()
             outputStream.write(post.toByteArray())
@@ -241,6 +270,6 @@ class NicoJKHTML {
     }
 
     // getFlvからコメントサーバーに接続するのに必要な値だけ
-    data class getFlvData(val threadId: String, val messageServer: String, val messageServerPort: String, val baseTime: String, val userId: String, val channelName: String)
+    data class getFlvData(val threadId: String, val messageServer: String, val messageServerPort: String, val baseTime: String, val userId: String, val channelName: String, val isPremium: Int)
 
 }
