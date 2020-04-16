@@ -81,13 +81,13 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     val ueCommentList = arrayListOf<CommentObject>()
 
     // 高さ：追加時間（UnixTime）
-    val ueCommentLine = mutableMapOf<Float, Long>()
+    val ueCommentLine = mutableMapOf<Float, CommentObject>()
 
     // 下付きコメントの配列
     val sitaCommentList = arrayListOf<CommentObject>()
 
     // 高さ：追加時間（UnixTime）
-    val sitaCommentLine = mutableMapOf<Float, Long>()
+    val sitaCommentLine = mutableMapOf<Float, CommentObject>()
 
     // Canvasの高さ。なぜかgetHeight()が0を返すので一工夫する必要がある。くっっっっっっそ
     var finalHeight = 10
@@ -424,16 +424,21 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
         } else if (command.contains("ue")) {
-            // 上付きコメント
             var yPos = commandFontSize
-            // 位置決定
             for (i in 0 until ueCommentLine.size) {
-                // 空きがあればそこに入れる
-                val unix = ueCommentLine.toList().get(i).second
-                if ((nowUnixTime - unix) > 3000) {
-                    break
+                // みていく
+                val obj = ueCommentLine.toList()[i].second
+                val unix = obj.unixTime
+                if (nowUnixTime - unix > 3000) {
+                    // スペースある？
+                    if (obj.yPos >= commandFontSize) {
+                        yPos = ueCommentLine.toList()[i].first
+                        break
+                    } else {
+                        yPos = ueCommentLine.toList()[i].first + commandFontSize
+                    }
                 } else {
-                    yPos = ueCommentLine.toList().get(i).first + commandFontSize
+                    yPos = ueCommentLine.toList()[i].first + commandFontSize
                 }
             }
             val commentObj =
@@ -447,18 +452,23 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     asciiArt
                 )
             ueCommentList.add(commentObj)
-            ueCommentLine[yPos] = System.currentTimeMillis()
+            ueCommentLine[yPos] = commentObj
         } else if (command.contains("shita")) {
-            // 下付きコメント
             var yPos = finalHeight - commandFontSize
-            // 位置決定
             for (i in 0 until sitaCommentLine.size) {
-                // 空きがあればそこに入れる
-                val unix = sitaCommentLine.toList().get(i).second
-                if ((nowUnixTime - unix) > 3000) {
-                    break
+                // みていく
+                val obj = sitaCommentLine.toList()[i].second
+                val unix = obj.unixTime
+                if (nowUnixTime - unix > 3000) {
+                    // スペースある？
+                    if (sitaCommentLine.toList()[i].first - commandFontSize >= commandFontSize) {
+                        yPos = sitaCommentLine.toList()[i].first
+                        break
+                    } else {
+                        yPos = sitaCommentLine.toList()[i].first - commandFontSize
+                    }
                 } else {
-                    yPos = sitaCommentLine.toList().get(i).first - commandFontSize
+                    yPos = sitaCommentLine.toList()[i].first - commandFontSize
                 }
             }
             val commentObj =
@@ -472,7 +482,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     asciiArt
                 )
             sitaCommentList.add(commentObj)
-            sitaCommentLine[yPos] = System.currentTimeMillis()
+            sitaCommentLine[yPos] = commentObj
         }
     }
 

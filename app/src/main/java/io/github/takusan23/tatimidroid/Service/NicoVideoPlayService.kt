@@ -307,6 +307,12 @@ class NicoVideoPlayService : Service() {
                 disp.getRealSize(realSize)
                 popupLayoutParams = getParams(realSize.x / 2)
                 windowManager.updateViewLayout(popupView, popupLayoutParams)
+                commentCanvas.apply {
+                    commentLine.clear()
+                    ueCommentLine.clear()
+                    sitaCommentLine.clear()
+
+                }
             }
         })
 
