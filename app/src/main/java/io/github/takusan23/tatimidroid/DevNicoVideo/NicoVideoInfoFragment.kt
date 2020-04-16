@@ -26,6 +26,8 @@ import okhttp3.*
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 class NicoVideoInfoFragment : Fragment() {
 
@@ -163,7 +165,8 @@ class NicoVideoInfoFragment : Fragment() {
                     HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT)
                 fragment_nicovideo_info_upload_textview.text =
                     "${getString(R.string.post_date)}：$postedDateTime"
-
+                fragment_nicovideo_info_upload_day_count_textview.text =
+                    "今日の日付から ${getDayCount(postedDateTime)} 日前に投稿"
 
                 fragment_nicovideo_info_play_count_textview.text =
                     "${getString(R.string.play_count)}：$viewCount"
@@ -264,6 +267,31 @@ class NicoVideoInfoFragment : Fragment() {
 
             }
         }
+    }
+
+    /**
+     * 動画投稿日が何日前か数えるやつ。
+     * @param upDateTime yyyy/MM/dd HH:mm:ssの形式で。
+     *
+     * */
+    private fun getDayCount(upDateTime: String): String {
+        // UnixTime（ミリ秒）へ変換
+        val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+        // 時、分とかは切り捨てる（多分いらない。）
+        val calendar = Calendar.getInstance().apply {
+            time = simpleDateFormat.parse(upDateTime)
+            set(Calendar.HOUR, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+        }
+        // 現在時刻から引く
+        val calc = System.currentTimeMillis() - calendar.time.time
+        // 計算で出す。多分もっといい方法ある。
+        val second = calc / 1000    // ミリ秒から秒へ
+        val minute = second / 60    // 秒から分へ
+        val hour = minute / 60      // 分から時間へ
+        val day = hour / 24         // 時間から日付へ
+        return day.toString()
     }
 
     fun openBrowser(url: String) {

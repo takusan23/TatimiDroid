@@ -31,7 +31,17 @@
                         android:id="@+id/fragment_nicovideo_info_upload_textview"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="投稿日" />
+                        android:drawableStart="@drawable/ic_event_available_24px"
+                        android:text="投稿日"
+                        android:textSize="16sp" />
+
+                <TextView
+                        android:id="@+id/fragment_nicovideo_info_upload_day_count_textview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_history_24px"
+                        android:text="投稿日"
+                        android:textSize="16sp" />
 
                 <TextView
                         android:id="@+id/fragment_nicovideo_info_title_textview"
