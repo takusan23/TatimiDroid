@@ -351,4 +351,5 @@
     <string name="about_cache_description">自分の持っている動画、コメントファイルをこのアプリで再生するための情報はこちらへ</string>
     <string name="about_cache">キャッシュ再生について</string>
     <string name="nico_jk">ニコニコ実況（jk）</string>
+    <string name="find_video_id">動画IDが見つかりました。</string>
 </resources>

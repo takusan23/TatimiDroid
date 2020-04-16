@@ -14,7 +14,9 @@ import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
+import io.github.takusan23.tatimidroid.IDRegex
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.isConnectionInternet
@@ -192,6 +194,7 @@ class NicoVideoInfoFragment : Fragment() {
                     linearLayoutParams.weight = 1F
                     button.layoutParams = linearLayoutParams
                     button.text = name
+                    button.isAllCaps = false
                     linearLayout.addView(button)
                     if (isDictionaryExists) {
                         val dictionaryButton = Button(context)
@@ -224,6 +227,21 @@ class NicoVideoInfoFragment : Fragment() {
                             fragment.viewPager.notifyDataSetChanged()
                             // ViewPager移動
                             fragment.fragment_nicovideo_viewpager.currentItem = addPos
+                        }
+                        // 動画IDのとき。例：「後編→sm」とか
+                        val id = IDRegex(name)
+                        if (id != null) {
+                            Snackbar.make(button, "${getString(R.string.find_video_id)} : $id", Snackbar.LENGTH_SHORT)
+                                .apply {
+                                    setAction(R.string.play) {
+                                        val intent =
+                                            Intent(context, NicoVideoActivity::class.java).apply {
+                                                putExtra("id", id)
+                                            }
+                                        startActivity(intent)
+                                    }
+                                    show()
+                                }
                         }
                     }
                 }
