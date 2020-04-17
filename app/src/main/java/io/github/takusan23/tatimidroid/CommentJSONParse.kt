@@ -39,7 +39,7 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
             }
             //NGスコア？
             if (chatObject.has("score")) {
-                score = chatObject.getInt("score").toString()
+                score = chatObject.getString("score").toString()
             }
             //コメントが服従表示される問題
             if (chatObject.has("origin")) {

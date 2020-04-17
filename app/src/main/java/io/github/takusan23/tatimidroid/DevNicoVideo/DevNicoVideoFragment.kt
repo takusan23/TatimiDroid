@@ -332,7 +332,7 @@ class DevNicoVideoFragment : Fragment() {
                     commentList.forEach {
                         recyclerViewList.add(it)
                     }
-                    initRecyclerView()
+                    initRecyclerView(true)
                 }
                 // タイトル
                 videoTitle = jsonObject.getJSONObject("video").getString("title")
