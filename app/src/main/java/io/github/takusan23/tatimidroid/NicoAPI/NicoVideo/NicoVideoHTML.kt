@@ -490,7 +490,7 @@ class NicoVideoHTML {
         val jsonArray = JSONArray(json)
         for (i in 0 until jsonArray.length()) {
             val jsonObject = jsonArray.getJSONObject(i)
-            if (jsonObject.has("chat")) {
+            if (jsonObject.has("chat") && !jsonObject.getJSONObject("chat").has("deleted")) {
                 val commentJSONParse = CommentJSONParse(jsonObject.toString(), "ニコ動", videoId)
                 commentList.add(commentJSONParse)
             }

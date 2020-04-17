@@ -78,7 +78,7 @@ class DevNicoVideoCommentFragment : Fragment() {
         // 3DSコメント非表示を実現するための面倒なやつ
         val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
         val list = if (is3DSCommentHidden) {
-            recyclerViewList.filter { commentJSONParse -> commentJSONParse.mail.contains("device:3DS") }
+            recyclerViewList.filter { commentJSONParse -> !commentJSONParse.mail.contains("device:3DS") }
         } else {
             recyclerViewList
         } as ArrayList<CommentJSONParse>
