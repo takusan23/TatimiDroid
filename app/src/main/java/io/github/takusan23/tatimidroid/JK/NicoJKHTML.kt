@@ -270,6 +270,7 @@ class NicoJKHTML {
     }
 
     // getFlvからコメントサーバーに接続するのに必要な値だけ
+    // channelNameはパーセントエンコーディングされてます
     data class getFlvData(val threadId: String, val messageServer: String, val messageServerPort: String, val baseTime: String, val userId: String, val channelName: String, val isPremium: Int)
 
 }

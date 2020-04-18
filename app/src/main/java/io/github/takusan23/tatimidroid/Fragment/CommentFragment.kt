@@ -61,6 +61,7 @@ import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
+import java.net.URLDecoder
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.schedule
@@ -426,11 +427,23 @@ class CommentFragment : Fragment() {
             }
             // getflvパースする
             getFlvData = nicoJK.parseGetFlv(getFlvResponse.body?.string())!!
+            // 番組情報入れる
+            activity?.runOnUiThread {
+                comment_fragment_program_title.text =
+                    URLDecoder.decode(getFlvData.channelName, "UTF-8")
+                comment_fragment_program_id.text = liveId
+            }
             // 接続
             nicoJK.connectionCommentServer(getFlvData, ::commentFun)
         }
         // コマンドいらないと思うし消す
         comment_cardview_comment_command_edit_button.visibility = View.GONE
+
+        // アクティブ計算以外使わないので消す
+        (activity_comment_comment_time.parent as View).visibility = View.GONE
+        activity_comment_watch_count.visibility = View.GONE
+        activity_comment_comment_count.visibility = View.GONE
+
     }
 
     /**
@@ -631,7 +644,13 @@ class CommentFragment : Fragment() {
 
     // コメントが来たらこの関数が呼ばれる
     fun commentFun(comment: String, roomName: String, isHistoryComment: Boolean) {
-        val commentJSONParse = CommentJSONParse(comment, roomName, liveId)
+        val room = if (isJK) {
+            URLDecoder.decode(getFlvData.channelName, "UTF-8")
+        } else {
+            roomName
+        }
+        val commentJSONParse =
+            CommentJSONParse(comment, room, liveId)
         /*
          * 重複しないように。
          * 令和元年8月中旬からアリーナに一般のコメントが流れ込むように（じゃあ枠の仕様なくせ栗田さん）

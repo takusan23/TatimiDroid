@@ -66,7 +66,7 @@
                         android:orientation="vertical"
                         android:paddingLeft="10sp"
                         android:paddingRight="10sp"
-                        android:visibility="gone"
+                        android:visibility="visible"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
@@ -131,49 +131,36 @@
                             android:orientation="horizontal"
                             android:visibility="visible">
 
-                        <ImageView
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                app:srcCompat="@drawable/ic_outline_account_circle_24px" />
-
                         <TextView
                                 android:id="@+id/activity_comment_watch_count"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
+                                android:drawableStart="@drawable/ic_outline_account_circle_24px"
                                 android:gravity="center"
                                 android:maxLines="1"
                                 android:text=""
                                 android:textSize="18sp"
                                 android:tooltipText="@string/watch_count" />
 
-                        <ImageView
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                app:srcCompat="@drawable/ic_active_icon" />
-
                         <TextView
                                 android:id="@+id/activity_comment_comment_active_text"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
+                                android:drawableStart="@drawable/ic_active_icon"
                                 android:gravity="center"
                                 android:maxLines="1"
                                 android:text="計算中"
                                 android:textSize="18sp"
                                 android:tooltipText="@string/active" />
 
-
-                        <ImageView
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                app:srcCompat="@drawable/ic_outline_comment_24px" />
-
                         <TextView
                                 android:id="@+id/activity_comment_comment_count"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
+                                android:drawableStart="@drawable/ic_outline_comment_24px"
                                 android:gravity="center"
                                 android:maxLines="1"
                                 android:text=""
