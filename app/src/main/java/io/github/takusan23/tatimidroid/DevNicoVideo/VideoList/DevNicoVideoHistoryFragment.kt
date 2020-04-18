@@ -17,6 +17,7 @@ import kotlinx.android.synthetic.main.fragment_nicovideo_history.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import javax.net.ssl.SSLProtocolException
 
 class DevNicoVideoHistoryFragment : Fragment() {
 
@@ -28,8 +29,7 @@ class DevNicoVideoHistoryFragment : Fragment() {
 
     // API
     var userSession = ""
-    val nicoVideoHistoryAPI =
-        NicoVideoHistoryAPI()
+    val nicoVideoHistoryAPI = NicoVideoHistoryAPI()
     lateinit var coroutine: Job
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -63,16 +63,22 @@ class DevNicoVideoHistoryFragment : Fragment() {
         }
         coroutine = GlobalScope.launch {
             val response = nicoVideoHistoryAPI.getHistory(userSession).await()
-            if (response.isSuccessful) {
-                nicoVideoHistoryAPI.parseHistoryJSONParse(response.body?.string()).forEach {
-                    recyclerViewList.add(it)
+            try {
+                if (response.isSuccessful) {
+                    nicoVideoHistoryAPI.parseHistoryJSONParse(response.body?.string()).forEach {
+                        recyclerViewList.add(it)
+                    }
+                    activity?.runOnUiThread {
+                        nicoVideoListAdapter.notifyDataSetChanged()
+                        fragment_comment_history_swipe_to_refresh.isRefreshing = false
+                    }
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
                 }
-                activity?.runOnUiThread {
-                    nicoVideoListAdapter.notifyDataSetChanged()
-                    fragment_comment_history_swipe_to_refresh.isRefreshing = false
-                }
-            } else {
-                showToast("${getString(R.string.error)}\n${response.code}")
+            } catch (e: SSLProtocolException) {
+                // Android 9の端末でSSLProtocolExceptionがスローされるのでやりたくないけど例外処理
+                e.printStackTrace()
+                showToast("${activity?.getString(R.string.error)}\n$e")
             }
         }
     }
@@ -89,7 +95,7 @@ class DevNicoVideoHistoryFragment : Fragment() {
 
     private fun showToast(message: String) {
         activity?.runOnUiThread {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
         }
     }
 

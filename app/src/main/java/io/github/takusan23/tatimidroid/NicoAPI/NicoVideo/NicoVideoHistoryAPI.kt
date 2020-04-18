@@ -4,11 +4,11 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
 import org.json.JSONObject
 import java.text.SimpleDateFormat
+import java.util.*
+
 
 /**
  * 履歴取得API
@@ -17,6 +17,7 @@ class NicoVideoHistoryAPI {
 
     /**
      * 履歴を取得する。
+     * 注意：Android 9の端末でSSLProtocolExceptionが発生するらしい。二回目以降で取れなくなる。
      * @param userSession ユーザーセッション
      * @return Response
      * */
@@ -24,7 +25,7 @@ class NicoVideoHistoryAPI {
         val request = Request.Builder().apply {
             url("https://nvapi.nicovideo.jp/v1/users/me/watch/history?page=1&pageSize=200") // 最大200件？
             header("Cookie", "user_session=${userSession}")
-            header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
+            header("x-frontend-id", "3") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()

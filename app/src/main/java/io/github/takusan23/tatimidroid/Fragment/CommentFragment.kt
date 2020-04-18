@@ -1675,6 +1675,17 @@ class CommentFragment : Fragment() {
 
     //新しいコメント投稿画面
     fun commentCardView() {
+        // プレ垢ならプレ垢用コメント色パレットを表示させる
+        if (nicoLiveHTML.isPremium) {
+            comment_cardview_command_edit_color_premium_linearlayout.visibility = View.VISIBLE
+        }
+        // 184が有効になっているときはコメントInputEditTextのHintに追記する
+        if (nicoLiveHTML.isTokumeiComment) {
+            comment_cardview_comment_textinput_layout.hint = getString(R.string.comment)
+        } else {
+            comment_cardview_comment_textinput_layout.hint =
+                "${getString(R.string.comment)}（${getString(R.string.disabled_tokumei_comment)}）"
+        }
         //投稿ボタンを押したら投稿
         comment_cardview_comment_send_button.setOnClickListener {
             val comment = comment_cardview_comment_textinput_edittext.text.toString()
@@ -1726,14 +1737,6 @@ class CommentFragment : Fragment() {
                 comment_cardview_command_edit_linearlayout.visibility = View.GONE
                 comment_cardview_comment_command_edit_button.setImageDrawable(context?.getDrawable(R.drawable.ic_outline_format_color_fill_24px))
             }
-        }
-
-        // 184が有効になっているときはコメントInputEditTextのHintに追記する
-        if (nicoLiveHTML.isTokumeiComment) {
-            comment_cardview_comment_textinput_layout.hint = getString(R.string.comment)
-        } else {
-            comment_cardview_comment_textinput_layout.hint =
-                "${getString(R.string.comment)}（${getString(R.string.disabled_tokumei_comment)}）"
         }
 
         var commentSize = ""
@@ -1796,6 +1799,13 @@ class CommentFragment : Fragment() {
                 comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
             }
         }
+        // ↑のプレ垢版
+        comment_cardview_command_edit_color_premium_linearlayout.children.forEach {
+            it.setOnClickListener {
+                commentColor = it.tag as String
+                comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            }
+        }
 
         if (pref_setting.getBoolean("setting_comment_collection_useage", false)) {
             //コメント投稿リスト読み込み
@@ -1807,20 +1817,10 @@ class CommentFragment : Fragment() {
                     override fun afterTextChanged(p0: Editable?) {
                     }
 
-                    override fun beforeTextChanged(
-                        p0: CharSequence?,
-                        p1: Int,
-                        p2: Int,
-                        p3: Int
-                    ) {
+                    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                     }
 
-                    override fun onTextChanged(
-                        p0: CharSequence?,
-                        p1: Int,
-                        p2: Int,
-                        p3: Int
-                    ) {
+                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                         comment_cardview_chipgroup.removeAllViews()
                         //コメントコレクション読み込み
                         if (p0?.length ?: 0 >= 1) {
@@ -1955,10 +1955,7 @@ class CommentFragment : Fragment() {
             if (this@CommentFragment::uncomeTextView.isInitialized) {
                 //表示アニメーション
                 val hideAnimation =
-                    AnimationUtils.loadAnimation(
-                        context!!,
-                        R.anim.unnei_comment_close_animation
-                    )
+                    AnimationUtils.loadAnimation(context!!, R.anim.unnei_comment_close_animation)
                 //表示
                 uncomeTextView.startAnimation(hideAnimation)
                 //初期化済みなら

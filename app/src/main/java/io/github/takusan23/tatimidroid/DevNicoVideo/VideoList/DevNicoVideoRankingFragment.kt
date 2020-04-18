@@ -23,8 +23,7 @@ import kotlinx.coroutines.launch
  * */
 class DevNicoVideoRankingFragment : Fragment() {
 
-    val nicoRSS =
-        NicoVideoRSS()
+    val nicoRSS = NicoVideoRSS()
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     val recyclerViewList = arrayListOf<NicoVideoData>()
 

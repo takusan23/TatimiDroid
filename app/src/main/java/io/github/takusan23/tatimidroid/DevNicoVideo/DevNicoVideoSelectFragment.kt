@@ -122,8 +122,8 @@ class DevNicoVideoSelectFragment : Fragment() {
             if (fragment_video_motionlayout != null) {
                 fragment_video_motionlayout.transitionToStart()
             }
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.replace(fragment_video_list_linearlayout.id, fragment)?.commit()
+           activity?.supportFragmentManager?.beginTransaction()
+               ?.replace(fragment_video_list_linearlayout.id, fragment)?.commit()
         }
     }
 

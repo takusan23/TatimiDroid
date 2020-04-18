@@ -44,10 +44,11 @@ class NicoLiveHTML {
     // postKey取るときに使うthreadId
     var threadId = ""
 
-    // コメント投稿で使う
+    // コメント投稿で使う。isPremiumとかはinitNicoLiveData()を呼ばないとこの値は入りません！！！
     var postCommentText = ""
     var postCommentCommand = ""
     var premium = 0     // プレ垢なら1
+    var isPremium = false   // 550円課金してるならtrue
     var userId = ""     // ユーザーID
     var isOfficial = false // 公式番組ならtrue
 
@@ -137,7 +138,8 @@ class NicoLiveHTML {
      * @param jsonObject nicoLiveHTMLtoJSONObject()の値
      * */
     fun initNicoLiveData(nicoLiveJSON: JSONObject) {
-        premium = if (isPremium(nicoLiveJSON)) {
+        isPremium = isPremium(nicoLiveJSON)
+        premium = if (isPremium) {
             1
         } else {
             0

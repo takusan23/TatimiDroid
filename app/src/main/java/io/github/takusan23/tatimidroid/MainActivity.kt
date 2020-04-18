@@ -58,11 +58,7 @@ class MainActivity : AppCompatActivity() {
 
         //生放送ID入力
         val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
-        fragmentTransitionSupport.replace(
-            R.id.main_activity_linearlayout,
-            LiveIDFragment(),
-            "liveid_fragment"
-        )
+        fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, LiveIDFragment(), "liveid_fragment")
         fragmentTransitionSupport.commit()
 
         //画面切り替え
@@ -154,10 +150,7 @@ class MainActivity : AppCompatActivity() {
         if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
             // ニコ動クライアント有効時
             val fragmentTransaction = supportFragmentManager.beginTransaction()
-            fragmentTransaction.replace(
-                R.id.main_activity_linearlayout,
-                DevNicoVideoSelectFragment()
-            )
+            fragmentTransaction.replace(R.id.main_activity_linearlayout, DevNicoVideoSelectFragment())
             fragmentTransaction.commit()
             //タイトル
             supportActionBar?.title = getString(R.string.nicovideo)

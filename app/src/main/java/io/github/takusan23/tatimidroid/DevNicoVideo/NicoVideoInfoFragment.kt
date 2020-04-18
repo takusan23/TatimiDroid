@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Spannable
 import android.text.Spanned
+import android.text.format.DateUtils
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.LayoutInflater
@@ -34,6 +35,7 @@ import org.jsoup.Jsoup
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.abs
 
 class NicoVideoInfoFragment : Fragment() {
 
@@ -371,6 +373,25 @@ class NicoVideoInfoFragment : Fragment() {
                     startActivity(intent)
                 }
             }, urlMather.start(), urlMather.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        // 再生時間へ移動。例：#25:25で25:25へ移動できる
+        val SEEK_TIME_REGEX = "(#)([0-9][0-9]):([0-9][0-9])"
+        val seekTimeMatcher = SEEK_TIME_REGEX.toPattern().matcher(text)
+        while (seekTimeMatcher.find()) {
+            val time = seekTimeMatcher.group().replace("#", "")
+            span.setSpan(object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    // 再生時間操作
+                    (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).apply {
+                        if (isInitExoPlayer()) {
+                            // 分：秒　を ミリ秒へ
+                            val minute = time.split(":")[0].toLong() * 60
+                            val second = time.split(":")[1].toLong()
+                            exoPlayer.seekTo(((minute + second) * 1000))
+                        }
+                    }
+                }
+            }, seekTimeMatcher.start(), seekTimeMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
 
         textView.text = span

@@ -130,82 +130,175 @@
                             android:layout_height="wrap_content">
 
                         <LinearLayout
-                                android:id="@+id/comment_cardview_command_edit_color_linearlayout"
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:orientation="horizontal">
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
 
-                            <Button
-                                    android:layout_width="40sp"
-                                    android:layout_height="40sp"
-                                    android:layout_margin="2sp"
-                                    android:backgroundTint="#FFFFFF"
-                                    android:tag="white" />
+                            <LinearLayout
+                                    android:id="@+id/comment_cardview_command_edit_color_linearlayout"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="match_parent"
+                                    android:orientation="horizontal">
 
-                            <Button
-                                    android:layout_width="40sp"
-                                    android:layout_height="40sp"
-                                    android:layout_margin="2sp"
-                                    android:backgroundTint="#FF0000"
-                                    android:tag="red" />
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#FFFFFF"
+                                        android:tag="white" />
 
-                            <Button
-                                    android:layout_width="40sp"
-                                    android:layout_height="40sp"
-                                    android:layout_margin="2sp"
-                                    android:backgroundTint="#FF8080"
-                                    android:tag="pink" />
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#FF0000"
+                                        android:tag="red" />
 
-                            <Button
-                                    android:layout_width="40sp"
-                                    android:layout_height="40sp"
-                                    android:layout_margin="2sp"
-                                    android:backgroundTint="#FFC000"
-                                    android:tag="orange" />
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#FF8080"
+                                        android:tag="pink" />
 
-                            <Button
-                                    android:layout_width="40sp"
-                                    android:layout_height="40sp"
-                                    android:layout_margin="2sp"
-                                    android:backgroundTint="#FFFF00"
-                                    android:tag="yellow" />
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#FFC000"
+                                        android:tag="orange" />
 
-                            <Button
-                                    android:layout_width="40sp"
-                                    android:layout_height="40sp"
-                                    android:layout_margin="2sp"
-                                    android:backgroundTint="#00FF00"
-                                    android:tag="green" />
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#FFFF00"
+                                        android:tag="yellow" />
 
-                            <Button
-                                    android:layout_width="40sp"
-                                    android:layout_height="40sp"
-                                    android:layout_margin="2sp"
-                                    android:backgroundTint="#00FFFF"
-                                    android:tag="cyan" />
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#00FF00"
+                                        android:tag="green" />
 
-                            <Button
-                                    android:layout_width="40sp"
-                                    android:layout_height="40sp"
-                                    android:layout_margin="2sp"
-                                    android:backgroundTint="#0000FF"
-                                    android:tag="blue" />
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#00FFFF"
+                                        android:tag="cyan" />
 
-                            <Button
-                                    android:layout_width="40sp"
-                                    android:layout_height="40sp"
-                                    android:layout_margin="2sp"
-                                    android:backgroundTint="#C000FF"
-                                    android:tag="purple" />
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#0000FF"
+                                        android:tag="blue" />
 
-                            <Button
-                                    android:layout_width="40sp"
-                                    android:layout_height="40sp"
-                                    android:layout_margin="2sp"
-                                    android:backgroundTint="#000000	"
-                                    android:tag="black" />
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#C000FF"
+                                        android:tag="purple" />
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#000000	"
+                                        android:tag="black" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                    android:id="@+id/comment_cardview_command_edit_color_premium_linearlayout"
+                                    android:visibility="gone"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#CCCC99"
+                                        android:tag="white2" />
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#CC0033"
+                                        android:tag="red2" />
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#FF33CC"
+                                        android:tag="pink2" />
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#FF6600"
+                                        android:tag="orange2" />
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#999900"
+                                        android:tag="yellow2" />
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#00CC66"
+                                        android:tag="green2" />
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#00CCCC"
+                                        android:tag="cyan2" />
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#3399FF"
+                                        android:tag="blue2" />
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#666666"
+                                        android:tag="purple2" />
+
+                                <Button
+                                        android:layout_width="40sp"
+                                        android:layout_height="40sp"
+                                        android:layout_margin="2sp"
+                                        android:backgroundTint="#000000	"
+                                        android:tag="black2" />
+                            </LinearLayout>
+
+
                         </LinearLayout>
+
                     </HorizontalScrollView>
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"></LinearLayout>
 
                     <LinearLayout
                             android:layout_width="match_parent"

@@ -252,10 +252,6 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         paint.textSize = fontSize
         paint.style = Paint.Style.FILL
         paint.color = Color.parseColor(getColor(command))
-        // コメントの色を部屋の色にする機能が有効になっている場合
-        if (isCommentColorRoom) {
-            paint.color = getRoomColor(command)
-        }
         return paint
     }
 
@@ -272,7 +268,40 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     }
 
     // 色
+    // 大百科参照：https://dic.nicovideo.jp/a/%E3%82%B3%E3%83%A1%E3%83%B3%E3%83%88
     fun getColor(command: String): String {
+        // プレ垢限定色。
+        if (command.contains("white2")) {
+            return "#CCCC99"
+        }
+        if (command.contains("red2")) {
+            return "#CC0033"
+        }
+        if (command.contains("pink2")) {
+            return "#FF33CC"
+        }
+        if (command.contains("orange2")) {
+            return "#FF6600"
+        }
+        if (command.contains("yellow2")) {
+            return "#999900"
+        }
+        if (command.contains("green2")) {
+            return "#00CC66"
+        }
+        if (command.contains("cyan2")) {
+            return "#00CCCC"
+        }
+        if (command.contains("blue2")) {
+            return "#3399FF"
+        }
+        if (command.contains("purple2")) {
+            return "#6633CC"
+        }
+        if (command.contains("black2")) {
+            return "#666666"
+        }
+        // 一般でも使えるやつ
         if (command.contains("red")) {
             return "#FF0000"
         }
@@ -423,7 +452,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             )
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
-        } else if (command.contains("ue")) {
+        } else if (command.contains(" ue") || command.contains("ue ")) {
             var yPos = commandFontSize
             for (i in 0 until ueCommentLine.size) {
                 // みていく

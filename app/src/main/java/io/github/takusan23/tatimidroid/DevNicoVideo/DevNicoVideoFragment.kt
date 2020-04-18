@@ -868,4 +868,11 @@ class DevNicoVideoFragment : Fragment() {
         rotationProgress = (savedInstanceState?.getLong("progress")) ?: 0L
     }
 
+    /**
+     * ExoPlayerを初期化しているか
+     * */
+    fun isInitExoPlayer(): Boolean {
+        return ::exoPlayer.isInitialized
+    }
+
 }

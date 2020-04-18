@@ -10,8 +10,8 @@ android {
         applicationId "io.github.takusan23.tatimidroid"
         minSdkVersion 22
         targetSdkVersion 29
-        versionCode 42
-        versionName "7.1.3"
+        versionCode 43
+        versionName "7.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
