@@ -342,6 +342,21 @@ class DevNicoVideoFragment : Fragment() {
                     ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
                 // 投稿動画をViewPagerに追加
                 viewPagerAddAccountFragment(jsonObject)
+                // リピートボタン
+                fragment_nicovideo_controller_repeat.setOnClickListener {
+                    when (exoPlayer.repeatMode) {
+                        Player.REPEAT_MODE_OFF -> {
+                            // リピート無効時
+                            exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                            fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
+                        }
+                        Player.REPEAT_MODE_ONE -> {
+                            // リピート有効時
+                            exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+                            fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
+                        }
+                    }
+                }
             }
         }
     }
@@ -391,6 +406,21 @@ class DevNicoVideoFragment : Fragment() {
             // 共有
             share =
                 ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
+            // リピートボタン
+            fragment_nicovideo_controller_repeat.setOnClickListener {
+                when (exoPlayer.repeatMode) {
+                    Player.REPEAT_MODE_OFF -> {
+                        // リピート無効時
+                        exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                        fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
+                    }
+                    Player.REPEAT_MODE_ONE -> {
+                        // リピート有効時
+                        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+                        fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
+                    }
+                }
+            }
         }
     }
 

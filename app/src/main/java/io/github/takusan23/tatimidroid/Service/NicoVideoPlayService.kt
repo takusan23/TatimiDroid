@@ -488,6 +488,22 @@ class NicoVideoPlayService : Service() {
                 commentCanvas.isPause = !exoPlayer.playWhenReady
             }
 
+            // リピート再生
+            popupView.overlay_video_repeat_button.setOnClickListener {
+                when (exoPlayer.repeatMode) {
+                    Player.REPEAT_MODE_OFF -> {
+                        // リピート無効時
+                        exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                        popupView.overlay_video_repeat_button.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
+                    }
+                    Player.REPEAT_MODE_ONE -> {
+                        // リピート有効時
+                        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+                        popupView.overlay_video_repeat_button.setImageDrawable(getDrawable(R.drawable.ic_repeat_black_24dp))
+                    }
+                }
+            }
+
             // シーク用に毎秒動くタイマー
             seekTimer.schedule(timerTask {
                 if (exoPlayer.isPlaying) {

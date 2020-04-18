@@ -62,8 +62,8 @@
         <com.google.android.material.tabs.TabLayout
                 android:id="@+id/fragment_nicovideo_tablayout"
                 android:layout_width="match_parent"
-                app:tabMode="scrollable"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                app:tabMode="scrollable" />
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/fragment_nicovideo_swipe"
@@ -116,6 +116,16 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:orientation="horizontal">
+
+                            <ImageView
+                                    android:id="@+id/fragment_nicovideo_controller_repeat"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:clickable="true"
+                                    android:foreground="?android:attr/selectableItemBackground"
+                                    android:padding="20sp"
+                                    app:srcCompat="@drawable/ic_repeat_black_24dp" />
 
                             <ImageView
                                     android:id="@+id/fragment_nicovideo_controller_replay"
