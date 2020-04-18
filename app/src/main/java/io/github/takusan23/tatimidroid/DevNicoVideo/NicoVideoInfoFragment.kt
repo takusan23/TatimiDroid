@@ -3,22 +3,28 @@ package io.github.takusan23.tatimidroid.DevNicoVideo
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.Spannable
+import android.text.Spanned
 import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.*
+import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.IDRegex
+import io.github.takusan23.tatimidroid.NICOVIDEO_ID_REGEX
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.isConnectionInternet
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
@@ -161,8 +167,9 @@ class NicoVideoInfoFragment : Fragment() {
             if (!isDetached) {
                 //UIスレッド
                 fragment_nicovideo_info_title_textview.text = title
-                fragment_nicovideo_info_description_textview.text =
-                    HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT)
+//                fragment_nicovideo_info_description_textview.text =
+//                    HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                setLinkText(HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT), fragment_nicovideo_info_description_textview)
                 fragment_nicovideo_info_upload_textview.text =
                     "${getString(R.string.post_date)}：$postedDateTime"
                 fragment_nicovideo_info_upload_day_count_textview.text =
@@ -304,6 +311,70 @@ class NicoVideoInfoFragment : Fragment() {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * TextViewのリンク（mylist/数字）とか（sm157）とかを押したときブラウザ開くのではなくこのアプリ内で表示できるようにする。
+     * */
+    fun setLinkText(text: Spanned, textView: TextView) {
+        // リンクを付ける。
+        val span = Spannable.Factory.getInstance().newSpannable(text.toString())
+        // 動画ID押せるように。ちなみに↓の変数は
+        val mather = NICOVIDEO_ID_REGEX.toPattern().matcher(text)
+        while (mather.find()) {
+            // 動画ID取得
+            val id = mather.group()
+            span.setSpan(object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    // 再生画面表示
+                    val intent = Intent(context, NicoVideoActivity::class.java).apply {
+                        putExtra("id", id)
+                    }
+                    activity?.finish()
+                    startActivity(intent)
+                }
+            }, mather.start(), mather.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        // マイリスト押せるように
+        val mylistMatcher = NICOVIDEO_MYLIST_ID_REGEX.toPattern().matcher(text)
+        while (mylistMatcher.find()) {
+            val mylist = mylistMatcher.group()
+            span.setSpan(object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    // マイリスト表示FragmentをViewPagerに追加する
+                    val postFragment = DevNicoVideoMyListFragment().apply {
+                        arguments = Bundle().apply {
+                            putString("mylist_id", mylist)
+                        }
+                    }
+                    // DevNicoVideoFragment
+                    (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).apply {
+                        // ViewPager追加
+                        viewPager.fragmentList.add(postFragment)
+                        viewPager.fragmentTabName.add("${getString(R.string.mylist)}：$mylist")
+                        viewPager.notifyDataSetChanged()
+                        // ViewPager移動
+                        fragment_nicovideo_viewpager.currentItem = viewPager.fragmentTabName.size
+                    }
+                }
+            }, mylistMatcher.start(), mylistMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        // URL押せるように
+        val URL_REGEX = "https?://[\\w!?/\\+\\-_~=;\\.,*&@#\$%\\(\\)\\'\\[\\]]+"
+        val urlMather = URL_REGEX.toPattern().matcher(text)
+        while (urlMather.find()) {
+            val url = urlMather.group()
+            span.setSpan(object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    // ブラウザ
+                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                    startActivity(intent)
+                }
+            }, urlMather.start(), urlMather.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+
+        textView.text = span
+        textView.movementMethod = LinkMovementMethod.getInstance();
     }
 
 }

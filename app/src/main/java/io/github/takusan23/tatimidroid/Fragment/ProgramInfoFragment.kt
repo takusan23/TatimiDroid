@@ -274,6 +274,9 @@ class ProgramInfoFragment : Fragment() {
             val canTSReserve =
                 jsonObject.has("programTimeshift") && jsonObject.has("programTimeshiftWatch")
             activity?.runOnUiThread {
+                if (fragment_program_info_timeshift_button == null) {
+                    return@runOnUiThread
+                }
                 fragment_program_info_timeshift_button.isEnabled = canTSReserve
                 if (!canTSReserve) {
                     fragment_program_info_timeshift_button.text =

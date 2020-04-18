@@ -20,10 +20,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
+/**
+ * マイリスト表示Fragment
+ * 他の人のマイリストを表示する場合は以下の情報をargumentに詰めてね。
+ * mylist_id    |String |マイリストのID。例：mylist/50133549
+ * */
 class DevNicoVideoMyListFragment : Fragment() {
 
-    val mylistAPI =
-        NicoVideoMyListAPI()
+    val mylistAPI = NicoVideoMyListAPI()
 
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     val recyclerViewList = arrayListOf<NicoVideoData>()
@@ -50,20 +54,33 @@ class DevNicoVideoMyListFragment : Fragment() {
         // RecyclerView初期化
         initRecyclerView()
 
-        // Token取得
-        fragment_nicovideo_mylist_swipe_to_refresh.isRefreshing = true
-        GlobalScope.launch {
-            val response = mylistAPI.getMyListHTML(userSession).await()
-            val responseString = response.body?.string()
-            if (response.isSuccessful && mylistAPI.getToken(responseString) != null) {
-                // Token取得
-                token = mylistAPI.getToken(responseString)!!
-                // マイリスト一覧取得
-                getMyListList()
-            } else {
-                showToast("${getString(R.string.error)}\n${response.code}")
+        // マイリストIDがある場合は
+        myListId = arguments?.getString("mylist_id", "") ?: ""
+        // マイリストが読み取り専用（他の人のマイリストを表示する際はtrue）
+        val isMylistReadOnly = myListId.isNotEmpty()
+        if (!isMylistReadOnly) {
+            // 自分のマイリスト取得
+            // Token取得
+            fragment_nicovideo_mylist_swipe_to_refresh.isRefreshing = true
+            GlobalScope.launch {
+                val response = mylistAPI.getMyListHTML(userSession).await()
+                val responseString = response.body?.string()
+                if (response.isSuccessful && mylistAPI.getToken(responseString) != null) {
+                    // Token取得
+                    token = mylistAPI.getToken(responseString)!!
+                    // マイリスト一覧取得
+                    getMyListList()
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                }
             }
+        } else {
+            // 他の人のマイリスト取得
+            fragment_nicovideo_mylist_tablayout.visibility = View.GONE
+            getOtherUserMylistItems(myListId.replace("mylist/", ""))
+            fragment_nicovideo_mylist_swipe_to_refresh.isEnabled = false
         }
+
 
     }
 
@@ -157,6 +174,31 @@ class DevNicoVideoMyListFragment : Fragment() {
             val response = mylistAPI.getMyListItems(token, myListId, userSession).await()
             if (response.isSuccessful) {
                 mylistAPI.parseMyListJSON(response.body?.string()).forEach {
+                    recyclerViewList.add(it)
+                }
+                activity?.runOnUiThread {
+                    nicoVideoListAdapter.notifyDataSetChanged()
+                    fragment_nicovideo_mylist_swipe_to_refresh.isRefreshing = false
+                }
+            } else {
+                showToast("${getString(R.string.error)}\n${response.code}")
+            }
+        }
+    }
+
+    // 他の人のマイリストを取得する
+    fun getOtherUserMylistItems(myListId: String) {
+        // 初期化
+        recyclerViewList.clear()
+        nicoVideoListAdapter.notifyDataSetChanged()
+        // 通信中ならキャンセル
+        if (::coroutine.isInitialized) {
+            coroutine.cancel()
+        }
+        coroutine = GlobalScope.launch {
+            val response = mylistAPI.getOtherUserMylistItems(myListId, userSession).await()
+            if (response.isSuccessful) {
+                mylistAPI.parseOtherUserMyListJSON(response.body?.string()).forEach {
                     recyclerViewList.add(it)
                 }
                 activity?.runOnUiThread {

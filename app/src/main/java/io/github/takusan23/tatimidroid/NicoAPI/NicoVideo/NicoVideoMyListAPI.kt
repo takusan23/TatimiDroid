@@ -9,7 +9,10 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.regex.Pattern
+import kotlin.collections.ArrayList
 
 /**
  * マイリストAPI
@@ -197,5 +200,62 @@ class NicoVideoMyListAPI {
             val response = okHttpClient.newCall(request).execute()
             return@async response
         }
+
+    /**
+     * 他の人のマイリストを取得する。コルーチンです。100件取れます。
+     * @param id mylist/数字 の数字の部分だけ。
+     * @param userSession ユーザーセッション。多分なくても（空文字でも）叩けるけど一応。
+     * @param pageSize 省略時100件取れます。
+     * */
+    fun getOtherUserMylistItems(id: String, userSession: String = "", pageSize: Int = 100): Deferred<Response> =
+        GlobalScope.async {
+            //とりあえずマイリストと普通のマイリスト。
+            val url = "https://nvapi.nicovideo.jp/v2/mylists/$id?pageSize=$pageSize"
+            val request = Request.Builder().apply {
+                header("Cookie", "user_session=${userSession}")
+                header("x-frontend-id", "6")
+                header("User-Agent", "TatimiDroid;@takusan_23")
+                url(url)
+                get()
+            }.build()
+            val okHttpClient = OkHttpClient()
+            val response = okHttpClient.newCall(request).execute()
+            return@async response
+        }
+
+    /**
+     * 他の人のマイリストのJSONをパースする。
+     * @param json getOtherUserMylistItems()の戻り値
+     * @return NicoVideoData配列
+     * */
+    fun parseOtherUserMyListJSON(json: String?): ArrayList<NicoVideoData> {
+        val myListList = arrayListOf<NicoVideoData>()
+        val jsonObject = JSONObject(json)
+        val myListItem =
+            jsonObject.getJSONObject("data").getJSONObject("mylist").getJSONArray("items")
+        for (i in 0 until myListItem.length()) {
+            val video = myListItem.getJSONObject(i)
+            val itemId = video.getString("itemId")
+            val videoObject = video.getJSONObject("video")
+            val title = videoObject.getString("title")
+            val videoId = videoObject.getString("id")
+            val thum = videoObject.getJSONObject("thumbnail").getString("url")
+            val date = toUnixTime(videoObject.getString("registeredAt"))
+            val countObject = videoObject.getJSONObject("count")
+            val viewCount = countObject.getString("view")
+            val commentCount = countObject.getString("comment")
+            val mylistCount = countObject.getString("mylist")
+            val data =
+                NicoVideoData(false, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, itemId)
+            myListList.add(data)
+        }
+        return myListList
+    }
+
+    // UnixTimeへ変換
+    private fun toUnixTime(time: String): Long {
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+        return simpleDateFormat.parse(time).time
+    }
 
 }
