@@ -408,6 +408,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         val nowUnixTime = System.currentTimeMillis()
         val command = commentJSONParse.mail
 
+        val tmpCommand = command
+
         // 上でもなければ下でもないときは流す
         if (!command.contains("ue") && !command.contains("shita")) {
             // 流れるコメント
@@ -441,18 +443,12 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     // println("らんだむ")
                 }
             }
-            val commentObj = CommentObject(
-                comment,
-                xPos,
-                yPos,
-                System.currentTimeMillis(),
-                measure,
-                command,
-                asciiArt
-            )
+            val commentObj = CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt)
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
-        } else if (command.contains(" ue") || command.contains("ue ")) {
+        } else if (command.contains("ue") && tmpCommand.replace("blue|blue([0-9])".toRegex(), "")
+                .contains("ue")
+        ) {
             var yPos = commandFontSize
             for (i in 0 until ueCommentLine.size) {
                 // みていく
@@ -512,6 +508,41 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 )
             sitaCommentList.add(commentObj)
             sitaCommentLine[yPos] = commentObj
+        } else {
+            // 流れるコメント
+            for (i in 0 until commentLine.size) {
+                val obj = commentLine.toList().get(i).second
+                val space = width - obj.xPos
+                // println(space)
+                yPos = obj.yPos
+                if (space < -1) {
+                    // 画面外。負の値
+                    // println("画面外です")
+                    yPos += commandFontSize
+                } else if (space < measure) {
+                    // 空きスペースよりコメントの長さが大きいとき
+                    // println("コメントのほうが長いです")
+                    yPos += commandFontSize
+                } else {
+                    // 位置決定
+                    // println("位置が決定しました")
+                    break
+                }
+                if (yPos > finalHeight) {
+                    // 画面外に行く場合はランダムで決定
+                    if (finalHeight > 0 && fontsize.toInt() < finalHeight) {
+                        // Canvasの高さが取得できているとき
+                        yPos = Random.nextInt(fontsize.toInt(), finalHeight).toFloat()
+                    } else {
+                        // 取得できてないとき。ほんとに適当
+                        yPos = Random.nextInt(1, 10) * fontsize
+                    }
+                    // println("らんだむ")
+                }
+            }
+            val commentObj = CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt)
+            commentObjList.add(commentObj)
+            commentLine[yPos] = commentObj
         }
     }
 
