@@ -44,6 +44,7 @@ import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import okhttp3.internal.http2.Header
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -376,18 +377,32 @@ class DevNicoVideoFragment : Fragment() {
             // 動画のファイル名取得
             val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
             if (videoFileName != null) {
-                contentUrl =
-                    "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
-                if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
-                    // 動画を再生しない場合
-                    commentOnlyModeEnable()
-                } else {
-                    // ExoPlayer
-                    initVideoPlayer(contentUrl, "")
+                // 多分ここくそ重いから別スレッド
+                GlobalScope.launch {
+                    contentUrl =
+                        "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
+                    if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
+                        // 動画を再生しない場合
+                        commentOnlyModeEnable()
+                    } else {
+                        activity?.runOnUiThread {
+                            // ExoPlayer
+                            initVideoPlayer(contentUrl, "")
+                        }
+                    }
+                    // コメント取得
+                    val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
+                    commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
+                    activity?.runOnUiThread {
+                        // コメントFragmentにコメント配列を渡す
+                        (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {
+                            commentList.forEach {
+                                recyclerViewList.add(it)
+                            }
+                            initRecyclerView(true)
+                        }
+                    }
                 }
-                // コメント取得
-                val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
-                commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
             } else {
                 // 動画が見つからなかった
                 Toast.makeText(context, R.string.not_found_video, Toast.LENGTH_SHORT).show()
@@ -575,8 +590,8 @@ class DevNicoVideoFragment : Fragment() {
                 if (!isDestory) {
                     if (exoPlayer.isPlaying) {
                         setProgress()
-                        drawComment()
                         scroll(exoPlayer.currentPosition / 1000L)
+                        drawComment()
                     }
                 }
             }
@@ -623,13 +638,23 @@ class DevNicoVideoFragment : Fragment() {
 
     /**
      * コメント描画システム。
+     * ArrayList#filter{ }が多分重い（コメントファイル数十MBとかだと応答無くなる）ので
+     * UIスレッド：再生時間取得（ExoPlayerは基本UIスレッドで操作する）
+     * 別スレッド：filter{ }で再生時間のコメント取得
+     * UIスレッド：コメント描画
+     * という複雑な方法をとっている（代わりに普通に動くようになった）
      * */
     fun drawComment() {
-        val drawList = commentList.filter { commentJSONParse ->
-            (commentJSONParse.vpos.toInt() / 10) == (exoPlayer.contentPosition / 100L).toInt()
-        }
-        drawList.forEach {
-            fragment_nicovideo_comment_canvas.postComment(it.comment, it)
+        val currentPosition = exoPlayer.contentPosition / 100L
+        GlobalScope.launch {
+            val drawList = commentList.filter { commentJSONParse ->
+                (commentJSONParse.vpos.toInt() / 10) == (currentPosition).toInt()
+            }
+            drawList.forEach {
+                fragment_nicovideo_comment_canvas.post {
+                    fragment_nicovideo_comment_canvas.postComment(it.comment, it)
+                }
+            }
         }
     }
 

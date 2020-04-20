@@ -26,6 +26,9 @@ class XMLCommentJSON(val context: Context?) {
      * */
     fun xmlToJSON(fileName: String): Deferred<Int> = GlobalScope.async {
         println(System.currentTimeMillis())
+
+        var tmp = ""
+
         // ScopedStorage
         val media = context?.getExternalFilesDir(null)
 
@@ -84,10 +87,10 @@ class XMLCommentJSON(val context: Context?) {
             }
             eventType = parser.next()
         }
+
         // 保存。
         val jsonFile = File("${media?.path}/cache/$fileName/${fileName}_comment.json")
         jsonFile.writeText(jsonArray.toString())
-
 
         println(System.currentTimeMillis())
         return@async 0
