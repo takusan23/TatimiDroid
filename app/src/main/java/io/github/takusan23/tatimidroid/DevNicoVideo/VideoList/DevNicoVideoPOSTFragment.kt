@@ -99,13 +99,19 @@ class DevNicoVideoPOSTFragment : Fragment() {
                     }
                     activity?.runOnUiThread {
                         nicoVideoListAdapter.notifyDataSetChanged()
-                        fragment_nicovideo_post_swipe_to_refresh.isRefreshing = false
-                        fragment_nicovideo_post_now_page.text = "$page ${getString(R.string.page)}"
+                        if (isAdded) {
+                            fragment_nicovideo_post_swipe_to_refresh.isRefreshing = false
+                            fragment_nicovideo_post_now_page.text =
+                                "$page ${getString(R.string.page)}"
+                        }
                     }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
                     activity?.runOnUiThread {
-                        fragment_nicovideo_post_now_page.text = "$page ${getString(R.string.page)}"
+                        if (isAdded) {
+                            fragment_nicovideo_post_now_page.text =
+                                "$page ${getString(R.string.page)}"
+                        }
                     }
                 }
             }

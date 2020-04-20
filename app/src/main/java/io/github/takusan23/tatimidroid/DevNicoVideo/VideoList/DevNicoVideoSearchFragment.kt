@@ -138,9 +138,11 @@ class DevNicoVideoSearchFragment : Fragment() {
                     }
                     activity?.runOnUiThread {
                         nicoVideoListAdapter.notifyDataSetChanged()
-                        fragment_nicovideo_search_swipe_refresh.isRefreshing = false
-                        fragment_nicovideo_search_now_page.text =
-                            "$page ${getString(R.string.page)}"
+                        if (isAdded) {
+                            fragment_nicovideo_search_swipe_refresh.isRefreshing = false
+                            fragment_nicovideo_search_now_page.text =
+                                "$page ${getString(R.string.page)}"
+                        }
                     }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
@@ -190,8 +192,10 @@ class DevNicoVideoSearchFragment : Fragment() {
     }
 
     private fun showToast(message: String) {
-        activity?.runOnUiThread {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        if (isAdded) {
+            activity?.runOnUiThread {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
