@@ -114,6 +114,8 @@ class DevNicoVideoMyListFragment : Fragment() {
 
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     sort(position)
+                    println(position)
+                    println(sortList[position])
                 }
             }
     }
@@ -124,16 +126,16 @@ class DevNicoVideoMyListFragment : Fragment() {
         when (position) {
             0 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate }
             1 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.mylistAddedDate }
-            2 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.viewCount }
-            3 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.viewCount }
+            2 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.viewCount.toInt() }
+            3 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.viewCount.toInt() }
             4 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.date }
             5 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.date }
             6 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.duration }
             7 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.duration }
-            8 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.commentCount }
-            9 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.commentCount }
-            10 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.mylistCount }
-            11 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.mylistCount }
+            8 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.commentCount.toInt() }
+            9 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.commentCount.toInt() }
+            10 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
+            11 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
         }
         nicoVideoListAdapter.notifyDataSetChanged()
     }
