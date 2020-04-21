@@ -20,7 +20,10 @@
                     android:id="@+id/fragment_nicovideo_search_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/serch" />
+                    android:hint="@string/serch"
+                    android:inputType="text"
+                    android:imeOptions="actionSearch"
+                    android:maxLines="1" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <ImageView

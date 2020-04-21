@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.DevNicoVideo.VideoList
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -85,6 +86,15 @@ class DevNicoVideoSearchFragment : Fragment() {
         fragment_nicovideo_search_swipe_refresh.setOnRefreshListener {
             search()
         }
+
+        // エンターキー押したら検索実行
+        fragment_nicovideo_search_input.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
+            if (i == KeyEvent.KEYCODE_ENTER) {
+                search()
+            }
+            false
+        }
+
 
         // Spinner選択でも検索できるように
         val spinnerListener = object : AdapterView.OnItemSelectedListener {

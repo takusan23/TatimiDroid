@@ -214,10 +214,10 @@
 
                             <LinearLayout
                                     android:id="@+id/comment_cardview_command_edit_color_premium_linearlayout"
-                                    android:visibility="gone"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal">
+                                    android:orientation="horizontal"
+                                    android:visibility="gone">
 
                                 <Button
                                         android:layout_width="40sp"
@@ -367,6 +367,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:hint="@string/comment"
+                                android:imeOptions="actionSend"
+                                android:inputType="text"
                                 android:maxLines="1" />
 
                     </com.google.android.material.textfield.TextInputLayout>
