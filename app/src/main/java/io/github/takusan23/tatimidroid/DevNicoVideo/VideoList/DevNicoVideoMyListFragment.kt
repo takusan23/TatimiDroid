@@ -114,8 +114,6 @@ class DevNicoVideoMyListFragment : Fragment() {
 
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     sort(position)
-                    println(position)
-                    println(sortList[position])
                 }
             }
     }
