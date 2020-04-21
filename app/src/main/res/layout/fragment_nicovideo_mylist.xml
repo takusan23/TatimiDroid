@@ -17,6 +17,12 @@
                 android:text="@string/toriaezu_mylist" />
     </com.google.android.material.tabs.TabLayout>
 
+    <Spinner
+            android:id="@+id/fragment_nicovideo_mylist_sort_spinner"
+            android:layout_margin="5sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/fragment_nicovideo_mylist_swipe_to_refresh"
             android:layout_width="match_parent"
@@ -26,6 +32,7 @@
                 android:id="@+id/fragment_nicovideo_mylist_recyclerview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </LinearLayout>

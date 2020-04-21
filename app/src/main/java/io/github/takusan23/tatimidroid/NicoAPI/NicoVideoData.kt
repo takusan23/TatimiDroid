@@ -1,5 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI
 
+import java.time.Duration
+
 /**
  * 動画タイトル、動画ID、サムネとか
  * */
@@ -13,5 +15,7 @@ data class NicoVideoData(
     val viewCount: String,
     val commentCount: String,
     val mylistCount: String,
-    val mylistItemId: String // マイリストのitem_idの値。マイリスト以外は空文字。
+    val mylistItemId: String,// マイリストのitem_idの値。マイリスト以外は空文字。
+    val mylistAddedDate: Long?,// マイリストの追加日時。マイリスト以外はnull可能
+    val duration: Long?  // 再生時間（秒）。
 )

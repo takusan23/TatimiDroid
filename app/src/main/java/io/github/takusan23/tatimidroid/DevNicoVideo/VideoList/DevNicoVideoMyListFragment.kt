@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -54,6 +54,9 @@ class DevNicoVideoMyListFragment : Fragment() {
         // RecyclerView初期化
         initRecyclerView()
 
+        // 並び替えSpinner初期化
+        initSortSpinner()
+
         // マイリストIDがある場合は
         myListId = arguments?.getString("mylist_id", "") ?: ""
         // マイリストが読み取り専用（他の人のマイリストを表示する際はtrue）
@@ -82,6 +85,57 @@ class DevNicoVideoMyListFragment : Fragment() {
         }
 
 
+    }
+
+    private fun initSortSpinner() {
+        val sortList =
+            arrayListOf(
+                "登録が新しい順",
+                "登録が古い順",
+                "再生の多い順",
+                "再生の少ない順",
+                "投稿日時が新しい順",
+                "投稿日時が古い順",
+                "再生時間の長い順",
+                "再生時間の短い順",
+                "コメントの多い順",
+                "コメントの少ない順",
+                "マイリスト数の多い順",
+                "マイリスト数の少ない順"
+            )
+        val adapter =
+            ArrayAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, sortList)
+        fragment_nicovideo_mylist_sort_spinner.adapter = adapter
+        fragment_nicovideo_mylist_sort_spinner.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+
+                }
+
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    sort(position)
+                }
+            }
+    }
+
+    // ソートする
+    fun sort(position: Int) {
+        // 選択
+        when (position) {
+            0 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate }
+            1 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.mylistAddedDate }
+            2 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.viewCount }
+            3 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.viewCount }
+            4 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.date }
+            5 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.date }
+            6 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.duration }
+            7 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.duration }
+            8 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.commentCount }
+            9 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.commentCount }
+            10 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.mylistCount }
+            11 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.mylistCount }
+        }
+        nicoVideoListAdapter.notifyDataSetChanged()
     }
 
     // マイリスト一覧取得
@@ -173,12 +227,17 @@ class DevNicoVideoMyListFragment : Fragment() {
         coroutine = GlobalScope.launch {
             val response = mylistAPI.getMyListItems(token, myListId, userSession).await()
             if (response.isSuccessful) {
-                mylistAPI.parseMyListJSON(response.body?.string()).forEach {
-                    recyclerViewList.add(it)
-                }
+                mylistAPI.parseMyListJSON(response.body?.string())
+                    // 並び替え
+                    .sortedByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate }.forEach {
+                        recyclerViewList.add(it)
+                    }
                 activity?.runOnUiThread {
                     nicoVideoListAdapter.notifyDataSetChanged()
                     fragment_nicovideo_mylist_swipe_to_refresh.isRefreshing = false
+                    // ソートさせる（ソート順を選んでる場合）
+                    val position = fragment_nicovideo_mylist_sort_spinner.selectedItemPosition
+                    sort(position)
                 }
             } else {
                 showToast("${getString(R.string.error)}\n${response.code}")
@@ -198,9 +257,10 @@ class DevNicoVideoMyListFragment : Fragment() {
         coroutine = GlobalScope.launch {
             val response = mylistAPI.getOtherUserMylistItems(myListId, userSession).await()
             if (response.isSuccessful) {
-                mylistAPI.parseOtherUserMyListJSON(response.body?.string()).forEach {
-                    recyclerViewList.add(it)
-                }
+                mylistAPI.parseOtherUserMyListJSON(response.body?.string())
+                    .sortedByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate }.forEach {
+                        recyclerViewList.add(it)
+                    }
                 activity?.runOnUiThread {
                     nicoVideoListAdapter.notifyDataSetChanged()
                     fragment_nicovideo_mylist_swipe_to_refresh.isRefreshing = false
