@@ -6,6 +6,7 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
@@ -88,6 +89,16 @@ class DevNicoVideoSearchFragment : Fragment() {
         }
 
         // エンターキー押したら検索実行
+        fragment_nicovideo_search_input.setOnEditorActionListener { v, actionId, event ->
+            when (actionId) {
+                EditorInfo.IME_ACTION_SEARCH -> {
+                    search()
+                    true
+                }
+                else -> false
+            }
+        }
+
         fragment_nicovideo_search_input.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
             if (i == KeyEvent.KEYCODE_ENTER) {
                 search()

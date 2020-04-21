@@ -21,6 +21,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
 import android.view.animation.AnimationUtils
+import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
