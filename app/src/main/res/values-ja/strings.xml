@@ -352,4 +352,5 @@
     <string name="about_cache">キャッシュ再生について</string>
     <string name="nico_jk">ニコニコ実況（jk）</string>
     <string name="find_video_id">動画IDが見つかりました。</string>
+    <string name="hide_comment_search_area">コメント検索、コメント並び替えボタンを非表示にする</string>
 </resources>

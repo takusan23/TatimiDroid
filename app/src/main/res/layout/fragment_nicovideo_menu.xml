@@ -44,17 +44,17 @@
                                 android:layout_height="wrap_content"
                                 android:layout_margin="2dp"
                                 android:layout_weight="1"
-                                app:icon="@drawable/ic_popup_icon"
-                                android:text="@string/popup_player" />
+                                android:text="@string/popup_player"
+                                app:icon="@drawable/ic_popup_icon" />
 
                         <Button
                                 android:id="@+id/fragment_nicovideo_menu_background"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="2dp"
-                                app:icon="@drawable/ic_background_icon"
                                 android:layout_weight="1"
-                                android:text="@string/background_play" />
+                                android:text="@string/background_play"
+                                app:icon="@drawable/ic_background_icon" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -83,6 +83,13 @@
                             android:layout_height="wrap_content"
                             android:layout_margin="5sp"
                             android:text="@string/menu_scroll_comment" />
+
+                    <Switch
+                            android:id="@+id/fragment_nicovideo_menu_hide_comment_search"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5sp"
+                            android:text="@string/hide_comment_search_area" />
 
                 </LinearLayout>
 

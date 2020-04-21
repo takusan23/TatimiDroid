@@ -40,16 +40,14 @@ class DevNicoVideoCommentFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-
-
         //動画ID受け取る（sm9とかsm157とか）
         id = arguments?.getString("id") ?: "sm157"
-
-        // //nicovideoFragment取る。
-        // nicoVideoFragment =
-        //     activity?.supportFragmentManager?.findFragmentByTag(id) as NicoVideoFragment
-
         usersession = prefSetting.getString("user_session", "") ?: ""
+
+        // コメント検索ボタン、コメント並び替えボタンを非表示にするか
+        if (prefSetting.getBoolean("nicovideo_hide_search_button", true)) {
+            (activity_nicovideo_comment_serch_button.parent as View).visibility = View.GONE
+        }
 
         //ポップアップメニュー初期化
         initSortPopupMenu()

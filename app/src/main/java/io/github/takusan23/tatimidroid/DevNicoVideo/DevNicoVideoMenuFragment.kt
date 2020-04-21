@@ -101,6 +101,7 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     }
 
+
     // ポップアップ再生、バッググラウンド再生ボタン
     private fun initVideoPlayServiceButton() {
         fragment_nicovideo_menu_popup.setOnClickListener {
@@ -308,6 +309,8 @@ class DevNicoVideoMenuFragment : Fragment() {
             prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
         fragment_nicovideo_menu_scroll.isChecked =
             prefSetting.getBoolean("nicovideo_comment_scroll", false)
+        fragment_nicovideo_menu_hide_comment_search.isChecked =
+            prefSetting.getBoolean("nicovideo_hide_search_button", true)
     }
 
     /**
@@ -316,6 +319,7 @@ class DevNicoVideoMenuFragment : Fragment() {
     fun setValue() {
         switchListener(fragment_nicovideo_menu_3ds_switch, "nicovideo_comment_3ds_hidden")
         switchListener(fragment_nicovideo_menu_scroll, "nicovideo_comment_scroll")
+        switchListener(fragment_nicovideo_menu_hide_comment_search, "nicovideo_hide_search_button")
     }
 
     private fun switchListener(switch: Switch, key: String) {

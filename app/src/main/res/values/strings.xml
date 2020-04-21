@@ -352,4 +352,5 @@
     <string name="about_cache_description">Click here for information on playing your own videos and comment files with this app</string>
     <string name="nico_jk">Nico Nico Live Commentary</string>
     <string name="find_video_id">Video ID found.</string>
+    <string name="hide_comment_search_area">Hide comment search and comment sort buttons</string>
 </resources>
