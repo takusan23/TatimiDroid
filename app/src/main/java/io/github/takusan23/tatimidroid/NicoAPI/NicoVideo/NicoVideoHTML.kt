@@ -34,6 +34,7 @@ class NicoVideoHTML {
             val request = Request.Builder().apply {
                 url("https://www.nicovideo.jp/watch/$videoId?eco=$eco")
                 header("Cookie", "user_session=$userSession")
+                header("User-Agent", "TatimiDroid;@takusan_23")
                 get()
             }.build()
             val okHttpClient = OkHttpClient()

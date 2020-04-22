@@ -353,4 +353,12 @@
     <string name="nico_jk">Nico Nico Live Commentary</string>
     <string name="find_video_id">Video ID found.</string>
     <string name="hide_comment_search_area">Hide comment search and comment sort buttons</string>
+    <string name="get_cache_eco">Cash acquisition (economy mode)</string>
+    <string name="cache_service_title">Cash acquisition service</string>
+    <string name="cache_get_notification_title">Getting cache</string>
+    <string name="cache_get_list_add">Reserved for cash acquisition</string>
+    <string name="cache_get_list_size">Number of remaining cache reservations</string>
+    <string name="cache_get_list_contains">Already added to the cache acquisition reservation list</string>
+    <string name="cache_get_list_all_complete">All cash acquisition completed</string>
+    <string name="cache_get_service_stop">Acquisition service end</string>
 </resources>

@@ -31,7 +31,11 @@ class NicoVideoCache(val context: Context?) {
     var downloadManager: DownloadManager =
         context?.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
+    // DownloadManagerの結果Broadcast
     private lateinit var broadcastReceiver: BroadcastReceiver
+
+    // 現在のDownloadManagerの進行中の項目
+    private var downloadItem = 0L
 
     /**
      * キャッシュ用フォルダからデータ持ってくる。
@@ -71,7 +75,7 @@ class NicoVideoCache(val context: Context?) {
                         jsonObject.getJSONObject("thread").getInt("commentCount").toString()
                     val mylistCount = video.getInt("mylistCount").toString()
                     val data =
-                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "",null,null)
+                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "", null, null)
                     list.add(data)
                 } else {
                     /**
@@ -89,7 +93,7 @@ class NicoVideoCache(val context: Context?) {
                     val mylistItemId = ""
                     // 動画からサムネイルを取得する
                     val data =
-                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, mylistItemId,null,null)
+                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, mylistItemId, null, null)
                     list.add(data)
                 }
             }
@@ -178,10 +182,18 @@ class NicoVideoCache(val context: Context?) {
             addRequestHeader("User-Agent", "TatimiDroid;@takusan_23")
             addRequestHeader("Cookie", "user_session=$userSession")
             setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            setTitle(context?.getString(R.string.get_cache_video))
+            setTitle(videoId)
             setDestinationUri(videoIdMp4.toUri())
         }
-        downloadManager.enqueue(downloadRequest)
+        downloadItem = downloadManager.enqueue(downloadRequest)
+    }
+
+    /**
+     * ダウンロードを中断する関数。
+     * 注意：getVideoCache()を呼んだ後じゃないと動かないよ。（多分
+     * */
+    fun cancelDownloadManagerEnqueue() {
+        downloadManager.remove(downloadItem)
     }
 
     /**
@@ -275,9 +287,30 @@ class NicoVideoCache(val context: Context?) {
     fun initBroadcastReceiver(call: (() -> Unit)? = null) {
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                showToast("${context?.getString(R.string.get_cache_video_ok)}")
-                if (call != null) {
-                    call()
+                // ダウンロードに成功したか
+                val action = intent?.action
+                if (DownloadManager.ACTION_DOWNLOAD_COMPLETE == action) {
+                    val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+                    val query = DownloadManager.Query().apply {
+                        setFilterById(id)
+                    }
+                    // DownloadManagerのデータベースへアクセス
+                    val cursor = downloadManager.query(query)
+                    cursor.moveToFirst()
+                    for (i in 0 until cursor.count) {
+                        // ID指定してるから（一個しかないはず）別にforで回す必要もない
+                        val status: Int =
+                            cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+                        if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                            // ダウンロードに成功した場合
+                            showToast("${context?.getString(R.string.get_cache_video_ok)}")
+                            if (call != null) {
+                                call()
+                            }
+                        }
+                        cursor.moveToNext()
+                    }
+                    cursor.close()
                 }
             }
         }

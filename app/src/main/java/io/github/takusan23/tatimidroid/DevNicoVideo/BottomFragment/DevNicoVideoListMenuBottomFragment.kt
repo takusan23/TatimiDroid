@@ -1,9 +1,6 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.SharedPreferences
+import android.content.*
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -22,6 +19,8 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Service.GetCacheService
+import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.coroutines.GlobalScope
@@ -143,68 +142,34 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     // キャッシュ再取得とか削除とか（削除以外未実装）
     private fun cacheButton() {
         // キャッシュ関係
-        val nicoVideoCache =
-            NicoVideoCache(context)
+        val nicoVideoCache = NicoVideoCache(context)
 
         if (nicoVideoData.isCache) {
             // キャッシュのときは再取得メニュー表示させる
             bottom_fragment_nicovideo_list_menu_cache_menu.visibility = View.VISIBLE
             bottom_fragment_nicovideo_list_menu_get_cache.visibility = View.GONE
+            bottom_fragment_nicovideo_list_menu_get_cache_economy.visibility = View.GONE
         } else {
             // キャッシュ無いときは取得ボタンを置く
             bottom_fragment_nicovideo_list_menu_cache_menu.visibility = View.GONE
             bottom_fragment_nicovideo_list_menu_get_cache.visibility = View.VISIBLE
+            bottom_fragment_nicovideo_list_menu_get_cache_economy.visibility = View.VISIBLE
         }
 
         // キャッシュ取得
         bottom_fragment_nicovideo_list_menu_get_cache.setOnClickListener {
-            // キャッシュ取得中はBottomFragmentを消させないようにする
-            this.isCancelable = false
-            bottom_fragment_nicovideo_list_menu_get_cache.text = getString(R.string.get_cache_video)
-            // 定期実行。ハートビート処理
-            val timer = Timer()
-            // 取得
-            GlobalScope.launch {
-                val response = nicoVideoHTML.getHTML(nicoVideoData.videoId, userSession).await()
-                if (response?.isSuccessful == true) {
-                    val nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
-                    val jsonObject = nicoVideoHTML.parseJSON(response?.body?.string())
-                    if (!nicoVideoCache.isEncryption(jsonObject.toString())) {
-                        // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
-                        var contentUrl = ""
-                        if (nicoVideoHTML.isDMCServer(jsonObject)) {
-                            // https://api.dmc.nico/api/sessions のレスポンス
-                            val sessionAPIJSONObject =
-                                nicoVideoHTML.callSessionAPI(jsonObject).await()
-                            if (sessionAPIJSONObject != null) {
-                                // 動画URL
-                                contentUrl =
-                                    nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
-                                // ハートビート処理
-                                nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSONObject)
-                            }
-                        } else {
-                            // Smileサーバー。動画URL取得
-                            contentUrl = nicoVideoHTML.getContentURI(jsonObject, null)
-                        }
-                        // キャッシュ取得
-                        nicoVideoCache.getCache(nicoVideoData.videoId, jsonObject.toString(), contentUrl, userSession, nicoHistory)
-                        // キャッシュ取得成功ブロードキャストを受け取る
-                        nicoVideoCache.initBroadcastReceiver {
-                            // 取得完了したら呼ばれる。
-                            timer.cancel()
-                            // 取得できたら消せるようにする
-                            this@DevNicoVideoListMenuBottomFragment.dismiss()
-                        }
-                    } else {
-                        showToast(context?.getString(R.string.encryption_not_download) ?: "暗号化むり")
-                        activity?.runOnUiThread {
-                            // 取得できたら消せるようにする
-                            this@DevNicoVideoListMenuBottomFragment.dismiss()
-                        }
-                    }
-                }
-            }
+            // キャッシュ取得Service起動
+            startCacheService(context, nicoVideoData.videoId, false)
+            // 閉じる
+            dismiss()
+        }
+
+        // キャッシュ取得（エコノミーモード）
+        bottom_fragment_nicovideo_list_menu_get_cache_economy.setOnClickListener {
+            // キャッシュ取得Service起動
+            startCacheService(context, nicoVideoData.videoId, true)
+            // 閉じる
+            dismiss()
         }
 
         // キャッシュ削除

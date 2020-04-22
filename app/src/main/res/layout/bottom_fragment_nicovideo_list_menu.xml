@@ -56,6 +56,16 @@
                 android:text="@string/get_cache" />
 
         <TextView
+                android:id="@+id/bottom_fragment_nicovideo_list_menu_get_cache_economy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_save_alt_black_24dp"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:padding="10sp"
+                android:text="@string/get_cache_eco" />
+
+        <TextView
                 android:id="@+id/bottom_fragment_nicovideo_list_menu_popup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

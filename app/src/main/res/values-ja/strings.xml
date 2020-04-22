@@ -353,4 +353,12 @@
     <string name="nico_jk">ニコニコ実況（jk）</string>
     <string name="find_video_id">動画IDが見つかりました。</string>
     <string name="hide_comment_search_area">コメント検索、コメント並び替えボタンを非表示にする</string>
+    <string name="get_cache_eco">キャッシュ取得（エコノミーモード）</string>
+    <string name="cache_service_title">キャッシュ取得サービス</string>
+    <string name="cache_get_notification_title">キャッシュを取得しています</string>
+    <string name="cache_get_list_add">キャッシュ取得予約しました</string>
+    <string name="cache_get_list_size">残りキャッシュ予約数</string>
+    <string name="cache_get_list_contains">すでにキャッシュ取得予約リストに追加済みです</string>
+    <string name="cache_get_list_all_complete">全てのキャッシュ取得が完了しました</string>
+    <string name="cache_get_service_stop">取得サービス終了</string>
 </resources>

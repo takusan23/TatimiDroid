@@ -22,6 +22,7 @@ import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.NicoLivePlayService
 import io.github.takusan23.tatimidroid.Service.NicoVideoPlayService
+import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.isConnectionInternet
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
@@ -217,21 +218,13 @@ class DevNicoVideoMenuFragment : Fragment() {
             fragment_nicovideo_menu_re_get_cache.visibility = View.GONE
         }
         // 取得
-        val cache =
-            NicoVideoCache(context)
         fragment_nicovideo_menu_get_cache.setOnClickListener {
             if (!isCache) {
                 // DevNicoVideoFragment取得
                 val devNicoVideoFragment =
                     fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
-                // キャッシュ取得。動画+コメント+動画情報
-                cache.getCache(
-                    videoId,
-                    devNicoVideoFragment.jsonObject.toString(),
-                    devNicoVideoFragment.contentUrl,
-                    devNicoVideoFragment.userSession,
-                    devNicoVideoFragment.nicoHistory
-                )
+                // キャッシュ取得サービス起動
+                startCacheService(context, devNicoVideoFragment.videoId)
             }
         }
     }

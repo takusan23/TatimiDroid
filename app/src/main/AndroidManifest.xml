@@ -41,6 +41,7 @@
 
         <service android:name=".Service.NicoLivePlayService" />
         <service android:name=".Service.NicoVideoPlayService" />
+        <service android:name=".Service.GetCacheService" />
 
         <activity android:name=".MainActivity">
             <intent-filter>
