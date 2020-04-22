@@ -49,9 +49,11 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
             // TextView
             dateTextView.text = "${toFormatTime(data.date)} ${context?.getString(R.string.post)}"
             titleTextView.text = "${data.title}\n${data.videoId}"
-            infoTextView.text =
-                "${context.getString(R.string.view_count)}：${data.viewCount} | ${context.getString(R.string.comment_count)}：${data.commentCount} | ${context.getString(R.string.mylist_count)}：${data.mylistCount}"
-
+            // 再生回数、マイリスト数、コメント数がすべて-1以外なら表示させる（ニコレポは再生回数取れない）
+            if (data.viewCount != "-1" && data.mylistCount != "-1" && data.commentCount != "-1") {
+                infoTextView.text =
+                    "${context.getString(R.string.view_count)}：${data.viewCount} | ${context.getString(R.string.comment_count)}：${data.commentCount} | ${context.getString(R.string.mylist_count)}：${data.mylistCount}"
+            }
             // 再生画面表示
             cardView.setOnClickListener {
                 // すでにあるActivityを消す？
