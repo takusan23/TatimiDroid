@@ -1,24 +1,32 @@
 package io.github.takusan23.tatimidroid
 
 import android.app.NotificationManager
-import android.content.ContentValues
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.*
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.SpannableString
+import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
+import androidx.core.widget.addTextChangedListener
 import androidx.preference.PreferenceManager
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_liveid.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -38,9 +46,10 @@ class MainActivity : AppCompatActivity() {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
 
         val darkModeSupport = DarkModeSupport(this)
-        darkModeSupport.setActivityTheme(this)
+        darkModeSupport.setMainActivityTheme(this)
 
         setContentView(R.layout.activity_main)
+        setSupportActionBar(toolbar)
 
         //ダークモード対応
         if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
@@ -55,6 +64,15 @@ class MainActivity : AppCompatActivity() {
 
         //共有から起動した
         lunchShareIntent()
+
+        // 新しいUIの説明表示
+        initNewUIDescription()
+
+        // 生放送・動画ID初期化
+        initIDInput()
+
+        // 履歴ボタン・接続ボタン等初期化
+        initButton()
 
         //生放送ID入力
         val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
@@ -75,11 +93,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.menu_liveid -> {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(
-                        R.id.main_activity_linearlayout,
-                        LiveIDFragment(),
-                        "liveid_fragment"
-                    )
+                    fragmentTransaction.replace(R.id.main_activity_linearlayout, LiveIDFragment(), "liveid_fragment")
                     fragmentTransaction.commit()
                 }
                 R.id.menu_community -> {
@@ -125,6 +139,40 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    // Android 10からアプリにフォーカスが当たらないとクリップボードの中身が取れなくなったため
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // 一部の端末（LG製の端末？）で大量にエラーが出ているので。。。LG端末なんて持ってないのでわからん！
+        if (!pref_setting.getBoolean("setting_deprecated_clipbord_get_id", false)) {
+            //クリップボードに番組IDが含まれてればテキストボックスに自動で入れる
+            setClipBoardProgramID()
+        }
+    }
+
+    // クリップボードの中身取得
+    private fun setClipBoardProgramID() {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipdata = clipboard.primaryClip
+        if (clipdata?.getItemAt(0)?.text != null) {
+            val clipboardText = clipdata.getItemAt(0).text
+            // IDを入れるEditTextに正規表現の結果を入れる
+            activity_main_liveid_edittext.setText(clipboardText.toString())
+        }
+    }
+
+    // 新UIの説明出すボタン。「？」ボタン
+    private fun initNewUIDescription() {
+        main_activity_show_new_ui_description.setOnClickListener {
+            activity_main_new_ui_text.apply {
+                if (visibility == View.VISIBLE) {
+                    visibility = View.GONE
+                } else {
+                    visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
     // 番組一覧
     private fun showProgramListFragment() {
         //ログイン情報がない場合は押させない
@@ -137,11 +185,7 @@ class MainActivity : AppCompatActivity() {
             fragmentTransaction.commit()
         } else {
             //メアド設定してね！
-            Toast.makeText(
-                this,
-                getString(R.string.mail_pass_error),
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, getString(R.string.mail_pass_error), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -169,65 +213,9 @@ class MainActivity : AppCompatActivity() {
         if (Intent.ACTION_SEND.equals(intent.action)) {
             val extras = intent.extras
             // URL
-            val url = extras?.getCharSequence(Intent.EXTRA_TEXT)
-            // ID取得
+            val url = extras?.getCharSequence(Intent.EXTRA_TEXT) ?: ""
             // 正規表現で取り出す
-            val nicoLiveIDIDMatcher = Pattern.compile("(lv)([0-9]+)")
-                .matcher(SpannableString(url ?: ""))
-            val communityIDMatcher = Pattern.compile("(co|ch)([0-9]+)")
-                .matcher(SpannableString(url ?: ""))
-            val nicoVideoIdMatcher = Pattern.compile("(sm|so)([0-9]+)")
-                .matcher(SpannableString(url ?: ""))
-
-            when {
-                nicoLiveIDIDMatcher.find() -> {
-                    //ダイアログ
-                    val liveId = nicoLiveIDIDMatcher.group()
-                    val bundle = Bundle()
-                    bundle.putString("liveId", liveId)
-                    val dialog = BottomSheetDialogWatchMode()
-                    dialog.arguments = bundle
-                    dialog.show(supportFragmentManager, "watchmode")
-                }
-                communityIDMatcher.find() -> {
-                    //コミュIDから
-                    val communityID = communityIDMatcher.group()
-                    //getPlayerStatusで放送中の場合はコミュニティIDを入れれば使える
-                    Toast.makeText(
-                        this,
-                        getString(R.string.program_id_from_community_id),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    GlobalScope.launch {
-                        var liveId = ""
-                        async {
-                            liveId = getProgramIDfromCommunityID(communityID) ?: ""
-                        }.await()
-                        if (liveId.isNotEmpty()) {
-                            //ダイアログ
-                            val bundle = Bundle()
-                            bundle.putString("liveId", liveId)
-                            val dialog = BottomSheetDialogWatchMode()
-                            dialog.arguments = bundle
-                            dialog.show(
-                                supportFragmentManager,
-                                "watchmode"
-                            )
-                        }
-                    }
-                }
-                nicoVideoIdMatcher.find() -> {
-                    //ダイアログ
-                    val nicoVideo = nicoVideoIdMatcher.group()
-                    val intent = Intent(this, NicoVideoActivity::class.java)
-                    intent.putExtra("id", nicoVideo)
-                    intent.putExtra("cache", false)
-                    startActivity(intent)
-                }
-                else -> {
-                    Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
-                }
-            }
+            idRegexLaunchPlay(url.toString())
         }
     }
 
@@ -245,15 +233,8 @@ class MainActivity : AppCompatActivity() {
         commentCollection.setWriteAheadLoggingEnabled(false)
 
         //コメント投稿リストの内容を読み込む
-        val cursor = commentPOSTListSqLiteDatabase.query(
-            "comment_post_list",
-            arrayOf("comment"),
-            null,
-            null,
-            null,
-            null,
-            null
-        )
+        val cursor =
+            commentPOSTListSqLiteDatabase.query("comment_post_list", arrayOf("comment"), null, null, null, null, null)
         //リストがある・ない
         if (cursor.moveToFirst()) {
             //あるのでコメントコレクションへ移行
@@ -276,36 +257,99 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //コニュニティIDから
-    fun getProgramIDfromCommunityID(communityID: String): String? {
-        //取得中
-        val user_session = pref_setting.getString("user_session", "")
-        val request = Request.Builder()
-            .url("https://live.nicovideo.jp/api/getplayerstatus/${communityID}")   //getplayerstatus、httpsでつながる？
-            .addHeader("Cookie", "user_session=$user_session")
-            .get()
-            .build()
-        val okHttpClient = OkHttpClient()
-        //同期処理
-        val response = okHttpClient.newCall(request).execute()
-        if (response.isSuccessful) {
-            //成功
-            val response_string = response.body?.string()
-            val document = Jsoup.parse(response_string)
-            //番組ID取得
-            val id = document.getElementsByTag("id").text()
-            return id
-        } else {
-            runOnUiThread {
-                Toast.makeText(
-                    this,
-                    "${getString(R.string.error)}\n${response.code}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+    /**
+     * 生放送、番組ID入力画面
+     * */
+    private fun initIDInput() {
+        activity_main_liveid_edittext.addTextChangedListener {
+            // 将来なにか書くかも
         }
-        return ""
     }
 
+    // ボタン初期化
+    private fun initButton() {
+        activity_main_nimado_button.setOnClickListener {
+            val intent = Intent(this, NimadoActivity::class.java)
+            startActivity(intent)
+        }
+        activity_main_history_button.setOnClickListener {
+            // 履歴ボタン
+            val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
+            nicoHistoryBottomFragment.editText = activity_main_liveid_edittext
+            nicoHistoryBottomFragment.show(supportFragmentManager, "history")
+        }
+        activity_main_connect_button.setOnClickListener {
+            // 画面切り替え
+            idRegexLaunchPlay(activity_main_liveid_edittext.text.toString())
+        }
+    }
+
+    /**
+     * 正規表現でIDを見つけて再生画面を表示させる。
+     * @param text IDが含まれている文字列。
+     * */
+    private fun idRegexLaunchPlay(text: String) {
+        // 正規表現
+        val nicoIDMatcher = NICOLIVE_ID_REGEX.toPattern().matcher(text)
+        val communityIDMatcher = NICOCOMMUNITY_ID_REGEX.toPattern().matcher(text)
+        val nicoVideoIdMatcher = NICOVIDEO_ID_REGEX.toPattern().matcher(text)
+        when {
+            nicoIDMatcher.find() -> {
+                // 生放送ID
+                val liveId = nicoIDMatcher.group()
+                if (hasMailPass(this)) {
+                    //ダイアログ
+                    val bundle = Bundle()
+                    bundle.putString("liveId", liveId)
+                    val dialog = BottomSheetDialogWatchMode()
+                    dialog.arguments = bundle
+                    dialog.show(supportFragmentManager, "watchmode")
+                }
+            }
+            communityIDMatcher.find() -> {
+                // コミュID
+                val communityId = communityIDMatcher.group()
+                if (hasMailPass(this)) {
+                    GlobalScope.launch {
+                        // コミュID->生放送ID
+                        val nicoLiveHTML = NicoLiveHTML()
+                        val response =
+                            nicoLiveHTML.getNicoLiveHTML(communityId, pref_setting.getString("user_session", ""), false)
+                                .await()
+                        if (!response.isSuccessful) {
+                            // 失敗時
+                            showToast("${getString(R.string.error)}\n${response.code}")
+                            return@launch
+                        }
+                        // パース
+                        nicoLiveHTML.initNicoLiveData(nicoLiveHTML.nicoLiveHTMLtoJSONObject(response.body?.string()))
+                        //ダイアログ
+                        val bundle = Bundle()
+                        bundle.putString("liveId", nicoLiveHTML.liveId)
+                        val dialog = BottomSheetDialogWatchMode()
+                        dialog.arguments = bundle
+                        dialog.show(supportFragmentManager, "watchmode")
+                    }
+                }
+            }
+            nicoVideoIdMatcher.find() -> {
+                // 動画ID
+                val videoId = nicoVideoIdMatcher.group()
+                val intent = Intent(this, NicoVideoActivity::class.java)
+                intent.putExtra("id", videoId)
+                intent.putExtra("cache", false)
+                startActivity(intent)
+            }
+            else -> {
+                Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showToast(message: String) {
+        runOnUiThread {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
 }

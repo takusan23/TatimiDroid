@@ -108,6 +108,9 @@ class DevNicoVideoFragment : Fragment() {
     // フォント
     lateinit var font: CustomFont
 
+    // シーク操作中かどうか
+    var isTouchSeekBar = false
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
     }
@@ -673,14 +676,18 @@ class DevNicoVideoFragment : Fragment() {
                 val videoLengthFormattedTime =
                     DateUtils.formatElapsedTime(exoPlayer.duration / 1000L)
                 fragment_nicovideo_progress_text.text = "$formattedTime / $videoLengthFormattedTime"
+                // 操作中でもExoPlayerに反映させる
+                if (isTouchSeekBar) {
+                    exoPlayer.seekTo((seekBar?.progress ?: 0) * 1000L)
+                }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-
+                isTouchSeekBar = true
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                exoPlayer.seekTo((seekBar?.progress ?: 0) * 1000L)
+                isTouchSeekBar = false
             }
         })
     }
@@ -689,7 +696,8 @@ class DevNicoVideoFragment : Fragment() {
      * 進捗進める
      * */
     private fun setProgress() {
-        if (fragment_nicovideo_seek != null) {
+        // シークバー操作中でなければ
+        if (fragment_nicovideo_seek != null && !isTouchSeekBar) {
             fragment_nicovideo_seek.progress = (exoPlayer.currentPosition / 1000L).toInt()
         }
         // 再生時間TextView

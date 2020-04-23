@@ -51,6 +51,31 @@ class DarkModeSupport(val context: Context) {
     }
 
     /**
+     * MainActivity用。TitleBarが表示されていない。setContentView()の前に書いてね
+     * */
+    fun setMainActivityTheme(activity: AppCompatActivity) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
+            //ダークモード
+            val pref_setting = PreferenceManager.getDefaultSharedPreferences(activity)
+            if (pref_setting.getBoolean("setting_darkmode", false)) {
+                activity.setTheme(R.style.MainActivity_OLEDTheme)
+            } else {
+                activity.setTheme(R.style.MainActivity_AppTheme)
+            }
+        } else {
+            when (nightMode) {
+                Configuration.UI_MODE_NIGHT_NO -> {
+                    activity.setTheme(R.style.MainActivity_AppTheme)
+                }
+                Configuration.UI_MODE_NIGHT_YES -> {
+                    activity.setTheme(R.style.MainActivity_OLEDTheme)
+                }
+            }
+        }
+    }
+
+
+    /**
      * 二窓Activity用ダークモード切り替えるやつ。setContentView()の前に書いてね
      * */
     fun setNimadoActivityTheme(activity: AppCompatActivity) {

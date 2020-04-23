@@ -5,11 +5,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Adapter.NicoHistoryAdapter
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.bottom_fragment_history.*
@@ -18,17 +20,14 @@ import kotlinx.android.synthetic.main.fragment_liveid.*
 
 class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
 
+    lateinit var editText: EditText
     lateinit var nicoHistoryAdapter: NicoHistoryAdapter
     val recyclerViewList = arrayListOf<ArrayList<String>>()
 
     lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
     lateinit var sqLiteDatabase: SQLiteDatabase
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_history, container, false)
     }
 
@@ -53,15 +52,8 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
 
     private fun loadHistory() {
         recyclerViewList.clear()
-        val query = sqLiteDatabase.query(
-            NicoHistorySQLiteHelper.TABLE_NAME,
-            arrayOf("service_id", "type", "date", "title", "user_id"),
-            null,
-            null,
-            null,
-            null,
-            null
-        )
+        val query =
+            sqLiteDatabase.query(NicoHistorySQLiteHelper.TABLE_NAME, arrayOf("service_id", "type", "date", "title", "user_id"), null, null, null, null, null)
         query.moveToFirst()
         for (i in 0 until query.count) {
             val id = query.getString(0)
@@ -77,7 +69,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
                 add(title)
                 add(communityId)
             }
-            recyclerViewList.add(0,item)
+            recyclerViewList.add(0, item)
             //println(id)
             query.moveToNext()
         }
@@ -99,9 +91,15 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
         nicoHistoryAdapter = NicoHistoryAdapter(recyclerViewList)
         bottom_fragment_history_recyclerview.adapter = nicoHistoryAdapter
 
-        val liveIDBottomFragment =
-            (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag("liveid_fragment") as LiveIDFragment
-        nicoHistoryAdapter.editText = liveIDBottomFragment.main_activity_liveid_inputedittext
+        // EditText渡す
+        if (activity is MainActivity) {
+            nicoHistoryAdapter.editText = editText
+        } else {
+            val liveIDBottomFragment =
+                (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag("liveid_fragment") as LiveIDFragment
+            nicoHistoryAdapter.editText = liveIDBottomFragment.main_activity_liveid_inputedittext
+        }
+
         nicoHistoryAdapter.bottomSheetDialogFragment = this
     }
 

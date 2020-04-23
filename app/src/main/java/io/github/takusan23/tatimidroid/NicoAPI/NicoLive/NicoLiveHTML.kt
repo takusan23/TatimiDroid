@@ -51,6 +51,7 @@ class NicoLiveHTML {
     var isPremium = false   // 550円課金してるならtrue
     var userId = ""     // ユーザーID
     var isOfficial = false // 公式番組ならtrue
+    var liveId = ""
 
     // 番組情報関係。initNicoLiveData()を呼ばないとこの値は入りません！！！
     var programTitle = ""   // 番組ID
@@ -138,6 +139,7 @@ class NicoLiveHTML {
      * @param jsonObject nicoLiveHTMLtoJSONObject()の値
      * */
     fun initNicoLiveData(nicoLiveJSON: JSONObject) {
+        liveId = nicoLiveJSON.getJSONObject("program").getString("nicoliveProgramId")
         isPremium = isPremium(nicoLiveJSON)
         premium = if (isPremium) {
             1
