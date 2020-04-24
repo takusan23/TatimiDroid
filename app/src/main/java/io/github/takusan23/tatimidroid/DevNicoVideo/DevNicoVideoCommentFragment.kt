@@ -28,11 +28,7 @@ class DevNicoVideoCommentFragment : Fragment() {
     var id = "sm157"
 
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_comment, container, false)
     }
 
@@ -85,11 +81,8 @@ class DevNicoVideoCommentFragment : Fragment() {
         activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
         //  Snackbar
         if (snackbarShow) {
-            Snackbar.make(
-                activity_nicovideo_sort_button,
-                "${getString(R.string.get_comment_count)}：${recyclerViewList.size}",
-                Snackbar.LENGTH_SHORT
-            ).show()
+            Snackbar.make(activity_nicovideo_sort_button, "${getString(R.string.get_comment_count)}：${recyclerViewList.size}", Snackbar.LENGTH_SHORT)
+                .show()
         }
     }
 

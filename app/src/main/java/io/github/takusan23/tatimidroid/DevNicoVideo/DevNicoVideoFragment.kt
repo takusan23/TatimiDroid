@@ -52,12 +52,16 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.concurrent.schedule
 import kotlin.concurrent.timerTask
 
 /**
  * 開発中のニコ動クライアント（？）
  * */
 class DevNicoVideoFragment : Fragment() {
+
+    data class DrewComment(var comment: String, var no: String)
+
     lateinit var prefSetting: SharedPreferences
     lateinit var exoPlayer: SimpleExoPlayer
     lateinit var darkModeSupport: DarkModeSupport
@@ -91,6 +95,9 @@ class DevNicoVideoFragment : Fragment() {
 
     // コメント配列
     var commentList = arrayListOf<CommentJSONParse>()
+
+    // コメントが二重に反映されてしまう問題直す
+    var drewCommentList = arrayListOf<DrewComment>()
 
     // 関連動画配列
     var recommendList = arrayListOf<NicoVideoData>()
@@ -641,6 +648,7 @@ class DevNicoVideoFragment : Fragment() {
                 }
             }
         }, 100, 100)
+
     }
 
     /**
@@ -693,9 +701,12 @@ class DevNicoVideoFragment : Fragment() {
         val currentPosition = exoPlayer.contentPosition / 100L
         GlobalScope.launch {
             val drawList = commentList.filter { commentJSONParse ->
-                (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
+                val data = DrewComment(commentJSONParse.comment, commentJSONParse.commentNo)
+                (commentJSONParse.vpos.toLong() / 10L) == (currentPosition) && !drewCommentList.contains(data)
             }
             drawList.forEach {
+                val data = DrewComment(it.comment, it.commentNo)
+                drewCommentList.add(data)
                 fragment_nicovideo_comment_canvas.post {
                     fragment_nicovideo_comment_canvas.postComment(it.comment, it)
                 }
