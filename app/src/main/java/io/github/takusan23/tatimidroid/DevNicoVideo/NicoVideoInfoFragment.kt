@@ -41,14 +41,12 @@ class NicoVideoInfoFragment : Fragment() {
 
     lateinit var pref_setting: SharedPreferences
 
-    var id = ""
+    var videoId = ""
     var usersession = ""
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    var jsonObjectString = ""
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_info, container, false)
     }
 
@@ -59,68 +57,31 @@ class NicoVideoInfoFragment : Fragment() {
         usersession = pref_setting.getString("user_session", "") ?: ""
 
         //動画ID受け取る（sm9とかsm157とか）
-        id = arguments?.getString("id") ?: "sm157"
+        videoId = arguments?.getString("id") ?: "sm157"
         // キャッシュ再生なら
         val isCache = arguments?.getBoolean("cache") ?: false
 
+        if (jsonObjectString.isNotEmpty()) {
+            parseJSONApplyUI(jsonObjectString)
+        }
+/*
         if (isCache) {
             // キャッシュから取得
             val nicoVideoCache =
                 NicoVideoCache(context)
-            if (nicoVideoCache.existsCacheVideoInfoJSON(id)) {
+            if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                 // JSONファイルある
-                val jsonVideoInfo = nicoVideoCache.getCacheFolderVideoInfoText(id)
+                val jsonVideoInfo = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
                 parseJSONApplyUI(jsonVideoInfo)
             }
         } else {
             // インターネットから取得
-            getNicoVideoWebPage()
-        }
 
+        }
+*/
         fragment_nicovideo_info_description_textview.movementMethod =
             LinkMovementMethod.getInstance();
 
-    }
-
-
-    /*
-    *
-    * https://nmsg.nicovideo.jp/api.json/ を叩く時に必要な情報をスクレイピングして取得
-    * これで動くと思ってたんだけど「dmcInfo」がない動画が存在するんだけどどういう事？。
-    *     */
-    fun getNicoVideoWebPage() {
-        //番組ID
-        //視聴モード（ユーザーセッション付き）
-        val request = Request.Builder()
-            .url("https://www.nicovideo.jp/watch/${id}")
-            .header("Cookie", "user_session=${usersession}")
-            .header("User-Agent", "TatimiDroid;@takusan_23")
-            .get()
-            .build()
-
-        val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                showToast("${getString(R.string.error)}")
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    val responseString = response.body?.string()
-                    //HTML解析
-                    val html = Jsoup.parse(responseString)
-                    //謎のJSON取得
-                    //この部分長すぎてChromeだとうまくコピーできないんだけど、Edgeだと完璧にコピーできたぞ！
-                    if (html.getElementById("js-initial-watch-data") != null) {
-                        val data_api_data = html.getElementById("js-initial-watch-data")
-                        val json = JSONObject(data_api_data.attr("data-api-data"))
-                        parseJSONApplyUI(json.toString())
-                    }
-                } else {
-                    showToast("${getString(R.string.error)}\n${response.code}")
-                }
-            }
-        })
     }
 
     /**
@@ -350,7 +311,7 @@ class NicoVideoInfoFragment : Fragment() {
                         }
                     }
                     // DevNicoVideoFragment
-                    (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).apply {
+                    (fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment).apply {
                         // ViewPager追加
                         viewPager.fragmentList.add(postFragment)
                         viewPager.fragmentTabName.add("${getString(R.string.mylist)}：$mylist")
@@ -382,7 +343,7 @@ class NicoVideoInfoFragment : Fragment() {
             span.setSpan(object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     // 再生時間操作
-                    (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).apply {
+                    (fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment).apply {
                         if (isInitExoPlayer()) {
                             // 分：秒　を ミリ秒へ
                             val minute = time.split(":")[0].toLong() * 60

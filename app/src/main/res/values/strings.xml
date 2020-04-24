@@ -361,4 +361,5 @@
     <string name="cache_get_list_contains">Already added to the cache acquisition reservation list</string>
     <string name="cache_get_list_all_complete">All cash acquisition completed</string>
     <string name="cache_get_service_stop">Acquisition service end</string>
+    <string name="recommend_video">Related Videos</string>
 </resources>

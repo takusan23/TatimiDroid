@@ -361,4 +361,5 @@
     <string name="cache_get_list_contains">すでにキャッシュ取得予約リストに追加済みです</string>
     <string name="cache_get_list_all_complete">全てのキャッシュ取得が完了しました</string>
     <string name="cache_get_service_stop">取得サービス終了</string>
+    <string name="recommend_video">関連動画</string>
 </resources>

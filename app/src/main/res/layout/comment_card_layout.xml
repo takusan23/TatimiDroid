@@ -367,7 +367,6 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:hint="@string/comment"
-                                android:imeOptions="actionSend"
                                 android:inputType="text"
                                 android:maxLines="1" />
 

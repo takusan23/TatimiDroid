@@ -39,6 +39,8 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPage
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
@@ -89,6 +91,9 @@ class DevNicoVideoFragment : Fragment() {
 
     // コメント配列
     var commentList = arrayListOf<CommentJSONParse>()
+
+    // 関連動画配列
+    var recommendList = arrayListOf<NicoVideoData>()
 
     // ViewPager
     lateinit var viewPager: DevNicoVideoViewPager
@@ -338,6 +343,11 @@ class DevNicoVideoFragment : Fragment() {
                     }
                     initRecyclerView(true)
                 }
+                // 動画情報FragmentにJSONを渡す
+                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 2) as NicoVideoInfoFragment).apply {
+                    jsonObjectString = jsonObject.toString()
+                    parseJSONApplyUI(jsonObjectString)
+                }
                 // タイトル
                 videoTitle = jsonObject.getJSONObject("video").getString("title")
                 initTitleArea()
@@ -362,6 +372,29 @@ class DevNicoVideoFragment : Fragment() {
                     }
                 }
             }
+
+            // 関連動画取得
+            val watchRecommendationRecipe = jsonObject.getString("watchRecommendationRecipe")
+            val nicoVideoRecommendAPI = NicoVideoRecommendAPI()
+            val recommendAPIResponse =
+                nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe).await()
+            if (!recommendAPIResponse.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${response.code}")
+                return@launch
+            }
+            // パース
+            recommendList =
+                nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string())
+                    .toList() as ArrayList<NicoVideoData>
+            // DevNicoVideoRecommendFragmentに配列渡す
+            (viewPager.instantiateItem(fragment_nicovideo_viewpager, 3) as DevNicoVideoRecommendFragment).apply {
+                recyclerViewList = recommendList.toList() as ArrayList<NicoVideoData>
+                activity?.runOnUiThread {
+                    devNicoVideoListAdapter.notifyDataSetChanged()
+                }
+            }
+
         }
     }
 
@@ -403,6 +436,15 @@ class DevNicoVideoFragment : Fragment() {
                                 recyclerViewList.add(it)
                             }
                             initRecyclerView(true)
+                        }
+                        // 動画情報JSONがあるかどうか
+                        if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+                            // 動画情報FragmentにJSONを渡す
+                            (viewPager.instantiateItem(fragment_nicovideo_viewpager, 2) as NicoVideoInfoFragment).apply {
+                                jsonObjectString =
+                                    nicoVideoCache.getCacheFolderVideoInfoText(videoId)
+                                parseJSONApplyUI(jsonObjectString)
+                            }
                         }
                     }
                 }
@@ -651,7 +693,7 @@ class DevNicoVideoFragment : Fragment() {
         val currentPosition = exoPlayer.contentPosition / 100L
         GlobalScope.launch {
             val drawList = commentList.filter { commentJSONParse ->
-                (commentJSONParse.vpos.toInt() / 10) == (currentPosition).toInt()
+                (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
             }
             drawList.forEach {
                 fragment_nicovideo_comment_canvas.post {
@@ -751,8 +793,8 @@ class DevNicoVideoFragment : Fragment() {
             }
             // すでにあれば追加しない
             if (!fragment.viewPager.fragmentTabName.contains(nickname)) {
-                fragment.viewPager.fragmentList.add(3, postFragment)
-                fragment.viewPager.fragmentTabName.add(3, nickname)
+                fragment.viewPager.fragmentList.add(4, postFragment)
+                fragment.viewPager.fragmentTabName.add(4, nickname)
                 fragment.viewPager.notifyDataSetChanged() // 更新！
             }
         }
@@ -907,5 +949,7 @@ class DevNicoVideoFragment : Fragment() {
     fun isInitExoPlayer(): Boolean {
         return ::exoPlayer.isInitialized
     }
+
+    fun isInitJsonObject(): Boolean = ::jsonObject.isInitialized
 
 }

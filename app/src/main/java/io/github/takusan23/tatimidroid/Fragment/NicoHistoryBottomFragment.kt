@@ -92,7 +92,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_history_recyclerview.adapter = nicoHistoryAdapter
 
         // EditText渡す
-        if (activity is MainActivity) {
+        if (::editText.isInitialized) {
             nicoHistoryAdapter.editText = editText
         } else {
             val liveIDBottomFragment =
