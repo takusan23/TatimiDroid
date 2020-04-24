@@ -362,4 +362,7 @@
     <string name="cache_get_list_all_complete">全てのキャッシュ取得が完了しました</string>
     <string name="cache_get_service_stop">取得サービス終了</string>
     <string name="recommend_video">関連動画</string>
+    <string name="setting_cache_priority_description">キャッシュが取得済みの場合はキャッシュ再生時以外でもキャッシュを優先的に使う。</string>
+    <string name="setting_cache_priority_title">キャッシュを優先的に使う</string>
+    <string name="use_cache">キャッシュを利用して再生しています</string>
 </resources>

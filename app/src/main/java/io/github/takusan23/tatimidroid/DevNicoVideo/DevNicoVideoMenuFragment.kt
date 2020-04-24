@@ -10,6 +10,7 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.Toast
 import androidx.core.content.edit
@@ -99,6 +100,9 @@ class DevNicoVideoMenuFragment : Fragment() {
 
         // ポップアップ再生、バッググラウンド再生ボタン
         initVideoPlayServiceButton()
+
+        // 音量コントロール
+        initVolumeControl()
 
     }
 
@@ -292,6 +296,32 @@ class DevNicoVideoMenuFragment : Fragment() {
             nicoVideoFragment.share.showShareScreen()
         }
 
+    }
+
+    // 音量コントロール
+    fun initVolumeControl() {
+        val nicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+        // 音量
+        fragment_nicovideo_menu_volume_seek.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (nicoVideoFragment.isInitExoPlayer()) {
+                    nicoVideoFragment.exoPlayer.volume = (progress.toFloat() / 10)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+        })
+        if (nicoVideoFragment.isInitExoPlayer()) {
+            fragment_nicovideo_menu_volume_seek.progress =
+                (nicoVideoFragment.exoPlayer.volume * 10).toInt()
+        }
     }
 
     /**

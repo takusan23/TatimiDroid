@@ -75,10 +75,6 @@ class DevNicoVideoFragment : Fragment() {
     var videoId = ""
     var videoTitle = ""
 
-
-    // 一度だけ実行する
-    var isInit = true
-
     // キャッシュ取得用
     lateinit var nicoVideoCache: NicoVideoCache
     var isCache = false
@@ -123,6 +119,9 @@ class DevNicoVideoFragment : Fragment() {
     // シーク操作中かどうか
     var isTouchSeekBar = false
 
+    // キャッシュを優先的に利用するか
+    var isPriorityCache = false
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
     }
@@ -162,15 +161,21 @@ class DevNicoVideoFragment : Fragment() {
         // コントローラー表示
         initController()
 
-        // キャッシュ再生のときとそうじゃないとき
         exoPlayer = SimpleExoPlayer.Builder(context!!).build()
-        if (isCache) {
-            // キャッシュ再生
-            cachePlay()
-        } else {
-            // データ取得
-            coroutine()
+
+        // キャッシュを優先的に使うか
+        isPriorityCache = prefSetting.getBoolean("setting_nicovideo_cache_priority", false)
+
+        when {
+            // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
+            NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache || isCache -> {
+                showToast(getString(R.string.use_cache))
+                cachePlay()
+            }
+            // それ以外：インターネットで取得
+            else -> coroutine()
         }
+
     }
 
     private fun initController() {
@@ -525,23 +530,28 @@ class DevNicoVideoFragment : Fragment() {
         isRotationProgressSuccessful = false
         exoPlayer.setVideoSurfaceView(fragment_nicovideo_surfaceview)
         // キャッシュ再生と分ける
-        if (isCache) {
-            // キャッシュ再生
-            val dataSourceFactory =
-                DefaultDataSourceFactory(context, "TatimiDroid;@takusan_23")
-            val videoSource =
-                ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(videoUrl?.toUri())
-            exoPlayer.prepare(videoSource)
-        } else {
-            // SmileサーバーはCookieつけないと見れないため
-            val dataSourceFactory =
-                DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
-            dataSourceFactory.defaultRequestProperties.set("Cookie", nicohistory)
-            val videoSource =
-                ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(videoUrl?.toUri())
-            exoPlayer.prepare(videoSource)
+        when {
+            // キャッシュを優先的に利用する　もしくは　キャッシュ再生時
+            NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache || isCache -> {
+                // キャッシュ再生
+                val dataSourceFactory =
+                    DefaultDataSourceFactory(context, "TatimiDroid;@takusan_23")
+                val videoSource =
+                    ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .createMediaSource(videoUrl?.toUri())
+                exoPlayer.prepare(videoSource)
+            }
+            // それ以外：インターネットで取得
+            else -> {
+                // SmileサーバーはCookieつけないと見れないため
+                val dataSourceFactory =
+                    DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
+                dataSourceFactory.defaultRequestProperties.set("Cookie", nicohistory)
+                val videoSource =
+                    ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .createMediaSource(videoUrl?.toUri())
+                exoPlayer.prepare(videoSource)
+            }
         }
         // 自動再生
         exoPlayer.playWhenReady = true

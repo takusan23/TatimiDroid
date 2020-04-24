@@ -362,4 +362,7 @@
     <string name="cache_get_list_all_complete">All cash acquisition completed</string>
     <string name="cache_get_service_stop">Acquisition service end</string>
     <string name="recommend_video">Related Videos</string>
+    <string name="setting_cache_priority_description">If the cache has already been acquired, it will be used preferentially even when the cache is not being played.</string>
+    <string name="setting_cache_priority_title">Use cache preferentially</string>
+    <string name="use_cache">Playback using cache</string>
 </resources>
