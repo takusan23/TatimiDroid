@@ -60,8 +60,6 @@ import kotlin.concurrent.timerTask
  * */
 class DevNicoVideoFragment : Fragment() {
 
-    data class DrewComment(var comment: String, var no: String)
-
     lateinit var prefSetting: SharedPreferences
     lateinit var exoPlayer: SimpleExoPlayer
     lateinit var darkModeSupport: DarkModeSupport
@@ -86,14 +84,10 @@ class DevNicoVideoFragment : Fragment() {
     lateinit var sessionAPIJSONObject: JSONObject
 
     // データ取得からハートビートまで扱う
-    val nicoVideoHTML =
-        NicoVideoHTML()
+    val nicoVideoHTML = NicoVideoHTML()
 
     // コメント配列
     var commentList = arrayListOf<CommentJSONParse>()
-
-    // コメントが二重に反映されてしまう問題直す
-    var drewCommentList = arrayListOf<DrewComment>()
 
     // 関連動画配列
     var recommendList = arrayListOf<NicoVideoData>()
@@ -711,12 +705,9 @@ class DevNicoVideoFragment : Fragment() {
         val currentPosition = exoPlayer.contentPosition / 100L
         GlobalScope.launch {
             val drawList = commentList.filter { commentJSONParse ->
-                val data = DrewComment(commentJSONParse.comment, commentJSONParse.commentNo)
-                (commentJSONParse.vpos.toLong() / 10L) == (currentPosition) && !drewCommentList.contains(data)
+                (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
             }
             drawList.forEach {
-                val data = DrewComment(it.comment, it.commentNo)
-                drewCommentList.add(data)
                 fragment_nicovideo_comment_canvas.post {
                     fragment_nicovideo_comment_canvas.postComment(it.comment, it)
                 }
