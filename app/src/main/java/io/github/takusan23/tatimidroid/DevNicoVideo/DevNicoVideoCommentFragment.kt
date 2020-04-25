@@ -81,8 +81,10 @@ class DevNicoVideoCommentFragment : Fragment() {
         activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
         //  Snackbar
         if (snackbarShow) {
-            Snackbar.make(activity_nicovideo_sort_button, "${getString(R.string.get_comment_count)}：${recyclerViewList.size}", Snackbar.LENGTH_SHORT)
-                .show()
+            // DevNicoVideoFragment
+            val fragment =
+                fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+            fragment.showSnackbar("${getString(R.string.get_comment_count)}：${recyclerViewList.size}", null, null)
         }
     }
 

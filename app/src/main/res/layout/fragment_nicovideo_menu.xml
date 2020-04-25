@@ -158,6 +158,12 @@
                             android:text="@string/get_cache" />
 
                     <Button
+                            android:id="@+id/fragment_nicovideo_menu_get_cache_eco"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/get_cache_eco" />
+
+                    <Button
                             android:id="@+id/fragment_nicovideo_menu_re_get_cache"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

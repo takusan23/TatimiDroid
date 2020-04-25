@@ -37,6 +37,7 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPager
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
@@ -268,11 +269,13 @@ class DevNicoVideoFragment : Fragment() {
             } else {
                 ""
             }
-            val response = if (isLoginMode(context)) {
-                nicoVideoHTML.getHTML(videoId, userSession, eco) // ログインする
+            // ログインしないならそもそもuserSessionの値を空にすれば！？
+            val userSession = if (isLoginMode(context)) {
+                this@DevNicoVideoFragment.userSession
             } else {
-                nicoVideoHTML.getHTML(videoId, "", eco) // ログインしない
-            }.await()
+                ""
+            }
+            val response = nicoVideoHTML.getHTML(videoId, userSession, eco).await()
             nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
             jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
             // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
@@ -381,6 +384,22 @@ class DevNicoVideoFragment : Fragment() {
                         }
                     }
                 }
+
+                // ログイン切れてるよメッセージ（プレ垢でこれ食らうと画質落ちるから；；）
+                if (nicoVideoHTML.verifyLogin(jsonObject)) {
+                    showSnackbar("ログインが切れました。再ログインしますか？", "再ログインする") {
+                        GlobalScope.launch {
+                            NicoLogin.loginCoroutine(context).await()
+                            activity?.runOnUiThread {
+                                val intent = Intent(context, NicoVideoActivity::class.java)
+                                intent.putExtra("id", videoId)
+                                intent.putExtra("cache", isCache)
+                                context?.startActivity(intent)
+                            }
+                        }
+                    }
+                }
+
             }
 
             // 関連動画取得
@@ -405,6 +424,17 @@ class DevNicoVideoFragment : Fragment() {
                 }
             }
 
+        }
+    }
+
+    // Snackbarを表示させる関数
+    fun showSnackbar(message: String, clickMessage: String?, click: (() -> Unit)?) {
+        Snackbar.make(fragment_nicovideo_surfaceview, message, Snackbar.LENGTH_SHORT).apply {
+            if (clickMessage != null && click != null) {
+                setAction(clickMessage) { click() }
+            }
+            anchorView = fragment_nicovideo_fab
+            show()
         }
     }
 

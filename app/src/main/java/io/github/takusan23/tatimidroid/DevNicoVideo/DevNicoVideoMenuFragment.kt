@@ -26,6 +26,7 @@ import io.github.takusan23.tatimidroid.Service.NicoVideoPlayService
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.isConnectionInternet
+import io.github.takusan23.tatimidroid.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_menu.*
 
@@ -72,6 +73,11 @@ class DevNicoVideoMenuFragment : Fragment() {
         // そもそもキャッシュ取得できない（アニメ公式はhls形式でAES-128で暗号化されてるので取れない）動画はキャッシュボタン非表示
         if (videoId.contains("so")) {
             fragment_nicovideo_menu_get_cache.visibility = View.GONE
+        }
+
+        // ログインしないモード用
+        if (isNotLoginMode(context)) {
+            fragment_nicovideo_menu_add_mylist.visibility = View.GONE
         }
 
         // マイリスト追加ボタン
@@ -215,7 +221,8 @@ class DevNicoVideoMenuFragment : Fragment() {
         // キャッシュ
         if (isCache) {
             // キャッシュ取得ボタン塞ぐ
-            fragment_nicovideo_menu_get_cache.isEnabled = false
+            fragment_nicovideo_menu_get_cache.visibility = View.GONE
+            fragment_nicovideo_menu_get_cache_eco.visibility = View.GONE
             // キャッシュ（動画情報、コメント）再取得ボタン表示
             fragment_nicovideo_menu_re_get_cache.visibility = View.VISIBLE
         } else {
@@ -223,6 +230,16 @@ class DevNicoVideoMenuFragment : Fragment() {
         }
         // 取得
         fragment_nicovideo_menu_get_cache.setOnClickListener {
+            if (!isCache) {
+                // DevNicoVideoFragment取得
+                val devNicoVideoFragment =
+                    fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+                // キャッシュ取得サービス起動
+                startCacheService(context, devNicoVideoFragment.videoId)
+            }
+        }
+        // ログインするかはService側に書いてあるので。。。
+        fragment_nicovideo_menu_get_cache_eco.setOnClickListener {
             if (!isCache) {
                 // DevNicoVideoFragment取得
                 val devNicoVideoFragment =

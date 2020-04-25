@@ -114,6 +114,7 @@ class NicoVideoHTML {
     /**
      * DMC サーバー or Smile　サーバー
      * @param jsonObject parseJSON()の戻り値
+     * @return dmcサーバーならtrue
      * */
     fun isDMCServer(jsonObject: JSONObject): Boolean {
         return !jsonObject.getJSONObject("video").isNull("dmcInfo")
@@ -212,10 +213,11 @@ class NicoVideoHTML {
                                     put("http_output_download_parameters", JSONObject().apply {
                                         put("use_well_known_port", "yes")
                                         put("use_ssl", "yes")
-                                        put(
-                                            "transfer_preset", sessionAPI.getJSONArray("transfer_presets")
+                                        // ログインしないモード対策
+                                        val transfer_preset =
+                                            sessionAPI.getJSONArray("transfer_presets")
                                                 .optString(0, "")
-                                        )
+                                        put("transfer_preset", transfer_preset)
                                     })
                                 })
                             })
@@ -322,7 +324,11 @@ class NicoVideoHTML {
             // userkey
             val userkey = jsonObject.getJSONObject("context").getString("userkey")
             // user_id
-            val user_id = jsonObject.getJSONObject("viewer").getString("id")
+            val user_id = if (verifyLogin(jsonObject)) {
+                jsonObject.getJSONObject("viewer").getString("id")
+            } else {
+                ""
+            }
 
             // 動画時間（分）
             // duration(再生時間
@@ -394,7 +400,9 @@ class NicoVideoHTML {
                             put("force_184", force_184)
                             put("threadkey", threadkey)
                         } else {
-                            put("userkey", userkey)
+                            if (userkey.isEmpty()) {
+                                put("userkey", userkey)
+                            }
                         }
                     }
                     val post_thread = JSONObject().apply {
@@ -417,7 +425,9 @@ class NicoVideoHTML {
                             put("force_184", force_184)
                             put("threadkey", threadkey)
                         } else {
-                            put("userkey", userkey)
+                            if (userkey.isEmpty()) {
+                                put("userkey", userkey)
+                            }
                         }
                     }
                     val thread_leaves = JSONObject().apply {

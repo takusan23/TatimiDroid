@@ -51,10 +51,13 @@ class DevNicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                 val quality = videoQualityJSONArray.getJSONObject(i)
                 val id = quality.getString("id")
                 val label = quality.getString("label")
+                // 一般会員は選べない画質がある（480pからプレ垢限定とか嘘でしょ？金払ってないやつクソ画質で見てんのか・・・）
+                val available = quality.getBoolean("available")
                 // TextView
                 val textView = TextView(context).apply {
                     text = label
                     textSize = 24F
+                    maxLines = 1
                     setPadding(10, 10, 10, 10)
                     setOnClickListener {
                         // 画質変更して再リクエスト
@@ -64,6 +67,10 @@ class DevNicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                             coroutine(false, id, audioId)
                         }
                         this@DevNicoVideoQualityBottomFragment.dismiss()
+                    }
+                    if (!available) {
+                        isEnabled = false
+                        text = "$label (プレ垢限定画質だから入って；；)"
                     }
                 }
                 bottom_fragment_nicovideo_quality_linearlayout.addView(textView)

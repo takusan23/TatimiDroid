@@ -15,6 +15,7 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.isLoginMode
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -89,7 +90,11 @@ class GetCacheService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // ユーザーセッション
         prefSetting = PreferenceManager.getDefaultSharedPreferences(this)
-        userSession = prefSetting.getString("user_session", "") ?: ""
+        userSession = if (isLoginMode(this)) {
+            prefSetting.getString("user_session", "") ?: "" // ログインする
+        } else {
+            ""  // ログインしない
+        }
         // 動画ID
         val id = intent?.getStringExtra("id")
         // エコノミーなら
