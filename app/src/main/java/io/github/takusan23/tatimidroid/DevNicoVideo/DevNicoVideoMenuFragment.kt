@@ -272,34 +272,38 @@ class DevNicoVideoMenuFragment : Fragment() {
     private fun initQualityButton() {
         val devNicoVideoFragment =
             fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
-        // キャッシュ再生時は非表示
-        if (isCache) {
+        // キャッシュ再生時またはキャッシュ優先再生時は非表示
+        if (isCache || devNicoVideoFragment.canUsePriorityCachePlay) {
             fragment_nicovideo_menu_quality.visibility = View.GONE
-        }
-        fragment_nicovideo_menu_quality.setOnClickListener {
-            // DevNicoVideoFragmentから持ってくる
-            val json = devNicoVideoFragment.jsonObject
-            // DmcInfoかSmileサーバーか
-            val isDmcInfo = devNicoVideoFragment.nicoVideoHTML.isDMCServer(json)
-            // 画質一覧取得
-            val qualityList = if (isDmcInfo) {
-                json.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality")
-                    .toString()
-            } else {
-                json.getJSONObject("video").getJSONObject("smileInfo").getJSONArray("qualityIds")
-                    .toString()
+        } else {
+            fragment_nicovideo_menu_quality.setOnClickListener {
+                // DevNicoVideoFragmentから持ってくる
+                val json = devNicoVideoFragment.jsonObject
+                // DmcInfoかSmileサーバーか
+                val isDmcInfo = devNicoVideoFragment.nicoVideoHTML.isDMCServer(json)
+                // 画質一覧取得
+                val qualityList = if (isDmcInfo) {
+                    json.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality")
+                        .toString()
+                } else {
+                    json.getJSONObject("video").getJSONObject("smileInfo")
+                        .getJSONArray("qualityIds")
+                        .toString()
+                }
+                // 画質変更BottomSheet
+                val qualityBottomFragment = DevNicoVideoQualityBottomFragment()
+                val bundle = Bundle().apply {
+                    putString("video_id", videoId)
+                    putBoolean("is_dmc", isDmcInfo)
+                    putString("quality", qualityList)
+                    putString("select", devNicoVideoFragment.selectQuality)
+                }
+                qualityBottomFragment.arguments = bundle
+                qualityBottomFragment.show(fragmentManager!!, "quality")
             }
-            // 画質変更BottomSheet
-            val qualityBottomFragment = DevNicoVideoQualityBottomFragment()
-            val bundle = Bundle().apply {
-                putString("video_id", videoId)
-                putBoolean("is_dmc", isDmcInfo)
-                putString("quality", qualityList)
-            }
-            qualityBottomFragment.arguments = bundle
-            qualityBottomFragment.show(fragmentManager!!, "quality")
         }
     }
+
 
     // 共有
     fun initShare() {

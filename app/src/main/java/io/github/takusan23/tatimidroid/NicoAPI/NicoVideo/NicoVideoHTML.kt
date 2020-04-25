@@ -546,6 +546,19 @@ class NicoVideoHTML {
     }
 
     /**
+     * 選択中の画質を取得する
+     * @param jsonObject callSessionAPI()叩いたときのレスポンス
+     * @return 画質
+     * */
+    fun getSelectQuality(sessionAPIJSONObject: JSONObject): String? {
+        val videoSrcId = sessionAPIJSONObject.getJSONObject("data").getJSONObject("session")
+            .getJSONArray("content_src_id_sets").getJSONObject(0).getJSONArray("content_src_ids")
+            .getJSONObject(0).getJSONObject("src_id_to_mux").getJSONArray("video_src_ids")
+            .getString(0)
+        return videoSrcId
+    }
+
+    /**
      * video.postedDateTimeの日付をUnixTime(ミリ秒)に変換する
      * */
     fun postedDateTimeToUnixTime(postedDateTime: String): Long {

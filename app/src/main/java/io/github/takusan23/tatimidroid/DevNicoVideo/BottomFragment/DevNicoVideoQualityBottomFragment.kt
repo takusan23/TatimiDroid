@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment
 
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -38,6 +39,8 @@ class DevNicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
         val isDmcInfo = arguments?.getBoolean("is_dmc") ?: true
         // video.dmcInfo.qualityかvideo.smileInfo.qualityIdsの値。
         val qualityList = arguments?.getString("quality")
+        // 選択中の画質
+        val selectQuality = arguments?.getString("select")
 
         if (isDmcInfo) {
             // video.dmcInfo.qualityのJSONパース
@@ -68,9 +71,14 @@ class DevNicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                         }
                         this@DevNicoVideoQualityBottomFragment.dismiss()
                     }
+                    // プレ垢限定
                     if (!available) {
                         isEnabled = false
                         text = "$label (プレ垢限定画質だから入って；；)"
+                    }
+                    // 選択中の画質など
+                    if (id == selectQuality) {
+                        setTextColor(Color.parseColor("#0d46a0"))
                     }
                 }
                 bottom_fragment_nicovideo_quality_linearlayout.addView(textView)

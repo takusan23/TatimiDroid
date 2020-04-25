@@ -73,6 +73,7 @@ class DevNicoVideoFragment : Fragment() {
     var userSession = ""
     var videoId = ""
     var videoTitle = ""
+    var selectQuality = "" // 選択中の画質
 
     // キャッシュ取得用
     lateinit var nicoVideoCache: NicoVideoCache
@@ -114,8 +115,9 @@ class DevNicoVideoFragment : Fragment() {
     // シーク操作中かどうか
     var isTouchSeekBar = false
 
-    // キャッシュを優先的に利用するか
-    var isPriorityCache = false
+
+    var isPriorityCache = false // キャッシュを優先的に利用するか
+    var canUsePriorityCachePlay = false // キャッシュ優先再生が利用可能か（キャッシュ取得済みでなおキャッシュ優先再生有効時）
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
@@ -160,10 +162,13 @@ class DevNicoVideoFragment : Fragment() {
 
         // キャッシュを優先的に使うか
         isPriorityCache = prefSetting.getBoolean("setting_nicovideo_cache_priority", false)
+        // キャッシュ優先再生が利用可能か
+        canUsePriorityCachePlay =
+            NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache
 
         when {
             // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
-            NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache || isCache -> {
+            canUsePriorityCachePlay || isCache -> {
                 showToast(getString(R.string.use_cache))
                 cachePlay()
             }
@@ -327,6 +332,8 @@ class DevNicoVideoFragment : Fragment() {
                         contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
                         // ハートビート処理。これしないと切られる。
                         nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSONObject)
+                        // 選択中の画質
+                        selectQuality = nicoVideoHTML.getSelectQuality(sessionAPIJSONObject) ?: ""
                     }
                 }
             } else {
@@ -386,7 +393,7 @@ class DevNicoVideoFragment : Fragment() {
                 }
 
                 // ログイン切れてるよメッセージ（プレ垢でこれ食らうと画質落ちるから；；）
-                if (nicoVideoHTML.verifyLogin(jsonObject)) {
+                if (isLoginMode(context) && !nicoVideoHTML.verifyLogin(jsonObject)) {
                     showSnackbar("ログインが切れました。再ログインしますか？", "再ログインする") {
                         GlobalScope.launch {
                             NicoLogin.loginCoroutine(context).await()
@@ -560,7 +567,7 @@ class DevNicoVideoFragment : Fragment() {
         // キャッシュ再生と分ける
         when {
             // キャッシュを優先的に利用する　もしくは　キャッシュ再生時
-            NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache || isCache -> {
+            canUsePriorityCachePlay || isCache -> {
                 // キャッシュ再生
                 val dataSourceFactory =
                     DefaultDataSourceFactory(context, "TatimiDroid;@takusan_23")
