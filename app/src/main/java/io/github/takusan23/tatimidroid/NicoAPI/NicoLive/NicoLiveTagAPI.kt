@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -51,6 +52,30 @@ class NicoLiveTagAPI {
         }
         return list
     }
+
+    /**
+     * タグを追加する。コルーチン
+     * @param liveId 番組ID
+     * @param userSession ユーザーセッション
+     * @param token タグ操作トークン
+     * @param tagName 追加するタグの名前
+     * */
+    fun addTag(liveId: String, userSession: String, token: String, tagName: String): Deferred<Response> =
+        GlobalScope.async {
+            val sendData = FormBody.Builder().apply {
+                add("tag", tagName)
+                add("token", token)
+            }.build()
+            val request = Request.Builder().apply {
+                url("https://papi.live.nicovideo.jp/api/relive/livetag/$liveId/?_method=PUT")
+                header("Cookie", "user_session=$userSession")
+                header("User-Agent", "TatimiDroid;@takusan_23")
+                post(sendData)
+            }.build()
+            val okHttpClient = OkHttpClient()
+            val response = okHttpClient.newCall(request).execute()
+            return@async response
+        }
 
     // タグのデータクラス
     data class NicoLiveTagItemData(

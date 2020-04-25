@@ -108,6 +108,7 @@ class CommentFragment : Fragment() {
     var thumbnailURL = ""    // サムネイル
     var roomName = ""         // 部屋の名前
     var chairNo = ""         // 席の場所
+    lateinit var nicoLiveJSON: JSONObject
 
     //NGデータベース
     lateinit var ngListSQLiteHelper: NGListSQLiteHelper
@@ -471,7 +472,7 @@ class CommentFragment : Fragment() {
                 }
             }
             // HTMLからJSON取得する
-            val nicoLiveJSON =
+            nicoLiveJSON =
                 nicoLiveHTML.nicoLiveHTMLtoJSONObject(livePageResponse.body?.string())
 
             // コメント投稿の際に使う値を初期化する
@@ -2048,5 +2049,7 @@ class CommentFragment : Fragment() {
     fun isInitGoogleCast(): Boolean {
         return ::googleCast.isInitialized
     }
+
+    fun isInitNicoLiveJSONObject(): Boolean = ::nicoLiveJSON.isInitialized
 
 }

@@ -143,6 +143,16 @@ class ProgramInfoFragment : Fragment() {
 
     }
 
+    override fun onStart() {
+        super.onStart()
+        val fragment =
+            (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
+        // 番組情報反映
+        if (fragment.isInitNicoLiveJSONObject()) {
+            jsonApplyUI(fragment.nicoLiveJSON)
+        }
+    }
+
     // nicoLiveHTMLtoJSONObject()のJSONの中身をUIに反映させる
     fun jsonApplyUI(jsonObject: JSONObject) {
         GlobalScope.launch {
@@ -228,6 +238,7 @@ class ProgramInfoFragment : Fragment() {
             val tagsList = tag.getJSONArray("list")
             if (tagsList.length() != 0) {
                 activity?.runOnUiThread {
+                    fragment_program_info_tag_linearlayout.removeAllViews()
                     for (i in 0 until tagsList.length()) {
                         val tag = tagsList.getJSONObject(i)
                         val text = tag.getString("text")
@@ -282,7 +293,9 @@ class ProgramInfoFragment : Fragment() {
 
     // タグを取得する関数
     fun coroutineGetTag() {
-        fragment_program_info_swipe.isRefreshing = true
+        activity?.runOnUiThread {
+            fragment_program_info_swipe.isRefreshing = true
+        }
         GlobalScope.launch {
             val nicoLiveTagAPI = NicoLiveTagAPI()
             val response = nicoLiveTagAPI.getTags(liveId, usersession).await()

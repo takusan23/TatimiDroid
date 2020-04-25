@@ -13,12 +13,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Fragment.NicoLiveTagBottomFragment
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
 import io.github.takusan23.tatimidroid.R
 import okhttp3.*
 import java.io.IOException
 import java.util.*
 
-class TagRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :
+class TagRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<NicoLiveTagAPI.NicoLiveTagItemData>) :
     RecyclerView.Adapter<TagRecyclerViewAdapter.ViewHolder>() {
 
     lateinit var bottomFragment: NicoLiveTagBottomFragment
@@ -41,11 +42,11 @@ class TagRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayL
 
     override fun onBindViewHolder(holder: TagRecyclerViewAdapter.ViewHolder, position: Int) {
 
-        val item: ArrayList<String> = arrayListArrayAdapter[position] as ArrayList<String>
+        val item = arrayListArrayAdapter[position]
         val context = holder.textView.context
 
-        val tagName = item[1]
-        val isLocked = item[2].toBoolean()
+        val tagName = item.title
+        val isLocked = item.isLocked
 
         holder.textView.text = tagName
 

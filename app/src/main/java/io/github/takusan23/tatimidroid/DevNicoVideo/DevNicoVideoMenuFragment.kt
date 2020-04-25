@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoQualityBottomFragment
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
@@ -29,6 +30,7 @@ import io.github.takusan23.tatimidroid.isConnectionInternet
 import io.github.takusan23.tatimidroid.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_menu.*
+import org.json.JSONObject
 
 /**
  * めにゅー
@@ -46,11 +48,10 @@ class DevNicoVideoMenuFragment : Fragment() {
     // 共有
     lateinit var share: ProgramShare
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    // JSON
+    lateinit var jsonObject: JSONObject
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_menu, container, false)
     }
 
@@ -71,8 +72,11 @@ class DevNicoVideoMenuFragment : Fragment() {
         videoId = arguments?.getString("id") ?: ""
 
         // そもそもキャッシュ取得できない（アニメ公式はhls形式でAES-128で暗号化されてるので取れない）動画はキャッシュボタン非表示
-        if (videoId.contains("so")) {
-            fragment_nicovideo_menu_get_cache.visibility = View.GONE
+        if (::jsonObject.isInitialized) {
+            if (NicoVideoHTML().isEncryption(jsonObject.toString())) {
+                fragment_nicovideo_menu_get_cache.visibility = View.GONE
+                fragment_nicovideo_menu_get_cache_eco.visibility = View.GONE
+            }
         }
 
         // ログインしないモード用
@@ -126,36 +130,6 @@ class DevNicoVideoMenuFragment : Fragment() {
             activity?.finish()
         }
     }
-
-/*
-    */
-    /**
-     * ポップアップ再生、バッググラウンド再生サービス起動用関数
-     * @param mode "popup"（ポップアップ再生）か"background"（バッググラウンド再生）
-     * *//*
-
-    private fun startPlayService(mode: String) {
-        val devNicoVideoFragment =
-            fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
-        val intent = Intent(context, NicoVideoPlayService::class.java).apply {
-            putExtra("mode", mode)
-            putExtra("video_id", videoId)
-            putExtra("is_cache", isCache)
-            putExtra("seek", devNicoVideoFragment.exoPlayer.currentPosition)
-        }
-        // サービス終了（起動させてないときは何もならないと思う）させてから起動させる。（
-        // 起動してない状態でstopService呼ぶ分にはなんの問題もないっぽい？）
-        activity?.stopService(intent)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activity?.startForegroundService(intent)
-        } else {
-            activity?.startService(intent)
-        }
-        // Activity落とす
-        activity?.finish()
-    }
-*/
-
 
     private fun initRotationButton() {
         fragment_nicovideo_menu_rotation.setOnClickListener {

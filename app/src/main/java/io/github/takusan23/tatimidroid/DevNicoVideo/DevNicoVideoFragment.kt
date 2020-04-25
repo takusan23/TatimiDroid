@@ -360,6 +360,9 @@ class DevNicoVideoFragment : Fragment() {
                     // ExoPlayer
                     initVideoPlayer(contentUrl, nicoHistory)
                 }
+                // メニューにJSON渡す
+                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 0) as DevNicoVideoMenuFragment).jsonObject =
+                    jsonObject
                 // コメントFragmentにコメント配列を渡す
                 (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {
                     commentList.forEach {
