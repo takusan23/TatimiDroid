@@ -702,7 +702,14 @@ class NicoVideoPlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(broadcastReceiver)
-        mediaSessionCompat.release()
+        mediaSessionCompat.apply {
+            isActive = false
+            setPlaybackState(
+                PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 0L, 1F)
+                    .build()
+            )
+            release()
+        }
         nicoVideoHTML.destory()
         nicoVideoCache.destroy()
         exoPlayer.release()

@@ -760,7 +760,14 @@ class NicoLivePlayService : Service() {
         }
         nicoLiveHTML.destroy()
         nicoLiveComment.destroy()
-        mediaSessionCompat.release()
+        mediaSessionCompat.apply {
+            isActive = false
+            setPlaybackState(
+                PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 0L, 1F)
+                    .build()
+            )
+            release()
+        }
         nicoJK.destroy()
     }
 
