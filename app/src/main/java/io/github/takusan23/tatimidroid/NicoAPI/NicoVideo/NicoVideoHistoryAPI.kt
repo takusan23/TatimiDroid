@@ -58,7 +58,7 @@ class NicoVideoHistoryAPI {
             val commentCount = count.getInt("comment").toString()
             val mylistCount = count.getInt("mylist").toString()
             val data =
-                NicoVideoData(false, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "",null,null)
+                NicoVideoData(false, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "",null,null,null)
             list.add(data)
         }
         return list

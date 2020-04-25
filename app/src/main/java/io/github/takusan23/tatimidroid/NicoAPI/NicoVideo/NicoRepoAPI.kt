@@ -54,7 +54,7 @@ class NicoRepoAPI {
                 val createAt = toUnixTime(dataObject.getString("createdAt"))
                 val thumb = videoObject.getJSONObject("thumbnailUrl").getString("normal")
                 val data =
-                    NicoVideoData(false, false, title, videoId, thumb, createAt, "-1", "-1", "-1", "", null, null)
+                    NicoVideoData(false, false, title, videoId, thumb, createAt, "-1", "-1", "-1", "", null, null,null)
                 list.add(data)
             }
         }

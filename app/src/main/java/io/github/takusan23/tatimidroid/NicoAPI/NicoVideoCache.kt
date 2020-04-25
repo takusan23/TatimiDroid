@@ -74,8 +74,10 @@ class NicoVideoCache(val context: Context?) {
                     val commentCount =
                         jsonObject.getJSONObject("thread").getInt("commentCount").toString()
                     val mylistCount = video.getInt("mylistCount").toString()
+                    // キャッシュ取得日時
+                    val cacheAddedDate = it.lastModified()
                     val data =
-                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "", null, null)
+                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "", null, null, cacheAddedDate)
                     list.add(data)
                 } else {
                     /**
@@ -93,11 +95,13 @@ class NicoVideoCache(val context: Context?) {
                     val mylistItemId = ""
                     // 動画からサムネイルを取得する
                     val data =
-                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, mylistItemId, null, null)
+                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, mylistItemId, null, null, date)
                     list.add(data)
                 }
             }
         }
+        // 新たしい順にソート
+        list.sortByDescending { nicoVideoData -> nicoVideoData.cacheAddedDate }
         return@async list
     }
 

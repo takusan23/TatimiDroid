@@ -139,7 +139,7 @@ class NicoVideoMyListAPI {
             val mylistCount = itemData.getString("mylist_counter")
             val lengthSeconds = itemData.getLong("length_seconds")
             val data =
-                NicoVideoData(false, true, title, videoId, thum, date, viewCount, commentCount, mylistCount, itemId,addedDate,lengthSeconds)
+                NicoVideoData(false, true, title, videoId, thum, date, viewCount, commentCount, mylistCount, itemId,addedDate,lengthSeconds,null)
             myListList.add(data)
         }
         return myListList
@@ -250,7 +250,7 @@ class NicoVideoMyListAPI {
             val addedAt = toUnixTime(video.getString("addedAt"))
             val duration = videoObject.getLong("duration")
             val data =
-                NicoVideoData(false, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, itemId,addedAt,duration)
+                NicoVideoData(false, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, itemId,addedAt,duration,null)
             myListList.add(data)
         }
         return myListList
