@@ -68,6 +68,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             nicoruCount = "${context.getString(R.string.nicoru)} ${item.nicoru}"
         }
 
+        holder.userNameTextView.maxLines = 1
         holder.commentTextView.text = "${item.commentNo}：$comment"
         holder.userNameTextView.text =
             "${setTimeFormat(date.toLong())} | $formattedTime | $mail | $nicoruCount | ${item.userId}"
