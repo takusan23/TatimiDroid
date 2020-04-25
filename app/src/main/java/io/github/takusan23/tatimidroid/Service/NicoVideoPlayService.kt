@@ -112,6 +112,10 @@ class NicoVideoPlayService : Service() {
     // キャッシュ取得用
     lateinit var nicoVideoCache: NicoVideoCache
 
+    // コメント描画改善。drawComment()関数でのみ使う（0秒に投稿されたコメントが重複して表示される対策）
+    private var drewedList = arrayListOf<String>() // 描画したコメントのNoが入る配列。一秒ごとにクリアされる
+    private var tmpPosition = 0L // いま再生している位置から一秒引いた値が入ってる。
+
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
@@ -146,11 +150,13 @@ class NicoVideoPlayService : Service() {
     // データ取得など
     private fun coroutine() {
         GlobalScope.launch {
-            val response = if (isLoginMode(this@NicoVideoPlayService)) {
-                nicoVideoHTML.getHTML(videoId, userSession) // ログインする
+            // ログインしないならそもそもuserSessionの値を空にすれば！？
+            val userSession = if (isLoginMode(this@NicoVideoPlayService)) {
+                this@NicoVideoPlayService.userSession
             } else {
-                nicoVideoHTML.getHTML(videoId, "") // ログインしない
-            }.await()
+                ""
+            }
+            val response = nicoVideoHTML.getHTML(videoId, userSession, "").await()
             nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
             val responseString = response.body?.string()
             jsonObject = nicoVideoHTML.parseJSON(responseString)
@@ -210,21 +216,25 @@ class NicoVideoPlayService : Service() {
                 // 動画ファイルの名前
                 nicoVideoCache.getCacheFolderVideoFileName(videoId) ?: videoId
             }
-            // 動画のファイル名取得
-            val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
-            if (videoFileName != null) {
-                contentUrl =
-                    "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
-                // ExoPlayer
-                initVideoPlayer(contentUrl, "")
-                // コメント取得
-                val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
-                commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
-            } else {
-                // 動画が見つからなかった
-                Toast.makeText(this, R.string.not_found_video, Toast.LENGTH_SHORT).show()
-                stopSelf()
-                return
+            GlobalScope.launch {
+                // 動画のファイル名取得
+                val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
+                if (videoFileName != null) {
+                    contentUrl =
+                        "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
+                    Handler(Looper.getMainLooper()).post {
+                        // ExoPlayer
+                        initVideoPlayer(contentUrl, "")
+                    }
+                    // コメント取得
+                    val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
+                    commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
+                } else {
+                    // 動画が見つからなかった
+                    showToast(getString(R.string.not_found_video))
+                    stopSelf()
+                    return@launch
+                }
             }
         }
     }
@@ -522,11 +532,23 @@ class NicoVideoPlayService : Service() {
 
     // コメント描画あああ
     private fun drawComment() {
-        val drawList = commentList.filter { commentJSONParse ->
-            (commentJSONParse.vpos.toInt() / 10) == (exoPlayer.contentPosition / 100L).toInt()
+        val currentPosition = exoPlayer.contentPosition / 100L
+        if (tmpPosition != exoPlayer.contentPosition / 1000) {
+            drewedList.clear()
+            tmpPosition = currentPosition
         }
-        drawList.forEach {
-            commentCanvas.postComment(it.comment, it)
+        GlobalScope.launch {
+            val drawList = commentList.filter { commentJSONParse ->
+                (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
+            }
+            drawList.forEach {
+                if (!drewedList.contains(it.commentNo)) {
+                    drewedList.add(it.commentNo)
+                    commentCanvas.post {
+                        commentCanvas.postComment(it.comment, it)
+                    }
+                }
+            }
         }
     }
 

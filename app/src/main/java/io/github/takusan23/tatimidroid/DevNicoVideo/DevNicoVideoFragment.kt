@@ -767,16 +767,6 @@ class DevNicoVideoFragment : Fragment() {
                         fragment_nicovideo_comment_canvas.postComment(it.comment, it)
                     }
                 }
-/*
-                if (tmpComment != it.comment && tmpCommentNo != it.commentNo && tmpCommentVpos != it.userId) {
-                    tmpComment = it.comment
-                    tmpCommentNo = it.commentNo
-                    tmpCommentVpos = it.vpos
-                    fragment_nicovideo_comment_canvas.post {
-                        fragment_nicovideo_comment_canvas.postComment(it.comment, it)
-                    }
-                }
-*/
             }
         }
     }
