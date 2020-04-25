@@ -5,204 +5,209 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-
-    <ScrollView
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:id="@+id/fragment_program_info_swipe"
+            android:layout_height="wrap_content">
 
-        <LinearLayout
+        <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="match_parent">
 
-            <androidx.cardview.widget.CardView
+            <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_margin="5sp">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-                <LinearLayout
+                <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="10sp">
-
-                    <TextView
-                            android:id="@+id/fragment_program_info_title"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="番組名"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                    <TextView
-                            android:id="@+id/fragment_program_info_description"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:autoLink="all"
-                            android:textIsSelectable="true"
-                            android:text="説明" />
-
-                    <TextView
-                            android:id="@+id/fragment_program_info_time"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="開始時刻" />
-
-                    <Button
-                            android:id="@+id/fragment_program_info_timeshift_button"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="10sp"
-                            android:text="@string/timeshift_reservation_button" />
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_margin="5sp">
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="5sp">
-
-                    <ImageView
-                            android:id="@+id/imageView5"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            app:srcCompat="@drawable/ic_outline_account_circle_24px" />
+                        android:layout_height="match_parent"
+                        android:layout_margin="5sp">
 
                     <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:orientation="vertical"
+                            android:padding="10sp">
 
                         <TextView
-                                android:id="@+id/fragment_program_info_broadcaster_name"
+                                android:id="@+id/fragment_program_info_title"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="@string/broadcaster"
-                                android:textSize="18sp"
-                                android:textStyle="bold" />
-
-                        <TextView
-                                android:id="@+id/fragment_program_info_broadcaster_level"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/level"
-                                android:textStyle="bold" />
-
-                        <Button
-                                android:id="@+id/fragment_program_info_broadcaster_follow_button"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="5sp"
-                                android:text="@string/user_follow" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_margin="5sp">
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="5sp">
-
-                    <ImageView
-                            android:id="@+id/imageView4"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            app:srcCompat="@drawable/ic_outline_people_outline_24px" />
-
-                    <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                        <TextView
-                                android:id="@+id/fragment_program_info_community_name"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/community_name"
+                                android:text="番組名"
                                 android:textSize="20sp"
                                 android:textStyle="bold" />
 
                         <TextView
-                                android:id="@+id/fragment_program_info_community_level"
+                                android:id="@+id/fragment_program_info_description"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="@string/community_level"
-                                android:textStyle="bold" />
+                                android:autoLink="all"
+                                android:text="説明"
+                                android:textIsSelectable="true" />
+
+                        <TextView
+                                android:id="@+id/fragment_program_info_time"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="開始時刻" />
 
                         <Button
-                                android:id="@+id/fragment_program_info_community_follow_button"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:id="@+id/fragment_program_info_timeshift_button"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_margin="5sp"
-                                android:text="@string/community_follow" />
+                                android:layout_margin="10sp"
+                                android:text="@string/timeshift_reservation_button" />
 
                     </LinearLayout>
-                </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="5sp">
-
-                <LinearLayout
+                <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:padding="5sp">
-
-                    <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            app:srcCompat="@drawable/ic_local_offer_24px" />
+                        android:layout_height="match_parent"
+                        android:layout_margin="5sp">
 
                     <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
+                            android:orientation="horizontal"
+                            android:padding="5sp">
 
-                        <Button
-                                android:id="@+id/fragment_program_info_tag_add_button"
+                        <ImageView
+                                android:id="@+id/imageView5"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/tag_edit" />
+                                android:layout_height="match_parent"
+                                app:srcCompat="@drawable/ic_outline_account_circle_24px" />
 
                         <LinearLayout
-                                android:id="@+id/fragment_program_info_tag_linearlayout"
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:layout_margin="10sp"
-                                android:orientation="vertical"></LinearLayout>
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                            <TextView
+                                    android:id="@+id/fragment_program_info_broadcaster_name"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/broadcaster"
+                                    android:textSize="18sp"
+                                    android:textStyle="bold" />
+
+                            <TextView
+                                    android:id="@+id/fragment_program_info_broadcaster_level"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/level"
+                                    android:textStyle="bold" />
+
+                            <Button
+                                    android:id="@+id/fragment_program_info_broadcaster_follow_button"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_margin="5sp"
+                                    android:text="@string/user_follow" />
+
+                        </LinearLayout>
+
                     </LinearLayout>
 
+                </androidx.cardview.widget.CardView>
 
-                </LinearLayout>
+                <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="5sp">
 
-            </androidx.cardview.widget.CardView>
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="5sp">
+
+                        <ImageView
+                                android:id="@+id/imageView4"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                app:srcCompat="@drawable/ic_outline_people_outline_24px" />
+
+                        <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                            <TextView
+                                    android:id="@+id/fragment_program_info_community_name"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/community_name"
+                                    android:textSize="20sp"
+                                    android:textStyle="bold" />
+
+                            <TextView
+                                    android:id="@+id/fragment_program_info_community_level"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/community_level"
+                                    android:textStyle="bold" />
+
+                            <Button
+                                    android:id="@+id/fragment_program_info_community_follow_button"
+                                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_margin="5sp"
+                                    android:text="@string/community_follow" />
+
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5sp">
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="5sp">
+
+                        <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                app:srcCompat="@drawable/ic_local_offer_24px" />
+
+                        <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                            <Button
+                                    android:id="@+id/fragment_program_info_tag_add_button"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/tag_edit" />
+
+                            <LinearLayout
+                                    android:id="@+id/fragment_program_info_tag_linearlayout"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:layout_margin="10sp"
+                                    android:orientation="vertical"></LinearLayout>
+                        </LinearLayout>
 
 
-        </LinearLayout>
-    </ScrollView>
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+
+            </LinearLayout>
+        </ScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 
 </LinearLayout>

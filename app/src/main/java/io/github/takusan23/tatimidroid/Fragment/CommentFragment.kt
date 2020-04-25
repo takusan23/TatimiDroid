@@ -337,8 +337,7 @@ class CommentFragment : Fragment() {
         //生放送を視聴する場合はtrue
         watchLive = pref_setting.getBoolean("setting_watch_live", true)
 
-        //二窓モードではPreferenceの値を利用しない
-        //いつかSharedPreferenceで視聴モードを管理するのやめようと思う。
+        // argumentsから値もらう
         var watchingmode = false
         var nicocasmode = false
         if (arguments?.getString("watch_mode")?.isNotEmpty() == true) {
@@ -484,6 +483,12 @@ class CommentFragment : Fragment() {
 
             // 経過時間
             setLiveTime()
+
+            // 番組情報FragmentにHTMLのJSON渡す
+            (commentViewPager.instantiateItem(comment_viewpager, 5) as ProgramInfoFragment).apply {
+                jsonObject = nicoLiveJSON
+                jsonApplyUI(nicoLiveJSON)
+            }
 
             // データ流してくれるWebSocketに接続する
             nicoLiveHTML.apply {

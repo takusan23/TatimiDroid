@@ -15,31 +15,19 @@ import org.json.JSONObject
 
 /**
  * ニコニコのユーザー情報を取得するAPI
- * 高階関数/コルーチン版どっちもあるよ
+ * コルーチン版のみ
  * @param context Context
  * @param userId ユーザーID。自分のを取得する場合は空にして、getUserCoroutine()の引数に「https://nvapi.nicovideo.jp/v1/users/me」を指定
  * */
-class User(val context: Context?, val userId: String) {
-
-    val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-    val userSession = prefSetting.getString("user_session", "")
-
-    /**
-     * ユーザー情報を取得する。 高階関数版
-     * 中身でコルーチン動かしてるだけなんですけどね
-     * */
-    fun getUser(responseFun: (UserData?) -> Unit) {
-        GlobalScope.launch {
-            val userData = getUserCoroutine().await()
-            responseFun(userData)
-        }
-    }
+class User {
 
     /**
      * ユーザー情報を取得する。コルーチン版。
+     * @param userId ユーザーID。作者は「40210583」
+     * @param userSession ユーザーセッション
      * @param url 自分のページを表示させる場合はこれ→https://nvapi.nicovideo.jp/v1/users/me
      * */
-    fun getUserCoroutine(url: String = "https://nvapi.nicovideo.jp/v1/users/$userId"): Deferred<UserData?> =
+    fun getUserCoroutine(userId: String, userSession: String, url: String = "https://nvapi.nicovideo.jp/v1/users/$userId"): Deferred<UserData?> =
         GlobalScope.async {
             val request = Request.Builder().apply {
                 url(url)
@@ -72,17 +60,9 @@ class User(val context: Context?, val userId: String) {
                     UserData(description, isPremium, niconicoVersion, followeeCount, followerCount, userId, nickName, isFollowing, currentLevel)
                 return@async userData
             } else {
-                showToast(context?.getString(R.string.error) + "\n" + response.code)
                 return@async null
             }
         }
-
-    private fun showToast(message: String?) {
-        Handler(Looper.getMainLooper()).post {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-        }
-    }
-
 }
 
 data class UserData(

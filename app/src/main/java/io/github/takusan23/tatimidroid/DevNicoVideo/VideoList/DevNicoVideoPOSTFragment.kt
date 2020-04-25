@@ -89,7 +89,7 @@ class DevNicoVideoPOSTFragment : Fragment() {
             }
             // ユーザーID取得
             val user =
-                User(context, "").getUserCoroutine(url).await()
+                User().getUserCoroutine(arguments?.getString("userId")!!, userSession, url).await()
             if (userSession.isNotEmpty() && user?.userId != null) {
                 recyclerViewList.clear()
                 val response = post.getList(page, user.userId.toString(), userSession).await()

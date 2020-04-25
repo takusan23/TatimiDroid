@@ -34,11 +34,7 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
     var liveId = ""
     var tagToken = ""
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_tags, container, false)
     }
 
@@ -75,7 +71,7 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
                 tagCoroutine()
                 programFragment.apply {
                     // 番組情報Fragmentのタグも取得（更新）
-                    programInfoCoroutine()
+                    coroutineGetTag()
                 }
             }
         }

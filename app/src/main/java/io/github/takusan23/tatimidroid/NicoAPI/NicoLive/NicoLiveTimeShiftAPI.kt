@@ -49,12 +49,7 @@ class NicoLiveTimeShiftAPI(var context: Context?, var user_session: String, var 
     fun deleteTimeShift(successful: (Response) -> Unit) {
         val request = Request.Builder().apply {
             // 番組IDからlvを抜いた値を指定する
-            url(
-                "https://live.nicovideo.jp/api/timeshift.reservations?vid=${liveId.replace(
-                    "lv",
-                    ""
-                )}"
-            )
+            url("https://live.nicovideo.jp/api/timeshift.reservations?vid=${liveId.replace("lv", "")}")
             header("User-Agent", "TatimiDroid;@takusan_23")
             header("Cookie", "user_session=$user_session")
             header("Content-Type", "application/x-www-form-urlencoded")

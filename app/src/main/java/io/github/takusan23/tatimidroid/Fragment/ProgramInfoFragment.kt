@@ -16,6 +16,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
 import io.github.takusan23.tatimidroid.NicoAPI.User
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_info.*
@@ -41,11 +42,10 @@ class ProgramInfoFragment : Fragment() {
     // タグ変更に使うトークン
     var tagToken = ""
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    // htmlの中にあるJSON
+    lateinit var jsonObject: JSONObject
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_program_info, container, false)
     }
@@ -61,8 +61,10 @@ class ProgramInfoFragment : Fragment() {
             (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId)
         val commentFragment = fragment as CommentFragment
 
-        // 番組情報取得
-        programInfoCoroutine()
+        // 番組情報反映
+        if (::jsonObject.isInitialized) {
+            jsonApplyUI(jsonObject)
+        }
 
         // ユーザーフォロー
         fragment_program_info_broadcaster_follow_button.setOnClickListener {
@@ -101,7 +103,6 @@ class ProgramInfoFragment : Fragment() {
         // TS予約
         fragment_program_info_timeshift_button.setOnClickListener {
             registerTimeShift {
-                println(it.body?.string())
                 if (it.isSuccessful) {
                     activity?.runOnUiThread {
                         // 成功したらTS予約リストへ飛ばす
@@ -118,36 +119,33 @@ class ProgramInfoFragment : Fragment() {
                 } else if (it.code == 500) {
                     // 予約済みの可能性。
                     // なお本家も多分一度登録APIを叩いて500エラーのとき登録済みって判断するっぽい？
-                    Snackbar.make(
-                        fragment_program_info_timeshift_button,
-                        R.string.timeshift_reserved,
-                        Snackbar.LENGTH_LONG
-                    ).setAction(R.string.timeshift_delete_reservation_button) {
-                        deleteTimeShift {
-                            println(it.body?.string())
-                            activity?.runOnUiThread {
-                                Toast.makeText(
-                                    context,
-                                    R.string.timeshift_delete_reservation_successful,
-                                    Toast.LENGTH_LONG
-                                ).show()
+                    Snackbar.make(fragment_program_info_timeshift_button, R.string.timeshift_reserved, Snackbar.LENGTH_LONG)
+                        .setAction(R.string.timeshift_delete_reservation_button) {
+                            deleteTimeShift {
+                                println(it.body?.string())
+                                activity?.runOnUiThread {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.timeshift_delete_reservation_successful,
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
                             }
-                        }
-                    }.setAnchorView(commentFragment.getSnackbarAnchorView()).show()
+                        }.setAnchorView(commentFragment.getSnackbarAnchorView()).show()
                 }
             }
         }
 
+        // 引っ張ったらタグ更新
+        fragment_program_info_swipe.setOnRefreshListener {
+            coroutineGetTag()
+        }
+
     }
 
-    /** コルーチン */
-    fun programInfoCoroutine() {
-        fragment_program_info_tag_linearlayout.removeAllViews()
+    // nicoLiveHTMLtoJSONObject()のJSONの中身をUIに反映させる
+    fun jsonApplyUI(jsonObject: JSONObject) {
         GlobalScope.launch {
-            val nicolive =
-                NicoLiveHTML()
-            val responseString = nicolive.getNicoLiveHTML(liveId, usersession).await()
-            val jsonObject = nicolive.nicoLiveHTMLtoJSONObject(responseString.body?.string())
             // 番組情報取得
             val program = jsonObject.getJSONObject("program")
             val title = program.getString("title")
@@ -161,8 +159,8 @@ class ProgramInfoFragment : Fragment() {
             if (supplier.has("programProviderId")) {
                 userId = supplier.getString("programProviderId")
                 // ユーザー情報取得。フォロー中かどうか判断するため
-                val user = User(context, userId)
-                val userData = user.getUserCoroutine().await()
+                val user = User()
+                val userData = user.getUserCoroutine(userId, usersession).await()
                 // ユーザーフォロー中？
                 if (userData?.isFollowing == true) {
                     activity?.runOnUiThread {
@@ -238,15 +236,11 @@ class ProgramInfoFragment : Fragment() {
                         val button = MaterialButton(context!!)
                         button.text = text
                         button.isAllCaps = false
-                        if (isNicopedia) {
-                            val nicopediaUrl =
-                                tag.getString("nicopediaArticlePageUrl")
-                            button.setOnClickListener {
-                                val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
-                                startActivity(intent)
-                            }
-                        } else {
-                            button.isEnabled = false
+                        val nicopediaUrl =
+                            tag.getString("nicopediaArticlePageUrl")
+                        button.setOnClickListener {
+                            val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
+                            startActivity(intent)
                         }
                         fragment_program_info_tag_linearlayout.addView(button)
                     }
@@ -282,6 +276,42 @@ class ProgramInfoFragment : Fragment() {
                     fragment_program_info_timeshift_button.text =
                         getString(R.string.disabled_ts_reservation)
                 }
+            }
+        }
+    }
+
+    // タグを取得する関数
+    fun coroutineGetTag() {
+        fragment_program_info_swipe.isRefreshing = true
+        GlobalScope.launch {
+            val nicoLiveTagAPI = NicoLiveTagAPI()
+            val response = nicoLiveTagAPI.getTags(liveId, usersession).await()
+            if (!response.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${response.code}")
+                return@launch
+            }
+            // パース
+            val list = nicoLiveTagAPI.parseTags(response.body?.string())
+            // タグをUIに反映させる
+            activity?.runOnUiThread {
+                // 全部消す
+                fragment_program_info_tag_linearlayout.removeAllViews()
+                list.forEach {
+                    val text = it.title
+                    val isNicopedia = it.hasNicoPedia
+                    //ボタン作成
+                    val button = MaterialButton(context!!)
+                    button.text = text
+                    button.isAllCaps = false
+                    val nicopediaUrl = it.nicoPediaUrl
+                    button.setOnClickListener {
+                        val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
+                        startActivity(intent)
+                    }
+                    fragment_program_info_tag_linearlayout.addView(button)
+                }
+                fragment_program_info_swipe.isRefreshing = false
             }
         }
     }
@@ -405,12 +435,7 @@ class ProgramInfoFragment : Fragment() {
     fun deleteTimeShift(successful: (Response) -> Unit) {
         val request = Request.Builder().apply {
             // 番組IDからlvを抜いた値を指定する
-            url(
-                "https://live.nicovideo.jp/api/timeshift.reservations?vid=${liveId.replace(
-                    "lv",
-                    ""
-                )}"
-            )
+            url("https://live.nicovideo.jp/api/timeshift.reservations?vid=${liveId.replace("lv", "")}")
             header("User-Agent", "TatimiDroid;@takusan_23")
             header("Cookie", "user_session=$usersession")
             header("Content-Type", "application/x-www-form-urlencoded")
