@@ -13,38 +13,8 @@
         <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/fragment_nicovideo_post_recyclerview"
                 android:layout_width="match_parent"
+                android:scrollbars="vertical"
                 android:layout_height="match_parent" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-        <Button
-                android:id="@+id/fragment_nicovideo_post_prev_page"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:layout_margin="2sp"
-                android:text="@string/prev_page" />
-
-        <Button
-                android:id="@+id/fragment_nicovideo_post_next_page"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_margin="2sp"
-                android:text="@string/next_page" />
-
-        <Button
-                android:id="@+id/fragment_nicovideo_post_now_page"
-                android:enabled="false"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="2sp"
-                android:text="" />
-    </FrameLayout>
 </LinearLayout>

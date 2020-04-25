@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoPOST
@@ -40,6 +41,11 @@ class DevNicoVideoPOSTFragment : Fragment() {
     // キャンセルできるように
     lateinit var coroutine: Job
 
+    // 追加読み込み制御
+    var isLoading = false
+    var position = 0
+    var yPos = 0
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_post, container, false)
     }
@@ -56,19 +62,9 @@ class DevNicoVideoPOSTFragment : Fragment() {
         // 1ページ目取得
         getPostList(isNowPageNum)
 
-        fragment_nicovideo_post_prev_page.setOnClickListener {
-            isNowPageNum--
-            getPostList(isNowPageNum)
-        }
-        fragment_nicovideo_post_next_page.setOnClickListener {
-            isNowPageNum++
-            getPostList(isNowPageNum)
-        }
-
         fragment_nicovideo_post_swipe_to_refresh.setOnRefreshListener {
             getPostList(isNowPageNum)
         }
-
     }
 
     /**
@@ -76,7 +72,9 @@ class DevNicoVideoPOSTFragment : Fragment() {
      * @param page ページ数。
      * */
     private fun getPostList(page: Int) {
+        fragment_nicovideo_post_recyclerview.layoutManager?.scrollToPosition(0)
         fragment_nicovideo_post_swipe_to_refresh.isRefreshing = true
+        // recyclerViewList.clear()
         // 通信してるならキャンセル
         if (::coroutine.isInitialized) {
             coroutine.cancel()
@@ -92,7 +90,6 @@ class DevNicoVideoPOSTFragment : Fragment() {
             val user =
                 User().getUserCoroutine(userId, userSession, url).await()
             if (userSession.isNotEmpty() && user?.userId != null) {
-                recyclerViewList.clear()
                 val response = post.getList(page, user.userId.toString(), userSession).await()
                 if (response.isSuccessful) {
                     post.parseHTML(response).forEach {
@@ -100,20 +97,17 @@ class DevNicoVideoPOSTFragment : Fragment() {
                     }
                     activity?.runOnUiThread {
                         nicoVideoListAdapter.notifyDataSetChanged()
+                        // スクロール
+                        fragment_nicovideo_post_recyclerview.apply {
+                            (layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, yPos)
+                        }
                         if (isAdded) {
                             fragment_nicovideo_post_swipe_to_refresh.isRefreshing = false
-                            fragment_nicovideo_post_now_page.text =
-                                "$page ${getString(R.string.page)}"
+                            isLoading = false
                         }
                     }
                 } else {
                     showToast("${getString(R.string.error)}\n${response.code}")
-                    activity?.runOnUiThread {
-                        if (isAdded) {
-                            fragment_nicovideo_post_now_page.text =
-                                "$page ${getString(R.string.page)}"
-                        }
-                    }
                 }
             }
         }
@@ -129,9 +123,27 @@ class DevNicoVideoPOSTFragment : Fragment() {
     private fun initRecyclerView() {
         fragment_nicovideo_post_recyclerview.apply {
             setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(context)
+            val linearLayoutManager = LinearLayoutManager(context)
+            layoutManager = linearLayoutManager
             nicoVideoListAdapter = DevNicoVideoListAdapter(recyclerViewList)
             adapter = nicoVideoListAdapter
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    val visibleItemCount = recyclerView.getChildCount()
+                    val totalItemCount = linearLayoutManager.itemCount
+                    val firstVisibleItem = linearLayoutManager.findFirstVisibleItemPosition()
+                    //最後までスクロールしたときの処理
+                    if (firstVisibleItem + visibleItemCount == totalItemCount && !isLoading) {
+                        isLoading = true
+                        isNowPageNum++
+                        getPostList(isNowPageNum)
+                        position =
+                            (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                        yPos = getChildAt(0).top
+                    }
+                }
+            })
         }
     }
 

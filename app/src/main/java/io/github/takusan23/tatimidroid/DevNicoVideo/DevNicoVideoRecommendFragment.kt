@@ -25,18 +25,20 @@ class DevNicoVideoRecommendFragment : Fragment() {
     lateinit var devNicoVideoListAdapter: DevNicoVideoListAdapter
     var recyclerViewList = arrayListOf<NicoVideoData>()
 
-    // 関連動画取得に使う「watchRecommendationRecipe」の値
-    var watchRecommendationRecipe = ""
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_recommend, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         initRecyclerView()
+    }
 
+    override fun onStart() {
+        super.onStart()
+        Handler(Looper.getMainLooper()).post {
+            devNicoVideoListAdapter.notifyDataSetChanged()
+        }
     }
 
     private fun initRecyclerView() {

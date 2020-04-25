@@ -41,9 +41,10 @@ class NicoVideoRecommendAPI {
         val items = jsonObject.getJSONObject("data").getJSONArray("items")
         for (i in 0 until items.length()) {
             val videoObject = items.getJSONObject(i)
+            val contentType = videoObject.getString("contentType")
             val recommendType = videoObject.getString("recommendType")
-            // 関連動画のみ
-            if (recommendType == "recommend") {
+            // 動画のみ
+            if (contentType == "video") {
                 val contentObject = videoObject.getJSONObject("content")
                 val videoId = contentObject.getString("id")
                 val videoTitle = contentObject.getString("title")

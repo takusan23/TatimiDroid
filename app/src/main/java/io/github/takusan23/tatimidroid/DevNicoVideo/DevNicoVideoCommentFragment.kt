@@ -62,29 +62,31 @@ class DevNicoVideoCommentFragment : Fragment() {
      * @param snackbarShow SnackBar（取得コメント数）を表示させる場合はtrue、省略時はfalse
      * */
     fun initRecyclerView(snackbarShow: Boolean = false) {
-        recyclerViewList.clear()
-        (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).commentList.forEach {
-            recyclerViewList.add(it)
-        }
-        activity_nicovideo_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(context)
-        activity_nicovideo_recyclerview.layoutManager = mLayoutManager
-        // 3DSコメント非表示を実現するための面倒なやつ
-        val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
-        val list = if (is3DSCommentHidden) {
-            recyclerViewList.filter { commentJSONParse -> !commentJSONParse.mail.contains("device:3DS") }
-        } else {
-            recyclerViewList
-        } as ArrayList<CommentJSONParse>
-        nicoVideoAdapter =
-            NicoVideoAdapter(list)
-        activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
-        //  Snackbar
-        if (snackbarShow) {
-            // DevNicoVideoFragment
-            val fragment =
-                fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
-            fragment.showSnackbar("${getString(R.string.get_comment_count)}：${recyclerViewList.size}", null, null)
+        if (isAdded) {
+            recyclerViewList.clear()
+            (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).commentList.forEach {
+                recyclerViewList.add(it)
+            }
+            activity_nicovideo_recyclerview.setHasFixedSize(true)
+            val mLayoutManager = LinearLayoutManager(context)
+            activity_nicovideo_recyclerview.layoutManager = mLayoutManager
+            // 3DSコメント非表示を実現するための面倒なやつ
+            val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
+            val list = if (is3DSCommentHidden) {
+                recyclerViewList.filter { commentJSONParse -> !commentJSONParse.mail.contains("device:3DS") }
+            } else {
+                recyclerViewList
+            } as ArrayList<CommentJSONParse>
+            nicoVideoAdapter =
+                NicoVideoAdapter(list)
+            activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
+            //  Snackbar
+            if (snackbarShow) {
+                // DevNicoVideoFragment
+                val fragment =
+                    fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+                fragment.showSnackbar("${getString(R.string.get_comment_count)}：${recyclerViewList.size}", null, null)
+            }
         }
     }
 

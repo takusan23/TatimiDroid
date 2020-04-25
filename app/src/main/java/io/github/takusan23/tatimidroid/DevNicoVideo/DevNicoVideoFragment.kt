@@ -427,16 +427,13 @@ class DevNicoVideoFragment : Fragment() {
                 return@launch
             }
             // パース
-            recommendList =
-                nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string())
-                    .toList() as ArrayList<NicoVideoData>
+            nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string()).forEach {
+                recommendList.add(it)
+            }
             // DevNicoVideoRecommendFragmentに配列渡す
-            if (isAdded) {
-                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 3) as DevNicoVideoRecommendFragment).apply {
-                    recyclerViewList = recommendList.toList() as ArrayList<NicoVideoData>
-                    activity?.runOnUiThread {
-                        devNicoVideoListAdapter.notifyDataSetChanged()
-                    }
+            (viewPager.instantiateItem(fragment_nicovideo_viewpager, 3) as DevNicoVideoRecommendFragment).apply {
+                recommendList.forEach {
+                    recyclerViewList.add(it)
                 }
             }
         }
@@ -853,17 +850,16 @@ class DevNicoVideoFragment : Fragment() {
             val userId = ownerObject.getInt("id").toString()
             val nickname = ownerObject.getString("nickname")
             // DevNicoVideoFragment
-            val fragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
             val postFragment = DevNicoVideoPOSTFragment().apply {
                 arguments = Bundle().apply {
                     putString("userId", userId)
                 }
             }
             // すでにあれば追加しない
-            if (!fragment.viewPager.fragmentTabName.contains(nickname)) {
-                fragment.viewPager.fragmentList.add(4, postFragment)
-                fragment.viewPager.fragmentTabName.add(4, nickname)
-                fragment.viewPager.notifyDataSetChanged() // 更新！
+            if (!viewPager.fragmentTabName.contains(nickname)) {
+                viewPager.fragmentList.add(postFragment)
+                viewPager.fragmentTabName.add(nickname)
+                viewPager.notifyDataSetChanged() // 更新！
             }
         }
     }

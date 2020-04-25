@@ -20,6 +20,7 @@ import kotlinx.android.synthetic.main.fragment_nicovideo_search.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.lang.IndexOutOfBoundsException
 
 /**
  * ニコ動検索Fragment
