@@ -52,6 +52,7 @@ import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
+import javax.net.ssl.SSLProtocolException
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import kotlin.concurrent.timerTask
@@ -416,25 +417,30 @@ class DevNicoVideoFragment : Fragment() {
 
             }
 
-            // 関連動画取得
-            val watchRecommendationRecipe = jsonObject.getString("watchRecommendationRecipe")
-            val nicoVideoRecommendAPI = NicoVideoRecommendAPI()
-            val recommendAPIResponse =
-                nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe).await()
-            if (!recommendAPIResponse.isSuccessful) {
-                // 失敗時
-                showToast("${getString(R.string.error)}\n${response.code}")
-                return@launch
-            }
-            // パース
-            nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string()).forEach {
-                recommendList.add(it)
-            }
-            // DevNicoVideoRecommendFragmentに配列渡す
-            (viewPager.instantiateItem(fragment_nicovideo_viewpager, 3) as DevNicoVideoRecommendFragment).apply {
-                recommendList.forEach {
-                    recyclerViewList.add(it)
+            // 関連動画取得。なんかしらんけどこれもエラー出るっぽい
+            try {
+                val watchRecommendationRecipe = jsonObject.getString("watchRecommendationRecipe")
+                val nicoVideoRecommendAPI = NicoVideoRecommendAPI()
+                val recommendAPIResponse =
+                    nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe).await()
+                if (!recommendAPIResponse.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                    return@launch
                 }
+                // パース
+                nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string())
+                    .forEach {
+                        recommendList.add(it)
+                    }
+                // DevNicoVideoRecommendFragmentに配列渡す
+                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 3) as DevNicoVideoRecommendFragment).apply {
+                    recommendList.forEach {
+                        recyclerViewList.add(it)
+                    }
+                }
+            } catch (e: SSLProtocolException) {
+                e.printStackTrace()
             }
         }
     }
@@ -749,11 +755,12 @@ class DevNicoVideoFragment : Fragment() {
      * */
     fun drawComment() {
         val currentPosition = exoPlayer.contentPosition / 100L
-        if (tmpPosition != exoPlayer.contentPosition / 1000) {
-            drewedList.clear()
-            tmpPosition = currentPosition
-        }
+        val currentPositionSec = exoPlayer.contentPosition / 1000
         GlobalScope.launch {
+            if (tmpPosition != currentPositionSec) {
+                drewedList.clear()
+                tmpPosition = currentPosition
+            }
             val drawList = commentList.filter { commentJSONParse ->
                 (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
             }

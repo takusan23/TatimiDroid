@@ -187,7 +187,7 @@ class MainActivity : AppCompatActivity() {
 
     // 動画一覧
     private fun showVideoListFragment() {
-        if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
+        if (pref_setting.getString("mail", "")?.isNotEmpty() == true || isNotLoginMode(this)) {
             // ニコ動クライアント有効時
             val fragmentTransaction = supportFragmentManager.beginTransaction()
             fragmentTransaction.replace(R.id.main_activity_linearlayout, DevNicoVideoSelectFragment())

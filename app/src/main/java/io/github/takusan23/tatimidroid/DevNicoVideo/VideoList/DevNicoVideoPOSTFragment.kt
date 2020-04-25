@@ -15,6 +15,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoPOST
 import io.github.takusan23.tatimidroid.NicoAPI.User
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo_post.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -75,6 +76,12 @@ class DevNicoVideoPOSTFragment : Fragment() {
         fragment_nicovideo_post_recyclerview.layoutManager?.scrollToPosition(0)
         fragment_nicovideo_post_swipe_to_refresh.isRefreshing = true
         // recyclerViewList.clear()
+        // 非ログインならユーザーセッションを空で上書き
+        val userSession = if (isNotLoginMode(context)) {
+            ""
+        } else {
+            this@DevNicoVideoPOSTFragment.userSession
+        }
         // 通信してるならキャンセル
         if (::coroutine.isInitialized) {
             coroutine.cancel()
@@ -89,26 +96,24 @@ class DevNicoVideoPOSTFragment : Fragment() {
             val userId = arguments?.getString("userId") ?: ""
             val user =
                 User().getUserCoroutine(userId, userSession, url).await()
-            if (userSession.isNotEmpty() && user?.userId != null) {
-                val response = post.getList(page, user.userId.toString(), userSession).await()
-                if (response.isSuccessful) {
-                    post.parseHTML(response).forEach {
-                        recyclerViewList.add(it)
-                    }
-                    activity?.runOnUiThread {
-                        nicoVideoListAdapter.notifyDataSetChanged()
-                        // スクロール
-                        fragment_nicovideo_post_recyclerview.apply {
-                            (layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, yPos)
-                        }
-                        if (isAdded) {
-                            fragment_nicovideo_post_swipe_to_refresh.isRefreshing = false
-                            isLoading = false
-                        }
-                    }
-                } else {
-                    showToast("${getString(R.string.error)}\n${response.code}")
+            val response = post.getList(page, user?.userId.toString(), userSession).await()
+            if (response.isSuccessful) {
+                post.parseHTML(response).forEach {
+                    recyclerViewList.add(it)
                 }
+                activity?.runOnUiThread {
+                    nicoVideoListAdapter.notifyDataSetChanged()
+                    // スクロール
+                    fragment_nicovideo_post_recyclerview.apply {
+                        (layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, yPos)
+                    }
+                    if (isAdded) {
+                        fragment_nicovideo_post_swipe_to_refresh.isRefreshing = false
+                        isLoading = false
+                    }
+                }
+            } else {
+                showToast("${getString(R.string.error)}\n${response.code}")
             }
         }
     }
