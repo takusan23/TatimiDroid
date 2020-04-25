@@ -365,4 +365,6 @@
     <string name="setting_cache_priority_description">キャッシュが取得済みの場合はキャッシュ再生時以外でもキャッシュを優先的に使う。</string>
     <string name="setting_cache_priority_title">キャッシュを優先的に使う</string>
     <string name="use_cache">キャッシュを利用して再生しています</string>
+    <string name="setting_no_login_title">ログイン無しで利用する</string>
+    <string name="setting_no_login_description">動画の視聴では未ログインで利用します。 生放送及び実況はログインが必要なためこの設定に関わらずログインして利用します。</string>
 </resources>

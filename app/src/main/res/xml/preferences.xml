@@ -5,6 +5,12 @@
     <PreferenceCategory android:title="@string/video">
         <SwitchPreference
                 android:defaultValue="false"
+                android:icon="@drawable/ic_lock_outline_black_24dp"
+                android:key="setting_no_login"
+                android:summary="@string/setting_no_login_description"
+                android:title="@string/setting_no_login_title" />
+        <SwitchPreference
+                android:defaultValue="false"
                 android:icon="@drawable/ic_folder_open_black_24dp"
                 android:key="setting_mobile_data_show_cache"
                 android:title="@string/setting_mobile_data_show_cache" />

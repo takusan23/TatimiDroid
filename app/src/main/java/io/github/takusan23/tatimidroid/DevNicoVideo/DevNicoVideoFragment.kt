@@ -268,7 +268,11 @@ class DevNicoVideoFragment : Fragment() {
             } else {
                 ""
             }
-            val response = nicoVideoHTML.getHTML(videoId, userSession, eco).await()
+            val response = if (isLoginMode(context)) {
+                nicoVideoHTML.getHTML(videoId, userSession, eco) // ログインする
+            } else {
+                nicoVideoHTML.getHTML(videoId, "", eco) // ログインしない
+            }.await()
             nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
             jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
             // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので

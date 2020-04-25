@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
+import io.github.takusan23.tatimidroid.isLoginMode
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -211,7 +212,10 @@ class NicoVideoHTML {
                                     put("http_output_download_parameters", JSONObject().apply {
                                         put("use_well_known_port", "yes")
                                         put("use_ssl", "yes")
-                                        put("transfer_preset", "standard2")
+                                        put(
+                                            "transfer_preset", sessionAPI.getJSONArray("transfer_presets")
+                                                .optString(0, "")
+                                        )
                                     })
                                 })
                             })
@@ -319,44 +323,14 @@ class NicoVideoHTML {
             val userkey = jsonObject.getJSONObject("context").getString("userkey")
             // user_id
             val user_id = jsonObject.getJSONObject("viewer").getString("id")
+
             // 動画時間（分）
-            var minute = 0
-            if (!jsonObject.getJSONObject("video").isNull("dmcInfo")) {
-                // length(再生時間
-                val length = jsonObject.getJSONObject("video").getJSONObject("dmcInfo")
-                    .getJSONObject("video").getString("length_seconds").toInt()
-                // 必要なのは「分」なので割る
-                // そして分に+1している模様
-                // 一時間超えでも分を使う模様？66みたいに
-                minute = (length / 60) + 1
-            } else {
-                /**
-                 * ----------
-                 * dmcInfoがないんですよね～。
-                 * XML形式でAPI叩くとニコる数が取れないしで～ちょっと面倒くさいしで～XMLで取得するのはやめたいと思います。
-                 *
-                 * えー急遽、新しい方法で取得しないといけないわけでども、えー次の方法ではdmcInfoあるときと同じ、JSONで取得したいと思います。
-                 * もうすでに、再生時間の取得方法を知っています。
-                 *
-                 * JSONのコメント取得で、お会いしましょう。それじゃあ、またのー
-                 *
-                 * Syamu　未完結のお知らせ　風
-                 * ----------
-                 *
-                 * 真面目な話をすると、https://ext.nicovideo.jp/api/getthumbinfo/sm157のAPIを使うことで再生時間が取得可能だということがわかりました。
-                 * XML形式なのでまあマシかな
-                 *
-                 * */
-                // getthumbinfo叩く
-                val getThumbInfo = getThumbInfo(videoId, userSession).await()
-                val document = Jsoup.parse(getThumbInfo?.body?.string())
-                val length = document.getElementsByTag("length")[0]
-                //分：秒なので分だけ取り出す
-                val simpleDateFormat = SimpleDateFormat("mm:ss")
-                val calendar = Calendar.getInstance()
-                calendar.time = simpleDateFormat.parse(length.text())
-                minute = calendar.get(Calendar.MINUTE)
-            }
+            // duration(再生時間
+            val length = jsonObject.getJSONObject("video").getInt("duration")
+            // 必要なのは「分」なので割る
+            // そして分に+1している模様
+            // 一時間超えでも分を使う模様？66みたいに
+            val minute = (length / 60) + 1
 
             //contentつくる。1000が限界？
             val content = "0-${minute}:100,1000,nicoru:100"
@@ -549,6 +523,16 @@ class NicoVideoHTML {
                 }
             }
         })
+    }
+
+    /**
+     * ログイン済みか。ログイン済みでもユーザーセッションは意外に早く無効化されてしまう。（多重ログイン等で）
+     * 再ログインするときとかに使って
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * @return ログイン済みならtrue
+     * */
+    fun verifyLogin(jsonObject: JSONObject): Boolean {
+        return jsonObject.getJSONObject("viewer").getInt("id") != 0
     }
 
     /**

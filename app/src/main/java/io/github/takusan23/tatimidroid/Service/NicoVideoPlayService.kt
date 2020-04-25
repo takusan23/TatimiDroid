@@ -37,6 +37,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.isLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
@@ -145,7 +146,11 @@ class NicoVideoPlayService : Service() {
     // データ取得など
     private fun coroutine() {
         GlobalScope.launch {
-            val response = nicoVideoHTML.getHTML(videoId, userSession, "").await()
+            val response = if (isLoginMode(this@NicoVideoPlayService)) {
+                nicoVideoHTML.getHTML(videoId, userSession) // ログインする
+            } else {
+                nicoVideoHTML.getHTML(videoId, "") // ログインしない
+            }.await()
             nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
             val responseString = response.body?.string()
             jsonObject = nicoVideoHTML.parseJSON(responseString)

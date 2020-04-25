@@ -85,10 +85,7 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.menu_login -> {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(
-                        R.id.main_activity_linearlayout,
-                        LoginFragment()
-                    )
+                    fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
                     fragmentTransaction.commit()
                 }
                 R.id.menu_liveid -> {
@@ -155,8 +152,11 @@ class MainActivity : AppCompatActivity() {
         val clipdata = clipboard.primaryClip
         if (clipdata?.getItemAt(0)?.text != null) {
             val clipboardText = clipdata.getItemAt(0).text
-            // IDを入れるEditTextに正規表現の結果を入れる
-            activity_main_liveid_edittext.setText(clipboardText.toString())
+            val idRegex = IDRegex(clipboardText.toString())
+            if (idRegex != null) {
+                // IDを入れるEditTextに正規表現の結果を入れる
+                activity_main_liveid_edittext.setText(idRegex)
+            }
         }
     }
 
@@ -175,16 +175,12 @@ class MainActivity : AppCompatActivity() {
 
     // 番組一覧
     private fun showProgramListFragment() {
-        //ログイン情報がない場合は押させない
+        //ログイン情報がない場合
         if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
             val fragmentTransaction = supportFragmentManager.beginTransaction()
-            fragmentTransaction.replace(
-                R.id.main_activity_linearlayout,
-                ProgramListFragment()
-            )
+            fragmentTransaction.replace(R.id.main_activity_linearlayout, ProgramListFragment())
             fragmentTransaction.commit()
         } else {
-            //メアド設定してね！
             Toast.makeText(this, getString(R.string.mail_pass_error), Toast.LENGTH_SHORT).show()
         }
     }

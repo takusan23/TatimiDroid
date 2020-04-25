@@ -14,3 +14,20 @@ internal fun hasMailPass(context: Context?): Boolean {
     return prefSetting.getString("mail", "")
         ?.isNotEmpty() == true && prefSetting.getString("password", "")?.isNotEmpty() == true
 }
+
+/**
+ * ログインしないで利用する設定が有効かどうか確認する関数。有効時はtrue
+ * @param context Context
+ * @return 有効時はtrueです
+ * */
+internal fun isNotLoginMode(context: Context?): Boolean {
+    val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+    return prefSetting.getBoolean("setting_no_login", false)
+}
+
+/**
+ * isNotLoginMode()の反転版。ログインする場合はtrue
+ * */
+internal fun isLoginMode(context: Context?): Boolean {
+    return !isNotLoginMode(context)
+}

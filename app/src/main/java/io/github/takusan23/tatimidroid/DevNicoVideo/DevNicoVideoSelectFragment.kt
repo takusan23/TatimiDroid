@@ -65,11 +65,12 @@ class DevNicoVideoSelectFragment : Fragment() {
             // インターネットに繋がっていない。自分だけどこか取り残された
             else -> {
                 // キャッシュ一覧。インターネット接続無いとき
-                fragment_nicovideo_ranking.isEnabled = false
-                fragment_nicovideo_post.isEnabled = false
-                fragment_nicovideo_mylist.isEnabled = false
-                fragment_nicovideo_search.isEnabled = false
-                fragment_nicovideo_history.isEnabled = false
+                fragment_nicovideo_ranking.visibility = View.GONE
+                fragment_nicovideo_post.visibility = View.GONE
+                fragment_nicovideo_mylist.visibility = View.GONE
+                fragment_nicovideo_search.visibility = View.GONE
+                fragment_nicovideo_history.visibility = View.GONE
+                fragment_nicovideo_nicorepo.visibility = View.GONE
                 setFragment(DevNicoVideoCacheFragment())
                 // インターネット接続無いよメッセージ
                 Snackbar.make(fragment_nicovideo_ranking, R.string.internet_not_connection_cache, Snackbar.LENGTH_SHORT)
@@ -78,6 +79,15 @@ class DevNicoVideoSelectFragment : Fragment() {
                         show()
                     }
             }
+        }
+
+        // 未ログインで利用する場合
+        if (isNotLoginMode(context)) {
+            // ログインが必要なやつを非表示に
+            fragment_nicovideo_post.visibility = View.GONE
+            fragment_nicovideo_mylist.visibility = View.GONE
+            fragment_nicovideo_history.visibility = View.GONE
+            fragment_nicovideo_nicorepo.visibility = View.GONE
         }
 
         fragment_nicovideo_ranking.setOnClickListener {

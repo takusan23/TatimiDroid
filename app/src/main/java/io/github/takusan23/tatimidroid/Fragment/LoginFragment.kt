@@ -20,11 +20,7 @@ import java.nio.charset.StandardCharsets
 class LoginFragment : Fragment() {
     lateinit var pref_setting: SharedPreferences
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_login, container, false)
     }
