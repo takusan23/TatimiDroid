@@ -486,9 +486,16 @@ class CommentFragment : Fragment() {
             setLiveTime()
 
             // 番組情報FragmentにHTMLのJSON渡す
-            (commentViewPager.instantiateItem(comment_viewpager, 5) as ProgramInfoFragment).apply {
-                jsonObject = nicoLiveJSON
-                jsonApplyUI(nicoLiveJSON)
+            if (isOfficial) {
+                (commentViewPager.instantiateItem(comment_viewpager, 4) as ProgramInfoFragment).apply {
+                    jsonObject = nicoLiveJSON
+                    jsonApplyUI(nicoLiveJSON)
+                }
+            } else {
+                (commentViewPager.instantiateItem(comment_viewpager, 5) as ProgramInfoFragment).apply {
+                    jsonObject = nicoLiveJSON
+                    jsonApplyUI(nicoLiveJSON)
+                }
             }
 
             // データ流してくれるWebSocketに接続する
