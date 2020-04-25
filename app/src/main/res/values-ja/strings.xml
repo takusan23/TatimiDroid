@@ -367,4 +367,6 @@
     <string name="use_cache">キャッシュを利用して再生しています</string>
     <string name="setting_no_login_title">ログイン無しで利用する</string>
     <string name="setting_no_login_description">動画の視聴では未ログインで利用します。 生放送及び実況はログインが必要なためこの設定に関わらずログインして利用します。</string>
+    <string name="cache_delete">キャッシュを削除する</string>
+    <string name="cancel">キャンセル</string>
 </resources>

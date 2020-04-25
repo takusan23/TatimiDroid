@@ -1,6 +1,8 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment
 
+import android.app.Dialog
 import android.content.*
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,6 +16,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListFragment
+import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.NicoAPI.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
@@ -174,13 +177,25 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
         // キャッシュ削除
         bottom_fragment_nicovideo_list_menu_delete_cache.setOnClickListener {
-            nicoVideoCache.deleteCache(nicoVideoData.videoId)
-            val fragment = fragmentManager?.findFragmentById(R.id.fragment_video_list_linearlayout)
-            if (fragment is DevNicoVideoCacheFragment) {
-                // 再読み込み
-                fragment.load()
+            // 本当に消していいか聞くダイアログ作成
+            val buttonItems = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
+                add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cache_delete), R.drawable.ic_outline_delete_24px))
+                add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel), R.drawable.ic_outline_block_24px, Color.parseColor("#ff0000")))
             }
-            dismiss()
+            val okCancelBottomSheetFragment =
+                DialogBottomSheet(getString(R.string.cache_delete_message), buttonItems) {
+                    if (it == 0) {
+                        nicoVideoCache.deleteCache(nicoVideoData.videoId)
+                        val fragment =
+                            fragmentManager?.findFragmentById(R.id.fragment_video_list_linearlayout)
+                        if (fragment is DevNicoVideoCacheFragment) {
+                            // 再読み込み
+                            fragment.load()
+                        }
+                        dismiss()
+                    }
+                }
+            okCancelBottomSheetFragment.show(childFragmentManager, "delete_dialog")
         }
 
         // 動画ID以外は非表示にする処理
