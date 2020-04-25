@@ -25,6 +25,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.GetCacheService
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
+import io.github.takusan23.tatimidroid.isNotLoginMode
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -100,6 +101,10 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // マイリスト画面の場合は消すに切り替える
         if (nicoVideoData.isMylist) {
             bottom_fragment_nicovideo_list_menu_mylist.text = getString(R.string.mylist_delete)
+        }
+        // 非ログインモード時も消す
+        if (isNotLoginMode(context)) {
+            bottom_fragment_nicovideo_list_menu_mylist.visibility = View.GONE
         }
         bottom_fragment_nicovideo_list_menu_mylist.setOnClickListener {
             if (nicoVideoData.isMylist) {
