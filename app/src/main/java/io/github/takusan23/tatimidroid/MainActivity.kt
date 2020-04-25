@@ -142,7 +142,9 @@ class MainActivity : AppCompatActivity() {
         // 一部の端末（LG製の端末？）で大量にエラーが出ているので。。。LG端末なんて持ってないのでわからん！
         if (!pref_setting.getBoolean("setting_deprecated_clipbord_get_id", false)) {
             //クリップボードに番組IDが含まれてればテキストボックスに自動で入れる
-            setClipBoardProgramID()
+            if (activity_main_liveid_edittext.text.toString().isEmpty()) {
+                setClipBoardProgramID()
+            }
         }
     }
 
