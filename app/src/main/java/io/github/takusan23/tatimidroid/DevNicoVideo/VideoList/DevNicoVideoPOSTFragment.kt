@@ -88,8 +88,9 @@ class DevNicoVideoPOSTFragment : Fragment() {
                 "https://nvapi.nicovideo.jp/v1/users/${arguments?.getString("userId")}"
             }
             // ユーザーID取得
+            val userId = arguments?.getString("userId") ?: ""
             val user =
-                User().getUserCoroutine(arguments?.getString("userId")!!, userSession, url).await()
+                User().getUserCoroutine(userId, userSession, url).await()
             if (userSession.isNotEmpty() && user?.userId != null) {
                 recyclerViewList.clear()
                 val response = post.getList(page, user.userId.toString(), userSession).await()

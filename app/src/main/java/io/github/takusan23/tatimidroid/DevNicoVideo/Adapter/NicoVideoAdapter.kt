@@ -70,7 +70,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
 
         holder.commentTextView.text = "${item.commentNo}：$comment"
         holder.userNameTextView.text =
-            "${setTimeFormat(date.toLong())} | $formattedTime | $mail | $nicoruCount"
+            "${setTimeFormat(date.toLong())} | $formattedTime | $mail | $nicoruCount | ${item.userId}"
 
         // ユーザーの設定したフォントサイズ
         font.apply {

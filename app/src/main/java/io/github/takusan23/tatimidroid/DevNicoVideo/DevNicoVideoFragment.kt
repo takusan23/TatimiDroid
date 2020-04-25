@@ -119,6 +119,10 @@ class DevNicoVideoFragment : Fragment() {
     var isPriorityCache = false // キャッシュを優先的に利用するか
     var canUsePriorityCachePlay = false // キャッシュ優先再生が利用可能か（キャッシュ取得済みでなおキャッシュ優先再生有効時）
 
+    // コメント描画改善。drawComment()関数でのみ使う（0秒に投稿されたコメントが重複して表示される対策）
+    private var drewedList = arrayListOf<String>() // 描画したコメントのNoが入る配列。一秒ごとにクリアされる
+    private var tmpPosition = 0L // いま再生している位置から一秒引いた値が入ってる。
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
     }
@@ -424,13 +428,14 @@ class DevNicoVideoFragment : Fragment() {
                 nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string())
                     .toList() as ArrayList<NicoVideoData>
             // DevNicoVideoRecommendFragmentに配列渡す
-            (viewPager.instantiateItem(fragment_nicovideo_viewpager, 3) as DevNicoVideoRecommendFragment).apply {
-                recyclerViewList = recommendList.toList() as ArrayList<NicoVideoData>
-                activity?.runOnUiThread {
-                    devNicoVideoListAdapter.notifyDataSetChanged()
+            if (isAdded) {
+                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 3) as DevNicoVideoRecommendFragment).apply {
+                    recyclerViewList = recommendList.toList() as ArrayList<NicoVideoData>
+                    activity?.runOnUiThread {
+                        devNicoVideoListAdapter.notifyDataSetChanged()
+                    }
                 }
             }
-
         }
     }
 
@@ -744,14 +749,31 @@ class DevNicoVideoFragment : Fragment() {
      * */
     fun drawComment() {
         val currentPosition = exoPlayer.contentPosition / 100L
+        if (tmpPosition != exoPlayer.contentPosition / 1000) {
+            drewedList.clear()
+            tmpPosition = currentPosition
+        }
         GlobalScope.launch {
             val drawList = commentList.filter { commentJSONParse ->
                 (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
             }
             drawList.forEach {
-                fragment_nicovideo_comment_canvas.post {
-                    fragment_nicovideo_comment_canvas.postComment(it.comment, it)
+                if (!drewedList.contains(it.commentNo)) {
+                    drewedList.add(it.commentNo)
+                    fragment_nicovideo_comment_canvas.post {
+                        fragment_nicovideo_comment_canvas.postComment(it.comment, it)
+                    }
                 }
+/*
+                if (tmpComment != it.comment && tmpCommentNo != it.commentNo && tmpCommentVpos != it.userId) {
+                    tmpComment = it.comment
+                    tmpCommentNo = it.commentNo
+                    tmpCommentVpos = it.vpos
+                    fragment_nicovideo_comment_canvas.post {
+                        fragment_nicovideo_comment_canvas.postComment(it.comment, it)
+                    }
+                }
+*/
             }
         }
     }
