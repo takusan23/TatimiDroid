@@ -76,12 +76,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-            <androidx.viewpager.widget.ViewPager
+            <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/fragment_nicovideo_viewpager"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-            </androidx.viewpager.widget.ViewPager>
+            </androidx.viewpager2.widget.ViewPager2>
 
             <androidx.cardview.widget.CardView
                     android:id="@+id/fragment_nicovideo_controller"

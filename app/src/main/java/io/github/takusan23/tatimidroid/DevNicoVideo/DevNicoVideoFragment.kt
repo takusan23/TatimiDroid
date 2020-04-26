@@ -34,7 +34,10 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.*
+import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoRecyclerPagerAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPager
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
@@ -96,7 +99,7 @@ class DevNicoVideoFragment : Fragment() {
     var recommendList = arrayListOf<NicoVideoData>()
 
     // ViewPager
-    lateinit var viewPager: DevNicoVideoViewPager
+    lateinit var viewPager: DevNicoVideoRecyclerPagerAdapter
 
     // 閉じたならtrue
     var isDestory = false
@@ -362,17 +365,17 @@ class DevNicoVideoFragment : Fragment() {
                     initVideoPlayer(contentUrl, nicoHistory)
                 }
                 // メニューにJSON渡す
-                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 0) as DevNicoVideoMenuFragment).jsonObject =
+                (viewPager.fragmentList[0] as DevNicoVideoMenuFragment).jsonObject =
                     jsonObject
                 // コメントFragmentにコメント配列を渡す
-                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {
+                (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
                     commentList.forEach {
                         recyclerViewList.add(it)
                     }
                     initRecyclerView(true)
                 }
                 // 動画情報FragmentにJSONを渡す
-                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 2) as NicoVideoInfoFragment).apply {
+                (viewPager.fragmentList[2] as NicoVideoInfoFragment).apply {
                     jsonObjectString = jsonObject.toString()
                     parseJSONApplyUI(jsonObjectString)
                 }
@@ -434,7 +437,7 @@ class DevNicoVideoFragment : Fragment() {
                         recommendList.add(it)
                     }
                 // DevNicoVideoRecommendFragmentに配列渡す
-                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 3) as DevNicoVideoRecommendFragment).apply {
+                (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
                     recommendList.forEach {
                         recyclerViewList.add(it)
                     }
@@ -489,7 +492,7 @@ class DevNicoVideoFragment : Fragment() {
                     commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
                     activity?.runOnUiThread {
                         // コメントFragmentにコメント配列を渡す
-                        (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).apply {
+                        (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
                             commentList.forEach {
                                 recyclerViewList.add(it)
                             }
@@ -498,10 +501,11 @@ class DevNicoVideoFragment : Fragment() {
                         // 動画情報JSONがあるかどうか
                         if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                             // 動画情報FragmentにJSONを渡す
-                            (viewPager.instantiateItem(fragment_nicovideo_viewpager, 2) as NicoVideoInfoFragment).apply {
-                                jsonObjectString =
-                                    nicoVideoCache.getCacheFolderVideoInfoText(videoId)
-                                parseJSONApplyUI(jsonObjectString)
+                            (viewPager.fragmentList[2] as NicoVideoInfoFragment).apply {
+                                if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+                                    jsonObjectString = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
+                                    parseJSONApplyUI(jsonObjectString)
+                                }
                             }
                         }
                     }
@@ -717,11 +721,11 @@ class DevNicoVideoFragment : Fragment() {
             return
         }
         // Nullチェック
-        if ((viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as? DevNicoVideoCommentFragment)?.view?.findViewById<RecyclerView>(R.id.activity_nicovideo_recyclerview) != null) {
+        if ((viewPager.fragmentList[1] as? DevNicoVideoCommentFragment)?.view?.findViewById<RecyclerView>(R.id.activity_nicovideo_recyclerview) != null) {
             val recyclerView =
-                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as? DevNicoVideoCommentFragment)?.activity_nicovideo_recyclerview
+                (viewPager.fragmentList[1] as? DevNicoVideoCommentFragment)?.activity_nicovideo_recyclerview
             val list =
-                (viewPager.instantiateItem(fragment_nicovideo_viewpager, 1) as DevNicoVideoCommentFragment).recyclerViewList
+                (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).recyclerViewList
             // findを使って条件に合うコメントのはじめの値を取得する。この例では今の時間と同じか大きいくて最初の値。
             val find =
                 list.find { commentJSONParse -> (commentJSONParse.vpos.toInt() / 100) >= seconds }
@@ -841,9 +845,12 @@ class DevNicoVideoFragment : Fragment() {
      * ViewPager初期化
      * */
     private fun initViewPager() {
-        viewPager = DevNicoVideoViewPager(activity as AppCompatActivity, videoId, isCache)
+        viewPager =
+            DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache)
         fragment_nicovideo_viewpager.adapter = viewPager
-        fragment_nicovideo_tablayout.setupWithViewPager(fragment_nicovideo_viewpager)
+        TabLayoutMediator(fragment_nicovideo_tablayout, fragment_nicovideo_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
+            tab.text = viewPager.fragmentTabName[position]
+        }).attach()
         // コメントを指定しておく
         fragment_nicovideo_viewpager.currentItem = 1
     }
