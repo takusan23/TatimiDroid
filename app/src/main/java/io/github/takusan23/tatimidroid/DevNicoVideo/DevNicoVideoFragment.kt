@@ -502,10 +502,10 @@ class DevNicoVideoFragment : Fragment() {
                         if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                             // 動画情報FragmentにJSONを渡す
                             (viewPager.fragmentList[2] as NicoVideoInfoFragment).apply {
-                                if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
-                                    jsonObjectString = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
-                                    parseJSONApplyUI(jsonObjectString)
-                                }
+                                videoId = this@DevNicoVideoFragment.videoId
+                                jsonObjectString =
+                                    nicoVideoCache.getCacheFolderVideoInfoText(videoId)
+                                parseJSONApplyUI(jsonObjectString)
                             }
                         }
                     }
