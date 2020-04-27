@@ -20,7 +20,7 @@ import kotlinx.android.synthetic.main.textview_ripple.view.*
  * @param buttonItems DialogBottomSheetItemの配列。
  * @param clickEvent クリック押したときのコールバック。引数は押した位置です。
  * */
-class DialogBottomSheet(val description: String, val buttonItems: ArrayList<DialogBottomSheetItem>, val clickEvent: (Int) -> Unit) :
+class DialogBottomSheet(val description: String, val buttonItems: ArrayList<DialogBottomSheetItem>, val clickEvent: (Int, BottomSheetDialogFragment) -> Unit) :
     BottomSheetDialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -32,8 +32,8 @@ class DialogBottomSheet(val description: String, val buttonItems: ArrayList<Dial
         // 説明文
         bottom_fragment_dialog_description.text = description
         // ボタン作成
-        for (i in 0 until buttonItems.size) {
-            val item = buttonItems[i]
+        for (position in 0 until buttonItems.size) {
+            val item = buttonItems[position]
             // 押したときのRippleつけたいがためにinflateしてる
             val layout = layoutInflater.inflate(R.layout.textview_ripple, null)
             val textView = (layout as TextView).apply {
@@ -49,7 +49,7 @@ class DialogBottomSheet(val description: String, val buttonItems: ArrayList<Dial
                 }
                 setOnClickListener {
                     // 高階関数
-                    clickEvent(i)
+                    clickEvent(position, this@DialogBottomSheet)
                     // 閉じる
                     dismiss()
                 }

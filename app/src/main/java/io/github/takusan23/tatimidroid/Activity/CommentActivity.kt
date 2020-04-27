@@ -165,17 +165,19 @@ class CommentActivity : AppCompatActivity() {
 
     //戻るキーを押した時に本当に終わるか聞く
     override fun onBackPressed() {
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.back_dialog))
-            .setMessage(getString(R.string.back_dialog_description))
-            .setPositiveButton(getString(R.string.end)) { dialogInterface: DialogInterface, i: Int ->
+        val message = "${getString(R.string.back_dialog)}\n${getString(R.string.back_dialog_description)}"
+        val buttonList = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
+            add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.end), R.drawable.ic_outline_meeting_room_24px))
+            add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel), R.drawable.ic_arrow_back_black_24dp, Color.parseColor("#ff0000")))
+        }
+        DialogBottomSheet(message, buttonList) { i, bottomSheetDialogFragment ->
+            if (i == 0) {
                 finish()
                 super.onBackPressed()
             }
-            .setNegativeButton(getString(android.R.string.cancel)) { dialogInterface: DialogInterface, i: Int ->
-                dialogInterface.dismiss()
-            }
-            .show()
+        }.apply {
+            show(supportFragmentManager, "exit_dialog")
+        }
     }
 
 

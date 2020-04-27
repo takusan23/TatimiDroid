@@ -188,8 +188,8 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                 add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel), R.drawable.ic_outline_block_24px, Color.parseColor("#ff0000")))
             }
             val okCancelBottomSheetFragment =
-                DialogBottomSheet(getString(R.string.cache_delete_message), buttonItems) {
-                    if (it == 0) {
+                DialogBottomSheet(getString(R.string.cache_delete_message), buttonItems) { i, bottomSheetDialogFragment ->
+                    if (i == 0) {
                         nicoVideoCache.deleteCache(nicoVideoData.videoId)
                         val fragment =
                             fragmentManager?.findFragmentById(R.id.fragment_video_list_linearlayout)
