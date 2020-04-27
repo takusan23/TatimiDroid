@@ -133,15 +133,17 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
             // コメントを移動させる
             for (i in 0 until commentObjList.size) {
-                val obj = commentObjList[i]
-                if (obj.asciiArt) {
-                    // AAの場合は速度を固定する
-                    if ((obj.xPos + obj.commentMeasure) > 0) {
-                        commentObjList[i].xPos -= speed
-                    }
-                } else {
-                    if ((obj.xPos + obj.commentMeasure) > 0) {
-                        commentObjList[i].xPos -= speed + (obj.comment.length / 4)
+                if (commentObjList[i] != null) {
+                    val obj = commentObjList[i]
+                    if (obj.asciiArt) {
+                        // AAの場合は速度を固定する
+                        if ((obj.xPos + obj.commentMeasure) > 0) {
+                            commentObjList[i].xPos -= speed
+                        }
+                    } else {
+                        if ((obj.xPos + obj.commentMeasure) > 0) {
+                            commentObjList[i].xPos -= speed + (obj.comment.length / 4)
+                        }
                     }
                 }
             }
@@ -225,6 +227,11 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         // 下付きコメントを描画する
         sitaCommentList.toList().forEach {
             when {
+                it?.command == null -> {
+                    // ダイナモ感覚コマンド取得できなくてでたまに落ちる
+                    canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
+                    canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command))
+                }
                 it.command.contains("big") -> {
                     val fontSize = (fontsize * 1.3).toFloat()
                     canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(fontSize))
@@ -443,7 +450,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     // println("らんだむ")
                 }
             }
-            val commentObj = CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt)
+            val commentObj =
+                CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt)
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
         } else if (command.contains("ue") && tmpCommand.replace("blue|blue([0-9])".toRegex(), "")
@@ -540,7 +548,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     // println("らんだむ")
                 }
             }
-            val commentObj = CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt)
+            val commentObj =
+                CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt)
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
         }
