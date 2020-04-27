@@ -54,7 +54,7 @@ dependencies {
     // OkHttp
     implementation("com.squareup.okhttp3:okhttp:4.4.0")
     // Material Design
-    implementation 'com.google.android.material:material:1.2.0-alpha05'
+    implementation 'com.google.android.material:material:1.2.0-alpha06'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Android 5.x でWebViewが落ちるので
     implementation 'androidx.appcompat:appcompat:1.1.0'

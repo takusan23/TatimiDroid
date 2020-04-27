@@ -1,23 +1,19 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment
 
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import androidx.core.view.children
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipDrawable
+import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoCacheFilterSortDropDown.DevNicoVideoCacheFilterSortDropdownMenuAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_cache_filter.*
-import org.json.JSONArray
 
 
 /**
@@ -30,6 +26,9 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
 
     val sortList =
         arrayListOf("取得日時が新しい順", "取得日時が古い順", "再生の多い順", "再生の少ない順", "投稿日時が新しい順", "投稿日時が古い順", "再生時間の長い順", "再生時間の短い順", "コメントの多い順", "コメントの少ない順", "マイリスト数の多い順", "マイリスト数の少ない順")
+
+    // 選択中のソート条件。「取得日時が新しい順など」
+    var selectSortText = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_nicovideo_cache_filter, container, false)
@@ -63,17 +62,20 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         val adapter = ArrayAdapter(context!!, android.R.layout.simple_list_item_1, tagList)
         bottom_fragment_cache_filter_tag_autocomplete.setAdapter(adapter)
         bottom_fragment_cache_filter_tag_autocomplete.addTextChangedListener {
-            // Chip追加
-            val chip = Chip(context).apply {
-                text = it.toString()
-                isCloseIconVisible = true // 閉じる追加
-                setOnCloseIconClickListener {
-                    bottom_fragment_cache_filter_tag_chip.removeView(it)
-                    filter()
+            if (it.toString().isNotEmpty()) {
+                // Chip追加
+                val chip = Chip(context).apply {
+                    text = it.toString()
+                    isCloseIconVisible = true // 閉じる追加
+                    setOnCloseIconClickListener {
+                        bottom_fragment_cache_filter_tag_chip.removeView(it)
+                        filter()
+                    }
                 }
+                bottom_fragment_cache_filter_tag_chip.addView(chip)
+                bottom_fragment_cache_filter_tag_autocomplete.setText("", false)
+                filter()
             }
-            bottom_fragment_cache_filter_tag_chip.addView(chip)
-            filter()
         }
     }
 
@@ -86,7 +88,8 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
 
     // 並び替え初期化。Spinnerって言うらしいよ。SpiCaではない。
     private fun initSortSpinner() {
-        val adapter = ArrayAdapter(context!!, android.R.layout.simple_list_item_1, sortList)
+        val adapter =
+            DevNicoVideoCacheFilterSortDropdownMenuAdapter(context!!, android.R.layout.simple_list_item_1, sortList)
         bottom_fragment_cache_filter_dropdown.setAdapter(adapter)
         bottom_fragment_cache_filter_dropdown.setText(sortList[0], false)
         // 文字変更イベント
@@ -142,21 +145,20 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     }
 
     private fun sort(list: ArrayList<NicoVideoData>, position: Int) {
-        val recyclerViewList = list
         // 選択
         when (position) {
-            0 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.cacheAddedDate }
-            1 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.cacheAddedDate }
-            2 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.viewCount.toInt() }
-            3 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.viewCount.toInt() }
-            4 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.date }
-            5 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.date }
-            6 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.duration }
-            7 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.duration }
-            8 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.commentCount.toInt() }
-            9 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.commentCount.toInt() }
-            10 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
-            11 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
+            0 -> list.sortByDescending { nicoVideoData -> nicoVideoData.cacheAddedDate }
+            1 -> list.sortBy { nicoVideoData -> nicoVideoData.cacheAddedDate }
+            2 -> list.sortByDescending { nicoVideoData -> nicoVideoData.viewCount.toInt() }
+            3 -> list.sortBy { nicoVideoData -> nicoVideoData.viewCount.toInt() }
+            4 -> list.sortByDescending { nicoVideoData -> nicoVideoData.date }
+            5 -> list.sortBy { nicoVideoData -> nicoVideoData.date }
+            6 -> list.sortByDescending { nicoVideoData -> nicoVideoData.duration }
+            7 -> list.sortBy { nicoVideoData -> nicoVideoData.duration }
+            8 -> list.sortByDescending { nicoVideoData -> nicoVideoData.commentCount.toInt() }
+            9 -> list.sortBy { nicoVideoData -> nicoVideoData.commentCount.toInt() }
+            10 -> list.sortByDescending { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
+            11 -> list.sortBy { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
         }
     }
 

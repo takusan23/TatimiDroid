@@ -25,6 +25,8 @@ class DevNicoVideoCacheFragment : Fragment() {
     // 重いから非同期処理
     lateinit var launch: Job
 
+    lateinit var cacheFilterBottomFragment: DevNicoVideoCacheFilterBottomFragment
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_comment_cache, container, false)
     }
@@ -43,7 +45,10 @@ class DevNicoVideoCacheFragment : Fragment() {
     private fun initFabClick() {
         fragment_cache_fab.setOnClickListener {
             if (fragmentManager != null) {
-                DevNicoVideoCacheFilterBottomFragment().apply {
+                if(!::cacheFilterBottomFragment.isInitialized){
+                    cacheFilterBottomFragment = DevNicoVideoCacheFilterBottomFragment()
+                }
+                cacheFilterBottomFragment.apply {
                     cacheFragment = this@DevNicoVideoCacheFragment
                     show(this@DevNicoVideoCacheFragment.fragmentManager!!, "filter")
                 }
