@@ -62,14 +62,17 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         val formattedTime = formatTime(time)
         val mail = item.mail
         var nicoruCount = ""
-        val no = item.commentNo
 
         if (item.nicoru > 0) {
             nicoruCount = "${context.getString(R.string.nicoru)} ${item.nicoru}"
         }
 
         holder.userNameTextView.maxLines = 1
-        holder.commentTextView.text = "${item.commentNo}：$comment"
+        if (item.commentNo == "-1") {
+            holder.commentTextView.text = "$comment"
+        } else {
+            holder.commentTextView.text = "${item.commentNo}：$comment"
+        }
         holder.userNameTextView.text =
             "${setTimeFormat(date.toLong())} | $formattedTime | $mail | $nicoruCount | ${item.userId}"
 

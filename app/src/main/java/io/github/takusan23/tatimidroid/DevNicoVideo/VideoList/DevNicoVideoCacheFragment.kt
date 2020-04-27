@@ -4,9 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
+import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRSS
@@ -15,13 +17,12 @@ import kotlinx.android.synthetic.main.fragment_comment_cache.*
 import kotlinx.coroutines.*
 
 class DevNicoVideoCacheFragment : Fragment() {
-
-    val nicoRSS =
-        NicoVideoRSS()
+    // 必要なやつ
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     val recyclerViewList = arrayListOf<NicoVideoData>()
     lateinit var nicoVideoCache: NicoVideoCache
 
+    // 重いから非同期処理
     lateinit var launch: Job
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -31,12 +32,23 @@ class DevNicoVideoCacheFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        nicoVideoCache =
-            NicoVideoCache(context)
+        nicoVideoCache = NicoVideoCache(context)
         initRecyclerView()
-
+        initFabClick()
         load()
 
+    }
+
+    // FAB押したとき
+    private fun initFabClick() {
+        fragment_cache_fab.setOnClickListener {
+            if (fragmentManager != null) {
+                DevNicoVideoCacheFilterBottomFragment().apply {
+                    cacheFragment = this@DevNicoVideoCacheFragment
+                    show(this@DevNicoVideoCacheFragment.fragmentManager!!, "filter")
+                }
+            }
+        }
     }
 
     // 読み込む
@@ -59,12 +71,15 @@ class DevNicoVideoCacheFragment : Fragment() {
         }
     }
 
-    // RecyclerView初期化
-    private fun initRecyclerView() {
+    /**
+     * RecyclerView初期化
+     * @param list NicoVideoDataの配列。RecyclerViewに表示させたい配列が別にある時だけ指定すればいいと思うよ
+     * */
+    fun initRecyclerView(list: ArrayList<NicoVideoData> = recyclerViewList) {
         fragment_cache_recyclerview.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
-            nicoVideoListAdapter = DevNicoVideoListAdapter(recyclerViewList)
+            nicoVideoListAdapter = DevNicoVideoListAdapter(list)
             adapter = nicoVideoListAdapter
         }
     }

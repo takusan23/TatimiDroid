@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.JK
+package io.github.takusan23.tatimidroid.NicoAPI.JK
 
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -11,8 +11,6 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_jk_program_list.*
 import kotlinx.coroutines.GlobalScope

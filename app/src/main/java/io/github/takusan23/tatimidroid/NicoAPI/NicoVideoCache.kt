@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.MediaMetadataRetriever
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -74,10 +75,25 @@ class NicoVideoCache(val context: Context?) {
                     val commentCount =
                         jsonObject.getJSONObject("thread").getInt("commentCount").toString()
                     val mylistCount = video.getInt("mylistCount").toString()
-                    // キャッシュ取得日時
                     val cacheAddedDate = it.lastModified()
+                    // 再生時間取得
+                    val duration = video.getLong("duration")
+                    // タグJSON
+                    val tagsJSONArray = arrayListOf<String>().apply {
+                        val jsonArray = jsonObject.getJSONArray("tags")
+                        for (i in 0 until jsonArray.length()) {
+                            add(jsonArray.getJSONObject(i).getString("name"))
+                        }
+                    }
+                    // 投稿者
+                    val uploaderName = if (jsonObject.isNull("owner")) {
+                        ""
+                    } else {
+                        jsonObject.getJSONObject("owner").getString("nickname")
+                    }
+                    // キャッシュ取得日時
                     val data =
-                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "", null, null, cacheAddedDate)
+                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "", null, duration, cacheAddedDate, uploaderName, tagsJSONArray)
                     list.add(data)
                 } else {
                     /**
@@ -89,13 +105,14 @@ class NicoVideoCache(val context: Context?) {
                     val videoId = it.name
                     val thum = ""
                     val date = it.lastModified()
-                    val viewCount = "0"
-                    val commentCount = "0"
-                    val mylistCount = "0"
+                    val viewCount = "-1"
+                    val commentCount = "-1"
+                    val mylistCount = "-1"
                     val mylistItemId = ""
+                    val duration = 0L
                     // 動画からサムネイルを取得する
                     val data =
-                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, mylistItemId, null, null, date)
+                        NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, mylistItemId, null, duration, date)
                     list.add(data)
                 }
             }
@@ -105,6 +122,25 @@ class NicoVideoCache(val context: Context?) {
         return@async list
     }
 
+    /**
+     * 動画の再生時間を取得する。ミリ秒ではなく秒です。
+     * 重い原因多分これ
+     * @param videoId 動画ID
+     * */
+    private fun getVideoDurationSec(videoId: String): Long {
+        // 動画パス
+        val videoFile =
+            File("${context?.getExternalFilesDir(null)?.path}/cache/$videoId/${getCacheFolderVideoFileName(videoId)}")
+        if (!videoFile.exists()) {
+            return 0L
+        }
+        val mediaMetadataRetriever = MediaMetadataRetriever()
+        mediaMetadataRetriever.setDataSource(videoFile.path)
+        val time: String =
+            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+        mediaMetadataRetriever.release()
+        return time.toLong() / 1000
+    }
 
     /**
      * キャッシュ取得

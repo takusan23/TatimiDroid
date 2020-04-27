@@ -22,6 +22,7 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
@@ -74,23 +75,18 @@ class MainActivity : AppCompatActivity() {
         // 履歴ボタン・接続ボタン等初期化
         initButton()
 
-        //生放送ID入力
+        // デフォ
         val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
-        fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, LiveIDFragment(), "liveid_fragment")
+        fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, DevNicoVideoCacheFragment(), "cache_fragment")
         fragmentTransitionSupport.commit()
 
         //画面切り替え
-        main_activity_bottom_navigationview.setSelectedItemId(R.id.menu_liveid);
+        main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
         main_activity_bottom_navigationview.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.menu_login -> {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
                     fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
-                    fragmentTransaction.commit()
-                }
-                R.id.menu_liveid -> {
-                    val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(R.id.main_activity_linearlayout, LiveIDFragment(), "liveid_fragment")
                     fragmentTransaction.commit()
                 }
                 R.id.menu_community -> {
@@ -104,6 +100,11 @@ class MainActivity : AppCompatActivity() {
                 R.id.menu_nicovideo -> {
                     showVideoListFragment()
                 }
+                R.id.menu_cache -> {
+                    val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
+                    fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, DevNicoVideoCacheFragment())
+                    fragmentTransitionSupport.commit()
+                }
             }
             true
         }
@@ -111,7 +112,7 @@ class MainActivity : AppCompatActivity() {
         // App Shortcutから起動
         when (intent?.getStringExtra("app_shortcut")) {
             "nicolive" -> {
-                main_activity_bottom_navigationview.selectedItemId = R.id.menu_liveid
+                main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
                 showProgramListFragment()
             }
             "nicovideo" -> {

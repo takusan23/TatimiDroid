@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.Service
 
 import android.app.*
 import android.content.*
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Point
@@ -35,12 +34,11 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
-import io.github.takusan23.tatimidroid.JK.NicoJKHTML
+import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.isConnectionInternet
-import io.github.takusan23.tatimidroid.isLoginMode
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

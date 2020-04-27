@@ -150,7 +150,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"></LinearLayout>
+            android:orientation="vertical" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/main_activity_bottom_navigationview"

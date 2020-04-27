@@ -18,5 +18,7 @@ data class NicoVideoData(
     val mylistItemId: String,// マイリストのitem_idの値。マイリスト以外は空文字。
     val mylistAddedDate: Long?,// マイリストの追加日時。マイリスト以外はnull可能
     val duration: Long?,// 再生時間（秒）。
-    val cacheAddedDate: Long? // キャッシュ取得日時。キャッシュ以外ではnullいいよ
+    val cacheAddedDate: Long?,// キャッシュ取得日時。キャッシュ以外ではnullいいよ
+    val uploaderName: String? = null, // キャッシュ再生で使うからキャッシュ以外はnull
+    val videoTag: ArrayList<String> = arrayListOf() // キャッシュ再生で使うからキャッシュ以外は省略していいよ
 )

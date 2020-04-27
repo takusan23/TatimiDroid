@@ -185,7 +185,7 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             // 本当に消していいか聞くダイアログ作成
             val buttonItems = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
                 add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cache_delete), R.drawable.ic_outline_delete_24px))
-                add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel), R.drawable.ic_outline_block_24px, Color.parseColor("#ff0000")))
+                add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel), R.drawable.ic_arrow_back_black_24dp, Color.parseColor("#ff0000")))
             }
             val okCancelBottomSheetFragment =
                 DialogBottomSheet(getString(R.string.cache_delete_message), buttonItems) { i, bottomSheetDialogFragment ->
