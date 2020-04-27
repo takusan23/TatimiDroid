@@ -17,6 +17,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
@@ -55,6 +56,7 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelpe
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import io.github.takusan23.tatimidroid.Service.NicoLivePlayService
+import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
@@ -864,18 +866,18 @@ class CommentFragment : Fragment() {
         commentActivity.runOnUiThread {
             if (status.toInt() == 0) {
                 Snackbar.make(
-                        fab,
-                        getString(R.string.comment_post_success),
-                        Snackbar.LENGTH_SHORT
-                    )
+                    fab,
+                    getString(R.string.comment_post_success),
+                    Snackbar.LENGTH_SHORT
+                )
                     .setAnchorView(getSnackbarAnchorView())
                     .show()
             } else {
                 Snackbar.make(
-                        fab,
-                        "${getString(R.string.comment_post_error)}：${status}",
-                        Snackbar.LENGTH_SHORT
-                    )
+                    fab,
+                    "${getString(R.string.comment_post_error)}：${status}",
+                    Snackbar.LENGTH_SHORT
+                )
                     .setAnchorView(getSnackbarAnchorView()).show()
             }
         }
@@ -1536,21 +1538,8 @@ class CommentFragment : Fragment() {
      * @param mode "popup"（ポップアップ再生）か"background"（バッググラウンド再生）
      * */
     private fun startPlayService(mode: String) {
-        val intent = Intent(context, NicoLivePlayService::class.java).apply {
-            putExtra("mode", mode)
-            putExtra("live_id", liveId)
-            putExtra("is_comment_post", isWatchingMode)
-            putExtra("is_nicocas", isNicocasMode)
-            putExtra("is_jk", isJK)
-        }
-        // サービス終了（起動させてないときは何もならないと思う）させてから起動させる。（
-        // 起動してない状態でstopService呼ぶ分にはなんの問題もないっぽい？）
-        activity?.stopService(intent)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activity?.startForegroundService(intent)
-        } else {
-            activity?.startService(intent)
-        }
+        // サービス起動
+        startLivePlayService(context, mode, liveId, isWatchingMode, isNicocasMode, isJK, nicoLiveHTML.isTokumeiComment)
         // Activity落とす
         activity?.finish()
     }

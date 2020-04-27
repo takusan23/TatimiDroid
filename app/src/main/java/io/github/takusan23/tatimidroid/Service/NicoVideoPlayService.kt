@@ -4,6 +4,7 @@ import android.app.*
 import android.content.*
 import android.graphics.PixelFormat
 import android.graphics.Point
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -729,6 +730,21 @@ class NicoVideoPlayService : Service() {
  * @param seek シークするなら値を入れてね。省略可能。
  * */
 internal fun startVideoPlayService(context: Context?, mode: String, videoId: String, isCache: Boolean, seek: Long = 0L) {
+    // ポップアップ再生の権限あるか
+    if (mode == "popup") {
+        if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                !Settings.canDrawOverlays(context)
+            } else {
+                false
+            }
+        ) {
+            // 権限取得画面出す
+            val intent =
+                Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${context?.packageName}"))
+            context?.startActivity(intent)
+            return
+        }
+    }
     val intent = Intent(context, NicoVideoPlayService::class.java).apply {
         putExtra("mode", mode)
         putExtra("video_id", videoId)

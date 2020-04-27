@@ -6,6 +6,7 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Point
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -777,4 +778,49 @@ class NicoLivePlayService : Service() {
         }
     }
 
+}
+
+/**
+ * 生放送のポップアップ再生、バッググラウンド再生サービス起動用関数。internal fun なのでどっからでも呼べると思う？
+ * 注意：ポップアップ再生で権限がないときは表示せず権限取得画面を表示させます。
+ * @param context Context
+ * @param mode "popup"（ポップアップ再生）か"background"(バッググラウンド再生)のどっちか。
+ * @param liveId 生放送ID
+ * @param isCommentPost コメント投稿モードならtrue
+ * @param isNicocasMode ニコキャス式湖面投稿モードならtrue
+ * @param isTokumei 匿名でコメントする場合はtrue。省略時true
+ * @param isJK 実況ならtrue。省略時false
+ * */
+internal fun startLivePlayService(context: Context?, mode: String, liveId: String, isCommentPost: Boolean, isNicocasMode: Boolean, isJK: Boolean = false, isTokumei: Boolean = true) {
+    // ポップアップ再生の権限があるか
+    if (mode == "popup") {
+        if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                !Settings.canDrawOverlays(context)
+            } else {
+                false
+            }
+        ) {
+            // 権限取得画面出す
+            val intent =
+                Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${context?.packageName}"))
+            context?.startActivity(intent)
+            return
+        }
+    }
+    val intent = Intent(context, NicoLivePlayService::class.java).apply {
+        putExtra("mode", mode)
+        putExtra("live_id", liveId)
+        putExtra("is_comment_post", isCommentPost)
+        putExtra("is_nicocas", isNicocasMode)
+        putExtra("is_tokumei", isTokumei)
+        putExtra("is_jk", isJK)
+    }
+    // サービス終了（起動させてないときは何もならないと思う）させてから起動させる。（
+    // 起動してない状態でstopService呼ぶ分にはなんの問題もないっぽい？）
+    context?.stopService(intent)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        context?.startForegroundService(intent)
+    } else {
+        context?.startService(intent)
+    }
 }

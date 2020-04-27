@@ -83,137 +83,6 @@ class CommentActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences
 
-/*
-    //ユーザーセッション
-    var usersession = ""
-    //視聴に必要なデータ受信用WebSocket
-    lateinit var connectionNicoLiveWebSocket: WebSocketClient
-    //放送開始時間？こっちは放送開始前まである。
-    var programStartTime: Long = 0
-    //放送開始時間？こっちが正しい
-    var programLiveTime: Long = 0
-    //コメント送信用WebSocket
-    lateinit var commentPOSTWebSocketClient: WebSocketClient
-    //コメント送信時に必要なpostKeyを払い出す時に必要なthreadId
-    var getPostKeyThreadId = ""
-    //コメント投稿時につかうticketを入れておく
-    //これはコメント送信用WebSocketにthreadメッセージ（過去コメントなど指定して）送信すると帰ってくるJSONObjectに入ってる
-    var commentTicket = ""
-    //コメント投稿に必須なユーザーID
-    var userId = ""
-    //コメント投稿に必須なプレミアム会員かどうか
-    var premium = 0
-    //コメントの内容
-    var commentValue = ""
-    //コマンド（匿名とか）
-    var commentCommand = "184"
-    //視聴モード（コメント投稿機能付き）かどうか
-    var isWatchingMode = false
-    //hls
-    var hls_address_old = ""
-    //こてはん（固定ハンドルネーム　配列
-    val kotehanMap = mutableMapOf<String, String>()
-
-    //生放送を見る場合はtrue
-    var watchLive = false
-
-    //TTS使うか
-    var isTTS = false
-    //Toast表示
-    var isToast = false
-
-    //定期的に投稿するやつ
-    //視聴続けてますよ送信用
-    val timer = Timer()
-
-    //経過時間
-    val programTimer = Timer()
-
-    //アクティブ計算
-    val activeTimer = Timer()
-    val activeList = arrayListOf<String>()
-
-    //番組ID
-    var liveId = ""
-    //番組名
-    var programTitle = ""
-    //コミュニティID
-    var communityID = ""
-
-    //NGデータベース
-    lateinit var ngListSQLiteHelper: NGListSQLiteHelper
-    lateinit var sqLiteDatabase: SQLiteDatabase
-    //コメントNG配列
-    val commentNGList = arrayListOf<String>()
-    //ユーザーNG配列
-    val userNGList = arrayListOf<String>()
-
-    //ポップアップ再生（オーバーレイ）
-    var overlay_commentcamvas: CommentCanvas? = null
-    lateinit var popupView: View
-    lateinit var overlay_commentTextView: TextView
-
-    //オーバーレイ再生中かどうか。
-    var isPopupPlay = false
-    //オーバーレイ再生の通知ID
-    val overlayNotificationID = 5678
-
-    //バックグラウンド再生MediaPlayer
-    lateinit var mediaPlayer: MediaPlayer
-    lateinit var broadcastReceiver: BroadcastReceiver
-    //バックグラウンド再生できてるか
-    var isBackgroundPlay = false
-    //バックグラウンド再生の通知ID
-    val backgroundNotificationID = 1234
-
-    //NotificationManager
-    lateinit var notificationManager: NotificationManager
-
-    //コメント非表示？
-    var isCommentHidden = false
-
-    //アンケート内容いれとく
-    var enquateJSONArray = ""
-
-    //コメントコレクション
-    val commentCollectionList = arrayListOf<String>()
-    val commentCollectionYomiList = arrayListOf<String>()
-
-    //アンケートView
-    lateinit var enquateView: View
-    //運営コメント
-    lateinit var uncomeTextView: TextView
-    //下のコメント（広告貢献、ランクイン等）
-    lateinit var infoTextView: TextView
-
-    //自動次枠移動
-    var isAutoNextProgram = false
-    var autoNextProgramTimer = Timer()
-
-    //ミュート用
-    lateinit var audioManager: AudioManager
-    var volume = 0
-
-    //運コメ・infoコメント非表示
-    var hideInfoUnnkome = false
-
-    //共有
-    lateinit var programShare: ProgramShare
-
-    //画質変更BottomSheetFragment
-    lateinit var qualitySelectBottomSheet: QualitySelectBottomSheet
-    //最初の画質
-    var start_quality = ""
-    //モバイルデータなら最低画質の設定で一度だけ動かすように
-    var mobileDataQualityCheck = false
-
-    //ロックオンできるように？
-    // val lockOnCommentList = arrayListOf<String>()
-    // val lockOnUserList = arrayListOf<String>()
-    // val lockOnRoomList = arrayListOf<String>()
-*/
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -281,10 +150,7 @@ class CommentActivity : AppCompatActivity() {
                         //RuntimePermissionに対応させる
                         // 権限取得
                         val intent =
-                            Intent(
-                                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                Uri.parse("package:${packageName}")
-                            )
+                            Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${packageName}"))
                         this.startActivityForResult(intent, 114)
                     } else {
                         startOverlayPlayer()
