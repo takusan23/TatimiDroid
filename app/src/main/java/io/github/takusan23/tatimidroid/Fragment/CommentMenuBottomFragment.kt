@@ -47,11 +47,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
     var recyclerViewList = arrayListOf<CommentJSONParse>()
     lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_comment_menu_layout, container, false)
     }
 
@@ -221,11 +217,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         if (kotehan.isNotEmpty()) {
             kotehanMap.put(userId, kotehan)
             //登録しました！
-            Toast.makeText(
-                    context,
-                    "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}",
-                    Toast.LENGTH_SHORT
-                )
+            Toast.makeText(context, "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}", Toast.LENGTH_SHORT)
                 .show()
         }
     }

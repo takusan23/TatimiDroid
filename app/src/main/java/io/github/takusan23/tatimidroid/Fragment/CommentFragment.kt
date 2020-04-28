@@ -664,6 +664,8 @@ class CommentFragment : Fragment() {
         }
         val commentJSONParse =
             CommentJSONParse(comment, room, liveId)
+        // コテハン追加など
+        registerKotehan(commentJSONParse)
         /*
          * 重複しないように。
          * 令和元年8月中旬からアリーナに一般のコメントが流れ込むように（じゃあ枠の仕様なくせ栗田さん）
@@ -704,6 +706,25 @@ class CommentFragment : Fragment() {
                     }
                 }
 
+            }
+        }
+    }
+
+    /**
+     * コテハンがコメントに含まれている場合はコテハンmapに追加する関数
+     * */
+    private fun registerKotehan(commentJSONParse: CommentJSONParse) {
+        val comment = commentJSONParse.comment
+        if (comment.contains("@") || comment.contains("＠")) {
+            // @の位置を特定
+            val index = when {
+                comment.contains("@") -> comment.indexOf("@") + 1 // @を含めないように
+                comment.contains("＠") -> comment.indexOf("＠") + 1 // @を含めないように
+                else -> -1
+            }
+            if (index != -1) {
+                val kotehan = comment.substring(index)
+                kotehanMap.put(commentJSONParse.userId, kotehan)
             }
         }
     }
