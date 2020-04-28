@@ -5,14 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.chip.Chip
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoCacheFilterBottomFragment
+import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRSS
 import io.github.takusan23.tatimidroid.R
+import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_cache_filter.*
 import kotlinx.android.synthetic.main.fragment_comment_cache.*
 import kotlinx.coroutines.*
 
@@ -38,7 +42,6 @@ class DevNicoVideoCacheFragment : Fragment() {
         initRecyclerView()
         initFabClick()
         load()
-
     }
 
     // FAB押したとき

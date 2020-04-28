@@ -12,6 +12,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoCacheFilterSortDropDown.DevNicoVideoCacheFilterSortDropdownMenuAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_cache_filter.*
@@ -23,10 +25,12 @@ import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_cache_filter.*
  * */
 class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
 
-    lateinit var cacheFragment: DevNicoVideoCacheFragment
+    companion object {
+        val CACHE_FILTER_SORT_LIST =
+            arrayListOf("取得日時が新しい順", "取得日時が古い順", "再生の多い順", "再生の少ない順", "投稿日時が新しい順", "投稿日時が古い順", "再生時間の長い順", "再生時間の短い順", "コメントの多い順", "コメントの少ない順", "マイリスト数の多い順", "マイリスト数の少ない順")
+    }
 
-    val sortList =
-        arrayListOf("取得日時が新しい順", "取得日時が古い順", "再生の多い順", "再生の少ない順", "投稿日時が新しい順", "投稿日時が古い順", "再生時間の長い順", "再生時間の短い順", "コメントの多い順", "コメントの少ない順", "マイリスト数の多い順", "マイリスト数の少ない順")
+    lateinit var cacheFragment: DevNicoVideoCacheFragment
 
     var uploaderNameList = arrayListOf<String>()
 
@@ -49,6 +53,10 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         initSwitch()
         // リセット
         initResetButton()
+
+        // JSONファイル（filter.json）読み込む
+        readJSON()
+        filter()
 
     }
 
@@ -112,9 +120,9 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     // 並び替え初期化。Spinnerって言うらしいよ。SpiCaではない。
     private fun initSortSpinner() {
         val adapter =
-            DevNicoVideoCacheFilterSortDropdownMenuAdapter(context!!, android.R.layout.simple_list_item_1, sortList)
+            DevNicoVideoCacheFilterSortDropdownMenuAdapter(context!!, android.R.layout.simple_list_item_1, CACHE_FILTER_SORT_LIST)
         bottom_fragment_cache_filter_dropdown.setAdapter(adapter)
-        bottom_fragment_cache_filter_dropdown.setText(sortList[0], false)
+        bottom_fragment_cache_filter_dropdown.setText(CACHE_FILTER_SORT_LIST[0], false)
         // 文字変更イベント
         bottom_fragment_cache_filter_dropdown.addTextChangedListener {
             filter()
@@ -132,6 +140,7 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     private fun initResetButton() {
         bottom_fragment_cache_filter_reset.setOnClickListener {
             cacheFragment.initRecyclerView()
+            CacheJSON().deleteFilterJSONFile(context) // filter.json消す
             dismiss()
         }
     }
@@ -161,7 +170,7 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         }
 
         // 並び替え
-        sort(filterList, sortList.indexOf(bottom_fragment_cache_filter_dropdown.text.toString()))
+        sort(filterList, CACHE_FILTER_SORT_LIST.indexOf(bottom_fragment_cache_filter_dropdown.text.toString()))
 
         // スイッチ関係
         // このアプリで取得したキャッシュのみを表示する設定
@@ -172,6 +181,53 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
 
         cacheFragment.initRecyclerView(filterList)
 
+        // JSONにして保存
+        saveJSON()
+
+    }
+
+    // JSON保存
+    private fun saveJSON() {
+        // 指定中のタグの名前配列
+        val filterChipNameList = bottom_fragment_cache_filter_tag_chip.children.map { view ->
+            (view as Chip).text.toString()
+        }.toList()
+        // JSON化する
+        val cacheJson = CacheJSON()
+        val cacheFilter = CacheFilterDataClass(
+            bottom_fragment_cache_filter_title.text.toString(),
+            bottom_fragment_cache_filter_uploader_textview.text.toString(),
+            filterChipNameList,
+            bottom_fragment_cache_filter_dropdown.text.toString(),
+            bottom_fragment_cache_filter_has_video_json.isChecked
+        )
+        cacheJson.saveJSON(context, cacheJson.createJSON(cacheFilter))
+    }
+
+    // JSON取得
+    private fun readJSON() {
+        // filter.json取得
+        val cacheJson = CacheJSON()
+        val data = cacheJson.readJSON(context)
+        data?.apply {
+            bottom_fragment_cache_filter_title.setText(data.titleContains)
+            bottom_fragment_cache_filter_uploader_textview.setText(data.uploaderName)
+            bottom_fragment_cache_filter_dropdown.setText(data.sort)
+            bottom_fragment_cache_filter_has_video_json.isChecked = data.isTatimiDroidGetCache
+            // タグ
+            data.tagItems.forEach {
+                // Chip追加
+                val chip = Chip(context).apply {
+                    text = it
+                    isCloseIconVisible = true // 閉じる追加
+                    setOnCloseIconClickListener {
+                        bottom_fragment_cache_filter_tag_chip.removeView(it)
+                        filter()
+                    }
+                }
+                bottom_fragment_cache_filter_tag_chip.addView(chip)
+            }
+        }
     }
 
     private fun sort(list: ArrayList<NicoVideoData>, position: Int) {
