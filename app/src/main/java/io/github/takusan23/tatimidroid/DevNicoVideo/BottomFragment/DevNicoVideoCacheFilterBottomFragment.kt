@@ -27,9 +27,6 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     val sortList =
         arrayListOf("取得日時が新しい順", "取得日時が古い順", "再生の多い順", "再生の少ない順", "投稿日時が新しい順", "投稿日時が古い順", "再生時間の長い順", "再生時間の短い順", "コメントの多い順", "コメントの少ない順", "マイリスト数の多い順", "マイリスト数の少ない順")
 
-    // 選択中のソート条件。「取得日時が新しい順など」
-    var selectSortText = ""
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_nicovideo_cache_filter, container, false)
     }
@@ -127,7 +124,7 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
             bottom_fragment_cache_filter_tag_chip.children.map { view -> (view as Chip).text.toString() }
                 .toList()
         filterList = filterList.filter { nicoVideoData ->
-            nicoVideoData.videoTag.containsAll(filterChipNameList) // 含まれているか
+            nicoVideoData.videoTag?.containsAll(filterChipNameList) ?: false // 含まれているか
         } as ArrayList<NicoVideoData>
 
         // 並び替え

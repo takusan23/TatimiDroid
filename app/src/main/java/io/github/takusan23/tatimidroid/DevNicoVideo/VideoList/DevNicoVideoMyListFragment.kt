@@ -13,6 +13,7 @@ import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
 import kotlinx.coroutines.GlobalScope
@@ -34,7 +35,6 @@ class DevNicoVideoMyListFragment : Fragment() {
 
     lateinit var prefSetting: SharedPreferences
     var userSession = ""
-    var token = ""
 
     // 今開いているMylistのID。とりあえずマイリストは空文字。
     var myListId = ""
@@ -62,21 +62,9 @@ class DevNicoVideoMyListFragment : Fragment() {
         // マイリストが読み取り専用（他の人のマイリストを表示する際はtrue）
         val isMylistReadOnly = myListId.isNotEmpty()
         if (!isMylistReadOnly) {
-            // 自分のマイリスト取得
-            // Token取得
+            // TokenめんどいからWebスマホ版のAPIを叩く
             fragment_nicovideo_mylist_swipe_to_refresh.isRefreshing = true
-            GlobalScope.launch {
-                val response = mylistAPI.getMyListHTML(userSession).await()
-                val responseString = response.body?.string()
-                if (response.isSuccessful && mylistAPI.getToken(responseString) != null) {
-                    // Token取得
-                    token = mylistAPI.getToken(responseString)!!
-                    // マイリスト一覧取得
-                    getMyListList()
-                } else {
-                    showToast("${getString(R.string.error)}\n${response.code}")
-                }
-            }
+            getMyMyList()
         } else {
             // 他の人のマイリスト取得
             fragment_nicovideo_mylist_tablayout.visibility = View.GONE
@@ -138,35 +126,82 @@ class DevNicoVideoMyListFragment : Fragment() {
         nicoVideoListAdapter.notifyDataSetChanged()
     }
 
-    // マイリスト一覧取得
-    fun getMyListList() {
+    // 自分のマイリスト一覧を取得する
+    private fun getMyMyList() {
+        // スマホ版API叩く
+        val nicoVideoSPMyListAPI = NicoVideoSPMyListAPI()
         GlobalScope.launch {
-            val response = mylistAPI.getMyListList(token, userSession).await()
-            if (response.isSuccessful) {
-                val jsonObject = JSONObject(response.body?.string())
-                activity?.runOnUiThread {
-                    // JSONパースしてTabLayoutに追加
-                    val jsonArray = jsonObject.getJSONArray("mylistgroup")
-                    for (i in 0 until jsonArray.length()) {
-                        val mylistObj = jsonArray.getJSONObject(i)
-                        val name = mylistObj.getString("name")
-                        val id = mylistObj.getString("id")
-                        val tabItem = fragment_nicovideo_mylist_tablayout.newTab()
-                        tabItem.apply {
-                            text = name
-                            tag = id
-                        }
-                        fragment_nicovideo_mylist_tablayout.addTab(tabItem)
-                        // TabLayout初期化
-                        initTabLayout()
-                        // 引っ張って更新できるようにする
-                        initSwipeToRefresh()
-                        // とりあえずマイリスト取得
-                        getMylistItems("")
+            val myListListResponse = nicoVideoSPMyListAPI.getMyListList(userSession).await()
+            if (!myListListResponse.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${myListListResponse.code}")
+                return@launch
+            }
+            // パース
+            val myListDataList =
+                nicoVideoSPMyListAPI.parseMyListList(myListListResponse.body?.string())
+            // 動画の登録の多い順に並び替える？
+            myListDataList.sortByDescending { myListData -> myListData.itemsCount }
+            // TabLayoutに追加
+            activity?.runOnUiThread {
+                myListDataList.forEach {
+                    val tabItem = fragment_nicovideo_mylist_tablayout.newTab()
+                    tabItem.apply {
+                        text = it.title
+                        tag = it.id
                     }
+                    fragment_nicovideo_mylist_tablayout.addTab(tabItem)
+                    // TabLayout初期化
+                    initTabLayout()
+                    // 引っ張って更新できるようにする
+                    initSwipeToRefresh()
+                    // とりあえずマイリスト取得
+                    getMyListVideoItems()
                 }
+            }
+        }
+    }
+
+    /**
+     * マイリストの中身取得
+     * @param myListId マイリストID。省略時はとりあえずマイリストになります
+     * */
+    fun getMyListVideoItems(myListId: String = "") {
+        // 初期化
+        recyclerViewList.clear()
+        nicoVideoListAdapter.notifyDataSetChanged()
+        // 通信中ならキャンセル
+        if (::coroutine.isInitialized) {
+            coroutine.cancel()
+        }
+        coroutine = GlobalScope.launch {
+            val nicoVideoSPMyListAPI = NicoVideoSPMyListAPI()
+            // とりあえずマイリストかマイリストか？
+            val myListItemsReponse = if (myListId == "") {
+                nicoVideoSPMyListAPI.getToriaezuMyListList(userSession)
             } else {
-                showToast("${getString(R.string.error)}\n${response.code}")
+                nicoVideoSPMyListAPI.getMyListItems(myListId, userSession)
+            }.await()
+            if (!myListItemsReponse.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${myListItemsReponse.code}")
+                return@launch
+            }
+            // パース
+            val videoItems =
+                nicoVideoSPMyListAPI.parseMyListItems(myListItemsReponse.body?.string())
+            // ソート
+            videoItems.sortByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate }
+            // RecyclerViewへ追加
+            videoItems.forEach {
+                recyclerViewList.add(it)
+            }
+            activity?.runOnUiThread {
+                nicoVideoListAdapter.notifyDataSetChanged()
+                fragment_nicovideo_mylist_swipe_to_refresh.isRefreshing = false
+                // ソートさせる（ソート順を選んでる場合）
+                val position = fragment_nicovideo_mylist_sort_spinner.selectedItemPosition
+                sort(position)
             }
         }
     }
@@ -193,7 +228,7 @@ class DevNicoVideoMyListFragment : Fragment() {
                     tab?.tag as String
                 }
                 // マイリストの中身取得
-                getMylistItems(myListId)
+                getMyListVideoItems(myListId)
             }
         })
     }
@@ -211,37 +246,7 @@ class DevNicoVideoMyListFragment : Fragment() {
                 // それ以外
                 tab?.tag as String
             }
-            getMylistItems(myListId)
-        }
-    }
-
-    // マイリストの中身取得
-    fun getMylistItems(myListId: String) {
-        // 初期化
-        recyclerViewList.clear()
-        nicoVideoListAdapter.notifyDataSetChanged()
-        // 通信中ならキャンセル
-        if (::coroutine.isInitialized) {
-            coroutine.cancel()
-        }
-        coroutine = GlobalScope.launch {
-            val response = mylistAPI.getMyListItems(token, myListId, userSession).await()
-            if (response.isSuccessful) {
-                mylistAPI.parseMyListJSON(response.body?.string())
-                    // 並び替え
-                    .sortedByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate }.forEach {
-                        recyclerViewList.add(it)
-                    }
-                activity?.runOnUiThread {
-                    nicoVideoListAdapter.notifyDataSetChanged()
-                    fragment_nicovideo_mylist_swipe_to_refresh.isRefreshing = false
-                    // ソートさせる（ソート順を選んでる場合）
-                    val position = fragment_nicovideo_mylist_sort_spinner.selectedItemPosition
-                    sort(position)
-                }
-            } else {
-                showToast("${getString(R.string.error)}\n${response.code}")
-            }
+            getMyListVideoItems(myListId)
         }
     }
 

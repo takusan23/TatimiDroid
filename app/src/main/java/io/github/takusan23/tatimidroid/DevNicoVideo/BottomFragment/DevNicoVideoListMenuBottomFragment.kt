@@ -20,6 +20,7 @@ import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.NicoAPI.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.GetCacheService
@@ -108,32 +109,38 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         }
         bottom_fragment_nicovideo_list_menu_mylist.setOnClickListener {
             if (nicoVideoData.isMylist) {
-                // マイリスト一覧。削除ボタン
-                GlobalScope.launch {
-                    val myListAPI =
-                        NicoVideoMyListAPI()
-                    val tokenHTML = myListAPI.getMyListHTML(userSession).await()
-                    if (tokenHTML.isSuccessful) {
-                        val token = myListAPI.getToken(tokenHTML.body?.string()) ?: ""
-                        val fragment =
-                            fragmentManager?.findFragmentById(R.id.fragment_video_list_linearlayout)
-                        if (fragment is DevNicoVideoMyListFragment) {
+                // 本当に消していい？
+                val buttonItems = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
+                    add(DialogBottomSheet.DialogBottomSheetItem("削除する", R.drawable.ic_outline_delete_24px))
+                    add(DialogBottomSheet.DialogBottomSheetItem("戻る", R.drawable.ic_arrow_back_black_24dp, Color.parseColor("#ff0000")))
+                }
+                DialogBottomSheet("本当に消してもいいですか？", buttonItems) { i, bottomSheetDialogFragment ->
+                    if (i == 0) {
+                        // 消す
+                        GlobalScope.launch {
+                            // マイリストFragment
+                            val myListFragment =
+                                fragmentManager?.findFragmentById(R.id.fragment_video_list_linearlayout) as DevNicoVideoMyListFragment
+                            // マイリスト削除API叩く。スマホ版のAPI
+                            val nicoVideoSPMyListAPI = NicoVideoSPMyListAPI()
                             // 削除API叩く
                             val deleteResponse =
-                                myListAPI.mylistDeleteVideo(fragment.myListId, nicoVideoData.mylistItemId, token, userSession)
+                                nicoVideoSPMyListAPI.deleteMyListVideo(myListFragment.myListId, nicoVideoData.mylistItemId, userSession)
                                     .await()
                             if (deleteResponse.isSuccessful) {
                                 showToast(getString(R.string.mylist_delete_ok))
                                 activity?.runOnUiThread {
-                                    // BottomSheet消して再読み込み
                                     this@DevNicoVideoListMenuBottomFragment.dismiss()
-                                    fragment.getMylistItems(fragment.myListId)
+                                    // 再読み込み
+                                    myListFragment.getMyListVideoItems(myListFragment.myListId)
                                 }
                             } else {
                                 showToast("${getString(R.string.error)}\n${deleteResponse.code}")
                             }
                         }
                     }
+                }.apply {
+                    show(this@DevNicoVideoListMenuBottomFragment.fragmentManager!!, "delete")
                 }
             } else {
                 // マイリスト一覧以外。追加ボタン
