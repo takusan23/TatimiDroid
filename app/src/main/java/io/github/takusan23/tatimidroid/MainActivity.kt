@@ -120,15 +120,9 @@ class MainActivity : AppCompatActivity() {
                 showVideoListFragment()
             }
             "cache" -> {
-                main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
-                val fragment = DevNicoVideoSelectFragment()
-                val bundle = Bundle().apply {
-                    putBoolean("cache", true)
-                }
-                fragment.arguments = bundle
-                val fragmentTransaction = supportFragmentManager.beginTransaction()
-                fragmentTransaction.replace(R.id.main_activity_linearlayout, fragment)
-                fragmentTransaction.commit()
+                val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
+                fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, DevNicoVideoCacheFragment(), "cache_fragment")
+                fragmentTransitionSupport.commit()
             }
         }
 
