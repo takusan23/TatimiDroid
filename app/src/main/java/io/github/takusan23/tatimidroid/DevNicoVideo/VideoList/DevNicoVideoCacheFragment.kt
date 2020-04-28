@@ -45,7 +45,7 @@ class DevNicoVideoCacheFragment : Fragment() {
     private fun initFabClick() {
         fragment_cache_fab.setOnClickListener {
             if (fragmentManager != null) {
-                if(!::cacheFilterBottomFragment.isInitialized){
+                if (!::cacheFilterBottomFragment.isInitialized) {
                     cacheFilterBottomFragment = DevNicoVideoCacheFilterBottomFragment()
                 }
                 cacheFilterBottomFragment.apply {
@@ -65,6 +65,10 @@ class DevNicoVideoCacheFragment : Fragment() {
             }
             activity?.runOnUiThread {
                 nicoVideoListAdapter.notifyDataSetChanged()
+                // 中身0だった場合
+                if (recyclerViewList.isEmpty()) {
+                    fragment_cache_empty_message.visibility = View.VISIBLE
+                }
             }
         }
     }

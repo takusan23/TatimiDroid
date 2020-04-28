@@ -18,6 +18,40 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+        <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+            <AutoCompleteTextView
+                    android:id="@+id/bottom_fragment_cache_filter_uploader_textview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:hint="投稿者ソート"
+                    android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <ImageView
+                android:id="@+id/bottom_fragment_cache_filter_uploader_clear"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:padding="10sp"
+                android:src="@drawable/ic_clear_black" />
+    </LinearLayout>
+
     <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"

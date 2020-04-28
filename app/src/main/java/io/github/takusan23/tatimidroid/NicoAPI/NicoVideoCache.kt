@@ -87,7 +87,7 @@ class NicoVideoCache(val context: Context?) {
                     }
                     // 投稿者
                     val uploaderName = if (jsonObject.isNull("owner")) {
-                        ""
+                        jsonObject.getJSONObject("channel").getString("name")
                     } else {
                         jsonObject.getJSONObject("owner").getString("nickname")
                     }

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Adapter
 import android.widget.ArrayAdapter
 import androidx.core.view.children
 import androidx.core.widget.addTextChangedListener
@@ -27,6 +28,8 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     val sortList =
         arrayListOf("取得日時が新しい順", "取得日時が古い順", "再生の多い順", "再生の少ない順", "投稿日時が新しい順", "投稿日時が古い順", "再生時間の長い順", "再生時間の短い順", "コメントの多い順", "コメントの少ない順", "マイリスト数の多い順", "マイリスト数の少ない順")
 
+    var uploaderNameList = arrayListOf<String>()
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_nicovideo_cache_filter, container, false)
     }
@@ -36,6 +39,8 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
 
         // 部分一致検索
         initContainsSearch()
+        // 投稿者ソート
+        initUploaderSort()
         // 新しい順とかソート機能
         initSortSpinner()
         // タグSpinner
@@ -45,6 +50,27 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         // リセット
         initResetButton()
 
+    }
+
+    // 投稿者ソート
+    private fun initUploaderSort() {
+        // RecyclerViewのNicoVideoDataの中から投稿者の配列を取る
+        uploaderNameList =
+            cacheFragment.nicoVideoListAdapter.nicoVideoDataList.map { nicoVideoData ->
+                nicoVideoData.uploaderName ?: ""
+            }.distinct() as ArrayList<String> // 被ってる内容を消す
+        uploaderNameList.remove("") // 空文字削除
+        // Adapter作成
+        val adapter =
+            DevNicoVideoCacheFilterSortDropdownMenuAdapter(context!!, android.R.layout.simple_list_item_1, uploaderNameList)
+        bottom_fragment_cache_filter_uploader_textview.setAdapter(adapter)
+        bottom_fragment_cache_filter_uploader_textview.addTextChangedListener {
+            filter()
+        }
+        bottom_fragment_cache_filter_uploader_clear.setOnClickListener {
+            bottom_fragment_cache_filter_uploader_textview.setText("")
+            filter()
+        }
     }
 
     // タグのSpinner
@@ -126,6 +152,13 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         filterList = filterList.filter { nicoVideoData ->
             nicoVideoData.videoTag?.containsAll(filterChipNameList) ?: false // 含まれているか
         } as ArrayList<NicoVideoData>
+
+        // 投稿者ソート
+        if (bottom_fragment_cache_filter_uploader_textview.text.toString().isNotEmpty()) {
+            filterList = filterList.filter { nicoVideoData ->
+                bottom_fragment_cache_filter_uploader_textview.text.toString() == nicoVideoData.uploaderName
+            } as ArrayList<NicoVideoData>
+        }
 
         // 並び替え
         sort(filterList, sortList.indexOf(bottom_fragment_cache_filter_dropdown.text.toString()))

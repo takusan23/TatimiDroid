@@ -369,4 +369,5 @@
     <string name="setting_no_login_description">You need to be logged in to watch the video. You need to log in for live broadcasting and live commentary, so you can log in regardless of this setting.</string>
     <string name="cache_delete">Clear cache</string>
     <string name="cancel">Cancel</string>
+    <string name="mylist_video_delete">Can I delete it from my list?</string>
 </resources>

@@ -111,10 +111,10 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             if (nicoVideoData.isMylist) {
                 // 本当に消していい？
                 val buttonItems = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
-                    add(DialogBottomSheet.DialogBottomSheetItem("削除する", R.drawable.ic_outline_delete_24px))
-                    add(DialogBottomSheet.DialogBottomSheetItem("戻る", R.drawable.ic_arrow_back_black_24dp, Color.parseColor("#ff0000")))
+                    add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.delete), R.drawable.ic_outline_delete_24px))
+                    add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel), R.drawable.ic_arrow_back_black_24dp, Color.parseColor("#ff0000")))
                 }
-                DialogBottomSheet("本当に消してもいいですか？", buttonItems) { i, bottomSheetDialogFragment ->
+                DialogBottomSheet(getString(R.string.mylist_video_delete), buttonItems) { i, bottomSheetDialogFragment ->
                     if (i == 0) {
                         // 消す
                         GlobalScope.launch {

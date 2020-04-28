@@ -32,12 +32,7 @@ import java.security.cert.Extension
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ProgramShare(
-    val activity: AppCompatActivity,
-    val view: View,
-    val programName: String,
-    val programId: String
-) {
+class ProgramShare(val activity: AppCompatActivity, val view: View, val programName: String, val programId: String) {
     // onActivityResult でリクエストする値。
     companion object {
         const val mediaProtectionCode = 810
@@ -191,7 +186,7 @@ class ProgramShare(
         if (saveBitmap != null && saveUri != null) {
             val builder = ShareCompat.IntentBuilder.from(activity)
             builder.setChooserTitle(programName)
-            builder.setText("$programName\n$programId\nhttp://nico.ms/$programId")
+            builder.setText("$programName\n#$programId\nhttp://nico.ms/$programId")
             builder.setStream(saveUri)
             builder.setType("text/jpeg")
             builder.startChooser()
@@ -202,7 +197,7 @@ class ProgramShare(
     fun showShareScreen() {
         val builder = ShareCompat.IntentBuilder.from(activity)
         builder.setChooserTitle(programName)
-        builder.setText("$programName\n$programId\nhttp://nico.ms/$programId")
+        builder.setText("$programName\n#$programId\nhttp://nico.ms/$programId")
         builder.setStream(saveUri)
         builder.setType("text/plain")
         builder.startChooser()
