@@ -1,15 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--  表示される値  -->
+    <!-- 起動時の設定 表示される値  -->
     <string-array name="launch_fragment">
         <item>@string/nicolive</item>
         <item>@string/nicovideo</item>
         <item>@string/cache</item>
     </string-array>
-    <!--  設定される値  -->
+    <!-- 起動時の設定 設定される値  -->
     <string-array name="launch_fragment_value">
         <item>live</item>
         <item>video</item>
         <item>cache</item>
+    </string-array>
+    <!-- デフォルトの再生方法 表示される値  -->
+    <string-array name="play_type">
+        <item>@string/default_play</item>
+        <item>@string/popup_player</item>
+        <item>@string/background_play</item>
+    </string-array>
+    <!-- デフォルトの再生方法 設定される値  -->
+    <string-array name="play_type_value">
+        <item>default</item>
+        <item>popup</item>
+        <item>background</item>
     </string-array>
 </resources>

@@ -330,7 +330,7 @@
     <string name="encryption_video_not_play">暗号化されている動画は再生できません。</string>
     <string name="cache_delete_message">キャッシュを削除してもいいですか？</string>
     <string name="video">動画</string>
-    <string name="setting_mobile_data_show_cache">モバイルデータに接続してる場合はキャッシュ一覧を最初に表示する</string>
+    <string name="setting_mobile_data_show_cache">モバイルデータでインターネットに接続している場合はキャッシュ一覧をを表示させる</string>
     <string name="setting_comment_canvas">コメント描画設定</string>
     <string name="setting_comment_canvas_timer_title">コメント描画の更新頻度の変更</string>
     <string name="setting_comment_canvas_timer_description">デフォルトは10です</string>
@@ -375,4 +375,7 @@
     <string name="setting_launch_fragment_description">起動したらすぐに生放送を開いてほしいって時に使えます</string>
     <string name="launch_setting">起動時の設定</string>
     <string name="launch_setting_description">App Shortcutsはこの値の影響を受けません</string>
+    <string name="default_play">通常再生（デフォルト）</string>
+    <string name="setting_play_type_title">再生方法の変更</string>
+    <string name="setting_play_type_description">常にポップアップで再生してほしいときに使えます。</string>
 </resources>

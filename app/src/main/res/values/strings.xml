@@ -330,7 +330,7 @@
     <string name="encryption_video_not_play">Encrypted videos cannot be played.</string>
     <string name="cache_delete_message">Can I delete the cache?</string>
     <string name="video">Video</string>
-    <string name="setting_mobile_data_show_cache">Display cache list first when connected to mobile data</string>
+    <string name="setting_mobile_data_show_cache">If you are connected to the Internet with mobile data, display the cache list</string>
     <string name="setting_comment_canvas">Comment drawing settings</string>
     <string name="setting_comment_canvas_timer_title">Change the update frequency of comment drawing</string>
     <string name="setting_comment_canvas_timer_description">Default is 10</string>
@@ -375,4 +375,7 @@
     <string name="setting_launch_fragment_description">You can use it when you want to open a live broadcast as soon as it starts</string>
     <string name="launch_setting">Startup settings</string>
     <string name="launch_setting_description">App Shortcuts are not affected by this value</string>
+    <string name="default_play">Normal playback (default)</string>
+    <string name="setting_play_type_title">Change playback method</string>
+    <string name="setting_play_type_description">It can be used when you want it to always be played in a popup.</string>
 </resources>

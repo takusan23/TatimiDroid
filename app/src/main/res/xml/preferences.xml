@@ -14,7 +14,6 @@
                 android:key="setting_launch_fragment"
                 android:summary="@string/setting_launch_fragment_description"
                 android:title="@string/setting_launch_fragment_title" />
-
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_folder_open_black_24dp"
@@ -47,6 +46,15 @@
                 android:key="setting_nicovideo_cache_priority"
                 android:summary="@string/setting_cache_priority_description"
                 android:title="@string/setting_cache_priority_title" />
+        <ListPreference
+                android:defaultValue="default"
+                android:dialogTitle="@string/setting_play_type_title"
+                android:entries="@array/play_type"
+                android:entryValues="@array/play_type_value"
+                android:icon="@drawable/ic_popup_icon_black"
+                android:key="setting_play_type_video"
+                android:summary="@string/setting_play_type_description"
+                android:title="@string/setting_play_type_title" />
     </PreferenceCategory>
 
 
@@ -147,13 +155,15 @@
             android:title="@string/setting_command_room_color"
             app:isPreferenceVisible="false" />
 
-    <SwitchPreference
-            android:defaultValue="true"
-            android:enabled="false"
-            android:icon="@drawable/ic_new_comment_icon"
-            android:key="setting_new_comment"
-            android:summary="@string/setting_new_comment_area_description"
-            android:title="@string/setting_new_comment_area_title" />
+    <!--
+        <SwitchPreference
+                android:defaultValue="true"
+                android:enabled="false"
+                android:icon="@drawable/ic_new_comment_icon"
+                android:key="setting_new_comment"
+                android:summary="@string/setting_new_comment_area_description"
+                android:title="@string/setting_new_comment_area_title" />
+    -->
 
     <SwitchPreference
             android:defaultValue="false"

@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.Adapter
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
@@ -16,11 +18,14 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoL
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 
 class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
     RecyclerView.Adapter<DevNicoVideoListAdapter.ViewHolder>() {
+
+    lateinit var prefSetting: SharedPreferences
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val titleTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_title)
@@ -46,6 +51,9 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
         val data = nicoVideoDataList[position]
         holder.apply {
             val context = titleTextView.context
+            if (!::prefSetting.isInitialized) {
+                prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+            }
             // TextView
             dateTextView.text = "${toFormatTime(data.date)} ${context?.getString(R.string.post)}"
             titleTextView.text = "${data.title}\n${data.videoId}"
@@ -60,10 +68,24 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
                 if (context is NicoVideoActivity) {
                     context.finish()
                 }
-                val intent = Intent(context, NicoVideoActivity::class.java)
-                intent.putExtra("id", data.videoId)
-                intent.putExtra("cache", data.isCache)
-                context?.startActivity(intent)
+                // 再生方法
+                val playType =
+                    prefSetting.getString("setting_play_type_video", "default")
+                        ?: "default"
+                when (playType) {
+                    "default" -> {
+                        val intent = Intent(context, NicoVideoActivity::class.java)
+                        intent.putExtra("id", data.videoId)
+                        intent.putExtra("cache", data.isCache)
+                        context?.startActivity(intent)
+                    }
+                    "popup" -> {
+                        startVideoPlayService(context, "popup", data.videoId, data.isCache)
+                    }
+                    "background" -> {
+                        startVideoPlayService(context, "background", data.videoId, data.isCache)
+                    }
+                }
             }
 
             // メニュー画面表示
