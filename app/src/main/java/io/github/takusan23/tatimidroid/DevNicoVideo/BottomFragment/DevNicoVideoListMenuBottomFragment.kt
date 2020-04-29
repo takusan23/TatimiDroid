@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
+import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListFragment
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
@@ -53,8 +54,7 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
-        nicoVideoHTML =
-            NicoVideoHTML()
+        nicoVideoHTML = NicoVideoHTML()
 
         // タイトル、ID設定
         bottom_fragment_nicovideo_list_menu_title.text = nicoVideoData.title
@@ -69,7 +69,7 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // キャッシュ関係
         cacheButton()
 
-        // ポップアップ再生、バッググラウンド再生ボタン初期化
+        // 再生、ポップアップ再生、バッググラウンド再生ボタン初期化
         playServiceButton()
 
     }
@@ -78,6 +78,26 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     private fun playServiceButton() {
         bottom_fragment_nicovideo_list_menu_popup.setOnClickListener { startVideoPlayService(context, "popup", nicoVideoData.videoId, nicoVideoData.isCache) }
         bottom_fragment_nicovideo_list_menu_background.setOnClickListener { startVideoPlayService(context, "background", nicoVideoData.videoId, nicoVideoData.isCache) }
+        bottom_fragment_nicovideo_list_menu_play.setOnClickListener {
+            // 通常再生
+            val nicoVideoActivity = Intent(context, NicoVideoActivity::class.java).apply {
+                putExtra("id", nicoVideoData.videoId)
+                putExtra("cache", nicoVideoData.isCache)
+            }
+            startActivity(nicoVideoActivity)
+        }
+        // 強制エコノミーはキャッシュでは塞ぐ
+        if (nicoVideoData.isCache) {
+            bottom_fragment_nicovideo_list_menu_economy_play.visibility = View.GONE
+        }
+        bottom_fragment_nicovideo_list_menu_economy_play.setOnClickListener {
+            // エコノミーで再生
+            val nicoVideoActivity = Intent(context, NicoVideoActivity::class.java).apply {
+                putExtra("id", nicoVideoData.videoId)
+                putExtra("eco", true)
+            }
+            startActivity(nicoVideoActivity)
+        }
     }
 
     // IDコピーボタン

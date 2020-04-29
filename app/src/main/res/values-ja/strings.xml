@@ -370,4 +370,5 @@
     <string name="cache_delete">キャッシュを削除する</string>
     <string name="cancel">キャンセル</string>
     <string name="mylist_video_delete">マイリストから削除してもいいですか？</string>
+    <string name="economy_play">強制エコノミーで再生する</string>
 </resources>

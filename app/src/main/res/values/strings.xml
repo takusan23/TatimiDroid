@@ -370,4 +370,5 @@
     <string name="cache_delete">Clear cache</string>
     <string name="cancel">Cancel</string>
     <string name="mylist_video_delete">Can I delete it from my list?</string>
+    <string name="economy_play">Play in forced economy</string>
 </resources>

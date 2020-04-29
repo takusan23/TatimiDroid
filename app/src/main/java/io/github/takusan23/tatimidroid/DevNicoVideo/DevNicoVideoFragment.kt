@@ -174,12 +174,17 @@ class DevNicoVideoFragment : Fragment() {
         canUsePriorityCachePlay =
             NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache
 
+        // エコノミー再生するなら
+        val isEconomy = arguments?.getBoolean("eco") ?: false
+
         when {
             // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
             canUsePriorityCachePlay || isCache -> {
                 showToast(getString(R.string.use_cache))
                 cachePlay()
             }
+            // エコノミー再生？
+            isEconomy -> coroutine(true, "", "", true)
             // それ以外：インターネットで取得
             else -> coroutine()
         }
@@ -268,8 +273,8 @@ class DevNicoVideoFragment : Fragment() {
      * 注意：モバイルデータ接続で強制的に低画質にする設定が有効になっている場合は引数に関係なく低画質がリクエストされます。
      *      だたし、第２引数、第３引数に空文字以外を入れた場合は「モバイルデータ接続で最低画質」の設定は無視します。
      * @param isGetComment 「コ　メ　ン　ト　を　取　得　し　な　い　」場合はfalse。省略時はtrueです。
-     * @param videoQualityId 画質変更する場合はIDを入れてね。省略（空文字）しても大丈夫です。
-     * @param audioQualityId 音質変更する場合はIDを入れてね。省略（空文字）しても大丈夫です。
+     * @param videoQualityId 画質変更する場合はIDを入れてね。省略（空文字）しても大丈夫です。でもsmileServerLowRequestがtrueならこの値に関係なく低画質になります。
+     * @param audioQualityId 音質変更する場合はIDを入れてね。省略（空文字）しても大丈夫です。でもsmileServerLowRequestがtrueならこの値に関係なく低画質になります。
      * @param smileServerLowRequest DMCサーバーじゃなくてSmileサーバーの動画で低画質をリクエストする場合はtrue。DMCサーバーおよびSmileサーバーでも低画質をリクエストしない場合はfalseでいいよ
      * */
     fun coroutine(isGetComment: Boolean = true, videoQualityId: String = "", audioQualityId: String = "", smileServerLowRequest: Boolean = false) {

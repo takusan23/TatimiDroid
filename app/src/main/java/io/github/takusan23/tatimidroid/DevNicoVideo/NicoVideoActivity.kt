@@ -9,6 +9,13 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_nicovideo.*
 
+/**
+ * ニコ動再生Activity
+ * 入れて欲しいもの↓
+ * id       |   動画ID
+ * cache    |   キャッシュ再生ならtrue
+ * eco      |   エコノミー再生するなら（?eco=1）true
+ * */
 class NicoVideoActivity : AppCompatActivity() {
 
     lateinit var darkModeSupport: DarkModeSupport
@@ -26,6 +33,7 @@ class NicoVideoActivity : AppCompatActivity() {
 
         val id = intent.getStringExtra("id")
         val isCache = intent?.getBooleanExtra("cache", false) ?: false
+        val isEconomy = intent?.getBooleanExtra("eco", false) ?: false
 
         // Fragment再生成するかどうか
         val checkCommentViewFragment =
@@ -33,11 +41,11 @@ class NicoVideoActivity : AppCompatActivity() {
         val fragment = if (checkCommentViewFragment != null) {
             checkCommentViewFragment as DevNicoVideoFragment
         } else {
-            val nicoVideoFragment =
-                DevNicoVideoFragment()
+            val nicoVideoFragment = DevNicoVideoFragment()
             val bundle = Bundle()
             bundle.putString("id", id)
             bundle.putBoolean("cache", isCache)
+            bundle.putBoolean("eco", isEconomy)
             nicoVideoFragment.arguments = bundle
             nicoVideoFragment
         }
