@@ -36,9 +36,9 @@ class NicoVideoPOST {
             return@async response
         }
 
-    fun parseHTML(response: Response): ArrayList<NicoVideoData> {
+    fun parseHTML(responseString: String?): ArrayList<NicoVideoData> {
         val videoList = arrayListOf<NicoVideoData>()
-        val document = Jsoup.parse(response.body?.string())
+        val document = Jsoup.parse(responseString)
         //動画のDiv要素を取り出す
         val divList = document.getElementsByClass("outer VideoItem")
         divList.forEach {
@@ -54,7 +54,7 @@ class NicoVideoPOST {
             val playCount = it.getElementsByClass("play").first().text()
             val mylistCount = it.getElementsByClass("mylist").first().text()
             val data =
-                NicoVideoData(false, false, title, videoId, thumbnailUrl, toUnixTime(postDate), playCount, commentCount, mylistCount, "",null,null,null)
+                NicoVideoData(false, false, title, videoId, thumbnailUrl, toUnixTime(postDate), playCount, commentCount, mylistCount, "", null, null, null)
             videoList.add(data)
         }
         return videoList

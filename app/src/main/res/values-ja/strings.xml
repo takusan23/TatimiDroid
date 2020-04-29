@@ -378,4 +378,5 @@
     <string name="default_play">通常再生（デフォルト）</string>
     <string name="setting_play_type_title">再生方法の変更</string>
     <string name="setting_play_type_description">常にポップアップで再生してほしいときに使えます。</string>
+    <string name="end_scroll">これで最後です；；</string>
 </resources>

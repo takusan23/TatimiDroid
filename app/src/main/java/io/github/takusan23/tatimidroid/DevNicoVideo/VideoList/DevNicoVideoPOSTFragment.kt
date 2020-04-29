@@ -44,6 +44,11 @@ class DevNicoVideoPOSTFragment : Fragment() {
 
     // 追加読み込み制御
     var isLoading = false
+
+    // もう取れないときはtrue
+    var isMaxCount = false
+
+    // RecyclerView位置
     var position = 0
     var yPos = 0
 
@@ -73,7 +78,7 @@ class DevNicoVideoPOSTFragment : Fragment() {
      * @param page ページ数。
      * */
     private fun getPostList(page: Int) {
-        fragment_nicovideo_post_recyclerview.layoutManager?.scrollToPosition(0)
+        // fragment_nicovideo_post_recyclerview.layoutManager?.scrollToPosition(0)
         fragment_nicovideo_post_swipe_to_refresh.isRefreshing = true
         // recyclerViewList.clear()
         // 非ログインならユーザーセッションを空で上書き
@@ -98,7 +103,10 @@ class DevNicoVideoPOSTFragment : Fragment() {
                 User().getUserCoroutine(userId, userSession, url).await()
             val response = post.getList(page, user?.userId.toString(), userSession).await()
             if (response.isSuccessful) {
-                post.parseHTML(response).forEach {
+                val postVideoList = post.parseHTML(response.body?.string())
+                // 最後判定
+                isMaxCount = postVideoList.size == 0
+                postVideoList.forEach {
                     recyclerViewList.add(it)
                 }
                 activity?.runOnUiThread {
@@ -110,6 +118,10 @@ class DevNicoVideoPOSTFragment : Fragment() {
                     if (isAdded) {
                         fragment_nicovideo_post_swipe_to_refresh.isRefreshing = false
                         isLoading = false
+                    }
+                    // これで最後です。；；
+                    if (isMaxCount) {
+                        showToast(getString(R.string.end_scroll))
                     }
                 }
             } else {
@@ -135,11 +147,11 @@ class DevNicoVideoPOSTFragment : Fragment() {
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
-                    val visibleItemCount = recyclerView.getChildCount()
+                    val visibleItemCount = recyclerView.childCount
                     val totalItemCount = linearLayoutManager.itemCount
                     val firstVisibleItem = linearLayoutManager.findFirstVisibleItemPosition()
                     //最後までスクロールしたときの処理
-                    if (firstVisibleItem + visibleItemCount == totalItemCount && !isLoading) {
+                    if (firstVisibleItem + visibleItemCount == totalItemCount && !isLoading && !isMaxCount) {
                         isLoading = true
                         isNowPageNum++
                         getPostList(isNowPageNum)

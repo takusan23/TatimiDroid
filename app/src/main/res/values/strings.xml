@@ -378,4 +378,5 @@
     <string name="default_play">Normal playback (default)</string>
     <string name="setting_play_type_title">Change playback method</string>
     <string name="setting_play_type_description">It can be used when you want it to always be played in a popup.</string>
+    <string name="end_scroll">This is the last ;;</string>
 </resources>
