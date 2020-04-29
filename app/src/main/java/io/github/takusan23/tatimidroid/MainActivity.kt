@@ -75,13 +75,37 @@ class MainActivity : AppCompatActivity() {
         // 履歴ボタン・接続ボタン等初期化
         initButton()
 
-        // デフォ
-        val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
-        fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, DevNicoVideoCacheFragment(), "cache_fragment")
-        fragmentTransitionSupport.commit()
+        // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効かどうか
+        val isMobileDataShowCacheList =
+            pref_setting.getBoolean("setting_mobile_data_show_cache", false)
+        if (isMobileDataShowCacheList && isConnectionMobileDataInternet(this)) {
+            // キャッシュ表示
+            main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+            val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
+            fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, DevNicoVideoCacheFragment(), "cache_fragment")
+            fragmentTransitionSupport.commit()
+        } else {
+            // 起動時の画面
+            val launchFragmentName = pref_setting.getString("setting_launch_fragment", "") ?: "live"
+            when (launchFragmentName) {
+                "live" -> {
+                    main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
+                    showProgramListFragment()
+                }
+                "video" -> {
+                    main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
+                    showVideoListFragment()
+                }
+                "cache" -> {
+                    main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+                    val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
+                    fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, DevNicoVideoCacheFragment(), "cache_fragment")
+                    fragmentTransitionSupport.commit()
+                }
+            }
+        }
 
         //画面切り替え
-        main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
         main_activity_bottom_navigationview.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.menu_login -> {
@@ -193,11 +217,7 @@ class MainActivity : AppCompatActivity() {
             supportActionBar?.title = getString(R.string.nicovideo)
         } else {
             //メアド設定してね！
-            Toast.makeText(
-                this,
-                getString(R.string.mail_pass_error),
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, getString(R.string.mail_pass_error), Toast.LENGTH_SHORT).show()
         }
     }
 

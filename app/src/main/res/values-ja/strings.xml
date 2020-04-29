@@ -371,4 +371,8 @@
     <string name="cancel">キャンセル</string>
     <string name="mylist_video_delete">マイリストから削除してもいいですか？</string>
     <string name="economy_play">強制エコノミーで再生する</string>
+    <string name="setting_launch_fragment_title">起動時に表示する画面の設定</string>
+    <string name="setting_launch_fragment_description">起動したらすぐに生放送を開いてほしいって時に使えます</string>
+    <string name="launch_setting">起動時の設定</string>
+    <string name="launch_setting_description">App Shortcutsはこの値の影響を受けません</string>
 </resources>

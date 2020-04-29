@@ -2,6 +2,26 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <PreferenceCategory
+            android:summary="@string/launch_setting_description"
+            android:title="@string/launch_setting">
+        <ListPreference
+                android:defaultValue="live"
+                android:dialogTitle="@string/setting_launch_fragment_title"
+                android:entries="@array/launch_fragment"
+                android:entryValues="@array/launch_fragment_value"
+                android:icon="@drawable/ic_outline_info_24px"
+                android:key="setting_launch_fragment"
+                android:summary="@string/setting_launch_fragment_description"
+                android:title="@string/setting_launch_fragment_title" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_folder_open_black_24dp"
+                android:key="setting_mobile_data_show_cache"
+                android:title="@string/setting_mobile_data_show_cache" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/video">
         <SwitchPreference
                 android:defaultValue="false"
@@ -9,11 +29,6 @@
                 android:key="setting_no_login"
                 android:summary="@string/setting_no_login_description"
                 android:title="@string/setting_no_login_title" />
-        <SwitchPreference
-                android:defaultValue="false"
-                android:icon="@drawable/ic_folder_open_black_24dp"
-                android:key="setting_mobile_data_show_cache"
-                android:title="@string/setting_mobile_data_show_cache" />
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_outline_comment_24px"

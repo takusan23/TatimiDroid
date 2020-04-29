@@ -371,4 +371,8 @@
     <string name="cancel">Cancel</string>
     <string name="mylist_video_delete">Can I delete it from my list?</string>
     <string name="economy_play">Play in forced economy</string>
+    <string name="setting_launch_fragment_title">Setting of screen displayed at startup</string>
+    <string name="setting_launch_fragment_description">You can use it when you want to open a live broadcast as soon as it starts</string>
+    <string name="launch_setting">Startup settings</string>
+    <string name="launch_setting_description">App Shortcuts are not affected by this value</string>
 </resources>

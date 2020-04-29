@@ -37,48 +37,12 @@ class DevNicoVideoSelectFragment : Fragment() {
         initDarkMode()
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-        // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効かどうか
-        val isMobileDataShowCacheList =
-            prefSetting.getBoolean("setting_mobile_data_show_cache", false)
 
         // インターネット接続確認
-        when {
-            // App Shortcutで起動したのでキャッシュを開く
-            arguments?.getBoolean("cache", false) ?: false -> {
-                setFragment(DevNicoVideoCacheFragment())
-            }
-            // モバイルデータでWi-Fiは未接続
-            isMobileDataShowCacheList -> {
-                if (isConnectionMobileDataInternet(context)) {
-                    // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効のとき
-                    setFragment(DevNicoVideoCacheFragment())
-                } else {
-                    // ランキング
-                    setFragment(DevNicoVideoRankingFragment())
-                }
-            }
-            // 何らかの方法でインターネットにはつながっている
-            isConnectionInternet(context) -> {
-                // ランキング
-                setFragment(DevNicoVideoRankingFragment())
-            }
-            // インターネットに繋がっていない。自分だけどこか取り残された
-            else -> {
-                // キャッシュ一覧。インターネット接続無いとき
-                fragment_nicovideo_ranking.visibility = View.GONE
-                fragment_nicovideo_post.visibility = View.GONE
-                fragment_nicovideo_mylist.visibility = View.GONE
-                fragment_nicovideo_search.visibility = View.GONE
-                fragment_nicovideo_history.visibility = View.GONE
-                fragment_nicovideo_nicorepo.visibility = View.GONE
-                setFragment(DevNicoVideoCacheFragment())
-                // インターネット接続無いよメッセージ
-                Snackbar.make(fragment_nicovideo_ranking, R.string.internet_not_connection_cache, Snackbar.LENGTH_SHORT)
-                    .apply {
-                        anchorView = (activity as MainActivity).main_activity_bottom_navigationview
-                        show()
-                    }
-            }
+        // 何らかの方法でインターネットにはつながっている
+        if (isConnectionInternet(context)) {
+            // ランキング
+            setFragment(DevNicoVideoRankingFragment())
         }
 
         // 未ログインで利用する場合
@@ -112,10 +76,6 @@ class DevNicoVideoSelectFragment : Fragment() {
 
         fragment_nicovideo_search.setOnClickListener {
             setFragment(DevNicoVideoSearchFragment())
-        }
-
-        fragment_nicovideo_cache.setOnClickListener {
-            setFragment(DevNicoVideoCacheFragment())
         }
 
         fragment_nicovideo_nicorepo.setOnClickListener {
