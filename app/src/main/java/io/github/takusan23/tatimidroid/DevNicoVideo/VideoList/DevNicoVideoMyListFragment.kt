@@ -141,7 +141,9 @@ class DevNicoVideoMyListFragment : Fragment() {
             val myListDataList =
                 nicoVideoSPMyListAPI.parseMyListList(myListListResponse.body?.string())
             // 動画の登録の多い順に並び替える？
-            myListDataList.sortByDescending { myListData -> myListData.itemsCount }
+            if(prefSetting.getBoolean("setting_nicovideo_mylist_sort_itemcount",false)){
+                myListDataList.sortByDescending { myListData -> myListData.itemsCount }
+            }
             // TabLayoutに追加
             activity?.runOnUiThread {
                 myListDataList.forEach {

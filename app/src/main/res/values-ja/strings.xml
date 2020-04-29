@@ -379,4 +379,6 @@
     <string name="setting_play_type_title">再生方法の変更</string>
     <string name="setting_play_type_description">常にポップアップで再生してほしいときに使えます。</string>
     <string name="end_scroll">これで最後です；；</string>
+    <string name="mylist_sort_itemcount_title">マイリストの一覧の並び順を動画の登録数の多い順にする</string>
+    <string name="background_playlist_play_channel">キャッシュ連続再生通知</string>
 </resources>

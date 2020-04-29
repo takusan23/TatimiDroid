@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment
 import android.app.Dialog
 import android.content.*
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -24,6 +25,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
 import io.github.takusan23.tatimidroid.Service.GetCacheService
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
@@ -72,6 +74,25 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // 再生、ポップアップ再生、バッググラウンド再生ボタン初期化
         playServiceButton()
 
+        // キャッシュ用連続再生
+        initCachePlaylistPlay()
+
+    }
+
+    private fun initCachePlaylistPlay() {
+        if (!nicoVideoData.isCache) {
+            bottom_fragment_nicovideo_list_menu_playlist_background.visibility = View.GONE
+        }
+        bottom_fragment_nicovideo_list_menu_playlist_background.setOnClickListener {
+            // 連続再生！？
+            val playlistPlayServiceIntent =
+                Intent(context, BackgroundPlaylistCachePlayService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context?.startForegroundService(playlistPlayServiceIntent)
+            } else {
+                context?.startService(playlistPlayServiceIntent)
+            }
+        }
     }
 
     // ポップアップ再生、バッググラウンド再生ボタン初期化

@@ -42,6 +42,7 @@ dependencies {
     // ExoPlayer
     implementation 'com.google.android.exoplayer:exoplayer-core:2.11.3'
     implementation 'com.google.android.exoplayer:exoplayer-hls:2.11.3'
+    implementation 'com.google.android.exoplayer:extension-mediasession:2.10.4'
     // WebSocket
     implementation "org.java-websocket:Java-WebSocket:1.4.0"
     // HTML Parser

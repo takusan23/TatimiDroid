@@ -226,25 +226,22 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         }
         // 下付きコメントを描画する
         sitaCommentList.toList().forEach {
-            when {
-                it?.command == null -> {
-                    // ダイナモ感覚コマンド取得できなくてでたまに落ちる
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command))
-                }
-                it.command.contains("big") -> {
-                    val fontSize = (fontsize * 1.3).toFloat()
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(fontSize))
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, fontSize))
-                }
-                it.command.contains("small") -> {
-                    val fontSize = (fontsize * 0.8).toFloat()
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(fontSize))
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, fontSize))
-                }
-                else -> {
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command))
+            if (it?.command != null && it?.comment != null) {
+                when {
+                    it.command.contains("big") -> {
+                        val fontSize = (fontsize * 1.3).toFloat()
+                        canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(fontSize))
+                        canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, fontSize))
+                    }
+                    it.command.contains("small") -> {
+                        val fontSize = (fontsize * 0.8).toFloat()
+                        canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(fontSize))
+                        canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, fontSize))
+                    }
+                    else -> {
+                        canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
+                        canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command))
+                    }
                 }
             }
         }

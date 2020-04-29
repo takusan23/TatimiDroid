@@ -46,6 +46,11 @@
                 android:key="setting_nicovideo_cache_priority"
                 android:summary="@string/setting_cache_priority_description"
                 android:title="@string/setting_cache_priority_title" />
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_sort_black_24dp"
+                android:key="setting_nicovideo_mylist_sort_itemcount"
+                android:title="@string/mylist_sort_itemcount_title" />
         <ListPreference
                 android:defaultValue="default"
                 android:dialogTitle="@string/setting_play_type_title"

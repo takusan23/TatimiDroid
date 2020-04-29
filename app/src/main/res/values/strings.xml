@@ -379,4 +379,6 @@
     <string name="setting_play_type_title">Change playback method</string>
     <string name="setting_play_type_description">It can be used when you want it to always be played in a popup.</string>
     <string name="end_scroll">This is the last ;;</string>
+    <string name="mylist_sort_itemcount_title">Set the order of the list of My List to the most registered videos</string>
+    <string name="background_playlist_play_channel">Cache continuous playback notification</string>
 </resources>
