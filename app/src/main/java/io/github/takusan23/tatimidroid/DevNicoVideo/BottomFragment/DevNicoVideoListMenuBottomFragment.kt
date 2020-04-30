@@ -25,8 +25,8 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
-import io.github.takusan23.tatimidroid.Service.GetCacheService
+import io.github.takusan23.tatimidroid.Service.*
+import io.github.takusan23.tatimidroid.Service.startBackgroundPlaylistPlayService
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.isNotLoginMode
@@ -84,14 +84,9 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             bottom_fragment_nicovideo_list_menu_playlist_background.visibility = View.GONE
         }
         bottom_fragment_nicovideo_list_menu_playlist_background.setOnClickListener {
-            // 連続再生！？
-            val playlistPlayServiceIntent =
-                Intent(context, BackgroundPlaylistCachePlayService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context?.startForegroundService(playlistPlayServiceIntent)
-            } else {
-                context?.startService(playlistPlayServiceIntent)
-            }
+            // 第二引数で再生開始動画指定
+            startBackgroundPlaylistPlayService(context, nicoVideoData.videoId)
+            dismiss()
         }
     }
 

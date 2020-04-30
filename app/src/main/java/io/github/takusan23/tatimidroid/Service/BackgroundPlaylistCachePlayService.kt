@@ -7,22 +7,24 @@ import android.app.Service
 import android.content.*
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.*
+import android.os.Build
+import android.os.Handler
+import android.os.IBinder
+import android.os.Looper
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
-import com.google.android.exoplayer2.ControlDispatcher
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -31,6 +33,8 @@ import org.json.JSONObject
 
 /**
  * キャッシュ連続再生用Service。
+ * 入れてほしいもの↓
+ * start_id     | String | 動画の再生開始のIDを指定するときに入れてね。（任意。未指定の場合最初から再生します）
  * */
 class BackgroundPlaylistCachePlayService : Service() {
 
@@ -44,6 +48,9 @@ class BackgroundPlaylistCachePlayService : Service() {
 
     // 通知ID
     val NOTIFICAION_ID = 1919
+
+    // 開始位置
+    var startVideoId = ""
 
     override fun onCreate() {
         super.onCreate()
@@ -60,8 +67,13 @@ class BackgroundPlaylistCachePlayService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         nicoVideoCache = NicoVideoCache(this)
+
+        // 開始位置を取得
+        startVideoId = intent?.getStringExtra("start_id") ?: ""
+
         // ExoPlayerとMediaSession初期化
         initPlayer()
+
         // 再生？
         loadPlaylist()
 
@@ -73,11 +85,22 @@ class BackgroundPlaylistCachePlayService : Service() {
         // プレイリスト
         val playList = ConcatenatingMediaSource()
         GlobalScope.launch {
-            // このアプリ限定
-            val videoList = nicoVideoCache.loadCache().await().filter { nicoVideoData ->
-                nicoVideoData.commentCount != "-1" // 動画情報JSONないものはとりま無視
-            } as ArrayList<NicoVideoData>
-            videoList.sortByDescending { nicoVideoData -> nicoVideoData.cacheAddedDate }
+            // 取得
+            var videoList = nicoVideoCache.loadCache().await()
+            val filter = CacheJSON().readJSON(this@BackgroundPlaylistCachePlayService)
+            // フィルター
+            videoList = if (filter != null) {
+                nicoVideoCache.getCacheFilterList(videoList, filter)
+            } else {
+                videoList
+            }
+            println(videoList)
+            // 開始位置特定。
+            val startPos = if (startVideoId.isNotEmpty()) {
+                videoList.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == startVideoId }
+            } else {
+                0
+            }
             videoList.forEach {
                 // 動画のパス
                 val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(it.videoId)
@@ -91,8 +114,11 @@ class BackgroundPlaylistCachePlayService : Service() {
             }
             Handler(Looper.getMainLooper()).post {
                 // 再生
-                exoPlayer.prepare(playList)
-                exoPlayer.playWhenReady = true
+                exoPlayer.apply {
+                    prepare(playList)
+                    seekTo(startPos, 0L) // 指定した位置から開始
+                    playWhenReady = true
+                }
             }
         }
     }
@@ -146,7 +172,7 @@ class BackgroundPlaylistCachePlayService : Service() {
                         putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, videoId)
                         putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, nicoVideoCache.getCacheFolderVideoFileName(videoId))
                         putString(MediaMetadataCompat.METADATA_KEY_ARTIST, videoId)
-                        putLong(MediaMetadataCompat.METADATA_KEY_DURATION, nicoVideoCache.getVideoDurationSec(videoId)) // これあるとAndroid 10でシーク使えます
+                        putLong(MediaMetadataCompat.METADATA_KEY_DURATION, nicoVideoCache.getVideoDurationSec(videoId) * 1000) // これあるとAndroid 10でシーク使えます
                     }.build()
                     mediaMetadataCompat
                 }
@@ -168,6 +194,13 @@ class BackgroundPlaylistCachePlayService : Service() {
                 // 次の曲いったら
                 updateNotificationPlayer()
             }
+
+            override fun onRepeatModeChanged(repeatMode: Int) {
+                super.onRepeatModeChanged(repeatMode)
+                // リピート条件変わったら
+                updateNotificationPlayer()
+            }
+
         })
     }
 
@@ -178,16 +211,21 @@ class BackgroundPlaylistCachePlayService : Service() {
         }
         // 次の曲に行ったときなど
         val videoId = exoPlayer.currentTag as String
-        val videoJSON =
-            nicoVideoCache.getCacheFolderVideoInfoText(videoId)
-        val jsonObject = JSONObject(videoJSON)
-        val currentTitle = jsonObject.getJSONObject("video").getString("title")
-        val currentVideoId = jsonObject.getJSONObject("owner").getString("nickname")
-        // サムネ
-        val currentThumbBitmap =
-            BitmapFactory.decodeFile(nicoVideoCache.getCacheFolderVideoThumFilePath(videoId))
-        // 通知更新
-        showNotification(currentTitle, currentVideoId, currentThumbBitmap)
+        // 動画情報があるか
+        if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+            val videoJSON = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
+            val jsonObject = JSONObject(videoJSON)
+            val currentTitle = jsonObject.getJSONObject("video").getString("title")
+            val currentVideoId = jsonObject.getJSONObject("owner").getString("nickname")
+            // サムネ
+            val currentThumbBitmap =
+                BitmapFactory.decodeFile(nicoVideoCache.getCacheFolderVideoThumFilePath(videoId))
+            // 通知更新
+            showNotification(currentTitle, currentVideoId, currentThumbBitmap)
+        } else {
+            val title = nicoVideoCache.getCacheFolderVideoFileName(videoId) ?: "取得に失敗しました。"
+            showNotification(title, videoId)
+        }
     }
 
     private fun showNotification(title: String = "", uploaderName: String = "", thumb: Bitmap? = null) {
@@ -196,6 +234,9 @@ class BackgroundPlaylistCachePlayService : Service() {
         val playIntent = Intent("play")
         val pauseIntent = Intent("pause")
         val nextIntent = Intent("next")
+        val repeatOneIntent = Intent("repeat_one")
+        val repeatAllIntent = Intent("repeat_all")
+        val repeatOffIntent = Intent("repeat_off")
         // 通知作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // 通知チャンネル
@@ -228,6 +269,27 @@ class BackgroundPlaylistCachePlayService : Service() {
                 }
                 // 次の曲
                 addAction(NotificationCompat.Action(R.drawable.ic_fast_forward_black_24dp, "next", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 24, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                if (::exoPlayer.isInitialized) {
+                    // 初期化済みなら
+                    when (exoPlayer.repeatMode) {
+                        Player.REPEAT_MODE_OFF -> {
+                            // Off -> All Repeat
+                            addAction(NotificationCompat.Action(R.drawable.ic_arrow_downward_black_24dp, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 25, repeatAllIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                        }
+                        Player.REPEAT_MODE_ALL -> {
+                            // All Repeat -> Repeat One
+                            addAction(NotificationCompat.Action(R.drawable.ic_repeat_black_24dp, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 26, repeatOneIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                        }
+                        Player.REPEAT_MODE_ONE -> {
+                            // Repeat One -> Off
+                            addAction(NotificationCompat.Action(R.drawable.ic_repeat_one_24px, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 27, repeatOffIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                        }
+                    }
+                } else {
+                    // 今再生中の曲を無限大なああああああ->プレイリストループ
+                    addAction(NotificationCompat.Action(R.drawable.ic_repeat_black_24dp, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 25, repeatOneIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                }
+
             }.build()
             startForeground(NOTIFICAION_ID, programNotification)
         } else {
@@ -253,6 +315,21 @@ class BackgroundPlaylistCachePlayService : Service() {
                 }
                 // 次の曲
                 addAction(NotificationCompat.Action(R.drawable.ic_fast_forward_black_24dp, "next", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 24, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                // リピート
+                when (exoPlayer.repeatMode) {
+                    Player.REPEAT_MODE_ONE -> {
+                        // 今再生中の曲を無限大なああああああ->プレイリストループ
+                        addAction(NotificationCompat.Action(R.drawable.ic_repeat_black_24dp, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 25, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                    }
+                    Player.REPEAT_MODE_ALL -> {
+                        // プレイリストをループループする->一周したら終わり
+                        addAction(NotificationCompat.Action(R.drawable.ic_keyboard_return_24px, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 26, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                    }
+                    Player.REPEAT_MODE_OFF -> {
+                        // プレイリスト一周したら終わり->一曲だけリピート
+                        addAction(NotificationCompat.Action(R.drawable.ic_repeat_one_24px, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 27, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                    }
+                }
             }.build()
             startForeground(NOTIFICAION_ID, programNotification)
         }
@@ -265,6 +342,9 @@ class BackgroundPlaylistCachePlayService : Service() {
             addAction("play")
             addAction("pause")
             addAction("next")
+            addAction("repeat_one")
+            addAction("repeat_all")
+            addAction("repeat_off")
         }
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -278,6 +358,9 @@ class BackgroundPlaylistCachePlayService : Service() {
                         mediaSession.controller.transportControls.skipToNext()
                         exoPlayer.next()
                     }
+                    "repeat_one" -> mediaSession.controller.transportControls.setRepeatMode(PlaybackStateCompat.REPEAT_MODE_ONE)
+                    "repeat_all" -> mediaSession.controller.transportControls.setRepeatMode(PlaybackStateCompat.REPEAT_MODE_ALL)
+                    "repeat_off" -> mediaSession.controller.transportControls.setRepeatMode(PlaybackStateCompat.REPEAT_MODE_NONE)
                 }
             }
         }
@@ -294,5 +377,24 @@ class BackgroundPlaylistCachePlayService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
+    }
+}
+
+/**
+ * バッググラウンド連続再生サービス（名前どうにかしたい）
+ * @param context Context
+ * @param startVideoId 再生開始位置を動画IDで指定するときは入れてね。入れない場合は最初から再生します。
+ * */
+internal fun startBackgroundPlaylistPlayService(context: Context?, startVideoId: String = "") {
+    // 連続再生！？
+    val playlistPlayServiceIntent = Intent(context, BackgroundPlaylistCachePlayService::class.java)
+    playlistPlayServiceIntent.putExtra("play_pos", startVideoId)
+    // 多重起動対策
+    context?.stopService(playlistPlayServiceIntent)
+    // 起動
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        context?.startForegroundService(playlistPlayServiceIntent)
+    } else {
+        context?.startService(playlistPlayServiceIntent)
     }
 }

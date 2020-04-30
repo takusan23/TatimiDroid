@@ -384,4 +384,5 @@
     <string name="filter_clear">フィルターを削除</string>
     <string name="filter_clear_message">本当に削除してもいいですか？</string>
     <string name="delete_ok">削除</string>
+    <string name="login_disable_message">ログインが切れました。再ログインしますか？</string>
 </resources>

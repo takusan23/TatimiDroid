@@ -384,4 +384,5 @@
     <string name="filter_clear">Remove filter</string>
     <string name="filter_clear_message">Are you sure you want to delete it?</string>
     <string name="delete_ok">Delete</string>
+    <string name="login_disable_message">I have been logged out. Would you like to log in again?</string>
 </resources>

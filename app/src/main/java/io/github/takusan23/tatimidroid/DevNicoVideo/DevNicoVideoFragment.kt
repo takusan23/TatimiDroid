@@ -180,7 +180,6 @@ class DevNicoVideoFragment : Fragment() {
         when {
             // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
             canUsePriorityCachePlay || isCache -> {
-                showToast(getString(R.string.use_cache))
                 cachePlay()
             }
             // エコノミー再生？
@@ -410,7 +409,7 @@ class DevNicoVideoFragment : Fragment() {
 
                 // ログイン切れてるよメッセージ（プレ垢でこれ食らうと画質落ちるから；；）
                 if (isLoginMode(context) && !nicoVideoHTML.verifyLogin(jsonObject)) {
-                    showSnackbar("ログインが切れました。再ログインしますか？", "再ログインする") {
+                    showSnackbar(getString(R.string.login_disable_message), getString(R.string.login)) {
                         GlobalScope.launch {
                             NicoLogin.loginCoroutine(context).await()
                             activity?.runOnUiThread {
@@ -490,6 +489,8 @@ class DevNicoVideoFragment : Fragment() {
                         activity?.runOnUiThread {
                             // ExoPlayer
                             initVideoPlayer(contentUrl, "")
+                            // キャッシュで再生だよ！
+                            showToast(getString(R.string.use_cache))
                         }
                     }
                     // コメント取得
