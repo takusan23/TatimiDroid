@@ -86,7 +86,8 @@ class MainActivity : AppCompatActivity() {
             fragmentTransitionSupport.commit()
         } else {
             // 起動時の画面
-            val launchFragmentName = pref_setting.getString("setting_launch_fragment", "") ?: "live"
+            val launchFragmentName =
+                pref_setting.getString("setting_launch_fragment", "live") ?: "live"
             when (launchFragmentName) {
                 "live" -> {
                     main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
@@ -202,6 +203,11 @@ class MainActivity : AppCompatActivity() {
             fragmentTransaction.replace(R.id.main_activity_linearlayout, ProgramListFragment())
             fragmentTransaction.commit()
         } else {
+            // ログイン画面へ切り替える
+            main_activity_bottom_navigationview.selectedItemId = R.id.menu_login
+            val fragmentTransaction = supportFragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
+            fragmentTransaction.commit()
             Toast.makeText(this, getString(R.string.mail_pass_error), Toast.LENGTH_SHORT).show()
         }
     }
@@ -216,8 +222,14 @@ class MainActivity : AppCompatActivity() {
             //タイトル
             supportActionBar?.title = getString(R.string.nicovideo)
         } else {
+            // ログイン画面へ切り替える
+            main_activity_bottom_navigationview.selectedItemId = R.id.menu_login
+            val fragmentTransaction = supportFragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
+            fragmentTransaction.commit()
             //メアド設定してね！
-            Toast.makeText(this, getString(R.string.mail_pass_error), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.login_or_is_not_login_mode), Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
