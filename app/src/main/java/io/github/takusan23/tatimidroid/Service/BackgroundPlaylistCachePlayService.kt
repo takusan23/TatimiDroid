@@ -388,7 +388,7 @@ class BackgroundPlaylistCachePlayService : Service() {
 internal fun startBackgroundPlaylistPlayService(context: Context?, startVideoId: String = "") {
     // 連続再生！？
     val playlistPlayServiceIntent = Intent(context, BackgroundPlaylistCachePlayService::class.java)
-    playlistPlayServiceIntent.putExtra("play_pos", startVideoId)
+    playlistPlayServiceIntent.putExtra("start_id", startVideoId)
     // 多重起動対策
     context?.stopService(playlistPlayServiceIntent)
     // 起動

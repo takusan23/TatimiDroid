@@ -35,8 +35,8 @@ class KonoApp : AppCompatActivity() {
     /*
     * バージョンとか
     * */
-    val version = "2020/04/26"
-    val codeName1 = "（秋）"
+    val version = "2020/05/01"
+    val codeName1 = "（冬 / たべるんごのうた）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +50,7 @@ class KonoApp : AppCompatActivity() {
 
         title = getString(R.string.kono_app)
 
-        kono_app_codename.text = "$appVersion $version $codeName1"
+        kono_app_codename.text = "$appVersion\n$version\n$codeName1"
 
         kono_app_twitter.setOnClickListener {
             startBrowser(twitterLink)
