@@ -116,25 +116,40 @@ class BackgroundPlaylistCachePlayService : Service() {
         // 通知の内容はこれとは別に通知にセットする
         mediaSessionConnector.setMediaMetadataProvider {
             if (exoPlayer.currentTag != null) {
-                // 動画情報JSON取得
                 val videoId = exoPlayer.currentTag as String
-                val videoJSON = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
-                val jsonObject = JSONObject(videoJSON)
-                val currentTitle = jsonObject.getJSONObject("video").getString("title")
-                val currentVideoId = jsonObject.getJSONObject("owner").getString("nickname")
-                val currentThumbBitmap =
-                    BitmapFactory.decodeFile(nicoVideoCache.getCacheFolderVideoThumFilePath(videoId))
-                // メタデータ
-                val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
-                    putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentTitle)
-                    putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, currentVideoId)
-                    putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentTitle)
-                    putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, currentTitle)
-                    putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentVideoId)
-                    putBitmap(MediaMetadataCompat.METADATA_KEY_ART, currentThumbBitmap)
-                    putLong(MediaMetadataCompat.METADATA_KEY_DURATION, it.duration) // これあるとAndroid 10でシーク使えます
-                }.build()
-                mediaMetadataCompat
+                // 動画情報JSONが存在するか
+                if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+                    // 動画情報JSON取得
+                    val videoJSON = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
+                    val jsonObject = JSONObject(videoJSON)
+                    val currentTitle = jsonObject.getJSONObject("video").getString("title")
+                    val currentVideoId = jsonObject.getJSONObject("owner").getString("nickname")
+                    val currentThumbBitmap =
+                        BitmapFactory.decodeFile(nicoVideoCache.getCacheFolderVideoThumFilePath(videoId))
+                    // メタデータ
+                    val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
+                        putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentTitle)
+                        putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, currentVideoId)
+                        putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentTitle)
+                        putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, currentTitle)
+                        putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentVideoId)
+                        putBitmap(MediaMetadataCompat.METADATA_KEY_ART, currentThumbBitmap)
+                        putLong(MediaMetadataCompat.METADATA_KEY_DURATION, it.duration) // これあるとAndroid 10でシーク使えます
+                    }.build()
+                    mediaMetadataCompat
+                } else {
+                    // 動画情報JSONなかった
+                    // メタデータ
+                    val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
+                        putString(MediaMetadataCompat.METADATA_KEY_TITLE, nicoVideoCache.getCacheFolderVideoFileName(videoId)) // ファイル名
+                        putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, videoId)
+                        putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, videoId)
+                        putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, nicoVideoCache.getCacheFolderVideoFileName(videoId))
+                        putString(MediaMetadataCompat.METADATA_KEY_ARTIST, videoId)
+                        putLong(MediaMetadataCompat.METADATA_KEY_DURATION, nicoVideoCache.getVideoDurationSec(videoId)) // これあるとAndroid 10でシーク使えます
+                    }.build()
+                    mediaMetadataCompat
+                }
             } else {
                 null
             }

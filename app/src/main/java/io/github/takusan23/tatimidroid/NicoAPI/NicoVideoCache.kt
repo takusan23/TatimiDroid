@@ -10,8 +10,11 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.core.net.toUri
+import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoCacheFilterBottomFragment
+import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.R
+import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_cache_filter.*
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -124,10 +127,10 @@ class NicoVideoCache(val context: Context?) {
 
     /**
      * 動画の再生時間を取得する。ミリ秒ではなく秒です。
-     * 重い原因多分これ
+     * 重そう（小並感
      * @param videoId 動画ID
      * */
-    private fun getVideoDurationSec(videoId: String): Long {
+    fun getVideoDurationSec(videoId: String): Long {
         // 動画パス
         val videoFile =
             File("${context?.getExternalFilesDir(null)?.path}/cache/$videoId/${getCacheFolderVideoFileName(videoId)}")
@@ -140,6 +143,43 @@ class NicoVideoCache(val context: Context?) {
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
         mediaMetadataRetriever.release()
         return time.toLong() / 1000
+    }
+
+    /**
+     * キャッシュ一覧をCacheFilterDataClassでふるいにかけて返す。
+     * @param cacheNicoVideoDataList loadCache()の返り値
+     * @param filter フィルターかけるときに使って。
+     * */
+    fun getCacheFilterList(cacheNicoVideoDataList: ArrayList<NicoVideoData>, filter: CacheFilterDataClass): ArrayList<NicoVideoData> {
+
+        // 部分一致検索
+        var filterList = cacheNicoVideoDataList.filter { nicoVideoData ->
+            nicoVideoData.title.contains(filter.titleContains)
+        } as ArrayList<NicoVideoData>
+
+        // 指定中のタグソート
+        filterList = filterList.filter { nicoVideoData ->
+            nicoVideoData.videoTag?.containsAll(filter.tagItems) ?: false // 含まれているか
+        } as ArrayList<NicoVideoData>
+
+        // やったぜ。投稿者：でソート
+        if (filter.uploaderName.isNotEmpty()) {
+            filterList = filterList.filter { nicoVideoData ->
+                filter.uploaderName == nicoVideoData.uploaderName
+            } as ArrayList<NicoVideoData>
+        }
+
+        // たちみどろいどで取得したキャッシュのみを再生
+        if (filter.isTatimiDroidGetCache) {
+            filterList = filterList.filter { nicoVideoData ->
+                nicoVideoData.commentCount != "-1"
+            } as ArrayList<NicoVideoData>
+        }
+
+        // 並び替え
+        sort(filterList, DevNicoVideoCacheFilterBottomFragment.CACHE_FILTER_SORT_LIST.indexOf(filter.sort))
+
+        return filterList
     }
 
     /**
@@ -477,6 +517,24 @@ class NicoVideoCache(val context: Context?) {
             videoId.contains("so") -> true
             videoId.contains("nm") -> true
             else -> false
+        }
+    }
+
+    private fun sort(list: ArrayList<NicoVideoData>, position: Int) {
+        // 選択
+        when (position) {
+            0 -> list.sortByDescending { nicoVideoData -> nicoVideoData.cacheAddedDate }
+            1 -> list.sortBy { nicoVideoData -> nicoVideoData.cacheAddedDate }
+            2 -> list.sortByDescending { nicoVideoData -> nicoVideoData.viewCount.toInt() }
+            3 -> list.sortBy { nicoVideoData -> nicoVideoData.viewCount.toInt() }
+            4 -> list.sortByDescending { nicoVideoData -> nicoVideoData.date }
+            5 -> list.sortBy { nicoVideoData -> nicoVideoData.date }
+            6 -> list.sortByDescending { nicoVideoData -> nicoVideoData.duration }
+            7 -> list.sortBy { nicoVideoData -> nicoVideoData.duration }
+            8 -> list.sortByDescending { nicoVideoData -> nicoVideoData.commentCount.toInt() }
+            9 -> list.sortBy { nicoVideoData -> nicoVideoData.commentCount.toInt() }
+            10 -> list.sortByDescending { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
+            11 -> list.sortBy { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
         }
     }
 

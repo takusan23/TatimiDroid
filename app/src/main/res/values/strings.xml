@@ -381,4 +381,7 @@
     <string name="end_scroll">This is the last ;;</string>
     <string name="mylist_sort_itemcount_title">Set the order of the list of My List to the most registered videos</string>
     <string name="background_playlist_play_channel">Cache continuous playback notification</string>
+    <string name="filter_clear">Remove filter</string>
+    <string name="filter_clear_message">Are you sure you want to delete it?</string>
+    <string name="delete_ok">Delete</string>
 </resources>

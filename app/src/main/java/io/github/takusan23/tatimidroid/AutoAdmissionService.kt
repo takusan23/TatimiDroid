@@ -44,12 +44,7 @@ class AutoAdmissionService : Service() {
         showForegroundNotification()
     }
 
-    fun registerAutoAdmission(
-        liveid: String,
-        programName: String,
-        app: String,
-        calendar: Calendar
-    ) {
+    fun registerAutoAdmission(liveid: String, programName: String, app: String, calendar: Calendar) {
 
         Timer().schedule(timerTask {
             if (app.contains("tatimidroid_app")) {

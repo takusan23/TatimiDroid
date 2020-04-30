@@ -381,4 +381,7 @@
     <string name="end_scroll">これで最後です；；</string>
     <string name="mylist_sort_itemcount_title">マイリストの一覧の並び順を動画の登録数の多い順にする</string>
     <string name="background_playlist_play_channel">キャッシュ連続再生通知</string>
+    <string name="filter_clear">フィルターを削除</string>
+    <string name="filter_clear_message">本当に削除してもいいですか？</string>
+    <string name="delete_ok">削除</string>
 </resources>

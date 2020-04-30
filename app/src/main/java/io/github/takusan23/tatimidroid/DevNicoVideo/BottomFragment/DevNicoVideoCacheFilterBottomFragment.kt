@@ -63,10 +63,9 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     // 投稿者ソート
     private fun initUploaderSort() {
         // RecyclerViewのNicoVideoDataの中から投稿者の配列を取る
-        uploaderNameList =
-            cacheFragment.nicoVideoListAdapter.nicoVideoDataList.map { nicoVideoData ->
-                nicoVideoData.uploaderName ?: ""
-            }.distinct() as ArrayList<String> // 被ってる内容を消す
+        uploaderNameList = cacheFragment.recyclerViewList.map { nicoVideoData ->
+            nicoVideoData.uploaderName ?: ""
+        }.distinct() as ArrayList<String> // 被ってる内容を消す
         uploaderNameList.remove("") // 空文字削除
         // Adapter作成
         val adapter =
@@ -84,10 +83,9 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     // タグのSpinner
     private fun initTagSpinner() {
         // RecyclerViewのNicoVideoDataの中からまずタグの配列を取り出す
-        val tagVideoList =
-            cacheFragment.nicoVideoListAdapter.nicoVideoDataList.map { nicoVideoData ->
-                nicoVideoData.videoTag ?: arrayListOf()
-            }
+        val tagVideoList = cacheFragment.recyclerViewList.map { nicoVideoData ->
+            nicoVideoData.videoTag ?: arrayListOf()
+        }
         // 全ての動画のタグを一つの配列にしてまとめる
         val tagList = tagVideoList.flatten().distinct()
         val adapter = ArrayAdapter(context!!, android.R.layout.simple_list_item_1, tagList)
@@ -148,46 +146,7 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     // 何かフィルター変更したらこれを呼べば解決！
     fun filter() {
 
-        // 部分一致
-        // filter便利
-        var filterList = cacheFragment.recyclerViewList.filter { nicoVideoData ->
-            nicoVideoData.title.contains(bottom_fragment_cache_filter_title.text.toString())
-        } as ArrayList<NicoVideoData>
-
-        // 指定中のタグの名前配列
-        val filterChipNameList =
-            bottom_fragment_cache_filter_tag_chip.children.map { view -> (view as Chip).text.toString() }
-                .toList()
-        filterList = filterList.filter { nicoVideoData ->
-            nicoVideoData.videoTag?.containsAll(filterChipNameList) ?: false // 含まれているか
-        } as ArrayList<NicoVideoData>
-
-        // 投稿者ソート
-        if (bottom_fragment_cache_filter_uploader_textview.text.toString().isNotEmpty()) {
-            filterList = filterList.filter { nicoVideoData ->
-                bottom_fragment_cache_filter_uploader_textview.text.toString() == nicoVideoData.uploaderName
-            } as ArrayList<NicoVideoData>
-        }
-
-        // 並び替え
-        sort(filterList, CACHE_FILTER_SORT_LIST.indexOf(bottom_fragment_cache_filter_dropdown.text.toString()))
-
-        // スイッチ関係
-        // このアプリで取得したキャッシュのみを表示する設定
-        if (bottom_fragment_cache_filter_has_video_json.isChecked) {
-            filterList =
-                filterList.filter { nicoVideoData -> nicoVideoData.commentCount != "-1" } as ArrayList<NicoVideoData>
-        }
-
-        cacheFragment.initRecyclerView(filterList)
-
-        // JSONにして保存
-        saveJSON()
-
-    }
-
-    // JSON保存
-    private fun saveJSON() {
+        // 値をCacheFilterDataClassへ
         // 指定中のタグの名前配列
         val filterChipNameList = bottom_fragment_cache_filter_tag_chip.children.map { view ->
             (view as Chip).text.toString()
@@ -201,6 +160,11 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
             bottom_fragment_cache_filter_dropdown.text.toString(),
             bottom_fragment_cache_filter_has_video_json.isChecked
         )
+
+        // リスト操作
+        cacheFragment.applyFilter(cacheFilter)
+
+        // 保存
         cacheJson.saveJSON(context, cacheJson.createJSON(cacheFilter))
     }
 
