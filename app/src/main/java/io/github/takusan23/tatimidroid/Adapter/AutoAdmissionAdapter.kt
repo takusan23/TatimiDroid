@@ -25,7 +25,8 @@ class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayLis
     lateinit var sqLiteDatabase: SQLiteDatabase
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_auto_admission_layout, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.adapter_auto_admission_layout, parent, false)
         return ViewHolder(view)
     }
 
@@ -49,8 +50,7 @@ class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayLis
 
             //初期化したか
             if (!this@AutoAdmissionAdapter::autoAdmissionSQLiteSQLite.isInitialized) {
-                autoAdmissionSQLiteSQLite =
-                    AutoAdmissionSQLiteSQLite(content)
+                autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(content)
                 sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
                 autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
             }

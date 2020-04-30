@@ -38,7 +38,7 @@ class AutoAdmissionDBUtil(context: Context) {
             contentValues.put("name", programData.title)
             contentValues.put("liveid", programData.programId)
             contentValues.put("start", (programData.beginAt.toLong() / 1000L).toString())
-            contentValues.put("app", "nicolive_app")
+            contentValues.put("app", app)
             contentValues.put("description", "")
             sqLiteDatabase.insert("auto_admission", null, contentValues)
             // Toastに表示させるアプリ名
