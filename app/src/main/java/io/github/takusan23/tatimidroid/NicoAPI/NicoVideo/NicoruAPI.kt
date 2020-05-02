@@ -17,6 +17,9 @@ import okhttp3.RequestBody.Companion.toRequestBody
  * */
 class NicoruAPI {
 
+    // nicoruKey
+    var nicoruKey = ""
+
     /**
      * ニコるときに使う「nicorukey」を取得する。コルーチンです。
      * @param userSession ユーザーセッション
@@ -29,12 +32,24 @@ class NicoruAPI {
                 header("User-Agent", "TatimiDroid;@takusan_23")
                 header("Cookie", "user_session=$userSession")
                 header("Content-Type", "application/x-www-form-urlencoded")
+                header("X-Frontend-Id", "6")
                 get()
             }.build()
             val okHttpClient = OkHttpClient()
             val response = okHttpClient.newCall(request).execute()
             return@async response
         }
+
+    /**
+     * NicoruKeyを取得する。
+     * 一度取得したら他のにこるでもこのKeyを使い回す。この関数を呼ぶとnicoryKeyが使えるようになります。
+     * @param responseString getNicoruKey()のレスポンス
+     * @return nicoruKeyに値が入る
+     * */
+    fun parseNicoruKey(responseString: String?) {
+        val jsonObject = JSONObject(responseString)
+        nicoruKey = jsonObject.getJSONObject("data").getString("nicorukey")
+    }
 
     /**
      * ニコるを送信する。コルーチンです。
@@ -76,5 +91,25 @@ class NicoruAPI {
             val response = okHttpClient.newCall(request).execute()
             return@async response
         }
+
+    /**
+     * ニコるくんの結果を取得する
+     * @param responseJSONObject postNicoru()のレスポンスをJSONArrayにして2番目のJSONObject
+     * @return status : 0 なら成功？ 1だとnicoruKeyがおかしい 2だとnicoruKey失効、4だとすでにニコり済み
+     * */
+    fun nicoruResultStatus(responseJSONObject: JSONObject): Int {
+        val nicoruResult = responseJSONObject.getJSONObject("nicoru_result").getInt("status")
+        return nicoruResult
+    }
+
+    /**
+     * ニコるくんのニコる数を取得する関数
+     * @param responseJSONObject postNicoru()のレスポンスをJSONArrayにして2番目のJSONObject
+     * @return ニコる数
+     * */
+    fun nicoruResultNicoruCount(responseJSONObject: JSONObject): Int {
+        val nicoruResult = responseJSONObject.getJSONObject("nicoru_result").getInt("nicoru_count")
+        return nicoruResult
+    }
 
 }

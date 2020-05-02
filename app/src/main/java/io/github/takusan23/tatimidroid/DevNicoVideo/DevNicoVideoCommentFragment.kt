@@ -79,6 +79,9 @@ class DevNicoVideoCommentFragment : Fragment() {
             } as ArrayList<CommentJSONParse>
             nicoVideoAdapter =
                 NicoVideoAdapter(list)
+            // DevNicoVideoFragment渡す
+            nicoVideoAdapter.devNicoVideoFragment =
+                fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
             activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
             //  Snackbar
             if (snackbarShow) {

@@ -5,6 +5,7 @@ import org.json.JSONObject
 class CommentJSONParse(val commentJson: String, var roomName: String, val videoOrLiveId: String) {
 
     var comment = ""
+    var dateUsec = ""
     var commentNo = ""
     var userId = ""
     var date = ""
@@ -20,12 +21,15 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
         val jsonObject = JSONObject(commentJson)
         if (jsonObject.has("chat")) {
             val chatObject = jsonObject.getJSONObject("chat")
-            comment = chatObject.optString("content","")
+            comment = chatObject.optString("content", "")
             if (chatObject.has("no")) {
                 commentNo = chatObject.getString("no")
             }
-            userId = chatObject.optString("user_id","")
+            userId = chatObject.optString("user_id", "")
             date = chatObject.getString("date")
+            if (chatObject.has("date_usec")) {
+                dateUsec = chatObject.getString("date_usec")
+            }
             if (chatObject.has("vpos")) {
                 vpos = chatObject.getString("vpos")
             }

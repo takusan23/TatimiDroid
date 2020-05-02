@@ -44,6 +44,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
@@ -75,6 +76,10 @@ class DevNicoVideoFragment : Fragment() {
 
     // 必要なやつ
     var userSession = ""
+    var threadId = ""
+    var isPremium = false // プレ垢ならtrue
+    var isDMCServer = true // DMCサーバーならtrue。判断方法はPC版プレイヤー右クリックで視聴方法の切り替えがあればDMCで見れてる
+    var userId = ""
     var videoId = ""
     var videoTitle = ""
     var selectQuality = "" // 選択中の画質
@@ -126,6 +131,9 @@ class DevNicoVideoFragment : Fragment() {
     // コメント描画改善。drawComment()関数でのみ使う（0秒に投稿されたコメントが重複して表示される対策）
     private var drewedList = arrayListOf<String>() // 描画したコメントのNoが入る配列。一秒ごとにクリアされる
     private var tmpPosition = 0L // いま再生している位置から一秒引いた値が入ってる。
+
+    // ニコれるように
+    val nicoruAPI = NicoruAPI()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
@@ -295,8 +303,9 @@ class DevNicoVideoFragment : Fragment() {
             val response = nicoVideoHTML.getHTML(videoId, userSession, eco).await()
             nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
             jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
+            isDMCServer = nicoVideoHTML.isDMCServer(jsonObject)
             // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
-            if (nicoVideoHTML.isDMCServer(jsonObject)) {
+            if (isDMCServer) {
                 // 公式アニメは暗号化されてて見れないので落とす
                 if (nicoVideoHTML.isEncryption(jsonObject.toString())) {
                     showToast(getString(R.string.encryption_video_not_play))
@@ -369,8 +378,7 @@ class DevNicoVideoFragment : Fragment() {
                     initVideoPlayer(contentUrl, nicoHistory)
                 }
                 // メニューにJSON渡す
-                (viewPager.fragmentList[0] as DevNicoVideoMenuFragment).jsonObject =
-                    jsonObject
+                (viewPager.fragmentList[0] as DevNicoVideoMenuFragment).jsonObject = jsonObject
                 // コメントFragmentにコメント配列を渡す
                 (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
                     commentList.forEach {
@@ -421,7 +429,22 @@ class DevNicoVideoFragment : Fragment() {
                         }
                     }
                 }
+            }
 
+            // ニコるくん
+            isPremium = nicoVideoHTML.isPremium(jsonObject)
+            threadId = nicoVideoHTML.getThreadId(jsonObject)
+            userId = nicoVideoHTML.getUserId(jsonObject)
+            if (isPremium) {
+                val nicoruResponse =
+                    nicoruAPI.getNicoruKey(userSession, threadId)
+                        .await()
+                if (!nicoruResponse.isSuccessful) {
+                    showToast("${getString(R.string.error)}\n${nicoruResponse.code}")
+                    return@launch
+                }
+                // nicoruKey!!!
+                nicoruAPI.parseNicoruKey(nicoruResponse.body?.string())
             }
 
             // 関連動画取得。なんかしらんけどこれもエラー出るっぽい
@@ -453,12 +476,17 @@ class DevNicoVideoFragment : Fragment() {
     }
 
     // Snackbarを表示させる関数
+    // 第一引数はnull禁止。第二、三引数はnullにするとSnackBarのボタンが表示されません
     fun showSnackbar(message: String, clickMessage: String?, click: (() -> Unit)?) {
         Snackbar.make(fragment_nicovideo_surfaceview, message, Snackbar.LENGTH_SHORT).apply {
             if (clickMessage != null && click != null) {
                 setAction(clickMessage) { click() }
             }
-            anchorView = fragment_nicovideo_fab
+            anchorView = if (fragment_nicovideo_fab.isShown) {
+                fragment_nicovideo_fab
+            } else {
+                fragment_nicovideo_controller
+            }
             show()
         }
     }
@@ -580,6 +608,36 @@ class DevNicoVideoFragment : Fragment() {
     }
 
     /**
+     * アスペクト比を合わせる
+     * 注意：DMCサーバーの動画でのみ利用可能です。smileサーバー限定ってほぼ見なくなったよね。
+     * @param jsonObject parseJSON()の返り値
+     * @param sessionJSONObject callSessionAPI()の返り値
+     * */
+    private fun initAspectRate(jsonObject: JSONObject, sessionJSONObject: JSONObject) {
+        // 選択中の画質
+        val currentQuality = nicoVideoHTML.getSelectQuality(sessionAPIJSONObject)
+        // 利用可能な画質パース
+        val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
+        // 選択中の画質を一つずつ見ていく
+        for (i in 0 until videoQualityList.length()) {
+            val qualityObject = videoQualityList.getJSONObject(i)
+            val id = qualityObject.getString("id")
+            if (id == currentQuality) {
+                // あった！
+                val width = qualityObject.getJSONObject("resolution").getInt("width")
+                val height = qualityObject.getJSONObject("resolution").getInt("height")
+                // アスペクト比が4:3か16:9か
+                // 4:3 = 1.333... 16:9 = 1.777..
+                val calc = width.toFloat() / height.toFloat()
+                // 小数点第二位を捨てる
+                val round =
+                    BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
+                setAspectRate(round)
+            }
+        }
+    }
+
+    /**
      * ExoPlayer初期化
      * */
     private fun initVideoPlayer(videoUrl: String?, nicohistory: String?) {
@@ -625,6 +683,12 @@ class DevNicoVideoFragment : Fragment() {
                 super.onPlayerStateChanged(playWhenReady, playbackState)
                 initSeekBar()
                 setPlayIcon()
+                if (playbackState == Player.STATE_BUFFERING) {
+                    // STATE_BUFFERING はシークした位置からすぐに再生できないとき。読込み中のこと。
+                    // showSwipeToRefresh()
+                } else {
+                    hideSwipeToRefresh()
+                }
                 if (!isRotationProgressSuccessful) {
                     // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
                     exoPlayer.seekTo(rotationProgress)
@@ -645,66 +709,20 @@ class DevNicoVideoFragment : Fragment() {
                         }
                     }
                 }
-                if (playbackState == Player.STATE_BUFFERING) {
-                    // STATE_BUFFERING はシークした位置からすぐに再生できないとき。読込み中のこと。
-                    showSwipeToRefresh()
-                } else {
-                    hideSwipeToRefresh()
-                }
             }
         })
         // 縦、横取得
         exoPlayer.addVideoListener(object : VideoListener {
             override fun onVideoSizeChanged(width: Int, height: Int, unappliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
                 super.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio)
+                // ここはsmileサーバーの動画のみで利用されるコードです。DMCサーバーではHeight/Widthが取得可能なので。
                 // アスペクト比が4:3か16:9か
                 // 4:3 = 1.333... 16:9 = 1.777..
                 val calc = width.toFloat() / height.toFloat()
                 // 小数点第二位を捨てる
-                val round = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
-                // View#post()すればLayoutParamsが動くようになるらしい
-                Handler(Looper.getMainLooper()).post {
-                    when (round) {
-                        1.3 -> {
-                            // 4:3動画
-                            // 4:3をそのまま出すと大きすぎるので調整（代わりに黒帯出るけど仕方ない）
-                            fragment_nicovideo_framelayout.viewTreeObserver.addOnGlobalLayoutListener {
-                                val width =
-                                    if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                                        // 縦画面
-                                        val wm =
-                                            context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                                        val disp = wm.getDefaultDisplay()
-                                        val realSize = Point();
-                                        disp.getRealSize(realSize);
-                                        (realSize.x / 1.2).toInt()
-                                    } else {
-                                        // 横画面
-                                        fragment_nicovideo_framelayout.width
-                                    }
-                                val height = getOldAspectHeightFromWidth(width)
-                                val params = LinearLayout.LayoutParams(width, height)
-                                fragment_nicovideo_framelayout.layoutParams = params
-                            }
-                        }
-                        1.7 -> {
-                            // 16:9動画
-                            // 横の長さから縦の高さ計算
-                            fragment_nicovideo_framelayout.viewTreeObserver.addOnGlobalLayoutListener {
-                                val width = fragment_nicovideo_framelayout.width
-                                val height = getAspectHeightFromWidth(width)
-                                val params = LinearLayout.LayoutParams(width, height)
-                                fragment_nicovideo_framelayout.layoutParams = params
-                            }
-                        }
-                    }
-                    // サイズ変更に対応
-                    fragment_nicovideo_comment_canvas.apply {
-                        commentLine.clear()
-                        ueCommentLine.clear()
-                        sitaCommentLine.clear()
-                    }
-                }
+                val round =
+                    BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
+                setAspectRate(round)
             }
         })
         seekTimer.cancel()
@@ -720,7 +738,72 @@ class DevNicoVideoFragment : Fragment() {
                 }
             }
         }, 100, 100)
+    }
 
+    // アスペクト比合わせる。引数は 横/縦 の答え
+    private fun setAspectRate(round: Double) {
+        // 画面の幅取得
+        val display = activity?.windowManager?.defaultDisplay
+        val point = Point()
+        display?.getSize(point)
+        when (round) {
+            1.3 -> {
+                // 4:3動画
+                // 4:3をそのまま出すと大きすぎるので調整（代わりに黒帯出るけど仕方ない）
+
+/*                fragment_nicovideo_framelayout.viewTreeObserver.addOnGlobalLayoutListener {
+                    val width =
+                        if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                            // 縦画面
+                            val wm =
+                                context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                            val disp = wm.getDefaultDisplay()
+                            val realSize = Point();
+                            disp.getRealSize(realSize);
+                            (realSize.x / 1.2).toInt()
+                        } else {
+                            // 横画面
+                            fragment_nicovideo_framelayout.width
+                        }
+                    val height = getOldAspectHeightFromWidth(width)
+                    println("$height / $width")
+                    val params = LinearLayout.LayoutParams(width, height)
+                    fragment_nicovideo_framelayout.layoutParams = params
+                }*/
+                val width =
+                    if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        // 縦
+                        (point.x / 1.2).toInt()
+                    } else {
+                        // 横
+                        point.x / 2
+                    }
+                val height = getOldAspectHeightFromWidth(width)
+                val params = LinearLayout.LayoutParams(width, height)
+                fragment_nicovideo_framelayout.layoutParams = params
+            }
+            1.7 -> {
+                // 16:9動画
+                // 横の長さから縦の高さ計算
+                val width =
+                    if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        // 縦
+                        point.x
+                    } else {
+                        // 横
+                        point.x / 2
+                    }
+                val height = getAspectHeightFromWidth(width)
+                val params = LinearLayout.LayoutParams(width, height)
+                fragment_nicovideo_framelayout.layoutParams = params
+            }
+        }
+        // サイズ変更に対応
+        fragment_nicovideo_comment_canvas.apply {
+            commentLine.clear()
+            ueCommentLine.clear()
+            sitaCommentLine.clear()
+        }
     }
 
     /**

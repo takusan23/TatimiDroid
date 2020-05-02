@@ -22,6 +22,10 @@ import java.util.*
 import androidx.appcompat.app.AppCompatActivity
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.CustomFont
+import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
+import kotlinx.coroutines.launch
+import org.json.JSONArray
 
 /**
  * ニコ動のコメント表示Adapter
@@ -29,13 +33,8 @@ import io.github.takusan23.tatimidroid.CustomFont
 class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONParse>) :
     RecyclerView.Adapter<NicoVideoAdapter.ViewHolder>() {
 
-    //ニコるようThreadId
-    var threadId = ""
-    var user_session = ""
-    var isPremium = false
-    var userId = ""
-
     lateinit var font: CustomFont
+    lateinit var devNicoVideoFragment: DevNicoVideoFragment
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view =
@@ -71,12 +70,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         } else {
             holder.commentTextView.text = "${item.commentNo}：$comment"
         }
-        // ニコるくん
-        val nicoruCount = if (item.nicoru > 0) {
-            "| ${context.getString(R.string.nicoru)} ${item.nicoru} "
-        } else {
-            ""
-        }
+
         // mail（コマンド）がないときは表示しない
         val mailText = if (item.mail.isNotEmpty()) {
             "| $mail "
@@ -84,7 +78,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             ""
         }
         holder.userNameTextView.text =
-            "${setTimeFormat(date.toLong())} | $formattedTime $mailText $nicoruCount| ${item.userId}"
+            "${setTimeFormat(date.toLong())} | $formattedTime $mailText| ${item.userId}"
 
         holder.nicoruButton.text = item.nicoru.toString()
 
@@ -97,6 +91,46 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         font.apply {
             setTextViewFont(holder.commentTextView)
             setTextViewFont(holder.userNameTextView)
+        }
+
+        // プレ垢はニコるくんつける
+        if (devNicoVideoFragment.isPremium) {
+            holder.nicoruButton.visibility = View.VISIBLE
+        }
+
+        // ニコる押したとき
+        holder.nicoruButton.setOnClickListener {
+            GlobalScope.launch {
+                devNicoVideoFragment.apply {
+                    if (isPremium) {
+                        val nicoruKey = nicoruAPI.nicoruKey
+                        val responseNicoru =
+                            nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey)
+                                .await()
+                        if (!responseNicoru.isSuccessful) {
+                            // 失敗時
+                            showToast(context, "${context?.getString(R.string.error)}\n${responseNicoru.code}")
+                            return@launch
+                        }
+                        val responseString = responseNicoru.body?.string()
+                        // 成功したか
+                        val jsonObject = JSONArray(responseString).getJSONObject(0)
+                        val status = nicoruAPI.nicoruResultStatus(jsonObject)
+                        if (status == 0) {
+                            item.nicoru = nicoruAPI.nicoruResultNicoruCount(jsonObject)
+                            showSnackbar("${getString(R.string.nicoru_ok)}：${item.nicoru}\n${item.comment}", null, null)
+                            // ニコるボタンに再適用
+                            holder.nicoruButton.post {
+                                holder.nicoruButton.text = item.nicoru.toString()
+                            }
+                        } else {
+                            showSnackbar(getString(R.string.nicoru_error), null, null)
+                        }
+                    } else {
+                        showToast(context, "プレ垢限定です")
+                    }
+                }
+            }
         }
 
     }
@@ -129,78 +163,9 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         return simpleDateFormat.format(date * 1000)
     }
 
-    fun getNicoruKey(context: Context): Deferred<String> = GlobalScope.async {
-        //ニコるための nicorukey を取得する
-        val url = "https://nvapi.nicovideo.jp/v1/nicorukey?language=0&threadId=$threadId"
-        println(url)
-        val request = Request.Builder()
-            .url(url)
-            .addHeader("Cookie", "user_session=$user_session")
-            .addHeader("User-Agent", "TatimiDroid;@takusan_23")
-            .get()
-            .build()
-        val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        println(response.body?.string())
-        if (response.isSuccessful) {
-            val responseString = response.body?.string()
-            val jsonObject = JSONObject(responseString)
-            val nicoruKey = jsonObject.getJSONObject("data").getString("nicorukey")
-            return@async nicoruKey
-        } else {
-            showToast(context, "${context.getString(R.string.error)}\n${response.code}")
-            return@async ""
-        }
-    }
-
-    fun postNicoru(context: Context, nicoruKey: String, commentNo: String, commentString: String) {
-        val url = "https://nmsg.nicovideo.jp/api.json/"
-
-        var premium = 0
-        if (isPremium) {
-            premium = 1
-        }
-
-        //POSTするJSON
-        val postJSON = JSONObject()
-        val nicoru = JSONObject().apply {
-            put("thread", threadId)
-            put("user_id", userId)
-            put("premium", premium)
-            put("fork", 0)
-            put("language", 0)
-            put("id", commentNo)
-            put("comment", commentString)
-            put("nicorukey", nicoruKey)
-        }
-        postJSON.put("nicoru", nicoru)
-
-        val request = Request.Builder()
-            .url(url)
-            .addHeader("Cookie", "user_session=$user_session")
-            .addHeader("User-Agent", "TatimiDroid;@takusan_23")
-            .post(postJSON.toString().toRequestBody("application/json".toMediaTypeOrNull()))
-            .build()
-        val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                showToast(context, context.getString(R.string.error))
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    println(response.body?.string())
-                } else {
-                    showToast(context, "${context.getString(R.string.error)}\n${response.code}")
-                }
-            }
-        })
-    }
-
     fun showToast(context: Context, message: String) {
         (context as AppCompatActivity).runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
-
 }

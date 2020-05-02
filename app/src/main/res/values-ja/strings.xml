@@ -386,4 +386,6 @@
     <string name="delete_ok">削除</string>
     <string name="login_disable_message">ログインが切れました。再ログインしますか？</string>
     <string name="login_or_is_not_login_mode">ログインするか設定で「ログインなしで利用する」を有効にしてください。</string>
+    <string name="nicoru_ok">ニコった！　ニコる</string>
+    <string name="nicoru_error">常にニコっている可能性があります</string>
 </resources>

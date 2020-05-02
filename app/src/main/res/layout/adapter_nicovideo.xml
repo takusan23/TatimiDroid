@@ -46,6 +46,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_margin="5sp"
                     android:minWidth="0dp"
+                    android:visibility="gone"
                     android:padding="5dp"
                     android:minHeight="0dp"
                     android:text="0"

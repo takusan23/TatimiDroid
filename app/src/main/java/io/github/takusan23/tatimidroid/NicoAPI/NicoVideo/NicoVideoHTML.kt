@@ -546,6 +546,49 @@ class NicoVideoHTML {
     }
 
     /**
+     * プレミアム会員かどうか返す
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * @return プレミアム会員ならtrue
+     * */
+    fun isPremium(jsonObject: JSONObject): Boolean {
+        return jsonObject.getJSONObject("viewer").getBoolean("isPremium")
+    }
+
+    /**
+     * 公式動画かどうかを返す
+     * 注意：なお公式動画だからといって全ての公式動画が暗号化とは限らないので、暗号化されてるかどうかは「isEncryption()」を使ってください。
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * @return 公式動画ならtrue。
+     * */
+    fun isOfficial(jsonObject: JSONObject): Boolean {
+        return jsonObject.getJSONObject("video").getBoolean("isOfficial")
+    }
+
+    /**
+     * ThreadIdを返す。ニコるKey取得とかコメント取得に使って
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * @param isCommunity コミュニティの方のidを取得するときはtrue。公式動画のコメント（PC版でコメントリストの下の「チャンネルコメント」のドロップダウンメニューがある）をニコる場合はtrue。省略時は自動で判断します。
+     * @return threadId
+     * */
+    fun getThreadId(jsonObject: JSONObject, isCommunityOrOfficial: Boolean = isOfficial(jsonObject)): String {
+        val idsObject = jsonObject.getJSONObject("thread").getJSONObject("ids")
+        return if (!isCommunityOrOfficial) {
+            idsObject.getString("default") // 普通の動画
+        } else {
+            idsObject.getString("community") // 公式動画
+        }
+    }
+
+    /**
+     * ユーザーIDを取得する
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * @return userId
+     * */
+    fun getUserId(jsonObject: JSONObject): String {
+        return jsonObject.getJSONObject("viewer").getString("id")
+    }
+
+    /**
      * 選択中の画質を取得する
      * @param jsonObject callSessionAPI()叩いたときのレスポンス
      * @return 画質
