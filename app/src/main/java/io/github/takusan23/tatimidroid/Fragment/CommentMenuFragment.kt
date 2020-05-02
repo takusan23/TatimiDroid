@@ -176,7 +176,7 @@ class CommentMenuFragment : Fragment() {
             (activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment).apply {
                 if (live_framelayout.visibility == View.VISIBLE) {
                     live_framelayout.visibility = View.GONE
-                    if (isNicoJK()) {
+                    if (!isNicoJK()) {
                         exoPlayer.stop()
                     }
                 } else {
