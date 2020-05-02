@@ -698,6 +698,12 @@ class DevNicoVideoFragment : Fragment() {
                             }
                         }
                     }
+                    // サイズ変更に対応
+                    fragment_nicovideo_comment_canvas.apply {
+                        commentLine.clear()
+                        ueCommentLine.clear()
+                        sitaCommentLine.clear()
+                    }
                 }
             }
         })

@@ -327,7 +327,6 @@ class NicoVideoPlayService : Service() {
                     commentLine.clear()
                     ueCommentLine.clear()
                     sitaCommentLine.clear()
-
                 }
             }
         })

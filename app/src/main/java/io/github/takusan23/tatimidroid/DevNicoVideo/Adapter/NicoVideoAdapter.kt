@@ -23,7 +23,9 @@ import androidx.appcompat.app.AppCompatActivity
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.CustomFont
 
-
+/**
+ * ニコ動のコメント表示Adapter
+ * */
 class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONParse>) :
     RecyclerView.Adapter<NicoVideoAdapter.ViewHolder>() {
 
@@ -61,20 +63,28 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         // きれいな形へ
         val formattedTime = formatTime(time)
         val mail = item.mail
-        var nicoruCount = ""
-
-        if (item.nicoru > 0) {
-            nicoruCount = " | ${context.getString(R.string.nicoru)} ${item.nicoru}"
-        }
 
         holder.userNameTextView.maxLines = 1
+        // たちみどろいど以外のキャッシュはCommentNoがないので？
         if (item.commentNo == "-1") {
             holder.commentTextView.text = "$comment"
         } else {
             holder.commentTextView.text = "${item.commentNo}：$comment"
         }
+        // ニコるくん
+        val nicoruCount = if (item.nicoru > 0) {
+            "| ${context.getString(R.string.nicoru)} ${item.nicoru} "
+        } else {
+            ""
+        }
+        // mail（コマンド）がないときは表示しない
+        val mailText = if (item.mail.isNotEmpty()) {
+            "| $mail "
+        } else {
+            ""
+        }
         holder.userNameTextView.text =
-            "${setTimeFormat(date.toLong())} | $formattedTime | $mail$nicoruCount | ${item.userId}"
+            "${setTimeFormat(date.toLong())} | $formattedTime $mailText $nicoruCount| ${item.userId}"
 
         // ユーザーの設定したフォントサイズ
         font.apply {

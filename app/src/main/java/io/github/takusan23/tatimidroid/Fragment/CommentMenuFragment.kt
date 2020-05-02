@@ -177,6 +177,7 @@ class CommentMenuFragment : Fragment() {
                 if (live_framelayout.visibility == View.VISIBLE) {
                     live_framelayout.visibility = View.GONE
                     if (!isNicoJK()) {
+                        // JK以外はExoPlayerをRelease
                         exoPlayer.stop()
                     }
                 } else {
