@@ -64,7 +64,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         var nicoruCount = ""
 
         if (item.nicoru > 0) {
-            nicoruCount = "${context.getString(R.string.nicoru)} ${item.nicoru}"
+            nicoruCount = " | ${context.getString(R.string.nicoru)} ${item.nicoru}"
         }
 
         holder.userNameTextView.maxLines = 1
@@ -74,7 +74,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             holder.commentTextView.text = "${item.commentNo}：$comment"
         }
         holder.userNameTextView.text =
-            "${setTimeFormat(date.toLong())} | $formattedTime | $mail | $nicoruCount | ${item.userId}"
+            "${setTimeFormat(date.toLong())} | $formattedTime | $mail$nicoruCount | ${item.userId}"
 
         // ユーザーの設定したフォントサイズ
         font.apply {
