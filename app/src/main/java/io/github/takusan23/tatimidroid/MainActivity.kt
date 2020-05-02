@@ -341,13 +341,14 @@ class MainActivity : AppCompatActivity() {
                         val response =
                             nicoLiveHTML.getNicoLiveHTML(communityId, pref_setting.getString("user_session", ""), false)
                                 .await()
+                        val responseString = response.body?.string()
                         if (!response.isSuccessful) {
                             // 失敗時
                             showToast("${getString(R.string.error)}\n${response.code}")
                             return@launch
                         }
                         // パース
-                        nicoLiveHTML.initNicoLiveData(nicoLiveHTML.nicoLiveHTMLtoJSONObject(response.body?.string()))
+                        nicoLiveHTML.initNicoLiveData(nicoLiveHTML.nicoLiveHTMLtoJSONObject(responseString))
                         //ダイアログ
                         val bundle = Bundle()
                         bundle.putString("liveId", nicoLiveHTML.liveId)

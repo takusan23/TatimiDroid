@@ -38,13 +38,19 @@
 
             </LinearLayout>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:id="@+id/adapter_nicovideo_comment_nicoru"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_margin="2sp"
-                    android:text=":-)"
-                    android:visibility="gone" />
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_margin="5sp"
+                    android:minWidth="0dp"
+                    android:padding="5dp"
+                    android:minHeight="0dp"
+                    android:text="0"
+                    app:icon="@drawable/ic_sentiment_satisfied_black_24dp"
+                    app:iconPadding="0dp" />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
