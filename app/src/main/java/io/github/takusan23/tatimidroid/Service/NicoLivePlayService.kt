@@ -22,6 +22,7 @@ import android.widget.FrameLayout
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.ExoPlaybackException
@@ -44,7 +45,9 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.net.URLDecoder
+import java.sql.Time
 import java.util.*
+import kotlin.concurrent.schedule
 import kotlin.concurrent.timerTask
 
 
@@ -86,6 +89,7 @@ class NicoLivePlayService : Service() {
     private lateinit var popupView: View
     private lateinit var popupExoPlayer: SimpleExoPlayer
     private lateinit var commentCanvas: CommentCanvas
+    var uiHideTimer = Timer() // UIを自動で非表示にするためのTimer
 
     // 番組情報関係
     var liveId = ""
@@ -96,7 +100,6 @@ class NicoLivePlayService : Service() {
     var communityID = ""
     var thumbnailURL = ""
     var hlsAddress = ""
-
 
     // ニコニコ実況の場合はtrue
     var isJK = false
@@ -347,10 +350,8 @@ class NicoLivePlayService : Service() {
 
         // ExoPlayer初期化
         popupExoPlayer = SimpleExoPlayer.Builder(this).build()
-        val sourceFactory = DefaultDataSourceFactory(
-            this,
-            "TatimiDroid;@takusan_23",
-            object : TransferListener {
+        val sourceFactory =
+            DefaultDataSourceFactory(this, "TatimiDroid;@takusan_23", object : TransferListener {
                 override fun onTransferInitializing(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
 
                 }
@@ -456,11 +457,10 @@ class NicoLivePlayService : Service() {
             )
         }
         popupView = layoutInflater.inflate(R.layout.overlay_player_layout, null)
-        //表示
+        // 表示
         windowManager.addView(popupView, params)
         commentCanvas = popupView.overlay_commentCanvas
         commentCanvas.isPopupView = true
-
         if (isJK) {
             // ニコニコ実況の場合はSurfaceView非表示
             popupView.overlay_surfaceview.visibility = View.GONE
@@ -469,7 +469,8 @@ class NicoLivePlayService : Service() {
             // ミュートボタン塞ぐ
             popupView.overlay_sound_button.visibility = View.GONE
         }
-        //SurfaceViewセット
+
+        // SurfaceViewセット
         if (::popupExoPlayer.isInitialized) {
             popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
         }
@@ -541,6 +542,12 @@ class NicoLivePlayService : Service() {
 
                     // 移動した分を更新する
                     windowManager.updateViewLayout(view, params)
+
+                    // 位置保存
+                    prefSetting.edit {
+                        putInt("nicolive_popup_x_pos", params.x)
+                        putInt("nicolive_popup_y_pos", params.y)
+                    }
                 }
             }
             false
@@ -582,6 +589,11 @@ class NicoLivePlayService : Service() {
                             sitaCommentLine.clear()
                         }
                     }
+                    // サイズを保存しておく
+                    prefSetting.edit {
+                        putInt("nicolive_popup_width", params.width)
+                        putInt("nicolive_popup_height", params.height)
+                    }
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -593,6 +605,31 @@ class NicoLivePlayService : Service() {
                 }
             })
         }
+
+        // サイズが保存されていれば適用
+        if (prefSetting.getInt("nicolive_popup_width", 0) != 0) {
+            params.width = prefSetting.getInt("nicolive_popup_width", width)
+            params.height = prefSetting.getInt("nicolive_popup_height", height)
+            // サイズ変更をCommentCanvasに反映させる
+            commentCanvas.viewTreeObserver.addOnGlobalLayoutListener {
+                commentCanvas.apply {
+                    finalHeight = commentCanvas.height
+                    // コメントの高さの情報がある配列を消す。
+                    // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
+                    commentLine.clear()
+                    ueCommentLine.clear()
+                    sitaCommentLine.clear()
+                }
+            }
+            windowManager.updateViewLayout(popupView, params)
+        }
+        // 位置が保存されていれば適用
+        if (prefSetting.getInt("nicolive_popup_x_pos", 0) != 0) {
+            params.x = prefSetting.getInt("nicolive_popup_x_pos", 0)
+            params.y = prefSetting.getInt("nicolive_popup_y_pos", 0)
+            windowManager.updateViewLayout(popupView, params)
+        }
+
     }
 
     /** MediaSession。音楽アプリの再生中のあれ */
@@ -759,13 +796,15 @@ class NicoLivePlayService : Service() {
         }
         nicoLiveHTML.destroy()
         nicoLiveComment.destroy()
-        mediaSessionCompat.apply {
-            isActive = false
-            setPlaybackState(
-                PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 0L, 1F)
-                    .build()
-            )
-            release()
+        if (::mediaSessionCompat.isInitialized) {
+            mediaSessionCompat.apply {
+                isActive = false
+                setPlaybackState(
+                    PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 0L, 1F)
+                        .build()
+                )
+                release()
+            }
         }
         nicoJK.destroy()
     }

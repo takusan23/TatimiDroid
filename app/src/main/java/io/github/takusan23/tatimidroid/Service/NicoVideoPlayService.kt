@@ -324,10 +324,36 @@ class NicoVideoPlayService : Service() {
                 disp.getRealSize(realSize)
                 popupLayoutParams = getParams(realSize.x / 2)
                 windowManager.updateViewLayout(popupView, popupLayoutParams)
-                commentCanvas.apply {
-                    commentLine.clear()
-                    ueCommentLine.clear()
-                    sitaCommentLine.clear()
+                // 設定読み込む
+                // サイズが保存されていれば適用。16：9バージョン
+                if (prefSetting.getInt("nicovideo_popup_width_16_9", 0) != 0) {
+                    // アスペクト比が求まっているか
+                    if (aspect == 1.7) {
+                        popupLayoutParams.width =
+                            prefSetting.getInt("nicovideo_popup_width_16_9", popupLayoutParams.width)
+                        popupLayoutParams.height =
+                            prefSetting.getInt("nicovideo_popup_height_16_9", popupLayoutParams.height)
+                    }
+                    windowManager.updateViewLayout(popupView, popupLayoutParams)
+                }
+                // サイズが保存されていれば適用。4：3バージョン
+                if (prefSetting.getInt("nicovideo_popup_width_4_3", 0) != 0) {
+                    // アスペクト比が求まっているか
+                    if (aspect == 1.3) {
+                        popupLayoutParams.width =
+                            prefSetting.getInt("nicovideo_popup_width_4_3", popupLayoutParams.width)
+                        popupLayoutParams.height =
+                            prefSetting.getInt("nicovideo_popup_height_4_3", popupLayoutParams.height)
+                    }
+                    windowManager.updateViewLayout(popupView, popupLayoutParams)
+                }
+                // CommentCanvasに反映
+                applyCommentCanvas()
+                // 位置が保存されていれば適用
+                if (prefSetting.getInt("nicovideo_popup_x_pos", 0) != 0) {
+                    popupLayoutParams.x = prefSetting.getInt("nicovideo_popup_x_pos", 0)
+                    popupLayoutParams.y = prefSetting.getInt("nicovideo_popup_y_pos", 0)
+                    windowManager.updateViewLayout(popupView, popupLayoutParams)
                 }
             }
         })
@@ -428,15 +454,19 @@ class NicoVideoPlayService : Service() {
                             }
                         }
                         windowManager.updateViewLayout(popupView, popupLayoutParams)
-                        // サイズ変更をCommentCanvasに反映させる
-                        commentCanvas.viewTreeObserver.addOnGlobalLayoutListener {
-                            commentCanvas.apply {
-                                finalHeight = commentCanvas.height
-                                // コメントの高さの情報がある配列を消す。
-                                // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
-                                commentLine.clear()
-                                ueCommentLine.clear()
-                                sitaCommentLine.clear()
+                        // CommentCanvasに反映
+                        applyCommentCanvas()
+                        // 位置保存。アスペクト比ごとに保存
+                        prefSetting.edit {
+                            when (aspect) {
+                                1.3 -> {
+                                    putInt("nicovideo_popup_width_4_3", popupLayoutParams.width)
+                                    putInt("nicovideo_popup_height_4_3", popupLayoutParams.height)
+                                }
+                                1.7 -> {
+                                    putInt("nicovideo_popup_width_16_9", popupLayoutParams.width)
+                                    putInt("nicovideo_popup_height_16_9", popupLayoutParams.height)
+                                }
                             }
                         }
                     }
@@ -478,6 +508,12 @@ class NicoVideoPlayService : Service() {
 
                         // 移動した分を更新する
                         windowManager.updateViewLayout(view, popupLayoutParams)
+
+                        // サイズを保存しておく
+                        prefSetting.edit {
+                            putInt("nicovideo_popup_x_pos", popupLayoutParams.x)
+                            putInt("nicovideo_popup_y_pos", popupLayoutParams.y)
+                        }
                     }
                 }
                 false
@@ -536,6 +572,20 @@ class NicoVideoPlayService : Service() {
                 }
             }, 100, 100)
 
+        }
+    }
+
+    // サイズ変更をCommentCanvasに反映させる
+    private fun applyCommentCanvas() {
+        commentCanvas.viewTreeObserver.addOnGlobalLayoutListener {
+            commentCanvas.apply {
+                finalHeight = commentCanvas.height
+                // コメントの高さの情報がある配列を消す。
+                // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
+                commentLine.clear()
+                ueCommentLine.clear()
+                sitaCommentLine.clear()
+            }
         }
     }
 
