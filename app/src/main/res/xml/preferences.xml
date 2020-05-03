@@ -230,6 +230,28 @@
 
 
     <PreferenceCategory android:title="@string/setting_comment_canvas">
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_format_line_spacing_black_24dp"
+                android:key="setting_comment_canvas_10_line"
+                android:summary="@string/setting_comment_10_line_description"
+                android:title="@string/setting_comment_10_line_title" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_waves_black_24dp"
+                android:key="setting_comment_canvas_custom_line_use"
+                android:summary="@string/setting_custom_comment_line_use_description"
+                android:title="@string/setting_custom_comment_line_use_title" />
+
+        <EditTextPreference
+                android:defaultValue="20"
+                android:dependency="setting_comment_canvas_custom_line_use"
+                android:key="setting_comment_canvas_custom_line_value"
+                android:summary="@string/setting_custom_comment_line_value_description"
+                android:title="@string/setting_custom_comment_line_value_title" />
+
         <EditTextPreference
                 android:defaultValue="10"
                 android:icon="@drawable/ic_outline_query_builder_24px"

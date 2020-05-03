@@ -389,4 +389,10 @@
     <string name="nicoru_ok">Nikotta Nicoru</string>
     <string name="nicoru_error">You might be nicoru all the time</string>
     <string name="brower_launch">Open in browser (other application)</string>
+    <string name="setting_comment_10_line_title">Secure 10 comment lines regardless of size</string>
+    <string name="setting_comment_10_line_description">If enabled, 10 lines of comment can be displayed.</string>
+    <string name="setting_custom_comment_line_use_title">Enable comment line settings</string>
+    <string name="setting_custom_comment_line_use_description">Use it when you have too many comments and can\'t see them or want to display more than 10 lines.</string>
+    <string name="setting_custom_comment_line_value_title">Set comment line</string>
+    <string name="setting_custom_comment_line_value_description">With this, the comment line is reserved for the set value.</string>
 </resources>

@@ -98,6 +98,13 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     // コメントを流さないときはtrue
     var isPause = false
 
+    // 10行確保モード
+    var isTenLineSetting = false
+
+    // コメント行を自由に変更可能
+    var isCustomCommentLine = false
+    var customCommentLine = 10
+
     init {
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
@@ -116,13 +123,20 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         blackPaint.textSize = fontsize
         blackPaint.color = Color.parseColor("#000000")
 
-        //コメントの流れる速度
         val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+        //コメントの流れる速度
         val speed = pref_setting.getString("setting_comment_speed", "5")?.toInt() ?: 5
         // コメントキャンバスの更新頻度
         val update = pref_setting.getString("setting_comment_canvas_timer", "10")?.toLong() ?: 10
+        // コメントの行を最低10行確保するモード
+        isTenLineSetting = pref_setting.getBoolean("setting_comment_canvas_10_line", false)
         // コメントの色を部屋の色にする設定が有効ならtrue
         isCommentColorRoom = pref_setting.getBoolean("setting_command_room_color", false)
+        // コメント行を自由に設定する設定
+        isCustomCommentLine =
+            pref_setting.getBoolean("setting_comment_canvas_custom_line_use", false)
+        customCommentLine =
+            pref_setting.getString("setting_comment_canvas_custom_line_value", "10")?.toInt() ?: 20
 
         Timer().schedule(update, update) {
 
@@ -380,13 +394,21 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
      * @param asciiArt アスキーアートのときはtrueにすると速度が一定になります
      * */
     fun postComment(comment: String, commentJSONParse: CommentJSONParse, asciiArt: Boolean = false) {
-        // ポップアップ再生時はフォントサイズを小さく
-        if (isPopupView) {
-            fontsize = (finalHeight / 10).toFloat()
-            blackPaint.textSize = fontsize
-        } else {
-            fontsize = 20 * resources.displayMetrics.scaledDensity
-            blackPaint.textSize = fontsize
+        when {
+            // コメント行をカスタマイズしてるとき
+            isCustomCommentLine -> {
+                fontsize = (finalHeight / customCommentLine).toFloat()
+                blackPaint.textSize = fontsize
+            }
+            // ポップアップ再生 / 10行コメント確保ーモード時
+            isPopupView || isTenLineSetting -> {
+                fontsize = (finalHeight / 10).toFloat()
+                blackPaint.textSize = fontsize
+            }
+            else -> {
+                fontsize = 20 * resources.displayMetrics.scaledDensity
+                blackPaint.textSize = fontsize
+            }
         }
         // 生主/運営のコメントは無視する
         if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {

@@ -389,4 +389,10 @@
     <string name="nicoru_ok">ニコった！　ニコる</string>
     <string name="nicoru_error">常にニコっている可能性があります</string>
     <string name="brower_launch">ブラウザ（他アプリ）で開く</string>
+    <string name="setting_comment_10_line_title">大きさに関わらずコメントの行を10行確保する</string>
+    <string name="setting_comment_10_line_description">有効にすると10行コメント表示できるようになります</string>
+    <string name="setting_custom_comment_line_use_title">コメントの行の設定を有効にする</string>
+    <string name="setting_custom_comment_line_use_description">コメントが多すぎて見えないとか10行以上表示させたいときに使ってみて。</string>
+    <string name="setting_custom_comment_line_value_title">コメントの行を設定する</string>
+    <string name="setting_custom_comment_line_value_description">これで設定した値だけコメントの行が確保されます。</string>
 </resources>
