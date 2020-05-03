@@ -64,21 +64,7 @@ class NicoVideoInfoFragment : Fragment() {
         if (jsonObjectString.isNotEmpty()) {
             parseJSONApplyUI(jsonObjectString)
         }
-/*
-        if (isCache) {
-            // キャッシュから取得
-            val nicoVideoCache =
-                NicoVideoCache(context)
-            if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
-                // JSONファイルある
-                val jsonVideoInfo = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
-                parseJSONApplyUI(jsonVideoInfo)
-            }
-        } else {
-            // インターネットから取得
 
-        }
-*/
         fragment_nicovideo_info_description_textview.movementMethod =
             LinkMovementMethod.getInstance();
 
@@ -217,12 +203,6 @@ class NicoVideoInfoFragment : Fragment() {
                                 }
                         }
                     }
-                }
-
-
-                //ブラウザで再生。このアプリで再生できるようにするかは考え中。
-                fragment_nicovideo_info_open_browser.setOnClickListener {
-                    openBrowser("https://www.nicovideo.jp/watch/$id")
                 }
 
                 //ユーザーページ

@@ -186,7 +186,7 @@ class ProgramShare(val activity: AppCompatActivity, val view: View, val programN
         if (saveBitmap != null && saveUri != null) {
             val builder = ShareCompat.IntentBuilder.from(activity)
             builder.setChooserTitle(programName)
-            builder.setText("$programName\n#$programId\nhttp://nico.ms/$programId")
+            builder.setText("$programName\n#$programId\nhttps://nico.ms/$programId")
             builder.setStream(saveUri)
             builder.setType("text/jpeg")
             builder.startChooser()
@@ -197,7 +197,7 @@ class ProgramShare(val activity: AppCompatActivity, val view: View, val programN
     fun showShareScreen() {
         val builder = ShareCompat.IntentBuilder.from(activity)
         builder.setChooserTitle(programName)
-        builder.setText("$programName\n#$programId\nhttp://nico.ms/$programId")
+        builder.setText("$programName\n#$programId\nhttps://nico.ms/$programId")
         builder.setStream(saveUri)
         builder.setType("text/plain")
         builder.startChooser()

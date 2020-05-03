@@ -14,6 +14,7 @@ import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.Toast
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoAddMylistBottomFragment
@@ -114,6 +115,21 @@ class DevNicoVideoMenuFragment : Fragment() {
         // 音量コントロール
         initVolumeControl()
 
+        // 他のアプリで開くボタン
+        initBrowserLaunchButton()
+
+    }
+
+    private fun initBrowserLaunchButton() {
+        //ブラウザで再生。
+        fragment_nicovideo_menu_browser_launch.setOnClickListener {
+            openBrowser("https://nico.ms/$videoId")
+        }
+    }
+
+    private fun openBrowser(addr: String) {
+        val intent = Intent(Intent.ACTION_VIEW, addr.toUri())
+        startActivity(intent)
     }
 
 

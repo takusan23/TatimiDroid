@@ -69,6 +69,8 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
             if (data.viewCount != "-1" && data.mylistCount != "-1" && data.commentCount != "-1") {
                 infoTextView.text =
                     "${context.getString(R.string.view_count)}：${data.viewCount} | ${context.getString(R.string.comment_count)}：${data.commentCount} | ${context.getString(R.string.mylist_count)}：${data.mylistCount}"
+            } else {
+                infoTextView.text = ""
             }
             // 再生画面表示
             cardView.setOnClickListener {

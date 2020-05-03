@@ -388,4 +388,5 @@
     <string name="login_or_is_not_login_mode">Login or set \"Use without login\" in settings...</string>
     <string name="nicoru_ok">Nikotta Nicoru</string>
     <string name="nicoru_error">You might be nicoru all the time</string>
+    <string name="brower_launch">Open in browser (other application)</string>
 </resources>

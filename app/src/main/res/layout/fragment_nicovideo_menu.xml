@@ -129,6 +129,12 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/landscape_portrait" />
+
+                    <Button
+                            android:id="@+id/fragment_nicovideo_menu_browser_launch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/brower_launch" />
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>

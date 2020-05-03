@@ -569,11 +569,13 @@ class DevNicoVideoFragment : Fragment() {
                         // リピート無効時
                         exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
                         fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
+                        prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
                     }
                     Player.REPEAT_MODE_ONE -> {
                         // リピート有効時
                         exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
                         fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
+                        prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
                     }
                 }
             }
@@ -669,6 +671,11 @@ class DevNicoVideoFragment : Fragment() {
         }
         // 自動再生
         exoPlayer.playWhenReady = true
+        // リピートするか
+        if (prefSetting.getBoolean("nicovideo_repeat_on", true)) {
+            exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+            fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
+        }
         // 再生ボタン押したとき
         fragment_nicovideo_play_button.setOnClickListener {
             // コメント流し制御
@@ -685,7 +692,7 @@ class DevNicoVideoFragment : Fragment() {
                 setPlayIcon()
                 if (playbackState == Player.STATE_BUFFERING) {
                     // STATE_BUFFERING はシークした位置からすぐに再生できないとき。読込み中のこと。
-                    // showSwipeToRefresh()
+                    showSwipeToRefresh()
                 } else {
                     hideSwipeToRefresh()
                 }
@@ -750,26 +757,6 @@ class DevNicoVideoFragment : Fragment() {
             1.3 -> {
                 // 4:3動画
                 // 4:3をそのまま出すと大きすぎるので調整（代わりに黒帯出るけど仕方ない）
-
-/*                fragment_nicovideo_framelayout.viewTreeObserver.addOnGlobalLayoutListener {
-                    val width =
-                        if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                            // 縦画面
-                            val wm =
-                                context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                            val disp = wm.getDefaultDisplay()
-                            val realSize = Point();
-                            disp.getRealSize(realSize);
-                            (realSize.x / 1.2).toInt()
-                        } else {
-                            // 横画面
-                            fragment_nicovideo_framelayout.width
-                        }
-                    val height = getOldAspectHeightFromWidth(width)
-                    println("$height / $width")
-                    val params = LinearLayout.LayoutParams(width, height)
-                    fragment_nicovideo_framelayout.layoutParams = params
-                }*/
                 val width =
                     if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
                         // 縦

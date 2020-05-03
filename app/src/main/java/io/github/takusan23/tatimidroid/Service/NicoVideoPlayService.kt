@@ -20,6 +20,7 @@ import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.Player
@@ -369,6 +370,12 @@ class NicoVideoPlayService : Service() {
                 stopSelf()
             }
 
+            // リピートするか
+            if (prefSetting.getBoolean("nicovideo_repeat_on", true)) {
+                exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                popupView.overlay_video_repeat_button.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
+            }
+
             //ミュート・ミュート解除
             popupView.overlay_video_sound_button.setOnClickListener {
                 if (::exoPlayer.isInitialized) {
@@ -510,11 +517,13 @@ class NicoVideoPlayService : Service() {
                         // リピート無効時
                         exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
                         popupView.overlay_video_repeat_button.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
+                        prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
                     }
                     Player.REPEAT_MODE_ONE -> {
                         // リピート有効時
                         exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
                         popupView.overlay_video_repeat_button.setImageDrawable(getDrawable(R.drawable.ic_repeat_black_24dp))
+                        prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
                     }
                 }
             }
