@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
+import android.provider.CalendarContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,12 +18,14 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.bottom_fragment_history.*
 import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 import kotlinx.android.synthetic.main.fragment_liveid.*
+import java.util.*
+import kotlin.collections.ArrayList
 
 class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
 
     lateinit var editText: EditText
     lateinit var nicoHistoryAdapter: NicoHistoryAdapter
-    val recyclerViewList = arrayListOf<ArrayList<String>>()
+    var recyclerViewList = arrayListOf<ArrayList<String>>()
 
     lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
     lateinit var sqLiteDatabase: SQLiteDatabase
@@ -36,11 +39,16 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
 
         //RecyclerView初期化
         initRecyclerView()
+
         //DB初期化
         initDB()
 
-        //読み込み
-        loadHistory()
+        // 読み込み。初回のみ実行してあとはChip押したとき読み込む
+        if (recyclerViewList.size == 0) {
+            loadHistory()
+        }
+        // 件数表示
+        showDBCount()
 
         //削除
         bottom_fragment_history_delete_button.setOnClickListener {
@@ -48,8 +56,22 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
             dismiss()
         }
 
+        // chip押したとき
+        bottom_fragment_history_chip_live.setOnClickListener { loadHistory() }
+        bottom_fragment_history_chip_video.setOnClickListener { loadHistory() }
+        bottom_fragment_history_chip_today.setOnClickListener { loadHistory() }
+
     }
 
+    // 件数表示
+    private fun showDBCount() {
+        bottom_fragment_history_textview.text =
+            "${getString(R.string.history)}：${recyclerViewList.size}"
+    }
+
+    /**
+     * 履歴DB読み込み。
+     * */
     private fun loadHistory() {
         recyclerViewList.clear()
         val query =
@@ -70,11 +92,49 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
                 add(communityId)
             }
             recyclerViewList.add(0, item)
-            //println(id)
             query.moveToNext()
         }
         query.close()
-        nicoHistoryAdapter.notifyDataSetChanged()
+
+        // 動画、生放送フィルター
+        val isVideo = bottom_fragment_history_chip_video.isChecked
+        val isLive = bottom_fragment_history_chip_live.isChecked
+        when {
+            isVideo && isLive -> {
+                recyclerViewList = recyclerViewList.filter { arrayList ->
+                    arrayList[2] == "video" || arrayList[2] == "live"
+                } as ArrayList<ArrayList<String>>
+            }
+            isVideo -> {
+                recyclerViewList = recyclerViewList.filter { arrayList ->
+                    arrayList[2] == "video"
+                } as ArrayList<ArrayList<String>>
+            }
+            isLive -> {
+                recyclerViewList = recyclerViewList.filter { arrayList ->
+                    arrayList[2] == "live"
+                } as ArrayList<ArrayList<String>>
+            }
+        }
+
+        // 今日のみ
+        if (bottom_fragment_history_chip_today.isChecked) {
+            // から
+            val calender = Calendar.getInstance()
+            calender.set(Calendar.HOUR, 0)
+            calender.set(Calendar.MINUTE, 0)
+            calender.set(Calendar.SECOND, 0)
+            val from = calender.time.time / 1000L
+            // まで
+            val to = System.currentTimeMillis() / 1000L
+            recyclerViewList = recyclerViewList.filter { arrayList ->
+                arrayList[3].toLong() in from..to // 範囲に入ってるか
+            } as ArrayList<ArrayList<String>>
+        }
+
+        // 結果表示
+        initRecyclerView()
+        showDBCount()
     }
 
     private fun initDB() {

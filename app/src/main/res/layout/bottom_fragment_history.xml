@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
@@ -11,7 +12,7 @@
             android:orientation="horizontal">
 
         <TextView
-                android:id="@+id/textView13"
+                android:id="@+id/bottom_fragment_history_textview"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -24,10 +25,59 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/delete" />
+
     </LinearLayout>
 
+    <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+            <com.google.android.material.chip.Chip
+                    android:id="@+id/bottom_fragment_history_chip_live"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5sp"
+                    android:layout_weight="1"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:text="@string/nicolive"
+                    app:chipIcon="@drawable/ic_outline_live_tv_24px_black" />
+
+            <com.google.android.material.chip.Chip
+                    android:id="@+id/bottom_fragment_history_chip_video"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5sp"
+                    android:layout_weight="1"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:text="@string/nicovideo"
+                    app:chipIcon="@drawable/ic_local_movies_24px" />
+
+            <com.google.android.material.chip.Chip
+                    android:id="@+id/bottom_fragment_history_chip_today"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5sp"
+                    android:layout_weight="1"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:text="@string/today_only"
+                    app:chipIcon="@drawable/ic_event_available_24px" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
     <androidx.recyclerview.widget.RecyclerView
+            android:scrollbars="vertical"
             android:id="@+id/bottom_fragment_history_recyclerview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content">
+
+    </androidx.recyclerview.widget.RecyclerView>
 </LinearLayout>

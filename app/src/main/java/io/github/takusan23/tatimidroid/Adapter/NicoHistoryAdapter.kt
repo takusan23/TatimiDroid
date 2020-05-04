@@ -42,7 +42,12 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<
         //コミュIDをいれる
         holder.parentLinearLayout.setOnClickListener {
             if (::editText.isInitialized) {
-                editText.setText(communityId)
+                val text = if (communityId.isNotEmpty()) {
+                    communityId
+                } else {
+                    id // 動画用に
+                }
+                editText.setText(text)
             }
             //けす
             if (::bottomSheetDialogFragment.isInitialized) {

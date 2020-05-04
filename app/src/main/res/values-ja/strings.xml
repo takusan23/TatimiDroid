@@ -396,4 +396,5 @@
     <string name="setting_custom_comment_line_value_title">コメントの行を設定する</string>
     <string name="setting_custom_comment_line_value_description">これで設定した値だけコメントの行が確保されます。</string>
     <string name="cache_usage">キャッシュ合計容量</string>
+    <string name="today_only">今日のみ</string>
 </resources>

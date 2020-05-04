@@ -396,4 +396,5 @@
     <string name="setting_custom_comment_line_value_title">Set comment line</string>
     <string name="setting_custom_comment_line_value_description">With this, the comment line is reserved for the set value.</string>
     <string name="cache_usage">Total cache capacity</string>
+    <string name="today_only">Only today</string>
 </resources>

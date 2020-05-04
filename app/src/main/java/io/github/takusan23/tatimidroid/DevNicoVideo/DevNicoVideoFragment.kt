@@ -1,11 +1,12 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.app.Activity
-import android.content.Context
+import android.content.ContentValues
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.database.sqlite.SQLiteDatabase
 import android.graphics.Point
 import android.net.Uri
 import android.os.Bundle
@@ -34,31 +35,28 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoRecyclerPagerAdapter
-import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoViewPager
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
+import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.internal.http2.Header
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
 import javax.net.ssl.SSLProtocolException
 import kotlin.collections.ArrayList
-import kotlin.concurrent.schedule
 import kotlin.concurrent.timerTask
 
 /**
@@ -69,6 +67,10 @@ class DevNicoVideoFragment : Fragment() {
     lateinit var prefSetting: SharedPreferences
     lateinit var exoPlayer: SimpleExoPlayer
     lateinit var darkModeSupport: DarkModeSupport
+
+    // 端末内履歴DB
+    lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
+    lateinit var nicoHistorySQLiteDB: SQLiteDatabase
 
     // ハートビート
     var heartBeatTimer = Timer()
@@ -146,6 +148,12 @@ class DevNicoVideoFragment : Fragment() {
         nicoVideoCache = NicoVideoCache(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
 
+        // 端末内履歴DB初期化
+        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(context!!)
+        nicoHistorySQLiteDB = nicoHistorySQLiteHelper.writableDatabase
+        nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
+
+        // ふぉんと
         font = CustomFont(context)
 
         // 動画ID
@@ -429,7 +437,10 @@ class DevNicoVideoFragment : Fragment() {
                         }
                     }
                 }
+                // 端末内DB履歴追記
+                insertDB(videoTitle)
             }
+
 
             // ニコるくん
             isPremium = nicoVideoHTML.isPremium(jsonObject)
@@ -473,6 +484,21 @@ class DevNicoVideoFragment : Fragment() {
                 e.printStackTrace()
             }
         }
+    }
+
+    private fun insertDB(videoTitle: String) {
+        val type = "video"
+        val unixTime = System.currentTimeMillis() / 1000
+        val contentValues = ContentValues()
+        contentValues.apply {
+            put("service_id", videoId)
+            put("user_id", "")
+            put("title", videoTitle)
+            put("type", type)
+            put("date", unixTime)
+            put("description", "")
+        }
+        nicoHistorySQLiteDB.insert(NicoHistorySQLiteHelper.TABLE_NAME, null, contentValues)
     }
 
     // Snackbarを表示させる関数
