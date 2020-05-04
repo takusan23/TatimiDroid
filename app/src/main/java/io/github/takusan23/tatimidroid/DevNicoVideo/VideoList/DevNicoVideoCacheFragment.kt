@@ -23,6 +23,7 @@ import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_cache_filter.*
 import kotlinx.android.synthetic.main.fragment_comment_cache.*
 import kotlinx.coroutines.*
+import okhttp3.internal.format
 
 class DevNicoVideoCacheFragment : Fragment() {
     // 必要なやつ
@@ -46,8 +47,14 @@ class DevNicoVideoCacheFragment : Fragment() {
         nicoVideoCache = NicoVideoCache(context)
         initRecyclerView()
         initFabClick()
-        initFilterButton()
         load()
+    }
+
+    // ストレージの空き確認
+    private fun initStorageSpace() {
+        val byte = nicoVideoCache.cacheTotalSize.toFloat()
+        val gbyte = byte / 1024 / 1024 / 1024 // Byte -> KB -> MB -> GB
+        fragment_cache_storage_info.text = "${getString(R.string.cache_usage)}：${format("%.1f",gbyte)} GB" // 小数点以下一桁
     }
 
     // フィルター読み込む
@@ -66,20 +73,18 @@ class DevNicoVideoCacheFragment : Fragment() {
         }
     }
 
-    // フィルター削除
-    private fun initFilterButton() {
-        fragment_cache_filter_destroy.setOnClickListener {
-            // 本当に消していい？
-            Snackbar.make(fragment_cache_filter_destroy, getString(R.string.filter_clear_message), Snackbar.LENGTH_SHORT)
-                .apply {
-                    setAction(getString(R.string.delete_ok)) {
-                        CacheJSON().deleteFilterJSONFile(context)
-                        initRecyclerView()
-                    }
-                    anchorView = fragment_cache_fab
-                    show()
+    // フィルター削除関数
+    fun filterDeleteMessageShow() {
+        // 本当に消していい？
+        Snackbar.make(fragment_cache_empty_message, getString(R.string.filter_clear_message), Snackbar.LENGTH_SHORT)
+            .apply {
+                setAction(getString(R.string.delete_ok)) {
+                    CacheJSON().deleteFilterJSONFile(context)
+                    initRecyclerView()
                 }
-        }
+                anchorView = fragment_cache_fab
+                show()
+            }
     }
 
     // FAB押したとき
@@ -109,8 +114,9 @@ class DevNicoVideoCacheFragment : Fragment() {
                 // 中身0だった場合
                 if (recyclerViewList.isEmpty()) {
                     fragment_cache_empty_message.visibility = View.VISIBLE
-                    fragment_cache_filter_destroy.visibility = View.GONE
                 }
+                // 合計サイズ
+                initStorageSpace()
             }
         }
     }

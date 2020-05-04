@@ -395,4 +395,5 @@
     <string name="setting_custom_comment_line_use_description">コメントが多すぎて見えないとか10行以上表示させたいときに使ってみて。</string>
     <string name="setting_custom_comment_line_value_title">コメントの行を設定する</string>
     <string name="setting_custom_comment_line_value_description">これで設定した値だけコメントの行が確保されます。</string>
+    <string name="cache_usage">キャッシュ合計容量</string>
 </resources>

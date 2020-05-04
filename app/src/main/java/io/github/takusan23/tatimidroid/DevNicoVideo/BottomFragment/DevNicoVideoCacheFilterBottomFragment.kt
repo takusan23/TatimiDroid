@@ -137,9 +137,8 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     // リセットボタン
     private fun initResetButton() {
         bottom_fragment_cache_filter_reset.setOnClickListener {
-            cacheFragment.initRecyclerView()
-            CacheJSON().deleteFilterJSONFile(context) // filter.json消す
             dismiss()
+            cacheFragment.filterDeleteMessageShow() // 本当に消していい？
         }
     }
 

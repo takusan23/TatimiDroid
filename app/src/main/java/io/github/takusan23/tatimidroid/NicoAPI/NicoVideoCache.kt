@@ -41,6 +41,9 @@ class NicoVideoCache(val context: Context?) {
     // 現在のDownloadManagerの進行中の項目
     private var downloadItem = 0L
 
+    // キャッシュ合計サイズ。注意：loadCache()を呼ぶまで0です
+    var cacheTotalSize = 0L
+
     /**
      * キャッシュ用フォルダからデータ持ってくる。
      * 多分重いのでコルーチンです。
@@ -58,6 +61,9 @@ class NicoVideoCache(val context: Context?) {
             }
             // 一覧取得
             cacheFolder.listFiles().forEach {
+                it.listFiles().forEach {
+                    cacheTotalSize += it.length()
+                }
                 // それぞれの動画フォルダ
                 val videoFolder = it
                 // 動画ID
@@ -417,7 +423,7 @@ class NicoVideoCache(val context: Context?) {
      * @param 動画ID
      * */
     fun getCacheFolderVideoFilePath(videoId: String): String {
-        return "${getCacheFolderPath()}/$videoId/$videoId.mp4"
+        return "${getCacheFolderPath()}/$videoId/${getCacheFolderVideoFileName(videoId)}.mp4"
     }
 
     /**
@@ -444,10 +450,17 @@ class NicoVideoCache(val context: Context?) {
     }
 
     /**
+     * コメントJSONファイルのFileを返す
+     * */
+    fun getCacheFolderVideoCommentFile(videoId: String): File {
+        return File("${getCacheFolderPath()}/$videoId/${videoId}_comment.json")
+    }
+
+    /**
      * キャッシュフォルダから動画のコメントJSONファイルの中身を取得する。JSONファイルの中身ですよ！
      * */
     fun getCacheFolderVideoCommentText(videoId: String): String {
-        return File("${getCacheFolderPath()}/$videoId/${videoId}_comment.json").readText()
+        return getCacheFolderVideoCommentFile(videoId).readText()
     }
 
     /**
