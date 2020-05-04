@@ -239,7 +239,9 @@ class CommentMenuFragment : Fragment() {
             commentFragment.isTokumeiHide = isChecked
         }
 
+        // 低遅延
         fragment_comment_fragment_menu_low_latency_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            prefSetting.edit { putBoolean("nicolive_low_latency", isChecked) }
             commentFragment.nicoLiveHTML.sendLowLatency()
         }
 
@@ -330,7 +332,8 @@ class CommentMenuFragment : Fragment() {
         //匿名コメントを非表示にするか
         fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = commentFragment.isTokumeiHide
         //低遅延モードの有効無効
-        fragment_comment_fragment_menu_low_latency_switch.isChecked = commentFragment.isLowLatency
+        fragment_comment_fragment_menu_low_latency_switch.isChecked =
+            prefSetting.getBoolean("nicolive_low_latency", true)
         // コメント一行もーど
         fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.isChecked =
             prefSetting.getBoolean("setting_id_hidden", false)

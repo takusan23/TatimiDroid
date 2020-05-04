@@ -173,7 +173,7 @@ class CommentFragment : Fragment() {
     //延長検知。視聴セッション接続後すぐに送られてくるので一回目はパス。
     var isEntyouKenti = false
 
-    //匿名コメント非表示機能。基本off
+    // 匿名コメント非表示機能。基本off
     var isTokumeiHide = false
 
     //ExoPlayer
@@ -223,11 +223,7 @@ class CommentFragment : Fragment() {
     val nicoJK = NicoJKHTML()
     lateinit var getFlvData: NicoJKHTML.getFlvData
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.activity_comment, container, false)
     }
 
@@ -286,7 +282,8 @@ class CommentFragment : Fragment() {
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context!!)
 
-        nicoLiveHTML.isLowLatency = !pref_setting.getBoolean("setting_low_latency_off", false)
+        // 低遅延モードon/off
+        nicoLiveHTML.isLowLatency = !pref_setting.getBoolean("nicolive_low_latency", true)
 
         // ViewPager
         initViewPager()
@@ -471,8 +468,7 @@ class CommentFragment : Fragment() {
                 }
             }
             // HTMLからJSON取得する
-            nicoLiveJSON =
-                nicoLiveHTML.nicoLiveHTMLtoJSONObject(livePageResponse.body?.string())
+            nicoLiveJSON = nicoLiveHTML.nicoLiveHTMLtoJSONObject(livePageResponse.body?.string())
 
             // コメント投稿の際に使う値を初期化する
             // 番組名取得など
@@ -662,8 +658,11 @@ class CommentFragment : Fragment() {
         } else {
             roomName
         }
-        val commentJSONParse =
-            CommentJSONParse(comment, room, liveId)
+        val commentJSONParse = CommentJSONParse(comment, room, liveId)
+        // 匿名コメント落とすモード
+        if (isTokumeiHide && commentJSONParse.mail.contains("184")) {
+            return
+        }
         // コテハン追加など
         registerKotehan(commentJSONParse)
         /*

@@ -134,6 +134,8 @@ class NicoLivePlayService : Service() {
         // 184
         val isTokumei = intent?.getBooleanExtra("is_tokumei", true) ?: true
         nicoLiveHTML.isTokumeiComment = isTokumei
+        // 低遅延モードon/off
+        nicoLiveHTML.isLowLatency = prefSetting.getBoolean("nicolive_low_latency", true)
         // JK
         isJK = intent?.getBooleanExtra("is_jk", false) ?: false
 
