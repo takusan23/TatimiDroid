@@ -19,153 +19,158 @@
             android:layout_height="wrap_content"
             android:text="動画ID" />
 
-    <LinearLayout
+    <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5sp"
-            android:orientation="vertical">
-
-        <TextView
-                android:id="@+id/bottom_fragment_nicovideo_list_menu_copy"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_content_paste_black_24dp"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:padding="10sp"
-                android:text="@string/video_id_copy" />
-
-        <TextView
-                android:id="@+id/bottom_fragment_nicovideo_list_menu_mylist"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_folder_open_black_24dp"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:padding="10sp"
-                android:text="@string/add_mylist" />
-
-        <TextView
-                android:id="@+id/bottom_fragment_nicovideo_list_menu_playlist_background"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_tatimidroid_playlist_play_black"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:padding="10sp"
-                android:text="連続バッググラウンド再生" />
-
-        <TextView
-                android:id="@+id/bottom_fragment_nicovideo_list_menu_play"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_play_arrow_24px"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:padding="10sp"
-                android:text="@string/play_video" />
-
-        <TextView
-                android:id="@+id/bottom_fragment_nicovideo_list_menu_economy_play"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_play_arrow_24px"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:padding="10sp"
-                android:text="@string/economy_play" />
-
-        <TextView
-                android:id="@+id/bottom_fragment_nicovideo_list_menu_popup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_popup_icon_black"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:padding="10sp"
-                android:text="@string/popup_video_player" />
-
-        <TextView
-                android:id="@+id/bottom_fragment_nicovideo_list_menu_background"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_background_icon_black"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:padding="10sp"
-                android:text="@string/background_video_player" />
-
-        <TextView
-                android:id="@+id/bottom_fragment_nicovideo_list_menu_get_cache"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_save_alt_black_24dp"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:padding="10sp"
-                android:text="@string/get_cache" />
-
-        <TextView
-                android:id="@+id/bottom_fragment_nicovideo_list_menu_get_cache_economy"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_save_alt_black_24dp"
-                android:focusable="true"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:padding="10sp"
-                android:text="@string/get_cache_eco" />
+            android:layout_height="match_parent">
 
         <LinearLayout
-                android:id="@+id/bottom_fragment_nicovideo_list_menu_cache_menu"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:layout_height="wrap_content"
+                android:layout_margin="5sp"
+                android:orientation="vertical">
 
             <TextView
-                    android:id="@+id/bottom_fragment_nicovideo_list_menu_xml_to_json"
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_copy"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clickable="true"
-                    android:drawableStart="@drawable/ic_outline_comment_24px"
+                    android:drawableStart="@drawable/ic_content_paste_black_24dp"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10sp"
-                    android:text="@string/xml_to_json"
-                    android:visibility="gone" />
+                    android:text="@string/video_id_copy" />
 
             <TextView
-                    android:id="@+id/bottom_fragment_nicovideo_list_menu_re_get_cache"
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_mylist"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clickable="true"
-                    android:drawableStart="@drawable/ic_refresh_black_24dp"
+                    android:drawableStart="@drawable/ic_folder_open_black_24dp"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10sp"
-                    android:text="@string/get_cache_re_get" />
+                    android:text="@string/add_mylist" />
 
             <TextView
-                    android:id="@+id/bottom_fragment_nicovideo_list_menu_delete_cache"
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_playlist_background"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clickable="true"
-                    android:drawableStart="@drawable/ic_outline_delete_24px"
+                    android:drawableStart="@drawable/ic_tatimidroid_playlist_play_black"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10sp"
-                    android:text="@string/delete_cache" />
+                    android:text="連続バッググラウンド再生" />
+
+            <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_play"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_play_arrow_24px"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="@string/play_video" />
+
+            <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_economy_play"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_play_arrow_24px"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="@string/economy_play" />
+
+            <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_popup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_popup_icon_black"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="@string/popup_video_player" />
+
+            <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_background"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_background_icon_black"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="@string/background_video_player" />
+
+            <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_get_cache"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_save_alt_black_24dp"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="@string/get_cache" />
+
+            <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_get_cache_economy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_save_alt_black_24dp"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="@string/get_cache_eco" />
+
+            <LinearLayout
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_cache_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                <TextView
+                        android:id="@+id/bottom_fragment_nicovideo_list_menu_xml_to_json"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_outline_comment_24px"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10sp"
+                        android:text="@string/xml_to_json"
+                        android:visibility="gone" />
+
+                <TextView
+                        android:id="@+id/bottom_fragment_nicovideo_list_menu_re_get_cache"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_refresh_black_24dp"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10sp"
+                        android:text="@string/get_cache_re_get" />
+
+                <TextView
+                        android:id="@+id/bottom_fragment_nicovideo_list_menu_delete_cache"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_outline_delete_24px"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10sp"
+                        android:text="@string/delete_cache" />
+            </LinearLayout>
+
         </LinearLayout>
-
-    </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>

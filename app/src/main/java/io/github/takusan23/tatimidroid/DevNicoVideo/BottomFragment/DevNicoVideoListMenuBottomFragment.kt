@@ -235,11 +235,9 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                     if (i == 0) {
                         nicoVideoCache.deleteCache(nicoVideoData.videoId)
                         val fragment =
-                            fragmentManager?.findFragmentById(R.id.fragment_video_list_linearlayout)
-                        if (fragment is DevNicoVideoCacheFragment) {
-                            // 再読み込み
-                            fragment.load()
-                        }
+                            fragmentManager?.findFragmentById(R.id.main_activity_linearlayout) as DevNicoVideoCacheFragment
+                        // 再読み込み
+                        fragment.load()
                         dismiss()
                     }
                 }

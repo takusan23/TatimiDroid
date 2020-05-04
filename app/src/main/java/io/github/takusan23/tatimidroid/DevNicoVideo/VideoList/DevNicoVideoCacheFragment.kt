@@ -104,6 +104,7 @@ class DevNicoVideoCacheFragment : Fragment() {
     fun load() {
         launch = GlobalScope.launch {
             recyclerViewList.clear()
+            cacheVideoList.clear()
             nicoVideoCache.loadCache().await().forEach {
                 recyclerViewList.add(it)
                 cacheVideoList.add(it)
