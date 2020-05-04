@@ -4,7 +4,6 @@
 
     <item
             android:id="@+id/comment_activity_menu_watch_live"
-            android:icon="@drawable/ic_icon_large"
             android:title="@string/play_live_broadcast"
             android:tooltipText="@string/play_live_broadcast"
             app:showAsAction="ifRoom" />

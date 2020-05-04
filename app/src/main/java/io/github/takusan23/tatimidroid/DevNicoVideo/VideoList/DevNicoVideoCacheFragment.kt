@@ -54,7 +54,8 @@ class DevNicoVideoCacheFragment : Fragment() {
     private fun initStorageSpace() {
         val byte = nicoVideoCache.cacheTotalSize.toFloat()
         val gbyte = byte / 1024 / 1024 / 1024 // Byte -> KB -> MB -> GB
-        fragment_cache_storage_info.text = "${getString(R.string.cache_usage)}：${format("%.1f",gbyte)} GB" // 小数点以下一桁
+        fragment_cache_storage_info.text =
+            "${getString(R.string.cache_usage)}：${format("%.1f", gbyte)} GB" // 小数点以下一桁
     }
 
     // フィルター読み込む

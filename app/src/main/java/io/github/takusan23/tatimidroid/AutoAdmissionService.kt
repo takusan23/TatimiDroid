@@ -162,7 +162,7 @@ class AutoAdmissionService : Service() {
             //通知作成
             val notification = NotificationCompat.Builder(applicationContext)
                 .setContentTitle(getString(R.string.auto_admission_one_minute_notification))
-                .setSmallIcon(R.drawable.ic_icon_large)
+                .setSmallIcon(R.drawable.ic_auto_admission_icon)
                 .setContentTitle(getString(R.string.auto_admission_one_minute_notification_description))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(programInfo))
                 .setPriority(NotificationManager.IMPORTANCE_HIGH)
@@ -229,7 +229,7 @@ class AutoAdmissionService : Service() {
             val notification =
                 NotificationCompat.Builder(applicationContext, "auto_admission_notification")
                     .setContentTitle(getString(R.string.auto_admission_notification))
-                    .setSmallIcon(R.drawable.ic_icon_large)
+                    .setSmallIcon(R.drawable.ic_auto_admission_icon)
                     .setContentTitle(getString(R.string.auto_admission_notification_message))
                     .setStyle(NotificationCompat.BigTextStyle().bigText(programList))
                     .addAction(R.drawable.ic_clear_black, getString(R.string.end), PendingIntent.getBroadcast(this, 865, Intent("close_auto_admission"), PendingIntent.FLAG_UPDATE_CURRENT))
