@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.VideoList
 
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -70,7 +71,7 @@ class DevNicoVideoCacheFragment : Fragment() {
     fun applyFilter(filterDataClass: CacheFilterDataClass) {
         val list = nicoVideoCache.getCacheFilterList(cacheVideoList, filterDataClass)
         activity?.runOnUiThread {
-            initRecyclerView(list)
+            initRecyclerView(list, fragment_cache_recyclerview.layoutManager?.onSaveInstanceState())
         }
     }
 
@@ -133,11 +134,16 @@ class DevNicoVideoCacheFragment : Fragment() {
     /**
      * RecyclerView初期化
      * @param list NicoVideoDataの配列。RecyclerViewに表示させたい配列が別にある時だけ指定すればいいと思うよ
+     * @param layoutManagerParcelable RecyclerViewのスクロール位置を復元できるらしい。RecyclerView#layoutManager#onSaveInstanceState()で取れる
+     * https://stackoverflow.com/questions/27816217/how-to-save-recyclerviews-scroll-position-using-recyclerview-state
      * */
-    fun initRecyclerView(list: ArrayList<NicoVideoData> = recyclerViewList) {
+    fun initRecyclerView(list: ArrayList<NicoVideoData> = recyclerViewList, layoutManagerParcelable: Parcelable? = null) {
         fragment_cache_recyclerview.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
+            if (layoutManagerParcelable != null) {
+                layoutManager?.onRestoreInstanceState(layoutManagerParcelable)
+            }
             nicoVideoListAdapter = DevNicoVideoListAdapter(list)
             adapter = nicoVideoListAdapter
         }
