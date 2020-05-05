@@ -38,11 +38,7 @@ class CommunityListFragment : Fragment() {
     lateinit var autoAdmissionSQLiteSQLite: AutoAdmissionSQLiteSQLite
     lateinit var sqLiteDatabase: SQLiteDatabase
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_commnunity_list_layout, container, false)
     }
@@ -65,8 +61,7 @@ class CommunityListFragment : Fragment() {
 
         user_session = pref_setting.getString("user_session", "") ?: ""
 
-        (activity as AppCompatActivity).supportActionBar?.title =
-            getString(R.string.follow_program)
+        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.follow_program)
 
         swipeRefreshLayout.isRefreshing = true
         swipeRefreshLayout.setOnRefreshListener {

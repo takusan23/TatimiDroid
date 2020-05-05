@@ -59,7 +59,7 @@ class NicoLiveHTML {
     var thumb = ""          // サムネイル
     var programOpenTime = 0L    // 番組開始時間
     var programStartTime = 0L    // 番組開場時間
-
+    var programEndTime = 0L     // 番組終了時間
 
     // 匿名コメントならtrue
     var isTokumeiComment = true
@@ -149,6 +149,7 @@ class NicoLiveHTML {
         userId = getNiconicoID(nicoLiveJSON) ?: ""
         programOpenTime = nicoLiveJSON.getJSONObject("program").getLong("openTime")
         programStartTime = nicoLiveJSON.getJSONObject("program").getLong("beginTime")
+        programEndTime = nicoLiveJSON.getJSONObject("program").getLong("endTime")
         programTitle = nicoLiveJSON.getJSONObject("program").getString("title")
         communityId = if (nicoLiveJSON.has("community")) {
             nicoLiveJSON.getJSONObject("community").getString("id")

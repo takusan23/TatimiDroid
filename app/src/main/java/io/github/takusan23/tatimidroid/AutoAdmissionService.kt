@@ -16,6 +16,7 @@ import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
+import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -25,6 +26,8 @@ class AutoAdmissionService : Service() {
     lateinit var sqLiteDatabase: SQLiteDatabase
     lateinit var notificationManager: NotificationManager
     lateinit var broadcastReceiver: BroadcastReceiver
+
+    val timer = Timer()
 
     override fun onCreate() {
         super.onCreate()
@@ -46,53 +49,51 @@ class AutoAdmissionService : Service() {
 
     fun registerAutoAdmission(liveid: String, programName: String, app: String, calendar: Calendar) {
 
-        Timer().schedule(timerTask {
-            if (app.contains("tatimidroid_app")) {
-                //たちみどろいど
-                //  //設定変更。予約枠自動入場はコメント投稿モードのみ
-                //  val pref_setting = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                //  val editor = pref_setting.edit()
-                //  //設定変更
-                //  editor.putBoolean("setting_watching_mode", true)
-                //  editor.putBoolean("setting_nicocas_mode", false)
-                //  editor.apply()
-                //ここにIntent起動書く。
-                val intent = Intent(applicationContext, CommentActivity::class.java)
-                //これいる
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                //番組ID
-                intent.putExtra("liveId", liveid)
-                //視聴モード
-                intent.putExtra("watch_mode", "comment_post")
-                //Activity起動
-                startActivity(intent)
-            } else {
-                //ニコニコ生放送アプリ
-                //Intentとばす
-                val openNicoLiveApp =
-                    "https://sp.live.nicovideo.jp/watch/${liveid}"
-                val intent = Intent(Intent.ACTION_VIEW, openNicoLiveApp.toUri())
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(intent)
+        timer.schedule(timerTask {
+            // 起動方法
+            when {
+                app.contains("tatimidroid_app") -> {
+                    // たちみどろいど
+                    // ここにIntent起動書く。
+                    val intent = Intent(applicationContext, CommentActivity::class.java)
+                    // これいる
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    // 番組ID
+                    intent.putExtra("liveId", liveid)
+                    // 視聴モード
+                    intent.putExtra("watch_mode", "comment_post")
+                    // Activity起動
+                    startActivity(intent)
+                }
+                // ぽっぴぽっぴぽっぴっぽーっぷあっぷ再生
+                app.contains("tatimidroid_popup") -> startLivePlayService(this@AutoAdmissionService, "popup", liveid, true, false)
+                // バッググラウンド再生
+                app.contains("tatimidroid_background") -> startLivePlayService(this@AutoAdmissionService, "background", liveid, true, false)
+                else -> {
+                    //ニコニコ生放送アプリ
+                    //Intentとばす
+                    val openNicoLiveApp = "https://nico.ms/${liveid}"
+                    val intent = Intent(Intent.ACTION_VIEW, openNicoLiveApp.toUri())
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    startActivity(intent)
+                }
             }
-            //Service再起動
+            // Service再起動
             stopSelf()
             startService(Intent(applicationContext, AutoAdmissionService::class.java))
-            //該当の番組をデータベースから消す
+            // 該当の番組をデータベースから消す
             sqLiteDatabase.delete("auto_admission", "liveid=?", arrayOf(liveid))
 
         }, calendar.time)
 
-
-        /*　予約枠自動入場1分前に通知を送信する　
-        *   Android Q 以降でバックグラウンドからActivityを起動しようとすとブロックされて起動できないので、通知にアプリ起動アクションを置くことにした（通知からはおｋらしい）。
-        *   ちなみにアプリが起動していればバックグラウンドからきどうできるので履歴から消さなければおっけー？
-        * */
-
+        /**
+         * 予約枠自動入場1分前に通知を送信する　
+         * Android Q 以降でバックグラウンドからActivityを起動しようとすとブロックされて起動できないので、通知にアプリ起動アクションを置くことにした（通知からはおｋらしい）。
+         * ちなみにアプリが起動していればバックグラウンドからきどうできるので履歴から消さなければおっけー？
+         * */
         val notificationCalender = calendar
         notificationCalender.add(Calendar.MINUTE, -1)//1分前に
-
-        Timer().schedule(timerTask {
+        timer.schedule(timerTask {
             //通知表示
             showAutoAdmissionNotification(liveid, programName, app, notificationCalender)
         }, notificationCalender.time)
@@ -100,60 +101,43 @@ class AutoAdmissionService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return super.onStartCommand(intent, flags, startId)
-
+        return START_NOT_STICKY
     }
 
-    fun showAutoAdmissionNotification(
-        liveid: String,
-        programName: String,
-        app: String,
-        calendar: Calendar
-    ) {
+    fun showAutoAdmissionNotification(liveid: String, programName: String, app: String, calendar: Calendar) {
         notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        //OreoかNougatか
+        // OreoかNougatか
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            //Oreo
+            //O reo
             val notificationChannel = NotificationChannel(
                 "auto_admission_one_minute_notification",
                 getString(R.string.auto_admission_one_minute_notification),
                 NotificationManager.IMPORTANCE_HIGH //重要度上げとく
             )
-            //通知チャンネル登録
+            // 通知チャンネル登録
             if (notificationManager.getNotificationChannel("auto_admission_one_minute_notification") == null) {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
             val time = "${calendar.get(Calendar.HOUR_OF_DAY)}:${calendar.get(Calendar.MINUTE)}"
             val programInfo = "${programName} - ${liveid}\n${time}"
 
-            //通知作成
-            var notification = NotificationCompat.Builder(
-                    applicationContext,
-                    "auto_admission_one_minute_notification"
-                )
-                .setSmallIcon(R.drawable.ic_auto_admission_start_icon)
-                .setContentTitle(getString(R.string.auto_admission_one_minute_notification_description))
-                .setStyle(NotificationCompat.BigTextStyle().bigText(programInfo))
-                .setVibrate(longArrayOf(100, 0, 100, 0))    //バイブ
+            // 通知作成
+            val notification =
+                NotificationCompat.Builder(applicationContext, "auto_admission_one_minute_notification")
+                    .setSmallIcon(R.drawable.ic_auto_admission_start_icon)
+                    .setContentTitle(getString(R.string.auto_admission_one_minute_notification_description))
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(programInfo))
+                    .setVibrate(longArrayOf(100, 0, 100, 0))    //バイブ
 
-            //Action付き通知作成
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Action付き通知作成（たちみどろいどで開くのみ表示。バッググラウンド、ポップアップ再生では表示しない）
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && app.contains("tatimidroid_app")) {
                 val intent = Intent(applicationContext, MainActivity::class.java)
                 notification.setContentTitle(getString(R.string.auto_admission_one_minute_notification))
                 notification.setContentText(getString(R.string.auto_admission_one_minute_notification_description_androidq))
-                notification.addAction(
-                    R.drawable.ic_auto_admission_start_icon,
-                    getString(R.string.lunch_app),
-                    PendingIntent.getActivity(
-                        applicationContext, 45, intent,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                    )
-                )
+                notification.addAction(R.drawable.ic_auto_admission_start_icon, getString(R.string.lunch_app), PendingIntent.getActivity(applicationContext, 45, intent, PendingIntent.FLAG_UPDATE_CURRENT))
             }
-
-
-            //表示
+            // 表示
             notificationManager.notify(2525, notification.build())
         } else {
             //Nougat
@@ -211,21 +195,20 @@ class AutoAdmissionService : Service() {
         //予約無い時
         if (programList.isEmpty()) {
             programList = getString(R.string.auto_admission_empty)
+            // 無いので落とす
+            stopSelf()
         }
 
         //Oreo以降は通知チャンネルいる
         //Oreo以降はサービス実行中です通知を出す必要がある。
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(
-                "auto_admission_notification",
-                getString(R.string.auto_admission_notification),
-                NotificationManager.IMPORTANCE_LOW
-            )
-            //通知チャンネル登録
+            val notificationChannel =
+                NotificationChannel("auto_admission_notification", getString(R.string.auto_admission_notification), NotificationManager.IMPORTANCE_LOW)
+            // 通知チャンネル登録
             if (notificationManager.getNotificationChannel("auto_admission_notification") == null) {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
-            //通知作成
+            // 通知作成
             val notification =
                 NotificationCompat.Builder(applicationContext, "auto_admission_notification")
                     .setContentTitle(getString(R.string.auto_admission_notification))
@@ -234,25 +217,37 @@ class AutoAdmissionService : Service() {
                     .setStyle(NotificationCompat.BigTextStyle().bigText(programList))
                     .addAction(R.drawable.ic_clear_black, getString(R.string.end), PendingIntent.getBroadcast(this, 865, Intent("close_auto_admission"), PendingIntent.FLAG_UPDATE_CURRENT))
                     .build()
-            //表示
+            // 表示
             startForeground(1, notification)
-
-            // ブロードキャスト受け取る
-            val intentFilter = IntentFilter()
-            intentFilter.addAction("close_auto_admission")
-            broadcastReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                    stopSelf()
-                }
-            }
-            registerReceiver(broadcastReceiver, intentFilter)
-
+        } else {
+            // Android ぬがーでも通知出す
+            // 通知作成
+            val notification =
+                NotificationCompat.Builder(applicationContext)
+                    .setContentTitle(getString(R.string.auto_admission_notification))
+                    .setSmallIcon(R.drawable.ic_auto_admission_icon)
+                    .setContentTitle(getString(R.string.auto_admission_notification_message))
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(programList))
+                    .addAction(R.drawable.ic_clear_black, getString(R.string.end), PendingIntent.getBroadcast(this, 865, Intent("close_auto_admission"), PendingIntent.FLAG_UPDATE_CURRENT))
+                    .build()
+            // 表示
+            startForeground(1, notification)
         }
+        // ブロードキャスト受け取る
+        val intentFilter = IntentFilter()
+        intentFilter.addAction("close_auto_admission")
+        broadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                stopSelf()
+            }
+        }
+        registerReceiver(broadcastReceiver, intentFilter)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(broadcastReceiver)
+        timer.cancel()
     }
 
 

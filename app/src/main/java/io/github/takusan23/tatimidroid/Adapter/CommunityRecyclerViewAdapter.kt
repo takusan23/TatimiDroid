@@ -4,12 +4,15 @@ import android.content.*
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
@@ -17,15 +20,18 @@ import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
+import io.github.takusan23.tatimidroid.Fragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.ReservationUtil
 import java.text.SimpleDateFormat
 import java.util.*
 
+// 番組RecyclerViewAdapter
 class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ProgramData>) :
     RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
+
+    lateinit var prefSetting: SharedPreferences
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -40,8 +46,8 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val content = holder.timeTextView.context
         val activity = (content as MainActivity)
-        val darkModeSupport =
-            DarkModeSupport(content)
+        val darkModeSupport = DarkModeSupport(content)
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(content)
 
         val item = arrayListArrayAdapter[position]
         val title = item.title
@@ -68,7 +74,6 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
             holder.timeTextView.setTextColor(Color.RED)
             // 視聴モード
             holder.watchModeLinearLayout.visibility = View.VISIBLE
-            holder.communityBeforeLinearLayout.visibility = View.GONE
         } else {
             //予約枠
             holder.timeTextView.text = time
@@ -79,33 +84,13 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
             }
             // 視聴モード
             holder.watchModeLinearLayout.visibility = View.GONE
-            holder.communityBeforeLinearLayout.visibility = View.GONE
-        }
-
-        //Cardを選択したら
-        holder.communityCard.setOnClickListener {
-            if (!isOnAir) {
-                // TS予約など。表示/非表示
-                holder.communityBeforeLinearLayout.visibility =
-                    if (holder.communityBeforeLinearLayout.visibility == View.VISIBLE) {
-                        View.GONE
-                    } else {
-                        View.VISIBLE
-                    }
-            } else {
-                //
-
-            }
         }
 
         /*
         * 番組IDコピー機能
         * */
         holder.communityCard.setOnLongClickListener {
-            Toast.makeText(
-                    content, "${content.getString(R.string.copy_program_id)} : $liveId",
-                    Toast.LENGTH_SHORT
-                )
+            Toast.makeText(content, "${content.getString(R.string.copy_program_id)} : $liveId", Toast.LENGTH_SHORT)
                 .show()
             val clipboardManager =
                 content.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -124,9 +109,22 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         // 視聴モードボタン
         initWatchModeButton(holder, item)
         // TS予約などのボタン
-        initTSButton(holder, item)
+        holder.liveMenuIconImageView.setOnClickListener {
+            val programMenuBottomSheet = ProgramMenuBottomSheet()
+            val bundle = Bundle()
+            bundle.putString("liveId", liveId)
+            programMenuBottomSheet.arguments = bundle
+            programMenuBottomSheet.show((it.context as AppCompatActivity).supportFragmentManager, "menu")
+        }
 
     }
+
+    fun showToast(context: Context, message: String) {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -145,16 +143,10 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
             itemView.findViewById(R.id.adapter_community_watchmode_nicocas)
         val watchModeDesc: Button =
             itemView.findViewById(R.id.adapter_community_watchmode_description)
-
-        // 予約枠
-        val communityBeforeLinearLayout: LinearLayout =
-            itemView.findViewById(R.id.adapter_community_before_linearlayout)
-        val timeShiftButton: Button = itemView.findViewById(R.id.adapter_community_ts)
-        val calendarButton: Button = itemView.findViewById(R.id.adapter_community_calendar)
-        val shareButton: Button = itemView.findViewById(R.id.adapter_community_share)
-        val autoTatimiButton: Button = itemView.findViewById(R.id.adapter_community_auto)
-        val autoNicoLiveButton: Button = itemView.findViewById(R.id.adapter_community_auto_nicocas)
-        val thumbImageView: ImageView = itemView.findViewById(R.id.adapter_community_program_thumb)
+        val thumbImageView: ImageView =
+            itemView.findViewById(R.id.adapter_community_program_thumb)
+        val liveMenuIconImageView: ImageView =
+            itemView.findViewById(R.id.adapter_community_menu_icon)
     }
 
     // 視聴モード選択ボタン初期化
@@ -189,31 +181,6 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
                 val dialog = BottomSheetDialogWatchMode()
                 dialog.arguments = bundle
                 dialog.show((context as AppCompatActivity).supportFragmentManager, "watchmode")
-            }
-        }
-    }
-
-    private fun initTSButton(holder: ViewHolder, item: ProgramData) {
-        val context = holder.calendarButton.context
-        val reservationUtil =
-            ReservationUtil(context)
-        holder.apply {
-            calendarButton.setOnClickListener {
-                reservationUtil.addCalendar(context, item)
-            }
-            shareButton.setOnClickListener {
-                reservationUtil.showShareScreen(context, it, item)
-            }
-            timeShiftButton.setOnClickListener {
-                reservationUtil.registerTimeShift(context, item, it)
-            }
-            autoNicoLiveButton.setOnClickListener {
-                // ニコ生アプリで開く
-                reservationUtil.admissionDBUtil.addAutoAdmissionDB("nicolive_app", context, item, it)
-            }
-            autoTatimiButton.setOnClickListener {
-                // たちみどろいどでひらく
-                reservationUtil.admissionDBUtil.addAutoAdmissionDB("tatimidroid_app", context, item, it)
             }
         }
     }

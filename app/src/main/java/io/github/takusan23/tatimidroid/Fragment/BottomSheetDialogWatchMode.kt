@@ -181,15 +181,13 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
             } else if (status == "RELEASED" && canWatchLive) {
                 // 予約枠で視聴が可能な場合（コミュ限とかではない場合）
                 // 予約枠BottomSheet展開。予約枠自動入場やタイムシフト予約ができますよー
-                val programReservationBottomFragment =
-                    ProgramReservationBottomFragment()
+                val programMenuBottomSheet = ProgramMenuBottomSheet()
                 val bundle = Bundle().apply {
-                    putString("json", jsonObject.toString())
                     putString("liveId", liveId)
                 }
-                programReservationBottomFragment.arguments = bundle
+                programMenuBottomSheet.arguments = bundle
                 if (fragmentManager != null) {
-                    programReservationBottomFragment.show(fragmentManager!!, "reservation")
+                    programMenuBottomSheet.show(fragmentManager!!, "reservation")
                 }
                 // けす
                 dismiss()

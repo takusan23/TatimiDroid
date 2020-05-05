@@ -22,40 +22,58 @@
                 android:orientation="vertical">
 
             <LinearLayout
-                    android:id="@+id/adapter_community_program_name_linearlayout"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                <ImageView
-                        android:id="@+id/adapter_community_program_thumb"
-                        android:layout_width="80sp"
-                        android:layout_height="match_parent"
-                        android:layout_margin="5sp" />
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
 
                 <LinearLayout
+                        android:id="@+id/adapter_community_program_name_linearlayout"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="10dp">
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
 
-                    <TextView
-                            android:id="@+id/adapter_community_time_textview"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="読み込み中"
-                            android:textSize="14dp" />
+                    <ImageView
+                            android:id="@+id/adapter_community_program_thumb"
+                            android:layout_width="80dp"
+                            android:layout_height="match_parent"
+                            android:layout_margin="5dp" />
 
-                    <TextView
-                            android:id="@+id/adapter_community_title_textview"
+                    <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="読み込み中"
-                            android:textSize="18dp" />
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:padding="10dp">
+
+                        <TextView
+                                android:id="@+id/adapter_community_time_textview"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="読み込み中"
+                                android:textSize="14dp" />
+
+                        <TextView
+                                android:id="@+id/adapter_community_title_textview"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="読み込み中"
+                                android:textSize="18dp" />
+                    </LinearLayout>
+
                 </LinearLayout>
+
+                <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:padding="10dp"
+                        android:id="@+id/adapter_community_menu_icon"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:src="@drawable/ic_more_vert_24px" />
 
             </LinearLayout>
 
@@ -77,14 +95,14 @@
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_margin="2sp"
+                            android:layout_margin="2dp"
                             android:text="@string/mode_comeview" />
 
                     <Button
                             android:id="@+id/adapter_community_watchmode_comepost"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_margin="2sp"
+                            android:layout_margin="2dp"
                             android:text="@string/mode_post" />
 
                     <Button
@@ -92,7 +110,7 @@
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_margin="2sp"
+                            android:layout_margin="2dp"
                             android:text="@string/mode_nicocas" />
 
                     <Button
@@ -100,89 +118,13 @@
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_margin="2sp"
+                            android:layout_margin="2dp"
                             android:text="？" />
 
                 </LinearLayout>
 
             </LinearLayout>
 
-            <LinearLayout
-                    android:id="@+id/adapter_community_before_linearlayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:visibility="gone"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/adapter_community_program_name_linearlayout"
-                    tools:visibility="visible">
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical">
-
-                    <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                        <Button
-                                android:id="@+id/adapter_community_ts"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="2sp"
-                                android:text="@string/ts_add"
-                                app:icon="@drawable/ic_outline_query_builder_24px" />
-
-                        <Button
-                                android:id="@+id/adapter_community_calendar"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="2sp"
-                                android:text="@string/add_calendar"
-                                app:icon="@drawable/ic_event_available_24px" />
-
-                        <Button
-                                android:id="@+id/adapter_community_share"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="2sp"
-                                android:text="@string/share"
-                                app:icon="@drawable/ic_share" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                        <Button
-                                android:id="@+id/adapter_community_auto"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="2sp"
-                                android:layout_weight="1"
-                                android:text="@string/auto_tatimidroid" />
-
-                        <Button
-                                android:id="@+id/adapter_community_auto_nicocas"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="2sp"
-                                android:layout_weight="1"
-                                android:text="@string/auto_nicolive" />
-
-                    </LinearLayout>
-                </LinearLayout>
-
-            </LinearLayout>
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
