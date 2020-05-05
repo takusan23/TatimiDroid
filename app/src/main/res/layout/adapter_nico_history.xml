@@ -1,23 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_margin="10sp"
-        android:id="@+id/adapter_nico_history_parent"
         android:layout_height="wrap_content"
-        android:clickable="true"
-        android:foreground="?android:attr/selectableItemBackground"
         android:orientation="vertical">
 
-    <TextView
-            android:id="@+id/adapter_nico_history_title"
+    <androidx.cardview.widget.CardView
+            android:id="@+id/adapter_nico_hisotry_cardview"
             android:layout_width="match_parent"
-            android:textSize="20sp"
-            android:layout_height="wrap_content"
-            android:text="たいとる" />
+            android:layout_height="match_parent"
+            android:layout_margin="3dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:cardCornerRadius="5dp">
 
-    <TextView
-            android:id="@+id/adapter_nico_history_date"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="日付" />
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:orientation="horizontal">
+
+            <ImageView
+                    android:id="@+id/adapter_nico_history_icon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center_vertical"
+                    app:srcCompat="@drawable/ic_local_movies_24px" />
+
+            <LinearLayout
+                    android:id="@+id/adapter_nico_history_parent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                <TextView
+                        android:id="@+id/adapter_nico_history_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxLines="2"
+                        android:text="たいとる"
+                        android:textSize="20sp" />
+
+                <TextView
+                        android:id="@+id/adapter_nico_history_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="日付" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
 </LinearLayout>

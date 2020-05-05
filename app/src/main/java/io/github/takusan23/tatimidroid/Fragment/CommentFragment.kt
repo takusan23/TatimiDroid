@@ -2059,10 +2059,10 @@ class CommentFragment : Fragment() {
         }
     }
 
-    fun isInitGoogleCast(): Boolean {
-        return ::googleCast.isInitialized
-    }
+    fun isInitGoogleCast(): Boolean = ::googleCast.isInitialized
 
     fun isInitNicoLiveJSONObject(): Boolean = ::nicoLiveJSON.isInitialized
+
+    fun isInitQualityChangeBottomSheet(): Boolean = ::qualitySelectBottomSheet.isInitialized
 
 }

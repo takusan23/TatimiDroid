@@ -123,13 +123,12 @@ class CommentMenuFragment : Fragment() {
             googleCast.setUpCastButton(fragment_comment_fragment_menu_cast_button)
         }
 
-        //画質変更
+        // 画質変更
         fragment_comment_fragment_menu_quality_button.setOnClickListener {
-            //画質変更
-            commentFragment.qualitySelectBottomSheet.show(
-                activity?.supportFragmentManager!!,
-                "quality_bottom"
-            )
+            // 画質変更（視聴セッションWebSocket前だと見れない）
+            if (commentFragment.isInitQualityChangeBottomSheet()) {
+                commentFragment.qualitySelectBottomSheet.show(activity?.supportFragmentManager!!, "quality_bottom")
+            }
         }
         //強制画面回転
         fragment_comment_fragment_menu_rotation_button.setOnClickListener {

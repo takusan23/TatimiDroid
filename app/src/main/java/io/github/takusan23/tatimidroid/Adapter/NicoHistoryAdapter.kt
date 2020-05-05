@@ -4,8 +4,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.R
@@ -37,10 +39,10 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<
         val communityId = item.get(5)
 
         holder.titleTextView.text = "$title / $id"
-        holder.dateTextView.text = "$type / ${unixToDataFormat(date.toLong())}"
+        holder.dateTextView.text = unixToDataFormat(date.toLong()).toString()
 
         //コミュIDをいれる
-        holder.parentLinearLayout.setOnClickListener {
+        holder.cardView.setOnClickListener {
             if (::editText.isInitialized) {
                 val text = if (communityId.isNotEmpty()) {
                     communityId
@@ -55,7 +57,7 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<
             }
         }
         // 長押しで番組ID
-        holder.parentLinearLayout.setOnLongClickListener {
+        holder.cardView.setOnLongClickListener {
             if (::editText.isInitialized) {
                 editText.setText(id)
             }
@@ -65,6 +67,14 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<
             }
             true
         }
+
+        // アイコン
+        val icon = if (type == "video") {
+            holder.typeIcon.context.getDrawable(R.drawable.ic_local_movies_24px)
+        } else {
+            holder.typeIcon.context.getDrawable(R.drawable.ic_outline_live_tv_24px_black)
+        }
+        holder.typeIcon.setImageDrawable(icon)
     }
 
     fun unixToDataFormat(unixTime: Long): String? {
@@ -77,11 +87,15 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<
         var titleTextView: TextView
         var dateTextView: TextView
         var parentLinearLayout: LinearLayout
+        var cardView: CardView
+        var typeIcon: ImageView
 
         init {
             parentLinearLayout = itemView.findViewById(R.id.adapter_nico_history_parent)
             titleTextView = itemView.findViewById(R.id.adapter_nico_history_title)
             dateTextView = itemView.findViewById(R.id.adapter_nico_history_date)
+            cardView = itemView.findViewById(R.id.adapter_nico_hisotry_cardview)
+            typeIcon = itemView.findViewById(R.id.adapter_nico_history_icon)
         }
     }
 }
