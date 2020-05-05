@@ -13,15 +13,13 @@ import android.provider.Settings
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.format.DateUtils
 import android.view.*
-import android.widget.LinearLayout
-import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.view.get
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -29,21 +27,18 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
-import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.isLoginMode
-import kotlinx.android.synthetic.main.fragment_nicovideo.*
-import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.math.BigDecimal
@@ -92,6 +87,7 @@ class NicoVideoPlayService : Service() {
     var nicoHistory = ""
     lateinit var jsonObject: JSONObject
     var seekTimer = Timer()
+    var isTouchingSeekBar = false // サイズ変更シークバー操作中ならtrue
 
     // session_apiのレスポンス
     lateinit var sessionAPIJSONObject: JSONObject
@@ -285,16 +281,16 @@ class NicoVideoPlayService : Service() {
                     popupView.overlay_video_video_seek_bar.setOnSeekBarChangeListener(object :
                         SeekBar.OnSeekBarChangeListener {
                         override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-
                         }
 
                         override fun onStartTrackingTouch(seekBar: SeekBar?) {
-
+                            isTouchingSeekBar = true
                         }
 
                         override fun onStopTrackingTouch(seekBar: SeekBar?) {
                             // 動画シークする
                             exoPlayer.seekTo((seekBar?.progress ?: 0) * 1000L)
+                            isTouchingSeekBar = false
                         }
                     })
                     // 動画のアイコン入れ替え
@@ -308,6 +304,12 @@ class NicoVideoPlayService : Service() {
             }
         })
 
+        // Displayの大きさ
+        val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val disp = wm.getDefaultDisplay()
+        val realSize = Point()
+        disp.getRealSize(realSize)
+
         // アスペクトひ
         exoPlayer.addVideoListener(object : VideoListener {
             override fun onVideoSizeChanged(width: Int, height: Int, unappliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
@@ -317,36 +319,12 @@ class NicoVideoPlayService : Service() {
                 val calc = width.toFloat() / height.toFloat()
                 // 小数点第二位を捨てる
                 aspect = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
-                // PopupViewのLayoutParams再計算
-                val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                val disp = wm.getDefaultDisplay()
-                val realSize = Point()
-                disp.getRealSize(realSize)
                 popupLayoutParams = getParams(realSize.x / 2)
                 windowManager.updateViewLayout(popupView, popupLayoutParams)
                 // 設定読み込む
-                // サイズが保存されていれば適用。16：9バージョン
-                if (prefSetting.getInt("nicovideo_popup_width_16_9", 0) != 0) {
-                    // アスペクト比が求まっているか
-                    if (aspect == 1.7) {
-                        popupLayoutParams.width =
-                            prefSetting.getInt("nicovideo_popup_width_16_9", popupLayoutParams.width)
-                        popupLayoutParams.height =
-                            prefSetting.getInt("nicovideo_popup_height_16_9", popupLayoutParams.height)
-                    }
-                    windowManager.updateViewLayout(popupView, popupLayoutParams)
-                }
-                // サイズが保存されていれば適用。4：3バージョン
-                if (prefSetting.getInt("nicovideo_popup_width_4_3", 0) != 0) {
-                    // アスペクト比が求まっているか
-                    if (aspect == 1.3) {
-                        popupLayoutParams.width =
-                            prefSetting.getInt("nicovideo_popup_width_4_3", popupLayoutParams.width)
-                        popupLayoutParams.height =
-                            prefSetting.getInt("nicovideo_popup_height_4_3", popupLayoutParams.height)
-                    }
-                    windowManager.updateViewLayout(popupView, popupLayoutParams)
-                }
+                // サイズ適用
+                popupView.overlay_video_size_seekbar.progress =
+                    prefSetting.getInt("nicovideo_popup_size_progress", 0)
                 // CommentCanvasに反映
                 applyCommentCanvas()
                 // 位置が保存されていれば適用
@@ -374,24 +352,20 @@ class NicoVideoPlayService : Service() {
                 return
             }
             // 画面の半分を利用するように
-            val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-            val disp = wm.getDefaultDisplay()
-            val realSize = Point();
-            disp.getRealSize(realSize);
             val width = realSize.x / 2
 
-            //レイアウト読み込み
+            // レイアウト読み込み
             val layoutInflater = LayoutInflater.from(this)
             popupLayoutParams = getParams(width)
             popupView = layoutInflater.inflate(R.layout.overlay_video_player_layout, null)
-            //表示
+            // 表示
             windowManager.addView(popupView, popupLayoutParams)
             commentCanvas = popupView.overlay_video_commentCanvas
             commentCanvas.isPopupView = true
-            //SurfaceViewセット
+            // SurfaceViewセット
             exoPlayer.setVideoSurfaceView(popupView.overlay_video_surfaceview)
 
-            //閉じる
+            // 閉じる
             popupView.overlay_video_close_button.setOnClickListener {
                 stopSelf()
             }
@@ -402,7 +376,7 @@ class NicoVideoPlayService : Service() {
                 popupView.overlay_video_repeat_button.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
             }
 
-            //ミュート・ミュート解除
+            // ミュート・ミュート解除
             popupView.overlay_video_sound_button.setOnClickListener {
                 if (::exoPlayer.isInitialized) {
                     exoPlayer.apply {
@@ -418,12 +392,13 @@ class NicoVideoPlayService : Service() {
                 }
             }
 
-            //ボタン表示
+            // ボタン表示
             popupView.setOnClickListener {
                 if (popupView.overlay_video_button_layout.visibility == View.GONE) {
                     //表示
                     popupView.overlay_video_button_layout.visibility = View.VISIBLE
-                    popupView.overlay_video_controller_layout.visibility = View.VISIBLE
+                    // コントローラー表示可能なら表示する
+                    showVideoController()
                 } else {
                     //非表示
                     popupView.overlay_video_button_layout.visibility = View.GONE
@@ -453,22 +428,21 @@ class NicoVideoPlayService : Service() {
                                 popupLayoutParams.width = normalWidth + (progress + 1) * 16
                             }
                         }
+                        // 大きさ変更シークの最大値設定。なんかこの式で期待通り動く。なんでか知らないけど動く。:thinking_face:
+                        popupView.overlay_video_size_seekbar.max = when (aspect) {
+                            1.3 -> (realSize.x / 4) / 2
+                            1.7 -> (realSize.x / 16) / 2
+                            else -> (realSize.x / 16) / 2
+                        }
                         windowManager.updateViewLayout(popupView, popupLayoutParams)
                         // CommentCanvasに反映
                         applyCommentCanvas()
-                        // 位置保存。アスペクト比ごとに保存
+                        // 位置保存。サイズ変更シーク位置を保存
                         prefSetting.edit {
-                            when (aspect) {
-                                1.3 -> {
-                                    putInt("nicovideo_popup_width_4_3", popupLayoutParams.width)
-                                    putInt("nicovideo_popup_height_4_3", popupLayoutParams.height)
-                                }
-                                1.7 -> {
-                                    putInt("nicovideo_popup_width_16_9", popupLayoutParams.width)
-                                    putInt("nicovideo_popup_height_16_9", popupLayoutParams.height)
-                                }
-                            }
+                            putInt("nicovideo_popup_size_progress", popupView.overlay_video_size_seekbar.progress)
                         }
+                        // コントローラー表示可能かどうか
+                        showVideoController()
                     }
 
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -575,6 +549,26 @@ class NicoVideoPlayService : Service() {
         }
     }
 
+    // コントローラーが表示できるなら表示する関数
+    private fun showVideoController() {
+
+        val buttonHeight = popupView.overlay_video_button_layout_button.height
+        val sizeSeekHeight = popupView.overlay_video_button_layout_size.height
+        val totalHeight = buttonHeight + sizeSeekHeight
+        val space = popupLayoutParams.height - totalHeight
+
+        val controllerHeight =
+            popupView.overlay_video_controller_layout.height
+
+        // 表示可能でなおボタン類が表示状態なら表示
+        if (space > controllerHeight && popupView.overlay_video_button_layout.visibility == View.VISIBLE) {
+            popupView.overlay_video_controller_layout.visibility =
+                View.VISIBLE
+        } else {
+            popupView.overlay_video_controller_layout.visibility = View.GONE
+        }
+    }
+
     // サイズ変更をCommentCanvasに反映させる
     private fun applyCommentCanvas() {
         commentCanvas.viewTreeObserver.addOnGlobalLayoutListener {
@@ -613,8 +607,10 @@ class NicoVideoPlayService : Service() {
 
     // シークを動画再生時間に合わせる
     private fun setProgress() {
-        popupView.overlay_video_video_seek_bar.progress =
-            (exoPlayer.currentPosition / 1000L).toInt()
+        if (!isTouchingSeekBar) {
+            popupView.overlay_video_video_seek_bar.progress =
+                (exoPlayer.currentPosition / 1000L).toInt()
+        }
     }
 
     private fun getParams(width: Int): WindowManager.LayoutParams {
@@ -761,13 +757,15 @@ class NicoVideoPlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(broadcastReceiver)
-        mediaSessionCompat.apply {
-            isActive = false
-            setPlaybackState(
-                PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 0L, 1F)
-                    .build()
-            )
-            release()
+        if (::mediaSessionCompat.isInitialized) {
+            mediaSessionCompat.apply {
+                isActive = false
+                setPlaybackState(
+                    PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_NONE, 0L, 1F)
+                        .build()
+                )
+                release()
+            }
         }
         nicoVideoHTML.destory()
         nicoVideoCache.destroy()

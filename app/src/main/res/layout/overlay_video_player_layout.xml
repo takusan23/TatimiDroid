@@ -30,6 +30,7 @@
                 tools:visibility="visible">
 
             <LinearLayout
+                    android:id="@+id/overlay_video_button_layout_button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="#80000000"
@@ -82,6 +83,7 @@
             </LinearLayout>
 
             <LinearLayout
+                    android:id="@+id/overlay_video_button_layout_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="#80000000"

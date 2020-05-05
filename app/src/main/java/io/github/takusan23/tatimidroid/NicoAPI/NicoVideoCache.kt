@@ -292,6 +292,7 @@ class NicoVideoCache(val context: Context?) {
     fun saveVideoInfo(videoIdFolder: File, videoId: String, json: String) {
         // 動画情報JSON作成
         val videoJSONFile = File("${videoIdFolder.path}/$videoId.json")
+        videoJSONFile.createNewFile()
         // Kotlinくっそ簡単やんけ！
         videoJSONFile.writeText(json)
         showToast("$videoId\n${context?.getString(R.string.get_cache_video_info_ok)}")
@@ -310,6 +311,7 @@ class NicoVideoCache(val context: Context?) {
         val thumbnailURL = jsonObject.getJSONObject("video").getString("largeThumbnailURL")
         // 動画サムネファイル作成
         val videoIdThum = File("${videoIdFolder.path}/$videoId.jpg")
+        videoIdThum.createNewFile()
         // リクエスト
         val request = Request.Builder().apply {
             url(thumbnailURL)
@@ -350,8 +352,9 @@ class NicoVideoCache(val context: Context?) {
                 NicoVideoHTML()
                     .getComment(videoId, userSession, JSONObject(json)).await()
             if (response != null && response.isSuccessful) {
-                // 動画情報JSON作成
+                // 動画コメントJSON作成
                 val videoJSONFile = File("${videoIdFolder.path}/${videoId}_comment.json")
+                videoJSONFile.createNewFile()
                 // Kotlinくっそ簡単やんけ！
                 videoJSONFile.writeText(response.body?.string()!!)
                 showToast("$videoId\n${context?.getString(R.string.get_cache_comment_ok)}")
