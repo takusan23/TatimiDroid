@@ -9,6 +9,7 @@ import android.view.View
 import androidx.preference.PreferenceManager
 import java.util.*
 import kotlin.concurrent.schedule
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
@@ -221,42 +222,16 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         }
         // 上付きコメントを描画する
         ueCommentList.toList().forEach {
-            when {
-                it.command.contains("big") -> {
-                    val fontSize = (fontsize * 1.3).toFloat()
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(fontSize))
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, fontSize))
-                }
-                it.command.contains("small") -> {
-                    val fontSize = (fontsize * 0.8).toFloat()
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(fontSize))
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, fontSize))
-                }
-                else -> {
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
-                    canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command))
-                }
+            if (it?.command != null && it?.comment != null) {
+                canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(it.fontSize))
+                canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, it.fontSize))
             }
         }
         // 下付きコメントを描画する
         sitaCommentList.toList().forEach {
             if (it?.command != null && it?.comment != null) {
-                when {
-                    it.command.contains("big") -> {
-                        val fontSize = (fontsize * 1.3).toFloat()
-                        canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(fontSize))
-                        canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, fontSize))
-                    }
-                    it.command.contains("small") -> {
-                        val fontSize = (fontsize * 0.8).toFloat()
-                        canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(fontSize))
-                        canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, fontSize))
-                    }
-                    else -> {
-                        canvas?.drawText(it.comment, it.xPos, it.yPos, blackPaint)
-                        canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command))
-                    }
-                }
+                canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(it.fontSize))
+                canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, it.fontSize))
             }
         }
     }
@@ -417,7 +392,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         // コマンドで指定されたフォントサイズを
         // big->1.3倍
         // small->0.8倍
-        val commandFontSize = when {
+        var commandFontSize = when {
             commentJSONParse.mail.contains("big") -> {
                 (fontsize * 1.3).toFloat()
             }
@@ -427,7 +402,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             else -> fontsize
         }
         // コマンドで指定されたサイズで作成したPaintでコメントの幅計算
-        val measure =
+        var measure =
             getCommentTextPaint(commentJSONParse.comment, commandFontSize).measureText(comment)
         var xPos = width.toFloat()
         var yPos = fontsize
@@ -435,7 +410,6 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         val command = commentJSONParse.mail
 
         val tmpCommand = command
-
         // 上でもなければ下でもないときは流す
         if (!command.contains("ue") && !command.contains("shita")) {
             // 流れるコメント
@@ -470,12 +444,23 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 }
             }
             val commentObj =
-                CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt)
+                CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt, fontsize)
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
         } else if (command.contains("ue") && tmpCommand.replace("blue|blue([0-9])".toRegex(), "")
                 .contains("ue")
         ) {
+            var fontSize = when {
+                command.contains("big") -> fontsize * 1.3
+                command.contains("small") -> fontsize * 0.8
+                else -> fontsize.toDouble()
+            }
+            // コメントが入り切らないとき
+            if (measure > width) {
+                fontSize = (width / comment.length).toDouble()
+                measure = width.toFloat()
+            }
+            commandFontSize = fontSize.toFloat()
             var yPos = commandFontSize
             for (i in 0 until ueCommentLine.size) {
                 // みていく
@@ -493,6 +478,11 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     yPos = ueCommentLine.toList()[i].first + commandFontSize
                 }
             }
+            // 画面外にいったらランダムな位置に配置する
+            if (yPos > finalHeight) {
+                val random = Random.nextInt(1, (finalHeight / fontSize.roundToInt()))
+                yPos = (random * fontSize).toFloat()
+            }
             val commentObj =
                 CommentObject(
                     comment,
@@ -501,12 +491,25 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     System.currentTimeMillis(),
                     measure,
                     command,
-                    asciiArt
+                    asciiArt,
+                    fontSize.toFloat()
                 )
             ueCommentList.add(commentObj)
             ueCommentLine[yPos] = commentObj
         } else if (command.contains("shita")) {
-            var yPos = finalHeight - commandFontSize
+            // フォントサイズ
+            var fontSize = when {
+                command.contains("big") -> fontsize * 1.3
+                command.contains("small") -> fontsize * 0.8
+                else -> fontsize.toDouble()
+            }
+            // コメントが入り切らないとき
+            if (measure > width) {
+                fontSize = (width / comment.length).toDouble()
+                measure = width.toFloat()
+            }
+            commandFontSize = fontSize.toFloat()
+            var yPos = finalHeight.toFloat() - 10
             for (i in 0 until sitaCommentLine.size) {
                 // みていく
                 val obj = sitaCommentLine.toList()[i].second
@@ -523,16 +526,21 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     yPos = sitaCommentLine.toList()[i].first - commandFontSize
                 }
             }
-            val commentObj =
-                CommentObject(
-                    comment,
-                    ((width.toFloat() - measure) / 2),
-                    yPos,
-                    System.currentTimeMillis(),
-                    measure,
-                    command,
-                    asciiArt
-                )
+            // マイナスにいったらランダムな位置に配置する
+            if (yPos < fontSize) {
+                val random = Random.nextInt(1, (finalHeight / fontSize.roundToInt()))
+                yPos = (random * fontSize).toFloat()
+            }
+            val commentObj = CommentObject(
+                comment,
+                ((width.toFloat() - measure) / 2),
+                yPos,
+                System.currentTimeMillis(),
+                measure,
+                command,
+                asciiArt,
+                fontSize.toFloat()
+            )
             sitaCommentList.add(commentObj)
             sitaCommentLine[yPos] = commentObj
         } else {
@@ -567,8 +575,16 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     // println("らんだむ")
                 }
             }
-            val commentObj =
-                CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt)
+            val commentObj = CommentObject(
+                comment,
+                xPos,
+                yPos,
+                System.currentTimeMillis(),
+                measure,
+                command,
+                asciiArt,
+                fontsize
+            )
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
         }
@@ -755,7 +771,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         var unixTime: Long,
         var commentMeasure: Float,
         var command: String,
-        var asciiArt: Boolean = false
+        var asciiArt: Boolean = false,
+        var fontSize: Float
     )
 
 }

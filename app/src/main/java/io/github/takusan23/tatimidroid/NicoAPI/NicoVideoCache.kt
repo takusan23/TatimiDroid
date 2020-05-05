@@ -50,6 +50,7 @@ class NicoVideoCache(val context: Context?) {
      * @return NicoVideoDataの配列
      * */
     fun loadCache(): Deferred<ArrayList<NicoVideoData>> = GlobalScope.async {
+        cacheTotalSize = 0
         val list = arrayListOf<NicoVideoData>()
         // ScopedStorage
         if (context?.getExternalFilesDir(null) != null) {

@@ -91,8 +91,10 @@ class DevNicoVideoRankingFragment : Fragment() {
                     recyclerViewList.add(it)
                 }
                 activity?.runOnUiThread {
-                    nicoVideoListAdapter.notifyDataSetChanged()
-                    fragment_video_ranking_swipe.isRefreshing = false
+                    if (isAdded) {
+                        nicoVideoListAdapter.notifyDataSetChanged()
+                        fragment_video_ranking_swipe.isRefreshing = false
+                    }
                 }
             } else {
                 showToast("${getString(R.string.error)}\n${response.code}")
