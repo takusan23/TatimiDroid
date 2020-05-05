@@ -171,6 +171,12 @@ class GetCacheService : Service() {
                 nicoVideoCache.getCache(videoId, jsonObject.toString(), contentUrl, userSession, nicoHistory)
                 // キャッシュ取得成功ブロードキャストを受け取る
                 nicoVideoCache.initBroadcastReceiver {
+                    /**
+                     * Android 10からｇｍみたいな仕様変更が入った。（らしい）
+                     * DownloadManager経由で落としたファイルがなんか勝手に削除されるようになってしまった。
+                     * 対策でファイル名を変えるといいらしい
+                     * */
+                    nicoVideoCache.reNameVideoFile(videoId)
                     // 取得完了したら呼ばれる。
                     nicoVideoHTML.destory()
                     nicoVideoCache.destroy()

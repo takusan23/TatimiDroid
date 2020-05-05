@@ -261,7 +261,7 @@ class NicoVideoCache(val context: Context?) {
      * */
     fun getVideoCache(videoIdFolder: File, videoId: String, url: String, userSession: String, nicoHistory: String) {
         // 動画mp4ファイル作成
-        val videoIdMp4 = File("${videoIdFolder.path}/$videoId.mp4")
+        val videoIdMp4 = File("${videoIdFolder.path}/${videoId}_tmp.mp4")
         // リクエスト作成
         val downloadRequest = DownloadManager.Request(url.toUri()).apply {
             addRequestHeader("Cookie", nicoHistory)
@@ -404,6 +404,18 @@ class NicoVideoCache(val context: Context?) {
             }
         }
         context?.registerReceiver(broadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+    }
+
+    /**
+     * Android 10からDownloadManagerが勝手にファイル消すのでファイル名を変えて対策
+     * @param videoId 動画ID
+     * */
+    fun reNameVideoFile(videoId: String) {
+        // 保存先
+        val path = getCacheFolderPath()
+        val videoIdFile = File("$path/$videoId/${videoId}_tmp.mp4")
+        val reNameVideoIdFile = File("$path/$videoId/$videoId.mp4")
+        videoIdFile.renameTo(reNameVideoIdFile)
     }
 
     // 終了時に呼んでね
