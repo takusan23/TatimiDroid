@@ -397,4 +397,11 @@
     <string name="setting_custom_comment_line_value_description">With this, the comment line is reserved for the set value.</string>
     <string name="cache_usage">Total cache capacity</string>
     <string name="today_only">Only today</string>
+    <string name="cache_is_empty">The cache is empty</string>
+    <string name="cache_is_empty_message">When you get the cache, it will be displayed here.</string>
+    <string name="nicovideo_init_message">To watch Nico Nico Douga, you need to enable \"Login\" or \"Use without login\".</string>
+    <string name="nicovideo_init_not_login">Use without logging in (live broadcasting and live viewing cannot be used)\n You can always return from the settings.</string>
+    <string name="nicovideo_init_login">Login to NicoNico (recommended)</string>
+    <string name="setting_show_nicoru_button_title">(Premium only) Make you nico</string>
+    <string name="setting_show_nicoru_button_description">The second term Nikoru-kun is still in beta stage, so I have disabled it by default.</string>
 </resources>

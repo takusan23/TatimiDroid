@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.content.edit
 import androidx.core.widget.addTextChangedListener
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
@@ -216,21 +217,38 @@ class MainActivity : AppCompatActivity() {
     // 動画一覧
     private fun showVideoListFragment() {
         if (pref_setting.getString("mail", "")?.isNotEmpty() == true || isNotLoginMode(this)) {
-            // ニコ動クライアント有効時
+            // ニコニコ動画
             val fragmentTransaction = supportFragmentManager.beginTransaction()
             fragmentTransaction.replace(R.id.main_activity_linearlayout, DevNicoVideoSelectFragment())
             fragmentTransaction.commit()
             //タイトル
             supportActionBar?.title = getString(R.string.nicovideo)
         } else {
-            // ログイン画面へ切り替える
-            main_activity_bottom_navigationview.selectedItemId = R.id.menu_login
-            val fragmentTransaction = supportFragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
-            fragmentTransaction.commit()
-            //メアド設定してね！
-            Toast.makeText(this, getString(R.string.login_or_is_not_login_mode), Toast.LENGTH_SHORT)
-                .show()
+            // ログイン画面へ切り替える か　ログインしないモードを有効にするか
+            val dialogButtonList = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
+                add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.nicovideo_init_not_login), R.drawable.ic_lock_open_black_24dp))
+                add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.nicovideo_init_login), R.drawable.ic_lock_outline_black_24dp))
+            }
+            DialogBottomSheet(getString(R.string.nicovideo_init_message), dialogButtonList) { i, bottomSheetDialogFragment ->
+                when (i) {
+                    0 -> {
+                        // 「ログイン無しで利用する」と「起動時の画面を動画にする」設定有効
+                        pref_setting.edit { putBoolean("setting_no_login", true) }
+                        pref_setting.edit { putString("setting_launch_fragment", "video") }
+                        showVideoListFragment()
+                    }
+                    1 -> {
+                        // ログインする
+                        main_activity_bottom_navigationview.selectedItemId = R.id.menu_login
+                        val fragmentTransaction = supportFragmentManager.beginTransaction()
+                        fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
+                        fragmentTransaction.commit()
+                        //メアド設定してね！
+                        Toast.makeText(this, getString(R.string.login_or_is_not_login_mode), Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+            }.show(supportFragmentManager, "nicovideo_init")
         }
     }
 

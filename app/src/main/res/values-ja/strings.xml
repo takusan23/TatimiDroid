@@ -397,4 +397,11 @@
     <string name="setting_custom_comment_line_value_description">これで設定した値だけコメントの行が確保されます。</string>
     <string name="cache_usage">キャッシュ合計容量</string>
     <string name="today_only">今日のみ</string>
+    <string name="cache_is_empty">キャッシュは空です</string>
+    <string name="cache_is_empty_message">キャッシュを取得するとここに表示されるようになります。</string>
+    <string name="nicovideo_init_message">ニコニコ動画の視聴には「ログイン」もしくは「ログイン無しで利用する」を有効にする必要があります。</string>
+    <string name="nicovideo_init_not_login">ログイン無しで利用する（生放送、実況の視聴は利用できません）\n 設定からいつでも戻せます。</string>
+    <string name="nicovideo_init_login">ニコニコにログインする（推奨）</string>
+    <string name="setting_show_nicoru_button_title">（プレ垢限定）ニコるれるようにする</string>
+    <string name="setting_show_nicoru_button_description">まだ第二期ニコるくんはベータ段階なので一応デフォルトで無効にしてあります。</string>
 </resources>

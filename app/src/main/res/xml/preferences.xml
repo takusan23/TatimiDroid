@@ -51,6 +51,12 @@
                 android:icon="@drawable/ic_sort_black_24dp"
                 android:key="setting_nicovideo_mylist_sort_itemcount"
                 android:title="@string/mylist_sort_itemcount_title" />
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_sentiment_satisfied_black_24dp"
+                android:key="setting_nicovideo_nicoru_show"
+                android:summary="@string/setting_show_nicoru_button_description"
+                android:title="@string/setting_show_nicoru_button_title" />
         <ListPreference
                 android:defaultValue="default"
                 android:dialogTitle="@string/setting_play_type_title"
@@ -92,13 +98,13 @@
             android:title="@string/setting_darkmode_title"
             app:isPreferenceVisible="false" />
 
-<!--
-    <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_flash_on_24px"
-            android:key="setting_low_latency_off"
-            android:title="@string/setting_low_latency_off_title" />
--->
+    <!--
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_flash_on_24px"
+                android:key="setting_low_latency_off"
+                android:title="@string/setting_low_latency_off_title" />
+    -->
 
     <SwitchPreference
             android:defaultValue="true"

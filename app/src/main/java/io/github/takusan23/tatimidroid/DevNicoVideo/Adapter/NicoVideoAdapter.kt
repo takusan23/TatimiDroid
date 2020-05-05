@@ -71,15 +71,25 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             holder.commentTextView.text = "${item.commentNo}：$comment"
         }
 
+        // ニコるくん表示
+        val isShowNicoruButton =
+            devNicoVideoFragment.prefSetting.getBoolean("setting_nicovideo_nicoru_show", false)
         // mail（コマンド）がないときは表示しない
         val mailText = if (item.mail.isNotEmpty()) {
             "| $mail "
         } else {
             ""
         }
-        holder.userNameTextView.text =
-            "${setTimeFormat(date.toLong())} | $formattedTime $mailText| ${item.userId}"
+        // 一般会員にはニコる提供されてないのでニコる数だけ表示
+        val nicoruCount =
+            if (item.nicoru > 0 && !(devNicoVideoFragment.isPremium && isShowNicoruButton)) {
+                "| ニコる ${item.nicoru} "
+            } else {
+                ""
+            }
 
+        holder.userNameTextView.text =
+            "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount| ${item.userId}"
         holder.nicoruButton.text = item.nicoru.toString()
 
         // ユーザーの設定したフォントサイズ
@@ -94,7 +104,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
 
         // プレ垢はニコるくんつける
-        if (devNicoVideoFragment.isPremium) {
+        if (devNicoVideoFragment.isPremium && isShowNicoruButton) {
             holder.nicoruButton.visibility = View.VISIBLE
         }
 

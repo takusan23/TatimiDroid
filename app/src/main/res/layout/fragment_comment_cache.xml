@@ -45,6 +45,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_margin="5sp"
             android:orientation="vertical"
             android:visibility="gone"
             tools:visibility="visible">
@@ -60,14 +61,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="キャッシュは空です"
+                android:text="@string/cache_is_empty"
                 android:textSize="24sp" />
 
         <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="キャッシュを取得するとここに表示されるようになります。"
+                android:text="@string/cache_is_empty_message"
                 android:textSize="18sp" />
     </LinearLayout>
 
