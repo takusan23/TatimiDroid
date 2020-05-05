@@ -597,10 +597,26 @@ class NicoVideoPlayService : Service() {
             drawList.forEach {
                 if (!drewedList.contains(it.commentNo)) {
                     drewedList.add(it.commentNo)
-                    commentCanvas.post {
-                        commentCanvas.postComment(it.comment, it)
+                    if (!it.comment.contains("\n")) {
+                        // SingleLine
+                        commentCanvas.post {
+                            commentCanvas.postComment(it.comment, it)
+                        }
+                    } else {
+                        // 複数行？
+                        val asciiArtComment = if (it.mail.contains("shita")) {
+                            it.comment.split("\n").reversed() // 下コメントだけ逆順にする
+                        } else {
+                            it.comment.split("\n")
+                        }
+                        for (line in asciiArtComment) {
+                            commentCanvas.post {
+                                commentCanvas.postComment(line, it, true)
+                            }
+                        }
                     }
                 }
+
             }
         }
     }
