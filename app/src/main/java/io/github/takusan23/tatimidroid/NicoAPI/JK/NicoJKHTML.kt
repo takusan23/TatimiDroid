@@ -13,6 +13,7 @@ import java.io.BufferedReader
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketException
+import java.net.URLDecoder
 import java.util.regex.Pattern
 
 /**
@@ -116,7 +117,7 @@ class NicoJKHTML {
         val port = list[3].split("=")[1]
         val baseTime = list[13].split("=")[1]
         val userId = list[17].split("=")[1]
-        val channelName = list[6].split("=")[1]
+        val channelName = URLDecoder.decode(list[6].split("=")[1], "UTF-8") // パーセントエンコーディングうざい
         val isPremium = list[18].split("=")[1].toInt()
         return getFlvData(threadId, ms, port, baseTime, userId, channelName, isPremium)
     }

@@ -165,7 +165,7 @@ class NicoLivePlayService : Service() {
             getFlvData = nicoJK.parseGetFlv(getFlvResponse.body?.string())!!
             Handler(Looper.getMainLooper()).post {
                 // 通知の内容更新
-                showNotification(URLDecoder.decode(getFlvData.channelName, "UTF-8"))
+                showNotification(getFlvData.channelName)
                 initPopUpView()
             }
             // 接続。最後に呼べ。

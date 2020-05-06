@@ -256,6 +256,14 @@
                             android:layout_height="wrap_content"
                             android:text="@string/ng_list" />
 
+                    <Button
+                            android:id="@+id/fragment_comment_fragment_menu_dymanic_shortcut_button"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/add_homescreen"
+                            android:visibility="gone" />
+
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>

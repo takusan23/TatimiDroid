@@ -406,4 +406,5 @@
     <string name="setting_show_nicoru_button_description">The second term Nikoru-kun is still in beta stage, so I have disabled it by default.</string>
     <string name="open_popup">Open in pop-up playback</string>
     <string name="open_background">Open in bagground play</string>
+    <string name="add_homescreen">Added to home screen (test introduction)</string>
 </resources>

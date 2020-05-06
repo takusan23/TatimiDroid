@@ -69,15 +69,16 @@
     <LinearLayout
             android:id="@+id/fragment_video_bar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="50sp"
+            android:layout_height="0dp"
+            android:layout_marginTop="75dp"
             android:background="#fff"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="5sp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/fragment_video_backdrop">
+            app:layout_constraintTop_toBottomOf="@+id/fragment_video_backdrop">
 
         <View
                 android:layout_width="100sp"
@@ -92,31 +93,15 @@
                 android:padding="10sp"
                 android:text="@string/video_dropdown" />
 
-    </LinearLayout>
-
-    <LinearLayout
-            android:id="@+id/fragment_video_list_linearlayout"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:background="#fff"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fragment_video_bar">
-
-        <!--
-        <com.google.android.material.tabs.TabLayout
-                android:id="@+id/fragment_program_list_tab_layout"
+        <LinearLayout
+                android:id="@+id/fragment_video_list_linearlayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:tabMode="scrollable" />
+                android:layout_height="match_parent"
+                android:background="#fff"
+                android:orientation="vertical">
 
-        <androidx.viewpager.widget.ViewPager
-                android:id="@+id/fragment_program_list_view_pager"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
--->
+        </LinearLayout>
+
     </LinearLayout>
 
 </androidx.constraintlayout.motion.widget.MotionLayout>

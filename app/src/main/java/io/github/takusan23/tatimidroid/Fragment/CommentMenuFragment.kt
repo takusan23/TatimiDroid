@@ -3,10 +3,12 @@ package io.github.takusan23.tatimidroid.Fragment
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
-import android.media.VolumeShaper
+import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,20 +16,18 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.SeekBar
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import com.google.android.gms.cast.framework.CastButtonFactory
+import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.DarkModeSupport
 import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_comment_menu.*
-import java.lang.IllegalArgumentException
 
 
 /*
@@ -68,6 +68,11 @@ class CommentMenuFragment : Fragment() {
 
         //CommentFragmentへ値を渡す
         setCommentFragmentValue()
+
+        // Dynamic Shortcutsテスト。とりあえず試験的にニコニコ実況だけ
+        if (commentFragment.isJK && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            fragment_comment_fragment_menu_dymanic_shortcut_button.visibility = View.VISIBLE
+        }
 
         //クリックイベント
         setClick()
@@ -233,6 +238,11 @@ class CommentMenuFragment : Fragment() {
             fragment_comment_fragment_menu_floating_button.isEnabled = false
         }
 
+        // （ホーム画面に追加のやつ）
+        fragment_comment_fragment_menu_dymanic_shortcut_button.setOnClickListener {
+            createPinnedShortcut()
+        }
+
         //匿名非表示
         fragment_comment_fragment_menu_iyayo_hidden_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             commentFragment.isTokumeiHide = isChecked
@@ -315,6 +325,34 @@ class CommentMenuFragment : Fragment() {
             }
         })
 
+    }
+
+    /**
+     * 「ホーム画面に追加」のやつ。
+     * Android 8以降で利用できる。
+     * */
+    private fun createPinnedShortcut() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Android 7.1 以降のみ対応
+            val shortcutManager =
+                context?.getSystemService(Context.SHORTCUT_SERVICE) as ShortcutManager
+            if (shortcutManager.isRequestPinShortcutSupported) {
+                // サポート済みのランチャーかどうか
+                val shortcut = ShortcutInfo.Builder(context, commentFragment.liveId).apply {
+                    setShortLabel(commentFragment.getFlvData.channelName)
+                    setLongLabel(commentFragment.getFlvData.channelName)
+                    setIcon(Icon.createWithResource(context, R.drawable.ic_flash_on_24px))
+                    val intent = Intent(context, CommentActivity::class.java).apply {
+                        action = Intent.ACTION_MAIN
+                        putExtra("liveId", commentFragment.liveId)
+                        putExtra("is_jk", commentFragment.isJK)
+                        putExtra("watch_mode", "comment_post")
+                    }
+                    setIntent(intent)
+                }.build()
+                shortcutManager.requestPinShortcut(shortcut, null)
+            }
+        }
     }
 
     //CommentFragmentの値を貰う

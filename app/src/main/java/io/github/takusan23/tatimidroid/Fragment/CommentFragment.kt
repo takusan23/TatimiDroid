@@ -426,8 +426,7 @@ class CommentFragment : Fragment() {
             getFlvData = nicoJK.parseGetFlv(getFlvResponse.body?.string())!!
             // 番組情報入れる
             activity?.runOnUiThread {
-                comment_fragment_program_title.text =
-                    URLDecoder.decode(getFlvData.channelName, "UTF-8")
+                comment_fragment_program_title.text = getFlvData.channelName
                 comment_fragment_program_id.text = liveId
             }
             // 接続
@@ -654,7 +653,7 @@ class CommentFragment : Fragment() {
     // コメントが来たらこの関数が呼ばれる
     fun commentFun(comment: String, roomName: String, isHistoryComment: Boolean) {
         val room = if (isJK) {
-            URLDecoder.decode(getFlvData.channelName, "UTF-8")
+            getFlvData.channelName
         } else {
             roomName
         }
