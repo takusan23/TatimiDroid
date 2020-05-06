@@ -67,7 +67,8 @@ class ProgramListFragment : Fragment() {
             // ニコニコ実況。ｊｋ
             val nicoJKProgramListFragment = NicoJKProgramListFragment()
             fragmentManager?.beginTransaction()
-                ?.replace(fragment_program_list_linearlayout.id, nicoJKProgramListFragment)?.commit()
+                ?.replace(fragment_program_list_linearlayout.id, nicoJKProgramListFragment)
+                ?.commit()
             fragment_program_motionlayout?.transitionToStart()
         }
 
