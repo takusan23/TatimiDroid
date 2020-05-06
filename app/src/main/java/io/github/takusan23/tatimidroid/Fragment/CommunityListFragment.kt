@@ -54,6 +54,7 @@ class CommunityListFragment : Fragment() {
             CommunityRecyclerViewAdapter(recyclerViewList)
         autoAdmissionAdapter =
             AutoAdmissionAdapter(autoAdmissionRecyclerViewList)
+        autoAdmissionAdapter.communityListFragment = this
         community_recyclerview.adapter = communityRecyclerViewAdapter
         recyclerViewLayoutManager = community_recyclerview.layoutManager!!
 

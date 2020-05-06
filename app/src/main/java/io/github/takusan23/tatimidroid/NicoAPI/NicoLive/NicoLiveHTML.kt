@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import android.os.Handler
 import android.os.Looper
+import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -56,6 +57,9 @@ class NicoLiveHTML {
     // 番組情報関係。initNicoLiveData()を呼ばないとこの値は入りません！！！
     var programTitle = ""   // 番組ID
     var communityId = ""    // コミュID
+    var communityName = ""    // コミュ名
+    var supplierName = ""    // 放送者名
+    var status = ""         // ON_AIR　とか
     var thumb = ""          // サムネイル
     var programOpenTime = 0L    // 番組開始時間
     var programStartTime = 0L    // 番組開場時間
@@ -156,8 +160,22 @@ class NicoLiveHTML {
         } else {
             nicoLiveJSON.getJSONObject("channel").getString("id")
         }
+        status = nicoLiveJSON.getJSONObject("program").getString("status")
+        supplierName =
+            nicoLiveJSON.getJSONObject("program").getJSONObject("supplier").getString("name")
+        communityName = nicoLiveJSON.getJSONObject("socialGroup").getString("name")
         thumb = nicoLiveJSON.getJSONObject("program").getJSONObject("thumbnail").getString("small")
         isOfficial = isOfficial(nicoLiveJSON)
+    }
+
+    /**
+     * 番組情報詰めたクラスを返す。
+     * 内部でinitNicoLiveData()を呼んでパースしてます。
+     * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
+     * */
+    fun getProgramData(nicoLiveJSON: JSONObject): ProgramData {
+        initNicoLiveData(nicoLiveJSON)
+        return ProgramData(programTitle, communityName, programOpenTime.toString(), programEndTime.toString(), liveId, supplierName, status, thumb, isOfficial)
     }
 
     /**

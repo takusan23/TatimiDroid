@@ -69,7 +69,7 @@
     <string name="auto_admission_stop">Exit the automatic reservation slot admission function</string>
     <string name="auto_admission_notification_message">Reservation slot automatic admission service is running.</string>
     <string name="open_nicolive_app">Open with NicoNico Live Broadcast App</string>
-    <string name="open_tatimi_droid">Open with Tachimidorido</string>
+    <string name="open_tatimi_droid">Open with TatimiDroid (Cannot start due to changes in Android 10 and later specifications)</string>
     <string name="auto_admission_description">When the reservation frame start time is reached, it can be started automatically with this app or the NicoNico Live Broadcast app.</string>
     <string name="added">Added</string>
     <string name="nicolive_app">Nico Nico Live Broadcasting</string>
@@ -404,4 +404,6 @@
     <string name="nicovideo_init_login">Login to NicoNico (recommended)</string>
     <string name="setting_show_nicoru_button_title">(Premium only) Make you nico</string>
     <string name="setting_show_nicoru_button_description">The second term Nikoru-kun is still in beta stage, so I have disabled it by default.</string>
+    <string name="open_popup">Open in pop-up playback</string>
+    <string name="open_background">Open in bagground play</string>
 </resources>

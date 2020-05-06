@@ -69,7 +69,7 @@
     <string name="auto_admission_stop">予約枠自動入場機能を終了する</string>
     <string name="auto_admission_notification_message">予約枠自動入場サービスが実行中です。</string>
     <string name="open_nicolive_app">ニコニコ生放送アプリで開く</string>
-    <string name="open_tatimi_droid">たちみどろいどで開く</string>
+    <string name="open_tatimi_droid">たちみどろいどで開く(Android10以降Android側の仕様変更にて起動できない)</string>
     <string name="auto_admission_description">予約枠の開始時刻になったら自動で本アプリまたはニコニコ生放送アプリで起動できます。</string>
     <string name="added">追加しました</string>
     <string name="nicolive_app">ニコニコ生放送</string>
@@ -404,4 +404,6 @@
     <string name="nicovideo_init_login">ニコニコにログインする（推奨）</string>
     <string name="setting_show_nicoru_button_title">（プレ垢限定）ニコるれるようにする</string>
     <string name="setting_show_nicoru_button_description">まだ第二期ニコるくんはベータ段階なので一応デフォルトで無効にしてあります。</string>
+    <string name="open_background">バッググラウンド再生で開く</string>
+    <string name="open_popup">ポップアップ再生で開く</string>
 </resources>

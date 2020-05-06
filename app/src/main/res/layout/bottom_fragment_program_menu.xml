@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -35,7 +36,8 @@
                 android:id="@+id/bottom_fragment_program_info_buttons_linearlayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="gone">
+                android:visibility="gone"
+                tools:visibility="visible">
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -96,9 +98,81 @@
                         android:foreground="?android:attr/selectableItemBackground"
                         android:padding="10dp"
                         android:text="@string/share" />
+
+                <TextView
+                        android:id="@+id/bottom_fragment_program_info_auto_admission_more"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_expand_more_24px"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10dp"
+                        android:text="@string/auto_admission"
+                        android:visibility="gone" />
+
+                <LinearLayout
+                        android:id="@+id/bottom_fragment_program_info_auto_admission_linearlayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                    <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawableStart="@drawable/ic_outline_info_24px"
+                            android:padding="10dp"
+                            android:text="@string/auto_admission_description" />
+
+                    <TextView
+                            android:id="@+id/bottom_fragment_program_info_auto_admission_official_app"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:drawableStart="@drawable/ic_outline_open_in_browser_24px"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:padding="10dp"
+                            android:text="@string/open_nicolive_app" />
+
+                    <TextView
+                            android:id="@+id/bottom_fragment_program_info_auto_admission_tatimidroid_app"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:drawableStart="@drawable/ic_auto_admission_start_icon"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:padding="10dp"
+                            android:text="@string/open_tatimi_droid" />
+
+                    <TextView
+                            android:id="@+id/bottom_fragment_program_info_auto_admission_popup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:drawableStart="@drawable/ic_popup_icon_black"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:padding="10dp"
+                            android:text="@string/open_popup" />
+
+                    <TextView
+                            android:id="@+id/bottom_fragment_program_info_auto_admission_background"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:drawableStart="@drawable/ic_background_icon_black"
+                            android:focusable="true"
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:padding="10dp"
+                            android:text="@string/open_background" />
+
+                </LinearLayout>
             </LinearLayout>
         </ScrollView>
-
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

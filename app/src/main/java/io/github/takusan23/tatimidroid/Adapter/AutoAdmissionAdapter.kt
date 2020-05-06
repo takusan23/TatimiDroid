@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.Adapter
 import android.content.Context
 import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,8 +22,9 @@ import java.util.*
 class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
     RecyclerView.Adapter<AutoAdmissionAdapter.ViewHolder>() {
 
-    lateinit var autoAdmissionSQLiteSQLite: AutoAdmissionSQLiteSQLite
-    lateinit var sqLiteDatabase: SQLiteDatabase
+    private lateinit var autoAdmissionSQLiteSQLite: AutoAdmissionSQLiteSQLite
+    private lateinit var sqLiteDatabase: SQLiteDatabase
+    lateinit var communityListFragment: CommunityListFragment
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -58,20 +60,20 @@ class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayLis
             //削除
             Snackbar.make(holder.timeTextView, content.getText(R.string.delete_message), Snackbar.LENGTH_SHORT)
                 .setAction(content.getText(R.string.delete)) {
-
+                    // 削除
                     sqLiteDatabase.delete("auto_admission", "liveid=?", arrayOf(liveid))
 
-                    //再読み込み
-                    val fragment =
-                        (content as AppCompatActivity).supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
-                    if (fragment is CommunityListFragment) {
-                        fragment.getAutoAdmissionList()
-                    }
+                    // 再読み込み
+                    communityListFragment.getAutoAdmissionList()
 
-                    //Service再起動
+                    // Service再起動
                     val intent = Intent(content, AutoAdmissionService::class.java)
                     content.stopService(intent)
-                    content.startService(intent)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        content.startForegroundService(intent)
+                    } else {
+                        content.startService(intent)
+                    }
 
                 }.show()
 
