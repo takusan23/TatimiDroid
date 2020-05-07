@@ -25,10 +25,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //タイトル
-        (activity as AppCompatActivity).supportActionBar?.title =
-            getString(R.string.setting)
-
         val licence_preference = findPreference<Preference>("licence_preference")
         val konoapp_preference = findPreference<Preference>("konoapp_preference")
         val auto_admission_stop_preference =

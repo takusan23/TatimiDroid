@@ -67,6 +67,28 @@
                         android:text="@string/copy_program_id" />
 
                 <TextView
+                        android:id="@+id/bottom_fragment_program_info_popup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_popup_icon_black"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10dp"
+                        android:text="@string/popup_player" />
+
+                <TextView
+                        android:id="@+id/bottom_fragment_program_info_background"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_background_icon_black"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10dp"
+                        android:text="@string/background_play" />
+
+                <TextView
                         android:id="@+id/bottom_fragment_program_info_timeshift"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

@@ -173,8 +173,8 @@ class DevNicoVideoFragment : Fragment() {
         // ダークモード
         initDarkmode()
 
-        // Fragmentセットする
-        initViewPager()
+        // Fragmentセットする -> ViewPager初期化はデータ取得後に行うように
+        // initViewPager()
 
         // ブロードキャスト初期化
         initBroadCastReceiver()
@@ -826,8 +826,8 @@ class DevNicoVideoFragment : Fragment() {
      * @param millSeconds 再生時間（秒）。
      * */
     fun scroll(seconds: Long) {
-        // スクロールしない設定？
-        if (prefSetting.getBoolean("nicovideo_comment_scroll", false)) {
+        // スクロールしない設定 / ViewPagerまだ初期化してない
+        if (prefSetting.getBoolean("nicovideo_comment_scroll", false) || !::viewPager.isInitialized) {
             return
         }
         // Nullチェック

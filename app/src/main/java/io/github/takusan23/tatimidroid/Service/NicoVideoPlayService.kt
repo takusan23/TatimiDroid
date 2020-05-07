@@ -406,69 +406,16 @@ class NicoVideoPlayService : Service() {
                 }
             }
 
-            // 大きさ変更。まず変更前を入れておく
-            var normalHeight = -1
-            var normalWidth = -1
-            popupView.overlay_video_size_seekbar.apply {
-                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                        // 初期値。動画再生時までアスペ比が取得できないのでサイズ変更を一番最初に行うときに最小サイズを取得。
-                        if (normalHeight == -1) {
-                            normalHeight = popupLayoutParams.height
-                            normalWidth = popupLayoutParams.width
-                        }
-                        // 操作中
-                        when (aspect) {
-                            1.3 -> {
-                                popupLayoutParams.height = normalHeight + (progress + 1) * 3
-                                popupLayoutParams.width = normalWidth + (progress + 1) * 4
-                            }
-                            1.7 -> {
-                                popupLayoutParams.height = normalHeight + (progress + 1) * 9
-                                popupLayoutParams.width = normalWidth + (progress + 1) * 16
-                            }
-                        }
-                        // 大きさ変更シークの最大値設定。なんかこの式で期待通り動く。なんでか知らないけど動く。:thinking_face:
-                        popupView.overlay_video_size_seekbar.max = when (aspect) {
-                            1.3 -> (realSize.x / 4) / 2
-                            1.7 -> (realSize.x / 16) / 2
-                            else -> (realSize.x / 16) / 2
-                        }
-                        windowManager.updateViewLayout(popupView, popupLayoutParams)
-                        // CommentCanvasに反映
-                        applyCommentCanvas()
-                        // 位置保存。サイズ変更シーク位置を保存
-                        prefSetting.edit {
-                            putInt("nicovideo_popup_size_progress", popupView.overlay_video_size_seekbar.progress)
-                        }
-                        // コントローラー表示可能かどうか
-                        showVideoController()
-                    }
+            // 画面サイズ
+            var displaySize = getDisplaySize()
 
-                    override fun onStartTrackingTouch(seekBar: SeekBar?) {
-
-                    }
-
-                    override fun onStopTrackingTouch(seekBar: SeekBar?) {
-
-                    }
-                })
-            }
-
-            //画面サイズ
-            val displaySize: Point by lazy {
-                val display = windowManager.defaultDisplay
-                val size = Point()
-                display.getSize(size)
-                size
-            }
-
-            //移動
+            // 移動
             popupView.setOnTouchListener { view, motionEvent ->
                 // タップした位置を取得する
                 val x = motionEvent.rawX.toInt()
                 val y = motionEvent.rawY.toInt()
-
+                // 画面回転に対応する（これで横/縦画面のときの最大値とか変えられる）
+                displaySize = getDisplaySize()
                 when (motionEvent.action) {
                     // Viewを移動させてるときに呼ばれる
                     MotionEvent.ACTION_MOVE -> {
@@ -491,6 +438,56 @@ class NicoVideoPlayService : Service() {
                     }
                 }
                 false
+            }
+
+            // 大きさ変更。まず変更前を入れておく
+            var normalHeight = -1
+            var normalWidth = -1
+            popupView.overlay_video_size_seekbar.apply {
+                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                        displaySize = getDisplaySize()
+                        // 初期値。動画再生時までアスペ比が取得できないのでサイズ変更を一番最初に行うときに最小サイズを取得。
+                        if (normalHeight == -1) {
+                            normalHeight = popupLayoutParams.height
+                            normalWidth = popupLayoutParams.width
+                        }
+                        // 大きさ変更シークの最大値設定。なんかこの式で期待通り動く。なんでか知らないけど動く。:thinking_face:
+                        popupView.overlay_video_size_seekbar.max = when (aspect) {
+                            1.3 -> (displaySize.x / 4) / 2
+                            1.7 -> (displaySize.x / 16) / 2
+                            else -> (displaySize.x / 16) / 2
+                        }
+                        // 操作中
+                        when (aspect) {
+                            1.3 -> {
+                                popupLayoutParams.height = normalHeight + (progress + 1) * 3
+                                popupLayoutParams.width = normalWidth + (progress + 1) * 4
+                            }
+                            1.7 -> {
+                                popupLayoutParams.height = normalHeight + (progress + 1) * 9
+                                popupLayoutParams.width = normalWidth + (progress + 1) * 16
+                            }
+                        }
+                        windowManager.updateViewLayout(popupView, popupLayoutParams)
+                        // CommentCanvasに反映
+                        applyCommentCanvas()
+                        // 位置保存。サイズ変更シーク位置を保存
+                        prefSetting.edit {
+                            putInt("nicovideo_popup_size_progress", popupView.overlay_video_size_seekbar.progress)
+                        }
+                        // コントローラー表示可能かどうか
+                        showVideoController()
+                    }
+
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+                    }
+
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                    }
+                })
             }
 
             //アプリ起動
@@ -669,11 +666,19 @@ class NicoVideoPlayService : Service() {
         }
     }
 
+    // 画面サイズのPoint返す関数。
+    private fun getDisplaySize(): Point {
+        val display = windowManager.defaultDisplay
+        val displaySize = Point()
+        display.getSize(displaySize)
+        return displaySize
+    }
+
     /**
      * ポップアップ再生かどうかを返す
      * @return ポップアップ再生ならtrue
      * */
-    fun isPopupPlay(): Boolean {
+    private fun isPopupPlay(): Boolean {
         return playMode == "popup"
     }
 

@@ -22,6 +22,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
+import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import kotlinx.android.synthetic.main.bottom_fragment_program_menu.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -75,7 +76,6 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
         // 予約枠自動入場
         initDB()
-        initAutoAdmission()
 
     }
 
@@ -280,8 +280,26 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
                         "開場時刻：$formattedStartTime\n終了時刻：$formattedEndTime"
                     // 項目表示
                     bottom_fragment_program_info_buttons_linearlayout.visibility = View.VISIBLE
+                    // 予約枠自動入場初期化
+                    initAutoAdmission()
+                    // ポップアップ再生、バッググラウンド再生
+                    initLiveServiceButton()
                 }
             }
+        }
+    }
+
+    private fun initLiveServiceButton() {
+        // 放送中以外なら非表示
+        if (nicoLiveHTML.status != "ON_AIR") {
+            bottom_fragment_program_info_popup.visibility = View.GONE
+            bottom_fragment_program_info_background.visibility = View.GONE
+        }
+        bottom_fragment_program_info_popup.setOnClickListener {
+            startLivePlayService(context, "popup", liveId, true, false)
+        }
+        bottom_fragment_program_info_background.setOnClickListener {
+            startLivePlayService(context, "background", liveId, true, false)
         }
     }
 

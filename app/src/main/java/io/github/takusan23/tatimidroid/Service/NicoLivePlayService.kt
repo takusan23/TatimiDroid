@@ -44,10 +44,7 @@ import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.net.URLDecoder
-import java.sql.Time
 import java.util.*
-import kotlin.concurrent.schedule
 import kotlin.concurrent.timerTask
 
 
@@ -422,6 +419,8 @@ class NicoLivePlayService : Service() {
         ) {
             return
         }
+        // ポップアップ再生開始時のがめんの向き
+        val isStartOrientation = resources.configuration.orientation
 
         // 画面の半分を利用するように
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -517,30 +516,25 @@ class NicoLivePlayService : Service() {
             }
         }
 
-        //画面サイズ
-        val displaySize: Point by lazy {
-            val display = windowManager.defaultDisplay
-            val size = Point()
-            display.getSize(size)
-            size
-        }
+        // 画面サイズ
+        var displaySize = getDisplaySize()
 
-        //移動
+        // 移動
         popupView.setOnTouchListener { view, motionEvent ->
             // タップした位置を取得する
             val x = motionEvent.rawX.toInt()
             val y = motionEvent.rawY.toInt()
 
+            // 画面回転対応させるために画面サイズ再取得
+            displaySize = getDisplaySize()
+
             when (motionEvent.action) {
                 // Viewを移動させてるときに呼ばれる
                 MotionEvent.ACTION_MOVE -> {
-                    // 中心からの座標を計算する
-                    val centerX = x - (displaySize.x / 2)
-                    val centerY = y - (displaySize.y / 2)
 
                     // オーバーレイ表示領域の座標を移動させる
-                    params.x = centerX
-                    params.y = centerY
+                    params.x = x - (displaySize.x / 2)
+                    params.y = y - (displaySize.y / 2)
 
                     // 移動した分を更新する
                     windowManager.updateViewLayout(view, params)
@@ -571,11 +565,18 @@ class NicoLivePlayService : Service() {
         }
 
         // 大きさ変更。まず変更前を入れておく
-        val normalHeight = params.height
-        val normalWidth = params.width
+        var normalWidth = params.width
+        var normalHeight = params.height
         popupView.overlay_size_seekbar.apply {
             setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    // はみ出すときはデフォルトに戻す
+                    if (params.width > displaySize.x) {
+                        normalWidth = displaySize.x / 2
+                        normalHeight = (normalWidth / 16) * 9
+                    }
+                    // 大きさ変更シークの最大値設定。なんかこの式で期待通り動く。なんでか知らないけど動く。:thinking_face:
+                    popupView.overlay_size_seekbar.max = (displaySize.x / 16) / 2
                     // 操作中
                     params.height = normalHeight + (progress + 1) * 9
                     params.width = normalWidth + (progress + 1) * 16
@@ -632,6 +633,14 @@ class NicoLivePlayService : Service() {
             windowManager.updateViewLayout(popupView, params)
         }
 
+    }
+
+    // 画面サイズのPoint返す関数。
+    private fun getDisplaySize(): Point {
+        val display = windowManager.defaultDisplay
+        val displaySize = Point()
+        display.getSize(displaySize)
+        return displaySize
     }
 
     /** MediaSession。音楽アプリの再生中のあれ */

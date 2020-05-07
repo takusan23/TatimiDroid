@@ -6,6 +6,7 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.text.SpannableString
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -17,6 +18,7 @@ import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.content.edit
+import androidx.core.view.get
 import androidx.core.widget.addTextChangedListener
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
@@ -76,38 +78,7 @@ class MainActivity : AppCompatActivity() {
         // 履歴ボタン・接続ボタン等初期化
         initButton()
 
-        // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効かどうか
-        val isMobileDataShowCacheList =
-            pref_setting.getBoolean("setting_mobile_data_show_cache", false)
-        if (isMobileDataShowCacheList && isConnectionMobileDataInternet(this)) {
-            // キャッシュ表示
-            main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
-            val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
-            fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, DevNicoVideoCacheFragment(), "cache_fragment")
-            fragmentTransitionSupport.commit()
-        } else {
-            // 起動時の画面
-            val launchFragmentName =
-                pref_setting.getString("setting_launch_fragment", "live") ?: "live"
-            when (launchFragmentName) {
-                "live" -> {
-                    main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
-                    showProgramListFragment()
-                }
-                "video" -> {
-                    main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
-                    showVideoListFragment()
-                }
-                "cache" -> {
-                    main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
-                    val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
-                    fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, DevNicoVideoCacheFragment(), "cache_fragment")
-                    fragmentTransitionSupport.commit()
-                }
-            }
-        }
-
-        //画面切り替え
+        // 画面切り替え
         main_activity_bottom_navigationview.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.menu_login -> {
@@ -135,21 +106,29 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+        // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効かどうか
+        val isMobileDataShowCacheList =
+            pref_setting.getBoolean("setting_mobile_data_show_cache", false)
+        if (isMobileDataShowCacheList && isConnectionMobileDataInternet(this)) {
+            // キャッシュ表示
+            main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+        } else {
+            // 起動時の画面
+            val launchFragmentName =
+                pref_setting.getString("setting_launch_fragment", "live") ?: "live"
+            // selectedItemIdでsetOnNavigationItemSelectedListener{}呼ばれるって。はよいえ
+            when (launchFragmentName) {
+                "live" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
+                "video" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
+                "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+            }
+        }
+
         // App Shortcutから起動
         when (intent?.getStringExtra("app_shortcut")) {
-            "nicolive" -> {
-                main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
-                showProgramListFragment()
-            }
-            "nicovideo" -> {
-                main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
-                showVideoListFragment()
-            }
-            "cache" -> {
-                val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
-                fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, DevNicoVideoCacheFragment(), "cache_fragment")
-                fragmentTransitionSupport.commit()
-            }
+            "nicolive" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
+            "nicovideo" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
+            "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
         }
 
         //データベース移行
@@ -307,6 +286,7 @@ class MainActivity : AppCompatActivity() {
         activity_main_liveid_edittext.addTextChangedListener {
             // 将来なにか書くかも
         }
+        // Enter押したら再生する
         activity_main_liveid_edittext.setOnKeyListener { v, keyCode, event ->
             // 二回呼ばれる対策
             if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {

@@ -29,11 +29,6 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
-        //タイトル
-        (activity as AppCompatActivity).supportActionBar?.title =
-            getString(R.string.login)
-
-
         //保存していたら取得
         fragment_login_mail_inputedittext.setText(pref_setting.getString("mail", ""))
         fragment_login_password_inputedittext.setText(pref_setting.getString("password", ""))

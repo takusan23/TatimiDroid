@@ -58,6 +58,12 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         userSession = prefSetting.getString("user_session", "") ?: ""
         nicoVideoHTML = NicoVideoHTML()
 
+        // 画面回転するとNicoVideoData失うので無いときはもう落とす
+        if (!::nicoVideoData.isInitialized) {
+            dismiss()
+            return
+        }
+
         // タイトル、ID設定
         bottom_fragment_nicovideo_list_menu_title.text = nicoVideoData.title
         bottom_fragment_nicovideo_list_menu_id.text = nicoVideoData.videoId

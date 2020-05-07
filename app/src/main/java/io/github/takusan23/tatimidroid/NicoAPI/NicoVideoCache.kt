@@ -62,7 +62,7 @@ class NicoVideoCache(val context: Context?) {
             }
             // 一覧取得
             cacheFolder.listFiles().forEach {
-                it.listFiles().forEach {
+                it.listFiles()?.forEach {
                     cacheTotalSize += it.length()
                 }
                 // それぞれの動画フォルダ
