@@ -1,31 +1,25 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.Adapter
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.R
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
-import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.CustomFont
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
+import io.github.takusan23.tatimidroid.R
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONArray
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * ニコ動のコメント表示Adapter
@@ -35,6 +29,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
 
     lateinit var font: CustomFont
     lateinit var devNicoVideoFragment: DevNicoVideoFragment
+    lateinit var prefSetting: SharedPreferences
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view =
@@ -50,8 +45,10 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
 
         val context = holder.commentTextView.context
 
+        // しょっきかー
         if (!::font.isInitialized) {
             font = CustomFont(context)
+            prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
         }
 
         val item = arrayListArrayAdapter[position]
@@ -88,8 +85,16 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
                 ""
             }
 
+        // NGスコア表示するか
+        val ngScore =
+            if (prefSetting.getBoolean("setting_show_ng", false) && item.score.isNotEmpty()) {
+                "| ${item.score} "
+            } else {
+                ""
+            }
+
         holder.userNameTextView.text =
-            "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount| ${item.userId}"
+            "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount$ngScore| ${item.userId}"
         holder.nicoruButton.text = item.nicoru.toString()
 
         // ユーザーの設定したフォントサイズ

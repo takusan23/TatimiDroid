@@ -21,6 +21,14 @@
                 android:title="@string/setting_mobile_data_show_cache" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/setting_video_and_live">
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_do_not_disturb_alt_black_24dp"
+                android:key="setting_show_ng"
+                android:title="@string/setting_show_ng_score" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/video">
         <SwitchPreference
                 android:defaultValue="false"
@@ -69,7 +77,7 @@
     </PreferenceCategory>
 
 
-    <PreferenceCategory android:title="@string/comment_viewer_setting">
+    <PreferenceCategory android:title="@string/nicolive">
 
         <SwitchPreference
                 android:defaultValue="false"
@@ -82,159 +90,153 @@
                 android:icon="@drawable/ic_looks_one"
                 android:key="setting_one_line"
                 android:title="@string/setting_one_line" />
-    </PreferenceCategory>
 
 
-    <Preference
-            android:icon="@drawable/ic_font_download_24px"
-            android:key="font_preference"
-            android:summary="@string/setting_font_description"
-            android:title="@string/font_setting" />
-    <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_paint_black"
-            android:key="setting_darkmode"
-            android:summary="@string/setting_darkmode_description"
-            android:title="@string/setting_darkmode_title"
-            app:isPreferenceVisible="false" />
-
-    <!--
+        <Preference
+                android:icon="@drawable/ic_font_download_24px"
+                android:key="font_preference"
+                android:summary="@string/setting_font_description"
+                android:title="@string/font_setting" />
         <SwitchPreference
                 android:defaultValue="false"
-                android:icon="@drawable/ic_flash_on_24px"
-                android:key="setting_low_latency_off"
-                android:title="@string/setting_low_latency_off_title" />
-    -->
+                android:icon="@drawable/ic_paint_black"
+                android:key="setting_darkmode"
+                android:summary="@string/setting_darkmode_description"
+                android:title="@string/setting_darkmode_title"
+                app:isPreferenceVisible="false" />
 
-    <SwitchPreference
-            android:defaultValue="true"
-            android:icon="@drawable/ic_keyboard_return_24px"
-            android:key="setting_enter_post"
-            android:title="@string/setting_enter_post_title" />
+        <!--
+            <SwitchPreference
+                    android:defaultValue="false"
+                    android:icon="@drawable/ic_flash_on_24px"
+                    android:key="setting_low_latency_off"
+                    android:title="@string/setting_low_latency_off_title" />
+        -->
 
-    <SwitchPreference
-            android:defaultValue="true"
-            android:icon="@drawable/ic_clear_black"
-            android:key="setting_disconnect_activity_finish"
-            android:summary="@string/setting_disconnect_activity_finish_description"
-            android:title="@string/setting_disconnect_activity_finish_title" />
-
-    <SwitchPreference
-            android:defaultValue="true"
-            android:icon="@drawable/ic_outline_live_tv_24px_black"
-            android:key="setting_watch_live"
-            android:summary="@string/setting_watch_view_description"
-            android:title="@string/setting_watch_view_title" />
-
-    <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_signal_cellular_null_24px"
-            android:key="setting_mobiledata_quality_low"
-            android:summary="@string/setting_mobiledata_quality_description"
-            android:title="@string/setting_mobiledata_quality" />
-
-    <SwitchPreference
-            android:defaultValue="true"
-            android:icon="@drawable/ic_outline_pan_tool_24px"
-            android:key="setting_hidden_oidashi_comment"
-            android:summary="@string/setting_oidashi_comment_description"
-            android:title="@string/setting_oidashi_comment_title" />
-
-    <SwitchPreference
-            android:defaultValue="true"
-            android:icon="@drawable/ic_outline_query_builder_24px"
-            android:key="setting_zettai_zikoku_hyouzi"
-            android:summary="@string/setting_zettaihyouzi_desciption"
-            android:title="@string/setting_zettaihyouzi_title" />
-
-    <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_do_not_disturb_alt_black_24dp"
-            android:key="setting_show_ng"
-            android:title="@string/setting_show_ng_score" />
-
-    <SwitchPreference
-            android:defaultValue="true"
-            android:icon="@drawable/ic_outline_format_color_fill_24px"
-            android:key="setting_room_color"
-            android:summary="@string/room_color_description"
-            android:title="@string/room_color_title" />
-
-    <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_outline_format_color_fill_24px"
-            android:key="setting_command_room_color"
-            android:summary="@string/setting_command_room_color_description"
-            android:title="@string/setting_command_room_color"
-            app:isPreferenceVisible="false" />
-
-    <!--
         <SwitchPreference
                 android:defaultValue="true"
-                android:enabled="false"
-                android:icon="@drawable/ic_new_comment_icon"
-                android:key="setting_new_comment"
-                android:summary="@string/setting_new_comment_area_description"
-                android:title="@string/setting_new_comment_area_title" />
-    -->
+                android:icon="@drawable/ic_keyboard_return_24px"
+                android:key="setting_enter_post"
+                android:title="@string/setting_enter_post_title" />
 
-    <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_outline_comment_24px"
-            android:key="setting_comment_collection_useage"
-            android:summary="@string/setting_comment_collection_useage_description"
-            android:title="@string/setting_comment_collection_useage" />
+        <SwitchPreference
+                android:defaultValue="true"
+                android:icon="@drawable/ic_clear_black"
+                android:key="setting_disconnect_activity_finish"
+                android:summary="@string/setting_disconnect_activity_finish_description"
+                android:title="@string/setting_disconnect_activity_finish_title" />
 
-    <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_outline_comment_24px"
-            android:key="setting_comment_collection_assist"
-            android:summary="@string/setting_comment_collection_assist_description"
-            android:title="@string/setting_comment_collection_assist" />
+        <SwitchPreference
+                android:defaultValue="true"
+                android:icon="@drawable/ic_outline_live_tv_24px_black"
+                android:key="setting_watch_live"
+                android:summary="@string/setting_watch_view_description"
+                android:title="@string/setting_watch_view_title" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_signal_cellular_null_24px"
+                android:key="setting_mobiledata_quality_low"
+                android:summary="@string/setting_mobiledata_quality_description"
+                android:title="@string/setting_mobiledata_quality" />
+
+        <SwitchPreference
+                android:defaultValue="true"
+                android:icon="@drawable/ic_outline_pan_tool_24px"
+                android:key="setting_hidden_oidashi_comment"
+                android:summary="@string/setting_oidashi_comment_description"
+                android:title="@string/setting_oidashi_comment_title" />
+
+        <SwitchPreference
+                android:defaultValue="true"
+                android:icon="@drawable/ic_outline_query_builder_24px"
+                android:key="setting_zettai_zikoku_hyouzi"
+                android:summary="@string/setting_zettaihyouzi_desciption"
+                android:title="@string/setting_zettaihyouzi_title" />
+
+        <SwitchPreference
+                android:defaultValue="true"
+                android:icon="@drawable/ic_outline_format_color_fill_24px"
+                android:key="setting_room_color"
+                android:summary="@string/room_color_description"
+                android:title="@string/room_color_title" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_outline_format_color_fill_24px"
+                android:key="setting_command_room_color"
+                android:summary="@string/setting_command_room_color_description"
+                android:title="@string/setting_command_room_color"
+                app:isPreferenceVisible="false" />
+
+        <!--
+            <SwitchPreference
+                    android:defaultValue="true"
+                    android:enabled="false"
+                    android:icon="@drawable/ic_new_comment_icon"
+                    android:key="setting_new_comment"
+                    android:summary="@string/setting_new_comment_area_description"
+                    android:title="@string/setting_new_comment_area_title" />
+        -->
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_outline_comment_24px"
+                android:key="setting_comment_collection_useage"
+                android:summary="@string/setting_comment_collection_useage_description"
+                android:title="@string/setting_comment_collection_useage" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_outline_comment_24px"
+                android:key="setting_comment_collection_assist"
+                android:summary="@string/setting_comment_collection_assist_description"
+                android:title="@string/setting_comment_collection_assist" />
 
 
-    <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_screen_rotation_24px"
-            android:key="setting_rotation_sensor"
-            android:summary="@string/setting_rotation_sensor_description"
-            android:title="@string/setting_rotation_sensor_title" />
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_screen_rotation_24px"
+                android:key="setting_rotation_sensor"
+                android:summary="@string/setting_rotation_sensor_description"
+                android:title="@string/setting_rotation_sensor_title" />
 
-    <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_aspect_ratio_24px"
-            android:key="setting_display_cutout"
-            android:summary="@string/setting_display_cutoutdesciprion"
-            android:title="@string/setting_display_cutout_title" />
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_aspect_ratio_24px"
+                android:key="setting_display_cutout"
+                android:summary="@string/setting_display_cutoutdesciprion"
+                android:title="@string/setting_display_cutout_title" />
 
-    <Preference
-            android:icon="@drawable/ic_outline_stop_24px"
-            android:key="auto_admission_stop_preference"
-            android:title="@string/auto_admission_stop" />
-
-
-    <Preference
-            android:icon="@drawable/ic_outline_block_24px"
-            android:key="ng_list_activity"
-            android:title="@string/ng_list">
-        <!--Activity起動-->
-        <intent
-                android:action="android.intent.action.MAIN"
-                android:targetClass="io.github.takusan23.tatimidroid.Activity.NGListActivity"
-                android:targetPackage="io.github.takusan23.tatimidroid" />
-    </Preference>
+        <Preference
+                android:icon="@drawable/ic_outline_stop_24px"
+                android:key="auto_admission_stop_preference"
+                android:title="@string/auto_admission_stop" />
 
 
-    <Preference
-            android:icon="@drawable/ic_outline_comment_24px"
-            android:key="comment_list_activity"
-            android:title="@string/comment_collection">
-        <!--Activity起動-->
-        <intent
-                android:action="android.intent.action.MAIN"
-                android:targetClass="io.github.takusan23.tatimidroid.Activity.CommentCollectionListActivity"
-                android:targetPackage="io.github.takusan23.tatimidroid" />
-    </Preference>
+        <Preference
+                android:icon="@drawable/ic_outline_block_24px"
+                android:key="ng_list_activity"
+                android:title="@string/ng_list">
+            <!--Activity起動-->
+            <intent
+                    android:action="android.intent.action.MAIN"
+                    android:targetClass="io.github.takusan23.tatimidroid.Activity.NGListActivity"
+                    android:targetPackage="io.github.takusan23.tatimidroid" />
+        </Preference>
+
+
+        <Preference
+                android:icon="@drawable/ic_outline_comment_24px"
+                android:key="comment_list_activity"
+                android:title="@string/comment_collection">
+            <!--Activity起動-->
+            <intent
+                    android:action="android.intent.action.MAIN"
+                    android:targetClass="io.github.takusan23.tatimidroid.Activity.CommentCollectionListActivity"
+                    android:targetPackage="io.github.takusan23.tatimidroid" />
+        </Preference>
+    </PreferenceCategory>
 
 
     <PreferenceCategory android:title="@string/setting_comment_canvas">

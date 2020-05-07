@@ -417,7 +417,7 @@ class NicoVideoHTML {
                         put("language", 0)
                         put("user_id", user_id)
                         put("content", content)
-                        put("scores", 0)
+                        put("scores", 1)
                         put("nicoru", 3)
                         // 公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
                         // threadkeyのときはもしかするとuserkeyいらない
