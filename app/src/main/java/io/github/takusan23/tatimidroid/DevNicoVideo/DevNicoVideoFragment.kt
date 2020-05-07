@@ -383,6 +383,8 @@ class DevNicoVideoFragment : Fragment() {
                 }
             }
             activity?.runOnUiThread {
+                // なぜかViewPager初期化をここで呼ぶとうまくいく。謎
+                initViewPager()
                 if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
                     // 動画を再生しない場合
                     commentOnlyModeEnable()
@@ -394,9 +396,7 @@ class DevNicoVideoFragment : Fragment() {
                 (viewPager.fragmentList[0] as DevNicoVideoMenuFragment).jsonObject = jsonObject
                 // コメントFragmentにコメント配列を渡す
                 (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
-                    commentList.forEach {
-                        recyclerViewList.add(it)
-                    }
+                    recyclerViewList = ArrayList(commentList)
                     initRecyclerView(true)
                 }
                 // 動画情報FragmentにJSONを渡す
@@ -556,13 +556,10 @@ class DevNicoVideoFragment : Fragment() {
                     val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
                     commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
                     activity?.runOnUiThread {
+                        // なぜかViewPager初期化をここで呼ぶとうまくいく。謎
+                        initViewPager()
                         // コメントFragmentにコメント配列を渡す
-                        (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
-                            commentList.forEach {
-                                recyclerViewList.add(it)
-                            }
-                            initRecyclerView(true)
-                        }
+                        (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).initRecyclerView(true)
                         // 動画情報JSONがあるかどうか
                         if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                             // 動画情報FragmentにJSONを渡す
@@ -887,7 +884,10 @@ class DevNicoVideoFragment : Fragment() {
                     if (!it.comment.contains("\n")) {
                         // SingleLine
                         fragment_nicovideo_comment_canvas.post {
-                            fragment_nicovideo_comment_canvas.postComment(it.comment, it)
+                            // 画面回転するとnullになるのでちぇちぇちぇっくわんつー
+                            if (fragment_nicovideo_comment_canvas != null) {
+                                fragment_nicovideo_comment_canvas.postComment(it.comment, it)
+                            }
                         }
                     } else {
                         // 複数行？
@@ -898,7 +898,10 @@ class DevNicoVideoFragment : Fragment() {
                         }
                         for (line in asciiArtComment) {
                             fragment_nicovideo_comment_canvas.post {
-                                fragment_nicovideo_comment_canvas.postComment(line, it, true)
+                                // 画面回転対策
+                                if (fragment_nicovideo_comment_canvas != null) {
+                                    fragment_nicovideo_comment_canvas.postComment(line, it, true)
+                                }
                             }
                         }
                     }

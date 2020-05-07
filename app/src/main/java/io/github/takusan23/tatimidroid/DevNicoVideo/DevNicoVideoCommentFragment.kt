@@ -10,7 +10,6 @@ import androidx.appcompat.view.menu.MenuPopupHelper
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.R
@@ -24,6 +23,8 @@ class DevNicoVideoCommentFragment : Fragment() {
     var recyclerViewList = arrayListOf<CommentJSONParse>()
     lateinit var nicoVideoAdapter: NicoVideoAdapter
     lateinit var prefSetting: SharedPreferences
+    lateinit var devNicoVideoFragment: DevNicoVideoFragment
+
     var usersession = ""
     var id = "sm157"
 
@@ -39,6 +40,7 @@ class DevNicoVideoCommentFragment : Fragment() {
         //動画ID受け取る（sm9とかsm157とか）
         id = arguments?.getString("id") ?: "sm157"
         usersession = prefSetting.getString("user_session", "") ?: ""
+        devNicoVideoFragment = fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
 
         // コメント検索ボタン、コメント並び替えボタンを非表示にするか
         if (prefSetting.getBoolean("nicovideo_hide_search_button", true)) {
@@ -49,7 +51,7 @@ class DevNicoVideoCommentFragment : Fragment() {
         initSortPopupMenu()
 
         // RecyclerView
-        initRecyclerView()
+        // initRecyclerView()
 
         // コメント検索
         initSearchButton()

@@ -286,6 +286,7 @@ class BackgroundPlaylistCachePlayService : Service() {
                 setStyle(
                     androidx.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mediaSession.sessionToken)
+                        .setShowActionsInCompactView(1)
                 )
             }
             // 停止ボタン
