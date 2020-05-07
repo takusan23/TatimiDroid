@@ -307,6 +307,13 @@ class MainActivity : AppCompatActivity() {
         activity_main_liveid_edittext.addTextChangedListener {
             // 将来なにか書くかも
         }
+        activity_main_liveid_edittext.setOnKeyListener { v, keyCode, event ->
+            // 二回呼ばれる対策
+            if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                idRegexLaunchPlay(activity_main_liveid_edittext.text.toString())
+            }
+            false
+        }
     }
 
     // ボタン初期化

@@ -309,6 +309,11 @@ class DevNicoVideoFragment : Fragment() {
                 ""
             }
             val response = nicoVideoHTML.getHTML(videoId, userSession, eco).await()
+            // 失敗したら落とす
+            if (!response.isSuccessful) {
+                showToast("${getString(R.string.error)}\n${response.code}")
+                return@launch
+            }
             nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
             jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
             isDMCServer = nicoVideoHTML.isDMCServer(jsonObject)
