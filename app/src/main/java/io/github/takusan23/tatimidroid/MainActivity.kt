@@ -45,7 +45,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
 
         val darkModeSupport = DarkModeSupport(this)

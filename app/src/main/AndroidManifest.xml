@@ -43,8 +43,7 @@
         <service android:name=".Service.NicoVideoPlayService" />
         <service android:name=".Service.GetCacheService" />
 
-        <service android:name=".Service.BackgroundPlaylistCachePlayService">
-        </service>
+        <service android:name=".Service.BackgroundPlaylistCachePlayService"></service>
 
         <receiver android:name="androidx.media.session.MediaButtonReceiver">
             <intent-filter>

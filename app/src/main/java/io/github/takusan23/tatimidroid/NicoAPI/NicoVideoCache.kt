@@ -368,6 +368,9 @@ class NicoVideoCache(val context: Context?) {
         val media = context?.getExternalFilesDir(null)
         // 動画キャッシュようフォルダ作成
         val cacheFolder = File("${media?.path}/cache")
+        if (!cacheFolder.exists()) {
+            cacheFolder.mkdir()
+        }
         return cacheFolder.path
     }
 
