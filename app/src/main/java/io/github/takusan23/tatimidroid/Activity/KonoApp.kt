@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.SpannableString
@@ -64,13 +65,13 @@ class KonoApp : AppCompatActivity() {
 
         kono_app_imageview.setOnLongClickListener {
             //いーすたーえっぐ
-            setEasterEgg("tatimidroid_app")
+            setEasterEgg(AutoAdmissionSQLiteSQLite.LAUNCH_POPUP)
             false
         }
 
         kono_app_title.setOnLongClickListener {
             //いーすたーえっぐ
-            setEasterEgg("nicolive_app")
+            setEasterEgg(AutoAdmissionSQLiteSQLite.LAUNCH_OFFICIAL_APP)
             false
         }
 
@@ -127,7 +128,11 @@ class KonoApp : AppCompatActivity() {
                 //Service再起動
                 val intent = Intent(this, AutoAdmissionService::class.java)
                 stopService(intent)
-                startService(intent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent)
+                } else {
+                    startService(intent)
+                }
             } else {
                 Snackbar.make(kono_app_imageview, "番組IDをコピーしてね！", Snackbar.LENGTH_SHORT).show()
             }

@@ -24,8 +24,8 @@ class AutoAdmissionSQLiteSQLite(context: Context) :
         // 起動方法。appに入れる内容はこれのどれか
         val LAUNCH_TATIMIDROID_APP = "tatimidroid_app" // たちみどろいどで開く
         val LAUNCH_OFFICIAL_APP = "nicolive_app"    // ニコニコ生放送アプリで開く
-        val LAUNCH_POPUP = "popup"              // ポップアップ再生で開く
-        val LAUNCH_BACKGROUND = "background"    // バッググラウンド再生で開く
+        val LAUNCH_POPUP = "tatimidroid_popup"              // ポップアップ再生で開く
+        val LAUNCH_BACKGROUND = "tatimidroid_background"    // バッググラウンド再生で開く
 
         // , を付け忘れるとエラー
         private val SQL_CREATE_ENTRIES = "CREATE TABLE " + TABLE_NAME + " (" +
