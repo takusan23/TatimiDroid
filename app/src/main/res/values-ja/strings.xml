@@ -413,4 +413,6 @@
     <string name="setting_economy_description">エコノミーモードとは：低画質モードのことです。</string>
     <string name="setting_nicolive_quality_low_title">常に最低画質で視聴する</string>
     <string name="setting_nicolive_quality_low_description">インターネットが遅いときにどうぞ</string>
+    <string name="cache_progress_notification">キャッシュ取得進捗通知</string>
+    <string name="cache_progress_now">キャッシュ取得中</string>
 </resources>

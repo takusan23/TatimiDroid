@@ -1,9 +1,7 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment
 
-import android.app.Dialog
 import android.content.*
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -21,11 +19,9 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyList
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.NicoAPI.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Service.*
 import io.github.takusan23.tatimidroid.Service.startBackgroundPlaylistPlayService
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
@@ -33,7 +29,6 @@ import io.github.takusan23.tatimidroid.isNotLoginMode
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.*
 
 /**
  * マイリスト、キャッシュ取得ボタンがあるBottomSheet

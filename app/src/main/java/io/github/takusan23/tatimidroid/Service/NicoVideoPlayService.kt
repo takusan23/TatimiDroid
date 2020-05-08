@@ -19,7 +19,6 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.core.view.get
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -36,9 +35,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.isLoginMode
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.math.BigDecimal

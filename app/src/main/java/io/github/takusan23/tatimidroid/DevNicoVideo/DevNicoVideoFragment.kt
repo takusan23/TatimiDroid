@@ -176,9 +176,6 @@ class DevNicoVideoFragment : Fragment() {
         // Fragmentセットする -> ViewPager初期化はデータ取得後に行うように
         // initViewPager()
 
-        // ブロードキャスト初期化
-        initBroadCastReceiver()
-
         // コントローラー表示
         initController()
 
@@ -1078,13 +1075,6 @@ class DevNicoVideoFragment : Fragment() {
         })
     }
 */
-
-    /**
-     * BroadCastReceiver初期化
-     * */
-    fun initBroadCastReceiver() {
-        nicoVideoCache.initBroadcastReceiver()
-    }
 
     override fun onResume() {
         super.onResume()

@@ -1,20 +1,22 @@
 package io.github.takusan23.tatimidroid.NicoAPI
 
 import android.app.DownloadManager
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.MediaMetadataRetriever
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
-import androidx.core.net.toUri
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_cache_filter.*
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -31,15 +33,13 @@ import java.io.IOException
  * */
 class NicoVideoCache(val context: Context?) {
 
-    // DownloadManager
-    var downloadManager: DownloadManager =
-        context?.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+    // ダウンロード進捗通知のID
+    private var DOWNLOAD_NOTIFICATION_ID = 1919
+    val notificationManager =
+        context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-    // DownloadManagerの結果Broadcast
-    private lateinit var broadcastReceiver: BroadcastReceiver
-
-    // 現在のDownloadManagerの進行中の項目
-    private var downloadItem = 0L
+    // ダウンロード中止ならtrue
+    var isCacheGetCancel = false
 
     // キャッシュ合計サイズ。注意：loadCache()を呼ぶまで0です
     var cacheTotalSize = 0L
@@ -61,7 +61,7 @@ class NicoVideoCache(val context: Context?) {
                 cacheFolder.mkdir()
             }
             // 一覧取得
-            cacheFolder.listFiles().forEach {
+            cacheFolder.listFiles()?.forEach {
                 it.listFiles()?.forEach {
                     cacheTotalSize += it.length()
                 }
@@ -197,8 +197,10 @@ class NicoVideoCache(val context: Context?) {
      * @param 動画URL。公式動画は無理です。HLSの保存ってよくわからん。
      * @param userSession ユーザーセッション
      * @param nicoHistory レスポンスヘッダーのCookieにあるnicohistoryを入れてね。
+     * @param resultFun 0なら成功。1なら失敗
+     * @param url 動画URL
      * */
-    fun getCache(videoId: String, json: String, url: String, userSession: String, nicoHistory: String) {
+    fun getCache(videoId: String, json: String, url: String, userSession: String, nicoHistory: String, resultFun: (Int) -> Unit) {
         // 公式動画は落とせない。
         if (!isEncryption(json)) {
             // 保存先
@@ -213,7 +215,7 @@ class NicoVideoCache(val context: Context?) {
             // 動画のサ胸取得
             getThumbnail(videoIdFolder, videoId, json, userSession)
             // 動画取得
-            getVideoCache(videoIdFolder, videoId, url, userSession, nicoHistory)
+            getVideoCache(videoIdFolder, videoId, url, userSession, nicoHistory, resultFun)
         } else {
             showToast(context?.getString(R.string.encryption_not_download) ?: "")
         }
@@ -245,7 +247,7 @@ class NicoVideoCache(val context: Context?) {
         }
         // 削除
         val videoIdFolder = File("${getCacheFolderPath()}/$videoId")
-        videoIdFolder.listFiles().forEach {
+        videoIdFolder.listFiles()?.forEach {
             it.delete()
         }
         videoIdFolder.delete()
@@ -253,34 +255,107 @@ class NicoVideoCache(val context: Context?) {
 
     /**
      * 動画キャッシュ取得。privateにしてないのは動画だけ更新できるようにって思ってるけどそんなこと無いな。
-     * これだけDownloadManagerを使ってみた。プログレスバーあるのは有能！
+     * OkHttp使ってます。自前でダウンロード進捗書く。
      * @param videoIdFolder 保存先フォルダ。
      * @param videoId 動画ID
      * @param 動画URL。公式動画は無理です。HLSの保存ってよくわからん。
      * @param userSession ユーザーセッション
      * @param nicoHistory レスポンスヘッダーのCookieにあるnicohistoryを入れてね。
+     * @param resultFun 0なら成功。1なら失敗
+     * @param url 動画URL
      * */
-    fun getVideoCache(videoIdFolder: File, videoId: String, url: String, userSession: String, nicoHistory: String) {
+    fun getVideoCache(videoIdFolder: File, videoId: String, url: String, userSession: String, nicoHistory: String, resultFun: (Int) -> Unit) {
         // 動画mp4ファイル作成
         val videoIdMp4 = File("${videoIdFolder.path}/${videoId}_tmp.mp4")
-        // リクエスト作成
-        val downloadRequest = DownloadManager.Request(url.toUri()).apply {
-            addRequestHeader("Cookie", nicoHistory)
-            addRequestHeader("User-Agent", "TatimiDroid;@takusan_23")
-            addRequestHeader("Cookie", "user_session=$userSession")
-            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            setTitle(videoId)
-            setDestinationUri(videoIdMp4.toUri())
-        }
-        downloadItem = downloadManager.enqueue(downloadRequest)
+        // リクエスト
+        val request = Request.Builder().apply {
+            url(url)
+            addHeader("User-Agent", "TatimiDroid;@takusan_23")
+            addHeader("Cookie", nicoHistory)
+            addHeader("Cookie", "user_session=$userSession")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                resultFun(1)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    // 成功時は書き込む
+                    val inputStream = response.body?.byteStream()
+                    val outputStream = videoIdMp4.outputStream()
+                    val buffer = ByteArray(1024 * 4)
+                    val target = response.body?.contentLength() // 合計サイズ
+                    var progress = 0L
+                    // この時点で無理な場合(nullとか)
+                    if (inputStream == null || target == null) {
+                        resultFun(1)
+                        return
+                    }
+                    // Javaっぽいコード
+                    while (true) {
+                        val read = inputStream.read(buffer)
+                        if (read == -1) {
+                            // 終わりなら無限ループ抜けて高階関数よぶ
+                            resultFun(0)
+                            hideCacheProgressNotification()
+                            break
+                        }
+                        // 中断言われたら終わり
+                        if (isCacheGetCancel) {
+                            resultFun(1)
+                            hideCacheProgressNotification()
+                            break
+                        }
+                        progress += read
+                        outputStream.write(buffer, 0, read)
+                        // パーセントで
+                        val percent = "${((progress.toFloat() / target.toFloat()) * 100).toInt()} %"
+                        // 通知出す
+                        showCacheProgressNotification(videoId, percent, progress.toInt(), target.toInt())
+                    }
+                } else {
+                    resultFun(1)
+                }
+            }
+        })
     }
 
     /**
-     * ダウンロードを中断する関数。
-     * 注意：getVideoCache()を呼んだ後じゃないと動かないよ。（多分
+     * キャッシュ取得進捗通知表示関数。漢字多いね
+     * @param 動画ID
+     * @param progress パーセントで進捗頼んだ
      * */
-    fun cancelDownloadManagerEnqueue() {
-        downloadManager.remove(downloadItem)
+    private fun showCacheProgressNotification(videoId: String, progressPercent: String, progress: Int, max: Int) {
+        val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // 通知チャンネル
+            val notificationChannelId = "cache_download_progress"
+            val notificationChannel =
+                NotificationChannel(notificationChannelId, context?.getString(R.string.cache_progress_notification), NotificationManager.IMPORTANCE_LOW)
+            if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
+                notificationManager.createNotificationChannel(notificationChannel)
+            }
+            Notification.Builder(context, notificationChannelId)
+        } else {
+            Notification.Builder(context)
+        }
+        notification.apply {
+            setContentTitle("${context?.getString(R.string.cache_progress_now)} : $progressPercent")
+            setContentText(videoId)
+            setSmallIcon(R.drawable.ic_save_alt_black_24dp)
+            setProgress(max, progress, false) // プログレスバー
+        }
+        // 表示
+        notificationManager.notify(DOWNLOAD_NOTIFICATION_ID, notification.build())
+    }
+
+    /**
+     * ダウンロード進捗通知消す
+     * */
+    private fun hideCacheProgressNotification() {
+        notificationManager.cancel(DOWNLOAD_NOTIFICATION_ID)
     }
 
     /**
@@ -375,42 +450,6 @@ class NicoVideoCache(val context: Context?) {
     }
 
     /**
-     * ブロードキャスト初期化
-     * */
-    fun initBroadcastReceiver(call: (() -> Unit)? = null) {
-        broadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                // ダウンロードに成功したか
-                val action = intent?.action
-                if (DownloadManager.ACTION_DOWNLOAD_COMPLETE == action) {
-                    val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-                    val query = DownloadManager.Query().apply {
-                        setFilterById(id)
-                    }
-                    // DownloadManagerのデータベースへアクセス
-                    val cursor = downloadManager.query(query)
-                    cursor.moveToFirst()
-                    for (i in 0 until cursor.count) {
-                        // ID指定してるから（一個しかないはず）別にforで回す必要もない
-                        val status: Int =
-                            cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
-                        if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                            // ダウンロードに成功した場合
-                            showToast("${context?.getString(R.string.get_cache_video_ok)}")
-                            if (call != null) {
-                                call()
-                            }
-                        }
-                        cursor.moveToNext()
-                    }
-                    cursor.close()
-                }
-            }
-        }
-        context?.registerReceiver(broadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-    }
-
-    /**
      * Android 10からDownloadManagerが勝手にファイル消すのでファイル名を変えて対策
      * @param videoId 動画ID
      * */
@@ -424,9 +463,7 @@ class NicoVideoCache(val context: Context?) {
 
     // 終了時に呼んでね
     fun destroy() {
-        if (::broadcastReceiver.isInitialized) {
-            context?.unregisterReceiver(broadcastReceiver)
-        }
+
     }
 
     // Toast表示

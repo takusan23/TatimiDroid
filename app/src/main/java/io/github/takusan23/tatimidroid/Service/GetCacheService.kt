@@ -19,7 +19,6 @@ import io.github.takusan23.tatimidroid.isLoginMode
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.util.*
 
 /**
  * キャッシュ取得サービス。Serviceに移管した。
@@ -77,7 +76,7 @@ class GetCacheService : Service() {
                         // DL中に中断したらファイルを消すように
                         NicoVideoCache(this@GetCacheService).deleteCache(currentCacheVideoId)
                         // DownloadManager中断
-                        nicoVideoCache.cancelDownloadManagerEnqueue()
+                        nicoVideoCache.isCacheGetCancel = true
                         // Service強制終了
                         stopSelf()
                     }
@@ -127,7 +126,6 @@ class GetCacheService : Service() {
             // キャッシュ取得クラス
             val nicoVideoHTML = NicoVideoHTML()
             nicoVideoCache = NicoVideoCache(this@GetCacheService)
-            nicoVideoCache.initBroadcastReceiver()
             // ID
             val videoId = cacheList[position].first
             currentCacheVideoId = videoId
@@ -168,16 +166,14 @@ class GetCacheService : Service() {
                     contentUrl = nicoVideoHTML.getContentURI(jsonObject, null)
                 }
                 // キャッシュ取得
-                nicoVideoCache.getCache(videoId, jsonObject.toString(), contentUrl, userSession, nicoHistory)
-                // キャッシュ取得成功ブロードキャストを受け取る
-                nicoVideoCache.initBroadcastReceiver {
-                    /**
-                     * Android 10からｇｍみたいな仕様変更が入った。（らしい）
-                     * DownloadManager経由で落としたファイルがなんか勝手に削除されるようになってしまった。
-                     * 対策でファイル名を変えるといいらしい
-                     * */
-                    nicoVideoCache.reNameVideoFile(videoId)
-                    // 取得完了したら呼ばれる。
+                nicoVideoCache.getCache(videoId, jsonObject.toString(), contentUrl, userSession, nicoHistory) {
+                    if (it == 1) {
+                        // 失敗時
+                        showToast("動画の取得に失敗しました（$videoId）")
+                        // 消す
+                        nicoVideoCache.deleteCache(videoId)
+                    }
+                    // 取得完了したら呼ぶ
                     nicoVideoHTML.destory()
                     nicoVideoCache.destroy()
                     // 終了済みリスト

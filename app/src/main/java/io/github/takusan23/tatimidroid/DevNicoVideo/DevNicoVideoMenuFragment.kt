@@ -3,7 +3,6 @@ package io.github.takusan23.tatimidroid.DevNicoVideo
 import android.content.*
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -23,8 +22,6 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.ProgramShare
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Service.NicoLivePlayService
-import io.github.takusan23.tatimidroid.Service.NicoVideoPlayService
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.isConnectionInternet
