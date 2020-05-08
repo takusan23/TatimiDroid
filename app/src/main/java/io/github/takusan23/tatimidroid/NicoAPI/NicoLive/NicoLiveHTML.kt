@@ -36,8 +36,11 @@ class NicoLiveHTML {
     // コメント送信用WebSocket
     lateinit var commentPOSTWebSocketClient: WebSocketClient
 
-    // 低遅延モードが有効ならtrue
+    // 低遅延モードが有効ならtrue。
     var isLowLatency = true
+
+    // 画質設定。最初の接続でのみ使われる(WebSocket接続成功時に送る。それ以外では使わない)
+    var startQuality = "high"
 
     // 視聴継続メッセージ送信用Timer
     var timer = Timer()
@@ -227,8 +230,8 @@ class NicoLiveHTML {
                 val streamObject = JSONObject()
                 streamObject.put("protocol", "hls")
                 streamObject.put("requireNewStream", true)
-                streamObject.put("priorStreamQuality", "high")
-                streamObject.put("isLowLatency", isLowLatency)
+                streamObject.put("priorStreamQuality", startQuality) // 画質
+                streamObject.put("isLowLatency", isLowLatency) // 低遅延
                 streamObject.put("isChasePlay", false)
                 //room
                 val roomObject = JSONObject()

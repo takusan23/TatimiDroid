@@ -189,7 +189,8 @@ class DevNicoVideoFragment : Fragment() {
         // キャッシュ優先再生が利用可能か
         canUsePriorityCachePlay =
             NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache
-
+        // 強制エコノミーの設定有効なら
+        val isPreferenceEconomyMode = prefSetting.getBoolean("setting_nicovideo_economy", false)
         // エコノミー再生するなら
         val isEconomy = arguments?.getBoolean("eco") ?: false
 
@@ -199,7 +200,7 @@ class DevNicoVideoFragment : Fragment() {
                 cachePlay()
             }
             // エコノミー再生？
-            isEconomy -> coroutine(true, "", "", true)
+            isEconomy || isPreferenceEconomyMode -> coroutine(true, "", "", true)
             // それ以外：インターネットで取得
             else -> coroutine()
         }
@@ -479,10 +480,13 @@ class DevNicoVideoFragment : Fragment() {
                     .forEach {
                         recommendList.add(it)
                     }
-                // DevNicoVideoRecommendFragmentに配列渡す
-                (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
-                    recommendList.forEach {
-                        recyclerViewList.add(it)
+                // Fragment表示されているか（取得できた時点でもう存在しないかもしれない）
+                if (isAdded) {
+                    // DevNicoVideoRecommendFragmentに配列渡す
+                    (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
+                        recommendList.forEach {
+                            recyclerViewList.add(it)
+                        }
                     }
                 }
             } catch (e: SSLProtocolException) {

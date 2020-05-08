@@ -409,4 +409,8 @@
     <string name="add_homescreen">ホーム画面に追加（試験導入）</string>
     <string name="setting_video_and_live">動画、生放送共通設定</string>
     <string name="setting_enter_post_description">無効にすると複数行でコメントを投稿できるようになります。</string>
+    <string name="setting_economy_title">強制エコノミーモードで視聴する</string>
+    <string name="setting_economy_description">エコノミーモードとは：低画質モードのことです。</string>
+    <string name="setting_nicolive_quality_low_title">常に最低画質で視聴する</string>
+    <string name="setting_nicolive_quality_low_description">インターネットが遅いときにどうぞ</string>
 </resources>

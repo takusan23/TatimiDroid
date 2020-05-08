@@ -409,4 +409,8 @@
     <string name="add_homescreen">Added to home screen (test introduction)</string>
     <string name="setting_video_and_live">Video, live broadcast common settings</string>
     <string name="setting_enter_post_description">If disabled, comments can be posted in multiple lines.</string>
+    <string name="setting_economy_description">Economy mode: Low image quality mode.</string>
+    <string name="setting_economy_title">Watch in forced economy mode</string>
+    <string name="setting_nicolive_quality_low_title">Always watch in low quality</string>
+    <string name="setting_nicolive_quality_low_description">Please when Internet is slow</string>
 </resources>

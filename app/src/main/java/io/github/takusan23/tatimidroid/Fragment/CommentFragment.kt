@@ -286,6 +286,13 @@ class CommentFragment : Fragment() {
 
         // 低遅延モードon/off
         nicoLiveHTML.isLowLatency = !pref_setting.getBoolean("nicolive_low_latency", true)
+        // 初回の画質を低画質にする設定（モバイル回線とか強制低画質モードとか）
+        val isMobileDataLowQuality =
+            pref_setting.getBoolean("setting_mobiledata_quality_low", false)
+        val isPreferenceLowQuality = pref_setting.getBoolean("setting_nicolive_quality_low", false)
+        if (isMobileDataLowQuality || isPreferenceLowQuality) {
+            nicoLiveHTML.startQuality = "super_low"
+        }
 
         // ViewPager
         initViewPager()
@@ -502,22 +509,16 @@ class CommentFragment : Fragment() {
                         command == "currentstream" -> {
                             // HLSアドレス取得
                             hlsAddress = getHlsAddress(message) ?: ""
+                            // 画質一覧と今の画質
+                            val currentQuality = getCurrentQuality(message)
                             // 生放送再生
                             if (watchLive) {
-                                // モバイルデータは最低画質で読み込む設定
-                                if (pref_setting.getBoolean("setting_mobiledata_quality_low", false)) {
-                                    if (isConnectionInternet(context)) {
-                                        // 最低画質指定
-                                        nicoLiveHTML.sendQualityMessage("super_low")
-                                    }
-                                }
                                 setPlayVideoView()
                             } else {
                                 //レイアウト消す
                                 live_framelayout.visibility = View.GONE
                             }
-                            // 画質一覧と今の画質
-                            val currentQuality = getCurrentQuality(message)
+                            // 画質変更BottomSheet初期化
                             initQualityChangeBottomFragment(getCurrentQuality(message), getQualityListJSONArray(message))
                             // 最初の画質を控える
                             if (beginQuality.isEmpty()) {

@@ -38,6 +38,12 @@
                 android:title="@string/setting_no_login_title" />
         <SwitchPreference
                 android:defaultValue="false"
+                android:icon="@drawable/ic_signal_cellular_null_24px"
+                android:key="setting_nicovideo_economy"
+                android:summary="@string/setting_economy_description"
+                android:title="@string/setting_economy_title" />
+        <SwitchPreference
+                android:defaultValue="false"
                 android:icon="@drawable/ic_outline_comment_24px"
                 android:key="setting_nicovideo_comment_only"
                 android:summary="@string/setting_comment_only_description"
@@ -140,6 +146,13 @@
                 android:key="setting_mobiledata_quality_low"
                 android:summary="@string/setting_mobiledata_quality_description"
                 android:title="@string/setting_mobiledata_quality" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_signal_cellular_null_24px"
+                android:key="setting_nicolive_quality_low"
+                android:summary="@string/setting_nicolive_quality_low_description"
+                android:title="@string/setting_nicolive_quality_low_title" />
 
         <SwitchPreference
                 android:defaultValue="true"
