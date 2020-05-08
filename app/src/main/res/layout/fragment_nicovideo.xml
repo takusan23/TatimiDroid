@@ -128,8 +128,9 @@
                                 android:layout_weight="1"
                                 android:clickable="true"
                                 android:foreground="?android:attr/selectableItemBackground"
-                                android:padding="20sp"
-                                app:srcCompat="@drawable/ic_repeat_black_24dp" />
+                                android:padding="20dp"
+                                app:srcCompat="@drawable/ic_repeat_black_24dp"
+                                android:focusable="true" />
 
                         <ImageView
                                 android:id="@+id/fragment_nicovideo_controller_replay"
@@ -138,8 +139,9 @@
                                 android:layout_weight="1"
                                 android:clickable="true"
                                 android:foreground="?android:attr/selectableItemBackground"
-                                android:padding="20sp"
-                                app:srcCompat="@drawable/ic_replay_5_black_24dp" />
+                                android:padding="20dp"
+                                app:srcCompat="@drawable/ic_replay_5_black_24dp"
+                                android:focusable="true" />
 
                         <ImageView
                                 android:id="@+id/fragment_nicovideo_play_button"
@@ -148,8 +150,9 @@
                                 android:layout_weight="1"
                                 android:clickable="true"
                                 android:foreground="?android:attr/selectableItemBackground"
-                                android:padding="20sp"
-                                app:srcCompat="@drawable/ic_play_arrow_24px" />
+                                android:padding="20dp"
+                                app:srcCompat="@drawable/ic_play_arrow_24px"
+                                android:focusable="true" />
 
                         <ImageView
                                 android:id="@+id/fragment_nicovideo_controller_forward"
@@ -158,8 +161,9 @@
                                 android:layout_weight="1"
                                 android:clickable="true"
                                 android:foreground="?android:attr/selectableItemBackground"
-                                android:padding="20sp"
-                                app:srcCompat="@drawable/ic_forward_5_black_24dp" />
+                                android:padding="20dp"
+                                app:srcCompat="@drawable/ic_forward_5_black_24dp"
+                                android:focusable="true" />
 
                         <ImageView
                                 android:id="@+id/fragment_nicovideo_controller_close"
@@ -168,8 +172,9 @@
                                 android:layout_weight="1"
                                 android:clickable="true"
                                 android:foreground="?android:attr/selectableItemBackground"
-                                android:padding="20sp"
-                                app:srcCompat="@drawable/ic_clear_black" />
+                                android:padding="20dp"
+                                app:srcCompat="@drawable/ic_clear_black"
+                                android:focusable="true" />
                     </LinearLayout>
 
                 </LinearLayout>
@@ -183,6 +188,7 @@
                     android:layout_gravity="bottom|end"
                     android:layout_margin="16dp"
                     android:clickable="true"
+                    android:focusable="true"
                     app:backgroundTint="@color/colorAccent"
                     app:srcCompat="@drawable/ic_videogame_asset_black_24dp" />
 

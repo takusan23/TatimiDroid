@@ -124,7 +124,7 @@ class XMLCommentJSON(val context: Context?) {
         // ふぉるだ
         val videoFile = File("${media?.path}/cache/$fileName")
         if (videoFile.listFiles() != null) {
-            videoFile.listFiles().forEach {
+            videoFile.listFiles()?.forEach {
                 if (it.extension == "xml") {
                     return it.path
                 }
