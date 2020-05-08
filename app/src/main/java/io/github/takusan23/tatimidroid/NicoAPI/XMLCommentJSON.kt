@@ -53,6 +53,7 @@ class XMLCommentJSON(val context: Context?) {
             // コメントのみ選ぶ
             if (parser.name == "chat") {
                 val thread = parser.getAttributeValue(null, "thread")
+                val no = parser.getAttributeValue(null, "no")
                 val vpos = parser.getAttributeValue(null, "vpos")
                 val date = parser.getAttributeValue(null, "date")
                 val date_usec = parser.getAttributeValue(null, "date_usec")
@@ -70,7 +71,7 @@ class XMLCommentJSON(val context: Context?) {
                 // JSONのchatオブジェクト作成
                 val chatObject = JSONObject().apply {
                     put("thread", thread)
-                    put("no", -1)
+                    put("no", no)
                     put("vpos", vpos)
                     put("leaf", 1)
                     put("date", date)
