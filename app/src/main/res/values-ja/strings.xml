@@ -408,4 +408,5 @@
     <string name="open_popup">ポップアップ再生で開く</string>
     <string name="add_homescreen">ホーム画面に追加（試験導入）</string>
     <string name="setting_video_and_live">動画、生放送共通設定</string>
+    <string name="setting_enter_post_description">無効にすると複数行でコメントを投稿できるようになります。</string>
 </resources>

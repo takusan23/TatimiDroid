@@ -117,6 +117,7 @@
                 android:defaultValue="true"
                 android:icon="@drawable/ic_keyboard_return_24px"
                 android:key="setting_enter_post"
+                android:summary="@string/setting_enter_post_description"
                 android:title="@string/setting_enter_post_title" />
 
         <SwitchPreference

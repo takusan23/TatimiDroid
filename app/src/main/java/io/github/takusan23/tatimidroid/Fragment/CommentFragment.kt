@@ -18,9 +18,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
 import android.view.*
 import android.view.animation.AnimationUtils
+import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
@@ -1268,6 +1270,16 @@ class CommentFragment : Fragment() {
                 liveFrameLayout.layoutParams = frameLayoutParams
             }
 
+            // コメント描画システムに教える
+            commentCanvas.apply {
+                finalHeight = commentCanvas.height
+                // コメントの高さの情報がある配列を消す。
+                // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
+                commentLine.clear()
+                ueCommentLine.clear()
+                sitaCommentLine.clear()
+            }
+
             exoPlayer = SimpleExoPlayer.Builder(context!!).build()
             val sourceFactory = DefaultDataSourceFactory(
                 context,
@@ -1731,10 +1743,11 @@ class CommentFragment : Fragment() {
             sendComment(comment, command)
             comment_cardview_comment_textinput_edittext.setText("")
         }
-        //Enterキーを押したら投稿する
+        // Enterキー(紙飛行機ボタン)を押したら投稿する
         if (pref_setting.getBoolean("setting_enter_post", true)) {
-            comment_cardview_comment_textinput_edittext.setOnKeyListener { view: View, i: Int, keyEvent: KeyEvent ->
-                if (i == KeyEvent.KEYCODE_ENTER) {
+            // comment_cardview_comment_textinput_edittext.imeOptions = EditorInfo.IME_ACTION_SEND
+            comment_cardview_comment_textinput_edittext.setOnEditorActionListener { v, actionId, event ->
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
                     val text = comment_cardview_comment_textinput_edittext.text.toString()
                     val command = comment_cardview_command_textinputlayout.text.toString()
                     if (text.isNotEmpty()) {
@@ -1742,11 +1755,16 @@ class CommentFragment : Fragment() {
                         sendComment(text, command)
                         comment_cardview_comment_textinput_edittext.setText("")
                     }
+                    true
+                } else {
+                    false
                 }
-                false
             }
         } else {
-            //複数行？
+            // 複数行？一筋縄では行かない
+            // https://stackoverflow.com/questions/51391747/multiline-does-not-work-inside-textinputlayout
+            comment_cardview_comment_textinput_edittext.inputType =
+                InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_CLASS_TEXT
             comment_cardview_comment_textinput_edittext.maxLines = Int.MAX_VALUE
         }
         //閉じるボタン

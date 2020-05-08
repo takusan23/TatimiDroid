@@ -10,7 +10,7 @@
     <FrameLayout
             android:id="@+id/fragment_nicovideo_framelayout"
             android:layout_width="match_parent"
-            android:layout_height="300sp"
+            android:layout_height="300dp"
             android:background="#000000">
 
         <SurfaceView
