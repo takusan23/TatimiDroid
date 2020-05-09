@@ -10,6 +10,7 @@ import androidx.appcompat.view.menu.MenuPopupHelper
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.R
@@ -28,6 +29,7 @@ class DevNicoVideoCommentFragment : Fragment() {
     var usersession = ""
     var id = "sm157"
 
+    lateinit var recyclerView: RecyclerView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_comment, container, false)
@@ -40,6 +42,7 @@ class DevNicoVideoCommentFragment : Fragment() {
         //動画ID受け取る（sm9とかsm157とか）
         id = arguments?.getString("id") ?: "sm157"
         usersession = prefSetting.getString("user_session", "") ?: ""
+        recyclerView = view.findViewById(R.id.activity_nicovideo_recyclerview)
         devNicoVideoFragment = fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
 
         // コメント検索ボタン、コメント並び替えボタンを非表示にするか
@@ -51,7 +54,7 @@ class DevNicoVideoCommentFragment : Fragment() {
         initSortPopupMenu()
 
         // RecyclerView
-        // initRecyclerView()
+        initRecyclerView()
 
         // コメント検索
         initSearchButton()
@@ -64,35 +67,37 @@ class DevNicoVideoCommentFragment : Fragment() {
      * @param snackbarShow SnackBar（取得コメント数）を表示させる場合はtrue、省略時はfalse
      * */
     fun initRecyclerView(snackbarShow: Boolean = false) {
-        if (isAdded) {
-            recyclerViewList.clear()
-            (fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment).commentList.forEach {
-                recyclerViewList.add(it)
-            }
-            activity_nicovideo_recyclerview.setHasFixedSize(true)
-            val mLayoutManager = LinearLayoutManager(context)
-            activity_nicovideo_recyclerview.layoutManager = mLayoutManager
-            // 3DSコメント非表示を実現するための面倒なやつ
-            val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
-            val list = if (is3DSCommentHidden) {
-                recyclerViewList.filter { commentJSONParse -> !commentJSONParse.mail.contains("device:3DS") }
-            } else {
-                recyclerViewList
-            } as ArrayList<CommentJSONParse>
-            nicoVideoAdapter =
-                NicoVideoAdapter(list)
-            // DevNicoVideoFragment渡す
-            nicoVideoAdapter.devNicoVideoFragment =
-                fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
-            activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
-            //  Snackbar
-            if (snackbarShow) {
-                // DevNicoVideoFragment
-                val fragment =
-                    fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
-                fragment.showSnackbar("${getString(R.string.get_comment_count)}：${recyclerViewList.size}", null, null)
-            }
+        if (!isAdded) {
+            return
         }
+        recyclerViewList = ArrayList(devNicoVideoFragment.commentList)
+        recyclerView.setHasFixedSize(true)
+        val mLayoutManager = LinearLayoutManager(context)
+        recyclerView.layoutManager = mLayoutManager
+        // 3DSコメント非表示を実現するための面倒なやつ
+        val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
+        val list = if (is3DSCommentHidden) {
+            recyclerViewList.filter { commentJSONParse -> !commentJSONParse.mail.contains("device:3DS") }
+        } else {
+            recyclerViewList
+        } as ArrayList<CommentJSONParse>
+        nicoVideoAdapter = NicoVideoAdapter(list)
+        // DevNicoVideoFragment渡す
+        nicoVideoAdapter.devNicoVideoFragment =
+            fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+        recyclerView.adapter = nicoVideoAdapter
+        //  Snackbar
+        if (snackbarShow) {
+            // DevNicoVideoFragment
+            val fragment =
+                fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+            fragment.showSnackbar("${getString(R.string.get_comment_count)}：${recyclerViewList.size}", null, null)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // initRecyclerView()
     }
 
     override fun onResume() {

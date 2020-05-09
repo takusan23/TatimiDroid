@@ -173,8 +173,9 @@ class DevNicoVideoFragment : Fragment() {
         // ダークモード
         initDarkmode()
 
-        // Fragmentセットする -> ViewPager初期化はデータ取得後に行うように
-        // initViewPager()
+        // なんかしらんけどこれで動く。これに関してはまじでわかんねーんだこれが。ViewPager2謎すぎる:thinking_face:
+        // とりあえずこのViewPager2初期化関数消すと画面回転時に４ぬ。まじでなんで？
+        initViewPager()
 
         // コントローラー表示
         initController()
@@ -381,7 +382,6 @@ class DevNicoVideoFragment : Fragment() {
                 }
             }
             activity?.runOnUiThread {
-                // なぜかViewPager初期化をここで呼ぶとうまくいく。謎
                 initViewPager()
                 if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
                     // 動画を再生しない場合
@@ -557,8 +557,6 @@ class DevNicoVideoFragment : Fragment() {
                     val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
                     commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
                     activity?.runOnUiThread {
-                        // なぜかViewPager初期化をここで呼ぶとうまくいく。謎
-                        initViewPager()
                         // コメントFragmentにコメント配列を渡す
                         (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).initRecyclerView(true)
                         // 動画情報JSONがあるかどうか
@@ -978,7 +976,7 @@ class DevNicoVideoFragment : Fragment() {
      * */
     private fun initViewPager() {
         viewPager =
-            DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache)
+            DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache, this)
         fragment_nicovideo_viewpager.adapter = viewPager
         TabLayoutMediator(fragment_nicovideo_tablayout, fragment_nicovideo_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
             tab.text = viewPager.fragmentTabName[position]
@@ -1105,6 +1103,7 @@ class DevNicoVideoFragment : Fragment() {
         heartBeatTimer.cancel()
         nicoVideoCache.destroy()
         nicoVideoHTML.destory()
+        viewPager.destory()
         isDestory = true
     }
 

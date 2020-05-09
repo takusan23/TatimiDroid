@@ -1746,7 +1746,7 @@ class CommentFragment : Fragment() {
         }
         // Enterキー(紙飛行機ボタン)を押したら投稿する
         if (pref_setting.getBoolean("setting_enter_post", true)) {
-            // comment_cardview_comment_textinput_edittext.imeOptions = EditorInfo.IME_ACTION_SEND
+            comment_cardview_comment_textinput_edittext.imeOptions = EditorInfo.IME_ACTION_SEND
             comment_cardview_comment_textinput_edittext.setOnEditorActionListener { v, actionId, event ->
                 if (actionId == EditorInfo.IME_ACTION_SEND) {
                     val text = comment_cardview_comment_textinput_edittext.text.toString()
