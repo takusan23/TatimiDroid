@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI
 
 import android.content.Context
+import io.github.takusan23.tatimidroid.CommentJSONParse
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -26,8 +27,6 @@ class XMLCommentJSON(val context: Context?) {
      * */
     fun xmlToJSON(fileName: String): Deferred<Int> = GlobalScope.async {
         println(System.currentTimeMillis())
-
-        var tmp = ""
 
         // ScopedStorage
         val media = context?.getExternalFilesDir(null)
@@ -97,22 +96,81 @@ class XMLCommentJSON(val context: Context?) {
         return@async 0
     }
 
-/*
-    */
     /**
-     * XML形式のコメントファイルが存在するか。存在するときはtrue
-     * @param fileName ファイル名。基本動画ID
-     * *//*
+     * xml形式のコメントをCommentJSONParseの配列に変換する関数。コルーチンです
+     * @param xmlString XML形式のコメントファイル
+     * */
+    fun xmlToArrayList(xmlString: String): Deferred<ArrayList<CommentJSONParse>> =
+        GlobalScope.async {
+            val list = arrayListOf<CommentJSONParse>()
 
-    fun commentXmlFileExists(fileName: String): Boolean {
-        // ScopedStorage
-        val media = context?.getExternalFilesDir(null)
-        // コメントXML
-        val xmlFile = File("${media?.path}/cache/$fileName/${fileName}.xml")
-        // ファイル存在するか
-        return xmlFile.exists()
-    }
-*/
+            /**
+             * Android標準でXMLをパースする。
+             * 本当はJsoup使いたかったんだけど遅すぎた
+             * */
+            val factory =
+                XmlPullParserFactory.newInstance()
+            val parser = factory.newPullParser()
+            parser.setInput(StringReader(xmlString));
+            var eventType = parser.eventType
+            // 終了まで繰り返す
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                // コメントのみ選ぶ
+                if (parser.name == "chat") {
+                    val thread = parser.getAttributeValue(null, "thread")
+                    val no = parser.getAttributeValue(null, "no")
+                    val vpos = parser.getAttributeValue(null, "vpos")
+                    val date = parser.getAttributeValue(null, "date")
+                    val date_usec = parser.getAttributeValue(null, "date_usec")
+                    val userId = parser.getAttributeValue(null, "user_id")
+                    val anonymcommenty = parser.getAttributeValue(null, "anonymcommenty")
+                    val score = if (parser.getAttributeValue(null, "score") != null) {
+                        parser.getAttributeValue(null, "score")
+                    } else {
+                        ""
+                    }
+                    val mail = parser.getAttributeValue(null, "mail")
+                    val origin = parser.getAttributeValue(null, "origin")
+                    val premium = parser.getAttributeValue(null, "premium")
+                    val content = parser.nextText()
+                    // JSONのchatオブジェクト作成
+                    val chatObject = JSONObject().apply {
+                        put("thread", thread)
+                        put("no", no)
+                        put("vpos", vpos)
+                        put("leaf", 1)
+                        put("date", date)
+                        put("date_usec", date_usec)
+                        put("anonymcommenty", anonymcommenty)
+                        put("user_id", userId)
+                        put("mail", mail)
+                        put("origin", origin)
+                        put("score", score)
+                        put("content", content)
+                        put("premium", premium)
+                    }
+                    val jsonObject = JSONObject().put("chat", chatObject)
+                    list.add(CommentJSONParse(jsonObject.toString(), "てすと", ""))
+                }
+                eventType = parser.next()
+            }
+            return@async list
+        }
+
+
+    /**
+     * CommentJSONParseの配列をJSONの配列に変換する。コルーチンです。関数名なっが
+     * @param commentList CommentJSONParseの配列
+     * */
+    fun CommentJSONParseArrayToJSONString(commentList: ArrayList<CommentJSONParse>): Deferred<JSONArray> =
+        GlobalScope.async {
+            val jsonArray = JSONArray()
+            commentList.forEach {
+                jsonArray.put(JSONObject(it.commentJson))
+            }
+            return@async jsonArray
+        }
+
 
     /**
      * コメントXMLファイルのパスを返す関数。ない場合はnull

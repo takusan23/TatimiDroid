@@ -1,46 +1,77 @@
 package io.github.takusan23.tatimidroid.Fragment
 
-import android.content.SharedPreferences
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Switch
-import androidx.core.content.edit
-import androidx.fragment.app.Fragment
 import androidx.preference.Preference
-import androidx.preference.PreferenceManager
+import androidx.preference.PreferenceFragmentCompat
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_dev_setting.*
+import io.github.takusan23.tatimidroid.Service.CommentGetService
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
-class DevSettingFragment : Fragment() {
+class DevSettingFragment : PreferenceFragmentCompat() {
 
-    lateinit var prefSetting: SharedPreferences
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_dev_setting, container, false)
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        setPreferencesFromResource(R.xml.dev_preference, rootKey)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        prefSetting = PreferenceManager.getDefaultSharedPreferences(context!!)
-
-        // setSetting(fragment_dev_niconico_video, "fragment_dev_niconico_video")
-        setSetting(fragment_dev_intent_mime, "fragment_dev_intent_mime")
-
+        // コメントベンチマーク
+        initCommentBenchmark()
     }
 
-    /**
-     * 設定Switch
-     * */
-    fun setSetting(switch: Switch, key: String) {
-        switch.isChecked = prefSetting.getBoolean(key, false)
-        switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            prefSetting.edit {
-                putBoolean(key, isChecked)
-            }
+    private fun initCommentBenchmark() {
+        val commentGetButton =
+            preferenceManager.findPreference<Preference>("dev_setting_get_comment")
+        val commentValue =
+            preferenceManager.sharedPreferences.getString("dev_setting_get_comment_limit", "0")
+                ?.toInt()
+        val commentServiceFinishButton =
+            preferenceManager.findPreference<Preference>("dev_setting_get_comment_service_finish")
+
+        val intent = Intent(context, CommentGetService::class.java)
+
+        // キャッシュの中から選ぶ
+        val nicoVideoCache = NicoVideoCache(context)
+        var idList = arrayListOf<String>()
+        var titleList = arrayListOf<String>()
+        runBlocking {
+            // 読み込んでIDとタイトルの文字が入った配列に変換
+            val cacheList = nicoVideoCache.loadCache().await()
+            titleList = ArrayList(cacheList.map { nicoVideoData -> nicoVideoData.title })
+            idList = ArrayList(cacheList.map { nicoVideoData -> nicoVideoData.videoId })
         }
-    }
+        // だいあろぐ
+        val buttons = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>()
+        titleList.forEach {
+            val items = DialogBottomSheet.DialogBottomSheetItem(it)
+            buttons.add(items)
+        }
+        // サービス起動
+        commentGetButton?.setOnPreferenceClickListener {
+            // 選択画面出す
+            DialogBottomSheet("キャッシュ取得の中から表示してます", buttons) { i, bottomSheetDialogFragment ->
+                intent.putExtra("videoId", idList[i])
+                context?.stopService(intent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context?.startForegroundService(intent)
+                } else {
+                    context?.startService(intent)
+                }
+            }.show(fragmentManager!!, "select")
+            false
+        }
 
+        // サービス終了
+        commentServiceFinishButton?.setOnPreferenceClickListener {
+            context?.stopService(intent)
+            false
+        }
+
+    }
 }
