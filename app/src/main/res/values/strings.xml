@@ -382,12 +382,12 @@
     <string name="mylist_sort_itemcount_title">Set the order of the list of My List to the most registered videos</string>
     <string name="background_playlist_play_channel">Cache continuous playback notification</string>
     <string name="filter_clear">Remove filter</string>
-    <string name="filter_clear_message">Are you sure you want to delete it?</string>
+    <string name="filter_clear_message">Is it really okay to reset sort and sort conditions?</string>
     <string name="delete_ok">Delete</string>
     <string name="login_disable_message">I have been logged out. Would you like to log in again?</string>
     <string name="login_or_is_not_login_mode">Login or set \"Use without login\" in settings...</string>
     <string name="nicoru_ok">Nikotta Nicoru</string>
-    <string name="nicoru_error">You might be nicoru all the time</string>
+    <string name="nicoru_error">I\'m already nicoru</string>
     <string name="brower_launch">Open in browser (other application)</string>
     <string name="setting_comment_10_line_title">Secure 10 comment lines regardless of size</string>
     <string name="setting_comment_10_line_description">If enabled, 10 lines of comment can be displayed.</string>

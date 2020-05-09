@@ -40,8 +40,8 @@
 
                         <Button
                                 android:id="@+id/fragment_nicovideo_menu_popup"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
                                 android:layout_margin="2dp"
                                 android:layout_weight="1"
                                 android:text="@string/popup_player"
@@ -49,8 +49,8 @@
 
                         <Button
                                 android:id="@+id/fragment_nicovideo_menu_background"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
                                 android:layout_margin="2dp"
                                 android:layout_weight="1"
                                 android:text="@string/background_play"

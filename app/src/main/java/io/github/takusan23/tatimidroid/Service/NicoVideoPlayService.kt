@@ -549,6 +549,10 @@ class NicoVideoPlayService : Service() {
         val buttonHeight = popupView.overlay_video_button_layout_button.height
         val sizeSeekHeight = popupView.overlay_video_button_layout_size.height
         val totalHeight = buttonHeight + sizeSeekHeight
+        if (totalHeight == 0) {
+            // getHeight()が正しい値を返さないときは落とす
+            return
+        }
         val space = popupLayoutParams.height - totalHeight
 
         val controllerHeight =

@@ -69,8 +69,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
 
         // ニコるくん表示
-        val isShowNicoruButton =
-            devNicoVideoFragment.prefSetting.getBoolean("setting_nicovideo_nicoru_show", false)
+        val isShowNicoruButton = prefSetting.getBoolean("setting_nicovideo_nicoru_show", false)
         // mail（コマンド）がないときは表示しない
         val mailText = if (item.mail.isNotEmpty()) {
             "| $mail "
@@ -78,8 +77,9 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             ""
         }
         // 一般会員にはニコる提供されてないのでニコる数だけ表示
+        // あとDevNicoVideoFragmentはがめんスワイプしてたらなんか落ちたので
         val nicoruCount =
-            if (item.nicoru > 0 && !(devNicoVideoFragment.isPremium && isShowNicoruButton)) {
+            if (item.nicoru > 0 && isInitDevNicoVideoFragment() && !(devNicoVideoFragment.isPremium && isShowNicoruButton)) {
                 "| ニコる ${item.nicoru} "
             } else {
                 ""
@@ -109,7 +109,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
 
         // プレ垢はニコるくんつける
-        if (devNicoVideoFragment.isPremium && isShowNicoruButton) {
+        if (isInitDevNicoVideoFragment() && devNicoVideoFragment.isPremium && isShowNicoruButton) {
             holder.nicoruButton.visibility = View.VISIBLE
         }
 
@@ -183,4 +183,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
+
+    // DevNicoVideoFragmentが初期化済みか
+    fun isInitDevNicoVideoFragment(): Boolean = ::devNicoVideoFragment.isInitialized
 }

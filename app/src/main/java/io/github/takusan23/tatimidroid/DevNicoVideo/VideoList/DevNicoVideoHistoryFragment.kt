@@ -9,7 +9,9 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHistoryAPI
 import io.github.takusan23.tatimidroid.R
@@ -64,16 +66,32 @@ class DevNicoVideoHistoryFragment : Fragment() {
         coroutine = GlobalScope.launch {
             val response = nicoVideoHistoryAPI.getHistory(userSession).await()
             try {
-                if (response.isSuccessful) {
-                    nicoVideoHistoryAPI.parseHistoryJSONParse(response.body?.string()).forEach {
-                        recyclerViewList.add(it)
+                when {
+                    response.isSuccessful -> {
+                        nicoVideoHistoryAPI.parseHistoryJSONParse(response.body?.string()).forEach {
+                            recyclerViewList.add(it)
+                        }
+                        activity?.runOnUiThread {
+                            nicoVideoListAdapter.notifyDataSetChanged()
+                            fragment_comment_history_swipe_to_refresh.isRefreshing = false
+                        }
                     }
-                    activity?.runOnUiThread {
-                        nicoVideoListAdapter.notifyDataSetChanged()
-                        fragment_comment_history_swipe_to_refresh.isRefreshing = false
+                    response.code == 401 -> {
+                        // ログイン切れ。再ログイン勧める
+                        Snackbar.make(fragment_comment_history_recyclerview, R.string.login_disable_message, Snackbar.LENGTH_SHORT)
+                            .apply {
+                                setAction(R.string.login) {
+                                    // ログインする
+                                    GlobalScope.launch {
+                                        NicoLogin.loginCoroutine(context).await()
+                                        getHistory()
+                                    }
+                                }
+                                show()
+                            }
                     }
-                } else {
-                    showToast("${getString(R.string.error)}\n${response.code}")
+                    else -> showToast("${getString(R.string.error)}\n${response.code}")
+
                 }
             } catch (e: SSLProtocolException) {
                 // Android 9の端末でSSLProtocolExceptionがスローされるのでやりたくないけど例外処理

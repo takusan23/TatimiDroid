@@ -32,7 +32,7 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
 
     lateinit var cacheFragment: DevNicoVideoCacheFragment
 
-    var uploaderNameList = arrayListOf<String>()
+    private var uploaderNameList = arrayListOf<String>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_nicovideo_cache_filter, container, false)
@@ -63,10 +63,14 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     // 投稿者ソート
     private fun initUploaderSort() {
         // RecyclerViewのNicoVideoDataの中から投稿者の配列を取る
-        uploaderNameList = cacheFragment.recyclerViewList.map { nicoVideoData ->
-            nicoVideoData.uploaderName ?: ""
-        }.distinct() as ArrayList<String> // 被ってる内容を消す
-        uploaderNameList.remove("") // 空文字削除
+        val nameList = cacheFragment.recyclerViewList.map { nicoVideoData ->
+            nicoVideoData.uploaderName
+        }.toList()
+        nameList.forEach {
+            if (it != null) {
+                uploaderNameList.add(it)
+            }
+        }
         // Adapter作成
         val adapter =
             DevNicoVideoCacheFilterSortDropdownMenuAdapter(context!!, android.R.layout.simple_list_item_1, uploaderNameList)

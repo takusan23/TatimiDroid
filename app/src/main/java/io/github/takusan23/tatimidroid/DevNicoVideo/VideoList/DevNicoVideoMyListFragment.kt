@@ -146,19 +146,21 @@ class DevNicoVideoMyListFragment : Fragment() {
             }
             // TabLayoutに追加
             activity?.runOnUiThread {
-                myListDataList.forEach {
-                    val tabItem = fragment_nicovideo_mylist_tablayout.newTab()
-                    tabItem.apply {
-                        text = it.title
-                        tag = it.id
+                if(isAdded) {
+                    myListDataList.forEach {
+                        val tabItem = fragment_nicovideo_mylist_tablayout.newTab()
+                        tabItem.apply {
+                            text = it.title
+                            tag = it.id
+                        }
+                        fragment_nicovideo_mylist_tablayout.addTab(tabItem)
+                        // TabLayout初期化
+                        initTabLayout()
+                        // 引っ張って更新できるようにする
+                        initSwipeToRefresh()
+                        // とりあえずマイリスト取得
+                        getMyListVideoItems()
                     }
-                    fragment_nicovideo_mylist_tablayout.addTab(tabItem)
-                    // TabLayout初期化
-                    initTabLayout()
-                    // 引っ張って更新できるようにする
-                    initSwipeToRefresh()
-                    // とりあえずマイリスト取得
-                    getMyListVideoItems()
                 }
             }
         }

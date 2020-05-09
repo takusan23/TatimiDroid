@@ -348,7 +348,9 @@ class NicoVideoCache(val context: Context?) {
             setProgress(max, progress, false) // プログレスバー
         }
         // 表示
-        notificationManager.notify(DOWNLOAD_NOTIFICATION_ID, notification.build())
+        notificationManager.notify(
+            DOWNLOAD_NOTIFICATION_ID, notification.build()
+                .apply { flags = Notification.FLAG_NO_CLEAR })
     }
 
     /**
