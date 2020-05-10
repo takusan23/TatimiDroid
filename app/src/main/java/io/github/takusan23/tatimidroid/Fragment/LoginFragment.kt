@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.transition.MaterialFadeThrough
@@ -102,6 +103,8 @@ class LoginFragment : Fragment() {
                     val editor = pref_setting.edit()
                     editor.putString("user_session", user_session)
                     editor.apply()
+                    // もしログイン無しで利用するが有効の場合は無効にする
+                    pref_setting.edit { putBoolean("setting_no_login", false) }
                 }
             }
 

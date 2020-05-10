@@ -73,7 +73,7 @@ class DevNicoVideoCacheFragment : Fragment() {
         // 本当に消していい？
         Snackbar.make(fragment_cache_empty_message, getString(R.string.filter_clear_message), Snackbar.LENGTH_SHORT)
             .apply {
-                setAction(getString(R.string.delete_ok)) {
+                setAction(getString(R.string.reset)) {
                     CacheJSON().deleteFilterJSONFile(context)
                     initRecyclerView()
                 }

@@ -44,6 +44,9 @@ class NicoVideoCache(val context: Context?) {
     // キャッシュ合計サイズ。注意：loadCache()を呼ぶまで0です
     var cacheTotalSize = 0L
 
+    // 前のパーセント
+    private var tmpPercent = 0
+
     /**
      * キャッシュ用フォルダからデータ持ってくる。
      * 多分重いのでコルーチンです。
@@ -312,9 +315,14 @@ class NicoVideoCache(val context: Context?) {
                         progress += read
                         outputStream.write(buffer, 0, read)
                         // パーセントで
-                        val percent = "${((progress.toFloat() / target.toFloat()) * 100).toInt()} %"
+                        val percent = ((progress.toFloat() / target.toFloat()) * 100).toInt()
                         // 通知出す
-                        showCacheProgressNotification(videoId, percent, progress.toInt(), target.toInt())
+                        if (tmpPercent != percent) {
+                            tmpPercent = percent
+                            Handler(Looper.getMainLooper()).post {
+                                showCacheProgressNotification(videoId, "$percent %", progress.toInt(), target.toInt())
+                            }
+                        }
                     }
                 } else {
                     resultFun(1)
@@ -351,6 +359,10 @@ class NicoVideoCache(val context: Context?) {
         notificationManager.notify(
             DOWNLOAD_NOTIFICATION_ID, notification.build()
                 .apply { flags = Notification.FLAG_NO_CLEAR })
+        // 消す
+        if (progress == max) {
+            notificationManager.cancel(DOWNLOAD_NOTIFICATION_ID)
+        }
     }
 
     /**

@@ -415,4 +415,5 @@
     <string name="setting_nicolive_quality_low_description">Please when Internet is slow</string>
     <string name="cache_progress_notification">Cash acquisition progress notification</string>
     <string name="cache_progress_now">Getting cash</string>
+    <string name="reset">Reset</string>
 </resources>

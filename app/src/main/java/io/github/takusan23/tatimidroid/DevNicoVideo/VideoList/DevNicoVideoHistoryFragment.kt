@@ -84,6 +84,8 @@ class DevNicoVideoHistoryFragment : Fragment() {
                                     // ログインする
                                     GlobalScope.launch {
                                         NicoLogin.loginCoroutine(context).await()
+                                        userSession =
+                                            prefSetting.getString("user_session", "") ?: ""
                                         getHistory()
                                     }
                                 }

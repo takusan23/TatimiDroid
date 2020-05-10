@@ -111,10 +111,12 @@ class BackgroundPlaylistCachePlayService : Service() {
             }
             // 開始位置特定。
             val startPos = if (startVideoId.isNotEmpty()) {
-                videoList.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == startVideoId }
+                videoList.filter { nicoVideoData -> nicoVideoCache.getCacheFolderVideoFileName(nicoVideoData.videoId) != null }
+                    .indexOfFirst { nicoVideoData -> nicoVideoData.videoId == startVideoId }
             } else {
                 0
             }
+            println(startPos)
             Handler(Looper.getMainLooper()).post {
                 // 再生
                 exoPlayer.apply {

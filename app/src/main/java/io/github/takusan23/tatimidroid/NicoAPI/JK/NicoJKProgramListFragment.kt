@@ -75,11 +75,13 @@ class NicoJKProgramListFragment : Fragment() {
 
     // RecyclerView初期化
     private fun initRecyclerView() {
-        fragment_jk_program_list_recyclerview.apply {
-            setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(context) as RecyclerView.LayoutManager
-            nicoJKProgramAdapter = NicoJKProgramAdapter(recyclerViewList)
-            adapter = nicoJKProgramAdapter
+        if (isAdded) {
+            fragment_jk_program_list_recyclerview.apply {
+                setHasFixedSize(true)
+                layoutManager = LinearLayoutManager(context) as RecyclerView.LayoutManager
+                nicoJKProgramAdapter = NicoJKProgramAdapter(recyclerViewList)
+                adapter = nicoJKProgramAdapter
+            }
         }
     }
 

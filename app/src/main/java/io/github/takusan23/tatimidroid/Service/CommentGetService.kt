@@ -9,12 +9,13 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoCommentXML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoLegacyAPI
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jsoup.Jsoup
 import java.io.File
 
 class CommentGetService : Service() {
@@ -36,56 +37,70 @@ class CommentGetService : Service() {
 
         // 最大取得数
         val prefSetting = PreferenceManager.getDefaultSharedPreferences(this)
-        val commentGetLimit =
+        var commentGetLimit =
             prefSetting.getString("dev_setting_get_comment_limit", "0")?.toInt() ?: 1000
         val userSession = prefSetting.getString("user_session", "") ?: ""
 
-        // 何回リクエストするか
-        val requestCount = commentGetLimit / 1000
-
         // XML形式でコメントをリクエストするクラス
-        val xmlComment = NicoCommentXML()
+        val xmlComment = NicoLegacyAPI()
         // XML形式のコメントをパースするクラス
         val xmlCommentJSON = XMLCommentJSON(this)
-        // コメントつなげる
-        var totalComment = ""
+
         GlobalScope.launch {
 
             // getflv（ふるい）
             val getFlv = xmlComment.getFlv(userSession, videoId).await()
             val getFlvResponseString = getFlv.body?.string() ?: return@launch
 
+            // コメント数
+            val getThumbInfo = xmlComment.getThumbInfo(userSession, videoId).await()
+            val getThumbInfoResponse = Jsoup.parse(getThumbInfo.body?.string())
+            val commentCount =
+                getThumbInfoResponse.getElementsByTag("comment_num")[0].text().toInt()
+            // もし取得数より総コメント投稿数のほうが少ない場合
+            if (commentGetLimit >= commentCount) {
+                commentGetLimit = commentCount
+            }
+
             // コメント取得に必要な値
             val threadId = xmlComment.getThreadId(getFlvResponseString)
             val userId = xmlComment.getUserId(getFlvResponseString)
+            // もし公式動画なら
+            val threadKey = if (videoId.contains("so")) {
+                // threadKey取得
+                xmlComment.getThreadKey(threadId, userSession).await() ?: return@launch
+            } else {
+                null
+            }
 
             // 一回目のコメント取得
             val comment =
-                xmlComment.getXMLComment(threadId, userId, null, null).await() ?: return@launch
-            totalComment += comment
-
+                xmlComment.getXMLComment(userSession, threadId, userId, threadKey, null, null)
+                    .await()
+                    ?: return@launch
             // XML -> ArrayList
             val commentList = xmlCommentJSON.xmlToArrayList(comment).await()
 
             // 二回目以降（ここから過去コメント取得）
             val wayBackKey =
                 xmlComment.getWayBackKey(threadId, userSession).await() ?: return@launch
-            // 件数に達するまでリクエスト
+            // 件数に達するまで(総投稿コメント数に達しない様に)リクエスト
             while (commentList.size < commentGetLimit) {
 
                 // 一応遅延させる
                 delay(1000)
+
                 // 一番古い時間でコメント取得
                 val time = commentList.minBy { commentJSONParse -> commentJSONParse.date.toLong() }
                 val responseComment =
-                    xmlComment.getXMLComment(threadId, userId, wayBackKey, time?.date).await()
-                        ?: return@launch
+                    xmlComment.getXMLComment(userSession, threadId, userId, threadKey, wayBackKey, time?.date)
+                        .await() ?: return@launch
                 // パース
                 xmlCommentJSON.xmlToArrayList(responseComment).await().forEach {
                     commentList.add(it)
                 }
                 // 通知出す
-                showNotification("取得済み：${commentList.size} / 残り：$commentGetLimit", commentList.size, commentGetLimit)
+                showNotification("取得済み：${commentList.size} / 取得件数：$commentGetLimit", commentList.size, commentGetLimit)
 
             }
 
