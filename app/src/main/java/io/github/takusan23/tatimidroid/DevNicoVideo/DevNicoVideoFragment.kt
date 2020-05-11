@@ -13,16 +13,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.format.DateUtils
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
+import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
@@ -711,7 +709,6 @@ class DevNicoVideoFragment : Fragment() {
             // アイコン入れ替え
             setPlayIcon()
         }
-
         exoPlayer.addListener(object : Player.EventListener {
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                 super.onPlayerStateChanged(playWhenReady, playbackState)
@@ -724,7 +721,20 @@ class DevNicoVideoFragment : Fragment() {
                     hideSwipeToRefresh()
                 }
                 if (!isRotationProgressSuccessful) {
+
                     // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
+                    danmakuView?.apply {
+                        viewTreeObserver.addOnGlobalLayoutListener(object :
+                            ViewTreeObserver.OnGlobalLayoutListener {
+                            override fun onGlobalLayout() {
+                                if (width > 0) {
+                                    init(exoPlayer.duration / 1000, commentList, width)
+                                    viewTreeObserver.removeOnGlobalLayoutListener(this)
+                                }
+                            }
+                        })
+                    }
+
                     exoPlayer.seekTo(rotationProgress)
                     isRotationProgressSuccessful = true
                     // 前回見た位置から再生

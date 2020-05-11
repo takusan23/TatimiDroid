@@ -103,16 +103,30 @@
                             android:layout_height="match_parent"
                             android:orientation="horizontal">
 
-                        <SeekBar
-                                android:id="@+id/fragment_nicovideo_seek"
+                        <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1" />
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                            <io.github.takusan23.tatimidroid.DevNicoVideo.DanmakuView
+                                    android:id="@+id/danmakuView"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="5dp"
+                                    android:layout_marginStart="15dp"
+                                    android:layout_marginEnd="15dp" />
+
+                            <SeekBar
+                                    android:id="@+id/fragment_nicovideo_seek"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content" />
+                        </LinearLayout>
 
                         <TextView
                                 android:id="@+id/fragment_nicovideo_progress_text"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
                                 android:text="00:00" />
                     </LinearLayout>
 
@@ -127,10 +141,10 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:clickable="true"
+                                android:focusable="true"
                                 android:foreground="?android:attr/selectableItemBackground"
                                 android:padding="20dp"
-                                app:srcCompat="@drawable/ic_repeat_black_24dp"
-                                android:focusable="true" />
+                                app:srcCompat="@drawable/ic_repeat_black_24dp" />
 
                         <ImageView
                                 android:id="@+id/fragment_nicovideo_controller_replay"
@@ -138,10 +152,10 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:clickable="true"
+                                android:focusable="true"
                                 android:foreground="?android:attr/selectableItemBackground"
                                 android:padding="20dp"
-                                app:srcCompat="@drawable/ic_replay_5_black_24dp"
-                                android:focusable="true" />
+                                app:srcCompat="@drawable/ic_replay_5_black_24dp" />
 
                         <ImageView
                                 android:id="@+id/fragment_nicovideo_play_button"
@@ -149,10 +163,10 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:clickable="true"
+                                android:focusable="true"
                                 android:foreground="?android:attr/selectableItemBackground"
                                 android:padding="20dp"
-                                app:srcCompat="@drawable/ic_play_arrow_24px"
-                                android:focusable="true" />
+                                app:srcCompat="@drawable/ic_play_arrow_24px" />
 
                         <ImageView
                                 android:id="@+id/fragment_nicovideo_controller_forward"
@@ -160,10 +174,10 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:clickable="true"
+                                android:focusable="true"
                                 android:foreground="?android:attr/selectableItemBackground"
                                 android:padding="20dp"
-                                app:srcCompat="@drawable/ic_forward_5_black_24dp"
-                                android:focusable="true" />
+                                app:srcCompat="@drawable/ic_forward_5_black_24dp" />
 
                         <ImageView
                                 android:id="@+id/fragment_nicovideo_controller_close"
@@ -171,10 +185,10 @@
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
                                 android:clickable="true"
+                                android:focusable="true"
                                 android:foreground="?android:attr/selectableItemBackground"
                                 android:padding="20dp"
-                                app:srcCompat="@drawable/ic_clear_black"
-                                android:focusable="true" />
+                                app:srcCompat="@drawable/ic_clear_black" />
                     </LinearLayout>
 
                 </LinearLayout>
