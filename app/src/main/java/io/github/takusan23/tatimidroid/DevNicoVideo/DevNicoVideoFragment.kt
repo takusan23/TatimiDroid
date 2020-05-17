@@ -766,7 +766,9 @@ class DevNicoVideoFragment : Fragment() {
                 // 小数点第二位を捨てる
                 val round =
                     BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
-                setAspectRate(round)
+                if (isAdded) {
+                    setAspectRate(round)
+                }
             }
         })
         seekTimer.cancel()

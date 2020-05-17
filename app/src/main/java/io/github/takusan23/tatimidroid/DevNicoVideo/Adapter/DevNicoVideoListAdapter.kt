@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.preference.PreferenceManager
@@ -23,6 +24,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
+import io.github.takusan23.tatimidroid.isConnectionInternet
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 
@@ -86,8 +88,14 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
                     }
                     DialogBottomSheet("キャッシュが存在しませんでした。再取得しますか？", buttonItems) { i, bottomSheetDialogFragment ->
                         if (i == 0) {
-                            // 再取得
-                            startCacheService(context, data.videoId, false)
+                            // インターネット環境があれば再取得
+                            if (isConnectionInternet(context)) {
+                                // 再取得
+                                startCacheService(context, data.videoId, false)
+                            } else {
+                                Toast.makeText(context, "インターネットへ接続できません", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
                         }
                     }.show((context as AppCompatActivity).supportFragmentManager, "cache")
                 } else {

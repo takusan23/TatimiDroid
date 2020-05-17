@@ -1,17 +1,14 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
-import android.view.ViewTreeObserver
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.internal.toHexString
 
 /**
  * コメントの盛り上がりを可視化できるやつ作る。
@@ -53,6 +50,7 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         danmakuWidth = viewWidth.toFloat() / minute.toFloat() // Floatだと最後まで描画される（整数に丸めると最後微妙に足りない）
         // 配列操作は重いので非同期処理。コルーチンくんなんか軽いって聞いたのでぽんぽん使ってるけど良いんか？
         GlobalScope.launch {
+            val percentList = arrayListOf<Float>()
             // 配列から取り出す
             for (i in 0 until minute) {
                 // 10秒ごとで取り出す
@@ -60,17 +58,45 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                     ((commentJSONParse.vpos.toInt() / 100) / space) == i.toInt()
                 }
                 // ぱーせんと
-                val parcent =
-                    ((secondList.size.toFloat() / commentList.size.toFloat()) * 100F).toInt()
-                val color = when {
-                    parcent >= 5 -> RED
-                    parcent >= 3 -> ORANGE
-                    parcent >= 1 -> YELLOW
-                    else -> BLUE
-                }
-                // println("${i * space}秒間に投稿されたコメント/${secondList.size}個 / 全体の${parcent}% / ${color.toHexString()}")
-                danmakuList.add(Pair(color, i.toInt()))
+                val percent =
+                    ((secondList.size.toFloat() / commentList.size.toFloat()) * 100F)
+                percentList.add(percent)
             }
+            // 平均値出す
+            val avarage = (percentList.average()).toFloat()
+
+            /**
+             * 偏差値出す。基本的に50出る。
+             * ちなみに私は中学の期末数学で9点とったことある
+             * */
+            val teikitesuto = percentList.map { fl ->
+                (50 + (fl - avarage) / 2).toInt() // 小数点丸めて整数に
+            }
+            for (i in 0 until teikitesuto.size) {
+                val hensati = teikitesuto[i]
+                var color = BLUE
+                var drawHeight = height
+                when {
+                    // 半分
+                    hensati == 50 -> {
+                        // 平均。平均上げてる奴自粛してくれ～
+                        color = YELLOW
+                        drawHeight /= 2
+                    }
+                    hensati < 50 -> {
+                        // 平均以下。私は中学の時英語と数学はいっも平均/2ぐらいだった。
+                        color = BLUE
+                        drawHeight /= 3
+                    }
+                    hensati > 50 -> {
+                        // 平均以上。推薦取れそう（小並感
+                        color = RED
+                        drawHeight /= 1
+                    }
+                }
+                danmakuList.add(Pair(color, drawHeight))
+            }
+            println(danmakuList.map { pair -> pair.second })
             invalidate()
         }
     }
@@ -90,7 +116,7 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         var left = 0F
         var right = danmakuWidth
         for (i in 0 until danmakuList.size) {
-            val top = 0.toFloat()
+            val top = height - danmakuList[i].second.toFloat()
             val bottom = height.toFloat()
             paint.color = danmakuList[i].first
             canvas?.drawRect(left, top, right, bottom, paint)
