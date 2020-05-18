@@ -498,6 +498,7 @@ class DevNicoVideoFragment : Fragment() {
             recyclerViewList = ArrayList(commentList)
             initRecyclerView(true)
         }
+        Toast.makeText(context, "${getString(R.string.get_comment_count)}：${commentList.size}", Toast.LENGTH_SHORT).show()
         // タイトル
         videoTitle = jsonObject.getJSONObject("video").getString("title")
         initTitleArea()
@@ -600,6 +601,7 @@ class DevNicoVideoFragment : Fragment() {
                     // コメント取得
                     val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
                     commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
+                    println(commentList)
                     // 動画情報
                     if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                         jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
@@ -908,14 +910,25 @@ class DevNicoVideoFragment : Fragment() {
             }
             // println(drawList.map { commentJSONParse -> "${DateUtils.formatElapsedTime(currentPositionSec)} | ${commentJSONParse.commentNo} | ${commentJSONParse.comment} | ${drewedList}" })
             drawList.forEach {
-                if (!drewedList.contains(it.commentNo)) {
-                    drewedList.add(it.commentNo)
+                // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
+                val addable = if (it.commentNo.isNotEmpty()) {
+                    !drewedList.contains(it.vpos)
+                } else {
+                    !drewedList.contains(it.commentNo)
+                }
+                if (addable) {
+                    // コメントIDない場合はvposで代替する
+                    if (it.commentNo != "-1") {
+                        drewedList.add(it.commentNo)
+                    } else {
+                        drewedList.add(it.vpos)
+                    }
                     if (!it.comment.contains("\n")) {
                         // SingleLine
                         fragment_nicovideo_comment_canvas.post {
                             // 画面回転するとnullになるのでちぇちぇちぇっくわんつー
                             if (fragment_nicovideo_comment_canvas != null) {
-                                fragment_nicovideo_comment_canvas.postComment("${it.comment}|${it.commentNo}", it)
+                                fragment_nicovideo_comment_canvas.postComment(it.comment, it)
                             }
                         }
                     } else {

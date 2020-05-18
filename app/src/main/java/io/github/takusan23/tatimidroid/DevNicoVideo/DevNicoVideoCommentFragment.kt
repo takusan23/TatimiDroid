@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
+import android.widget.Toast
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.menu.MenuPopupHelper
 import androidx.fragment.app.Fragment
@@ -91,7 +92,6 @@ class DevNicoVideoCommentFragment : Fragment() {
             // DevNicoVideoFragment
             val fragment =
                 fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
-            fragment.showSnackbar("${getString(R.string.get_comment_count)}：${recyclerViewList.size}", null, null)
         }
     }
 

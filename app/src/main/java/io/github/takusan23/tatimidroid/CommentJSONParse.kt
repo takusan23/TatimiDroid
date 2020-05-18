@@ -37,10 +37,10 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
             }
             //プレミアムかどうかはJSONにpremiumがあればいい（一般にはないので存在チェックいる）
             if (chatObject.has("premium")) {
-                when (chatObject.getString("premium").toInt()) {
-                    1 -> premium = "\uD83C\uDD7F"
-                    2 -> premium = "運営"
-                    3 -> premium = "生主"
+                when (chatObject.getString("premium")) {
+                    "1" -> premium = "\uD83C\uDD7F"
+                    "2" -> premium = "運営"
+                    "3" -> premium = "生主"
                 }
             }
             //NGスコア？
