@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.format.DateUtils
+import android.util.ArrayMap
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
@@ -47,10 +48,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -135,6 +133,12 @@ class DevNicoVideoFragment : Fragment() {
 
     // 画面回転復帰時
     lateinit var devNicoVideoFragmentData: DevNicoVideoFragmentData
+
+    /**
+     * コメント二重表示対策
+     * */
+    var commentListSec = mutableMapOf<Long, ArrayList<CommentJSONParse>>()
+    private val commentAddedNoList = arrayListOf<String>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
@@ -286,17 +290,21 @@ class DevNicoVideoFragment : Fragment() {
 
     // Progress表示
     private fun showSwipeToRefresh() {
-        fragment_nicovideo_swipe.apply {
-            isRefreshing = true
-            isEnabled = true
+        fragment_nicovideo_swipe.post {
+            fragment_nicovideo_swipe.apply {
+                isRefreshing = true
+                isEnabled = true
+            }
         }
     }
 
     // Progress非表示
     private fun hideSwipeToRefresh() {
-        fragment_nicovideo_swipe.apply {
-            isRefreshing = false
-            isEnabled = false
+        fragment_nicovideo_swipe.post {
+            fragment_nicovideo_swipe.apply {
+                isRefreshing = false
+                isEnabled = false
+            }
         }
     }
 
@@ -423,8 +431,7 @@ class DevNicoVideoFragment : Fragment() {
             if (isGetComment) {
                 val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject).await()
                 if (commentJSON != null) {
-                    commentList =
-                        ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
+                    commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
                 }
             }
             withContext(Dispatchers.Main) {
@@ -705,14 +712,10 @@ class DevNicoVideoFragment : Fragment() {
                 val dataSourceFactory =
                     DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
                 dataSourceFactory.defaultRequestProperties.set("Cookie", nicohistory)
-                val videoSource =
-                    ProgressiveMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(videoUrl?.toUri())
+                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(videoUrl?.toUri())
                 exoPlayer.prepare(videoSource)
             }
         }
-        // 自動再生
-        exoPlayer.playWhenReady = true
         // リピートするか
         if (prefSetting.getBoolean("nicovideo_repeat_on", true)) {
             exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
@@ -738,8 +741,26 @@ class DevNicoVideoFragment : Fragment() {
                     hideSwipeToRefresh()
                 }
                 if (!isRotationProgressSuccessful) {
+                    // 一度だけ実行するように。
 
-                    // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
+                    // 0.1秒間隔
+                    GlobalScope.launch {
+                        for (i in 10..exoPlayer.duration / 10L step 10) {
+                            val sec = commentList.filter { commentJSONParse ->
+                                i >= commentJSONParse.vpos.toLong() && !commentAddedNoList.contains(commentJSONParse.commentNo)
+                            } as ArrayList<CommentJSONParse>
+                            sec.forEach {
+                                commentAddedNoList.add(it.commentNo)
+                            }
+                            commentListSec[i] = sec
+                        }
+                        println()
+                        println("コメントの用意ができました。0.1秒ごとの分割総数：${commentListSec.size}")
+                        // println(commentListSec.toList().map { pair -> "${pair.first} | 再生時間：${DateUtils.formatElapsedTime(pair.first / 100)} | コメ数：${pair.second.size} | ${pair.second.joinToString { commentJSONParse -> commentJSONParse.comment }}\n" })
+                        // 自動再生
+                        exoPlayer.playWhenReady = true
+                    }
+
                     danmakuView?.apply {
                         viewTreeObserver.addOnGlobalLayoutListener(object :
                             ViewTreeObserver.OnGlobalLayoutListener {
@@ -887,6 +908,7 @@ class DevNicoVideoFragment : Fragment() {
         fragment_nicovideo_play_button.setImageDrawable(drawable)
     }
 
+
     /**
      * コメント描画システム。
      * ArrayList#filter{ }が多分重い（コメントファイル数十MBとかだと応答無くなる）ので
@@ -898,38 +920,34 @@ class DevNicoVideoFragment : Fragment() {
     fun drawComment() {
         val currentPosition = exoPlayer.contentPosition / 100L
         val currentPositionSec = exoPlayer.contentPosition / 1000
+        val position = (exoPlayer.contentPosition / 100) * 10
         GlobalScope.launch {
-            if (tmpPosition != currentPositionSec) {
-                drewedList.clear()
-                tmpPosition = currentPosition
+            if (tmpPosition != position) {
+                tmpPosition = position
+            } else {
+                return@launch
             }
-            val drawList = commentList.filter { commentJSONParse ->
-                (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
-            }
-            drawList.forEach {
-                if (!drewedList.contains(it.commentNo)) {
-                    drewedList.add(it.commentNo)
-                    if (!it.comment.contains("\n")) {
-                        // SingleLine
-                        fragment_nicovideo_comment_canvas.post {
-                            // 画面回転するとnullになるのでちぇちぇちぇっくわんつー
-                            if (fragment_nicovideo_comment_canvas != null) {
-                                fragment_nicovideo_comment_canvas.postComment(it.comment, it)
-                            }
+            commentListSec[position]?.forEach {
+                if (!it.comment.contains("\n")) {
+                    // SingleLine
+                    fragment_nicovideo_comment_canvas.post {
+                        // 画面回転するとnullになるのでちぇちぇちぇっくわんつー
+                        if (fragment_nicovideo_comment_canvas != null) {
+                            fragment_nicovideo_comment_canvas.postComment("${it.comment} / ${it.commentNo}", it)
                         }
+                    }
+                } else {
+                    // 複数行？
+                    val asciiArtComment = if (it.mail.contains("shita")) {
+                        it.comment.split("\n").reversed() // 下コメントだけ逆順にする
                     } else {
-                        // 複数行？
-                        val asciiArtComment = if (it.mail.contains("shita")) {
-                            it.comment.split("\n").reversed() // 下コメントだけ逆順にする
-                        } else {
-                            it.comment.split("\n")
-                        }
-                        for (line in asciiArtComment) {
-                            fragment_nicovideo_comment_canvas.post {
-                                // 画面回転対策
-                                if (fragment_nicovideo_comment_canvas != null) {
-                                    fragment_nicovideo_comment_canvas.postComment(line, it, true)
-                                }
+                        it.comment.split("\n")
+                    }
+                    for (line in asciiArtComment) {
+                        fragment_nicovideo_comment_canvas.post {
+                            // 画面回転対策
+                            if (fragment_nicovideo_comment_canvas != null) {
+                                fragment_nicovideo_comment_canvas.postComment(line, it, true)
                             }
                         }
                     }
