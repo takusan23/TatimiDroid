@@ -47,6 +47,7 @@ import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Adapter.CommentViewPager
+import io.github.takusan23.tatimidroid.FregmentData.NicoLiveFragmentData
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
@@ -63,12 +64,16 @@ import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
-import java.net.URLDecoder
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import kotlin.concurrent.timerTask
 
+/**
+ * 生放送再生Fragment。
+ * NicoLiveFragmentじゃなくてCommentFragmentになってるのはもともと全部屋見れるコメビュを作りたかったから
+ * */
 class CommentFragment : Fragment() {
 
     lateinit var commentActivity: AppCompatActivity
@@ -214,6 +219,7 @@ class CommentFragment : Fragment() {
 
     // ニコ生前部屋接続など
     val nicoLiveComment = NicoLiveComment()
+    var commentServerList = arrayListOf<NicoLiveComment.CommentServerData>()
 
     // コメントサーバーあるか定期巡回
     var programInfoTimer = Timer()
@@ -327,12 +333,10 @@ class CommentFragment : Fragment() {
         }
 
         //とりあえずコメントViewFragmentへ
-        val checkCommentViewFragment =
-            childFragmentManager.findFragmentByTag("${liveId}_comment_view_fragment")
+        val checkCommentViewFragment = childFragmentManager.findFragmentByTag("${liveId}_comment_view_fragment")
         //Fragmentは画面回転しても存在するのでremoveして終了させる。
         if (checkCommentViewFragment != null) {
-            val fragmentTransaction =
-                childFragmentManager.beginTransaction()
+            val fragmentTransaction = childFragmentManager.beginTransaction()
             fragmentTransaction.remove(checkCommentViewFragment)
             fragmentTransaction.commit()
         }
@@ -399,11 +403,66 @@ class CommentFragment : Fragment() {
         //ログイン情報がなければ戻す
         if (pref_setting.getString("mail", "")?.contains("") != false) {
             usersession = pref_setting.getString("user_session", "") ?: ""
-
             // データ取得からコメント取得など
             if (!isJK) {
                 // ニコ生
-                coroutine()
+                GlobalScope.launch(Dispatchers.IO) {
+                    if (savedInstanceState != null) {
+                        // 画面回転復帰時
+                        val data = savedInstanceState.getSerializable("data") as NicoLiveFragmentData
+                        nicoLiveJSON = JSONObject(data.nicoLiveJSON)
+                        // 全部屋接続（API叩く手間を減らした）
+                        commentServerList = ArrayList(data.commentServerList)
+                        commentServerList.forEach { server ->
+                            nicoLiveComment.connectionWebSocket(server.webSocketUri, server.threadId, server.roomName, ::commentFun)
+                        }
+                        // 番組名取得など
+                        nicoLiveHTML.initNicoLiveData(nicoLiveJSON)
+                        programTitle = nicoLiveHTML.programTitle
+                        communityID = nicoLiveHTML.communityId
+                        thumbnailURL = nicoLiveHTML.thumb
+                    } else {
+                        // はじめて ///
+                        val html = getNicoLiveHTML().await()
+                        nicoLiveJSON = nicoLiveHTML.nicoLiveHTMLtoJSONObject(html)
+                        // 番組名取得など
+                        nicoLiveHTML.initNicoLiveData(nicoLiveJSON)
+                        programTitle = nicoLiveHTML.programTitle
+                        communityID = nicoLiveHTML.communityId
+                        thumbnailURL = nicoLiveHTML.thumb
+                        // 履歴に追加
+                        insertDB()
+                        // 全部屋API
+                        initAllRoomConnect()
+                    }
+                    // 全部屋接続。定期的にAPIを叩く
+                    // ただし公式番組では利用できないので分岐
+                    if (!nicoLiveHTML.isOfficial) {
+                        programInfoTimer.schedule(timerTask { initAllRoomConnect() }, 60 * 1000, 60 * 1000)
+                    }
+                    // IO -> Main Thread
+                    withContext(Dispatchers.Main) {
+                        // 経過時間
+                        setLiveTime()
+                        // 番組情報FragmentにHTMLのJSON渡す
+                        if (isOfficial) {
+                            (commentViewPager.instantiateItem(comment_viewpager, 4) as ProgramInfoFragment).apply {
+                                jsonObject = nicoLiveJSON
+                                jsonApplyUI(nicoLiveJSON)
+                            }
+                        } else {
+                            (commentViewPager.instantiateItem(comment_viewpager, 5) as ProgramInfoFragment).apply {
+                                jsonObject = nicoLiveJSON
+                                jsonApplyUI(nicoLiveJSON)
+                            }
+                        }
+                    }
+                    // Main Thread -> IO
+                    // 視聴セッションWebSocket接続
+                    connectionNicoLiveWebSocket()
+                    // getPlayerStatus叩いて座席番号と今いる部屋の名前（アリーナ最前列など）取得（座席番号HTML5で消えたけど）
+                    getPlayerStatus()
+                }
             } else {
                 // ニコニコ実況
                 nicoJKCoroutine()
@@ -416,6 +475,24 @@ class CommentFragment : Fragment() {
         //アクティブ人数クリアなど、追加部分はCommentViewFragmentです
         activeUserClear()
 
+    }
+
+    private fun initAllRoomConnect() {
+        GlobalScope.launch {
+            // 全部屋接続
+            val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, usersession).await()
+            if (!allRoomResponse.isSuccessful) {
+                showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
+                return@launch
+            }
+            // CommentServerDataの配列に変換
+            val list = nicoLiveComment.parseCommentServerDataList(allRoomResponse.body?.string(), context?.getString(R.string.arena))
+            list.forEach { server ->
+                //WebSocket接続。::関数 で高階関数を引数に入れられる
+                nicoLiveComment.connectionWebSocket(server.webSocketUri, server.threadId, server.roomName, ::commentFun)
+            }
+            commentServerList = ArrayList(list)
+        }
     }
 
     /**
@@ -452,128 +529,112 @@ class CommentFragment : Fragment() {
     }
 
     /**
-     * ニコ生視聴するぞ！
+     * ニコ生放送ページのHTML取得
      * */
-    private fun coroutine() {
-        GlobalScope.launch {
-            // ニコ生視聴ページリクエスト
-            val livePageResponse =
-                nicoLiveHTML.getNicoLiveHTML(liveId, usersession, isWatchingMode).await()
-            if (!livePageResponse.isSuccessful) {
-                // 失敗のときは落とす
-                activity?.finish()
-                showToast("${getString(R.string.error)}\n${livePageResponse.code}")
-                return@launch
+    private fun getNicoLiveHTML(): Deferred<String?> = GlobalScope.async {
+        // ニコ生視聴ページリクエスト
+        val livePageResponse = nicoLiveHTML.getNicoLiveHTML(liveId, usersession, isWatchingMode).await()
+        if (!livePageResponse.isSuccessful) {
+            // 失敗のときは落とす
+            activity?.finish()
+            showToast("${getString(R.string.error)}\n${livePageResponse.code}")
+            return@async null
+        }
+        if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
+            // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
+            NicoLogin.loginCoroutine(context).await()
+            usersession = pref_setting.getString("user_session", "") ?: ""
+            // 視聴モードなら再度視聴ページリクエスト
+            if (isWatchingMode) {
+                return@async getNicoLiveHTML().await()
             }
-            if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
-                // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
-                NicoLogin.loginCoroutine(context).await()
-                // 視聴モードなら再度視聴ページリクエスト
-                if (isWatchingMode) {
-                    coroutine()
-                    // コルーチン終了
-                    return@launch
-                }
-            }
-            // HTMLからJSON取得する
-            nicoLiveJSON = nicoLiveHTML.nicoLiveHTMLtoJSONObject(livePageResponse.body?.string())
+        }
+        return@async livePageResponse.body?.string()
+    }
 
-            // コメント投稿の際に使う値を初期化する
-            // 番組名取得など
-            nicoLiveHTML.initNicoLiveData(nicoLiveJSON)
-            programTitle = nicoLiveHTML.programTitle
-            communityID = nicoLiveHTML.communityId
-            thumbnailURL = nicoLiveHTML.thumb
-
-            // 経過時間
-            setLiveTime()
-
-            // 番組情報FragmentにHTMLのJSON渡す
-            if (isOfficial) {
-                (commentViewPager.instantiateItem(comment_viewpager, 4) as ProgramInfoFragment).apply {
-                    jsonObject = nicoLiveJSON
-                    jsonApplyUI(nicoLiveJSON)
-                }
-            } else {
-                (commentViewPager.instantiateItem(comment_viewpager, 5) as ProgramInfoFragment).apply {
-                    jsonObject = nicoLiveJSON
-                    jsonApplyUI(nicoLiveJSON)
-                }
-            }
-
-            // データ流してくれるWebSocketに接続する
-            nicoLiveHTML.apply {
-                connectionWebSocket(nicoLiveJSON) { command, message ->
-                    // メッセージ受け取り
-                    when {
-                        command == "currentstream" -> {
-                            // HLSアドレス取得
-                            hlsAddress = getHlsAddress(message) ?: ""
-                            // 画質一覧と今の画質
-                            val currentQuality = getCurrentQuality(message)
-                            // 生放送再生
-                            if (watchLive) {
-                                setPlayVideoView()
-                            } else {
-                                //レイアウト消す
-                                live_framelayout.visibility = View.GONE
+    /**
+     * 視聴セッションWebSocketに接続する関数
+     * */
+    private fun connectionNicoLiveWebSocket() {
+        // データ流してくれるWebSocketに接続する
+        nicoLiveHTML.apply {
+            connectionWebSocket(nicoLiveJSON) { command, message ->
+                // メッセージ受け取り
+                when {
+                    command == "currentstream" -> {
+                        // HLSアドレス取得
+                        hlsAddress = getHlsAddress(message) ?: ""
+                        // 画質一覧と今の画質
+                        val currentQuality = getCurrentQuality(message)
+                        // 生放送再生
+                        if (watchLive) {
+                            setPlayVideoView()
+                        } else {
+                            //レイアウト消す
+                            live_framelayout.visibility = View.GONE
+                        }
+                        // 画質変更BottomSheet初期化
+                        initQualityChangeBottomFragment(getCurrentQuality(message), getQualityListJSONArray(message))
+                        // 最初の画質を控える
+                        if (beginQuality.isEmpty()) {
+                            beginQuality = currentQuality
+                        } else {
+                            // 画質変更SnackBar表示
+                            showQualityChangeSnackBar(currentQuality)
+                        }
+                        // GoogleCast関係。Gappsなくてもやる
+                        commentActivity.runOnUiThread {
+                            googleCast.apply {
+                                programTitle = this@CommentFragment.programTitle
+                                programSubTitle = this@CommentFragment.liveId
+                                programThumbnail = this@CommentFragment.thumbnailURL
+                                hlsAddress = this@CommentFragment.hlsAddress
+                                resume()
                             }
-                            // 画質変更BottomSheet初期化
-                            initQualityChangeBottomFragment(getCurrentQuality(message), getQualityListJSONArray(message))
-                            // 最初の画質を控える
-                            if (beginQuality.isEmpty()) {
-                                beginQuality = currentQuality
-                            } else {
-                                // 画質変更SnackBar表示
-                                showQualityChangeSnackBar(currentQuality)
-                            }
-                            // GoogleCast関係。Gappsなくてもやる
-                            commentActivity.runOnUiThread {
-                                googleCast.apply {
-                                    programTitle = this@CommentFragment.programTitle
-                                    programSubTitle = this@CommentFragment.liveId
-                                    programThumbnail = this@CommentFragment.thumbnailURL
-                                    hlsAddress = this@CommentFragment.hlsAddress
-                                    resume()
+                        }
+                    }
+                    command == "currentroom" -> {
+                        // threadId、WebSocketURL受信。コメント送信時に使うWebSocketに接続する
+                        val jsonObject = JSONObject(message)
+                        // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
+                        if (jsonObject.getJSONObject("body").has("room")) {
+                            val commentMessageServerUri =
+                                getCommentServerWebSocketAddress(message)
+                            val commentThreadId = getCommentServerThreadId(message)
+                            val commentRoomName = getCommentRoomName(message)
+                            // 公式番組のとき
+                            if (isOfficial) {
+                                commentActivity.runOnUiThread {
+                                    // WebSocketで流れてきたアドレスへ接続する
+                                    nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
                                 }
                             }
+                            // コメント投稿時に使うWebSocketに接続する
+                            commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
                         }
-                        command == "currentroom" -> {
-                            // threadId、WebSocketURL受信。コメント送信時に使うWebSocketに接続する
-                            val jsonObject = JSONObject(message)
-                            // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
-                            if (jsonObject.getJSONObject("body").has("room")) {
-                                val commentMessageServerUri =
-                                    getCommentServerWebSocketAddress(message)
-                                val commentThreadId = getCommentServerThreadId(message)
-                                val commentRoomName = getCommentRoomName(message)
-                                // 公式番組のとき
-                                if (isOfficial) {
-                                    commentActivity.runOnUiThread {
-                                        // WebSocketで流れてきたアドレスへ接続する
-                                        nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
-                                    }
-                                }
-                                // コメント投稿時に使うWebSocketに接続する
-                                commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
-                            }
-                        }
-                        command == "statistics" -> {
-                            // 総来場者数、コメント数を表示させる
-                            initStatisticsInfo(message)
-                        }
-                        command == "schedule" -> {
-                            // 延長を検知
-                            showSchedule(message)
-                        }
-                        message.contains("disconnect") -> {
-                            // 番組終了
-                            programEnd(message)
-                        }
+                    }
+                    command == "statistics" -> {
+                        // 総来場者数、コメント数を表示させる
+                        initStatisticsInfo(message)
+                    }
+                    command == "schedule" -> {
+                        // 延長を検知
+                        showSchedule(message)
+                    }
+                    message.contains("disconnect") -> {
+                        // 番組終了
+                        programEnd(message)
                     }
                 }
             }
+        }
+    }
 
+    /**
+     * 座席番号と部屋の名前取得
+     * */
+    private fun getPlayerStatus() {
+        GlobalScope.launch(Dispatchers.IO) {
             // getPlayerStatus叩いて座席番号取得
             val getPlayerStatusResponse = nicoLiveHTML.getPlayerStatus(liveId, usersession).await()
             if (getPlayerStatusResponse.isSuccessful) {
@@ -587,66 +648,20 @@ class CommentFragment : Fragment() {
                 if (hasGetPlayerStatusTag && document.getElementsByTag("getplayerstatus ")[0].attr("status") == "ok") {
                     roomName = document.getElementsByTag("room_label")[0].text() // 部屋名
                     chairNo = document.getElementsByTag("room_seetno")[0].text() // 座席番号
+                    withContext(Dispatchers.Main) {
+                        // 番組情報を表示させる
+                        commentActivity.runOnUiThread {
+                            comment_fragment_program_title.text = "$programTitle - $liveId"
+                            comment_fragment_program_id.text = "$roomName - $chairNo"
+                        }
+                    }
                 } else {
                     // getPlayerStatus取得失敗時
-                    Handler(Looper.getMainLooper()).post {
-                        Snackbar.make(comment_fragment_program_title, R.string.error_getplayserstatus, Snackbar.LENGTH_SHORT)
-                            .apply {
-                                anchorView = getSnackbarAnchorView()
-                                show()
-                            }
-                    }
-                }
-            }
-            // 番組情報を表示させる
-            commentActivity.runOnUiThread {
-                comment_fragment_program_title.text = "$programTitle - $liveId"
-                comment_fragment_program_id.text = "$roomName - $chairNo"
-            }
-            // 履歴に追加
-            insertDB()
-
-            // 全部屋接続。定期的にAPIを叩く
-            // ただし公式番組では利用できないので分岐
-            if (!nicoLiveHTML.isOfficial) {
-                programInfoTimer.schedule(timerTask { initAllRoomConenct() }, 0, 60 * 1000)
-            }
-
-        }
-    }
-
-    /**
-     * 全部屋接続！！！
-     * */
-    private fun initAllRoomConenct() {
-        GlobalScope.launch {
-            // 全部屋接続
-            val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, usersession).await()
-            if (!allRoomResponse.isSuccessful) {
-                showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
-                return@launch
-            }
-            // JSONパース
-            val jsonObject = JSONObject(allRoomResponse.body?.string())
-            val data = jsonObject.getJSONObject("data")
-            val room = data.getJSONArray("rooms")
-            // アリーナ、立ち見のコメントサーバーへ接続
-            for (index in 0 until room.length()) {
-                val roomObject = room.getJSONObject(index)
-                val webSocketUri = roomObject.getString("webSocketUri")
-                var roomName = roomObject.getString("name")
-                val threadId = roomObject.getString("threadId")
-                // 現在接続中のアドレスから同じのがないかちぇっく
-                // 定期的に新しい部屋が無いか確認しに行くため
-                nicoLiveComment.apply {
-                    if (connectedWebSocketAddressList.indexOf(webSocketUri) == -1) {
-                        connectedWebSocketAddressList.add(webSocketUri)
-                        //アリーナの場合は部屋名がコミュニティ番号なので直す
-                        if (roomName.contains("co") || roomName.contains("ch")) {
-                            roomName = context?.getString(R.string.arena) ?: "アリーナ"
+                    withContext(Dispatchers.Main) {
+                        Snackbar.make(comment_fragment_program_title, R.string.error_getplayserstatus, Snackbar.LENGTH_SHORT).apply {
+                            anchorView = getSnackbarAnchorView()
+                            show()
                         }
-                        //WebSocket接続。::関数 で高階関数を引数に入れられる
-                        connectionWebSocket(webSocketUri, threadId, roomName, ::commentFun)
                     }
                 }
             }
@@ -1027,8 +1042,7 @@ class CommentFragment : Fragment() {
 
     private fun initViewPager() {
         comment_viewpager.id = View.generateViewId()
-        commentViewPager =
-            CommentViewPager(activity as AppCompatActivity, liveId, isOfficial, isJK)
+        commentViewPager = CommentViewPager(activity as AppCompatActivity, liveId, isOfficial, isJK)
         comment_viewpager.adapter = commentViewPager
         activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
         // コメントを指定しておく
@@ -1187,7 +1201,7 @@ class CommentFragment : Fragment() {
 
     // データベースに履歴追加
     fun insertDB() {
-        var type = "live"
+        val type = "live"
         val unixTime = System.currentTimeMillis() / 1000
         val contentValues = ContentValues()
         contentValues.apply {
@@ -1412,13 +1426,7 @@ class CommentFragment : Fragment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val intent = Intent(context, FloatingCommentViewer::class.java)
             intent.putExtra("liveId", liveId)
-            val bubbleIntent =
-                PendingIntent.getActivity(
-                    context,
-                    25,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT
-                )
+            val bubbleIntent = PendingIntent.getActivity(context, 25, intent, PendingIntent.FLAG_UPDATE_CURRENT)
             //通知作成？
             val bubbleData = Notification.BubbleMetadata.Builder()
                 .setDesiredHeight(600)
@@ -2008,6 +2016,7 @@ class CommentFragment : Fragment() {
 
     //運営コメント消す
     fun removeUnneiComment() {
+        if (!isAdded) return
         commentActivity.runOnUiThread {
             if (this@CommentFragment::uncomeTextView.isInitialized) {
                 //表示アニメーション
@@ -2073,6 +2082,21 @@ class CommentFragment : Fragment() {
                 } else {
                     visibility = View.GONE
                 }
+            }
+        }
+    }
+
+    // 画面回転時に値引き継ぐ
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.apply {
+            if (::nicoLiveJSON.isInitialized) {
+                val data = NicoLiveFragmentData(
+                    isOfficial = isOfficial,
+                    nicoLiveJSON = nicoLiveJSON.toString(),
+                    commentServerList = commentServerList
+                )
+                putSerializable("data", data)
             }
         }
     }

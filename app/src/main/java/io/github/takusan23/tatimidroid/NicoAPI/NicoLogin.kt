@@ -106,11 +106,7 @@ class NicoLogin {
                     val mHandler = Handler(Looper.getMainLooper())
                     mHandler.post {
                         // 失敗メッセージ
-                        Toast.makeText(
-                            context,
-                            "${context?.getString(R.string.error)}\n${status}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(context, "${context?.getString(R.string.error)}\n${status}", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: IOException) {
@@ -123,6 +119,7 @@ class NicoLogin {
         /**
          * ニコニコにログインする関数。コルーチン版
          * ただし初回利用時は利用できません。（SharedPreferenceに値が保存されている必要があるため。）
+         * 注意：これ取得したら必ずuser_sessionをPreferenceから再取得してください。
          * @param context SharedPreferenceを使うため
          * @return ログイン成功すれば関数が終了します。値はSharedPreferenceに保存されます。
          * */

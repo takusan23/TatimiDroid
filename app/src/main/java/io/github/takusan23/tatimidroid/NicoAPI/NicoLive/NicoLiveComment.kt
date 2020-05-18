@@ -10,9 +10,11 @@ import org.java_websocket.handshake.ServerHandshake
 import org.java_websocket.protocols.IProtocol
 import org.java_websocket.protocols.Protocol
 import org.json.JSONObject
+import java.io.Serializable
 import java.lang.Exception
 import java.net.URI
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * 全部屋コメントサーバーに接続する関数
@@ -54,13 +56,47 @@ class NicoLiveComment() {
         }
 
     /**
-     * WebSocketに接続する関数
+     * データクラスの配列にパースする
+     * @param responseString getProgramInfo()のレスポンス
+     * @param arena アリーナの文字列をローカライズする場合は
+     * @return CommentServerDataの配列
+     * */
+    fun parseCommentServerDataList(responseString: String?, arena: String? = "アリーナ"): ArrayList<CommentServerData> {
+        val list = arrayListOf<CommentServerData>()
+        val jsonObject = JSONObject(responseString)
+        val data = jsonObject.getJSONObject("data")
+        val room = data.getJSONArray("rooms")
+        // アリーナ、立ち見のコメントサーバーへ接続
+        for (index in 0 until room.length()) {
+            val roomObject = room.getJSONObject(index)
+            val webSocketUri = roomObject.getString("webSocketUri")
+            val name = roomObject.getString("name")
+            val roomName = if (name.contains("co") || name.contains("ch")) {
+                arena // コミュID -> アリーナ
+            } else {
+                name
+            }
+            val threadId = roomObject.getString("threadId")
+            val data = CommentServerData(webSocketUri, threadId, roomName ?: "アリーナ")
+            list.add(data)
+        }
+        return list
+    }
+
+    /**
+     * コメント鯖（WebSocket）に接続する関数
+     * 注意：すでに接続済みの場合は接続しません
      * @param webSocketUri WebSocketアドレス
      * @param threadId スレッドID
      * @param roomName 部屋の名前
      * @param onMessageFunc コメントが来たら呼ばれる高階関数。引数は第一がコメントの内容、第二は部屋の名前、第三が過去のコメントならtrue
      * */
-    fun connectionWebSocket(webSocketUri: String, threadId: String, roomName: String, onMessageFunc: (String, String, Boolean) -> Unit) {
+    fun connectionWebSocket(webSocketUri: String, threadId: String, roomName: String, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
+        // 接続済みの場合は繋がない
+        if (connectedWebSocketAddressList.contains(webSocketUri)) {
+            return
+        }
+        connectedWebSocketAddressList.add(webSocketUri)
         // 過去コメントか流れてきたコメントか
         var historyComment = -100
         // 過去コメントだとtrue
@@ -116,6 +152,12 @@ class NicoLiveComment() {
         connectionWebSocketClientList.forEach {
             it.close()
         }
+        connectedWebSocketAddressList.clear()
     }
+
+    /**
+     * コメントサーバーのデータクラス
+     * */
+    data class CommentServerData(val webSocketUri: String, val threadId: String, val roomName: String) : Serializable
 
 }
