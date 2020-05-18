@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Spannable
 import android.text.Spanned
-import android.text.format.DateUtils
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.LayoutInflater
@@ -25,17 +24,12 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyList
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.IDRegex
 import io.github.takusan23.tatimidroid.NICOVIDEO_ID_REGEX
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.isConnectionInternet
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
-import okhttp3.*
 import org.json.JSONObject
-import org.jsoup.Jsoup
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
 
 class NicoVideoInfoFragment : Fragment() {
 
@@ -65,9 +59,18 @@ class NicoVideoInfoFragment : Fragment() {
             parseJSONApplyUI(jsonObjectString)
         }
 
+
         fragment_nicovideo_info_description_textview.movementMethod =
             LinkMovementMethod.getInstance();
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val fragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+        if (fragment.jsonObject.toString().isNotEmpty()) {
+            parseJSONApplyUI(fragment.jsonObject.toString())
+        }
     }
 
     /**

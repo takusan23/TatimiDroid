@@ -20,7 +20,6 @@ import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
-import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
@@ -37,6 +36,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoRecyclerPagerAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
+import io.github.takusan23.tatimidroid.FregmentData.DevNicoVideoFragmentData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
@@ -47,8 +47,10 @@ import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -124,16 +126,15 @@ class DevNicoVideoFragment : Fragment() {
     // シーク操作中かどうか
     var isTouchSeekBar = false
 
-
-    var isPriorityCache = false // キャッシュを優先的に利用するか
-    var canUsePriorityCachePlay = false // キャッシュ優先再生が利用可能か（キャッシュ取得済みでなおキャッシュ優先再生有効時）
-
     // コメント描画改善。drawComment()関数でのみ使う（0秒に投稿されたコメントが重複して表示される対策）
     private var drewedList = arrayListOf<String>() // 描画したコメントのNoが入る配列。一秒ごとにクリアされる
     private var tmpPosition = 0L // いま再生している位置から一秒引いた値が入ってる。
 
     // ニコれるように
     val nicoruAPI = NicoruAPI()
+
+    // 画面回転復帰時
+    lateinit var devNicoVideoFragmentData: DevNicoVideoFragmentData
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
@@ -156,8 +157,6 @@ class DevNicoVideoFragment : Fragment() {
 
         // 動画ID
         videoId = arguments?.getString("id") ?: ""
-        // キャッシュ再生が有効ならtrue
-        isCache = arguments?.getBoolean("cache") ?: false
 
         // スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -171,34 +170,83 @@ class DevNicoVideoFragment : Fragment() {
         // ダークモード
         initDarkmode()
 
+/*
         // なんかしらんけどこれで動く。これに関してはまじでわかんねーんだこれが。ViewPager2謎すぎる:thinking_face:
         // とりあえずこのViewPager2初期化関数消すと画面回転時に４ぬ。まじでなんで？
         initViewPager()
+*/
 
         // コントローラー表示
         initController()
 
         exoPlayer = SimpleExoPlayer.Builder(context!!).build()
 
-        // キャッシュを優先的に使うか
-        isPriorityCache = prefSetting.getBoolean("setting_nicovideo_cache_priority", false)
-        // キャッシュ優先再生が利用可能か
-        canUsePriorityCachePlay =
-            NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache
-        // 強制エコノミーの設定有効なら
-        val isPreferenceEconomyMode = prefSetting.getBoolean("setting_nicovideo_economy", false)
-        // エコノミー再生するなら
-        val isEconomy = arguments?.getBoolean("eco") ?: false
-
-        when {
-            // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
-            canUsePriorityCachePlay || isCache -> {
-                cachePlay()
+        /**
+         * 画面回転復帰時かどうか
+         * 画面回転復帰時はデータを取りに行かずに、ハートビート処理のみ行う
+         * だたしデータが大きすぎるとBundleに入り切らないのでその時は再度取りに行く(getSerializable("data")がnull)
+         * */
+        if (savedInstanceState?.getSerializable("data") != null) {
+            // 画面回転復帰時
+            // 値もらう
+            devNicoVideoFragmentData = savedInstanceState.getSerializable("data") as DevNicoVideoFragmentData
+            isCache = devNicoVideoFragmentData.isCachePlay
+            contentUrl = devNicoVideoFragmentData.contentUrl
+            commentList = ArrayList(devNicoVideoFragmentData.commentList)
+            nicoHistory = devNicoVideoFragmentData.nicoHistory
+            rotationProgress = devNicoVideoFragmentData.currentPos
+            recommendList = devNicoVideoFragmentData.recommendList
+            nicoruAPI.nicoruKey = devNicoVideoFragmentData.nicoruKey!!
+            // 動画情報無いとき（動画情報JSON無くても再生はできる）有る
+            if (devNicoVideoFragmentData.dataApiData != null) {
+                jsonObject = JSONObject(devNicoVideoFragmentData.dataApiData!!)
             }
-            // エコノミー再生？
-            isEconomy || isPreferenceEconomyMode -> coroutine(true, "", "", true)
-            // それ以外：インターネットで取得
-            else -> coroutine()
+            // オンライン再生時のみやること
+            if (!isCache) {
+                sessionAPIJSONObject = JSONObject(devNicoVideoFragmentData.sessionAPIJSONObject!!)
+                // 初期化ゾーン
+                // ハートビート処理。これしないと切られる。
+                nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSONObject)
+            }
+            // UIに反映
+            applyUI()
+            if (!isCache) {
+                // 関連動画
+                (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
+                    recommendList.forEach {
+                        recyclerViewList.add(it)
+                    }
+                    initRecyclerView()
+                }
+            }
+        } else {
+            // 初めて///
+
+            // キャッシュを優先的に使う設定有効？
+            val isPriorityCache = prefSetting.getBoolean("setting_nicovideo_cache_priority", false)
+
+            // キャッシュ再生が有効ならtrue
+            isCache = when {
+                arguments?.getBoolean("cache") ?: false -> true // キャッシュ再生
+                NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache -> true // キャッシュ優先再生が可能
+                else -> false // オンライン
+            }
+
+            // 強制エコノミーの設定有効なら
+            val isPreferenceEconomyMode = prefSetting.getBoolean("setting_nicovideo_economy", false)
+            // エコノミー再生するなら
+            val isEconomy = arguments?.getBoolean("eco") ?: false
+
+            when {
+                // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
+                isCache -> {
+                    cachePlay()
+                }
+                // エコノミー再生？
+                isEconomy || isPreferenceEconomyMode -> coroutine(true, "", "", true)
+                // それ以外：インターネットで取得
+                else -> coroutine()
+            }
         }
 
     }
@@ -319,7 +367,7 @@ class DevNicoVideoFragment : Fragment() {
                 // 公式アニメは暗号化されてて見れないので落とす
                 if (nicoVideoHTML.isEncryption(jsonObject.toString())) {
                     showToast(getString(R.string.encryption_video_not_play))
-                    activity?.runOnUiThread {
+                    withContext(Dispatchers.Main) {
                         activity?.finish()
                     }
                     return@launch
@@ -346,7 +394,7 @@ class DevNicoVideoFragment : Fragment() {
                                     audioQualityList.getJSONObject(audioQualityList.length() - 1)
                                         .getString("id")
                             }
-                            activity?.runOnUiThread {
+                            withContext(Dispatchers.Main) {
                                 Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.quality)}：$videoQuality", Snackbar.LENGTH_SHORT)
                                     .show()
                             }
@@ -379,78 +427,18 @@ class DevNicoVideoFragment : Fragment() {
                         ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
                 }
             }
-            activity?.runOnUiThread {
-                initViewPager()
-                if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
-                    // 動画を再生しない場合
-                    commentOnlyModeEnable()
-                } else {
-                    // ExoPlayer
-                    initVideoPlayer(contentUrl, nicoHistory)
-                }
-                // メニューにJSON渡す
-                (viewPager.fragmentList[0] as DevNicoVideoMenuFragment).jsonObject = jsonObject
-                // コメントFragmentにコメント配列を渡す
-                (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
-                    recyclerViewList = ArrayList(commentList)
-                    initRecyclerView(true)
-                }
-                // 動画情報FragmentにJSONを渡す
-                (viewPager.fragmentList[2] as NicoVideoInfoFragment).apply {
-                    jsonObjectString = jsonObject.toString()
-                    parseJSONApplyUI(jsonObjectString)
-                }
-                // タイトル
-                videoTitle = jsonObject.getJSONObject("video").getString("title")
-                initTitleArea()
-                // 共有
-                share =
-                    ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
-                // 投稿動画をViewPagerに追加
-                viewPagerAddAccountFragment(jsonObject)
-                // リピートボタン
-                fragment_nicovideo_controller_repeat.setOnClickListener {
-                    when (exoPlayer.repeatMode) {
-                        Player.REPEAT_MODE_OFF -> {
-                            // リピート無効時
-                            exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-                            fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
-                        }
-                        Player.REPEAT_MODE_ONE -> {
-                            // リピート有効時
-                            exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                            fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
-                        }
-                    }
-                }
-
-                // ログイン切れてるよメッセージ（プレ垢でこれ食らうと画質落ちるから；；）
-                if (isLoginMode(context) && !nicoVideoHTML.verifyLogin(jsonObject)) {
-                    showSnackbar(getString(R.string.login_disable_message), getString(R.string.login)) {
-                        GlobalScope.launch {
-                            NicoLogin.loginCoroutine(context).await()
-                            activity?.runOnUiThread {
-                                val intent = Intent(context, NicoVideoActivity::class.java)
-                                intent.putExtra("id", videoId)
-                                intent.putExtra("cache", isCache)
-                                context?.startActivity(intent)
-                            }
-                        }
-                    }
-                }
+            withContext(Dispatchers.Main) {
+                // UI表示
+                applyUI()
                 // 端末内DB履歴追記
                 insertDB(videoTitle)
             }
-
-
             // ニコるくん
             isPremium = nicoVideoHTML.isPremium(jsonObject)
             threadId = nicoVideoHTML.getThreadId(jsonObject)
             userId = nicoVideoHTML.getUserId(jsonObject)
             if (isPremium) {
-                val nicoruResponse =
-                    nicoruAPI.getNicoruKey(userSession, threadId)
-                        .await()
+                val nicoruResponse = nicoruAPI.getNicoruKey(userSession, threadId).await()
                 if (!nicoruResponse.isSuccessful) {
                     showToast("${getString(R.string.error)}\n${nicoruResponse.code}")
                     return@launch
@@ -463,29 +451,91 @@ class DevNicoVideoFragment : Fragment() {
             try {
                 val watchRecommendationRecipe = jsonObject.getString("watchRecommendationRecipe")
                 val nicoVideoRecommendAPI = NicoVideoRecommendAPI()
-                val recommendAPIResponse =
-                    nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe).await()
+                val recommendAPIResponse = nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe).await()
                 if (!recommendAPIResponse.isSuccessful) {
                     // 失敗時
                     showToast("${getString(R.string.error)}\n${response.code}")
                     return@launch
                 }
                 // パース
-                nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string())
-                    .forEach {
-                        recommendList.add(it)
-                    }
+                nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string()).forEach {
+                    recommendList.add(it)
+                }
                 // Fragment表示されているか（取得できた時点でもう存在しないかもしれない）
                 if (isAdded) {
                     // DevNicoVideoRecommendFragmentに配列渡す
                     (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
-                        recommendList.forEach {
-                            recyclerViewList.add(it)
-                        }
+                        initRecyclerView()
                     }
                 }
             } catch (e: SSLProtocolException) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    /**
+     * データ取得終わった時にUIに反映させる
+     * */
+    private fun applyUI() {
+        // ViewPager初期化
+        initViewPager()
+        if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
+            // 動画を再生しない場合
+            commentOnlyModeEnable()
+        } else {
+            // ExoPlayer
+            initVideoPlayer(contentUrl, nicoHistory)
+        }
+        // 動画情報なければ終わる
+        if (!::jsonObject.isInitialized) {
+            return
+        }
+        // メニューにJSON渡す
+        (viewPager.fragmentList[0] as DevNicoVideoMenuFragment).jsonObject = jsonObject
+        // コメントFragmentにコメント配列を渡す
+        (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
+            recyclerViewList = ArrayList(commentList)
+            initRecyclerView(true)
+        }
+        // タイトル
+        videoTitle = jsonObject.getJSONObject("video").getString("title")
+        initTitleArea()
+        // 共有
+        share = ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
+        if (!isCache) {
+            // キャッシュ再生時以外
+            // 投稿動画をViewPagerに追加
+            viewPagerAddAccountFragment(jsonObject)
+        }
+        // リピートボタン
+        fragment_nicovideo_controller_repeat.setOnClickListener {
+            when (exoPlayer.repeatMode) {
+                Player.REPEAT_MODE_OFF -> {
+                    // リピート無効時
+                    exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                    fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
+                }
+                Player.REPEAT_MODE_ONE -> {
+                    // リピート有効時
+                    exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+                    fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
+                }
+            }
+        }
+        // ログイン切れてるよメッセージ（プレ垢でこれ食らうと画質落ちるから；；）
+        if (isLoginMode(context) && !nicoVideoHTML.verifyLogin(jsonObject)) {
+            showSnackbar(getString(R.string.login_disable_message), getString(R.string.login)) {
+                GlobalScope.launch {
+                    NicoLogin.loginCoroutine(context).await()
+                    activity?.runOnUiThread {
+                        activity?.finish()
+                        val intent = Intent(context, NicoVideoActivity::class.java)
+                        intent.putExtra("id", videoId)
+                        intent.putExtra("cache", isCache)
+                        context?.startActivity(intent)
+                    }
+                }
             }
         }
     }
@@ -533,20 +583,16 @@ class DevNicoVideoFragment : Fragment() {
             activity?.finish()
             return
         } else {
-            // 動画のファイル名取得
-            val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
-            if (videoFileName != null) {
-                // 多分ここくそ重いから別スレッド
-                GlobalScope.launch {
-                    contentUrl =
-                        "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
+            GlobalScope.launch(Dispatchers.IO) {
+                // 動画のファイル名取得
+                val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
+                if (videoFileName != null) {
+                    contentUrl = "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
                     if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
                         // 動画を再生しない場合
                         commentOnlyModeEnable()
                     } else {
-                        activity?.runOnUiThread {
-                            // ExoPlayer
-                            initVideoPlayer(contentUrl, "")
+                        withContext(Dispatchers.Main) {
                             // キャッシュで再生だよ！
                             showToast(getString(R.string.use_cache))
                         }
@@ -554,54 +600,28 @@ class DevNicoVideoFragment : Fragment() {
                     // コメント取得
                     val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
                     commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
-                    activity?.runOnUiThread {
-                        // コメントFragmentにコメント配列を渡す
-                        (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).initRecyclerView(true)
-                        // 動画情報JSONがあるかどうか
-                        if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
-                            // 動画情報FragmentにJSONを渡す
-                            (viewPager.fragmentList[2] as NicoVideoInfoFragment).apply {
-                                videoId = this@DevNicoVideoFragment.videoId
-                                jsonObjectString =
-                                    nicoVideoCache.getCacheFolderVideoInfoText(videoId)
-                                parseJSONApplyUI(jsonObjectString)
-                            }
-                        }
+                    // 動画情報
+                    if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+                        jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
                     }
+                } else {
+                    // 動画が見つからなかった
+                    Toast.makeText(context, R.string.not_found_video, Toast.LENGTH_SHORT).show()
+                    activity?.finish()
+                    return@launch
                 }
-            } else {
-                // 動画が見つからなかった
-                Toast.makeText(context, R.string.not_found_video, Toast.LENGTH_SHORT).show()
-                activity?.finish()
-                return
-            }
-            // タイトル
-            videoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
-                JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video")
-                    .getString("title")
-            } else {
-                // 動画ファイルの名前
-                nicoVideoCache.getCacheFolderVideoFileName(videoId) ?: videoId
-            }
-            initTitleArea()
-            // 共有
-            share =
-                ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
-            // リピートボタン
-            fragment_nicovideo_controller_repeat.setOnClickListener {
-                when (exoPlayer.repeatMode) {
-                    Player.REPEAT_MODE_OFF -> {
-                        // リピート無効時
-                        exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-                        fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
-                        prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
+                // UIスレッドへ
+                withContext(Dispatchers.Main) {
+                    // 再生
+                    applyUI()
+                    // タイトル
+                    videoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+                        JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video").getString("title")
+                    } else {
+                        // 動画ファイルの名前
+                        nicoVideoCache.getCacheFolderVideoFileName(videoId) ?: videoId
                     }
-                    Player.REPEAT_MODE_ONE -> {
-                        // リピート有効時
-                        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                        fragment_nicovideo_controller_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
-                        prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
-                    }
+                    initTitleArea()
                 }
             }
         }
@@ -673,13 +693,10 @@ class DevNicoVideoFragment : Fragment() {
         // キャッシュ再生と分ける
         when {
             // キャッシュを優先的に利用する　もしくは　キャッシュ再生時
-            canUsePriorityCachePlay || isCache -> {
+            isCache -> {
                 // キャッシュ再生
-                val dataSourceFactory =
-                    DefaultDataSourceFactory(context, "TatimiDroid;@takusan_23")
-                val videoSource =
-                    ProgressiveMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(videoUrl?.toUri())
+                val dataSourceFactory = DefaultDataSourceFactory(context, "TatimiDroid;@takusan_23")
+                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(videoUrl?.toUri())
                 exoPlayer.prepare(videoSource)
             }
             // それ以外：インターネットで取得
@@ -987,8 +1004,7 @@ class DevNicoVideoFragment : Fragment() {
      * ViewPager初期化
      * */
     private fun initViewPager() {
-        viewPager =
-            DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache, this)
+        viewPager = DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache, this)
         fragment_nicovideo_viewpager.adapter = viewPager
         TabLayoutMediator(fragment_nicovideo_tablayout, fragment_nicovideo_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
             tab.text = viewPager.fragmentTabName[position]
@@ -1141,20 +1157,36 @@ class DevNicoVideoFragment : Fragment() {
         }
     }
 
-
     /**
      * onSaveInstanceState / onViewStateRestored を使って画面回転に耐えるアプリを作る。
      * */
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         // 保存する値をセット。今回は再生時間
-        outState.putLong("progress", exoPlayer.currentPosition)
-    }
-
-    override fun onViewStateRestored(savedInstanceState: Bundle?) {
-        super.onViewStateRestored(savedInstanceState)
-        // 保存した値を取得。今回は再生時間
-        rotationProgress = (savedInstanceState?.getLong("progress")) ?: 0L
+        with(outState) {
+            val data = DevNicoVideoFragmentData(
+                isCachePlay = isCache,
+                contentUrl = contentUrl,
+                nicoHistory = nicoHistory,
+                commentList = commentList,
+                currentPos = exoPlayer.currentPosition,
+                // 動画情報がないときはnull
+                dataApiData = if (::jsonObject.isInitialized) {
+                    jsonObject.toString()
+                } else {
+                    null
+                },
+                // キャッシュ再生時はこの値初期化されないので
+                sessionAPIJSONObject = if (::sessionAPIJSONObject.isInitialized) {
+                    sessionAPIJSONObject.toString()
+                } else {
+                    null
+                },
+                nicoruKey = nicoruAPI.nicoruKey,
+                recommendList = recommendList
+            )
+            putSerializable("data", data)
+        }
     }
 
     /**

@@ -25,23 +25,37 @@ class DevNicoVideoRecommendFragment : Fragment() {
     lateinit var devNicoVideoListAdapter: DevNicoVideoListAdapter
     var recyclerViewList = arrayListOf<NicoVideoData>()
 
+    var id = ""
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_recommend, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        id = arguments?.getString("id") ?: return
         initRecyclerView()
     }
 
     override fun onStart() {
         super.onStart()
-        Handler(Looper.getMainLooper()).post {
-            devNicoVideoListAdapter.notifyDataSetChanged()
-        }
     }
 
-    private fun initRecyclerView() {
+    override fun onResume() {
+        super.onResume()
+        initRecyclerView()
+    }
+
+    fun initRecyclerView() {
+        if (!isAdded) {
+            return
+        }
+        // DevNicoVideoFragmentから受け取る
+        val devNicoVideoFragment = fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+        recyclerViewList.clear()
+        devNicoVideoFragment.recommendList.forEach {
+            recyclerViewList.add(it)
+        }
         fragment_nicovideo_recommend_recyclerview.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)

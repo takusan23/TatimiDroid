@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI
 
+import java.io.Serializable
 import java.time.Duration
 
 /**
@@ -21,4 +22,4 @@ data class NicoVideoData(
     val cacheAddedDate: Long?,// キャッシュ取得日時。キャッシュ以外ではnullいいよ
     val uploaderName: String? = null, // キャッシュ再生で使うからキャッシュ以外はnull
     val videoTag: ArrayList<String>? = arrayListOf() // キャッシュ再生で使うからキャッシュ以外は省略していいよ
-)
+) : Serializable

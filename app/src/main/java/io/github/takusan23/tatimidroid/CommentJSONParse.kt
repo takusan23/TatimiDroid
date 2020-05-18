@@ -1,8 +1,10 @@
 package io.github.takusan23.tatimidroid
 
 import org.json.JSONObject
+import java.io.Serializable
 
-class CommentJSONParse(val commentJson: String, var roomName: String, val videoOrLiveId: String) {
+class CommentJSONParse(val commentJson: String, var roomName: String, val videoOrLiveId: String) :
+    Serializable {
 
     var comment = ""
     var dateUsec = ""

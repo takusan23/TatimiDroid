@@ -86,7 +86,7 @@ class NicoVideoHTML {
 
     /**
      * 動画URL取得APIを叩く。DMCとSmileサーバーと別の処理をしないといけないけどこの関数が隠した
-     * あとDMCサーバーの動画はハートビート処理（サーバーに「動画見てますよ～」って送るやつ）もやっときますね。
+     * ハートビート処理はheartBeat()関数を一度呼んでください。後は勝手にハートビートをPOSTしてくれます。
      *
      * 注意
      * DMCサーバーの動画はハートビート処理が必要。なおこの関数呼べば勝手にハートビート処理やります。
@@ -278,8 +278,10 @@ class NicoVideoHTML {
             getSessionAPIDataObject(jsonObject, sessionAPIJSONObject)
         heartBeatTimer.schedule(timerTask {
             // ハートビート処理
-            postHeartBeat(heartBeatURL, postData) {}
-        }, 40 * 1000, 40 * 1000)
+            postHeartBeat(heartBeatURL, postData) {
+                // println("Angel Beats!")
+            }
+        }, 0, 40 * 1000)
     }
 
 

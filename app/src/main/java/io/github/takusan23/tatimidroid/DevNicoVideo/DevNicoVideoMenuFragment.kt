@@ -260,7 +260,7 @@ class DevNicoVideoMenuFragment : Fragment() {
         val devNicoVideoFragment =
             fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
         // キャッシュ再生時またはキャッシュ優先再生時は非表示
-        if (isCache || devNicoVideoFragment.canUsePriorityCachePlay) {
+        if (isCache) {
             fragment_nicovideo_menu_quality.visibility = View.GONE
         } else {
             fragment_nicovideo_menu_quality.setOnClickListener {

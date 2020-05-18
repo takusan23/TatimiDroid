@@ -23,7 +23,7 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
     private val RED = Color.parseColor("#ff0000")
 
     // 色：X座標
-    private val danmakuList = arrayListOf<Pair<Int, Int>>()
+    private var danmakuList = arrayListOf<Pair<Int, Int>>()
 
     // Viewの幅。getWidth()が0返すので
     var viewWidth = 0
@@ -64,7 +64,6 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
             }
             // 平均値出す
             val avarage = (percentList.average()).toFloat()
-
             /**
              * 偏差値出す。基本的に50出る。
              * ちなみに私は中学の期末数学で9点とったことある
@@ -96,7 +95,6 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                 }
                 danmakuList.add(Pair(color, drawHeight))
             }
-            println(danmakuList.map { pair -> pair.second })
             invalidate()
         }
     }
