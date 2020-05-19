@@ -423,8 +423,7 @@ class DevNicoVideoFragment : Fragment() {
             if (isGetComment) {
                 val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject).await()
                 if (commentJSON != null) {
-                    commentList =
-                        ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
+                    commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
                 }
             }
             withContext(Dispatchers.Main) {
@@ -601,7 +600,6 @@ class DevNicoVideoFragment : Fragment() {
                     // コメント取得
                     val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
                     commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
-                    println(commentList)
                     // 動画情報
                     if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                         jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
@@ -911,17 +909,17 @@ class DevNicoVideoFragment : Fragment() {
             // println(drawList.map { commentJSONParse -> "${DateUtils.formatElapsedTime(currentPositionSec)} | ${commentJSONParse.commentNo} | ${commentJSONParse.comment} | ${drewedList}" })
             drawList.forEach {
                 // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
-                val addable = if (it.commentNo.isNotEmpty()) {
+                val addable = if (it.commentNo == "-1") {
                     !drewedList.contains(it.vpos)
                 } else {
                     !drewedList.contains(it.commentNo)
                 }
                 if (addable) {
                     // コメントIDない場合はvposで代替する
-                    if (it.commentNo != "-1") {
-                        drewedList.add(it.commentNo)
-                    } else {
+                    if (it.commentNo == "-1") {
                         drewedList.add(it.vpos)
+                    } else {
+                        drewedList.add(it.commentNo)
                     }
                     if (!it.comment.contains("\n")) {
                         // SingleLine
