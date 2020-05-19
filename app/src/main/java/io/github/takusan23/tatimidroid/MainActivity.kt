@@ -20,6 +20,7 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.edit
 import androidx.core.view.get
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
@@ -79,8 +80,22 @@ class MainActivity : AppCompatActivity() {
         initButton()
 
 /*
+        // 画面回転してもFragmentが生き残る・・・？
         val fragment = supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
-        println(fragment == null)
+        if (fragment != null) {
+            main_activity_bottom_navigationview.selectedItemId = when {
+                fragment is LoginFragment -> R.id.menu_login
+                fragment is SettingsFragment -> R.id.menu_setting
+                fragment is DevNicoVideoSelectFragment -> R.id.menu_nicovideo
+                fragment is DevNicoVideoCacheFragment -> R.id.menu_cache
+                fragment is ProgramListFragment -> R.id.menu_community
+                else -> R.id.menu_community
+            }
+            supportFragmentManager.beginTransaction()
+                .detach(fragment)
+                .replace(R.id.main_activity_linearlayout, fragment)
+                .commit()
+        }
 */
 
         // 画面切り替え
@@ -111,21 +126,24 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効かどうか
-        val isMobileDataShowCacheList =
-            pref_setting.getBoolean("setting_mobile_data_show_cache", false)
-        if (isMobileDataShowCacheList && isConnectionMobileDataInternet(this)) {
-            // キャッシュ表示
-            main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
-        } else {
-            // 起動時の画面
-            val launchFragmentName =
-                pref_setting.getString("setting_launch_fragment", "live") ?: "live"
-            // selectedItemIdでsetOnNavigationItemSelectedListener{}呼ばれるって。はよいえ
-            when (launchFragmentName) {
-                "live" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
-                "video" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
-                "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+        // 画面回転時・・・はsavedInstanceStateがnull以外になる。これないと画面回転時にFragmentを再生成（2個目作成）するはめになりますよ！
+        if (savedInstanceState == null) {
+            // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効かどうか
+            val isMobileDataShowCacheList =
+                pref_setting.getBoolean("setting_mobile_data_show_cache", false)
+            if (isMobileDataShowCacheList && isConnectionMobileDataInternet(this)) {
+                // キャッシュ表示
+                main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+            } else {
+                // 起動時の画面
+                val launchFragmentName =
+                    pref_setting.getString("setting_launch_fragment", "live") ?: "live"
+                // selectedItemIdでsetOnNavigationItemSelectedListener{}呼ばれるって。はよいえ
+                when (launchFragmentName) {
+                    "live" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
+                    "video" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
+                    "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+                }
             }
         }
 
