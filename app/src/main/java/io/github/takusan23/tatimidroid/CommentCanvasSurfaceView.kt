@@ -15,6 +15,7 @@ import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
+// SurfaceViewで書いたけど普通にCanvas使ったほうが良かったよ。そもそもSurfaceViewすげえみたいな記事が古すぎ。
 class CommentCanvasSurfaceView(context: Context?, attrs: AttributeSet?) : SurfaceView(context, attrs), SurfaceHolder.Callback {
 
     //白色テキストPaint

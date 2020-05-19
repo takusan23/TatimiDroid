@@ -78,6 +78,11 @@ class MainActivity : AppCompatActivity() {
         // 履歴ボタン・接続ボタン等初期化
         initButton()
 
+/*
+        val fragment = supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
+        println(fragment == null)
+*/
+
         // 画面切り替え
         main_activity_bottom_navigationview.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {

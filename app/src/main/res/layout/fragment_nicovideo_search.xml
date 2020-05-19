@@ -7,7 +7,7 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
+            android:layout_margin="2dp"
             android:orientation="horizontal">
 
         <com.google.android.material.textfield.TextInputLayout
@@ -21,8 +21,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/serch"
-                    android:inputType="text"
                     android:imeOptions="actionSearch"
+                    android:inputType="text"
                     android:maxLines="1" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -40,20 +40,43 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
             android:orientation="horizontal">
 
-        <Spinner
-                android:id="@+id/fragment_nicovideo_search_tag_key_spinner"
+        <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_margin="2dp"
+                android:layout_weight="2">
 
-        <Spinner
-                android:id="@+id/fragment_nicovideo_search_sort_spinner"
+            <AutoCompleteTextView
+                    android:id="@+id/fragment_nicovideo_search_tag_key_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="false"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:inputType="none"
+                    android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_margin="2dp"
+                android:layout_weight="1">
+
+            <AutoCompleteTextView
+                    android:id="@+id/fragment_nicovideo_search_sort_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="false"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:inputType="none"
+                    android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
 
@@ -69,32 +92,4 @@
                 android:layout_height="match_parent"
                 android:scrollbars="vertical" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp">
-
-        <Button
-                android:id="@+id/fragment_nicovideo_search_prev_page"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/prev_page" />
-
-        <Button
-                android:id="@+id/fragment_nicovideo_search_now_page"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:enabled="false"
-                android:text="" />
-
-        <Button
-                android:id="@+id/fragment_nicovideo_search_next_page"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:text="@string/next_page" />
-    </FrameLayout>
 </LinearLayout>

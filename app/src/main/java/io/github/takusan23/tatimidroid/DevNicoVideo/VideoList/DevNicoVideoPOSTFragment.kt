@@ -119,8 +119,8 @@ class DevNicoVideoPOSTFragment : Fragment() {
                         fragment_nicovideo_post_swipe_to_refresh.isRefreshing = false
                         isLoading = false
                     }
-                    // これで最後です。；；
-                    if (isMaxCount) {
+                    // これで最後です。；；は配列の中身が一個以上あればな話。
+                    if (isMaxCount && recyclerViewList.isNotEmpty()) {
                         showToast(getString(R.string.end_scroll))
                     }
                 }
