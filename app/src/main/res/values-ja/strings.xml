@@ -416,4 +416,7 @@
     <string name="cache_progress_notification">キャッシュ取得進捗通知</string>
     <string name="cache_progress_now">キャッシュ取得中</string>
     <string name="reset">リセット</string>
+    <string name="tv">テレビ</string>
+    <string name="radio">ラジオ</string>
+    <string name="bs">BS</string>
 </resources>

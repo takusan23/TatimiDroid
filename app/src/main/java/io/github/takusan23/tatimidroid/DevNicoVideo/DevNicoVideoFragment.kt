@@ -170,12 +170,6 @@ class DevNicoVideoFragment : Fragment() {
         // ダークモード
         initDarkmode()
 
-/*
-        // なんかしらんけどこれで動く。これに関してはまじでわかんねーんだこれが。ViewPager2謎すぎる:thinking_face:
-        // とりあえずこのViewPager2初期化関数消すと画面回転時に４ぬ。まじでなんで？
-        initViewPager()
-*/
-
         // コントローラー表示
         initController()
 

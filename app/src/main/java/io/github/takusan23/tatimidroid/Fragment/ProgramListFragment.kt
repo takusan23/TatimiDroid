@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import io.github.takusan23.tatimidroid.DarkModeSupport
-import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKProgramListFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_list.*
 
@@ -65,9 +64,9 @@ class ProgramListFragment : Fragment() {
         }
         fragment_program_jk.setOnClickListener {
             // ニコニコ実況。ｊｋ
-            val nicoJKProgramListFragment = NicoJKProgramListFragment()
+            val nicoJKChannelFragment = NicoJKChannelFragment()
             fragmentManager?.beginTransaction()
-                ?.replace(fragment_program_list_linearlayout.id, nicoJKProgramListFragment)
+                ?.replace(fragment_program_list_linearlayout.id, nicoJKChannelFragment)
                 ?.commit()
             fragment_program_motionlayout?.transitionToStart()
         }

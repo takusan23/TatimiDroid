@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoAPI.JK
+package io.github.takusan23.tatimidroid.Adapter
 
 import android.content.Intent
 import android.view.LayoutInflater
@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKData
 import io.github.takusan23.tatimidroid.R
 
 class NicoJKProgramAdapter(val nicoJKDataList: ArrayList<NicoJKData>) :

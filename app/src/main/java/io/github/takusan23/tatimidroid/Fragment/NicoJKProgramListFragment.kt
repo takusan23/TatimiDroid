@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoAPI.JK
+package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -11,6 +11,9 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.github.takusan23.tatimidroid.Adapter.NicoJKProgramAdapter
+import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKData
+import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_jk_program_list.*
 import kotlinx.coroutines.GlobalScope
@@ -30,6 +33,9 @@ class NicoJKProgramListFragment : Fragment() {
 
     var userSession = ""
 
+    // 読み込む種類
+    var type = "tv" // tv か radio か bs
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_jk_program_list, container, false)
     }
@@ -39,6 +45,7 @@ class NicoJKProgramListFragment : Fragment() {
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
+        type = arguments?.getString("type") ?: "tv"
 
         initRecyclerView()
 
@@ -58,7 +65,7 @@ class NicoJKProgramListFragment : Fragment() {
         nicoJKProgramAdapter.notifyDataSetChanged()
         fragment_jk_program_list_swipe.isRefreshing = true
         GlobalScope.launch {
-            val listResponse = nicoJKHTML.getChannelListHTML("tv", userSession).await()
+            val listResponse = nicoJKHTML.getChannelListHTML(type, userSession).await()
             // 取得できんときは落とす
             if (!listResponse.isSuccessful) {
                 return@launch
@@ -78,7 +85,7 @@ class NicoJKProgramListFragment : Fragment() {
         if (isAdded) {
             fragment_jk_program_list_recyclerview.apply {
                 setHasFixedSize(true)
-                layoutManager = LinearLayoutManager(context) as RecyclerView.LayoutManager
+                layoutManager = LinearLayoutManager(context)
                 nicoJKProgramAdapter = NicoJKProgramAdapter(recyclerViewList)
                 adapter = nicoJKProgramAdapter
             }

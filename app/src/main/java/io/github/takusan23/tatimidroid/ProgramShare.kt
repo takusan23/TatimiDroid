@@ -1,36 +1,21 @@
 package io.github.takusan23.tatimidroid
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.hardware.display.DisplayManager
-import android.hardware.display.VirtualDisplay
-import android.media.ImageReader
-import android.media.projection.MediaProjection
-import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
-import android.os.Message
-import android.util.DisplayMetrics
 import android.view.PixelCopy
-import android.view.Surface
 import android.view.SurfaceView
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
-import androidx.core.graphics.drawable.toDrawable
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
-import java.lang.Exception
-import java.net.URI
-import java.security.cert.Extension
 import java.text.SimpleDateFormat
-import java.util.*
 
 class ProgramShare(val activity: AppCompatActivity, val view: View, val programName: String, val programId: String) {
     // onActivityResult でリクエストする値。

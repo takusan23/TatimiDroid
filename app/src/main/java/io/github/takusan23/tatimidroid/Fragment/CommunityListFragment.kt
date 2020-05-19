@@ -24,7 +24,9 @@ import kotlinx.android.synthetic.main.fragment_community_list_layout.community_r
 import java.util.*
 import kotlin.collections.ArrayList
 
-
+/**
+ * フォロー中とかニコ生TOP表示Fragment
+ * */
 class CommunityListFragment : Fragment() {
     var user_session = ""
     lateinit var pref_setting: SharedPreferences
