@@ -59,8 +59,7 @@ class NicoVideoRecommendAPI {
                 val commentCount = countObject.getString("comment")
                 val mylistCount = countObject.getString("mylist")
                 val duration = contentObject.getLong("duration")
-                val data =
-                    NicoVideoData(false, false, videoTitle, videoId, thumb, registeredAt, viewCount, commentCount, mylistCount, "", null, duration,null)
+                val data = NicoVideoData(isCache = false, isMylist = false, title = videoTitle, videoId = videoId, thum = thumb, date = registeredAt, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = duration, cacheAddedDate = null)
                 list.add(data)
             }
         }

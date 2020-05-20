@@ -37,7 +37,7 @@ class DevNicoVideoPOSTFragment : Fragment() {
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
 
     // 今のページ
-    var isNowPageNum = 1
+    var page = 1
 
     // キャンセルできるように
     lateinit var coroutine: Job
@@ -66,10 +66,23 @@ class DevNicoVideoPOSTFragment : Fragment() {
         initRecyclerView()
 
         // 1ページ目取得
-        getPostList(isNowPageNum)
+        if (savedInstanceState == null) {
+            getPostList(page)
+        } else {
+            // 画面回転復帰時
+            (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).forEach {
+                recyclerViewList.add(it)
+            }
+            page = savedInstanceState.getInt("page")
+            nicoVideoListAdapter.notifyDataSetChanged()
+        }
 
         fragment_nicovideo_post_swipe_to_refresh.setOnRefreshListener {
-            getPostList(isNowPageNum)
+            page = 0
+            position = 0
+            yPos = 0
+            recyclerViewList.clear()
+            getPostList(page)
         }
     }
 
@@ -153,8 +166,8 @@ class DevNicoVideoPOSTFragment : Fragment() {
                     //最後までスクロールしたときの処理
                     if (firstVisibleItem + visibleItemCount == totalItemCount && !isLoading && !isMaxCount) {
                         isLoading = true
-                        isNowPageNum++
-                        getPostList(isNowPageNum)
+                        page++
+                        getPostList(page)
                         position =
                             (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
                         yPos = getChildAt(0).top
@@ -162,6 +175,12 @@ class DevNicoVideoPOSTFragment : Fragment() {
                 }
             })
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable("list", recyclerViewList)
+        outState.putInt("page", page)
     }
 
 }

@@ -41,15 +41,26 @@ class DevNicoVideoCacheFragment : Fragment() {
         nicoVideoCache = NicoVideoCache(context)
         initRecyclerView()
         initFabClick()
-        load()
+        // 画面回転復帰時か
+        if (savedInstanceState == null) {
+            load()
+        } else {
+            (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).forEach {
+                cacheVideoList.add(it)
+            }
+            (savedInstanceState.getSerializable("recycler") as ArrayList<NicoVideoData>).forEach {
+                recyclerViewList.add(it)
+            }
+            fragment_cache_storage_info.text = savedInstanceState.getString("storage")
+            nicoVideoListAdapter.notifyDataSetChanged()
+        }
     }
 
     // ストレージの空き確認
     private fun initStorageSpace() {
         val byte = nicoVideoCache.cacheTotalSize.toFloat()
         val gbyte = byte / 1024 / 1024 / 1024 // Byte -> KB -> MB -> GB
-        fragment_cache_storage_info.text =
-            "${getString(R.string.cache_usage)}：${format("%.1f", gbyte)} GB" // 小数点以下一桁
+        fragment_cache_storage_info.text = "${getString(R.string.cache_usage)}：${format("%.1f", gbyte)} GB" // 小数点以下一桁
     }
 
     // フィルター読み込む
@@ -140,6 +151,19 @@ class DevNicoVideoCacheFragment : Fragment() {
             nicoVideoListAdapter = DevNicoVideoListAdapter(list)
             adapter = nicoVideoListAdapter
         }
+    }
+
+    /**
+     * 値を画面回転時に引き継ぐ
+     * */
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.apply {
+            putString("storage", fragment_cache_storage_info.text.toString())
+            putSerializable("recycler", recyclerViewList)
+            putSerializable("list", cacheVideoList)
+        }
+
     }
 
 }

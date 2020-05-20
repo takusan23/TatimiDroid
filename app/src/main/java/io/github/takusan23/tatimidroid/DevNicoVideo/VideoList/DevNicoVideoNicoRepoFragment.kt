@@ -38,8 +38,16 @@ class DevNicoVideoNicoRepoFragment : Fragment() {
 
         initRecyclerView()
 
-        // データ取得
-        coroutine()
+        if (savedInstanceState == null) {
+            // データ取得
+            coroutine()
+        } else {
+            // 画面回転復帰時
+            (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).forEach {
+                recyclerViewList.add(it)
+            }
+            nicoVideoListAdapter.notifyDataSetChanged()
+        }
 
         fragment_nicovideo_nicorepo_swipe.setOnRefreshListener {
             coroutine()
@@ -84,6 +92,11 @@ class DevNicoVideoNicoRepoFragment : Fragment() {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable("list", recyclerViewList)
     }
 
 }

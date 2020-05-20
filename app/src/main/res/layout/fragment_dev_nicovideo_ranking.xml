@@ -9,17 +9,42 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-        <Spinner
-                android:id="@+id/fragment_nicovideo_ranking_spinner"
+        <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_margin="2dp"
+                android:layout_weight="2">
 
-        <Spinner
-                android:id="@+id/fragment_nicovideo_ranking_time_spinner"
+            <AutoCompleteTextView
+                    android:id="@+id/fragment_nicovideo_ranking_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="false"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:inputType="none"
+                    android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_margin="2dp"
+                android:layout_weight="2">
+
+            <AutoCompleteTextView
+                    android:id="@+id/fragment_nicovideo_ranking_time_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="false"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:inputType="none"
+                    android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+
     </LinearLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout

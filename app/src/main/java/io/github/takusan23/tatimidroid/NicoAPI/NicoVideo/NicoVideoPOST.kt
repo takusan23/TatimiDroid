@@ -53,8 +53,7 @@ class NicoVideoPOST {
             val commentCount = it.getElementsByClass("comment").first().text()
             val playCount = it.getElementsByClass("play").first().text()
             val mylistCount = it.getElementsByClass("mylist").first().text()
-            val data =
-                NicoVideoData(false, false, title, videoId, thumbnailUrl, toUnixTime(postDate), playCount, commentCount, mylistCount, "", null, null, null)
+            val data = NicoVideoData(isCache = false, isMylist = false, title = title, videoId = videoId, thum = thumbnailUrl, date = toUnixTime(postDate), viewCount = playCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = null, cacheAddedDate = null)
             videoList.add(data)
         }
         return videoList

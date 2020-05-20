@@ -41,8 +41,11 @@ class DevNicoVideoSelectFragment : Fragment() {
         // インターネット接続確認
         // 何らかの方法でインターネットにはつながっている
         if (isConnectionInternet(context)) {
-            // ランキング
-            setFragment(DevNicoVideoRankingFragment())
+            // とりあえずランキング
+            if (savedInstanceState == null) {
+                // 画面回転時に回転前のFragmentをそのまま残しておくにはsavedInstanceStateがnullのときだけFragmentを生成する必要がある。
+                setFragment(DevNicoVideoRankingFragment())
+            }
         }
 
         // 未ログインで利用する場合

@@ -4,13 +4,11 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import okhttp3.FormBody
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONObject
+import java.io.Serializable
 import java.text.SimpleDateFormat
 
 /**
@@ -63,19 +61,18 @@ class NicoVideoSPMyListAPI {
      * @param userSession ユーザーセッション
      * @return okHttpのレスポンス。パースはparseMyListItems()でできると思う
      * */
-    fun getMyListItems(myListId: String, userSession: String): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("https://nvapi.nicovideo.jp/v1/users/me/mylists/$myListId/items?pageSize=500")
-                header("Cookie", "user_session=$userSession")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                header("x-frontend-id", "3")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    fun getMyListItems(myListId: String, userSession: String): Deferred<Response> = GlobalScope.async {
+        val request = Request.Builder().apply {
+            url("https://nvapi.nicovideo.jp/v1/users/me/mylists/$myListId/items?pageSize=500")
+            header("Cookie", "user_session=$userSession")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("x-frontend-id", "3")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
 
     /**
      * とりあえずマイリストの中身取得APIを叩く関数。
@@ -96,11 +93,34 @@ class NicoVideoSPMyListAPI {
     }
 
     /**
+     * 他の人のマイリストを取得する。コルーチンです。100件取れます。
+     * 注意：パースにはparseOtherUserMyListJSON()関数を使ってください。中身のJSONが若干違うみたいです。
+     * @param id mylist/数字 の数字の部分だけ。
+     * @param userSession ユーザーセッション。多分なくても（空文字でも）叩けるけど一応。
+     * @param pageSize 省略時100件取れます。
+     * */
+    fun getOtherUserMyListItems(id: String, userSession: String = "", pageSize: Int = 100): Deferred<Response> = GlobalScope.async {
+        //とりあえずマイリストと普通のマイリスト。
+        val url = "https://nvapi.nicovideo.jp/v2/mylists/$id?pageSize=$pageSize"
+        val request = Request.Builder().apply {
+            header("Cookie", "user_session=${userSession}")
+            header("x-frontend-id", "6")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            url(url)
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
+
+    /**
      * マイリストの中身APIをパースする関数
      * @param responseString getMyListItems()のレスポンス
+     * @param myListId マイリストのID。削除する時に使う。空文字の場合はとりあえずマイリストとして扱います。
      * @return NicoVideoDataの配列
      * */
-    fun parseMyListItems(responseString: String?): ArrayList<NicoVideoData> {
+    fun parseMyListItems(myListId: String, responseString: String?): ArrayList<NicoVideoData> {
         val videoItems = arrayListOf<NicoVideoData>()
         val items = JSONObject(responseString).getJSONObject("data").getJSONArray("items")
         for (i in 0 until items.length()) {
@@ -126,12 +146,72 @@ class NicoVideoSPMyListAPI {
                 } else {
                     videoObject.getJSONObject("thumbnail").getString("largeUrl")
                 }
-                val data =
-                    NicoVideoData(false, true, title, videoId, thum, date, viewCount, commentCount, mylistCount, myListItemId, myListAddedDate, duration, null, null)
+                val data = NicoVideoData(
+                    isCache = false,
+                    isMylist = true,
+                    title = title,
+                    videoId = videoId,
+                    thum = thum,
+                    date = date,
+                    viewCount = viewCount,
+                    commentCount = commentCount,
+                    mylistCount = mylistCount,
+                    mylistItemId = myListItemId,
+                    mylistAddedDate = myListAddedDate,
+                    duration = duration,
+                    cacheAddedDate = null,
+                    uploaderName = null,
+                    isToriaezuMylist = myListId.isEmpty(),
+                    mylistId = myListId
+                )
                 videoItems.add(data)
             }
         }
         return videoItems
+    }
+
+    /**
+     * 他の人のマイリストのJSONをパースする。
+     * @param json getOtherUserMylistItems()の戻り値
+     * @return NicoVideoData配列
+     * */
+    fun parseOtherUserMyListJSON(json: String?): ArrayList<NicoVideoData> {
+        val myListList = arrayListOf<NicoVideoData>()
+        val jsonObject = JSONObject(json)
+        val myListItem =
+            jsonObject.getJSONObject("data").getJSONObject("mylist").getJSONArray("items")
+        for (i in 0 until myListItem.length()) {
+            val video = myListItem.getJSONObject(i)
+            val itemId = video.getString("itemId")
+            val videoObject = video.getJSONObject("video")
+            val title = videoObject.getString("title")
+            val videoId = videoObject.getString("id")
+            val thum = videoObject.getJSONObject("thumbnail").getString("url")
+            val date = toUnixTime(videoObject.getString("registeredAt"))
+            val countObject = videoObject.getJSONObject("count")
+            val viewCount = countObject.getString("view")
+            val commentCount = countObject.getString("comment")
+            val mylistCount = countObject.getString("mylist")
+            val addedAt = toUnixTime(video.getString("addedAt"))
+            val duration = videoObject.getLong("duration")
+            val data = NicoVideoData(
+                isCache = false,
+                isMylist = false,
+                title = title,
+                videoId = videoId,
+                thum = thum,
+                date = date,
+                viewCount = viewCount,
+                commentCount = commentCount,
+                mylistCount = mylistCount,
+                mylistItemId = itemId,
+                mylistAddedDate = addedAt,
+                duration = duration,
+                cacheAddedDate = null
+            )
+            myListList.add(data)
+        }
+        return myListList
     }
 
     /**
@@ -141,20 +221,39 @@ class NicoVideoSPMyListAPI {
      * @param userSession ユーザーセッション
      * @return okHttpのレスポンス
      * */
-    fun deleteMyListVideo(myListId: String, itemId: String, userSession: String): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("https://nvapi.nicovideo.jp/v1/users/me/mylists/$myListId/items?itemIds=$itemId")
-                header("Cookie", "user_session=$userSession")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                header("x-frontend-id", "3")
-                header("x-request-with", "nicovideo")
-                delete()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    fun deleteMyListVideo(myListId: String, itemId: String, userSession: String): Deferred<Response> = GlobalScope.async {
+        val request = Request.Builder().apply {
+            url("https://nvapi.nicovideo.jp/v1/users/me/mylists/$myListId/items?itemIds=$itemId")
+            header("Cookie", "user_session=$userSession")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("x-frontend-id", "3")
+            header("x-request-with", "nicovideo")
+            delete()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
+
+    /**
+     * とりあえずマイリストから動画を削除するAPIを叩く関数
+     * @param itemId itemId アイテムID（NicoVideoData#mylistItemId）。動画IDではないので注意
+     * @param userSession ユーザーセッション
+     * @return okHttpのレスポンス
+     * */
+    fun deleteToriaezuMyListVideo(itemId: String, userSession: String): Deferred<Response> = GlobalScope.async {
+        val request = Request.Builder().apply {
+            url("https://nvapi.nicovideo.jp/v1/users/me/deflist/items?itemIds=$itemId")
+            header("Cookie", "user_session=$userSession")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("x-frontend-id", "3")
+            header("x-request-with", "nicovideo")
+            delete()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
 
     // UnixTimeへ変換
     private fun toUnixTime(time: String): Long {
@@ -162,6 +261,6 @@ class NicoVideoSPMyListAPI {
         return simpleDateFormat.parse(time).time
     }
 
-    data class MyListData(val title: String, val id: String, val itemsCount: Int)
+    data class MyListData(val title: String, val id: String, val itemsCount: Int) : Serializable
 
 }

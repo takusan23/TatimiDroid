@@ -63,8 +63,7 @@ class NicoVideoSearchHTML {
                 val mylistCount =
                     it.getElementsByClass("count mylist")[0].getElementsByClass("value")[0].text()
                 val isCache = false
-                val data =
-                    NicoVideoData(isCache, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, "",null,null,null)
+                val data = NicoVideoData(isCache = isCache, isMylist = false, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = null, cacheAddedDate = null)
                 list.add(data)
             }
         }

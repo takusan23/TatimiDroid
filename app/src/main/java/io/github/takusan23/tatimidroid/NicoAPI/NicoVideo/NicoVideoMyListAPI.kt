@@ -138,8 +138,7 @@ class NicoVideoMyListAPI {
             val commentCount = itemData.getString("num_res")
             val mylistCount = itemData.getString("mylist_counter")
             val lengthSeconds = itemData.getLong("length_seconds")
-            val data =
-                NicoVideoData(false, true, title, videoId, thum, date, viewCount, commentCount, mylistCount, itemId,addedDate,lengthSeconds,null)
+            val data = NicoVideoData(isCache = false, isMylist = true, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = itemId, mylistAddedDate = addedDate, duration = lengthSeconds, cacheAddedDate = null)
             myListList.add(data)
         }
         return myListList
@@ -209,21 +208,20 @@ class NicoVideoMyListAPI {
      * @param userSession ユーザーセッション。多分なくても（空文字でも）叩けるけど一応。
      * @param pageSize 省略時100件取れます。
      * */
-    fun getOtherUserMylistItems(id: String, userSession: String = "", pageSize: Int = 100): Deferred<Response> =
-        GlobalScope.async {
-            //とりあえずマイリストと普通のマイリスト。
-            val url = "https://nvapi.nicovideo.jp/v2/mylists/$id?pageSize=$pageSize"
-            val request = Request.Builder().apply {
-                header("Cookie", "user_session=${userSession}")
-                header("x-frontend-id", "6")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                url(url)
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    fun getOtherUserMylistItems(id: String, userSession: String = "", pageSize: Int = 100): Deferred<Response> = GlobalScope.async {
+        //とりあえずマイリストと普通のマイリスト。
+        val url = "https://nvapi.nicovideo.jp/v2/mylists/$id?pageSize=$pageSize"
+        val request = Request.Builder().apply {
+            header("Cookie", "user_session=${userSession}")
+            header("x-frontend-id", "6")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            url(url)
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
 
     /**
      * 他の人のマイリストのJSONをパースする。
@@ -249,8 +247,7 @@ class NicoVideoMyListAPI {
             val mylistCount = countObject.getString("mylist")
             val addedAt = toUnixTime(video.getString("addedAt"))
             val duration = videoObject.getLong("duration")
-            val data =
-                NicoVideoData(false, false, title, videoId, thum, date, viewCount, commentCount, mylistCount, itemId,addedAt,duration,null)
+            val data = NicoVideoData(isCache = false, isMylist = false, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = itemId, mylistAddedDate = addedAt, duration = duration, cacheAddedDate = null)
             myListList.add(data)
         }
         return myListList

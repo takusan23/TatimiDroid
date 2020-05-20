@@ -129,15 +129,13 @@ class MainActivity : AppCompatActivity() {
         // 画面回転時・・・はsavedInstanceStateがnull以外になる。これないと画面回転時にFragmentを再生成（2個目作成）するはめになりますよ！
         if (savedInstanceState == null) {
             // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効かどうか
-            val isMobileDataShowCacheList =
-                pref_setting.getBoolean("setting_mobile_data_show_cache", false)
+            val isMobileDataShowCacheList = pref_setting.getBoolean("setting_mobile_data_show_cache", false)
             if (isMobileDataShowCacheList && isConnectionMobileDataInternet(this)) {
                 // キャッシュ表示
                 main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
             } else {
                 // 起動時の画面
-                val launchFragmentName =
-                    pref_setting.getString("setting_launch_fragment", "live") ?: "live"
+                val launchFragmentName = pref_setting.getString("setting_launch_fragment", "live") ?: "live"
                 // selectedItemIdでsetOnNavigationItemSelectedListener{}呼ばれるって。はよいえ
                 when (launchFragmentName) {
                     "live" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community

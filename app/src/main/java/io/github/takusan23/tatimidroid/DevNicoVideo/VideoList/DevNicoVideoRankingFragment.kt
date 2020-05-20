@@ -9,14 +9,13 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRSS
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_ranking.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 /**
  * ランキングFragment
@@ -29,6 +28,10 @@ class DevNicoVideoRankingFragment : Fragment() {
 
     lateinit var launch: Job
 
+    // メニュー選んだ位置
+    var rankingMenuPos = 0
+    var rankingTimePos = 0
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_dev_nicovideo_ranking, container, false)
     }
@@ -36,24 +39,22 @@ class DevNicoVideoRankingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ドロップダウンメニュー（Spinner）初期化
-        initSpinner()
+        // ドロップダウンメニュー初期化
+        initDropDownMenu()
 
         // RecyclerView初期化
         initRecyclerView()
 
-        // Spinner選択リスナー
-        val spinnerListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-
+        if (savedInstanceState == null) {
+            // しょかい
+            getRanking()
+        } else {
+            // 画面回転復帰時
+            (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).forEach {
+                recyclerViewList.add(it)
             }
-
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                getRanking()
-            }
+            nicoVideoListAdapter.notifyDataSetChanged()
         }
-        fragment_nicovideo_ranking_spinner.onItemSelectedListener = spinnerListener
-        fragment_nicovideo_ranking_time_spinner.onItemSelectedListener = spinnerListener
 
         // Swipe To Refresh
         fragment_video_ranking_swipe.setOnRefreshListener {
@@ -78,11 +79,9 @@ class DevNicoVideoRankingFragment : Fragment() {
 
     fun loadRanking() {
         // ジャンル
-        val genre =
-            nicoRSS.rankingGenreUrlList[fragment_nicovideo_ranking_spinner.selectedItemPosition]
+        val genre = nicoRSS.rankingGenreUrlList[rankingMenuPos]
         // 集計期間
-        val time =
-            nicoRSS.rankingTimeList[fragment_nicovideo_ranking_time_spinner.selectedItemPosition]
+        val time = nicoRSS.rankingTimeList[rankingTimePos]
         // RSS取得
         launch = GlobalScope.launch {
             val response = nicoRSS.getRanking(genre, time).await()
@@ -90,7 +89,7 @@ class DevNicoVideoRankingFragment : Fragment() {
                 nicoRSS.parseHTML(response).forEach {
                     recyclerViewList.add(it)
                 }
-                activity?.runOnUiThread {
+                withContext(Dispatchers.Main) {
                     if (isAdded) {
                         nicoVideoListAdapter.notifyDataSetChanged()
                         fragment_video_ranking_swipe.isRefreshing = false
@@ -102,7 +101,7 @@ class DevNicoVideoRankingFragment : Fragment() {
         }
     }
 
-    private fun initSpinner() {
+    private fun initDropDownMenu() {
         val rankingGenre =
             arrayListOf(
                 "全ジャンル",
@@ -124,15 +123,27 @@ class DevNicoVideoRankingFragment : Fragment() {
                 "ゲーム",
                 "その他"
             )
-        val adapter =
-            ArrayAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, rankingGenre)
-        fragment_nicovideo_ranking_spinner.adapter = adapter
-
-        val timeGenre =
-            arrayListOf("毎時", "２４時間", "週間", "月間", "全期間")
-        val timeAdapter =
-            ArrayAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, timeGenre)
-        fragment_nicovideo_ranking_time_spinner.adapter = timeAdapter
+        // Adapterセット
+        val adapter = AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, rankingGenre)
+        fragment_nicovideo_ranking_menu.apply {
+            setAdapter(adapter)
+            // 押したとき
+            onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
+                rankingMenuPos = position
+                getRanking()
+            }
+            setText(rankingGenre[0], false)
+        }
+        val timeGenre = arrayListOf("毎時", "２４時間", "週間", "月間", "全期間")
+        val timeAdapter = AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, timeGenre)
+        fragment_nicovideo_ranking_time_menu.apply {
+            setAdapter(timeAdapter)
+            onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
+                rankingTimePos = position
+                getRanking()
+            }
+            setText(timeGenre[0], false)
+        }
     }
 
     // RecyclerView初期化
@@ -149,6 +160,11 @@ class DevNicoVideoRankingFragment : Fragment() {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable("list", recyclerViewList)
     }
 
 }

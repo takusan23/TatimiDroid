@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment
+package io.github.takusan23.tatimidroid.DevNicoVideo.VideoList
 
 import android.content.*
 import android.graphics.Color
@@ -13,9 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
+import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
-import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
-import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListFragment
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.NicoAPI.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
@@ -27,8 +26,11 @@ import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.isNotLoginMode
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
+import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * マイリスト、キャッシュ取得ボタンがあるBottomSheet
@@ -154,23 +156,28 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                 DialogBottomSheet(getString(R.string.mylist_video_delete), buttonItems) { i, bottomSheetDialogFragment ->
                     if (i == 0) {
                         // 消す
-                        GlobalScope.launch {
+                        GlobalScope.launch(Dispatchers.Main) {
                             // マイリストFragment
-                            val myListFragment =
-                                fragmentManager?.findFragmentById(R.id.fragment_video_list_linearlayout) as DevNicoVideoMyListFragment
+                            val myListFragment = fragmentManager?.findFragmentById(R.id.fragment_video_list_linearlayout) as DevNicoVideoMyListFragment
                             // マイリスト削除API叩く。スマホ版のAPI
                             val nicoVideoSPMyListAPI = NicoVideoSPMyListAPI()
-                            // 削除API叩く
-                            val deleteResponse =
-                                nicoVideoSPMyListAPI.deleteMyListVideo(myListFragment.myListId, nicoVideoData.mylistItemId, userSession)
-                                    .await()
+                            val deleteResponse = withContext(Dispatchers.IO) {
+                                if (!nicoVideoData.isToriaezuMylist) {
+                                    // マイリストから動画を削除
+                                    nicoVideoSPMyListAPI.deleteMyListVideo(nicoVideoData.mylistId!!, nicoVideoData.mylistItemId, userSession).await()
+                                } else {
+                                    // とりあえずマイリストから動画を削除
+                                    nicoVideoSPMyListAPI.deleteToriaezuMyListVideo(nicoVideoData.mylistItemId, userSession).await()
+                                }
+                            }
                             if (deleteResponse.isSuccessful) {
                                 showToast(getString(R.string.mylist_delete_ok))
-                                activity?.runOnUiThread {
-                                    this@DevNicoVideoListMenuBottomFragment.dismiss()
-                                    // 再読み込み
-                                    myListFragment.getMyListVideoItems(myListFragment.myListId)
-                                }
+                                this@DevNicoVideoListMenuBottomFragment.dismiss()
+                                // 再読み込み
+                                // 位置特定
+                                val currentPos = myListFragment.fragment_nicovideo_mylist_tablayout.selectedTabPosition
+                                val fragment = myListFragment.adapter.fragmentList[currentPos]
+                                (fragment as DevNicoVideoMyListListFragment).getMyListItems()
                             } else {
                                 showToast("${getString(R.string.error)}\n${deleteResponse.code}")
                             }

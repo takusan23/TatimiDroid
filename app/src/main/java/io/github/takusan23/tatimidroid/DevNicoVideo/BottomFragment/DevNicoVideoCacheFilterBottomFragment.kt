@@ -4,13 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Adapter
 import android.widget.ArrayAdapter
 import androidx.core.view.children
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
-import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoCacheFilterSortDropDown.DevNicoVideoCacheFilterSortDropdownMenuAdapter
+import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
@@ -73,7 +72,7 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         }
         // Adapter作成
         val adapter =
-            DevNicoVideoCacheFilterSortDropdownMenuAdapter(context!!, android.R.layout.simple_list_item_1, uploaderNameList)
+            AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_list_item_1, uploaderNameList)
         bottom_fragment_cache_filter_uploader_textview.setAdapter(adapter)
         bottom_fragment_cache_filter_uploader_textview.addTextChangedListener {
             filter()
@@ -122,7 +121,7 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     // 並び替え初期化。Spinnerって言うらしいよ。SpiCaではない。
     private fun initSortSpinner() {
         val adapter =
-            DevNicoVideoCacheFilterSortDropdownMenuAdapter(context!!, android.R.layout.simple_list_item_1, CACHE_FILTER_SORT_LIST)
+            AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_list_item_1, CACHE_FILTER_SORT_LIST)
         bottom_fragment_cache_filter_dropdown.setAdapter(adapter)
         bottom_fragment_cache_filter_dropdown.setText(CACHE_FILTER_SORT_LIST[0], false)
         // 文字変更イベント

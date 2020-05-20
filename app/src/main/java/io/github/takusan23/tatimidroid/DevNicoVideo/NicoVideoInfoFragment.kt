@@ -21,6 +21,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.IDRegex
 import io.github.takusan23.tatimidroid.NICOVIDEO_ID_REGEX
@@ -288,9 +289,10 @@ class NicoVideoInfoFragment : Fragment() {
             span.setSpan(object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     // マイリスト表示FragmentをViewPagerに追加する
-                    val postFragment = DevNicoVideoMyListFragment().apply {
+                    val postFragment = DevNicoVideoMyListListFragment().apply {
                         arguments = Bundle().apply {
-                            putString("mylist_id", mylist)
+                            putString("mylist_id", mylist.replace("mylist/", ""))// IDだけくれ
+                            putBoolean("is_other", true)
                         }
                     }
                     // DevNicoVideoFragment

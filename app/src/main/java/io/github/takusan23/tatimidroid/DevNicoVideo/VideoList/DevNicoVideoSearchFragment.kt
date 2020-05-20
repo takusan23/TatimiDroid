@@ -14,6 +14,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSearchHTML
@@ -37,8 +38,7 @@ class DevNicoVideoSearchFragment : Fragment() {
     var userSession = ""
 
     // 検索結果スクレイピング
-    val nicoVideoSearchHTML =
-        NicoVideoSearchHTML()
+    val nicoVideoSearchHTML = NicoVideoSearchHTML()
 
     // ページ数
     var page = 1
@@ -109,22 +109,6 @@ class DevNicoVideoSearchFragment : Fragment() {
             search()
         }
 
-
-/*
-        // Spinner選択でも検索できるように
-        val spinnerListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-
-            }
-
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                page = 1 // RecyclerView空にするので
-                search()
-            }
-        }
-        fragment_nicovideo_search_tag_key_spinner.onItemSelectedListener = spinnerListener
-        fragment_nicovideo_search_sort_spinner.onItemSelectedListener = spinnerListener
-*/
     }
 
     /**
@@ -217,7 +201,7 @@ class DevNicoVideoSearchFragment : Fragment() {
     private fun initDropDownMenu() {
         // タグかキーワードか
         val spinnerList = arrayListOf("タグ", "キーワード")
-        val tagOrKeywordAdapter = ArrayAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, spinnerList)
+        val tagOrKeywordAdapter = AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, spinnerList)
         fragment_nicovideo_search_tag_key_menu.apply {
             setAdapter(tagOrKeywordAdapter)
             setText(spinnerList[0], false)
@@ -239,7 +223,7 @@ class DevNicoVideoSearchFragment : Fragment() {
             "再生時間が長い順",
             "再生時間が短い順"
         )
-        val sortAdapter = ArrayAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, sortList)
+        val sortAdapter = AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, sortList)
         fragment_nicovideo_search_sort_menu.apply {
             setAdapter(sortAdapter)
             setText(sortList[0], false)

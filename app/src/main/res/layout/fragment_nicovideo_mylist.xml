@@ -10,29 +10,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:tabMode="scrollable">
-
-        <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/toriaezu_mylist" />
     </com.google.android.material.tabs.TabLayout>
 
-    <Spinner
-            android:id="@+id/fragment_nicovideo_mylist_sort_spinner"
-            android:layout_margin="5sp"
+    <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/fragment_nicovideo_mylist_viewpager"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/fragment_nicovideo_mylist_swipe_to_refresh"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-        <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/fragment_nicovideo_mylist_recyclerview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            android:layout_height="match_parent" />
 
 </LinearLayout>

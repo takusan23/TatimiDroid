@@ -47,7 +47,16 @@ class DevNicoVideoHistoryFragment : Fragment() {
         // RecyclerView初期化
         initRecyclerView()
 
-        getHistory()
+        if (savedInstanceState == null) {
+            // 履歴取る
+            getHistory()
+        } else {
+            // 画面回転
+            (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).forEach {
+                recyclerViewList.add(it)
+            }
+            nicoVideoListAdapter.notifyDataSetChanged()
+        }
 
         // 引っ張った
         fragment_comment_history_swipe_to_refresh.setOnRefreshListener {
@@ -117,6 +126,11 @@ class DevNicoVideoHistoryFragment : Fragment() {
         activity?.runOnUiThread {
             Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable("list", recyclerViewList)
     }
 
 }

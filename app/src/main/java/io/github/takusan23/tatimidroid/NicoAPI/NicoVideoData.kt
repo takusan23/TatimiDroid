@@ -8,7 +8,7 @@ import java.time.Duration
  * */
 data class NicoVideoData(
     val isCache: Boolean, // キャッシュならtrue
-    val isMylist: Boolean, // マイリストならtrue
+    val isMylist: Boolean, // （自分の）マイリストならtrue
     val title: String,
     val videoId: String,
     val thum: String,
@@ -21,5 +21,7 @@ data class NicoVideoData(
     val duration: Long?,// 再生時間（秒）。
     val cacheAddedDate: Long?,// キャッシュ取得日時。キャッシュ以外ではnullいいよ
     val uploaderName: String? = null, // キャッシュ再生で使うからキャッシュ以外はnull
-    val videoTag: ArrayList<String>? = arrayListOf() // キャッシュ再生で使うからキャッシュ以外は省略していいよ
+    val videoTag: ArrayList<String>? = arrayListOf(), // キャッシュ再生で使うからキャッシュ以外は省略していいよ
+    val mylistId: String? = null, // マイリストのID。削除の時に使う。
+    val isToriaezuMylist: Boolean = false // とりあえずマイリストのときはtrue。他のマイリストorそもそもマイリストじゃないときはfalse
 ) : Serializable
