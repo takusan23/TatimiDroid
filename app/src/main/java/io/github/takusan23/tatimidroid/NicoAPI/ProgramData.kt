@@ -1,5 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI
 
+import java.io.Serializable
+
 data class ProgramData(
     val title: String,
     val communityName: String,
@@ -10,4 +12,4 @@ data class ProgramData(
     val lifeCycle: String,
     val thum: String,
     val isOfficial: Boolean = false
-)
+) : Serializable

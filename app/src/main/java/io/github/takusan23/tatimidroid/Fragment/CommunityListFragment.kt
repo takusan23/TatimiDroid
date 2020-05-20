@@ -46,36 +46,55 @@ class CommunityListFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
-        recyclerViewList = ArrayList()
-        community_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(context)
-        community_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
-        communityRecyclerViewAdapter =
-            CommunityRecyclerViewAdapter(recyclerViewList)
-        autoAdmissionAdapter =
-            AutoAdmissionAdapter(autoAdmissionRecyclerViewList)
-        autoAdmissionAdapter.communityListFragment = this
-        community_recyclerview.adapter = communityRecyclerViewAdapter
-        recyclerViewLayoutManager = community_recyclerview.layoutManager!!
+        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+        user_session = pref_setting.getString("user_session", "") ?: ""
+
+        initRecyclerView()
 
         swipeRefreshLayout = view.findViewById(R.id.community_swipe)
 
-        user_session = pref_setting.getString("user_session", "") ?: ""
-
-        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.follow_program)
-
-        swipeRefreshLayout.isRefreshing = true
         swipeRefreshLayout.setOnRefreshListener {
             setNicoLoad()
         }
 
-        setNicoLoad()
+        val pos = arguments?.getInt("page") ?: FOLLOW
+        if (savedInstanceState == null) {
+            // は　じ　め　て ///
+            setNicoLoad()
+        } else {
+            // 画面回転復帰時
+            if (pos == ADMISSION) {
+                // 予約枠自動入場
+                (savedInstanceState.getSerializable("auto") as ArrayList<ArrayList<*>>).forEach {
+                    autoAdmissionRecyclerViewList.add(it)
+                }
+                autoAdmissionAdapter.notifyDataSetChanged()
+            } else {
+                // それいがい
+                (savedInstanceState.getSerializable("list") as ArrayList<ProgramData>).forEach {
+                    recyclerViewList.add(it)
+                }
+                communityRecyclerViewAdapter.notifyDataSetChanged()
+            }
+        }
 
     }
 
+    private fun initRecyclerView() {
+        recyclerViewList = ArrayList()
+        community_recyclerview.setHasFixedSize(true)
+        val mLayoutManager = LinearLayoutManager(context)
+        community_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
+        communityRecyclerViewAdapter = CommunityRecyclerViewAdapter(recyclerViewList)
+        autoAdmissionAdapter = AutoAdmissionAdapter(autoAdmissionRecyclerViewList)
+        autoAdmissionAdapter.communityListFragment = this
+        community_recyclerview.adapter = communityRecyclerViewAdapter
+        recyclerViewLayoutManager = community_recyclerview.layoutManager!!
+    }
+
     fun setNicoLoad() {
+        swipeRefreshLayout.isRefreshing = true
         // 読み込むTL
         val pos = arguments?.getInt("page") ?: FOLLOW
         when (pos) {
@@ -210,8 +229,8 @@ class CommunityListFragment : Fragment() {
     }
 
     // 参加中コミュニティから放送中、予約枠を取得する。
-// 今まではスマホサイトにアクセスしてJSON取ってたけど動かなくなった。
-// のでPC版にアクセスしてJSONを取得する（PC版にもJSON存在した。）
+    // 今まではスマホサイトにアクセスしてJSON取ってたけど動かなくなった。
+    // のでPC版にアクセスしてJSONを取得する（PC版にもJSON存在した。）
     fun getFavouriteCommunity() {
         recyclerViewList.clear()
         ProgramAPI(context).getFollowProgram(null) { arrayList ->
@@ -247,8 +266,7 @@ class CommunityListFragment : Fragment() {
 
         //初期化したか
         if (!this@CommunityListFragment::autoAdmissionSQLiteSQLite.isInitialized) {
-            autoAdmissionSQLiteSQLite =
-                AutoAdmissionSQLiteSQLite(context!!)
+            autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(context!!)
             sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
             autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
         }
@@ -293,6 +311,11 @@ class CommunityListFragment : Fragment() {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable("list", recyclerViewList)
     }
 
     companion object {

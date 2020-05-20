@@ -79,25 +79,6 @@ class MainActivity : AppCompatActivity() {
         // 履歴ボタン・接続ボタン等初期化
         initButton()
 
-/*
-        // 画面回転してもFragmentが生き残る・・・？
-        val fragment = supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
-        if (fragment != null) {
-            main_activity_bottom_navigationview.selectedItemId = when {
-                fragment is LoginFragment -> R.id.menu_login
-                fragment is SettingsFragment -> R.id.menu_setting
-                fragment is DevNicoVideoSelectFragment -> R.id.menu_nicovideo
-                fragment is DevNicoVideoCacheFragment -> R.id.menu_cache
-                fragment is ProgramListFragment -> R.id.menu_community
-                else -> R.id.menu_community
-            }
-            supportFragmentManager.beginTransaction()
-                .detach(fragment)
-                .replace(R.id.main_activity_linearlayout, fragment)
-                .commit()
-        }
-*/
-
         // 画面切り替え
         main_activity_bottom_navigationview.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -143,13 +124,12 @@ class MainActivity : AppCompatActivity() {
                     "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
                 }
             }
-        }
-
-        // App Shortcutから起動
-        when (intent?.getStringExtra("app_shortcut")) {
-            "nicolive" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
-            "nicovideo" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
-            "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+            // App Shortcutから起動
+            when (intent?.getStringExtra("app_shortcut")) {
+                "nicolive" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
+                "nicovideo" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
+                "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+            }
         }
 
         //データベース移行

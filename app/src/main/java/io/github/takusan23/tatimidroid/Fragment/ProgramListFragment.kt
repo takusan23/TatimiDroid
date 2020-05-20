@@ -36,7 +36,9 @@ class ProgramListFragment : Fragment() {
         fragment_program_list_linearlayout.background =
             ColorDrawable(darkModeSupport.getThemeColor())
 
-        setFragment(CommunityListFragment.FOLLOW)
+        if (savedInstanceState == null) {
+            setFragment(CommunityListFragment.FOLLOW)
+        }
 
         fragment_program_follow.setOnClickListener {
             setFragment(CommunityListFragment.FOLLOW)

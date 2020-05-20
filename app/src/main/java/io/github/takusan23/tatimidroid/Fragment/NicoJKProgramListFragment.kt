@@ -49,7 +49,14 @@ class NicoJKProgramListFragment : Fragment() {
 
         initRecyclerView()
 
-        coroutine()
+        if (savedInstanceState == null) {
+            coroutine()
+        } else {
+            (savedInstanceState.getSerializable("list") as ArrayList<NicoJKData>).forEach {
+                recyclerViewList.add(it)
+            }
+            nicoJKProgramAdapter.notifyDataSetChanged()
+        }
 
         // 引っ張って更新
         fragment_jk_program_list_swipe.setOnRefreshListener {
@@ -90,6 +97,11 @@ class NicoJKProgramListFragment : Fragment() {
                 adapter = nicoJKProgramAdapter
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable("list", recyclerViewList)
     }
 
 }
