@@ -4,23 +4,22 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.AttributeSet
+import android.view.AbsSavedState
 import android.view.View
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /**
  * コメントの盛り上がりを可視化できるやつ作る。
  * これで きしめん とか はやぶさ とか ごちうさ とか ダイナモ感覚 とか メニメニマニマニ とかのコメントの分布見たらおもろいと思った
  * */
 class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
-
-    // しんごうき
-    private val BLUE = Color.parseColor("#0000ff")
-    private val YELLOW = Color.parseColor("#ffff00")
-    private val ORANGE = Color.parseColor("#FFA500")
-    private val RED = Color.parseColor("#ff0000")
 
     // 色：X座標
     private var danmakuList = arrayListOf<Pair<Int, Int>>()
@@ -50,50 +49,24 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         danmakuWidth = viewWidth.toFloat() / minute.toFloat() // Floatだと最後まで描画される（整数に丸めると最後微妙に足りない）
         // 配列操作は重いので非同期処理。コルーチンくんなんか軽いって聞いたのでぽんぽん使ってるけど良いんか？
         GlobalScope.launch {
-            val percentList = arrayListOf<Float>()
-            // 配列から取り出す
-            for (i in 0 until minute) {
+            val percentList = arrayListOf<Int>()
+            // 配列から取り出して10秒ごとのパーセントを求める
+            for (i in 0..minute) {
                 // 10秒ごとで取り出す
                 val secondList = commentList.filter { commentJSONParse ->
                     ((commentJSONParse.vpos.toInt() / 100) / space) == i.toInt()
                 }
                 // ぱーせんと
-                val percent =
-                    ((secondList.size.toFloat() / commentList.size.toFloat()) * 100F)
+                val percent = ((secondList.size.toFloat() / commentList.size.toFloat()) * 100).roundToInt()
                 percentList.add(percent)
             }
-            // 平均値出す
-            val avarage = (percentList.average()).toFloat()
-            /**
-             * 偏差値出す。基本的に50出る。
-             * ちなみに私は中学の期末数学で9点とったことある
-             * */
-            val teikitesuto = percentList.map { fl ->
-                (50 + (fl - avarage) / 2).toInt() // 小数点丸めて整数に
-            }
-            for (i in 0 until teikitesuto.size) {
-                val hensati = teikitesuto[i]
-                var color = BLUE
-                var drawHeight = height
-                when {
-                    // 半分
-                    hensati == 50 -> {
-                        // 平均。平均上げてる奴自粛してくれ～
-                        color = YELLOW
-                        drawHeight /= 2
-                    }
-                    hensati < 50 -> {
-                        // 平均以下。私は中学の時英語と数学はいっも平均/2ぐらいだった。
-                        color = BLUE
-                        drawHeight /= 3
-                    }
-                    hensati > 50 -> {
-                        // 平均以上。推薦取れそう（小並感
-                        color = RED
-                        drawHeight /= 1
-                    }
-                }
-                danmakuList.add(Pair(color, drawHeight))
+            // 最大値を取る（最大値を高さの限界にする）
+            val maxValue = percentList.max() ?: 10
+            // 描画用配列に保存
+            percentList.forEach {
+                // 描画する高さ
+                val drawHeight = it * (height / maxValue)
+                danmakuList.add(Pair(Color.GRAY, drawHeight))
             }
             invalidate()
         }
@@ -123,5 +96,20 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
             right += danmakuWidth
         }
     }
+
+/*
+    // 画面回転時に値を引き継ぐ
+    override fun onSaveInstanceState(): Parcelable? {
+        super.onSaveInstanceState()
+        return Bundle().apply {
+            putSerializable("list", danmakuList)
+        }
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        super.onRestoreInstanceState(state)
+        danmakuList = (state as Bundle).getSerializable("list") as ArrayList<Pair<Int, Int>>
+    }
+*/
 
 }

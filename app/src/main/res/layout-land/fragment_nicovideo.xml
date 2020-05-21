@@ -101,11 +101,24 @@
                                 android:layout_height="match_parent"
                                 android:orientation="horizontal">
 
-                            <SeekBar
-                                    android:id="@+id/fragment_nicovideo_seek"
+                            <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_weight="1" />
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                <io.github.takusan23.tatimidroid.DevNicoVideo.DanmakuView
+                                        android:id="@+id/danmakuView"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="15dp"
+                                        android:layout_marginStart="15dp"
+                                        android:layout_marginEnd="15dp" />
+
+                                <SeekBar
+                                        android:id="@+id/fragment_nicovideo_seek"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content" />
+                            </LinearLayout>
 
                             <TextView
                                     android:id="@+id/fragment_nicovideo_progress_text"
