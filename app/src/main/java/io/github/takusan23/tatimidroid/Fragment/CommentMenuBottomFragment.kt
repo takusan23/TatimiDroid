@@ -20,13 +20,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import kotlinx.android.synthetic.main.adapter_comment_layout.*
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
 import java.lang.NullPointerException
 import java.util.regex.Pattern
 
-
+/**
+ * ロックオン芸
+ * comment  | String  | コメント本文
+ * user_id  | String  | ユーザーID
+ * liveId   | String  | 生放送ID
+ * label    | String  | 部屋名とか
+ * */
 class CommentMenuBottomFragment : BottomSheetDialogFragment() {
 
     lateinit var commentFragment: CommentFragment
@@ -54,19 +61,21 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         liveId = arguments?.getString("liveId") ?: ""
-        commentFragment =
-            activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment
+        commentFragment = activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment
 
         //ダークモード
         val darkModeSupport = DarkModeSupport(context!!)
-        bottom_fragment_comment_menu_parent_linearlayout.background =
-            ColorDrawable(darkModeSupport.getThemeColor())
+        bottom_fragment_comment_menu_parent_linearlayout.background = ColorDrawable(darkModeSupport.getThemeColor())
 
         //Map
         kotehanMap = commentFragment.kotehanMap
         //取り出す
         comment = arguments?.getString("comment") ?: ""
         userId = arguments?.getString("user_id") ?: ""
+
+        // コメント表示
+        adapter_room_name_textview.text = arguments?.getString("label")
+        adapter_comment_textview.text = comment
 
         // ロックオンできるようにする
         // ロックオンとはある一人のユーザーのコメントだけ見ることである
@@ -97,7 +106,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         ngListSQLiteHelper.setWriteAheadLoggingEnabled(false)
 
         //コテハン読み出し、登録
-        bottom_fragment_comment_menu_user_id.text = userId
+        bottom_fragment_comment_menu_kotehan_edit_text.setText(userId)
         loadKotehan()
         bottom_fragment_comment_menu_kotehan_button.setOnClickListener {
             registerKotehan()
@@ -113,7 +122,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         regexURL()
 
         //ユーザー情報出す
-        getUserProfile()
+        //  getUserProfile()
 
 /*
         try {
@@ -217,8 +226,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
         if (kotehan.isNotEmpty()) {
             kotehanMap.put(userId, kotehan)
             //登録しました！
-            Toast.makeText(context, "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(context, "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -228,7 +236,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
             bottom_fragment_comment_menu_kotehan_edit_text.setText(kotehanMap.get(userId))
         } else {
             //コテハンなかった
-            bottom_fragment_comment_menu_user_id.text = userId
+            bottom_fragment_comment_menu_kotehan_edit_text.setText(userId)
         }
     }
 
@@ -292,7 +300,7 @@ class CommentMenuBottomFragment : BottomSheetDialogFragment() {
                                 val name = user.getString("nickname")
                                 val profileImage = user.getString("thumbnail_url")
                                 activity?.runOnUiThread {
-                                    bottom_fragment_comment_menu_user_id.append("\n$name")
+                                    bottom_fragment_comment_menu_kotehan_edit_text.append("\n$name")
                                 }
                             }
                         }

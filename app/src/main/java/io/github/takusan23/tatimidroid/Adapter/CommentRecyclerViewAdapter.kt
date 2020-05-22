@@ -34,8 +34,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
     lateinit var appCompatActivity: AppCompatActivity
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.adapter_comment_layout, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_comment_layout, parent, false)
         return ViewHolder(view)
     }
 
@@ -183,13 +182,11 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             bundle.putString("comment", commentJSONParse.comment)
             bundle.putString("user_id", commentJSONParse.userId)
             bundle.putString("liveId", commentJSONParse.videoOrLiveId)
+            bundle.putString("label", info)
             val commentMenuBottomFragment = CommentMenuBottomFragment()
             commentMenuBottomFragment.arguments = bundle
             if (context is AppCompatActivity) {
-                commentMenuBottomFragment.show(
-                    context.supportFragmentManager,
-                    "comment_menu"
-                )
+                commentMenuBottomFragment.show(context.supportFragmentManager, "comment_menu")
             }
         }
 
