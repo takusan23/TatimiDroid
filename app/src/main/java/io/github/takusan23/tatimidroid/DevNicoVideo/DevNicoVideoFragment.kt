@@ -735,12 +735,17 @@ class DevNicoVideoFragment : Fragment() {
                 }
                 if (!isRotationProgressSuccessful) {
 
+                    // 一時的に。addOnGlobalLayoutListenerで正確なViewの幅を取得してるんだけどこれ値が結構大きく変わるので対策
+                    var tmpWidth = -1
                     // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
                     danmakuView?.apply {
-                        viewTreeObserver.addOnGlobalLayoutListener(object :
-                            ViewTreeObserver.OnGlobalLayoutListener {
+                        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                             override fun onGlobalLayout() {
-                                if (width > 0) {
+                                if (tmpWidth != width || tmpWidth == 0) {
+                                    // おなじになるまで待つ
+                                    tmpWidth = width
+                                } else {
+                                    // 同じならコメント盛り上がり可視化Viewを初期化
                                     init(exoPlayer.duration / 1000, commentList, width)
                                     viewTreeObserver.removeOnGlobalLayoutListener(this)
                                 }

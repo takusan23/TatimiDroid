@@ -46,7 +46,7 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         val space = 10 // 何秒間隔にするか。
         val minute = videoDuration / space // spaceの値から何個分生成するか（1分を10秒ごとなら6個分だね。）
         // なん分割するか
-        danmakuWidth = viewWidth.toFloat() / minute.toFloat() // Floatだと最後まで描画される（整数に丸めると最後微妙に足りない）
+        danmakuWidth = (viewWidth.toFloat() / minute.toFloat()).roundToInt().toFloat() // Floatだと最後まで描画される（整数に丸めると最後微妙に足りない）
         // 配列操作は重いので非同期処理。コルーチンくんなんか軽いって聞いたのでぽんぽん使ってるけど良いんか？
         GlobalScope.launch {
             val percentList = arrayListOf<Int>()
@@ -65,7 +65,8 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
             // 描画用配列に保存
             percentList.forEach {
                 // 描画する高さ
-                val drawHeight = it * (height / maxValue)
+                val viewHeight = (height.toFloat() / maxValue).roundToInt()
+                val drawHeight = it * viewHeight
                 danmakuList.add(Pair(Color.GRAY, drawHeight))
             }
             invalidate()

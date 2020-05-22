@@ -16,6 +16,7 @@
 
         <!-- 影をつけるためのCardView -->
         <androidx.cardview.widget.CardView
+                app:cardCornerRadius="0dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:elevation="5dp">
