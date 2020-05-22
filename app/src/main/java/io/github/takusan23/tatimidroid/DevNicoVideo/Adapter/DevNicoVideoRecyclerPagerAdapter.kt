@@ -92,8 +92,4 @@ class DevNicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val vide
         return fragmentList[position]
     }
 
-    fun destory() {
-
-    }
-
 }

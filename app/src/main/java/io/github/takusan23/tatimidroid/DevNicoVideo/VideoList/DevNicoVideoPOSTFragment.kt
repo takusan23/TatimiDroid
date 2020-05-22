@@ -11,15 +11,14 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
+import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoPOST
 import io.github.takusan23.tatimidroid.NicoAPI.User
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo_post.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 /**
  * 投稿動画取得
@@ -65,16 +64,24 @@ class DevNicoVideoPOSTFragment : Fragment() {
         // RecyclerView初期化
         initRecyclerView()
 
-        // 1ページ目取得
-        if (savedInstanceState == null) {
-            getPostList(page)
-        } else {
-            // 画面回転復帰時
-            (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).forEach {
-                recyclerViewList.add(it)
+        when {
+            activity is NicoVideoActivity && recyclerViewList.isNotEmpty() -> {
+                // 動画再生アクティビティのときはViewPagerくるくるしても多分値残ってる
+                nicoVideoListAdapter.notifyDataSetChanged()
             }
-            page = savedInstanceState.getInt("page")
-            nicoVideoListAdapter.notifyDataSetChanged()
+            savedInstanceState != null -> {
+                // 画面回転復帰時
+                (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).toList().forEach {
+                    recyclerViewList.add(it)
+                }
+                recyclerViewList.distinct()
+                page = savedInstanceState.getInt("page")
+                nicoVideoListAdapter.notifyDataSetChanged()
+            }
+            else -> {
+                // データ取得が必要
+                getPostList(page)
+            }
         }
 
         fragment_nicovideo_post_swipe_to_refresh.setOnRefreshListener {
@@ -104,7 +111,7 @@ class DevNicoVideoPOSTFragment : Fragment() {
         if (::coroutine.isInitialized) {
             coroutine.cancel()
         }
-        coroutine = GlobalScope.launch {
+        coroutine = GlobalScope.launch(Dispatchers.IO) {
             val url = if (arguments?.getBoolean("my", false) == true) {
                 "https://nvapi.nicovideo.jp/v1/users/me"
             } else {
@@ -122,7 +129,7 @@ class DevNicoVideoPOSTFragment : Fragment() {
                 postVideoList.forEach {
                     recyclerViewList.add(it)
                 }
-                activity?.runOnUiThread {
+                withContext(Dispatchers.Main) {
                     nicoVideoListAdapter.notifyDataSetChanged()
                     // スクロール
                     fragment_nicovideo_post_recyclerview.apply {
@@ -135,6 +142,10 @@ class DevNicoVideoPOSTFragment : Fragment() {
                     // これで最後です。；；は配列の中身が一個以上あればな話。
                     if (isMaxCount && recyclerViewList.isNotEmpty()) {
                         showToast(getString(R.string.end_scroll))
+                    }
+                    // そもそも取得できなかった場合
+                    if (recyclerViewList.isEmpty()) {
+                        fragment_nicovideo_post_private_message.visibility = View.VISIBLE
                     }
                 }
             } else {
@@ -168,8 +179,7 @@ class DevNicoVideoPOSTFragment : Fragment() {
                         isLoading = true
                         page++
                         getPostList(page)
-                        position =
-                            (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                        position = (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
                         yPos = getChildAt(0).top
                     }
                 }

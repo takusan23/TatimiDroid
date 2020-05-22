@@ -47,10 +47,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -203,14 +200,16 @@ class DevNicoVideoFragment : Fragment() {
                 nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSONObject)
             }
             // UIに反映
-            applyUI()
-            if (!isCache) {
-                // 関連動画
-                (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
-                    recommendList.forEach {
-                        recyclerViewList.add(it)
+            GlobalScope.launch(Dispatchers.Main) {
+                applyUI().await()
+                if (!isCache) {
+                    // 関連動画
+                    (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
+                        recommendList.forEach {
+                            recyclerViewList.add(it)
+                        }
+                        initRecyclerView()
                     }
-                    initRecyclerView()
                 }
             }
         } else {
@@ -334,7 +333,7 @@ class DevNicoVideoFragment : Fragment() {
     fun coroutine(isGetComment: Boolean = true, videoQualityId: String = "", audioQualityId: String = "", smileServerLowRequest: Boolean = false) {
         // HTML取得
         // val nicoVideoHTML = NicoVideoHTML()
-        GlobalScope.launch {
+        GlobalScope.launch(Dispatchers.IO) {
             // smileサーバーの動画は多分最初の視聴ページHTML取得のときに?eco=1をつけないと低画質リクエストできない
             val eco = if (smileServerLowRequest) {
                 "1"
@@ -422,7 +421,7 @@ class DevNicoVideoFragment : Fragment() {
             }
             withContext(Dispatchers.Main) {
                 // UI表示
-                applyUI()
+                applyUI().await()
                 // 端末内DB履歴追記
                 insertDB(videoTitle)
             }
@@ -454,11 +453,14 @@ class DevNicoVideoFragment : Fragment() {
                 nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string()).forEach {
                     recommendList.add(it)
                 }
-                // Fragment表示されているか（取得できた時点でもう存在しないかもしれない）
-                if (isAdded) {
-                    // DevNicoVideoRecommendFragmentに配列渡す
-                    (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
-                        initRecyclerView()
+                // UIスレッドへ
+                withContext(Dispatchers.Main) {
+                    // Fragment表示されているか（取得できた時点でもう存在しないかもしれない）
+                    if (isAdded) {
+                        // DevNicoVideoRecommendFragmentに配列渡す
+                        (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
+                            initRecyclerView()
+                        }
                     }
                 }
             } catch (e: SSLProtocolException) {
@@ -470,9 +472,9 @@ class DevNicoVideoFragment : Fragment() {
     /**
      * データ取得終わった時にUIに反映させる
      * */
-    private fun applyUI() {
+    private fun applyUI() = GlobalScope.async(Dispatchers.Main) {
         // ViewPager初期化
-        initViewPager()
+        initViewPager().await()
         if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
             // 動画を再生しない場合
             commentOnlyModeEnable()
@@ -482,7 +484,7 @@ class DevNicoVideoFragment : Fragment() {
         }
         // 動画情報なければ終わる
         if (!::jsonObject.isInitialized) {
-            return
+            return@async
         }
         // メニューにJSON渡す
         (viewPager.fragmentList[0] as DevNicoVideoMenuFragment).jsonObject = jsonObject
@@ -607,7 +609,7 @@ class DevNicoVideoFragment : Fragment() {
                 // UIスレッドへ
                 withContext(Dispatchers.Main) {
                     // 再生
-                    applyUI()
+                    applyUI().await()
                     // タイトル
                     videoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                         JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video").getString("title")
@@ -1009,8 +1011,8 @@ class DevNicoVideoFragment : Fragment() {
     /**
      * ViewPager初期化
      * */
-    private fun initViewPager() {
-        viewPager = DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache, this)
+    private fun initViewPager() = GlobalScope.async(Dispatchers.Main) {
+        viewPager = DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache, this@DevNicoVideoFragment)
         fragment_nicovideo_viewpager.adapter = viewPager
         TabLayoutMediator(fragment_nicovideo_tablayout, fragment_nicovideo_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
             tab.text = viewPager.fragmentTabName[position]
@@ -1137,7 +1139,6 @@ class DevNicoVideoFragment : Fragment() {
         heartBeatTimer.cancel()
         nicoVideoCache.destroy()
         nicoVideoHTML.destory()
-        viewPager.destory()
         isDestory = true
     }
 

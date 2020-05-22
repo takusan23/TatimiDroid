@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
@@ -175,8 +176,7 @@ class NicoVideoInfoFragment : Fragment() {
                         // オフライン時は動かさない
                         if (isConnectionInternet(context)) {
                             // DevNicoVideoFragment
-                            val fragment =
-                                fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+                            val fragment = parentFragmentManager.findFragmentByTag(id) as DevNicoVideoFragment
                             val postFragment = DevNicoVideoSearchFragment().apply {
                                 arguments = Bundle().apply {
                                     putString("search", name)
@@ -211,7 +211,7 @@ class NicoVideoInfoFragment : Fragment() {
 
                 //ユーザーページ
                 fragment_nicovideo_info_owner_textview.setOnClickListener {
-                    if (userId.contains("co")) {
+                    if (!userId.contains("co")) {
                         openBrowser("https://www.nicovideo.jp/user/$userId")
                     } else {
                         //チャンネルの時、ch以外にもそれぞれアニメの名前を入れても通る。例：te-kyu2 / gochiusa など
@@ -296,7 +296,7 @@ class NicoVideoInfoFragment : Fragment() {
                         }
                     }
                     // DevNicoVideoFragment
-                    (fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment).apply {
+                    (parentFragmentManager.findFragmentByTag(videoId) as DevNicoVideoFragment).apply {
                         // ViewPager追加
                         viewPager.fragmentList.add(postFragment)
                         viewPager.fragmentTabName.add("${getString(R.string.mylist)}：$mylist")
