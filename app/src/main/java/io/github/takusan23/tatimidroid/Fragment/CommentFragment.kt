@@ -312,18 +312,17 @@ class CommentFragment : Fragment() {
         customFont = CustomFont(context)
 
         setAlwaysShowProgramInfo()
+
         // 縦画面のときのみやる作業
-        if (fragment_comment_fragment_linearlayout != null) {
-            fragment_comment_fragment_linearlayout.background =
-                ColorDrawable(darkModeSupport.getThemeColor())
-            fragment_comment_fragment_linearlayout.setOnClickListener {
+        fragment_comment_bar?.apply {
+            background = ColorDrawable(darkModeSupport.getThemeColor())
+            setOnClickListener {
                 // 表示、非表示
-                comment_fragment_program_info.visibility =
-                    if (comment_fragment_program_info.visibility == View.GONE) {
-                        View.VISIBLE
-                    } else {
-                        View.GONE
-                    }
+                comment_fragment_program_info.visibility = if (comment_fragment_program_info.visibility == View.GONE) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
             }
         }
 
