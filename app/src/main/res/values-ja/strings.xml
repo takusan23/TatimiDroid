@@ -419,4 +419,5 @@
     <string name="tv">テレビ</string>
     <string name="radio">ラジオ</string>
     <string name="bs">BS</string>
+    <string name="nicovideo_uploader_visibility_message">うｐ主は投稿動画一覧を非表示に設定しています。</string>
 </resources>

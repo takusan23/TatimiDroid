@@ -419,4 +419,5 @@
     <string name="tv">TV</string>
     <string name="radio">Radio</string>
     <string name="bs">BS</string>
+    <string name="nicovideo_uploader_visibility_message">Video contributors have hidden the list of posted videos.</string>
 </resources>

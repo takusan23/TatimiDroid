@@ -18,26 +18,15 @@
                 android:scrollbars="vertical" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <LinearLayout
+    <TextView
             android:id="@+id/fragment_nicovideo_post_private_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-        <ImageView
-                android:id="@+id/imageView8"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                app:srcCompat="@drawable/ic_outline_block_24px" />
-
-        <TextView
-                android:id="@+id/textView13"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="投稿者が非公開にしている可能性があります" />
-    </LinearLayout>
+            android:drawableTop="@drawable/ic_do_not_disturb_alt_black_24dp"
+            android:gravity="center"
+            android:text="@string/nicovideo_uploader_visibility_message"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
 </FrameLayout>

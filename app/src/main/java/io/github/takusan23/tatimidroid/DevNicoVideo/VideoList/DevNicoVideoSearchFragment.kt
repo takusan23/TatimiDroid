@@ -29,6 +29,9 @@ import java.lang.IndexOutOfBoundsException
 /**
  * ニコ動検索Fragment
  * argumentにputString("search","検索したい内容")を入れるとその値を検索します。なおタグ検索、人気の高い順です。
+ *
+ * search       | String | 検索したい内容
+ * search_hide  | Boolean| 検索領域を非表示にする場合はtrue
  * */
 class DevNicoVideoSearchFragment : Fragment() {
 
@@ -79,6 +82,7 @@ class DevNicoVideoSearchFragment : Fragment() {
             search(searchText)
         }
 
+        // 検索ボタン
         fragment_nicovideo_search.setOnClickListener {
             page = 1
             search()
@@ -131,6 +135,7 @@ class DevNicoVideoSearchFragment : Fragment() {
                     recyclerViewList.clear()
                     position = 0
                     yPos = 0
+                    isMaxCount = false
                 }
                 fragment_nicovideo_search_swipe_refresh.isRefreshing = true
                 // ソート条件生成
@@ -153,6 +158,8 @@ class DevNicoVideoSearchFragment : Fragment() {
                     if (!response.isSuccessful) {
                         // 失敗時
                         showToast("${getString(R.string.error)}\n${response.code}")
+                        // もう読み込まない
+                        isMaxCount = true
                         return@withContext
                     }
                     nicoVideoSearchHTML.parseHTML(response.body?.string()).forEach {
