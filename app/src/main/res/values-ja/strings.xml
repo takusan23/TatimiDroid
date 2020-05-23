@@ -421,4 +421,5 @@
     <string name="bs">BS</string>
     <string name="nicovideo_uploader_visibility_message">うｐ主は投稿動画一覧を非表示に設定しています。</string>
     <string name="get_user_name">(生IDのみ)ユーザー名取得</string>
+    <string name="open_user_page">ユーザーページ開く</string>
 </resources>

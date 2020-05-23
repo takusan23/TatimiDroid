@@ -140,11 +140,23 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
         // 生IDのみ、ユーザー名取得ボタン
         if ("([0-9]+)".toRegex().matches(userId)) { // 生IDは数字だけで構成されているので正規表現（じゃなくてもできるだろうけど）
+            // ユーザー名取得
             bottom_fragment_comment_menu_get_username.visibility = View.VISIBLE
             bottom_fragment_comment_menu_get_username.setOnClickListener {
                 getUserName(userId)
             }
+            // ユーザーページ取得
+            bottom_fragment_comment_menu_open_userpage.visibility = View.VISIBLE
+            bottom_fragment_comment_menu_open_userpage.setOnClickListener {
+                openUserPage(userId)
+            }
         }
+    }
+
+    /** ユーザーページを開く */
+    private fun openUserPage(userId: String) {
+        val intent = Intent(Intent.ACTION_VIEW, "https://www.nicovideo.jp/user/$userId".toUri())
+        startActivity(intent)
     }
 
     /** ユーザー名取得。非同期処理 */
@@ -203,7 +215,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             //とーすと
             showToast(getString(R.string.add_ng_comment_message))
             // 動画なら一覧更新する
-            if(fragment is DevNicoVideoFragment){
+            if (fragment is DevNicoVideoFragment) {
                 GlobalScope.launch {
                     fragment.commentFilter().await()
                 }
@@ -223,7 +235,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             //とーすと
             showToast(getString(R.string.add_ng_user_message))
             // 動画なら一覧更新する
-            if(fragment is DevNicoVideoFragment){
+            if (fragment is DevNicoVideoFragment) {
                 GlobalScope.launch {
                     fragment.commentFilter().await()
                 }

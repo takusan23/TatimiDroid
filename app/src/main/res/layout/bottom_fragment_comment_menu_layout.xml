@@ -17,11 +17,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:hint="ID"
                 android:inputType="text"
                 android:maxLines="1"
-                android:text="ID"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textSize="20sp" />
 
         <Button
                 android:id="@+id/bottom_fragment_comment_menu_kotehan_button"
@@ -148,6 +147,15 @@
                     android:layout_height="wrap_content"
                     android:drawableTop="@drawable/ic_outline_account_circle_24px"
                     android:text="@string/get_user_name"
+                    android:visibility="gone" />
+
+            <Button
+                    android:id="@+id/bottom_fragment_comment_menu_open_userpage"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@drawable/ic_outline_open_in_browser_24px"
+                    android:text="@string/open_user_page"
                     android:visibility="gone" />
 
             <Button

@@ -35,6 +35,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoRecyclerPagerAdapter
+import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoSkipCustomizeBottomFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.FregmentData.DevNicoVideoFragmentData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
@@ -150,13 +151,13 @@ class DevNicoVideoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        prefSetting = PreferenceManager.getDefaultSharedPreferences(context!!)
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(requireContext())
         nicoVideoCache = NicoVideoCache(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
         ngDataBaseTool = NGDataBaseTool(context)
 
         // 端末内履歴DB初期化
-        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(context!!)
+        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(requireContext())
         nicoHistorySQLiteDB = nicoHistorySQLiteHelper.writableDatabase
         nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
 
@@ -181,7 +182,7 @@ class DevNicoVideoFragment : Fragment() {
         // コントローラー表示
         initController()
 
-        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
+        exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
 
         /**
          * 画面回転復帰時かどうか
@@ -261,8 +262,7 @@ class DevNicoVideoFragment : Fragment() {
         fragment_nicovideo_fab.setOnClickListener {
             fragment_nicovideo_controller.apply {
                 // 表示。
-                val showAnimation =
-                    AnimationUtils.loadAnimation(context!!, R.anim.comment_cardview_show_animation)
+                val showAnimation = AnimationUtils.loadAnimation(context, R.anim.comment_cardview_show_animation)
                 //表示
                 fragment_nicovideo_controller.startAnimation(showAnimation)
                 fragment_nicovideo_controller.visibility = View.VISIBLE
@@ -272,8 +272,7 @@ class DevNicoVideoFragment : Fragment() {
         fragment_nicovideo_controller_close.setOnClickListener {
             fragment_nicovideo_controller.apply {
                 // 非表示
-                val showAnimation =
-                    AnimationUtils.loadAnimation(context!!, R.anim.comment_cardview_hide_animation)
+                val showAnimation = AnimationUtils.loadAnimation(context, R.anim.comment_cardview_hide_animation)
                 //表示
                 fragment_nicovideo_controller.startAnimation(showAnimation)
                 fragment_nicovideo_controller.visibility = View.GONE
@@ -282,11 +281,18 @@ class DevNicoVideoFragment : Fragment() {
         }
         fragment_nicovideo_controller_replay.setOnClickListener {
             // 5秒戻す
-            exoPlayer.seekTo(exoPlayer.currentPosition - 5000)
+            val skipTime = prefSetting.getString("nicovideo_skip_ms", "5000")?.toLong() ?: 5000
+            exoPlayer.seekTo(exoPlayer.currentPosition - skipTime)
         }
         fragment_nicovideo_controller_forward.setOnClickListener {
             // 5秒進める
-            exoPlayer.seekTo(exoPlayer.currentPosition + 5000)
+            val skipTime = prefSetting.getString("nicovideo_skip_ms", "5000")?.toLong() ?: 5000
+            exoPlayer.seekTo(exoPlayer.currentPosition + skipTime)
+        }
+        // 長押しなら設定画面出す
+        fragment_nicovideo_controller_forward.setOnLongClickListener {
+            DevNicoVideoSkipCustomizeBottomFragment().show(parentFragmentManager, "skip")
+            false
         }
     }
 
@@ -308,7 +314,7 @@ class DevNicoVideoFragment : Fragment() {
 
     // ダークモード
     private fun initDarkmode() {
-        darkModeSupport = DarkModeSupport(context!!)
+        darkModeSupport = DarkModeSupport(requireContext())
         fragment_nicovideo_tablayout.backgroundTintList =
             ColorStateList.valueOf(darkModeSupport.getThemeColor())
     }
