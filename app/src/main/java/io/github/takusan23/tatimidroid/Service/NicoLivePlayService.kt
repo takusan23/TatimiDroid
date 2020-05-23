@@ -193,8 +193,7 @@ class NicoLivePlayService : Service() {
                 }
             }
             // HTMLからJSON取得する
-            val nicoLiveJSON =
-                nicoLiveHTML.nicoLiveHTMLtoJSONObject(livePageResponse.body?.string())
+            val nicoLiveJSON = nicoLiveHTML.nicoLiveHTMLtoJSONObject(livePageResponse.body?.string())
 
             // コメント投稿の際に使う値を初期化する
             // 番組名取得など
@@ -259,7 +258,7 @@ class NicoLivePlayService : Service() {
             // 全部屋接続。定期的にAPIを叩く
             // ただし公式番組ではなくてなおポップアップ再生時は定期監視する
             if (!nicoLiveHTML.isOfficial && isPopupPlay()) {
-                timer.schedule(timerTask { initAllRoomConenct() }, 0, 60 * 1000)
+                timer.schedule(timerTask { initAllRoomConnect() }, 0, 60 * 1000)
             }
         }
     }
@@ -267,7 +266,7 @@ class NicoLivePlayService : Service() {
     /**
      * 全部屋接続！！！
      * */
-    private fun initAllRoomConenct() {
+    private fun initAllRoomConnect() {
         GlobalScope.launch {
             // 全部屋接続
             val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, userSession).await()
@@ -275,29 +274,11 @@ class NicoLivePlayService : Service() {
                 showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
                 return@launch
             }
-            // JSONパース
-            val jsonObject = JSONObject(allRoomResponse.body?.string())
-            val data = jsonObject.getJSONObject("data")
-            val room = data.getJSONArray("rooms")
-            // アリーナ、立ち見のコメントサーバーへ接続
-            for (index in 0 until room.length()) {
-                val roomObject = room.getJSONObject(index)
-                val webSocketUri = roomObject.getString("webSocketUri")
-                var roomName = roomObject.getString("name")
-                val threadId = roomObject.getString("threadId")
-                // 現在接続中のアドレスから同じのがないかちぇっく
-                // 定期的に新しい部屋が無いか確認しに行くため
-                nicoLiveComment.apply {
-                    if (connectedWebSocketAddressList.indexOf(webSocketUri) == -1) {
-                        connectedWebSocketAddressList.add(webSocketUri)
-                        //アリーナの場合は部屋名がコミュニティ番号なので直す
-                        if (roomName.contains("co") || roomName.contains("ch")) {
-                            roomName = getString(R.string.arena) ?: "アリーナ"
-                        }
-                        //WebSocket接続。::関数 で高階関数を引数に入れられる
-                        connectionWebSocket(webSocketUri, threadId, roomName, ::commentFun)
-                    }
-                }
+            // CommentServerDataの配列に変換
+            val list = nicoLiveComment.parseCommentServerDataList(allRoomResponse.body?.string(), getString(R.string.arena))
+            list.forEach { server ->
+                //WebSocket接続。::関数 で高階関数を引数に入れられる
+                nicoLiveComment.connectionWebSocket(server.webSocketUri, server.threadId, server.roomName, ::commentFun)
             }
         }
     }
