@@ -4,7 +4,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_nicovideo.*
 

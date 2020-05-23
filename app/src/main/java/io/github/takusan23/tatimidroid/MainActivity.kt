@@ -6,23 +6,13 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.os.PersistableBundle
-import android.text.SpannableString
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
 import androidx.core.content.edit
-import androidx.core.view.get
 import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
@@ -30,15 +20,17 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheF
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
+import io.github.takusan23.tatimidroid.Tool.*
+import io.github.takusan23.tatimidroid.Tool.IDRegex
+import io.github.takusan23.tatimidroid.Tool.NICOCOMMUNITY_ID_REGEX
+import io.github.takusan23.tatimidroid.Tool.NICOLIVE_ID_REGEX
+import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
+import io.github.takusan23.tatimidroid.Tool.hasMailPass
+import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
+import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_liveid.*
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.jsoup.Jsoup
-import java.util.regex.Pattern
 
 
 class MainActivity : AppCompatActivity() {

@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -16,12 +15,10 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
-import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
-import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
-import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
 
 class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
     lateinit var commentCollectionSQLiteHelper: CommentCollectionSQLiteHelper

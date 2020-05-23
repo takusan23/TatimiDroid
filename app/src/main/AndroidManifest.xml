@@ -37,7 +37,7 @@
         <activity android:name=".Activity.CommentActivity" />
         <activity android:name=".Activity.LicenceActivity" />
 
-        <service android:name=".AutoAdmissionService" />
+        <service android:name=".Service.AutoAdmissionService" />
 
         <service android:name=".Service.NicoLivePlayService" />
         <service android:name=".Service.NicoVideoPlayService" />

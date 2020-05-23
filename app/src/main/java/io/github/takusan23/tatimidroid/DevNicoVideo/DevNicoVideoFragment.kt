@@ -45,6 +45,9 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
+import io.github.takusan23.tatimidroid.Tool.*
+import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
+import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.*
@@ -96,7 +99,10 @@ class DevNicoVideoFragment : Fragment() {
     // データ取得からハートビートまで扱う
     val nicoVideoHTML = NicoVideoHTML()
 
-    // コメント配列
+    /** なにも操作していない、コメント取得APIの結果が入ってる配列。なま(いみしｎ)。画面回転時にSerializeで渡してるのはこっち */
+    var rawCommentList = arrayListOf<CommentJSONParse>()
+
+    /** 3DS消したりNGを適用した結果が入っている配列。RecyclerViewで表示したり流れるコメントのソースはここ */
     var commentList = arrayListOf<CommentJSONParse>()
 
     // 関連動画配列
@@ -133,6 +139,10 @@ class DevNicoVideoFragment : Fragment() {
     // 画面回転復帰時
     lateinit var devNicoVideoFragmentData: DevNicoVideoFragmentData
 
+    // NG機能とコテハン
+    lateinit var ngDataBaseTool: NGDataBaseTool
+    val kotehanMap = mutableMapOf<String, String>()
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
     }
@@ -143,6 +153,7 @@ class DevNicoVideoFragment : Fragment() {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context!!)
         nicoVideoCache = NicoVideoCache(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
+        ngDataBaseTool = NGDataBaseTool(context)
 
         // 端末内履歴DB初期化
         nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(context!!)
@@ -183,7 +194,7 @@ class DevNicoVideoFragment : Fragment() {
             devNicoVideoFragmentData = savedInstanceState.getSerializable("data") as DevNicoVideoFragmentData
             isCache = devNicoVideoFragmentData.isCachePlay
             contentUrl = devNicoVideoFragmentData.contentUrl
-            commentList = ArrayList(devNicoVideoFragmentData.commentList)
+            rawCommentList = ArrayList(devNicoVideoFragmentData.commentList)
             nicoHistory = devNicoVideoFragmentData.nicoHistory
             rotationProgress = devNicoVideoFragmentData.currentPos
             recommendList = devNicoVideoFragmentData.recommendList
@@ -202,6 +213,8 @@ class DevNicoVideoFragment : Fragment() {
             // UIに反映
             GlobalScope.launch(Dispatchers.Main) {
                 applyUI().await()
+                // NG適用
+                commentFilter().await()
                 if (!isCache) {
                     // 関連動画
                     (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
@@ -395,9 +408,7 @@ class DevNicoVideoFragment : Fragment() {
                     }
 
                     // https://api.dmc.nico/api/sessions のレスポンス
-                    val sessionAPIResponse =
-                        nicoVideoHTML.callSessionAPI(jsonObject, videoQuality, audioQuality)
-                            .await()
+                    val sessionAPIResponse = nicoVideoHTML.callSessionAPI(jsonObject, videoQuality, audioQuality).await()
                     if (sessionAPIResponse != null) {
                         sessionAPIJSONObject = sessionAPIResponse
                         // 動画URL
@@ -416,12 +427,14 @@ class DevNicoVideoFragment : Fragment() {
             if (isGetComment) {
                 val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject).await()
                 if (commentJSON != null) {
-                    commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
+                    rawCommentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
                 }
             }
             withContext(Dispatchers.Main) {
                 // UI表示
                 applyUI().await()
+                // フィルターで3ds消したりする
+                commentFilter().await()
                 // 端末内DB履歴追記
                 insertDB(videoTitle)
             }
@@ -446,7 +459,9 @@ class DevNicoVideoFragment : Fragment() {
                 val recommendAPIResponse = nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe).await()
                 if (!recommendAPIResponse.isSuccessful) {
                     // 失敗時
-                    showToast("${getString(R.string.error)}\n${response.code}")
+                    if (isAdded) {
+                        showToast("${getString(R.string.error)}\n${response.code}")
+                    }
                     return@launch
                 }
                 // パース
@@ -470,6 +485,32 @@ class DevNicoVideoFragment : Fragment() {
     }
 
     /**
+     * コメントをフィルターにかける。3DS消したり（ハニワでやるとほぼ消える）とかNGデータベースを適用する時に使う。
+     * 重そうなのでコルーチン
+     * 注意：ViewPagerが初期化済みである必要(applyUIを一回以上呼んである必要)があります。
+     * 注意：NG操作が終わったときに呼ぶとうまく動く？。
+     * 注意：この関数を呼ぶと勝手にコメント一覧のRecyclerViewも更新されます。（代わりにapplyUI関数からコメントRecyclerView関係を消します）
+     * rawCommentListはそのままで、フィルターにかけた結果がcommentListになる
+     * */
+    fun commentFilter() = GlobalScope.async(Dispatchers.IO) {
+        // 3DSけす？
+        val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
+        if (is3DSCommentHidden) {
+            // device:3DSが入ってるコメント削除
+            commentList = rawCommentList.dropWhile { commentJSONParse -> commentJSONParse.mail.contains("device:3DS") } as ArrayList<CommentJSONParse>
+        }
+        // NG機能
+        commentList = rawCommentList.dropWhile { commentJSONParse ->
+            ngDataBaseTool.ngCommentStringList.contains(commentJSONParse.comment) || ngDataBaseTool.ngUserStringList.contains(commentJSONParse.userId)
+        } as ArrayList<CommentJSONParse>
+        withContext(Dispatchers.Main) {
+            (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
+                initRecyclerView(true)
+            }
+        }
+    }
+
+    /**
      * データ取得終わった時にUIに反映させる
      * */
     private fun applyUI() = GlobalScope.async(Dispatchers.Main) {
@@ -488,12 +529,14 @@ class DevNicoVideoFragment : Fragment() {
         }
         // メニューにJSON渡す
         (viewPager.fragmentList[0] as DevNicoVideoMenuFragment).jsonObject = jsonObject
+/*
         // コメントFragmentにコメント配列を渡す
         (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
             recyclerViewList = ArrayList(commentList)
             initRecyclerView(true)
         }
         Toast.makeText(context, "${getString(R.string.get_comment_count)}：${commentList.size}", Toast.LENGTH_SHORT).show()
+*/
         // タイトル
         videoTitle = jsonObject.getJSONObject("video").getString("title")
         initTitleArea()
@@ -595,7 +638,7 @@ class DevNicoVideoFragment : Fragment() {
                     }
                     // コメント取得
                     val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
-                    commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
+                    rawCommentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
                     // 動画情報
                     if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                         jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
@@ -610,6 +653,8 @@ class DevNicoVideoFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     // 再生
                     applyUI().await()
+                    // フィルターで3ds消したりする
+                    commentFilter().await()
                     // タイトル
                     videoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                         JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video").getString("title")
@@ -639,7 +684,7 @@ class DevNicoVideoFragment : Fragment() {
      * コメントのみの表示を無効にする。動画を再生する
      * */
     fun commentOnlyModeDisable() {
-        exoPlayer = SimpleExoPlayer.Builder(context!!).build()
+        exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
         if (isCache) {
             initVideoPlayer(contentUrl, "")
         } else {
@@ -1180,7 +1225,7 @@ class DevNicoVideoFragment : Fragment() {
                 isCachePlay = isCache,
                 contentUrl = contentUrl,
                 nicoHistory = nicoHistory,
-                commentList = commentList,
+                commentList = rawCommentList,
                 currentPos = exoPlayer.currentPosition,
                 // 動画情報がないときはnull
                 dataApiData = if (::jsonObject.isInitialized) {

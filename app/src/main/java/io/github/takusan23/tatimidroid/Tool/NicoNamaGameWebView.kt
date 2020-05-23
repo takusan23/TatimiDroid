@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.tatimidroid.Tool
 
 import android.content.Context
 import android.graphics.Color
@@ -90,17 +90,6 @@ class NicoNamaGameWebView(val context: Context?, val liveId: String, val liveFra
 
             setInitialScale(210)
 
-        }
-    }
-
-    /**
-     * ライフサイクル等でアプリに戻ってきたら必ず呼ぶ必要があります。
-     * が、別にWebView#reload()を読んでるだけなんですけどね。
-     * */
-    fun reload() {
-        webView.apply {
-            isVisible = false
-            reload()
         }
     }
 

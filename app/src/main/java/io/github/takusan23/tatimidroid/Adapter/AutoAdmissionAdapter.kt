@@ -9,10 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.AutoAdmissionService
+import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.Fragment.CommunityListFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite

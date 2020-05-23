@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
-import io.github.takusan23.tatimidroid.AutoAdmissionService
+import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_auto_admission.*
 import java.util.*

@@ -4,11 +4,10 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class NGListSQLiteHelper(context: Context) : SQLiteOpenHelper(
-    context,
-    DATABASE_NAME, null,
-    DATABASE_VERSION
-) {
+/**
+ * NGコメント/NGユーザーのデータベース
+ * */
+class NGListSQLiteHelper(context: Context?) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
         // データーベースのバージョン
@@ -17,9 +16,9 @@ class NGListSQLiteHelper(context: Context) : SQLiteOpenHelper(
         // データーベース名
         private val DATABASE_NAME = "NGList.db"
         private val TABLE_NAME = "ng_list"
-        private val TYPE = "type"
-        private val VALUE = "value"
-        private val DESCRIPTION = "description"
+        private val TYPE = "type"   // comment か user
+        private val VALUE = "value" // コメントなら内容。ユーザーならユーザーID
+        private val DESCRIPTION = "description" // 将来のために（今の所使う予定なし）
         private val _ID = "_id"
 
 

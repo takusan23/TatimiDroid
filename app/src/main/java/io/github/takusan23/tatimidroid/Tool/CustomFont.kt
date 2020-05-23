@@ -1,14 +1,12 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.tatimidroid.Tool
 
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Paint
 import android.graphics.Typeface
-import android.graphics.fonts.Font
 import android.widget.TextView
 import androidx.preference.PreferenceManager
 import java.io.File
-import java.util.prefs.PreferenceChangeEvent
 
 /**
  * フォント変更機能 / フォントサイズ変更機能 でよく使うやつ。

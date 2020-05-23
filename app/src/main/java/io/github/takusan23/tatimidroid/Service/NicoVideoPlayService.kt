@@ -33,7 +33,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.isLoginMode
+import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

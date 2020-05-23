@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.DevNicoVideo.Adapter
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,11 +10,13 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.CustomFont
+import io.github.takusan23.tatimidroid.Tool.CustomFont
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
+import io.github.takusan23.tatimidroid.Fragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -24,16 +27,14 @@ import java.util.*
 /**
  * ニコ動のコメント表示Adapter
  * */
-class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONParse>) :
-    RecyclerView.Adapter<NicoVideoAdapter.ViewHolder>() {
+class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONParse>) : RecyclerView.Adapter<NicoVideoAdapter.ViewHolder>() {
 
     lateinit var font: CustomFont
     lateinit var devNicoVideoFragment: DevNicoVideoFragment
     lateinit var prefSetting: SharedPreferences
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view =
-            LayoutInflater.from(parent.context).inflate(R.layout.adapter_nicovideo, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_nicovideo, parent, false)
         return ViewHolder(view)
     }
 
@@ -68,6 +69,9 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             holder.commentTextView.text = "${item.commentNo}：$comment"
         }
 
+        // 動画でコテハン？いる
+        val userId = devNicoVideoFragment.kotehanMap[item.userId] ?: item.userId
+
         // ニコるくん表示
         val isShowNicoruButton = prefSetting.getBoolean("setting_nicovideo_nicoru_show", false)
         // mail（コマンド）がないときは表示しない
@@ -78,23 +82,20 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
         // 一般会員にはニコる提供されてないのでニコる数だけ表示
         // あとDevNicoVideoFragmentはがめんスワイプしてたらなんか落ちたので
-        val nicoruCount =
-            if (item.nicoru > 0 && isInitDevNicoVideoFragment() && !(devNicoVideoFragment.isPremium && isShowNicoruButton)) {
-                "| ニコる ${item.nicoru} "
-            } else {
-                ""
-            }
+        val nicoruCount = if (item.nicoru > 0 && isInitDevNicoVideoFragment() && !(devNicoVideoFragment.isPremium && isShowNicoruButton)) {
+            "| ニコる ${item.nicoru} "
+        } else {
+            ""
+        }
 
         // NGスコア表示するか
-        val ngScore =
-            if (prefSetting.getBoolean("setting_show_ng", false) && item.score.isNotEmpty()) {
-                "| ${item.score} "
-            } else {
-                ""
-            }
+        val ngScore = if (prefSetting.getBoolean("setting_show_ng", false) && item.score.isNotEmpty()) {
+            "| ${item.score} "
+        } else {
+            ""
+        }
 
-        holder.userNameTextView.text =
-            "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount$ngScore| ${item.userId}"
+        holder.userNameTextView.text = "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount$ngScore| ${userId}"
         holder.nicoruButton.text = item.nicoru.toString()
 
         // ユーザーの設定したフォントサイズ
@@ -113,6 +114,21 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             holder.nicoruButton.visibility = View.VISIBLE
         }
 
+        // ロックオン芸（詳細画面表示）
+        holder.cardView.setOnClickListener {
+            val bundle = Bundle()
+            bundle.putString("comment", item.comment)
+            bundle.putString("user_id", item.userId)
+            bundle.putString("liveId", item.videoOrLiveId)
+            bundle.putString("label", holder.userNameTextView.text.toString())
+            val commentLockonBottomFragment = CommentLockonBottomFragment()
+            commentLockonBottomFragment.arguments = bundle
+            if (context is AppCompatActivity) {
+                commentLockonBottomFragment.show(context.supportFragmentManager, "comment_menu")
+            }
+        }
+
+
         // ニコる押したとき
         holder.nicoruButton.setOnClickListener {
             GlobalScope.launch {
@@ -120,8 +136,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
                     if (isPremium) {
                         val nicoruKey = nicoruAPI.nicoruKey
                         val responseNicoru =
-                            nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey)
-                                .await()
+                            nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey).await()
                         if (!responseNicoru.isSuccessful) {
                             // 失敗時
                             showToast(context, "${context?.getString(R.string.error)}\n${responseNicoru.code}")
@@ -161,16 +176,10 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
-        var commentTextView: TextView
-        var userNameTextView: TextView
-        var nicoruButton: Button
-
-        init {
-            userNameTextView = itemView.findViewById(R.id.adapter_nicovideo_user_textview)
-            commentTextView = itemView.findViewById(R.id.adapter_nicovideo_comment_textview)
-            nicoruButton = itemView.findViewById(R.id.adapter_nicovideo_comment_nicoru)
-        }
+        var commentTextView: TextView = itemView.findViewById(R.id.adapter_nicovideo_comment_textview)
+        var userNameTextView: TextView = itemView.findViewById(R.id.adapter_nicovideo_user_textview)
+        var nicoruButton: Button = itemView.findViewById(R.id.adapter_nicovideo_comment_nicoru)
+        var cardView: CardView = itemView.findViewById(R.id.adapter_nicovideo_comment_cardview)
     }
 
     fun setTimeFormat(date: Long): String? {

@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -16,7 +15,7 @@ import android.widget.TextView
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.CustomFont
+import io.github.takusan23.tatimidroid.Tool.CustomFont
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.adapter_comment_layout.*
 import kotlinx.android.synthetic.main.fragment_font_setting.*

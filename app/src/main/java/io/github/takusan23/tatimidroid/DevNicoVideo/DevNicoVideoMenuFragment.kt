@@ -16,16 +16,17 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoQualityBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
-import io.github.takusan23.tatimidroid.ProgramShare
+import io.github.takusan23.tatimidroid.Tool.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
-import io.github.takusan23.tatimidroid.isConnectionInternet
-import io.github.takusan23.tatimidroid.isNotLoginMode
+import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
+import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_menu.*
 import org.json.JSONObject
@@ -115,6 +116,16 @@ class DevNicoVideoMenuFragment : Fragment() {
         // 他のアプリで開くボタン
         initBrowserLaunchButton()
 
+        // NG一覧Activity呼び出す
+        initNGActivityButton()
+
+    }
+
+    private fun initNGActivityButton() {
+        fragment_nicovideo_menu_ng_activity.setOnClickListener {
+            val intent = Intent(context, NGListActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun initBrowserLaunchButton() {

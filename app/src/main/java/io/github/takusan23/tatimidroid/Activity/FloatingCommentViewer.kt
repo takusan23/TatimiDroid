@@ -1,14 +1,8 @@
 package io.github.takusan23.tatimidroid.Activity
 
-import android.app.*
-import android.content.Context
-import android.content.Intent
-import android.graphics.drawable.Icon
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
-import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import io.github.takusan23.tatimidroid.R
 

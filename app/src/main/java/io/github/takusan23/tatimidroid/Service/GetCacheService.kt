@@ -15,7 +15,7 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.isLoginMode
+import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

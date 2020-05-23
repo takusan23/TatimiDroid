@@ -24,7 +24,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startBackgroundPlaylistPlayService
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
-import io.github.takusan23.tatimidroid.isNotLoginMode
+import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
 import kotlinx.coroutines.Dispatchers

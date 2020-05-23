@@ -3,14 +3,13 @@ package io.github.takusan23.tatimidroid.Fragment
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.Activity.LicenceActivity
-import io.github.takusan23.tatimidroid.AutoAdmissionService
+import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.R
 
 

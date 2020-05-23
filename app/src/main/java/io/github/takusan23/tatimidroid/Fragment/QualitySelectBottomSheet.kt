@@ -22,11 +22,7 @@ class QualitySelectBottomSheet : BottomSheetDialogFragment() {
     var liveId = ""
     lateinit var commentFragment: CommentFragment
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_qulity_fragment_layout, container, false)
     }
 

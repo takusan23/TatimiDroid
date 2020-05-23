@@ -16,7 +16,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
-import io.github.takusan23.tatimidroid.Fragment.CommentMenuBottomFragment
+import io.github.takusan23.tatimidroid.Fragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.R
 import java.text.SimpleDateFormat
 import java.util.*
@@ -24,8 +24,7 @@ import java.util.*
 /**
  * CommentJSONParse配列を使う
  * */
-class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
-    RecyclerView.Adapter<CommentRecyclerViewAdapter.ViewHolder>() {
+class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) : RecyclerView.Adapter<CommentRecyclerViewAdapter.ViewHolder>() {
 
     //UserIDの配列。初コメを太字表示する
     val userList = arrayListOf<String>()
@@ -60,27 +59,12 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             this.appCompatActivity = context
         }
 
-        val commentFragment =
-            this.appCompatActivity.supportFragmentManager.findFragmentByTag(commentJSONParse.videoOrLiveId) as CommentFragment
+        val commentFragment = this.appCompatActivity.supportFragmentManager.findFragmentByTag(commentJSONParse.videoOrLiveId) as CommentFragment
 
-        //NG配列
-        val userNGList = commentFragment.userNGList
-        val commentNGList = commentFragment.commentNGList
-        //コテハンMAP
+        // コテハンMAP
         val kotehanMap = commentFragment.kotehanMap
-        //NGコメント、ユーザーか
-        if (userNGList.indexOf(commentJSONParse.userId) != -1) {
-            isNGUser = true
-        }
-        if (commentNGList.indexOf(commentJSONParse.comment) != -1) {
-            isNGComment = true
-        }
-        //コテハン
-        if (kotehanMap.containsKey(commentJSONParse.userId)) {
-            userId = kotehanMap.get(commentJSONParse.userId) ?: ""
-        } else {
-            userId = commentJSONParse.userId
-        }
+        // コテハン。なければユーザーIDで
+        userId = kotehanMap[commentJSONParse.userId] ?: commentJSONParse.userId
 
         //絶対時刻か相対時刻か
         var time = ""
@@ -183,10 +167,10 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             bundle.putString("user_id", commentJSONParse.userId)
             bundle.putString("liveId", commentJSONParse.videoOrLiveId)
             bundle.putString("label", info)
-            val commentMenuBottomFragment = CommentMenuBottomFragment()
-            commentMenuBottomFragment.arguments = bundle
+            val commentLockonBottomFragment = CommentLockonBottomFragment()
+            commentLockonBottomFragment.arguments = bundle
             if (context is AppCompatActivity) {
-                commentMenuBottomFragment.show(context.supportFragmentManager, "comment_menu")
+                commentLockonBottomFragment.show(context.supportFragmentManager, "comment_menu")
             }
         }
 

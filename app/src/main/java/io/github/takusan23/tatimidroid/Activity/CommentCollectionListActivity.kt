@@ -8,7 +8,7 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.Adapter.CommentPOSTListRecyclerViewAdapter
-import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment_postlist.*

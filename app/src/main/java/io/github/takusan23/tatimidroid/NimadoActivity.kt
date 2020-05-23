@@ -11,17 +11,12 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
-import androidx.core.view.forEach
 import androidx.core.view.get
-import androidx.core.view.marginBottom
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -30,17 +25,15 @@ import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import io.github.takusan23.tatimidroid.Adapter.NimadoListRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import io.github.takusan23.tatimidroid.Fragment.NimadoLiveIDBottomFragment
-import kotlinx.android.synthetic.main.activity_main.*
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import kotlinx.android.synthetic.main.activity_nimado.*
-import kotlinx.android.synthetic.main.fragment_gift_layout.*
 import okhttp3.*
 import okhttp3.Callback
-import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
-import java.text.FieldPosition
 
 
 /*

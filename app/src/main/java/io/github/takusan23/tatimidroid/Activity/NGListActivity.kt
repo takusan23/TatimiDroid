@@ -6,19 +6,25 @@ import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
-import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Adapter.NGListRecyclerView
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
+import io.github.takusan23.tatimidroid.Tool.DataClass.NGData
+import io.github.takusan23.tatimidroid.Tool.NGDataBaseTool
 import kotlinx.android.synthetic.main.activity_nglist.*
 
+/**
+ * NG一覧Activity
+ * */
 class NGListActivity : AppCompatActivity() {
-    var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
+
+    // RecyclerView関連
+    var recyclerViewList = arrayListOf<NGData>()
     lateinit var ngListRecyclerView: NGListRecyclerView
-    lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
-    //NGデータベース
-    lateinit var ngListSQLiteHelper: NGListSQLiteHelper
-    lateinit var sqLiteDatabase: SQLiteDatabase
+
+    // NGデータベース
+    lateinit var ngDataBaseTool: NGDataBaseTool
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,67 +35,33 @@ class NGListActivity : AppCompatActivity() {
 
         supportActionBar?.title = getString(R.string.ng_list)
 
-        recyclerViewList = ArrayList()
         activity_ng_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(this)
-        activity_ng_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
-        ngListRecyclerView =
-            NGListRecyclerView(recyclerViewList)
+        activity_ng_recyclerview.layoutManager = mLayoutManager
+        ngListRecyclerView = NGListRecyclerView(recyclerViewList)
         activity_ng_recyclerview.adapter = ngListRecyclerView
-        recyclerViewLayoutManager = activity_ng_recyclerview.layoutManager!!
 
-        if (!this@NGListActivity::ngListSQLiteHelper.isInitialized) {
-            //データベース
-            ngListSQLiteHelper = NGListSQLiteHelper(this)
-            sqLiteDatabase = ngListSQLiteHelper.writableDatabase
-            ngListSQLiteHelper.setWriteAheadLoggingEnabled(false)
+        ngDataBaseTool = NGDataBaseTool(this)
+
+        // BottomNavigation
+        activity_ng_bottom_nav.setOnNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.ng_menu_user -> loadNGUser()
+                R.id.ng_menu_comment -> loadNGComment()
+            }
+            true
         }
 
-        loadNGUser()
-
-        activity_ng_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabReselected(tab: TabLayout.Tab?) {
-
-            }
-
-            override fun onTabUnselected(tab: TabLayout.Tab?) {
-
-            }
-
-
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                when (tab?.text) {
-                    getString(R.string.ng_comment) -> {
-                        loadNGComment()
-                    }
-                    getString(R.string.ng_user) -> {
-                        loadNGUser()
-                    }
-                }
-            }
-        })
+        // はじめてはNGユーザー表示させる
+        activity_ng_bottom_nav.selectedItemId = R.id.ng_menu_user
     }
 
     //NGコメント読み込み
     fun loadNGComment() {
         recyclerViewList.clear()
-        //SQLite読み出し
-        val cursor = sqLiteDatabase.query(
-            "ng_list",
-            arrayOf("type", "value"),
-            "type=?", arrayOf("comment"), null, null, null
-        )
-        cursor.moveToFirst()
-        //for
-        for (i in 0 until cursor.count) {
-            val item = arrayListOf<String>()
-            item.add("")
-            item.add(cursor.getString(0))
-            item.add(cursor.getString(1))
-            recyclerViewList.add(item)
-            cursor.moveToNext()
+        ngDataBaseTool.ngCommentList.forEach {
+            recyclerViewList.add(it)
         }
-        cursor.close()
         runOnUiThread {
             ngListRecyclerView.notifyDataSetChanged()
         }
@@ -98,23 +70,9 @@ class NGListActivity : AppCompatActivity() {
     //NGユーザー読み込み
     fun loadNGUser() {
         recyclerViewList.clear()
-        //SQLite読み出し
-        val cursor = sqLiteDatabase.query(
-            "ng_list",
-            arrayOf("type", "value"),
-            "type=?", arrayOf("user"), null, null, null
-        )
-        cursor.moveToFirst()
-        //for
-        for (i in 0 until cursor.count) {
-            val item = arrayListOf<String>()
-            item.add("")
-            item.add(cursor.getString(0))
-            item.add(cursor.getString(1))
-            recyclerViewList.add(item)
-            cursor.moveToNext()
+        ngDataBaseTool.ngUserList.forEach {
+            recyclerViewList.add(it)
         }
-        cursor.close()
         runOnUiThread {
             ngListRecyclerView.notifyDataSetChanged()
         }

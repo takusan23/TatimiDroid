@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.tatimidroid.Tool
 
 import java.util.regex.Pattern
 

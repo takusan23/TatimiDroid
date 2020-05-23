@@ -25,6 +25,7 @@
                     android:id="@+id/adapter_nicovideo_list_thum"
                     android:layout_width="100dp"
                     android:layout_height="match_parent"
+                    android:layout_gravity="center"
                     app:srcCompat="@drawable/ic_local_movies_24px" />
 
             <LinearLayout

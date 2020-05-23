@@ -23,9 +23,9 @@ import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
-import io.github.takusan23.tatimidroid.DarkModeSupport
-import io.github.takusan23.tatimidroid.ProgramShare
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.ProgramShare
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_comment_menu.*
 
@@ -162,16 +162,14 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_menu_share_button.setOnClickListener {
             //Kotlinのapply便利だと思った。
             commentFragment.apply {
-                programShare =
-                    ProgramShare(commentActivity, this.live_surface_view, programTitle, liveId)
+                programShare = ProgramShare(commentActivity, this.live_surface_view, programTitle, liveId)
                 programShare.showShareScreen()
             }
         }
         //画像つき共有
         fragment_comment_fragment_menu_share_image_attach_button.setOnClickListener {
             commentFragment.apply {
-                programShare =
-                    ProgramShare(commentActivity, this.live_surface_view, programTitle, liveId)
+                programShare = ProgramShare(commentActivity, this.live_surface_view, programTitle, liveId)
                 programShare.shareAttacgImage()
             }
         }

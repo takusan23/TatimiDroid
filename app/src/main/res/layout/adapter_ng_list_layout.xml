@@ -1,37 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
 
     <androidx.cardview.widget.CardView
-            android:layout_margin="2dp"
-            android:foreground="?android:attr/selectableItemBackground"
-            android:clickable="true"
-            app:cardCornerRadius="5dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:cardCornerRadius="5dp">
 
         <LinearLayout
-                android:padding="10dp"
-                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="10dp">
 
             <TextView
+                    android:id="@+id/adapter_ng_list_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
                     android:text="読み込み中"
-                    android:textSize="14dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/adapter_ng_list_text"/>
+                    android:textSize="14dp" />
 
             <Button
-                    android:text="@string/delete"
-                    android:layout_width="match_parent"
+                    android:id="@+id/adapter_ng_list_delete_button"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/adapter_ng_list_delete_button"/>
+                    android:text="@string/delete" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

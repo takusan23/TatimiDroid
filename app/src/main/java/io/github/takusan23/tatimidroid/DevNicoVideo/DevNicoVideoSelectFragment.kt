@@ -1,11 +1,7 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.drawable.ColorDrawable
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,11 +10,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.*
-import io.github.takusan23.tatimidroid.isConnectionInternet
-import kotlinx.android.synthetic.main.activity_main.*
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
+import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_select.*
 
 

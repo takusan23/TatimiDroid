@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.tatimidroid.Tool
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
+import io.github.takusan23.tatimidroid.R
 import java.text.SimpleDateFormat
 
 class ProgramShare(val activity: AppCompatActivity, val view: View, val programName: String, val programId: String) {

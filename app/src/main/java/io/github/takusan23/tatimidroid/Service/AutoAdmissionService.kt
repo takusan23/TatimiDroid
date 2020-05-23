@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.tatimidroid.Service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,10 +13,10 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
-import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
-import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import java.util.*
 import kotlin.concurrent.timerTask
 

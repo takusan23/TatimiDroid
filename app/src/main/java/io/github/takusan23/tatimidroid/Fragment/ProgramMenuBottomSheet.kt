@@ -15,11 +15,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.AutoAdmissionService
+import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
-import io.github.takusan23.tatimidroid.ProgramShare
+import io.github.takusan23.tatimidroid.Tool.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import io.github.takusan23.tatimidroid.Service.startLivePlayService

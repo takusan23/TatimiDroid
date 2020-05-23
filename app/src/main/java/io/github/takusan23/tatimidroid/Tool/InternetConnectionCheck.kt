@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.tatimidroid.Tool
 
 import android.content.Context
 import android.net.ConnectivityManager

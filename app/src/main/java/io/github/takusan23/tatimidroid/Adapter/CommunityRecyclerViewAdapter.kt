@@ -18,7 +18,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
-import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
 import io.github.takusan23.tatimidroid.Fragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.MainActivity

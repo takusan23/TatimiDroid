@@ -24,7 +24,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
-import io.github.takusan23.tatimidroid.isConnectionInternet
+import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 

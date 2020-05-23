@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
-import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Adapter.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoAdAPI
 import io.github.takusan23.tatimidroid.R

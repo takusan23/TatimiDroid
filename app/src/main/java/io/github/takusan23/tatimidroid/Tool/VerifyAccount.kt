@@ -1,7 +1,6 @@
-package io.github.takusan23.tatimidroid
+package io.github.takusan23.tatimidroid.Tool
 
 import android.content.Context
-import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 
 /**

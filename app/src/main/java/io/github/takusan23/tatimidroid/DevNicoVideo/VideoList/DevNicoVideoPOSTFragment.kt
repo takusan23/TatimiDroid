@@ -16,7 +16,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoPOST
 import io.github.takusan23.tatimidroid.NicoAPI.User
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.isNotLoginMode
+import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo_post.*
 import kotlinx.coroutines.*
 

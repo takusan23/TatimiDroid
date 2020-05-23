@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,6 +19,7 @@ import io.github.takusan23.tatimidroid.Adapter.CommunityRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramAPI
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
+import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import kotlinx.android.synthetic.main.fragment_community_list_layout.community_recyclerview
 import java.util.*
 import kotlin.collections.ArrayList

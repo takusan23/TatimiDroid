@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.view.View
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.AutoAdmissionService
+import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import io.github.takusan23.tatimidroid.R

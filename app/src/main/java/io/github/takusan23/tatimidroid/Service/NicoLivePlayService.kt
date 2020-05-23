@@ -39,7 +39,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
-import io.github.takusan23.tatimidroid.isConnectionInternet
+import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

@@ -57,6 +57,8 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelpe
 import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
+import io.github.takusan23.tatimidroid.Tool.*
+import io.github.takusan23.tatimidroid.Tool.DataClass.NGData
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
@@ -116,15 +118,8 @@ class CommentFragment : Fragment() {
     var chairNo = ""         // 席の場所
     lateinit var nicoLiveJSON: JSONObject
 
-    //NGデータベース
-    lateinit var ngListSQLiteHelper: NGListSQLiteHelper
-    lateinit var sqLiteDatabase: SQLiteDatabase
-
-    //コメントNG配列
-    val commentNGList = arrayListOf<String>()
-
-    //ユーザーNG配列
-    val userNGList = arrayListOf<String>()
+    // NGコメント/ユーザー関連。Adapterでもここのを使ってる
+    lateinit var ngDataBaseTool: NGDataBaseTool
 
     //コメント非表示？
     var isCommentHidden = false
@@ -245,7 +240,7 @@ class CommentFragment : Fragment() {
 
         commentActivity = activity as AppCompatActivity
 
-        darkModeSupport = DarkModeSupport(context!!)
+        darkModeSupport = DarkModeSupport(requireContext())
         darkModeSupport.setActivityTheme(activity as AppCompatActivity)
 
         // ActionBarが邪魔という意見があった（私も思う）ので消す
@@ -268,11 +263,14 @@ class CommentFragment : Fragment() {
         }
 
         // GoogleCast？
-        googleCast = GoogleCast(context!!)
+        googleCast = GoogleCast(requireContext())
         // GooglePlay開発者サービスがない可能性あり、Gapps焼いてない、ガラホ　など
         if (googleCast.isGooglePlayServicesAvailable()) {
             googleCast.init()
         }
+
+        // NGデータベース
+        ngDataBaseTool = NGDataBaseTool(context)
 
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
         isOfficial = arguments?.getBoolean("isOfficial") ?: false
@@ -288,7 +286,7 @@ class CommentFragment : Fragment() {
         //liveId = intent?.getStringExtra("liveId") ?: ""
         liveId = arguments?.getString("liveId") ?: ""
 
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(context!!)
+        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
         // 低遅延モードon/off
         nicoLiveHTML.isLowLatency = !pref_setting.getBoolean("nicolive_low_latency", true)
@@ -340,9 +338,6 @@ class CommentFragment : Fragment() {
             fragmentTransaction.commit()
         }
 
-        //NGデータベース読み込み
-        loadNGDataBase()
-
         //生放送を視聴する場合はtrue
         watchLive = pref_setting.getBoolean("setting_watch_live", true)
 
@@ -369,11 +364,11 @@ class CommentFragment : Fragment() {
         }
 
         //運営コメント、InfoコメントのTextView初期化
-        uncomeTextView = TextView(context!!)
+        uncomeTextView = TextView(context)
         live_framelayout.addView(uncomeTextView)
         uncomeTextView.visibility = View.GONE
         //infoコメント
-        infoTextView = TextView(context!!)
+        infoTextView = TextView(context)
         live_framelayout.addView(infoTextView)
         infoTextView.visibility = View.GONE
 
@@ -385,8 +380,7 @@ class CommentFragment : Fragment() {
         //コメント投稿画面開く
         fab.setOnClickListener {
             //表示アニメーションに挑戦した。
-            val showAnimation =
-                AnimationUtils.loadAnimation(context!!, R.anim.comment_cardview_show_animation)
+            val showAnimation = AnimationUtils.loadAnimation(context, R.anim.comment_cardview_show_animation)
             //表示
             comment_activity_comment_cardview.startAnimation(showAnimation)
             comment_activity_comment_cardview.visibility = View.VISIBLE
@@ -681,6 +675,11 @@ class CommentFragment : Fragment() {
         }
         // コテハン追加など
         registerKotehan(commentJSONParse)
+        // NGユーザー/コメントの場合は「NGコメントです表記」からそもそも非表示に(配列に追加しない)するように。
+        when {
+            ngDataBaseTool.ngUserStringList.contains(commentJSONParse.userId) -> return
+            ngDataBaseTool.ngCommentStringList.contains(commentJSONParse.comment) -> return
+        }
         /*
          * 重複しないように。
          * 令和元年8月中旬からアリーナに一般のコメントが流れ込むように（じゃあ枠の仕様なくせ栗田さん）
@@ -951,8 +950,7 @@ class CommentFragment : Fragment() {
             val simpleDateFormat = SimpleDateFormat("MM/dd HH:mm:ss")
             val date = Date(endTime)
             val time = simpleDateFormat.format(date)
-            val message =
-                "${getString(R.string.entyou_message)}\n${getString(R.string.end_time)} $time"
+            val message = "${getString(R.string.entyou_message)}\n${getString(R.string.end_time)} $time"
             commentActivity.runOnUiThread {
                 Snackbar.make(live_surface_view, message, Snackbar.LENGTH_LONG)
                     .apply {
@@ -1015,16 +1013,9 @@ class CommentFragment : Fragment() {
             return
         }
         //画質変更した。Snackbarでユーザーに教える
-        val oldQuality = QualitySelectBottomSheet.getQualityText(
-            beginQuality,
-            context!!
-        )
-        val newQuality = QualitySelectBottomSheet.getQualityText(
-            selectQuality,
-            context!!
-        )
-        Snackbar.make(live_surface_view, "${getString(R.string.successful_quality)}\n${oldQuality}→${newQuality}", Snackbar.LENGTH_SHORT)
-            .show()
+        val oldQuality = QualitySelectBottomSheet.getQualityText(beginQuality, context)
+        val newQuality = QualitySelectBottomSheet.getQualityText(selectQuality, context)
+        Snackbar.make(live_surface_view, "${getString(R.string.successful_quality)}\n${oldQuality}→${newQuality}", Snackbar.LENGTH_SHORT).show()
         beginQuality = selectQuality
     }
 
@@ -1117,7 +1108,7 @@ class CommentFragment : Fragment() {
     }
 
     private fun initDB() {
-        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(context!!)
+        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(requireContext())
         nicoHistorySQLiteDatabase = nicoHistorySQLiteHelper.writableDatabase
         nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
     }
@@ -1169,33 +1160,6 @@ class CommentFragment : Fragment() {
                     "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
             }
         }
-    }
-
-    fun loadNGDataBase() {
-        //NGデータベース
-        if (!this@CommentFragment::ngListSQLiteHelper.isInitialized) {
-            //データベース
-            ngListSQLiteHelper = NGListSQLiteHelper(context!!)
-            sqLiteDatabase = ngListSQLiteHelper.writableDatabase
-            ngListSQLiteHelper.setWriteAheadLoggingEnabled(false)
-        }
-        setNGList("user", userNGList)
-        setNGList("comment", commentNGList)
-    }
-
-    fun setNGList(name: String, list: ArrayList<String>) {
-        //コメントNG読み込み
-        val cursor = sqLiteDatabase.query(
-            "ng_list",
-            arrayOf("type", "value"),
-            "type=?", arrayOf(name), null, null, null
-        )
-        cursor.moveToFirst()
-        for (i in 0 until cursor.count) {
-            list.add(cursor.getString(1))
-            cursor.moveToNext()
-        }
-        cursor.close()
     }
 
     // データベースに履歴追加
@@ -1294,7 +1258,7 @@ class CommentFragment : Fragment() {
                 sitaCommentLine.clear()
             }
 
-            exoPlayer = SimpleExoPlayer.Builder(context!!).build()
+            exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
             val sourceFactory = DefaultDataSourceFactory(
                 context,
                 "TatimiDroid;@takusan_23",
@@ -1478,13 +1442,11 @@ class CommentFragment : Fragment() {
         when (conf.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> {
                 //縦画面
-                commentActivity.requestedOrientation =
-                    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                commentActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             }
             Configuration.ORIENTATION_LANDSCAPE -> {
                 //横画面
-                commentActivity.requestedOrientation =
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                commentActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             }
         }
     }
@@ -1494,8 +1456,7 @@ class CommentFragment : Fragment() {
             context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboardManager.setPrimaryClip(ClipData.newPlainText("liveid", liveId))
         //コピーしました！
-        Toast.makeText(context, "${getString(R.string.copy_program_id)} : $liveId", Toast.LENGTH_SHORT)
-            .show()
+        Toast.makeText(context, "${getString(R.string.copy_program_id)} : $liveId", Toast.LENGTH_SHORT).show()
     }
 
     fun copyCommunityId() {
@@ -1613,7 +1574,7 @@ class CommentFragment : Fragment() {
             //１個めから質問
             for (i in 0 until jsonArray.length()) {
                 //println(i)
-                val button = MaterialButton(context!!)
+                val button = MaterialButton(requireContext())
                 button.text = jsonArray.getString(i)
                 button.setOnClickListener {
                     //投票
@@ -1667,7 +1628,7 @@ class CommentFragment : Fragment() {
                 val result = jsonArray.getString(i)
                 val question = questionJsonArray.getString(i + 1)
                 val text = question + "\n" + enquatePerText(result)
-                val button = MaterialButton(context!!)
+                val button = MaterialButton(requireContext())
                 button.text = text
                 val layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -1779,10 +1740,7 @@ class CommentFragment : Fragment() {
         comment_cardview_close_button.setOnClickListener {
             //非表示アニメーションに挑戦した。
             val hideAnimation =
-                AnimationUtils.loadAnimation(
-                    context!!,
-                    R.anim.comment_cardview_hide_animation
-                )
+                AnimationUtils.loadAnimation(context, R.anim.comment_cardview_hide_animation)
             //表示
             comment_activity_comment_cardview.startAnimation(hideAnimation)
             comment_activity_comment_cardview.visibility = View.GONE

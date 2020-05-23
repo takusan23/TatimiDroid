@@ -65,7 +65,7 @@ class DevNicoVideoCommentFragment : Fragment() {
     /**
      * RecyclerView初期化とか
      * @param recyclerViewList RecyclerViewに表示させる中身の配列。省略時はDevNicoVideoCommentFragment.recyclerViewListを使います。
-     * @param snackbarShow SnackBar（取得コメント数）を表示させる場合はtrue、省略時はfalse
+     * @param snackbarShow Toastに取得コメント数を表示させる場合はtrue、省略時はfalse
      * */
     fun initRecyclerView(snackbarShow: Boolean = false) {
         if (!isAdded) {
@@ -75,23 +75,17 @@ class DevNicoVideoCommentFragment : Fragment() {
         recyclerView.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
         recyclerView.layoutManager = mLayoutManager
-        // 3DSコメント非表示を実現するための面倒なやつ
-        val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
-        val list = if (is3DSCommentHidden) {
-            recyclerViewList.filter { commentJSONParse -> !commentJSONParse.mail.contains("device:3DS") }
-        } else {
-            recyclerViewList
-        } as ArrayList<CommentJSONParse>
-        nicoVideoAdapter = NicoVideoAdapter(list)
+        // DevNicoVideoFragment
+        val devNicoVideoFragment = fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+        // Adapter用意
+        nicoVideoAdapter = NicoVideoAdapter(recyclerViewList)
+        nicoVideoAdapter.devNicoVideoFragment = devNicoVideoFragment
         // DevNicoVideoFragment渡す
-        nicoVideoAdapter.devNicoVideoFragment =
-            fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
         recyclerView.adapter = nicoVideoAdapter
         //  Snackbar
         if (snackbarShow) {
-            // DevNicoVideoFragment
-            val fragment =
-                fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+            // 前回見た位置から再生が４ぬので消しとく
+            Toast.makeText(context, "${getString(R.string.get_comment_count)}：${recyclerViewList.size}", Toast.LENGTH_SHORT).show()
         }
     }
 

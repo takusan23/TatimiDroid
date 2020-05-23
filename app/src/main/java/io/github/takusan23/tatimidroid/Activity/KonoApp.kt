@@ -12,8 +12,8 @@ import android.text.SpannableString
 import androidx.core.net.toUri
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
-import io.github.takusan23.tatimidroid.AutoAdmissionService
-import io.github.takusan23.tatimidroid.DarkModeSupport
+import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_kono_app.*
 import java.util.*
