@@ -141,12 +141,21 @@
                             android:layout_height="wrap_content"
                             android:text="@string/brower_launch" />
 
+
                     <Button
                             android:id="@+id/fragment_nicovideo_menu_ng_activity"
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/ng_list" />
+
+                    <Button
+                            android:id="@+id/fragment_nicovideo_menu_skip_setting"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/skip_setting"
+                            app:icon="@drawable/ic_redo_black_24dp" />
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>

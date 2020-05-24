@@ -424,4 +424,8 @@
     <string name="open_user_page">ユーザーページ開く</string>
     <string name="nicoru_delete_ok">ニコるを取り消しました</string>
     <string name="nicoru_delete">取り消す</string>
+    <string name="skip_setting">スキップ秒数変更</string>
+    <string name="skip_input_hint">スキップ時間変更（秒）</string>
+    <string name="skip_input_hint_long">長押し時のスキップ時間変更（秒）</string>
+    <string name="skip_setting_message">普通に押したときと長押し時のスキップ秒数を変更できます。</string>
 </resources>

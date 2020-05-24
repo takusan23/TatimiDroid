@@ -276,66 +276,31 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     // 色
     // 大百科参照：https://dic.nicovideo.jp/a/%E3%82%B3%E3%83%A1%E3%83%B3%E3%83%88
     fun getColor(command: String): String {
-        // プレ垢限定色。
-        if (command.contains("white2")) {
-            return "#CCCC99"
+        return when {
+            // プレ垢限定色。
+            command.contains("white2") -> "#CCCC99"
+            command.contains("red2") -> "#CC0033"
+            command.contains("pink2") -> "#FF33CC"
+            command.contains("orange2") -> "#FF6600"
+            command.contains("yellow2") -> "#999900"
+            command.contains("green2") -> "#00CC66"
+            command.contains("cyan2") -> "#00CCCC"
+            command.contains("blue2") -> "#3399FF"
+            command.contains("purple2") -> "#6633CC"
+            command.contains("black2") -> "#666666"
+            // 一般でも使えるやつ
+            command.contains("red") -> "#FF0000"
+            command.contains("pink") -> "#FF8080"
+            command.contains("orange") -> "#FFC000"
+            command.contains("yellow") -> "#FFFF00"
+            command.contains("green") -> "#00FF00"
+            command.contains("cyan") -> "#00FFFF"
+            command.contains("blue") -> "#0000FF"
+            command.contains("purple") -> "#C000FF"
+            command.contains("black") -> "#000000"
+            // その他
+            else -> "#ffffff"
         }
-        if (command.contains("red2")) {
-            return "#CC0033"
-        }
-        if (command.contains("pink2")) {
-            return "#FF33CC"
-        }
-        if (command.contains("orange2")) {
-            return "#FF6600"
-        }
-        if (command.contains("yellow2")) {
-            return "#999900"
-        }
-        if (command.contains("green2")) {
-            return "#00CC66"
-        }
-        if (command.contains("cyan2")) {
-            return "#00CCCC"
-        }
-        if (command.contains("blue2")) {
-            return "#3399FF"
-        }
-        if (command.contains("purple2")) {
-            return "#6633CC"
-        }
-        if (command.contains("black2")) {
-            return "#666666"
-        }
-        // 一般でも使えるやつ
-        if (command.contains("red")) {
-            return "#FF0000"
-        }
-        if (command.contains("pink")) {
-            return "#FF8080"
-        }
-        if (command.contains("orange")) {
-            return "#FFC000"
-        }
-        if (command.contains("yellow")) {
-            return "#FFFF00"
-        }
-        if (command.contains("green")) {
-            return "#00FF00"
-        }
-        if (command.contains("cyan")) {
-            return "#00FFFF"
-        }
-        if (command.contains("blue")) {
-            return "#0000FF"
-        }
-        if (command.contains("purple")) {
-            return "#C000FF"
-        }
-        if (command.contains("black")) {
-            return "#000000"
-        }
-        return "#FFFFFF"
     }
 
     //コメビュの部屋の色。NCVに追従する

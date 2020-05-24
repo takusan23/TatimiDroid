@@ -424,4 +424,8 @@
     <string name="open_user_page">Open user page</string>
     <string name="nicoru_delete_ok">Canceled Nicoru</string>
     <string name="nicoru_delete">cancel</string>
+    <string name="skip_setting">Change skip seconds</string>
+    <string name="skip_input_hint">Change skip time (seconds)</string>
+    <string name="skip_input_hint_long">Change skip time when pressing and holding (second)</string>
+    <string name="skip_setting_message">You can change the skip seconds when you press the button normally and when you press and hold it.</string>
 </resources>

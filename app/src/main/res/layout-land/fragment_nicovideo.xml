@@ -149,15 +149,19 @@
                                     android:padding="20sp"
                                     app:srcCompat="@drawable/ic_repeat_black_24dp" />
 
-                            <ImageView
+                            <TextView
                                     android:id="@+id/fragment_nicovideo_controller_replay"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
                                     android:layout_weight="1"
                                     android:clickable="true"
+                                    android:drawableTop="@drawable/ic_undo_black_24dp"
+                                    android:focusable="true"
                                     android:foreground="?android:attr/selectableItemBackground"
-                                    android:padding="20sp"
-                                    app:srcCompat="@drawable/ic_replay_5_black_24dp" />
+                                    android:gravity="center"
+                                    android:text="5"
+                                    android:textStyle="bold" />
 
                             <ImageView
                                     android:id="@+id/fragment_nicovideo_play_button"
@@ -165,19 +169,24 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:clickable="true"
+                                    android:focusable="true"
                                     android:foreground="?android:attr/selectableItemBackground"
-                                    android:padding="20sp"
+                                    android:padding="20dp"
                                     app:srcCompat="@drawable/ic_play_arrow_24px" />
 
-                            <ImageView
+                            <TextView
                                     android:id="@+id/fragment_nicovideo_controller_forward"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
                                     android:layout_weight="1"
                                     android:clickable="true"
+                                    android:drawableTop="@drawable/ic_redo_black_24dp"
+                                    android:focusable="true"
                                     android:foreground="?android:attr/selectableItemBackground"
-                                    android:padding="20sp"
-                                    app:srcCompat="@drawable/ic_forward_5_black_24dp" />
+                                    android:gravity="center"
+                                    android:text="5"
+                                    android:textStyle="bold" />
 
                             <ImageView
                                     android:id="@+id/fragment_nicovideo_controller_close"

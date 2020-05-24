@@ -258,6 +258,7 @@ class DevNicoVideoFragment : Fragment() {
 
     }
 
+    // コントローラーのUI変更
     private fun initController() {
         fragment_nicovideo_fab.setOnClickListener {
             fragment_nicovideo_controller.apply {
@@ -279,20 +280,33 @@ class DevNicoVideoFragment : Fragment() {
                 fragment_nicovideo_fab.show()
             }
         }
+        // スキップ秒数
+        val skipTime = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5)
+        val longSkipTime = (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10)
+        fragment_nicovideo_controller_replay.text = "${skipTime} | ${longSkipTime}"
+        fragment_nicovideo_controller_forward.text = "${skipTime} | ${longSkipTime}"
+        // 押したとき
         fragment_nicovideo_controller_replay.setOnClickListener {
             // 5秒戻す
-            val skipTime = prefSetting.getString("nicovideo_skip_ms", "5000")?.toLong() ?: 5000
-            exoPlayer.seekTo(exoPlayer.currentPosition - skipTime)
+            val skip = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+            exoPlayer.seekTo(exoPlayer.currentPosition - skip)
+        }
+        fragment_nicovideo_controller_replay.setOnLongClickListener {
+            // 長押し時
+            val skip = (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10) * 1000 // 秒→ミリ秒
+            exoPlayer.seekTo(exoPlayer.currentPosition - skip)
+            true
         }
         fragment_nicovideo_controller_forward.setOnClickListener {
             // 5秒進める
-            val skipTime = prefSetting.getString("nicovideo_skip_ms", "5000")?.toLong() ?: 5000
-            exoPlayer.seekTo(exoPlayer.currentPosition + skipTime)
+            val skip = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+            exoPlayer.seekTo(exoPlayer.currentPosition + skip)
         }
-        // 長押しなら設定画面出す
         fragment_nicovideo_controller_forward.setOnLongClickListener {
-            DevNicoVideoSkipCustomizeBottomFragment().show(parentFragmentManager, "skip")
-            false
+            // 長押し時
+            val skip = (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10) * 1000 // 秒→ミリ秒
+            exoPlayer.seekTo(exoPlayer.currentPosition + skip)
+            true
         }
     }
 

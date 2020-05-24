@@ -5,30 +5,37 @@
         android:orientation="vertical"
         android:padding="10dp">
 
-    <LinearLayout
+    <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:padding="5dp"
+            android:text="@string/skip_setting_message"
+            android:textSize="18sp" />
 
-        <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="wrap_content"
+    <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/bottom_fragment_skip_input"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1">
+                android:hint="@string/skip_input_hint"
+                android:text="5" />
+    </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/bottom_fragment_skip_input"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="5000"
-                    android:hint="自分で設定する場合(ms)" />
-        </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-        <Button
-                android:id="@+id/bottom_fragment_skip_set"
-                android:layout_width="wrap_content"
+        <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/bottom_fragment_skip_input_long"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="設定" />
-    </LinearLayout>
+                android:hint="@string/skip_input_hint_long"
+                android:text="10" />
+    </com.google.android.material.textfield.TextInputLayout>
 
 </LinearLayout>

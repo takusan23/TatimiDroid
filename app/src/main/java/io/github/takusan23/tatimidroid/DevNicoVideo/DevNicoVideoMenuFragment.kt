@@ -19,6 +19,7 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoQualityBottomFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoSkipCustomizeBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.Tool.ProgramShare
@@ -119,6 +120,20 @@ class DevNicoVideoMenuFragment : Fragment() {
         // NG一覧Activity呼び出す
         initNGActivityButton()
 
+        // スキップ秒数
+        initSkipSetting()
+
+    }
+
+    private fun initSkipSetting() {
+        // スキップ秒数変更画面表示
+        fragment_nicovideo_menu_skip_setting.setOnClickListener {
+            val bundle = Bundle()
+            bundle.putString("video_id", videoId)
+            val skipCustomizeBottomFragment = DevNicoVideoSkipCustomizeBottomFragment()
+            skipCustomizeBottomFragment.arguments = bundle
+            skipCustomizeBottomFragment.show(parentFragmentManager, "skip")
+        }
     }
 
     private fun initNGActivityButton() {
