@@ -82,6 +82,13 @@ class DevNicoVideoSearchFragment : Fragment() {
             search(searchText)
         }
 
+        // 非表示オプション（再生中にタグ検索する時に使う）
+        val isSearchHide = arguments?.getBoolean("search_hide") ?: false
+        if (isSearchHide) {
+            (fragment_nicovideo_search_input.parent as View).visibility = View.GONE
+            (fragment_nicovideo_search_tag_key_menu.parent as View).visibility = View.GONE
+        }
+
         // 検索ボタン
         fragment_nicovideo_search.setOnClickListener {
             page = 1

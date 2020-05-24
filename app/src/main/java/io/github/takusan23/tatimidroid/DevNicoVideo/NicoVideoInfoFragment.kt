@@ -179,6 +179,7 @@ class NicoVideoInfoFragment : Fragment() {
                             val postFragment = DevNicoVideoSearchFragment().apply {
                                 arguments = Bundle().apply {
                                     putString("search", name)
+                                    putBoolean("search_hide", true)
                                 }
                             }
                             // 追加位置

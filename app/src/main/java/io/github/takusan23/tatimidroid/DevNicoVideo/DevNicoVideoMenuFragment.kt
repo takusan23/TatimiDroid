@@ -30,6 +30,8 @@ import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_menu.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 /**
@@ -123,6 +125,22 @@ class DevNicoVideoMenuFragment : Fragment() {
         // スキップ秒数
         initSkipSetting()
 
+        // 3DS消す
+        init3DSHide()
+
+    }
+
+    private fun init3DSHide() {
+        fragment_nicovideo_menu_3ds_switch.isChecked = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
+        val devNicoVideoFragment = parentFragmentManager.findFragmentByTag(videoId) as DevNicoVideoFragment
+        fragment_nicovideo_menu_3ds_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            // 変更
+            prefSetting.edit { putBoolean("nicovideo_comment_3ds_hidden", isChecked) }
+            // コメント再適用
+            GlobalScope.launch {
+                devNicoVideoFragment.commentFilter().await()
+            }
+        }
     }
 
     private fun initSkipSetting() {
@@ -177,13 +195,11 @@ class DevNicoVideoMenuFragment : Fragment() {
             when (conf.orientation) {
                 Configuration.ORIENTATION_PORTRAIT -> {
                     //縦画面
-                    activity?.requestedOrientation =
-                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                 }
                 Configuration.ORIENTATION_LANDSCAPE -> {
                     //横画面
-                    activity?.requestedOrientation =
-                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                 }
             }
         }
@@ -191,18 +207,15 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     private fun initCopyButton() {
         fragment_nicovideo_menu_copy.setOnClickListener {
-            val clipboardManager =
-                context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipboardManager = context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboardManager.setPrimaryClip(ClipData.newPlainText("videoId", videoId))
-            Toast.makeText(context, "${getString(R.string.video_id_copy_ok)}：${videoId}", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(context, "${getString(R.string.video_id_copy_ok)}：${videoId}", Toast.LENGTH_SHORT).show()
         }
     }
 
     // 動画再生ボタン
     private fun initPlayButton() {
-        val devNicoVideoFragment =
-            fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+        val devNicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
         fragment_nicovideo_menu_video_play.setOnClickListener {
             devNicoVideoFragment.apply {
                 if (fragment_nicovideo_framelayout.visibility == View.GONE) {
@@ -362,19 +375,14 @@ class DevNicoVideoMenuFragment : Fragment() {
      * 値セット
      * */
     fun getValue() {
-        fragment_nicovideo_menu_3ds_switch.isChecked =
-            prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
-        fragment_nicovideo_menu_scroll.isChecked =
-            prefSetting.getBoolean("nicovideo_comment_scroll", false)
-        fragment_nicovideo_menu_hide_comment_search.isChecked =
-            prefSetting.getBoolean("nicovideo_hide_search_button", true)
+        fragment_nicovideo_menu_scroll.isChecked = prefSetting.getBoolean("nicovideo_comment_scroll", false)
+        fragment_nicovideo_menu_hide_comment_search.isChecked = prefSetting.getBoolean("nicovideo_hide_search_button", true)
     }
 
     /**
      * 値保存
      * */
     fun setValue() {
-        switchListener(fragment_nicovideo_menu_3ds_switch, "nicovideo_comment_3ds_hidden")
         switchListener(fragment_nicovideo_menu_scroll, "nicovideo_comment_scroll")
         switchListener(fragment_nicovideo_menu_hide_comment_search, "nicovideo_hide_search_button")
     }

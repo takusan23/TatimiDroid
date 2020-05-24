@@ -515,14 +515,15 @@ class DevNicoVideoFragment : Fragment() {
     fun commentFilter() = GlobalScope.async(Dispatchers.IO) {
         // 3DSけす？
         val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
-        if (is3DSCommentHidden) {
-            // device:3DSが入ってるコメント削除
-            commentList = rawCommentList.dropWhile { commentJSONParse -> commentJSONParse.mail.contains("device:3DS") } as ArrayList<CommentJSONParse>
-        }
         // NG機能
-        commentList = rawCommentList.dropWhile { commentJSONParse ->
-            ngDataBaseTool.ngCommentStringList.contains(commentJSONParse.comment) || ngDataBaseTool.ngUserStringList.contains(commentJSONParse.userId)
+        commentList = rawCommentList.filter { commentJSONParse ->
+            !ngDataBaseTool.ngCommentStringList.contains(commentJSONParse.comment) || !ngDataBaseTool.ngUserStringList.contains(commentJSONParse.userId)
         } as ArrayList<CommentJSONParse>
+        if (is3DSCommentHidden) {
+            // device:3DSが入ってるコメント削除。dropWhileでもいい気がする
+            commentList = commentList.toList().filter { commentJSONParse -> !commentJSONParse.mail.contains("device:3DS") } as ArrayList<CommentJSONParse>
+            println(commentList.map { commentJSONParse -> commentJSONParse.mail })
+        }
         withContext(Dispatchers.Main) {
             (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
                 initRecyclerView(true)
