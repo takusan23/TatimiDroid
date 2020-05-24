@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -39,6 +40,17 @@
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10sp"
                     android:text="@string/video_id_copy" />
+
+            <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_browser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_outline_open_in_browser_24px"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="@string/open_browser" />
 
             <TextView
                     android:id="@+id/bottom_fragment_nicovideo_list_menu_mylist"
@@ -133,7 +145,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                    tools:visibility="visible">
 
                 <TextView
                         android:id="@+id/bottom_fragment_nicovideo_list_menu_xml_to_json"

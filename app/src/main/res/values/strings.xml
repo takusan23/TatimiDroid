@@ -422,4 +422,6 @@
     <string name="nicovideo_uploader_visibility_message">Video contributors have hidden the list of posted videos.</string>
     <string name="get_user_name">User name acquisition</string>
     <string name="open_user_page">Open user page</string>
+    <string name="nicoru_delete_ok">Canceled Nicoru</string>
+    <string name="nicoru_delete">cancel</string>
 </resources>

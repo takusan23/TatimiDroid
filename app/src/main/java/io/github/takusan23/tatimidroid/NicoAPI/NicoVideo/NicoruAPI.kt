@@ -25,20 +25,19 @@ class NicoruAPI {
      * @param userSession ユーザーセッション
      * @param threadId js-initial-watch-dataのdata-api-dataのthread.ids.defaultの値
      * */
-    fun getNicoruKey(userSession: String, threadId: String): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("https://nvapi.nicovideo.jp/v1/nicorukey?language=0&threadId=$threadId")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                header("Cookie", "user_session=$userSession")
-                header("Content-Type", "application/x-www-form-urlencoded")
-                header("X-Frontend-Id", "6")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    fun getNicoruKey(userSession: String, threadId: String): Deferred<Response> = GlobalScope.async {
+        val request = Request.Builder().apply {
+            url("https://nvapi.nicovideo.jp/v1/nicorukey?language=0&threadId=$threadId")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$userSession")
+            header("Content-Type", "application/x-www-form-urlencoded")
+            header("X-Frontend-Id", "6")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
 
     /**
      * NicoruKeyを取得する。
@@ -62,39 +61,59 @@ class NicoruAPI {
      * @param postDate コメントの投稿時間（UnixTime）。決してニコった時間ではない。
      * @param nicoruKey getNicoruKey()で取得した値。
      * */
-    fun postNicoru(userSession: String, threadId: String, userId: String, id: String, commentText: String, postDate: String, nicoruKey: String): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                // POSTするJSON
-                val postData = JSONArray().apply {
-                    put(JSONObject().apply {
-                        this.put("nicoru", JSONObject().apply {
-                            put("thread", threadId)
-                            put("user_id", userId)
-                            put("premium", 1)
-                            put("fork", 0)
-                            put("language", 0)
-                            put("id", id)
-                            put("content", commentText)
-                            put("postdate", postDate)
-                            put("nicorukey", nicoruKey)
-                        })
+    fun postNicoru(userSession: String, threadId: String, userId: String, id: String, commentText: String, postDate: String, nicoruKey: String): Deferred<Response> = GlobalScope.async {
+        val request = Request.Builder().apply {
+            // POSTするJSON
+            val postData = JSONArray().apply {
+                put(JSONObject().apply {
+                    this.put("nicoru", JSONObject().apply {
+                        put("thread", threadId)
+                        put("user_id", userId)
+                        put("premium", 1)
+                        put("fork", 0)
+                        put("language", 0)
+                        put("id", id)
+                        put("content", commentText)
+                        put("postdate", postDate)
+                        put("nicorukey", nicoruKey)
                     })
-                }
-                url("https://nmsg.nicovideo.jp/api.json/")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                header("Cookie", "user_session=$userSession")
-                header("Content-Type", "application/x-www-form-urlencoded")
-                post(postData.toString().toRequestBody("application/json".toMediaTypeOrNull()))
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+                })
+            }
+            url("https://nmsg.nicovideo.jp/api.json/")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$userSession")
+            header("Content-Type", "application/x-www-form-urlencoded")
+            post(postData.toString().toRequestBody("application/json".toMediaTypeOrNull()))
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
+
+    /**
+     * ニコるを取り消すAPIを叩く。コルーチンです
+     * @param ユーザーセッション
+     * @param nicoruId ニコった後に生成されるnicoru_idを使う（nicoruResultIdで取れる）
+     * @return okhttpのResponse
+     * */
+    fun deleteNicoru(userSession: String, nicoruId: String): Deferred<Response> = GlobalScope.async {
+        val request = Request.Builder().apply {
+            url("https://nvapi.nicovideo.jp/v1/users/me/nicoru/send/$nicoruId")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$userSession")
+            header("X-Frontend-Id", "6")
+            header("X-Frontend-Version", "0")
+            header("X-Request-With", "https://www.nicovideo.jp")
+            delete()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
 
     /**
      * ニコるくんの結果を取得する
-     * @param responseJSONObject postNicoru()のレスポンスをJSONArrayにして2番目のJSONObject
+     * @param responseJSONObject postNicoru()のレスポンスをJSONArrayにして0番目のJSONObject
      * @return status : 0 なら成功？ 1だとnicoruKeyがおかしい 2だとnicoruKey失効、4だとすでにニコり済み
      * */
     fun nicoruResultStatus(responseJSONObject: JSONObject): Int {
@@ -104,12 +123,22 @@ class NicoruAPI {
 
     /**
      * ニコるくんのニコる数を取得する関数
-     * @param responseJSONObject postNicoru()のレスポンスをJSONArrayにして2番目のJSONObject
+     * @param responseJSONObject postNicoru()のレスポンスをJSONArrayにして0番目のJSONObject
      * @return ニコる数
      * */
     fun nicoruResultNicoruCount(responseJSONObject: JSONObject): Int {
         val nicoruResult = responseJSONObject.getJSONObject("nicoru_result").getInt("nicoru_count")
         return nicoruResult
+    }
+
+    /**
+     * ニコった後に発行されるnicoru_idを取得する関数
+     * @param responseJSONObject postNicoru()のレスポンスをJSONArrayにして0番目のJSONObject
+     * @return
+     * */
+    fun nicoruResultId(responseJSONObject: JSONObject): String {
+        val nicoruId = responseJSONObject.getJSONObject("nicoru_result").getString("nicoru_id")
+        return nicoruId
     }
 
 }

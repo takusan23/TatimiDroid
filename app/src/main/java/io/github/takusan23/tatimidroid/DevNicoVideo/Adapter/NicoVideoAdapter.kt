@@ -70,7 +70,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
 
         // 動画でコテハン？いる
-        val userId = devNicoVideoFragment.kotehanMap[item.userId] ?: item.userId
+        val kotehanOrUserId = devNicoVideoFragment.kotehanMap[item.userId] ?: item.userId
 
         // ニコるくん表示
         val isShowNicoruButton = prefSetting.getBoolean("setting_nicovideo_nicoru_show", false)
@@ -95,7 +95,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             ""
         }
 
-        holder.userNameTextView.text = "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount$ngScore| ${userId}"
+        holder.userNameTextView.text = "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount$ngScore| ${kotehanOrUserId}"
         holder.nicoruButton.text = item.nicoru.toString()
 
         // ユーザーの設定したフォントサイズ
@@ -135,8 +135,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
                 devNicoVideoFragment.apply {
                     if (isPremium) {
                         val nicoruKey = nicoruAPI.nicoruKey
-                        val responseNicoru =
-                            nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey).await()
+                        val responseNicoru = nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey).await()
                         if (!responseNicoru.isSuccessful) {
                             // 失敗時
                             showToast(context, "${context?.getString(R.string.error)}\n${responseNicoru.code}")
@@ -148,13 +147,24 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
                         val status = nicoruAPI.nicoruResultStatus(jsonObject)
                         if (status == 0) {
                             item.nicoru = nicoruAPI.nicoruResultNicoruCount(jsonObject)
-                            showSnackbar("${getString(R.string.nicoru_ok)}：${item.nicoru}\n${item.comment}", null, null)
+                            val nicoruId = nicoruAPI.nicoruResultId(jsonObject)
+                            showSnackbar("${getString(R.string.nicoru_ok)}：${item.nicoru}\n${item.comment}", getString(R.string.nicoru_delete)) {
+                                // 取り消しAPI叩く
+                                GlobalScope.launch {
+                                    val deleteResponse = nicoruAPI.deleteNicoru(userSession, nicoruId).await()
+                                    if (deleteResponse.isSuccessful) {
+                                        this@NicoVideoAdapter.showToast(context, getString(R.string.nicoru_delete_ok))
+                                    } else {
+                                        this@NicoVideoAdapter.showToast(context, "${getString(R.string.error)}${deleteResponse.code}")
+                                    }
+                                }
+                            }
                             // ニコるボタンに再適用
                             holder.nicoruButton.post {
                                 holder.nicoruButton.text = item.nicoru.toString()
                             }
                         } else {
-                            showSnackbar(getString(R.string.nicoru_error), null, null)
+                            this@NicoVideoAdapter.showToast(context, getString(R.string.nicoru_error))
                         }
                     } else {
                         showToast(context, "プレ垢限定です")

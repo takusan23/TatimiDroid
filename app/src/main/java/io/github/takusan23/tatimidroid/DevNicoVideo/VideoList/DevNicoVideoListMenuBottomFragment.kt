@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
@@ -80,6 +81,21 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // キャッシュ用連続再生
         initCachePlaylistPlay()
 
+        // ブラウザで開くボタン
+        initOpenBrowser()
+
+    }
+
+    private fun initOpenBrowser() {
+        // キャッシュ一覧では表示させない
+        if (nicoVideoData.isCache) {
+            bottom_fragment_nicovideo_list_menu_browser.visibility = View.GONE
+        }
+        // ブラウザで開く。公式アニメが暗号化で見れん時に使って。
+        bottom_fragment_nicovideo_list_menu_browser.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, "https://nico.ms/${nicoVideoData.videoId}".toUri())
+            startActivity(intent)
+        }
     }
 
     private fun initCachePlaylistPlay() {
