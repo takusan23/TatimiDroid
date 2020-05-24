@@ -14,12 +14,14 @@ import kotlin.random.Random
 
 class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
+/*
     //白色テキストPaint
     lateinit var paint: Paint
 
     //白色テキストの下に描画する黒色テキストPaint
     lateinit var blackPaint: Paint
     val textList = arrayListOf<String>()
+*/
 
     //座標？
     val xList = arrayListOf<Int>()
@@ -106,9 +108,13 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     var isCustomCommentLine = false
     var customCommentLine = 10
 
+    // 透明度の設定（重そう小並感）
+    var commentAlpha = 1.0F
+
     init {
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
+/*
         //白色テキスト
         paint = Paint()
         paint.isAntiAlias = true
@@ -123,12 +129,15 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         blackPaint.style = Paint.Style.STROKE
         blackPaint.textSize = fontsize
         blackPaint.color = Color.parseColor("#000000")
+*/
 
         val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         //コメントの流れる速度
         val speed = pref_setting.getString("setting_comment_speed", "5")?.toInt() ?: 5
         // コメントキャンバスの更新頻度
         val update = pref_setting.getString("setting_comment_canvas_timer", "10")?.toLong() ?: 10
+        // コメントの透明度
+        commentAlpha = pref_setting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F
         // コメントの行を最低10行確保するモード
         isTenLineSetting = pref_setting.getBoolean("setting_comment_canvas_10_line", false)
         // コメントの色を部屋の色にする設定が有効ならtrue
@@ -214,7 +223,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                         canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command, fontSize))
                     }
                     else -> {
-                        canvas?.drawText(obj.comment, obj.xPos, obj.yPos, blackPaint)
+                        canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getBlackCommentTextPaint(fontsize))
                         canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command))
                     }
                 }
@@ -240,23 +249,27 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     // 色の変更
     fun getCommentTextPaint(command: String, fontSize: Float = this.fontsize): Paint {
         //白色テキスト
-        val paint = Paint()
-        paint.isAntiAlias = true
-        paint.textSize = fontSize
-        paint.style = Paint.Style.FILL
-        paint.color = Color.parseColor(getColor(command))
+        val paint = Paint().apply {
+            isAntiAlias = true
+            textSize = fontSize
+            style = Paint.Style.FILL
+            color = Color.parseColor(getColor(command))
+            alpha = (commentAlpha * 225).toInt() // 0 ~ 225 の範囲で指定するため 225かける
+        }
         return paint
     }
 
     // 枠取り文字の文字描画
     fun getBlackCommentTextPaint(fontSize: Float = this.fontsize): Paint {
         //黒色テキスト
-        val blackPaint = Paint()
-        blackPaint.isAntiAlias = true
-        blackPaint.strokeWidth = 2.0f
-        blackPaint.style = Paint.Style.STROKE
-        blackPaint.textSize = fontSize
-        blackPaint.color = Color.parseColor("#000000")
+        val blackPaint = Paint().apply {
+            isAntiAlias = true
+            strokeWidth = 2.0f
+            style = Paint.Style.STROKE
+            textSize = fontSize
+            color = Color.parseColor("#000000")
+            alpha = (commentAlpha * 225).toInt() // 0 ~ 225 の範囲で指定するため 225かける
+        }
         return blackPaint
     }
 
@@ -373,16 +386,16 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             // コメント行をカスタマイズしてるとき
             isCustomCommentLine -> {
                 fontsize = (finalHeight / customCommentLine).toFloat()
-                blackPaint.textSize = fontsize
+                // blackPaint.textSize = fontsize
             }
             // ポップアップ再生 / 10行コメント確保ーモード時
             isPopupView || isTenLineSetting -> {
                 fontsize = (finalHeight / 10).toFloat()
-                blackPaint.textSize = fontsize
+                // blackPaint.textSize = fontsize
             }
             else -> {
                 fontsize = 20 * resources.displayMetrics.scaledDensity
-                blackPaint.textSize = fontsize
+                // blackPaint.textSize = fontsize
             }
         }
         // 生主/運営のコメントは無視する

@@ -289,6 +289,13 @@
                 android:key="setting_comment_speed"
                 android:summary="@string/setting_comment_speed_description"
                 android:title="@string/setting_comment_speed_title" />
+
+        <EditTextPreference
+                android:defaultValue="1.0"
+                android:icon="@drawable/ic_paint_black"
+                android:key="setting_comment_alpha"
+                android:summary="コメントの透明度が設定できます。0.1から1.0（透過なし）の範囲で入力してください。"
+                android:title="コメントの透明度の設定" />
     </PreferenceCategory>
 
     <!--
