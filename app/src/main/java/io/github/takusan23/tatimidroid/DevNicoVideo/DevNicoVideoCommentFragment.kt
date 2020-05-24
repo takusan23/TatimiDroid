@@ -16,6 +16,9 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * コメント表示Fragment
@@ -44,7 +47,7 @@ class DevNicoVideoCommentFragment : Fragment() {
         id = arguments?.getString("id") ?: "sm157"
         usersession = prefSetting.getString("user_session", "") ?: ""
         recyclerView = view.findViewById(R.id.activity_nicovideo_recyclerview)
-        devNicoVideoFragment = fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
+        devNicoVideoFragment = parentFragmentManager.findFragmentByTag(id) as DevNicoVideoFragment
 
         // コメント検索ボタン、コメント並び替えボタンを非表示にするか
         if (prefSetting.getBoolean("nicovideo_hide_search_button", true)) {
@@ -55,7 +58,7 @@ class DevNicoVideoCommentFragment : Fragment() {
         initSortPopupMenu()
 
         // RecyclerView
-        initRecyclerView()
+        //  initRecyclerView()
 
         // コメント検索
         initSearchButton()
@@ -71,12 +74,12 @@ class DevNicoVideoCommentFragment : Fragment() {
         if (!isAdded) {
             return
         }
+        // DevNicoVideoFragment
+        devNicoVideoFragment = fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
         recyclerViewList = ArrayList(devNicoVideoFragment.commentList)
         recyclerView.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
         recyclerView.layoutManager = mLayoutManager
-        // DevNicoVideoFragment
-        val devNicoVideoFragment = fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
         // Adapter用意
         nicoVideoAdapter = NicoVideoAdapter(recyclerViewList)
         nicoVideoAdapter.devNicoVideoFragment = devNicoVideoFragment
@@ -94,9 +97,13 @@ class DevNicoVideoCommentFragment : Fragment() {
         // initRecyclerView()
     }
 
+    // FragmentがAttachされてからRecyclerView用意する
     override fun onResume() {
         super.onResume()
-        initRecyclerView()
+        GlobalScope.launch(Dispatchers.Main) {
+            devNicoVideoFragment.commentFilter(false).await()
+            initRecyclerView()
+        }
     }
 
     private fun initSortPopupMenu() {

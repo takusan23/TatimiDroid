@@ -71,6 +71,11 @@
                 android:key="setting_nicovideo_nicoru_show"
                 android:summary="@string/setting_show_nicoru_button_description"
                 android:title="@string/setting_show_nicoru_button_title" />
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_insert_chart_outlined_black_24dp"
+                android:key="setting_nicovideo_danmakuview_hide"
+                android:title="@string/setting_nicovideo_danmakuview_hide" />
         <ListPreference
                 android:defaultValue="default"
                 android:dialogTitle="@string/setting_play_type_title"

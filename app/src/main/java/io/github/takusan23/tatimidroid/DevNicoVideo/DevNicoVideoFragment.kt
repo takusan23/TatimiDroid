@@ -35,7 +35,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoRecyclerPagerAdapter
-import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoSkipCustomizeBottomFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.FregmentData.DevNicoVideoFragmentData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
@@ -182,6 +181,8 @@ class DevNicoVideoFragment : Fragment() {
         // コントローラー表示
         initController()
 
+        initViewPager()
+
         exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
 
         /**
@@ -214,8 +215,8 @@ class DevNicoVideoFragment : Fragment() {
             // UIに反映
             GlobalScope.launch(Dispatchers.Main) {
                 applyUI().await()
+                commentFilter(false).await()
                 // NG適用
-                commentFilter().await()
                 if (!isCache) {
                     // 関連動画
                     (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
@@ -260,6 +261,10 @@ class DevNicoVideoFragment : Fragment() {
 
     // コントローラーのUI変更
     private fun initController() {
+        // コメント可視化View（DanmakuView）非表示
+        if (prefSetting.getBoolean("setting_nicovideo_danmakuview_hide", false)) {
+            danmakuView.visibility = View.GONE
+        }
         fragment_nicovideo_fab.setOnClickListener {
             fragment_nicovideo_controller.apply {
                 // 表示。
@@ -511,8 +516,9 @@ class DevNicoVideoFragment : Fragment() {
      * 注意：NG操作が終わったときに呼ぶとうまく動く？。
      * 注意：この関数を呼ぶと勝手にコメント一覧のRecyclerViewも更新されます。（代わりにapplyUI関数からコメントRecyclerView関係を消します）
      * rawCommentListはそのままで、フィルターにかけた結果がcommentListになる
+     * @param notify DevNicoVideoCommentFragmentに更新をかけたい時はtrue。画面回転時に落ちる（ほんとこの仕様４ね）のでその時だけfalse
      * */
-    fun commentFilter() = GlobalScope.async(Dispatchers.IO) {
+    fun commentFilter(notify: Boolean = true) = GlobalScope.async(Dispatchers.IO) {
         // 3DSけす？
         val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
         // NG機能
@@ -522,11 +528,10 @@ class DevNicoVideoFragment : Fragment() {
         if (is3DSCommentHidden) {
             // device:3DSが入ってるコメント削除。dropWhileでもいい気がする
             commentList = commentList.toList().filter { commentJSONParse -> !commentJSONParse.mail.contains("device:3DS") } as ArrayList<CommentJSONParse>
-            println(commentList.map { commentJSONParse -> commentJSONParse.mail })
         }
-        withContext(Dispatchers.Main) {
-            (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
-                initRecyclerView(true)
+        if (notify) {
+            withContext(Dispatchers.Main) {
+                (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).initRecyclerView(true)
             }
         }
     }
@@ -534,9 +539,9 @@ class DevNicoVideoFragment : Fragment() {
     /**
      * データ取得終わった時にUIに反映させる
      * */
-    private fun applyUI() = GlobalScope.async(Dispatchers.Main) {
+    fun applyUI() = GlobalScope.async(Dispatchers.Main) {
         // ViewPager初期化
-        initViewPager().await()
+        //   initViewPager().await()
         if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
             // 動画を再生しない場合
             commentOnlyModeEnable()
@@ -803,22 +808,25 @@ class DevNicoVideoFragment : Fragment() {
 
                     // 一時的に。addOnGlobalLayoutListenerで正確なViewの幅を取得してるんだけどこれ値が結構大きく変わるので対策
                     var tmpWidth = -1
-                    // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
                     danmakuView?.apply {
-                        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-                            override fun onGlobalLayout() {
-                                if (tmpWidth != width || tmpWidth == 0) {
-                                    // おなじになるまで待つ
-                                    tmpWidth = width
-                                } else {
-                                    // 同じならコメント盛り上がり可視化Viewを初期化
-                                    init(exoPlayer.duration / 1000, commentList, width)
-                                    viewTreeObserver.removeOnGlobalLayoutListener(this)
+                        // 非表示なら初期化しない
+                        if (danmakuView.visibility != View.GONE) {
+                            viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                                override fun onGlobalLayout() {
+                                    if (tmpWidth != width || tmpWidth == 0) {
+                                        // おなじになるまで待つ
+                                        tmpWidth = width
+                                    } else {
+                                        // 同じならコメント盛り上がり可視化Viewを初期化
+                                        init(exoPlayer.duration / 1000, commentList, width)
+                                        viewTreeObserver.removeOnGlobalLayoutListener(this)
+                                    }
                                 }
-                            }
-                        })
+                            })
+                        }
                     }
 
+                    // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
                     exoPlayer.seekTo(rotationProgress)
                     isRotationProgressSuccessful = true
                     // 前回見た位置から再生
@@ -1082,7 +1090,7 @@ class DevNicoVideoFragment : Fragment() {
     /**
      * ViewPager初期化
      * */
-    private fun initViewPager() = GlobalScope.async(Dispatchers.Main) {
+    private fun initViewPager() {
         viewPager = DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache, this@DevNicoVideoFragment)
         fragment_nicovideo_viewpager.adapter = viewPager
         TabLayoutMediator(fragment_nicovideo_tablayout, fragment_nicovideo_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
