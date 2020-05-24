@@ -426,7 +426,9 @@ class CommentFragment : Fragment() {
                         // 履歴に追加
                         insertDB()
                         // 全部屋API
-                        initAllRoomConnect()
+                        if (!nicoLiveHTML.isOfficial) {
+                            initAllRoomConnect()
+                        }
                     }
                     // 全部屋接続。定期的にAPIを叩く
                     // ただし公式番組では利用できないので分岐
