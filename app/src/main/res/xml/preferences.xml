@@ -14,6 +14,7 @@
                 android:key="setting_launch_fragment"
                 android:summary="@string/setting_launch_fragment_description"
                 android:title="@string/setting_launch_fragment_title" />
+
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_folder_open_black_24dp"
@@ -22,6 +23,15 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/setting_video_and_live">
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_paint_black"
+                android:key="setting_darkmode"
+                android:summary="@string/setting_darkmode_description"
+                android:title="@string/setting_darkmode_title"
+                app:isPreferenceVisible="false" />
+
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_do_not_disturb_alt_black_24dp"
@@ -30,52 +40,61 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/video">
+
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_lock_outline_black_24dp"
                 android:key="setting_no_login"
                 android:summary="@string/setting_no_login_description"
                 android:title="@string/setting_no_login_title" />
+
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_signal_cellular_null_24px"
                 android:key="setting_nicovideo_economy"
                 android:summary="@string/setting_economy_description"
                 android:title="@string/setting_economy_title" />
+
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_signal_cellular_null_24px"
                 android:key="setting_nicovideo_low_quality"
                 android:summary="@string/setting_mobiledata_quality_description"
                 android:title="@string/setting_mobiledata_quality" />
+
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_outline_comment_24px"
                 android:key="setting_nicovideo_comment_only"
                 android:summary="@string/setting_comment_only_description"
                 android:title="@string/setting_comment_only_title" />
+
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_folder_open_black_24dp"
                 android:key="setting_nicovideo_cache_priority"
                 android:summary="@string/setting_cache_priority_description"
                 android:title="@string/setting_cache_priority_title" />
+
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_sort_black_24dp"
                 android:key="setting_nicovideo_mylist_sort_itemcount"
                 android:title="@string/mylist_sort_itemcount_title" />
+
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_sentiment_satisfied_black_24dp"
                 android:key="setting_nicovideo_nicoru_show"
                 android:summary="@string/setting_show_nicoru_button_description"
                 android:title="@string/setting_show_nicoru_button_title" />
+
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_insert_chart_outlined_black_24dp"
                 android:key="setting_nicovideo_danmakuview_hide"
                 android:title="@string/setting_nicovideo_danmakuview_hide" />
+
         <ListPreference
                 android:defaultValue="default"
                 android:dialogTitle="@string/setting_play_type_title"
@@ -102,19 +121,18 @@
                 android:key="setting_one_line"
                 android:title="@string/setting_one_line" />
 
-
         <Preference
                 android:icon="@drawable/ic_font_download_24px"
                 android:key="font_preference"
                 android:summary="@string/setting_font_description"
                 android:title="@string/font_setting" />
+
         <SwitchPreference
-                android:defaultValue="false"
-                android:icon="@drawable/ic_paint_black"
-                android:key="setting_darkmode"
-                android:summary="@string/setting_darkmode_description"
-                android:title="@string/setting_darkmode_title"
-                app:isPreferenceVisible="false" />
+                android:defaultValue="true"
+                android:icon="@drawable/ic_view_day_black_24dp"
+                android:key="setting_nicolive_comment_outline"
+                android:summary="@string/setting_nicolive_comment_outline_description"
+                android:title="@string/setting_nicolive_comment_outline_title" />
 
         <!--
             <SwitchPreference

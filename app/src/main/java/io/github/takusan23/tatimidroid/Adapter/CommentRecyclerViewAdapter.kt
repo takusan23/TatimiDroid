@@ -160,10 +160,13 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         //部屋の色
         if (pref_setting.getBoolean("setting_room_color", true)) {
             holder.roomNameTextView.setTextColor(getRoomColor(commentJSONParse.roomName, context))
-            // OutlineなCardにしてみる?
-            (holder.cardView as MaterialCardView).apply {
-                strokeColor = getRoomColor(commentJSONParse.roomName, context)
-                strokeWidth = 2
+            // OutlineなCardViewにして枠の色を部屋に合わせる設定が有効なら
+            if (pref_setting.getBoolean("setting_nicolive_comment_outline", true)) {
+                (holder.cardView as MaterialCardView).apply {
+                    strokeColor = getRoomColor(commentJSONParse.roomName, context)
+                    strokeWidth = 2
+                    elevation = 0f
+                }
             }
         }
 
