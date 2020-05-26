@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import io.github.takusan23.tatimidroid.Fragment.CommentLockonBottomFragment
@@ -46,11 +47,6 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         val context = holder.cardView.context
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
-        //NGチェック
-        var isNGUser = false
-        var isNGComment = false
-        var userId: String = commentJSONParse.userId
-
         //CommentFragment取得
 
         //ロックオンだけcontextからActivityが取れないので。。
@@ -64,7 +60,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         // コテハンMAP
         val kotehanMap = commentFragment.kotehanMap
         // コテハン。なければユーザーIDで
-        userId = kotehanMap[commentJSONParse.userId] ?: commentJSONParse.userId
+        val userId = kotehanMap[commentJSONParse.userId] ?: commentJSONParse.userId
 
         //絶対時刻か相対時刻か
         var time = ""
@@ -100,22 +96,20 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             }
         }
 
-        var info = "${commentJSONParse.roomName} | $time | ${userId}"
-        var comment: String
+        var info = "${commentJSONParse.roomName} | $time | $userId"
 
         //公式番組のコメントはコメント番号存在しない
-        if (commentJSONParse.commentNo.isEmpty()) {
+        val comment = if (commentJSONParse.commentNo.isEmpty()) {
             if (commentJSONParse.uneiComment.isNotEmpty()) {
-                comment = commentJSONParse.uneiComment // 運営コメントをきれいにしたやつ
+                commentJSONParse.uneiComment // 運営コメントをきれいにしたやつ
             } else {
-                comment = commentJSONParse.comment
+                commentJSONParse.comment
             }
         } else {
             if (commentJSONParse.uneiComment.isNotEmpty()) {
-                comment =
-                    "${commentJSONParse.commentNo} : ${commentJSONParse.uneiComment}" // 運営コメントをきれいにしたやつ
+                "${commentJSONParse.commentNo} : ${commentJSONParse.uneiComment}" // 運営コメントをきれいにしたやつ
             } else {
-                comment = "${commentJSONParse.commentNo} : ${commentJSONParse.comment}"
+                "${commentJSONParse.commentNo} : ${commentJSONParse.comment}"
             }
         }
 
@@ -137,16 +131,6 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             info = info
         }
 
-        //NGの場合は置き換える
-        if (isNGUser) {
-            info = ""
-            comment = context.getString(R.string.ng_user)
-        }
-        if (isNGComment) {
-            info = ""
-            comment = context.getString(R.string.ng_comment)
-        }
-
         //UserIDの配列になければ配列に入れる。初コメ
         if (userList.indexOf(commentJSONParse.userId) == -1) {
             userList.add(commentJSONParse.userId)
@@ -158,7 +142,6 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
 
         holder.commentTextView.text = comment
         holder.roomNameTextView.text = info
-
 
         //詳細画面出す
         holder.cardView.setOnClickListener {
@@ -177,6 +160,11 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         //部屋の色
         if (pref_setting.getBoolean("setting_room_color", true)) {
             holder.roomNameTextView.setTextColor(getRoomColor(commentJSONParse.roomName, context))
+            // OutlineなCardにしてみる?
+            (holder.cardView as MaterialCardView).apply {
+                strokeColor = getRoomColor(commentJSONParse.roomName, context)
+                strokeWidth = 2
+            }
         }
 
         //ID非表示
@@ -211,15 +199,10 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        var commentTextView: TextView
-        var roomNameTextView: TextView
-        var cardView: CardView
+        var commentTextView: TextView = itemView.findViewById(R.id.adapter_comment_textview)
+        var roomNameTextView: TextView = itemView.findViewById(R.id.adapter_room_name_textview)
+        var cardView: CardView = itemView.findViewById(R.id.adapter_room_name_cardview)
 
-        init {
-            commentTextView = itemView.findViewById(R.id.adapter_comment_textview)
-            roomNameTextView = itemView.findViewById(R.id.adapter_room_name_textview)
-            cardView = itemView.findViewById(R.id.adapter_room_name_cardview)
-        }
     }
 
     //コメビュの部屋の色。NCVに追従する

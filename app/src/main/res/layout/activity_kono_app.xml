@@ -1,58 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:gravity="center"
+        android:orientation="vertical"
         tools:context=".Activity.KonoApp">
 
     <androidx.cardview.widget.CardView
-            app:cardCornerRadius="10dp"
-            android:layout_margin="10dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            app:cardCornerRadius="10dp">
 
         <LinearLayout
-                android:padding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:padding="10dp">
 
             <ImageView
+                    android:id="@+id/kono_app_imageview"
                     android:layout_width="match_parent"
-                    android:tint="@null"
                     android:layout_height="wrap_content"
-                    app:srcCompat="@mipmap/ic_launcher_round"
-                    android:id="@+id/kono_app_imageview"/>
+                    android:tint="@null"
+                    app:srcCompat="@mipmap/ic_launcher_round" />
 
             <TextView
                     android:id="@+id/kono_app_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:text="@string/app_name"
                     android:textSize="20sp"
-                    android:gravity="center"
-                    android:textStyle="bold"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    />
+                    android:textStyle="bold" />
 
             <TextView
-                    android:text="@string/version"
                     android:id="@+id/kono_app_codename"
-                    android:textSize="18sp"
-                    android:gravity="center"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    />
+                    android:gravity="center"
+                    android:text="@string/version"
+                    android:textSize="18sp" />
 
             <Button
-                    android:text="@string/sourcecode"
+                    android:id="@+id/kono_app_sourcecode"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/kono_app_sourcecode"/>
+                    android:text="@string/sourcecode" />
 
             <Button
                     android:id="@+id/kono_app_privacy_policy"
@@ -65,55 +62,54 @@
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
-            app:cardCornerRadius="10dp"
-            android:layout_margin="10dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            app:cardCornerRadius="10dp">
 
         <LinearLayout
-                android:orientation="vertical"
-                android:padding="10dp"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="10dp">
 
             <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:text="@string/link"
                     android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    />
+                    android:textStyle="bold" />
 
             <TextView
-                    android:text="@string/kono_app_contact_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    />
+                    android:text="@string/kono_app_contact_description" />
 
             <LinearLayout
-                    android:orientation="horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
                 <Button
-                        android:text="Twitter"
+                        android:id="@+id/kono_app_twitter"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:id="@+id/kono_app_twitter"/>
+                        android:text="Twitter" />
 
                 <Space
                         android:layout_width="10dp"
-                        android:layout_height="match_parent"/>
+                        android:layout_height="match_parent" />
 
                 <Button
-                        android:text="Mastodon"
+                        android:id="@+id/kono_app_mastodon"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:id="@+id/kono_app_mastodon"/>
+                        android:text="Mastodon" />
 
             </LinearLayout>
+
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
