@@ -149,7 +149,6 @@ class DevNicoVideoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         prefSetting = PreferenceManager.getDefaultSharedPreferences(requireContext())
         nicoVideoCache = NicoVideoCache(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
@@ -334,8 +333,8 @@ class DevNicoVideoFragment : Fragment() {
     // ダークモード
     private fun initDarkmode() {
         darkModeSupport = DarkModeSupport(requireContext())
-        fragment_nicovideo_tablayout.backgroundTintList =
-            ColorStateList.valueOf(darkModeSupport.getThemeColor())
+        fragment_nicovideo_tablayout.backgroundTintList = ColorStateList.valueOf(darkModeSupport.getThemeColor())
+        fragment_nicovideo_framelayout_elevation_cardview.setBackgroundColor(darkModeSupport.getThemeColor())
     }
 
     /**

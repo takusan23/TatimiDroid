@@ -9,19 +9,30 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_dialog.*
 import kotlinx.android.synthetic.main.textview_ripple.view.*
 
-/**
- * BottomSheet版ダイアログを自作してみた。
- * @param description ダイアログの説明
- * @param buttonItems DialogBottomSheetItemの配列。
- * @param clickEvent クリック押したときのコールバック。引数は押した位置です。
- * */
-class DialogBottomSheet(val description: String, val buttonItems: ArrayList<DialogBottomSheetItem>, val clickEvent: (Int, BottomSheetDialogFragment) -> Unit) :
-    BottomSheetDialogFragment() {
+/** 引数なしのコンストラクタを用意しないとまれに落ちるらしい。本来引数じゃなくてargumentsで渡すもんだからな */
+class DialogBottomSheet() : BottomSheetDialogFragment() {
+
+    lateinit var description: String
+    lateinit var buttonItems: ArrayList<DialogBottomSheetItem>
+    lateinit var clickEvent: (Int, BottomSheetDialogFragment) -> Unit
+
+    /**
+     * BottomSheet版ダイアログを自作してみた。
+     * @param description ダイアログの説明
+     * @param buttonItems DialogBottomSheetItemの配列。
+     * @param clickEvent クリック押したときのコールバック。引数は押した位置です。
+     * */
+    constructor(description: String, buttonItems: ArrayList<DialogBottomSheetItem>, clickEvent: (Int, BottomSheetDialogFragment) -> Unit) : this() {
+        this.description = description
+        this.buttonItems = buttonItems
+        this.clickEvent = clickEvent
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_dialog, container, false)
@@ -29,6 +40,9 @@ class DialogBottomSheet(val description: String, val buttonItems: ArrayList<Dial
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (!::clickEvent.isInitialized) {
+            return
+        }
         // 説明文
         bottom_fragment_dialog_description.text = description
         // ボタン作成

@@ -8,6 +8,7 @@
 
     <!--  影をつけるためだけにCardView追加  -->
     <androidx.cardview.widget.CardView
+            android:id="@+id/fragment_nicovideo_framelayout_elevation_cardview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="0dp"
