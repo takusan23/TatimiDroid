@@ -432,4 +432,9 @@
     <string name="setting_nicolive_comment_outline_description">CardViewをアウトラインにして、枠の色を部屋の色に合わせます。前の仕様がいい場合は無効にしてください。</string>
     <string name="setting_nicolive_comment_outline_title">コメント一覧の枠の色を部屋の色に合わせる</string>
     <string name="ng_score">NGスコア</string>
+    <string name="one_minute_statistics">一分間の統計</string>
+    <string name="one_minute_statistics_premium">プレ垢人数</string>
+    <string name="one_minute_statistics_user_id">生ID人数</string>
+    <string name="one_minute_statistics_ng_score">NGスコア平均</string>
+    <string name="one_minute_statistics_comment_length">コメント文字数平均</string>
 </resources>

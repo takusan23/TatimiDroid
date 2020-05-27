@@ -8,6 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.R
 
+/**
+ * ダークモードなど
+ * */
 class DarkModeSupport(val context: Context) {
 
     var nightMode: Int = Configuration.UI_MODE_NIGHT_NO

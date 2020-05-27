@@ -16,6 +16,7 @@
 
         <!-- 影をつけるためのCardView -->
         <androidx.cardview.widget.CardView
+                android:id="@+id/comment_activity_fragment_layout_elevation_cardview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:elevation="5dp"
@@ -196,6 +197,7 @@
                                     android:focusable="true"
                                     android:foreground="?android:attr/selectableItemBackground"
                                     android:padding="10dp"
+                                    android:visibility="gone"
                                     app:srcCompat="@drawable/ic_timeline_black_24dp" />
 
                         </LinearLayout>

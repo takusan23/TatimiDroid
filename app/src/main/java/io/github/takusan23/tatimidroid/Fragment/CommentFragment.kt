@@ -256,12 +256,9 @@ class CommentFragment : Fragment() {
 
         //ダークモード対応
         if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
-            commentActivity.supportActionBar?.setBackgroundDrawable(
-                ColorDrawable(
-                    darkModeSupport.getThemeColor()
-                )
-            )
+            commentActivity.supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
             activity_comment_tab_layout.background = ColorDrawable(darkModeSupport.getThemeColor())
+            comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(darkModeSupport.getThemeColor())
         }
 
         // GoogleCast？
@@ -293,8 +290,7 @@ class CommentFragment : Fragment() {
         // 低遅延モードon/off
         nicoLiveHTML.isLowLatency = !pref_setting.getBoolean("nicolive_low_latency", true)
         // 初回の画質を低画質にする設定（モバイル回線とか強制低画質モードとか）
-        val isMobileDataLowQuality =
-            pref_setting.getBoolean("setting_mobiledata_quality_low", false)
+        val isMobileDataLowQuality = pref_setting.getBoolean("setting_mobiledata_quality_low", false)
         val isPreferenceLowQuality = pref_setting.getBoolean("setting_nicolive_quality_low", false)
         if (isMobileDataLowQuality || isPreferenceLowQuality) {
             nicoLiveHTML.startQuality = "super_low"
@@ -1067,8 +1063,7 @@ class CommentFragment : Fragment() {
 
     fun setAlwaysShowProgramInfo() {
         if (comment_activity_fragment_layout_motionlayout != null) {
-            val isAlwaysShowProgramInfo =
-                pref_setting.getBoolean("setting_always_program_info", false)
+            val isAlwaysShowProgramInfo = pref_setting.getBoolean("setting_always_program_info", false)
             if (isAlwaysShowProgramInfo) {
                 // Start->End
                 comment_fragment_program_info.visibility = View.VISIBLE
@@ -1140,47 +1135,41 @@ class CommentFragment : Fragment() {
         //1分でリセット
         activeTimer.schedule(10000, 60000) {
             commentActivity.runOnUiThread {
-                //println(activeList)
-                // 指定した時間の配列の要素を取得する
-                // 一分前のUnixTime
-                val calender = Calendar.getInstance()
-                calender.add(Calendar.MINUTE, -1)
-                val unixTime = calender.timeInMillis / 1000L
-                // 今のUnixTime
-                val nowUnixTime = System.currentTimeMillis() / 1000L
-                // 範囲内のコメントを取得する
-                val timeList = commentJSONList.toList().filter { comment ->
-                    if (comment.date.toFloatOrNull() != null) {
-                        comment.date.toLong() in unixTime..nowUnixTime
-                    } else {
-                        false
+                GlobalScope.launch(Dispatchers.IO) {
+                    val calender = Calendar.getInstance()
+                    calender.add(Calendar.MINUTE, -1)
+                    val unixTime = calender.timeInMillis / 1000L
+                    // 今のUnixTime
+                    val nowUnixTime = System.currentTimeMillis() / 1000L
+                    // 範囲内のコメントを取得する
+                    val timeList = commentJSONList.toList().filter { comment ->
+                        if (comment.date.toFloatOrNull() != null) {
+                            comment.date.toLong() in unixTime..nowUnixTime
+                        } else {
+                            false
+                        }
                     }
-                }
-                // 同じIDを取り除く
-                val idList = timeList.distinctBy { comment -> comment.userId }
-                // 数えた結果
-                activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
-                // NGスコア平均
-                val ngScoreAverage = idList.map { commentJSONParse ->
-                    val score = commentJSONParse.score
-                    if (score.isNotEmpty()) {
-                        commentJSONParse.score.toInt()
-                    } else {
-                        0
+                    // 同じIDを取り除く
+                    val idList = timeList.distinctBy { comment -> comment.userId }
+                    // NGスコア平均。NGSoreだけの配列にして、NGScoreを数値に変換して、平均を取る
+                    val ngScoreAverage = idList.filter { commentJSONParse -> commentJSONParse.score.isNotEmpty() }.map { commentJSONParse -> commentJSONParse.score.toInt() }
+                    // 平均コメント数
+                    val commentLengthAverage = timeList.map { commentJSONParse -> commentJSONParse.comment.length }.average().roundToInt()
+                    // プレ垢人数
+                    val premiumCount = idList.count { commentJSONParse -> commentJSONParse.premium == "\uD83C\uDD7F" }
+                    // 生ID人数
+                    val userIdCount = idList.count { commentJSONParse -> !commentJSONParse.mail.contains("184") }
+                    withContext(Dispatchers.Main) {
+                        // 数えた結果
+                        activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
+                        // 統計情報表示
+                        val toukei =
+                            "${getString(R.string.one_minute_statistics)}\n${getString(R.string.one_minute_statistics_premium)}：$premiumCount\n${getString(R.string.one_minute_statistics_user_id)}：$userIdCount\n${getString(R.string.one_minute_statistics_ng_score)}：${ngScoreAverage.average().toInt()}\n${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAverage"
+                        activity_comment_comment_statistics.visibility = View.VISIBLE
+                        activity_comment_comment_statistics.setOnClickListener {
+                            multiLineSnackbar(it, toukei)
+                        }
                     }
-                }.average().roundToInt()
-                // 平均コメント数
-                val commentLengthAverage = idList.map { commentJSONParse ->
-                    commentJSONParse.comment.length
-                }.average().roundToInt()
-                // プレ垢人数
-                val premiumCount = idList.count { commentJSONParse -> commentJSONParse.premium == "\uD83C\uDD7F" }
-                // 生ID人数
-                val userIdCount = idList.count { commentJSONParse -> !commentJSONParse.mail.contains("184") }
-                // 統計情報表示
-                val toukei = "一分の統計\nプレ垢人数：$premiumCount\n生ID人数：$userIdCount\n平均NGスコア：$ngScoreAverage\nコメント文字数平均：$commentLengthAverage"
-                activity_comment_comment_statistics.setOnClickListener {
-                    multiLineSnackbar(it, toukei)
                 }
             }
         }

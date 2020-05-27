@@ -432,4 +432,9 @@
     <string name="setting_nicolive_comment_outline_title">Match the color of the comment list frame to the room color</string>
     <string name="setting_nicolive_comment_outline_description">Outline CardView and match the frame color with the room color. Disable if the previous specifications are good.</string>
     <string name="ng_score">NG score</string>
+    <string name="one_minute_statistics">One minute statistics</string>
+    <string name="one_minute_statistics_premium">Number of premium accounts</string>
+    <string name="one_minute_statistics_user_id">Number of raw IDs</string>
+    <string name="one_minute_statistics_ng_score">Average NG score</string>
+    <string name="one_minute_statistics_comment_length">Average number of comment characters</string>
 </resources>
