@@ -43,22 +43,23 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Adapter.CommentViewPager
+import io.github.takusan23.tatimidroid.CommentCanvas
+import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.FregmentData.NicoLiveFragmentData
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
+import io.github.takusan23.tatimidroid.NimadoActivity
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
-import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.*
-import io.github.takusan23.tatimidroid.Tool.DataClass.NGData
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
@@ -71,6 +72,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import kotlin.concurrent.timerTask
+import kotlin.math.roundToInt
 
 /**
  * 生放送再生Fragment。
@@ -1155,13 +1157,46 @@ class CommentFragment : Fragment() {
                     }
                 }
                 // 同じIDを取り除く
-                val idList =
-                    timeList.distinctBy { comment -> comment.userId }
+                val idList = timeList.distinctBy { comment -> comment.userId }
                 // 数えた結果
-                activity_comment_comment_active_text.text =
-                    "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
+                activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
+                // NGスコア平均
+                val ngScoreAverage = idList.map { commentJSONParse ->
+                    val score = commentJSONParse.score
+                    if (score.isNotEmpty()) {
+                        commentJSONParse.score.toInt()
+                    } else {
+                        0
+                    }
+                }.average().roundToInt()
+                // 平均コメント数
+                val commentLengthAverage = idList.map { commentJSONParse ->
+                    commentJSONParse.comment.length
+                }.average().roundToInt()
+                // プレ垢人数
+                val premiumCount = idList.count { commentJSONParse -> commentJSONParse.premium == "\uD83C\uDD7F" }
+                // 生ID人数
+                val userIdCount = idList.count { commentJSONParse -> !commentJSONParse.mail.contains("184") }
+                // 統計情報表示
+                val toukei = "一分の統計\nプレ垢人数：$premiumCount\n生ID人数：$userIdCount\n平均NGスコア：$ngScoreAverage\nコメント文字数平均：$commentLengthAverage"
+                activity_comment_comment_statistics.setOnClickListener {
+                    multiLineSnackbar(it, toukei)
+                }
             }
         }
+    }
+
+    /**
+     * MultilineなSnackbar
+     * https://stackoverflow.com/questions/30705607/android-multiline-snackbar
+     * */
+    private fun multiLineSnackbar(view: View, message: String) {
+        val snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT)
+        val snackbarView = snackbar.view
+        val textView = snackbarView.findViewById(com.google.android.material.R.id.snackbar_text) as TextView
+        textView.maxLines = 5 // show multiple line
+        snackbar.anchorView = getSnackbarAnchorView() // 何のViewの上に表示するか指定
+        snackbar.show()
     }
 
     // データベースに履歴追加

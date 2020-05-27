@@ -431,4 +431,5 @@
     <string name="setting_nicovideo_danmakuview_hide">コメント可視化（シークバーの上に出るグラフ）を非表示にする</string>
     <string name="setting_nicolive_comment_outline_description">CardViewをアウトラインにして、枠の色を部屋の色に合わせます。前の仕様がいい場合は無効にしてください。</string>
     <string name="setting_nicolive_comment_outline_title">コメント一覧の枠の色を部屋の色に合わせる</string>
+    <string name="ng_score">NGスコア</string>
 </resources>

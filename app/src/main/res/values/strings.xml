@@ -431,4 +431,5 @@
     <string name="setting_nicovideo_danmakuview_hide">Hide the comment visualization (graph above the seek bar)</string>
     <string name="setting_nicolive_comment_outline_title">Match the color of the comment list frame to the room color</string>
     <string name="setting_nicolive_comment_outline_description">Outline CardView and match the frame color with the room color. Disable if the previous specifications are good.</string>
+    <string name="ng_score">NG score</string>
 </resources>

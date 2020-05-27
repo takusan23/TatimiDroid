@@ -6,10 +6,12 @@
             android:title="ここは開発者が使う設定項目です。"
             app:icon="@drawable/ic_outline_info_24px" />
 
-    <PreferenceCategory android:title="コメントベンチマーク">
+    <PreferenceCategory
+            android:summary="発熱により一部機能がシステムにより制限される可能性があります。"
+            android:title="コメントベンチマーク">
         <Preference
                 android:key="dev_setting_get_comment"
-                android:summary="全コメント動画見てやりたくなった。私の環境(Pixel 3)では10万コメントぐらいが限界だった。"
+                android:summary="全コメント動画見てやりたくなった。私の環境では10万コメントぐらいが限界だった。"
                 android:title="1000件以上コメント取得" />
         <EditTextPreference
                 android:defaultValue="5000"
@@ -20,5 +22,6 @@
                 android:key="dev_setting_get_comment_service_finish"
                 android:title="取得サービス終了" />
     </PreferenceCategory>
+
 
 </PreferenceScreen>
