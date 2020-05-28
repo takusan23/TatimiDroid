@@ -395,6 +395,12 @@
     <PreferenceCategory android:title="@string/sonta">
 
         <Preference
+                android:icon="@drawable/ic_history_24px"
+                android:key="first_time_preference"
+                android:summary="@string/setting_first_time_show_description"
+                android:title="@string/setting_first_time_show_title" />
+
+        <Preference
                 android:icon="@drawable/ic_outline_info_24px"
                 android:key="licence_preference"
                 android:title="@string/licence" />

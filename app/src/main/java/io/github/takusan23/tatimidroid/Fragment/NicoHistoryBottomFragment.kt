@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Adapter.NicoHistoryAdapter
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
@@ -52,8 +53,10 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
 
         //削除
         bottom_fragment_history_delete_button.setOnClickListener {
-            sqLiteDatabase.delete(NicoHistorySQLiteHelper.TABLE_NAME, null, null)
-            dismiss()
+            Snackbar.make(it, R.string.delete_message, Snackbar.LENGTH_SHORT).setAction(R.string.delete) {
+                sqLiteDatabase.delete(NicoHistorySQLiteHelper.TABLE_NAME, null, null)
+                dismiss()
+            }.show()
         }
 
         // chip押したとき

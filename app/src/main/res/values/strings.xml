@@ -437,4 +437,6 @@
     <string name="one_minute_statistics_user_id">Number of raw IDs</string>
     <string name="one_minute_statistics_ng_score">Average NG score</string>
     <string name="one_minute_statistics_comment_length">Average number of comment characters</string>
+    <string name="setting_first_time_show_title">See the first used day</string>
+    <string name="setting_first_time_show_description">Press here to get the oldest value from the history database. Please leave only the old mount.</string>
 </resources>

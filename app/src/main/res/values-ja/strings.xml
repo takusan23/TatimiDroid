@@ -437,4 +437,6 @@
     <string name="one_minute_statistics_user_id">生ID人数</string>
     <string name="one_minute_statistics_ng_score">NGスコア平均</string>
     <string name="one_minute_statistics_comment_length">コメント文字数平均</string>
+    <string name="setting_first_time_show_title">最初に使った日を見る（おまけ機能）</string>
+    <string name="setting_first_time_show_description">ここを押すと履歴データベースから一番古い値を取得します。古参マウントだけは辞めてね。</string>
 </resources>

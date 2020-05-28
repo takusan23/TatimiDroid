@@ -63,12 +63,12 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         // コテハン。なければユーザーIDで
         val userId = kotehanMap[commentJSONParse.userId] ?: commentJSONParse.userId
 
-        //絶対時刻か相対時刻か
+        // 絶対時刻か相対時刻か
         var time = ""
         if (pref_setting.getBoolean("setting_zettai_zikoku_hyouzi", true)) {
             if (commentFragment.isJK) {
-                //絶対時刻（12:13:00）など
-                //UnixTime -> Minute
+                // 絶対時刻（12:13:00）など
+                // UnixTime -> Minute
                 if (commentJSONParse.date.isNotEmpty()) {
                     val calendar = Calendar.getInstance(TimeZone.getDefault())
                     calendar.timeInMillis = commentJSONParse.date.toLong() * 1000L
@@ -87,8 +87,8 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
                 }
             }
         } else {
-            //絶対時刻（12:13:00）など
-            //UnixTime -> Minute
+            // 絶対時刻（12:13:00）など
+            // UnixTime -> Minute
             if (commentJSONParse.date.isNotEmpty()) {
                 val calendar = Calendar.getInstance(TimeZone.getDefault())
                 calendar.timeInMillis = commentJSONParse.date.toLong() * 1000L
@@ -99,7 +99,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
 
         var info = "${commentJSONParse.roomName} | $time | $userId"
 
-        //公式番組のコメントはコメント番号存在しない
+        // 公式番組のコメントはコメント番号存在しない
         val comment = if (commentJSONParse.commentNo.isEmpty()) {
             if (commentJSONParse.uneiComment.isNotEmpty()) {
                 commentJSONParse.uneiComment // 運営コメントをきれいにしたやつ
@@ -125,14 +125,14 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             info = info
         }
 
-        //プレ垢
+        // プレ垢
         if (commentJSONParse.premium.isNotEmpty()) {
             info = "$info | ${commentJSONParse.premium}"
         } else {
             info = info
         }
 
-        //UserIDの配列になければ配列に入れる。初コメ
+        // UserIDの配列になければ配列に入れる。初コメ
         if (userList.indexOf(commentJSONParse.userId) == -1) {
             userList.add(commentJSONParse.userId)
             //初コメは太字にする
@@ -144,7 +144,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         holder.commentTextView.text = comment
         holder.roomNameTextView.text = info
 
-        //詳細画面出す
+        // 詳細画面出す
         holder.cardView.setOnClickListener {
             val bundle = Bundle()
             bundle.putString("comment", commentJSONParse.comment)
@@ -158,7 +158,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             }
         }
 
-        //部屋の色
+        // 部屋の色
         if (pref_setting.getBoolean("setting_room_color", true)) {
             holder.roomNameTextView.setTextColor(getRoomColor(commentJSONParse.roomName, context))
             // OutlineなCardViewにして枠の色を部屋に合わせる設定が有効なら

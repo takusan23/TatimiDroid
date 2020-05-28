@@ -69,6 +69,9 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             holder.commentTextView.text = "${item.commentNo}：$comment"
         }
 
+        // プレ垢
+        val isPremium = devNicoVideoFragment.nicoVideoHTML.isPremium(devNicoVideoFragment.jsonObject)
+
         // 動画でコテハン？いる
         val kotehanOrUserId = devNicoVideoFragment.kotehanMap[item.userId] ?: item.userId
 
@@ -82,7 +85,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
         // 一般会員にはニコる提供されてないのでニコる数だけ表示
         // あとDevNicoVideoFragmentはがめんスワイプしてたらなんか落ちたので
-        val nicoruCount = if (item.nicoru > 0 && isInitDevNicoVideoFragment() && !(devNicoVideoFragment.isPremium && isShowNicoruButton)) {
+        val nicoruCount = if (item.nicoru > 0 && isInitDevNicoVideoFragment() && !(isPremium && isShowNicoruButton)) {
             "| ニコる ${item.nicoru} "
         } else {
             ""
@@ -110,7 +113,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
 
         // プレ垢はニコるくんつける
-        if (isInitDevNicoVideoFragment() && devNicoVideoFragment.isPremium && isShowNicoruButton) {
+        if (isInitDevNicoVideoFragment() && isPremium && isShowNicoruButton) {
             holder.nicoruButton.visibility = View.VISIBLE
         }
 

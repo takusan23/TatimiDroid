@@ -6,9 +6,10 @@
             android:title="ここは開発者が使う設定項目です。"
             app:icon="@drawable/ic_outline_info_24px" />
 
-    <PreferenceCategory
-            android:summary="発熱により一部機能がシステムにより制限される可能性があります。"
-            android:title="コメントベンチマーク">
+    <PreferenceCategory android:title="コメントベンチマーク">
+        <Preference
+                android:icon="@drawable/ic_report_problem_black_24dp"
+                android:summary="一気にコメントを流すと発熱により、一部機能がシステムにより制限される可能性があります。" />
         <Preference
                 android:key="dev_setting_get_comment"
                 android:summary="全コメント動画見てやりたくなった。私の環境では10万コメントぐらいが限界だった。"
@@ -21,6 +22,18 @@
         <Preference
                 android:key="dev_setting_get_comment_service_finish"
                 android:title="取得サービス終了" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+            android:icon="@drawable/ic_folder_open_black_24dp"
+            android:summary="注意：復元のとき、データベースファイル以外も選べちゃう仕様ですがデータベースのファイルを選んでください。"
+            android:title="履歴DBのバックアップ/復元">
+        <Preference
+                android:key="dev_setting_history_db_backup"
+                android:title="履歴DBのバックアップをする" />
+        <Preference
+                android:key="dev_setting_history_db_restore"
+                android:title="履歴DBの復元をする" />
     </PreferenceCategory>
 
 

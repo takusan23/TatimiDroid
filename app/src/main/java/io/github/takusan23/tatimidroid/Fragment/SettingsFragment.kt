@@ -3,14 +3,22 @@ package io.github.takusan23.tatimidroid.Fragment
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.Activity.LicenceActivity
-import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
+import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Files.readAttributes
+import java.nio.file.attribute.BasicFileAttributes
+import java.text.SimpleDateFormat
 
 
 class SettingsFragment : PreferenceFragmentCompat() {
@@ -35,7 +43,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val devSetting = findPreference<Preference>("dev_setting")
         // キャッシュ再生について
         val aboutCache = findPreference<Preference>("about_cache")
-
+        // 一番最初に使った日
+        val firstTimeDay = findPreference<Preference>("first_time_preference")
+        // DarkModeSwitch
         val darkmode_switch_preference = findPreference<SwitchPreference>("setting_darkmode")
 
         licence_preference?.setOnPreferenceClickListener {
@@ -96,6 +106,30 @@ class SettingsFragment : PreferenceFragmentCompat() {
             true
         }
 
+        firstTimeDay?.setOnPreferenceClickListener { preference ->
+            // DB用意
+            val nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(requireContext())
+            val sqLiteDatabase = nicoHistorySQLiteHelper.writableDatabase
+            nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
+            // 探す
+            val cursor = sqLiteDatabase.query(NicoHistorySQLiteHelper.TABLE_NAME, arrayOf("service_id", "type", "date", "title", "user_id"), null, null, null, null, null)
+            cursor.moveToFirst()
+            if (cursor.count > 0) {
+                val title = cursor.getString(3)
+                val time = cursor.getString(2)
+                val id = cursor.getString(1)
+                val service = cursor.getString(0)
+                preference.summary = "最初に見たもの：$title ($id/ $service)\n一番最初に使った日：${toFormatTime(time.toLong() * 1000)}"
+            }
+            cursor.close()
+            false
+        }
+    }
+
+    /** UnixTime -> わかりやすい形式に */
+    private fun toFormatTime(time: Long): String? {
+        val simpleDateFormat = SimpleDateFormat("yyyy年MM月dd日HH時mm分ss秒")
+        return simpleDateFormat.format(time)
     }
 
 
