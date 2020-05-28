@@ -37,6 +37,7 @@ import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoRecyclerPagerAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.FregmentData.DevNicoVideoFragmentData
+import io.github.takusan23.tatimidroid.FregmentData.TabLayoutData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
@@ -180,8 +181,6 @@ class DevNicoVideoFragment : Fragment() {
         // コントローラー表示
         initController()
 
-        initViewPager()
-
         exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
 
         /**
@@ -204,6 +203,9 @@ class DevNicoVideoFragment : Fragment() {
             if (devNicoVideoFragmentData.dataApiData != null) {
                 jsonObject = JSONObject(devNicoVideoFragmentData.dataApiData!!)
             }
+            // TabLayout（ViewPager）の回転前の状態取得とViewPagerの初期化
+            val dynamicAddFragmentList = savedInstanceState.getSerializable("tab") as ArrayList<TabLayoutData>
+            initViewPager(dynamicAddFragmentList)
             // オンライン再生時のみやること
             if (!isCache) {
                 sessionAPIJSONObject = JSONObject(devNicoVideoFragmentData.sessionAPIJSONObject!!)
@@ -228,6 +230,8 @@ class DevNicoVideoFragment : Fragment() {
             }
         } else {
             // 初めて///
+
+            initViewPager()
 
             // キャッシュを優先的に使う設定有効？
             val isPriorityCache = prefSetting.getBoolean("setting_nicovideo_cache_priority", false)
@@ -1088,9 +1092,10 @@ class DevNicoVideoFragment : Fragment() {
 
     /**
      * ViewPager初期化
+     * @param dynamicAddFragmentList 動的に追加したFragmentがある場合は入れてね。なければ省略していいです。
      * */
-    private fun initViewPager() {
-        viewPager = DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache, this@DevNicoVideoFragment)
+    private fun initViewPager(dynamicAddFragmentList: ArrayList<TabLayoutData> = arrayListOf()) {
+        viewPager = DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache, this@DevNicoVideoFragment, dynamicAddFragmentList)
         fragment_nicovideo_viewpager.adapter = viewPager
         TabLayoutMediator(fragment_nicovideo_tablayout, fragment_nicovideo_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
             tab.text = viewPager.fragmentTabName[position]
@@ -1115,9 +1120,7 @@ class DevNicoVideoFragment : Fragment() {
             }
             // すでにあれば追加しない
             if (!viewPager.fragmentTabName.contains(nickname)) {
-                viewPager.fragmentList.add(postFragment)
-                viewPager.fragmentTabName.add(nickname)
-                viewPager.notifyDataSetChanged() // 更新！
+                viewPager.addFragment(postFragment, nickname) // Fragment追加関数
             }
         }
     }
@@ -1271,6 +1274,7 @@ class DevNicoVideoFragment : Fragment() {
                 recommendList = recommendList
             )
             putSerializable("data", data)
+            putSerializable("tab", viewPager.dynamicAddFragmentList)
         }
     }
 

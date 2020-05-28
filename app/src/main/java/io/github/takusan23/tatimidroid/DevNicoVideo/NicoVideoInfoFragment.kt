@@ -176,7 +176,7 @@ class NicoVideoInfoFragment : Fragment() {
                         if (isConnectionInternet(context)) {
                             // DevNicoVideoFragment
                             val fragment = parentFragmentManager.findFragmentByTag(id) as DevNicoVideoFragment
-                            val postFragment = DevNicoVideoSearchFragment().apply {
+                            val searchFragment = DevNicoVideoSearchFragment().apply {
                                 arguments = Bundle().apply {
                                     putString("search", name)
                                     putBoolean("search_hide", true)
@@ -185,9 +185,7 @@ class NicoVideoInfoFragment : Fragment() {
                             // 追加位置
                             val addPos = fragment.viewPager.fragmentList.size
                             // ViewPager追加
-                            fragment.viewPager.fragmentList.add(postFragment)
-                            fragment.viewPager.fragmentTabName.add("${getString(R.string.tag)}：$name")
-                            fragment.viewPager.notifyDataSetChanged()
+                            fragment.viewPager.addFragment(searchFragment, "${getString(R.string.tag)}：$name")
                             // ViewPager移動
                             fragment.fragment_nicovideo_viewpager.currentItem = addPos
                         }
@@ -289,7 +287,7 @@ class NicoVideoInfoFragment : Fragment() {
             span.setSpan(object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     // マイリスト表示FragmentをViewPagerに追加する
-                    val postFragment = DevNicoVideoMyListListFragment().apply {
+                    val mylistFragment = DevNicoVideoMyListListFragment().apply {
                         arguments = Bundle().apply {
                             putString("mylist_id", mylist.replace("mylist/", ""))// IDだけくれ
                             putBoolean("is_other", true)
@@ -298,9 +296,7 @@ class NicoVideoInfoFragment : Fragment() {
                     // DevNicoVideoFragment
                     (parentFragmentManager.findFragmentByTag(videoId) as DevNicoVideoFragment).apply {
                         // ViewPager追加
-                        viewPager.fragmentList.add(postFragment)
-                        viewPager.fragmentTabName.add("${getString(R.string.mylist)}：$mylist")
-                        viewPager.notifyDataSetChanged()
+                        viewPager.addFragment(mylistFragment,"${getString(R.string.mylist)}：$mylist")
                         // ViewPager移動
                         fragment_nicovideo_viewpager.currentItem = viewPager.fragmentTabName.size
                     }

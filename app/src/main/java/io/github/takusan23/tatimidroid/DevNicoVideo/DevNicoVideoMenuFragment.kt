@@ -296,8 +296,7 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     // 画質変更ボタン初期化
     private fun initQualityButton() {
-        val devNicoVideoFragment =
-            fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+        val devNicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
         // キャッシュ再生時またはキャッシュ優先再生時は非表示
         if (isCache) {
             fragment_nicovideo_menu_quality.visibility = View.GONE
