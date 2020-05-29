@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.Parcelable
 import android.text.format.DateUtils
 import android.view.*
 import android.view.animation.AnimationUtils
@@ -53,6 +54,7 @@ import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
+import java.io.Serializable
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
@@ -204,7 +206,7 @@ class DevNicoVideoFragment : Fragment() {
                 jsonObject = JSONObject(devNicoVideoFragmentData.dataApiData!!)
             }
             // TabLayout（ViewPager）の回転前の状態取得とViewPagerの初期化
-            val dynamicAddFragmentList = savedInstanceState.getSerializable("tab") as ArrayList<TabLayoutData>
+            val dynamicAddFragmentList = savedInstanceState.getParcelableArrayList<TabLayoutData>("tab") as ArrayList<TabLayoutData>
             initViewPager(dynamicAddFragmentList)
             // オンライン再生時のみやること
             if (!isCache) {
@@ -231,8 +233,6 @@ class DevNicoVideoFragment : Fragment() {
         } else {
             // 初めて///
 
-            initViewPager()
-
             // キャッシュを優先的に使う設定有効？
             val isPriorityCache = prefSetting.getBoolean("setting_nicovideo_cache_priority", false)
 
@@ -243,6 +243,9 @@ class DevNicoVideoFragment : Fragment() {
                 else -> false // オンライン
             }
 
+            // キャッシュ再生かどうかが分かったところでViewPager初期化
+            initViewPager()
+
             // 強制エコノミーの設定有効なら
             val isPreferenceEconomyMode = prefSetting.getBoolean("setting_nicovideo_economy", false)
             // エコノミー再生するなら
@@ -250,9 +253,7 @@ class DevNicoVideoFragment : Fragment() {
 
             when {
                 // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
-                isCache -> {
-                    cachePlay()
-                }
+                isCache -> cachePlay()
                 // エコノミー再生？
                 isEconomy || isPreferenceEconomyMode -> coroutine(true, "", "", true)
                 // それ以外：インターネットで取得
@@ -1092,6 +1093,7 @@ class DevNicoVideoFragment : Fragment() {
 
     /**
      * ViewPager初期化
+     * 注意：キャッシュ再生かどうか、動画IDがちゃんとある状態で実行しないとうまく動きません。
      * @param dynamicAddFragmentList 動的に追加したFragmentがある場合は入れてね。なければ省略していいです。
      * */
     private fun initViewPager(dynamicAddFragmentList: ArrayList<TabLayoutData> = arrayListOf()) {
@@ -1274,7 +1276,7 @@ class DevNicoVideoFragment : Fragment() {
                 recommendList = recommendList
             )
             putSerializable("data", data)
-            putSerializable("tab", viewPager.dynamicAddFragmentList)
+            putParcelableArrayList("tab", viewPager.dynamicAddFragmentList)
         }
     }
 

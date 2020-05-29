@@ -69,7 +69,7 @@ class NicoVideoInfoFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         val fragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
-        if (fragment.jsonObject.toString().isNotEmpty()) {
+        if (fragment.isInitJsonObject() && fragment.jsonObject.toString().isNotEmpty()) {
             parseJSONApplyUI(fragment.jsonObject.toString())
         }
     }
@@ -296,7 +296,7 @@ class NicoVideoInfoFragment : Fragment() {
                     // DevNicoVideoFragment
                     (parentFragmentManager.findFragmentByTag(videoId) as DevNicoVideoFragment).apply {
                         // ViewPager追加
-                        viewPager.addFragment(mylistFragment,"${getString(R.string.mylist)}：$mylist")
+                        viewPager.addFragment(mylistFragment, "${getString(R.string.mylist)}：$mylist")
                         // ViewPager移動
                         fragment_nicovideo_viewpager.currentItem = viewPager.fragmentTabName.size
                     }

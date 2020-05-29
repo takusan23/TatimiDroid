@@ -72,6 +72,9 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         // プレ垢
         val isPremium = devNicoVideoFragment.nicoVideoHTML.isPremium(devNicoVideoFragment.jsonObject)
 
+        // オフライン再生かどうか
+        val isOfflinePlay = devNicoVideoFragment.isCache
+
         // 動画でコテハン？いる
         val kotehanOrUserId = devNicoVideoFragment.kotehanMap[item.userId] ?: item.userId
 
@@ -83,13 +86,6 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         } else {
             ""
         }
-        // 一般会員にはニコる提供されてないのでニコる数だけ表示
-        // あとDevNicoVideoFragmentはがめんスワイプしてたらなんか落ちたので
-        val nicoruCount = if (item.nicoru > 0 && isInitDevNicoVideoFragment() && !(isPremium && isShowNicoruButton)) {
-            "| ニコる ${item.nicoru} "
-        } else {
-            ""
-        }
 
         // NGスコア表示するか
         val ngScore = if (prefSetting.getBoolean("setting_show_ng", false) && item.score.isNotEmpty()) {
@@ -97,9 +93,6 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         } else {
             ""
         }
-
-        holder.userNameTextView.text = "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount$ngScore| ${kotehanOrUserId}"
-        holder.nicoruButton.text = item.nicoru.toString()
 
         // ユーザーの設定したフォントサイズ
         font.apply {
@@ -113,9 +106,20 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
 
         // プレ垢はニコるくんつける
-        if (isInitDevNicoVideoFragment() && isPremium && isShowNicoruButton) {
+        if (isInitDevNicoVideoFragment() && isPremium && isShowNicoruButton && !isOfflinePlay) {
             holder.nicoruButton.visibility = View.VISIBLE
         }
+
+        // 一般会員にはニコる提供されてないのでニコる数だけ表示
+        // あとDevNicoVideoFragmentはがめんスワイプしてたらなんか落ちたので
+        val nicoruCount = if (holder.nicoruButton.visibility == View.GONE && item.nicoru > 0) {
+            "| ニコる ${item.nicoru} "
+        } else {
+            ""
+        }
+
+        holder.userNameTextView.text = "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount$ngScore| ${kotehanOrUserId}"
+        holder.nicoruButton.text = item.nicoru.toString()
 
         // ロックオン芸（詳細画面表示）
         holder.cardView.setOnClickListener {

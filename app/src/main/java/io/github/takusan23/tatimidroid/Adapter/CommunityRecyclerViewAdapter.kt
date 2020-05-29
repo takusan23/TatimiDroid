@@ -28,8 +28,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 // 番組RecyclerViewAdapter
-class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ProgramData>) :
-    RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
+class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ProgramData>) : RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
 
     lateinit var prefSetting: SharedPreferences
 

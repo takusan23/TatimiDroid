@@ -11,8 +11,10 @@ import android.util.AttributeSet
 import android.view.AbsSavedState
 import android.view.View
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 /**
@@ -69,7 +71,9 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
                 val drawHeight = it * viewHeight
                 danmakuList.add(Pair(Color.GRAY, drawHeight))
             }
-            invalidate()
+            withContext(Dispatchers.Main) {
+                invalidate()
+            }
         }
     }
 

@@ -105,17 +105,18 @@ class DevNicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val vide
         // 引数に指定したFragmentがある場合
         dynamicAddFragmentList.toList().forEach { data ->
             // Fragment作る
-            val fragment = when (data.type) {
+            when (data.type) {
                 TAB_LAYOUT_DATA_SEARCH -> DevNicoVideoSearchFragment()
                 TAB_LAYOUT_DATA_POST -> DevNicoVideoPOSTFragment()
                 TAB_LAYOUT_DATA_MYLIST -> DevNicoVideoMyListFragment()
-                else -> Fragment()
+                else -> null
+            }?.let { fragment ->
+                // Bundle詰める
+                fragment.arguments = data.bundle
+                fragmentList.add(fragment)
+                fragmentTabName.add(data.text ?: "タブ")
+                notifyDataSetChanged() // 更新
             }
-            // Bundle詰める
-            fragment.arguments = data.bundle
-            fragmentList.add(fragment)
-            fragmentTabName.add(data.text)
-            notifyDataSetChanged() // 更新
         }
 
     }

@@ -11,8 +11,7 @@ import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKData
 import io.github.takusan23.tatimidroid.R
 
-class NicoJKProgramAdapter(val nicoJKDataList: ArrayList<NicoJKData>) :
-    RecyclerView.Adapter<NicoJKProgramAdapter.ViewHolder>() {
+class NicoJKProgramAdapter(val nicoJKDataList: ArrayList<NicoJKData>) : RecyclerView.Adapter<NicoJKProgramAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)

@@ -1154,7 +1154,12 @@ class CommentFragment : Fragment() {
                     // NGスコア平均。NGSoreだけの配列にして、NGScoreを数値に変換して、平均を取る
                     val ngScoreAverage = idList.filter { commentJSONParse -> commentJSONParse.score.isNotEmpty() }.map { commentJSONParse -> commentJSONParse.score.toInt() }
                     // 平均コメント数
-                    val commentLengthAverage = timeList.map { commentJSONParse -> commentJSONParse.comment.length }.average().roundToInt()
+                    val commentLengthAverageDouble = timeList.map { commentJSONParse -> commentJSONParse.comment.length }.average()
+                    val commentLengthAverage = if (!commentLengthAverageDouble.isNaN()) {
+                        commentLengthAverageDouble.roundToInt()
+                    } else {
+                        -1
+                    }
                     // プレ垢人数
                     val premiumCount = idList.count { commentJSONParse -> commentJSONParse.premium == "\uD83C\uDD7F" }
                     // 生ID人数

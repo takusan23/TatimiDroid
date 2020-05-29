@@ -159,7 +159,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     private fun showInfo() {
         // NGスコア/個数など
         bottom_fragment_comment_menu_count.text = "${getString(R.string.comment_count)}：${recyclerViewList.size}"
-        bottom_fragment_comment_menu_ng.text = "${getString(R.string.ng_score)}：${recyclerViewList[0].score}"
+        bottom_fragment_comment_menu_ng.text = "${getString(R.string.ng_score)}：${recyclerViewList.firstOrNull()?.score}"
     }
 
     /** ユーザーページを開く */
