@@ -43,6 +43,7 @@ import java.math.RoundingMode
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.timerTask
+import kotlin.math.roundToInt
 
 /**
  * ニコ生をポップアップ、バックグラウンドで再生するやつ。
@@ -242,18 +243,13 @@ class NicoVideoPlayService : Service() {
             // キャッシュ再生
             val dataSourceFactory =
                 DefaultDataSourceFactory(this, "TatimiDroid;@takusan_23")
-            val videoSource =
-                ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(contentUrl.toUri())
+            val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(contentUrl.toUri())
             exoPlayer.prepare(videoSource)
         } else {
             // SmileサーバーはCookieつけないと見れないため
-            val dataSourceFactory =
-                DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
+            val dataSourceFactory = DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
             dataSourceFactory.defaultRequestProperties.set("Cookie", nicoHistory)
-            val videoSource =
-                ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(contentUrl.toUri())
+            val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(contentUrl.toUri())
             exoPlayer.prepare(videoSource)
         }
         // 自動再生
@@ -272,8 +268,7 @@ class NicoVideoPlayService : Service() {
                         return
                     }
                     // シークの最大値設定。
-                    popupView.overlay_video_video_seek_bar.max =
-                        (exoPlayer.duration / 1000L).toInt()
+                    popupView.overlay_video_video_seek_bar.max = (exoPlayer.duration / 1000L).toInt()
                     // 動画のシーク
                     popupView.overlay_video_video_seek_bar.setOnSeekBarChangeListener(object :
                         SeekBar.OnSeekBarChangeListener {
@@ -316,12 +311,11 @@ class NicoVideoPlayService : Service() {
                 val calc = width.toFloat() / height.toFloat()
                 // 小数点第二位を捨てる
                 aspect = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
-                popupLayoutParams = getParams(realSize.x / 2)
+                popupLayoutParams = getParams(realSize.x / 4)
                 windowManager.updateViewLayout(popupView, popupLayoutParams)
                 // 設定読み込む
                 // サイズ適用
-                popupView.overlay_video_size_seekbar.progress =
-                    prefSetting.getInt("nicovideo_popup_size_progress", 0)
+                popupView.overlay_video_size_seekbar.progress = prefSetting.getInt("nicovideo_popup_size_progress", 0)
                 // CommentCanvasに反映
                 applyCommentCanvas()
                 // 位置が保存されていれば適用
@@ -349,7 +343,7 @@ class NicoVideoPlayService : Service() {
                 return
             }
             // 画面の半分を利用するように
-            val width = realSize.x / 2
+            val width = realSize.x / 4
 
             // レイアウト読み込み
             val layoutInflater = LayoutInflater.from(this)
@@ -451,10 +445,10 @@ class NicoVideoPlayService : Service() {
                         }
                         // 大きさ変更シークの最大値設定。なんかこの式で期待通り動く。なんでか知らないけど動く。:thinking_face:
                         popupView.overlay_video_size_seekbar.max = when (aspect) {
-                            1.3 -> (displaySize.x / 4) / 2
-                            1.7 -> (displaySize.x / 16) / 2
-                            else -> (displaySize.x / 16) / 2
-                        }
+                            1.3 -> (displaySize.x / 4) / 1.5
+                            1.7 -> (displaySize.x / 16) / 1.5
+                            else -> (displaySize.x / 16) / 1.5
+                        }.toInt()
                         // 操作中
                         when (aspect) {
                             1.3 -> {
