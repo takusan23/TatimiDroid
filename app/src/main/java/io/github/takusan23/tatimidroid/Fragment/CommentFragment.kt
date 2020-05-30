@@ -1079,7 +1079,7 @@ class CommentFragment : Fragment() {
     }
 
     // ニコ生ゲーム有効
-    fun setNicoNamaGame() {
+    fun setNicoNamaGame(isWebViewPlayer: Boolean = false) {
         // WebViewのためにFrameLayout広げるけど動画とコメントCanvasはサイズそのまま
         surfaceViewLayoutParams.apply {
             live_surface_view.layoutParams = this
@@ -1090,7 +1090,7 @@ class CommentFragment : Fragment() {
         frameLayoutParams.height += 140
         liveFrameLayout.layoutParams = frameLayoutParams
         // ニコ生WebView
-        nicoNamaGameWebView = NicoNamaGameWebView(context, liveId, live_framelayout)
+        nicoNamaGameWebView = NicoNamaGameWebView(context, liveId, isWebViewPlayer)
         live_framelayout.addView(nicoNamaGameWebView.webView)
         isAddedNicoNamaGame = true
     }

@@ -304,6 +304,19 @@ class CommentMenuFragment : Fragment() {
             }
         }
 
+        // ニコ生ゲーム（生放送・コメントもWebViewで利用する）
+        fragment_comment_fragment_nico_nama_game_webview_player_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            commentFragment.apply {
+                if (isChecked) {
+                    if(isExoPlayerInitialized()) exoPlayer.volume = 0F
+                    setNicoNamaGame(isChecked)
+                } else {
+                    if(isExoPlayerInitialized()) exoPlayer.volume = 1F
+                    removeNicoNamaGame()
+                }
+            }
+        }
+
         fragment_comment_fragment_volume_seek.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {

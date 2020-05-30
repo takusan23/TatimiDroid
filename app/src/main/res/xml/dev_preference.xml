@@ -2,9 +2,9 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
     <PreferenceCategory
+            android:icon="@drawable/ic_outline_info_24px"
             android:summary="開発者が実験で使う項目です。だから戻ってね。"
-            android:title="ここは開発者が使う設定項目です。"
-            app:icon="@drawable/ic_outline_info_24px" />
+            android:title="ここは開発者が使う設定項目です。" />
 
     <PreferenceCategory android:title="コメントベンチマーク">
         <Preference
@@ -26,8 +26,10 @@
 
     <PreferenceCategory
             android:icon="@drawable/ic_folder_open_black_24dp"
-            android:summary="注意：復元のとき、データベースファイル以外も選べちゃう仕様ですがデータベースのファイルを選んでください。"
             android:title="履歴DBのバックアップ/復元">
+        <Preference
+                android:icon="@drawable/ic_report_problem_black_24dp"
+                android:summary="注意：復元のとき、データベースファイル以外も選べちゃう仕様ですがデータベースのファイルを選んでください。" />
         <Preference
                 android:key="dev_setting_history_db_backup"
                 android:title="履歴DBのバックアップをする" />

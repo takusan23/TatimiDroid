@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -53,10 +54,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
 
         //削除
         bottom_fragment_history_delete_button.setOnClickListener {
-            Snackbar.make(it, R.string.delete_message, Snackbar.LENGTH_SHORT).setAction(R.string.delete) {
-                sqLiteDatabase.delete(NicoHistorySQLiteHelper.TABLE_NAME, null, null)
-                dismiss()
-            }.show()
+            showDeleteDialog()
         }
 
         // chip押したとき
@@ -64,6 +62,18 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_history_chip_video.setOnClickListener { loadHistory() }
         bottom_fragment_history_chip_today.setOnClickListener { loadHistory() }
 
+    }
+
+    private fun showDeleteDialog() {
+        val buttons = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
+            add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.delete)))
+            add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel)))
+        }
+        DialogBottomSheet(getString(R.string.delete_message), buttons) { i, bottomSheetDialogFragment ->
+            sqLiteDatabase.delete(NicoHistorySQLiteHelper.TABLE_NAME, null, null)
+            bottomSheetDialogFragment.dismiss()
+            dismiss()
+        }.show(getParentFragmentManager(), "delete")
     }
 
     // 件数表示

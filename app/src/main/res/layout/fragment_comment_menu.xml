@@ -300,6 +300,13 @@
                                 android:padding="5sp"
                                 android:text="@string/play_nico_nama_game" />
 
+                        <Switch
+                                android:id="@+id/fragment_comment_fragment_nico_nama_game_webview_player_switch"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="5sp"
+                                android:text="@string/play_nico_nama_game_webview_player" />
+
                         <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"

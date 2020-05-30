@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences
-    val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
+    //val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -297,6 +297,7 @@ class MainActivity : AppCompatActivity() {
         }
         activity_main_history_button.setOnClickListener {
             // 履歴ボタン
+            val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
             nicoHistoryBottomFragment.editText = activity_main_liveid_edittext
             nicoHistoryBottomFragment.show(supportFragmentManager, "history")
         }
