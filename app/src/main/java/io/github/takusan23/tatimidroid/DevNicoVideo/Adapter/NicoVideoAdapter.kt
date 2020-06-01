@@ -70,7 +70,11 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
 
         // プレ垢
-        val isPremium = devNicoVideoFragment.nicoVideoHTML.isPremium(devNicoVideoFragment.jsonObject)
+        val isPremium = if (!devNicoVideoFragment.isCache) {
+            devNicoVideoFragment.nicoVideoHTML.isPremium(devNicoVideoFragment.jsonObject)
+        } else {
+            false
+        }
 
         // オフライン再生かどうか
         val isOfflinePlay = devNicoVideoFragment.isCache

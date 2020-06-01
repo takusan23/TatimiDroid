@@ -94,6 +94,8 @@ class DevNicoVideoFragment : Fragment() {
     var isCache = false
     var contentUrl = ""
     var nicoHistory = ""
+
+    /** 動画情報JSON。キャッシュ再生時でなお動画情報JSONがなければ永遠に初期化されません。 */
     lateinit var jsonObject: JSONObject
 
     // session_apiのレスポンス
