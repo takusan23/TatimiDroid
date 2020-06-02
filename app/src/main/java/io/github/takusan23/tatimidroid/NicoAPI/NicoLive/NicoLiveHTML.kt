@@ -2,6 +2,8 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import android.os.Handler
 import android.os.Looper
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ScheduleDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
@@ -17,8 +19,8 @@ import org.java_websocket.protocols.Protocol
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
+import java.io.Console
 import java.io.IOException
-import java.lang.Exception
 import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
@@ -216,34 +218,24 @@ class NicoLiveHTML {
     private fun connectionNicoLiveWebSocket(webSocketUrl: String, broadcastId: String, onMessageFun: (String, String) -> Unit) {
         nicoLiveWebSocketClient = object : WebSocketClient(URI(webSocketUrl)) {
             override fun onOpen(handshakedata: ServerHandshake?) {
-                // 視聴セッションWebSocketに接続したら最初に送らないといけないJSONがあるので送りつける
-                val jsonObject = JSONObject()
-                jsonObject.put("type", "watch")
-                //body
-                val bodyObject = JSONObject()
-                bodyObject.put("command", "getpermit")
-                //requirement
-                val requirementObject = JSONObject()
-                requirementObject.put("broadcastId", broadcastId)
-                requirementObject.put("route", "")
-                //stream
-                val streamObject = JSONObject()
-                streamObject.put("protocol", "hls")
-                streamObject.put("requireNewStream", true)
-                streamObject.put("priorStreamQuality", startQuality) // 画質
-                streamObject.put("isLowLatency", isLowLatency) // 低遅延
-                streamObject.put("isChasePlay", false)
-                //room
-                val roomObject = JSONObject()
-                roomObject.put("isCommentable", true)
-                roomObject.put("protocol", "webSocket")
-
-                requirementObject.put("stream", streamObject)
-                requirementObject.put("room", roomObject)
-
-                bodyObject.put("requirement", requirementObject)
-                jsonObject.put("body", bodyObject)
-
+                // 視聴セッションWebSocketに接続したら最初に送らないといけないJSONがあるので送りつける。2020/06/02から送るJSONの中身が変わっているぞおい勝手に変更するな
+                val jsonObject = JSONObject().apply {
+                    put("type", "startWatching")
+                    put("data", JSONObject().apply {
+                        put("stream", JSONObject().apply {
+                            put("quality", startQuality) // 画質
+                            put("protocol", "hls")
+                            put("latency", toLatencyString()) // 低遅延。highかlowになった。Booleanに戻せよ
+                            put("chasePlay", false)
+                        })
+                        put("room", JSONObject().apply {
+                            put("protocol", "webSocket")
+                            put("commentable", true)
+                        })
+                        put("reconnect", false)
+                    })
+                }
+/*
                 //もう一個
                 val secondObject = JSONObject()
                 secondObject.put("type", "watch")
@@ -253,9 +245,10 @@ class NicoLiveHTML {
                 paramsArray.put("leo")
                 secondbodyObject.put("params", paramsArray)
                 secondObject.put("body", secondbodyObject)
+*/
 
                 // JSON送信！
-                this.send(secondObject.toString())
+                //  this.send(secondObject.toString())
                 this.send(jsonObject.toString())
             }
 
@@ -265,25 +258,17 @@ class NicoLiveHTML {
 
             override fun onMessage(message: String?) {
                 if (message != null) {
-                    // 高階関数呼ぶ
-                    val command = if (JSONObject(message).getJSONObject("body").has("command")) {
-                        JSONObject(message).getJSONObject("body").getString("command")
-                    } else {
-                        ""
-                    }
-                    onMessageFun(command, message)
+                    // type。streamとかcommentroomとか
+                    val type = JSONObject(message).getString("type")
+                    onMessageFun(type, message)
                     when {
-                        command == "currentstream" -> {
+                        type == "stream" -> {
                             currentQuality = getCurrentQuality(message)
                         }
-                        command == "currentroom" -> {
-                            val jsonObject = JSONObject(message)
-                            // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
-                            if (jsonObject.getJSONObject("body").has("room")) {
-                                threadId = getCommentServerThreadId(message)
-                            }
+                        type == "room" -> {
+                            threadId = getCommentServerThreadId(message)
                         }
-                        command == "postkey" -> {
+                        type == "postkey" -> {
                             // コメント投稿時に使うpostkeyを受け取る
                             val postKey = getPostKey(message)
                             if (postKey != null) {
@@ -327,30 +312,17 @@ class NicoLiveHTML {
         timer = Timer()
         timer.schedule(30000, 30000) {
             if (!nicoLiveWebSocketClient.isClosed) {
-                // ひとつめ
-                val jsonObject = JSONObject()
-                jsonObject.put("type", "watch")
-
-                val bodyJSONObject = JSONObject()
-                bodyJSONObject.put("command", "watching")
-
-                val paramsArray = JSONArray()
-                paramsArray.put(broadcastId)
-                paramsArray.put("-1")
-                paramsArray.put("0")
-
-                bodyJSONObject.put("params", paramsArray)
-                jsonObject.put("body", bodyJSONObject)
-
-                // ふたつめ
-                val secondJSONObject = JSONObject()
-                secondJSONObject.put("type", "pong")
-                secondJSONObject.put("body", JSONObject())
-
+                // ハートビート処理も2020/06/02の更新で送る内容が変わってる
+                val pongObject = JSONObject().apply {
+                    put("type", "pong")
+                }
+                val keepSeatObject = JSONObject().apply {
+                    put("type", "keepSeat")
+                }
                 // それぞれを３０秒ごとに送る
                 // なお他の環境と同時に視聴すると片方切断される（片方の画面に同じ番組を開くとだめ的なメッセージ出る）
-                nicoLiveWebSocketClient.send(jsonObject.toString())
-                nicoLiveWebSocketClient.send(secondJSONObject.toString())
+                nicoLiveWebSocketClient.send(pongObject.toString())
+                nicoLiveWebSocketClient.send(keepSeatObject.toString())
             }
         }
         //接続
@@ -418,19 +390,12 @@ class NicoLiveHTML {
     fun sendPOSTWebSocketComment(comment: String, command: String) {
         postCommentText = comment
         postCommentCommand = command
-        //postKeyを視聴用セッションWebSocketに払い出してもらう
-        //PC版ニコ生だとコメントを投稿のたびに取得してるので
-        val postKeyObject = JSONObject()
-        postKeyObject.put("type", "watch")
-        val bodyObject = JSONObject()
-        bodyObject.put("command", "getpostkey")
-        val paramsArray = JSONArray()
-        paramsArray.put(threadId)
-        bodyObject.put("params", paramsArray)
-        postKeyObject.put("body", bodyObject)
-        //送信する
+        // postKeyを視聴用セッションWebSocketに払い出してもらう
+        // PC版ニコ生だとコメントを投稿のたびに取得してるので
+        // 2020/06/02の更新で{type:"getPostKey"}を送りつけるだけで動くようになる
+        // 送信する
         //この後の処理は視聴用セッションWebSocketでpostKeyを受け取る処理に行きます。
-        nicoLiveWebSocketClient.send(postKeyObject.toString())
+        nicoLiveWebSocketClient.send("{\"type\":\"getPostkey\"}")
     }
 
     /**
@@ -507,83 +472,129 @@ class NicoLiveHTML {
 
     /**
      * PostKey取得
-     * @param message postkeyが文字列に含まれていること
-     * @return postkeyが見つからなければnull。あればpostkey
+     * 注意：typeがpostKeyである必要があります。
+     * @param message ニコ生視聴セッションWebSocketから流れてきたJSON文字列
+     * @return postKey
      * */
     fun getPostKey(message: String?): String? {
         val jsonObject = JSONObject(message)
-        val command = jsonObject.getJSONObject("body").getString("command")
-        // コメント送信なので２重チェック
-        if (command.contains("postkey")) {
-            //JSON配列の０番目にpostkeyが入ってる。
-            val paramsArray =
-                jsonObject.getJSONObject("body").getJSONArray("params")
-            return paramsArray.getString(0)
-        }
-        return null
+        val postKey = jsonObject.getJSONObject("data").getString("value")
+        return postKey
     }
 
     /**
      * 今の部屋のコメントサーバーのWebSocketアドレスの取得関数
-     * @param message messageServerUriが文字列に含まれていること
+     * 注意：typeがroomのとき。
+     * @param message ニコ生視聴セッションWebSocketから流れてきたJSON文字列。
+     * @return WebSocketのアドレス
      * */
     fun getCommentServerWebSocketAddress(message: String?): String {
-        val room = JSONObject(message).getJSONObject("body").getJSONObject("room")
-        return room.getString("messageServerUri")
+        val webSocketUri = JSONObject(message).getJSONObject("data").getJSONObject("messageServer").getString("uri")
+        return webSocketUri
     }
 
     /**
      * 今の部屋のコメントサーバーのスレッドIDの取得関数
-     * @param message messageServerUriが文字列に含まれていること
+     * 注意：typeがroomのとき。
+     * @param message ニコ生視聴セッションWebSocketから流れてきたJSON文字列。
+     * @return コメント鯖接続に使うthreadId
      * */
     fun getCommentServerThreadId(message: String?): String {
-        val room = JSONObject(message).getJSONObject("body").getJSONObject("room")
-        return room.getString("threadId")
+        val threadId = JSONObject(message).getJSONObject("data").getString("threadId")
+        return threadId
     }
 
     /**
      * 今の部屋のコメントサーバーの部屋の名前の取得関数
-     * @param message messageServerUriが文字列に含まれていること
+     * 注意：typeがroomのとき。
+     * @param message ニコ生視聴セッションWebSocketから流れてきたJSON文字列。
+     * @return 部屋名。立ち見１とか
      * */
     fun getCommentRoomName(message: String?): String {
-        val room = JSONObject(message).getJSONObject("body").getJSONObject("room")
-        return room.getString("roomName")
+        val roomName = JSONObject(message).getJSONObject("data").getString("name")
+        return roomName
     }
 
     /**
      * 視聴WebSocketからHLSアドレス取得
-     * @param message currentStreamが文字列内に入ってなければnull。あればHLSアドレス取れます。
+     * 注意：typeがstreamのとき。
+     * @param message ニコ生視聴セッションWebSocketから流れてきたJSON文字列
+     * @return hlsアドレス
      * */
     fun getHlsAddress(message: String?): String? {
-        if (message?.contains("currentStream") == true) {
-            val jsonObject = JSONObject(message)
-            val currentObject =
-                jsonObject.getJSONObject("body").getJSONObject("currentStream")
-            return currentObject.getString("uri")
-        }
-        return null
+        val hlsAddress = JSONObject(message).getJSONObject("data").getString("uri")
+        return hlsAddress
     }
 
     /**
      * 画質一覧を取得する関数。
-     * @param message currentStreamが文字列内に入ってなければnull。あればHLSアドレス取れます。
-     * @return 利用可能な画質
+     * 注意：typeがstreamのとき。
+     * @param message ニコ生視聴セッションWebSocketから流れてきたJSON文字列
+     * @return 利用可能な画質のJSONArray
      * */
     fun getQualityListJSONArray(message: String?): JSONArray {
-        val currentObject =
-            JSONObject(message).getJSONObject("body").getJSONObject("currentStream")
-        return currentObject.getJSONArray("qualityTypes")
+        val availableQualities = JSONObject(message).getJSONObject("data").getJSONArray("availableQualities")
+        return availableQualities
     }
 
     /**
      * 現在の画質を取得する関数。
-     * @param message currentStreamが文字列内に入ってなければnull。あればHLSアドレス取れます。
+     * 注意：typeがstreamのときのみ利用可能。
+     * @param message 画質名。
      * @return 現在の画質
      * */
     fun getCurrentQuality(message: String?): String {
-        val currentObject =
-            JSONObject(message).getJSONObject("body").getJSONObject("currentStream")
-        return currentObject.getString("quality")
+        val quality = JSONObject(message).getJSONObject("data").getString("quality")
+        return quality
+    }
+
+    /**
+     * 総来場者数（運営曰く、アクティブ人数は３０分でコメント０のときが悲しいから付けないらしい）/コメント数/ニコニ広告ポイント/投げ銭ポイント
+     * 注意：typeがstatisticsのときのみ
+     * @param message ニコ生視聴セッションWebSocketから流れてくるJSON文字列
+     * @return 総来場者数/コメント数/投げ銭ポイント/ニコニ広告ポイント数のデータクラス。
+     * */
+    fun getStatistics(message: String?): StatisticsDataClass {
+        val jsonObject = JSONObject(message).getJSONObject("data")
+        val adPoints = jsonObject.optInt("adPoints", 0)
+        val comments = jsonObject.optInt("comments", 0)
+        val giftPoints = jsonObject.optInt("giftPoints", 0)
+        val viewers = jsonObject.optInt("viewers", 0)
+        return StatisticsDataClass(adPoints, comments, giftPoints, viewers)
+    }
+
+    /**
+     * 延長検知JSONをパースして終了時刻をフォーマットして返す。
+     * 注意：typeがscheduleのときのみ
+     * @param message ニコ生視聴セッションWebSocketから流れてくるJSON文字列
+     * @param timeFormat 省略可能。時間フォーマットをしていたい場合は入れてね。Javaのフォーマットで頼んだ。
+     * @return 終了時間（文字列）
+     * */
+    fun getScheduleEndTime(message: String?, timeFormat: String = "MM/dd HH:mm:ss"): String? {
+        // JSONパース
+        val data = JSONObject(message).getJSONObject("data")
+        // ISO8601 -> UnixTime
+        val begin = toUnixTime(data.getString("begin"))
+        val end = toUnixTime(data.getString("end"))
+        // 変換する
+        val simpleDateFormat = SimpleDateFormat("MM/dd HH:mm:ss")
+        val time = simpleDateFormat.format(end)
+        return time
+    }
+
+    /**
+     * 延長検知JSONをパースしてデータクラスに入れる関数。
+     * 注意：typeがscheduleのときのみ
+     * @param message ニコ生視聴セッションWebSocketから流れてくるJSON文字列
+     * @return 番組開始時間/番組終了時間が入ってるデータクラス
+     * */
+    fun getSchedule(message: String?): ScheduleDataClass {
+        // JSONパース
+        val data = JSONObject(message).getJSONObject("data")
+        // ISO8601 -> UnixTime
+        val beginTime = toUnixTime(data.getString("begin"))
+        val endTime = toUnixTime(data.getString("end"))
+        return ScheduleDataClass(beginTime, endTime)
     }
 
     /**
@@ -597,43 +608,48 @@ class NicoLiveHTML {
     }
 
     /**
+     * 低遅延のon/offがBooleanのtrue/falseから文字列のhigh/lowになっているので低遅延有効時はhighを、無効時はlowを返す関数
+     * @param islowLatency 低遅延有効時はtrue。そうじゃなければfalse
+     * @return true：high / false：low
+     * */
+    private fun toLatencyString(islowLatency: Boolean = isLowLatency): String {
+        return if (islowLatency) {
+            "high"
+        } else {
+            "low"
+        }
+    }
+
+    /**
      * 画質変更メッセージ送信
      * */
     fun sendQualityMessage(quality: String) {
-        val jsonObject = JSONObject()
-        jsonObject.put("type", "watch")
-        // body
-        val bodyObject = JSONObject()
-        bodyObject.put("command", "getstream")
-        // requirement
-        val requirementObjects = JSONObject()
-        requirementObjects.put("protocol", "hls")
-        requirementObjects.put("quality", quality)
-        requirementObjects.put("isLowLatency", isLowLatency)
-        requirementObjects.put("isChasePlay", false)
-        bodyObject.put("requirement", requirementObjects)
-        jsonObject.put("body", bodyObject)
+        val jsonObject = JSONObject().apply {
+            put("type", "changeStream")
+            put("data", JSONObject().apply {
+                put("quality", quality)
+                put("protocol", "hls")
+                put("latency", toLatencyString())
+                put("chasePlay", false)
+            })
+        }
         //送信
         nicoLiveWebSocketClient.send(jsonObject.toString())
     }
 
     /**
-     * 低遅延モード。trueで有効
+     * 低遅延モード。isLowLatencyの値を使います。
      * */
     fun sendLowLatency() {
-        val jsonObject = JSONObject()
-        jsonObject.put("type", "watch")
-        // body
-        val bodyObject = JSONObject()
-        bodyObject.put("command", "getstream")
-        // requirement
-        val requirementObjects = JSONObject()
-        requirementObjects.put("protocol", "hls")
-        requirementObjects.put("quality", currentQuality)
-        requirementObjects.put("isLowLatency", !isLowLatency)
-        requirementObjects.put("isChasePlay", false)
-        bodyObject.put("requirement", requirementObjects)
-        jsonObject.put("body", bodyObject)
+        val jsonObject = JSONObject().apply {
+            put("type", "changeStream")
+            put("data", JSONObject().apply {
+                put("quality", currentQuality)
+                put("protocol", "hls")
+                put("latency", toLatencyString(!isLowLatency))
+                put("chasePlay", false)
+            })
+        }
         //送信
         nicoLiveWebSocketClient.send(jsonObject.toString())
         //反転
@@ -652,6 +668,17 @@ class NicoLiveHTML {
         if (::commentPOSTWebSocketClient.isInitialized) {
             commentPOSTWebSocketClient.close()
         }
+    }
+
+    /**
+     * ISO8601の時間フォーマットをUnixTimeへ変換する
+     * 注意：ミリ秒です
+     * @param time ISO8601で書かれた時間
+     * @return UnixTime ms
+     * */
+    private fun toUnixTime(time: String): Long {
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX")
+        return simpleDateFormat.parse(time).time
     }
 
 }

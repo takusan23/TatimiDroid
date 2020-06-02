@@ -210,7 +210,7 @@ class NicoLivePlayService : Service() {
                 connectionWebSocket(nicoLiveJSON) { command, message ->
                     // 使うやつだけ
                     when {
-                        command == "currentstream" -> {
+                        command == "stream" -> {
                             // HLSアドレス取得
                             hlsAddress = getHlsAddress(message) ?: ""
                             // モバイルデータは最低画質で読み込む設定
@@ -226,27 +226,23 @@ class NicoLivePlayService : Service() {
                                 initPlayer()
                             }
                         }
-                        command == "currentroom" -> {
+                        command == "room" -> {
                             // ポップアップ再生ならコメントサーバーに接続する
                             if (isPopupPlay()) {
                                 // threadId、WebSocketURL受信。コメント送信時に使うWebSocketに接続する
-                                val jsonObject = JSONObject(message)
                                 // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
-                                if (jsonObject.getJSONObject("body").has("room")) {
-                                    val commentMessageServerUri =
-                                        getCommentServerWebSocketAddress(message)
-                                    val commentThreadId = getCommentServerThreadId(message)
-                                    val commentRoomName = getCommentRoomName(message)
-                                    // 公式番組のとき
-                                    if (isOfficial) {
-                                        Handler(Looper.getMainLooper()).post {
-                                            // WebSocketで流れてきたアドレスへ接続する
-                                            nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
-                                        }
+                                val commentMessageServerUri = getCommentServerWebSocketAddress(message)
+                                val commentThreadId = getCommentServerThreadId(message)
+                                val commentRoomName = getCommentRoomName(message)
+                                // 公式番組のとき
+                                if (isOfficial) {
+                                    Handler(Looper.getMainLooper()).post {
+                                        // WebSocketで流れてきたアドレスへ接続する
+                                        nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
                                     }
-                                    // コメント投稿時に使うWebSocketに接続する
-                                    commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
                                 }
+                                // コメント投稿時に使うWebSocketに接続する
+                                commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
                             }
                         }
                         message.contains("disconnect") -> {
@@ -349,8 +345,7 @@ class NicoLivePlayService : Service() {
                 }
             })
 
-        val hlsMediaSource = HlsMediaSource.Factory(sourceFactory)
-            .createMediaSource(hlsAddress.toUri())
+        val hlsMediaSource = HlsMediaSource.Factory(sourceFactory).createMediaSource(hlsAddress.toUri())
 
         //再生準備
         popupExoPlayer.prepare(hlsMediaSource)
