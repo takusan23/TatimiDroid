@@ -610,10 +610,11 @@ class CommentFragment : Fragment() {
                         // 延長を検知
                         showSchedule(message)
                     }
-                    message.contains("disconnect") -> {
-                        // 番組終了
-                        programEnd(message)
-                    }
+                }
+                // containsで部分一致にしてみた。なんで部分一致なのかは私も知らん
+                if (command.contains("disconnect")) {
+                    //番組終了
+                    programEnd()
                 }
             }
         }
@@ -900,19 +901,14 @@ class CommentFragment : Fragment() {
     }
 
     /**
-     * 番組終了
-     * @param message onMessageの内容。scheduleが含まれていることが必要。
+     * 番組終了。Activityを閉じる関数
      * */
-    fun programEnd(message: String?) {
-        val jsonObject = JSONObject(message)
-        val command = jsonObject.getString("type")
-        if (command == "disconnect") {
-            // 終了メッセージ
-            if (pref_setting.getBoolean("setting_disconnect_activity_finish", false)) {
-                if (activity is CommentActivity) {
-                    // Activity が CommentActivity なら消す。二窓Activityは動かないように
-                    activity?.finish()
-                }
+    fun programEnd() {
+        // Activity終了
+        if (pref_setting.getBoolean("setting_disconnect_activity_finish", false)) {
+            if (activity is CommentActivity) {
+                // Activity が CommentActivity なら消す。二窓Activityは動かないように
+                activity?.finish()
             }
         }
     }

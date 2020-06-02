@@ -245,9 +245,11 @@ class NicoLivePlayService : Service() {
                                 commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
                             }
                         }
-                        message.contains("disconnect") -> {
-                            this@NicoLivePlayService.stopSelf()
-                        }
+                    }
+                    // containsで部分一致にしてみた。なんで部分一致なのかは私も知らん
+                    if (command.contains("disconnect")) {
+                        // 番組終了
+                        this@NicoLivePlayService.stopSelf()
                     }
                 }
             }
