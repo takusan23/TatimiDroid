@@ -272,15 +272,24 @@ class GetCacheService : Service() {
  * @param context Context
  * @param videoId 動画ID
  * @param isEco エコノミーで取得する場合はtrue。省略時はfalse（通常の画質）
+ * @param overwrite すでに取得済みでも取得する場合はtrue。強制取得的な。デフォtrue
+ * @return キャッシュ取得するならtrue。そうじゃなければfalse
  * */
-internal fun startCacheService(context: Context?, videoId: String, isEco: Boolean = false) {
-    val intent = Intent(context, GetCacheService::class.java).apply {
-        putExtra("id", videoId)
-        putExtra("is_eco", isEco)
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        context?.startForegroundService(intent)
+internal fun startCacheService(context: Context?, videoId: String, isEco: Boolean = false, overwrite: Boolean = true): Boolean {
+    val nicoVideoCache = NicoVideoCache(context)
+    // 強制取得 か まだキャッシュ未取得時 は取得する。
+    if (overwrite || !nicoVideoCache.hasCacheVideoFile(videoId)) {
+        val intent = Intent(context, GetCacheService::class.java).apply {
+            putExtra("id", videoId)
+            putExtra("is_eco", isEco)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context?.startForegroundService(intent)
+        } else {
+            context?.startService(intent)
+        }
+        return true
     } else {
-        context?.startService(intent)
+        return false
     }
 }

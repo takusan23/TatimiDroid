@@ -234,17 +234,13 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // キャッシュ取得
         bottom_fragment_nicovideo_list_menu_get_cache.setOnClickListener {
             // キャッシュ取得Service起動
-            startCacheService(context, nicoVideoData.videoId, false)
-            // 閉じる
-            dismiss()
+            startCacheService(false)
         }
 
         // キャッシュ取得（エコノミーモード）
         bottom_fragment_nicovideo_list_menu_get_cache_economy.setOnClickListener {
             // キャッシュ取得Service起動
-            startCacheService(context, nicoVideoData.videoId, true)
-            // 閉じる
-            dismiss()
+            startCacheService(true)
         }
 
         // キャッシュ削除
@@ -309,6 +305,22 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             }
         }
 
+    }
+
+    /**
+     * キャッシュ取得関数（？）
+     * まあService起動させてるだけなんですけどね。
+     * @param isEconomy エコノミーモードで取得する場合はtrue。
+     * */
+    private fun startCacheService(isEconomy: Boolean = false) {
+        // キャッシュ取得Service起動
+        val result = startCacheService(context, nicoVideoData.videoId, isEconomy, false)
+        // 閉じる
+        dismiss()
+        // 取得済みならToast出す
+        if (!result) {
+            Toast.makeText(context, getString(R.string.cache_has_video_file), Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun showToast(message: String?) {

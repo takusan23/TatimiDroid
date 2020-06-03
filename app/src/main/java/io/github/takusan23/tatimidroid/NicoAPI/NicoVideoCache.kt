@@ -547,6 +547,17 @@ class NicoVideoCache(val context: Context?) {
     }
 
     /**
+     * 動画ファイルが存在するかどうか。
+     * @param videoId 動画ID。
+     * @return あればtrueを、なければfalse
+     * */
+    fun hasCacheVideoFile(videoId: String): Boolean {
+        val videoFolder = File("${getCacheFolderPath()}/$videoId").listFiles()
+        // mp4でフィルターかけて0じゃなければある判定。てか IntelliJ IDEA くん優秀すぎん？array()#any{}に置き換えられるとか知らんかったわ
+        return videoFolder?.any { file -> file.extension == "mp4" } ?: false
+    }
+
+    /**
      * 動画情報、コメント再取得まとめたやつ。
      * 二回も書かないと行けないのでここに書いた。
      * @param videoId 動画ID

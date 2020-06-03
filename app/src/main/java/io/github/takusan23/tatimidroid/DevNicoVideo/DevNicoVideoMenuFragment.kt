@@ -44,7 +44,7 @@ class DevNicoVideoMenuFragment : Fragment() {
     var userSession = ""
     var videoId = ""
 
-    // キャッシュ再生ならtrue
+    /** キャッシュ再生ならtrue */
     var isCache = false
 
     // 共有
@@ -258,8 +258,7 @@ class DevNicoVideoMenuFragment : Fragment() {
         fragment_nicovideo_menu_get_cache.setOnClickListener {
             if (!isCache) {
                 // DevNicoVideoFragment取得
-                val devNicoVideoFragment =
-                    fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+                val devNicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
                 // キャッシュ取得サービス起動
                 startCacheService(context, devNicoVideoFragment.videoId)
             }
@@ -268,8 +267,7 @@ class DevNicoVideoMenuFragment : Fragment() {
         fragment_nicovideo_menu_get_cache_eco.setOnClickListener {
             if (!isCache) {
                 // DevNicoVideoFragment取得
-                val devNicoVideoFragment =
-                    fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
+                val devNicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
                 // キャッシュ取得サービス起動
                 startCacheService(context, devNicoVideoFragment.videoId)
             }
