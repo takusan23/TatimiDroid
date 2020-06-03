@@ -403,9 +403,11 @@ class DevNicoVideoFragment : Fragment() {
             if (isDMCServer) {
                 // 公式アニメは暗号化されてて見れないので落とす
                 if (nicoVideoHTML.isEncryption(jsonObject.toString())) {
-                    showToast(getString(R.string.encryption_video_not_play))
-                    withContext(Dispatchers.Main) {
-                        activity?.finish()
+                    if (isAdded) {
+                        showToast(getString(R.string.encryption_video_not_play))
+                        withContext(Dispatchers.Main) {
+                            activity?.finish()
+                        }
                     }
                     return@launch
                 } else {
@@ -546,6 +548,8 @@ class DevNicoVideoFragment : Fragment() {
      * データ取得終わった時にUIに反映させる
      * */
     fun applyUI() = GlobalScope.async(Dispatchers.Main) {
+        // ここに来る頃にはFragmentがもう存在しない可能性があるので（速攻ブラウザバックなど）
+        if (!isAdded) return@async
         // ViewPager初期化
         //   initViewPager().await()
         if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
