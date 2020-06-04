@@ -681,8 +681,10 @@ class DevNicoVideoFragment : Fragment() {
                     }
                 } else {
                     // 動画が見つからなかった
-                    Toast.makeText(context, R.string.not_found_video, Toast.LENGTH_SHORT).show()
-                    activity?.finish()
+                    withContext(Dispatchers.Main) {
+                        showToast(getString(R.string.not_found_video))
+                        activity?.finish()
+                    }
                     return@launch
                 }
                 // UIスレッドへ
