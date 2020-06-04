@@ -441,4 +441,6 @@
     <string name="setting_first_time_show_description">ここを押すと履歴データベースから一番古い値を取得します。</string>
     <string name="play_nico_nama_game_webview_player">ニコ生ゲームを遊ぶ（試験的。生放送、コメントもWebViewで表示します。）</string>
     <string name="cache_has_video_file">すでに取得済みです</string>
+    <string name="setting_nicovideo_nicoru_count_color_title">ニコる数に合わせて色を変える</string>
+    <string name="setting_nicovideo_nicoru_count_color_description">CardViewをアウトラインにして枠の色を変えます。</string>
 </resources>

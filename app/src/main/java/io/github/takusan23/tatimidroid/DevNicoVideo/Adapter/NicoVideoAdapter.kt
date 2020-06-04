@@ -2,6 +2,8 @@ package io.github.takusan23.tatimidroid.DevNicoVideo.Adapter
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,14 +15,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.Tool.CustomFont
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.Fragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONArray
+import java.io.Console
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -32,6 +39,8 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
     lateinit var font: CustomFont
     lateinit var devNicoVideoFragment: DevNicoVideoFragment
     lateinit var prefSetting: SharedPreferences
+
+    var textColor = Color.parseColor("#000000")
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_nicovideo, parent, false)
@@ -50,6 +59,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         if (!::font.isInitialized) {
             font = CustomFont(context)
             prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+            textColor = TextView(context).textColors.defaultColor
         }
 
         val item = arrayListArrayAdapter[position]
@@ -112,6 +122,16 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         // プレ垢はニコるくんつける
         if (isInitDevNicoVideoFragment() && isPremium && isShowNicoruButton && !isOfflinePlay) {
             holder.nicoruButton.visibility = View.VISIBLE
+        }
+
+        // ニコるカウントに合わせて色つける
+        if (prefSetting.getBoolean("setting_nicovideo_nicoru_color", false)) {
+            holder.cardView.apply {
+                strokeColor = getNicoruLevelColor(item.nicoru, context)
+                strokeWidth = 2
+                elevation = 0f
+                setBackgroundColor(getThemeColor(context))
+            }
         }
 
         // 一般会員にはニコる提供されてないのでニコる数だけ表示
@@ -199,8 +219,8 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var commentTextView: TextView = itemView.findViewById(R.id.adapter_nicovideo_comment_textview)
         var userNameTextView: TextView = itemView.findViewById(R.id.adapter_nicovideo_user_textview)
-        var nicoruButton: Button = itemView.findViewById(R.id.adapter_nicovideo_comment_nicoru)
-        var cardView: CardView = itemView.findViewById(R.id.adapter_nicovideo_comment_cardview)
+        var nicoruButton: MaterialButton = itemView.findViewById(R.id.adapter_nicovideo_comment_nicoru)
+        var cardView: MaterialCardView = itemView.findViewById(R.id.adapter_nicovideo_comment_cardview)
     }
 
     fun setTimeFormat(date: Long): String? {
@@ -216,4 +236,13 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
 
     // DevNicoVideoFragmentが初期化済みか
     fun isInitDevNicoVideoFragment(): Boolean = ::devNicoVideoFragment.isInitialized
+
+    // ニコる色。
+    private fun getNicoruLevelColor(nicoruCount: Int, context: Context) = when {
+        nicoruCount >= 9 -> Color.rgb(252, 216, 66)
+        nicoruCount >= 6 -> Color.rgb(253, 235, 160)
+        nicoruCount >= 3 -> Color.rgb(254, 245, 207)
+        else -> textColor
+    }
+
 }

@@ -90,6 +90,13 @@
                 android:title="@string/setting_show_nicoru_button_title" />
 
         <SwitchPreference
+                android:defaultValue="true"
+                android:icon="@drawable/ic_sentiment_satisfied_black_24dp"
+                android:key="setting_nicovideo_nicoru_color"
+                android:summary="@string/setting_nicovideo_nicoru_count_color_description"
+                android:title="@string/setting_nicovideo_nicoru_count_color_title" />
+
+        <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_insert_chart_outlined_black_24dp"
                 android:key="setting_nicovideo_danmakuview_hide"

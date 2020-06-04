@@ -441,4 +441,6 @@
     <string name="setting_first_time_show_description">"Press here to get the oldest value from the history database. "</string>
     <string name="play_nico_nama_game_webview_player">Play Nico Live Game (experimental. Live broadcast and comments are also displayed on WebView.)</string>
     <string name="cache_has_video_file">Already acquired</string>
+    <string name="setting_nicovideo_nicoru_count_color_title">Change the color according to the number of smiles</string>
+    <string name="setting_nicovideo_nicoru_count_color_description">Outline the CardView and change the frame color.</string>
 </resources>

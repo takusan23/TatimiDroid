@@ -131,3 +131,36 @@ class DarkModeSupport(val context: Context) {
     }
 
 }
+
+/**
+ * ダークモードかどうか。Oreo以前ではアプリの設定の値を返します。
+ * @param context こんてきすと
+ * @return ダークモードならtrue。そうじゃなければfalse。
+ * */
+internal fun isDarkMode(context: Context?): Boolean {
+    if (context == null) return false
+    //ダークモードかどうか
+    val conf = context.resources.configuration
+    var nightMode = conf.uiMode and Configuration.UI_MODE_NIGHT_MASK
+    //Oreo
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
+        val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+        if (pref_setting.getBoolean("setting_darkmode", false)) {
+            nightMode = Configuration.UI_MODE_NIGHT_YES
+        } else {
+            nightMode = Configuration.UI_MODE_NIGHT_NO
+        }
+    }
+    return nightMode == Configuration.UI_MODE_NIGHT_YES
+}
+
+/**
+ * テーマに合わせた色を返す関数。
+ * @param context こんてきすと
+ * @return ダークモードなら黒、それ以外なら白です。
+ * */
+internal fun getThemeColor(context: Context?): Int = if (isDarkMode(context)) {
+    Color.parseColor("#000000")
+} else {
+    Color.parseColor("#ffffff")
+}

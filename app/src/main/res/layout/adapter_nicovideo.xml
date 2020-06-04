@@ -5,7 +5,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
             android:id="@+id/adapter_nicovideo_comment_cardview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -55,5 +55,5 @@
                     app:iconPadding="0dp" />
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 </LinearLayout>
