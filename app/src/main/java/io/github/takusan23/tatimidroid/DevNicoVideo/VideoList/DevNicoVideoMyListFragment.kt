@@ -81,6 +81,7 @@ class DevNicoVideoMyListFragment : Fragment() {
                 }
                 nicoVideoSPMyListAPI.parseMyListList(response.body?.string())
             }
+            if (!isAdded) return@launch
             // とりあえずマイリスト追加
             myListItems.add(0, NicoVideoSPMyListAPI.MyListData(getString(R.string.toriaezu_mylist), "", 500))
             // 動画の登録の多い順に並び替える？

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
@@ -110,6 +111,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     // 透明度の設定（重そう小並感）
     var commentAlpha = 1.0F
+
+    /** てｓｔ */
+    lateinit var typeface: Typeface
 
     init {
         //文字サイズ計算。端末によって変わるので
@@ -250,6 +254,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     fun getCommentTextPaint(command: String, fontSize: Float = this.fontsize): Paint {
         //白色テキスト
         val paint = Paint().apply {
+            if (this@CommentCanvas::typeface.isInitialized) {
+                typeface = this@CommentCanvas.typeface
+            }
             isAntiAlias = true
             textSize = fontSize
             style = Paint.Style.FILL
@@ -263,6 +270,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     fun getBlackCommentTextPaint(fontSize: Float = this.fontsize): Paint {
         //黒色テキスト
         val blackPaint = Paint().apply {
+            if (this@CommentCanvas::typeface.isInitialized) {
+                typeface = this@CommentCanvas.typeface
+            }
             isAntiAlias = true
             strokeWidth = 2.0f
             style = Paint.Style.STROKE

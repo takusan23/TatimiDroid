@@ -306,6 +306,10 @@ class CommentFragment : Fragment() {
 
         // ユーザーの設定したフォント読み込み
         customFont = CustomFont(context)
+        // CommentCanvasにも適用するかどうか
+        if(customFont.isApplyFontFileToCommentCanvas){
+            commentCanvas.typeface = customFont.typeface
+        }
 
         setAlwaysShowProgramInfo()
 

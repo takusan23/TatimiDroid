@@ -166,6 +166,10 @@ class DevNicoVideoFragment : Fragment() {
 
         // ふぉんと
         font = CustomFont(context)
+        // CommentCanvasにも適用するかどうか
+        if (font.isApplyFontFileToCommentCanvas) {
+            fragment_nicovideo_comment_canvas.typeface = font.typeface
+        }
 
         // 動画ID
         videoId = arguments?.getString("id") ?: ""

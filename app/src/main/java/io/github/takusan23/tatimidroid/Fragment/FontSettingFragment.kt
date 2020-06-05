@@ -21,7 +21,9 @@ import kotlinx.android.synthetic.main.adapter_comment_layout.*
 import kotlinx.android.synthetic.main.fragment_font_setting.*
 import java.io.File
 
-
+/**
+ * フォント設定Fragment
+ * */
 class FontSettingFragment : Fragment() {
 
     // SAFのリクエスト判断用
@@ -29,11 +31,7 @@ class FontSettingFragment : Fragment() {
 
     lateinit var pref_setting: SharedPreferences
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_font_setting, container, false)
     }
 
@@ -80,8 +78,14 @@ class FontSettingFragment : Fragment() {
         // プレビュー更新
         updatePreview()
         // ファイル名
-        fragment_font_setting_font_file_select_button.text =
-            "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
+        fragment_font_setting_font_file_select_button.text = "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
+
+        // フォントファイルをCommentCanvasにも適用するか
+        fragment_font_setting_apply_comment_canvas_switch.isChecked = pref_setting.getBoolean("setting_comment_canvas_font_file", false)
+        fragment_font_setting_apply_comment_canvas_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            pref_setting.edit { putBoolean("setting_comment_canvas_font_file", isChecked) }
+        }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -101,8 +105,7 @@ class FontSettingFragment : Fragment() {
                 context?.contentResolver?.openInputStream(data.data!!)?.copyTo(it)
             }
             // ファイル名
-            fragment_font_setting_font_file_select_button.text =
-                "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
+            fragment_font_setting_font_file_select_button.text = "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
             // 更新
             updatePreview()
         }
@@ -135,14 +138,8 @@ class FontSettingFragment : Fragment() {
         fragment_font_setting_font_size_id_edittext.setText(customFont.userIdFontSize.toString())
         fragment_font_setting_font_size_comment_edittext.setText(customFont.commentFontSize.toString())
         // テキスト監視して自動で保存
-        setTextWatcher(
-            fragment_font_setting_font_size_comment_edittext,
-            "setting_font_size_comment"
-        )
-        setTextWatcher(
-            fragment_font_setting_font_size_id_edittext,
-            "setting_font_size_id"
-        )
+        setTextWatcher(fragment_font_setting_font_size_comment_edittext, "setting_font_size_comment")
+        setTextWatcher(fragment_font_setting_font_size_id_edittext, "setting_font_size_id")
     }
 
     // EditTextを監視して保存するやーつ

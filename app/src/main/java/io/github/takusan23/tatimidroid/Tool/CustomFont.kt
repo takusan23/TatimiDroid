@@ -17,24 +17,24 @@ import java.io.File
  * */
 class CustomFont(val context: Context?) {
 
-    lateinit var pref_setting: SharedPreferences
+    private var prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
     // フォントがあるフォルダー
-    var fontFolder: File = File("${context?.getExternalFilesDir(null)}/font")
+    private var fontFolder: File = File("${context?.getExternalFilesDir(null)}/font")
 
     // フォントフォルダーには一つのファイル（フォントファイル）しか存在しないでーす
-    lateinit var fontFile: File
+    private lateinit var fontFile: File
 
     // TypeFace
     lateinit var typeface: Typeface
 
     // フォントサイズ（ゆーざーID）
     var userIdFontSize = 12F
+
     // フォントサイズ（コメント）
     var commentFontSize = 14F
 
     init {
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         // フォントフォルダーには一つのファイル（フォントファイル）しか存在しないでーす
         if (fontFolder.exists() && fontFolder.listFiles().isNotEmpty()) {
             // ファイルが存在する場合はTypeFaceつくる
@@ -42,8 +42,8 @@ class CustomFont(val context: Context?) {
             typeface = Typeface.createFromFile(fontFile)
         }
         // フォントサイズ取得
-        userIdFontSize = pref_setting.getFloat("setting_font_size_id", 12F)
-        commentFontSize = pref_setting.getFloat("setting_font_size_comment", 14F)
+        userIdFontSize = prefSetting.getFloat("setting_font_size_id", 12F)
+        commentFontSize = prefSetting.getFloat("setting_font_size_comment", 14F)
     }
 
 
@@ -70,5 +70,10 @@ class CustomFont(val context: Context?) {
         paint.typeface = typeface
     }
 
+    /**
+     * コメントファイルをコメント描画（CommentCanvas）にも適用するか？
+     * @return CommentCanvasにも適用する設定有効時はtrue/そうじゃなければfalse
+     * */
+    val isApplyFontFileToCommentCanvas = prefSetting.getBoolean("setting_comment_canvas_font_file", false)
 
 }

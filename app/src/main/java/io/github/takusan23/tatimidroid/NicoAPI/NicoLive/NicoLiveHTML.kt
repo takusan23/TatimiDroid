@@ -104,22 +104,21 @@ class NicoLiveHTML {
      * @param userSession ユーザーセッション
      * @param isLogin ログイン状態で行うか。省略時はログイン状態で行います（true）。
      * */
-    fun getNicoLiveHTML(liveId: String, userSession: String?, isLogin: Boolean = true): Deferred<Response> =
-        GlobalScope.async {
-            val url = "https://live2.nicovideo.jp/watch/$liveId"
-            val request = Request.Builder().apply {
-                get()
-                url(url)
-                addHeader("User-Agent", "TatimiDroid;@takusan_23")
-                if (isLogin) {
-                    // ログイン時はユーザーセッションを入れる。
-                    addHeader("Cookie", "user_session=$userSession")
-                }
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    fun getNicoLiveHTML(liveId: String, userSession: String?, isLogin: Boolean = true): Deferred<Response> = GlobalScope.async {
+        val url = "https://live2.nicovideo.jp/watch/$liveId"
+        val request = Request.Builder().apply {
+            get()
+            url(url)
+            addHeader("User-Agent", "TatimiDroid;@takusan_23")
+            if (isLogin) {
+                // ログイン時はユーザーセッションを入れる。
+                addHeader("Cookie", "user_session=$userSession")
+            }
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
 
     /**
      * getPlayerStatusを叩く
