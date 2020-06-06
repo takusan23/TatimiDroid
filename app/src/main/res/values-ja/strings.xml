@@ -444,4 +444,6 @@
     <string name="setting_nicovideo_nicoru_count_color_title">ニコる数に合わせて色を変える</string>
     <string name="setting_nicovideo_nicoru_count_color_description">CardViewをアウトラインにして枠の色を変えます。</string>
     <string name="setting_comment_canvas_font_file">流れるコメントにも選択したフォントファイルを適用する</string>
+    <string name="setting_cache_background_play_prev_button_title">進むボタンを戻るボタンに置き換える。</string>
+    <string name="setting_cache_background_play_prev_button_description">連続バックグラウンド再生（キャッシュ専用）で次の曲ボタンを前の曲ボタンに置き換えます。Android 10以降ではシークバーが利用可能なので、次の曲はシークバーを操作することで代替可能です。</string>
 </resources>

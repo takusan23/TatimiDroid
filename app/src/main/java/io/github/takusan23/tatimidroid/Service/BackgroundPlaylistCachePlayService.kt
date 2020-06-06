@@ -313,8 +313,14 @@ class BackgroundPlaylistCachePlayService : Service() {
                 // 再生
                 addAction(NotificationCompat.Action(R.drawable.ic_play_arrow_24px, "pause", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 22, playIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
             }
-            // 前の曲
-            addAction(NotificationCompat.Action(R.drawable.ic_skip_previous_black_24dp, "prev", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 24, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+            // 次の曲（設定で前の曲にできる）
+            if (prefSessing.getBoolean("setting_cache_background_play_prev_button", false)) {
+                // 前の曲ボタン
+                addAction(NotificationCompat.Action(R.drawable.ic_skip_previous_black_24dp, "prev", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 24, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+            } else {
+                // 次の曲ボタン
+                addAction(NotificationCompat.Action(R.drawable.ic_skip_next_black_24dp, "next", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 24, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+            }
             if (::exoPlayer.isInitialized) {
                 // 初期化済みなら
                 when (exoPlayer.repeatMode) {

@@ -444,4 +444,6 @@
     <string name="setting_nicovideo_nicoru_count_color_title">Change the color according to the number of smiles</string>
     <string name="setting_nicovideo_nicoru_count_color_description">Outline the CardView and change the frame color.</string>
     <string name="setting_comment_canvas_font_file">Apply selected font file to flowing comments</string>
+    <string name="setting_cache_background_play_prev_button_title">Replace the forward button with the back button.</string>
+    <string name="setting_cache_background_play_prev_button_description">Replaces the next song button with the previous song button for continuous background playback (cache only). Since the seek bar is available on Android 10 or later, the following songs can be replaced by operating the seek bar.</string>
 </resources>
