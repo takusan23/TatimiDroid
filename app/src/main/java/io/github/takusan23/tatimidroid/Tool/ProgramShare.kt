@@ -18,6 +18,9 @@ import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import io.github.takusan23.tatimidroid.R
 import java.text.SimpleDateFormat
 
+/**
+ * 共有画面を出す
+ * */
 class ProgramShare(val activity: AppCompatActivity, val view: View, val programName: String, val programId: String) {
     // onActivityResult でリクエストする値。
     companion object {
@@ -31,10 +34,15 @@ class ProgramShare(val activity: AppCompatActivity, val view: View, val programN
     var saveBitmap: Bitmap? = null
     var saveUri: Uri? = null
 
+    /** 画像つきで共有の時に一時的に持っておく */
+    private var message = ""
+
     /**
      * 画像付きで共有するとき
+     * @param message タイトル、ID、URL以外に文字列を入れたい場合は指定してください。
      * */
-    fun shareAttacgImage() {
+    fun shareAttachImage(message: String = "") {
+        this.message = message
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             //動画部分のBitmap
             getBitmapOreoVideo()
@@ -44,7 +52,7 @@ class ProgramShare(val activity: AppCompatActivity, val view: View, val programN
     }
 
     //コメント部分のBitmapを生成
-    fun getBitmapOreoComment() {
+    private fun getBitmapOreoComment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
             val locationOfViewInWindow = IntArray(2)
@@ -92,8 +100,7 @@ class ProgramShare(val activity: AppCompatActivity, val view: View, val programN
 
 
     //動画部分のBitmapを生成
-    fun getBitmapOreoVideo() {
-        var returnBitmap: Bitmap? = null
+    private fun getBitmapOreoVideo() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
             val locationOfViewInWindow = IntArray(2)
@@ -130,7 +137,6 @@ class ProgramShare(val activity: AppCompatActivity, val view: View, val programN
         //PixelColor API がOreo以降じゃないと利用できないため
         view.setDrawingCacheEnabled(true);
         view.buildDrawingCache(true)
-        val bitmap = view.getDrawingCache(true).copy(Bitmap.Config.RGB_565, false)
         //完成Bitmap
         saveBitmap = videoBitmap
         saveStorageAccessFramework()
@@ -167,23 +173,28 @@ class ProgramShare(val activity: AppCompatActivity, val view: View, val programN
         }
     }
 
-    //画像共有共有画面出す
+    /**
+     * 画像つき共有画面出す。
+     * */
     private fun showShareScreenAttachScreenShot() {
         if (saveBitmap != null && saveUri != null) {
             val builder = ShareCompat.IntentBuilder.from(activity)
             builder.setChooserTitle(programName)
-            builder.setText("$programName\n#$programId\nhttps://nico.ms/$programId")
+            builder.setText("$programName\n#$programId\nhttps://nico.ms/$programId\n$message")
             builder.setStream(saveUri)
             builder.setType("text/jpeg")
             builder.startChooser()
         }
     }
 
-    //共有画面
-    fun showShareScreen() {
+    /**
+     * 共有画面出す。
+     * @param message タイトル、ID、URL以外に文字列を入れたい場合は指定してください。
+     * */
+    fun showShareScreen(message: String = "") {
         val builder = ShareCompat.IntentBuilder.from(activity)
         builder.setChooserTitle(programName)
-        builder.setText("$programName\n#$programId\nhttps://nico.ms/$programId")
+        builder.setText("$programName\n#$programId\nhttps://nico.ms/$programId\n$message")
         builder.setStream(saveUri)
         builder.setType("text/plain")
         builder.startChooser()

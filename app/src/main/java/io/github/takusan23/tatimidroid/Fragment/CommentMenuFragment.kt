@@ -163,14 +163,18 @@ class CommentMenuFragment : Fragment() {
             //Kotlinのapply便利だと思った。
             commentFragment.apply {
                 programShare = ProgramShare(commentActivity, this.live_surface_view, programTitle, liveId)
-                programShare.showShareScreen()
+                // 今いる部屋の名前入れる
+                val heyawari = "${roomName} - ${chairNo}"
+                programShare.showShareScreen(heyawari)
             }
         }
         //画像つき共有
         fragment_comment_fragment_menu_share_image_attach_button.setOnClickListener {
             commentFragment.apply {
                 programShare = ProgramShare(commentActivity, this.live_surface_view, programTitle, liveId)
-                programShare.shareAttacgImage()
+                // 今いる部屋の名前入れる
+                val heyawari = "${roomName} - ${chairNo}"
+                programShare.shareAttachImage(heyawari)
             }
         }
         //生放送を再生ボタン
@@ -308,10 +312,10 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_nico_nama_game_webview_player_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             commentFragment.apply {
                 if (isChecked) {
-                    if(isExoPlayerInitialized()) exoPlayer.volume = 0F
+                    if (isExoPlayerInitialized()) exoPlayer.volume = 0F
                     setNicoNamaGame(isChecked)
                 } else {
-                    if(isExoPlayerInitialized()) exoPlayer.volume = 1F
+                    if (isExoPlayerInitialized()) exoPlayer.volume = 1F
                     removeNicoNamaGame()
                 }
             }

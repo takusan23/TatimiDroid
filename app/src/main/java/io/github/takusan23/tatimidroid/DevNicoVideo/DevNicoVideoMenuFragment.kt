@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -333,13 +334,30 @@ class DevNicoVideoMenuFragment : Fragment() {
         val nicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
         // 写真付き共有
         fragment_nicovideo_menu_share_media_attach.setOnClickListener {
-            nicoVideoFragment.share.shareAttacgImage()
+            nicoVideoFragment.apply {
+                // 再生時間も載せる
+                val currentTime = if (isInitExoPlayer()) {
+                    val currentPos = exoPlayer.currentPosition
+                    DateUtils.formatElapsedTime(currentPos / 1000)
+                } else {
+                    ""
+                }
+                share.shareAttachImage(currentTime)
+            }
         }
         // 共有
         fragment_nicovideo_menu_share.setOnClickListener {
-            nicoVideoFragment.share.showShareScreen()
+            nicoVideoFragment.apply {
+                // 再生時間も載せる
+                val currentTime = if (isInitExoPlayer()) {
+                    val currentPos = exoPlayer.currentPosition
+                    DateUtils.formatElapsedTime(currentPos / 1000)
+                } else {
+                    ""
+                }
+                share.showShareScreen(currentTime)
+            }
         }
-
     }
 
     // 音量コントロール
