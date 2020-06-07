@@ -3,8 +3,7 @@ package io.github.takusan23.tatimidroid
 import org.json.JSONObject
 import java.io.Serializable
 
-class CommentJSONParse(val commentJson: String, var roomName: String, val videoOrLiveId: String) :
-    Serializable {
+class CommentJSONParse(val commentJson: String, var roomName: String, val videoOrLiveId: String) : Serializable {
 
     var comment = ""
     var dateUsec = ""
@@ -18,6 +17,9 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
     var score = ""
     var uneiComment = "" // ニコニ広告、ランクインなどをきれいにする
     var nicoru = 0 // ニコ動のみ。ニコる
+
+    /** 自分が投稿したコメントの場合 true */
+    var yourPost = false
 
     init {
         val jsonObject = JSONObject(commentJson)
@@ -59,7 +61,8 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
             if (chatObject.has("nicoru")) {
                 nicoru = chatObject.getInt("nicoru")
             }
-
+            // yourpost（自分が投稿したコメントかどうか。ニコ生のみ？）取得←originのフィルターのせいで動いてない
+            yourPost = chatObject.optInt("yourpost", 0) == 1
             // /nicoad、/info
             if (premium == "生主" || premium == "運営") {
                 if (comment.contains("/info")) {
@@ -84,8 +87,7 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
                     val userName = list[2]
                     val giftPoint = list[3]
                     val giftName = list[5]
-                    uneiComment =
-                        "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
+                    uneiComment = "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
                 }
             }
         }

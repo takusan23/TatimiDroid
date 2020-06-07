@@ -218,39 +218,82 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 when {
                     obj.command.contains("big") -> {
                         val fontSize = (fontsize * 1.3).toFloat()
+/*
                         canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getBlackCommentTextPaint(fontSize))
                         canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command, fontSize))
+*/
+                        drawComment(canvas, obj, fontSize)
                     }
                     obj.command.contains("small") -> {
                         val fontSize = (fontsize * 0.8).toFloat()
+/*
                         canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getBlackCommentTextPaint(fontSize))
                         canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command, fontSize))
+*/
+                        drawComment(canvas, obj, fontSize)
                     }
                     else -> {
+/*
                         canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getBlackCommentTextPaint(fontsize))
                         canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command))
+*/
+                        drawComment(canvas, obj, obj.fontSize)
                     }
                 }
             }
         }
         // 上付きコメントを描画する
         ueCommentList.toList().forEach {
+/*
             if (it?.command != null && it?.comment != null) {
                 canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(it.fontSize))
                 canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, it.fontSize))
             }
+*/
+            drawComment(canvas, it, it.fontSize)
         }
         // 下付きコメントを描画する
         sitaCommentList.toList().forEach {
+/*
             if (it?.command != null && it?.comment != null) {
                 canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(it.fontSize))
                 canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, it.fontSize))
             }
+*/
+            drawComment(canvas, it, it.fontSize)
+        }
+    }
+
+    /**
+     * コメント描画。
+     * Canvas#drawText()を隠しただけ。
+     * 自分のコメントには本家に追従して囲います
+     * @param canvas きゃんばす。
+     * @param commentObject CommentObject。コメント描画に使う
+     * @param fontSize 文字サイズ。big/smallのときはこの関数では扱わないので呼ぶ前に引数に入れてね。
+     * */
+    private fun drawComment(canvas: Canvas?, obj: CommentObject?, fontSize: Float = obj?.fontSize ?: fontsize) {
+        // まあnullになることはない。けど一応
+        if (obj?.command != null && obj?.comment != null) {
+            // わく
+            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getBlackCommentTextPaint(fontSize))
+            // もじ
+            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command, fontSize))
+/*
+            // 自分のコメントなら囲む
+            if (obj.yourpost) {
+                val strokePaint = Paint()
+                strokePaint.strokeWidth = 5f
+                strokePaint.color = Color.YELLOW
+                strokePaint.style = Paint.Style.STROKE
+                canvas?.drawRect(obj.xPos, obj.yPos - fontsize, obj.xPos + obj.commentMeasure, obj.yPos, strokePaint)
+            }
+*/
         }
     }
 
 
-    // 色の変更
+    /** 色の変更 */
     fun getCommentTextPaint(command: String, fontSize: Float = this.fontsize): Paint {
         //白色テキスト
         val paint = Paint().apply {
@@ -266,7 +309,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         return paint
     }
 
-    // 枠取り文字の文字描画
+    /** 枠取り文字のPaint */
     fun getBlackCommentTextPaint(fontSize: Float = this.fontsize): Paint {
         //黒色テキスト
         val blackPaint = Paint().apply {
@@ -396,6 +439,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         var yPos = fontsize
         val nowUnixTime = System.currentTimeMillis()
         val command = commentJSONParse.mail
+        val yourPost = commentJSONParse.yourPost
 
         val tmpCommand = command
         // 上でもなければ下でもないときは流す
@@ -431,8 +475,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     // println("らんだむ")
                 }
             }
-            val commentObj =
-                CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt, fontsize)
+            val commentObj = CommentObject(comment, xPos, yPos, System.currentTimeMillis(), measure, command, asciiArt, fontsize, yourPost)
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
         } else if (command.contains("ue") && tmpCommand.replace("blue|blue([0-9])".toRegex(), "")
@@ -471,17 +514,17 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 val random = Random.nextInt(1, (finalHeight / fontSize.roundToInt()))
                 yPos = (random * fontSize).toFloat()
             }
-            val commentObj =
-                CommentObject(
-                    comment,
-                    ((width.toFloat() - measure) / 2),
-                    yPos,
-                    System.currentTimeMillis(),
-                    measure,
-                    command,
-                    asciiArt,
-                    fontSize.toFloat()
-                )
+            val commentObj = CommentObject(
+                comment,
+                ((width.toFloat() - measure) / 2),
+                yPos,
+                System.currentTimeMillis(),
+                measure,
+                command,
+                asciiArt,
+                fontSize.toFloat(),
+                yourPost
+            )
             ueCommentList.add(commentObj)
             ueCommentLine[yPos] = commentObj
         } else if (command.contains("shita")) {
@@ -527,7 +570,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 measure,
                 command,
                 asciiArt,
-                fontSize.toFloat()
+                fontSize.toFloat(),
+                yourPost
             )
             sitaCommentList.add(commentObj)
             sitaCommentLine[yPos] = commentObj
@@ -571,7 +615,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 measure,
                 command,
                 asciiArt,
-                fontsize
+                fontsize,
+                yourPost
             )
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
@@ -752,6 +797,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         return size
     }
 
+    /**
+     * コメント描画の際に使うデータクラス。
+     * */
     data class CommentObject(
         val comment: String,
         var xPos: Float,
@@ -760,7 +808,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         var commentMeasure: Float,
         var command: String,
         var asciiArt: Boolean = false,
-        var fontSize: Float
+        var fontSize: Float,
+        var yourpost: Boolean = false
     )
 
 }

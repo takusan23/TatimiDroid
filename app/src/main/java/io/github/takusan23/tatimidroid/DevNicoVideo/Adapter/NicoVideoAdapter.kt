@@ -174,6 +174,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
                         }
                         val responseString = responseNicoru.body?.string()
                         // 成功したか
+                        println(jsonObject.toString())
                         val jsonObject = JSONArray(responseString).getJSONObject(0)
                         val status = nicoruAPI.nicoruResultStatus(jsonObject)
                         if (status == 0) {

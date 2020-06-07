@@ -438,8 +438,7 @@ class DevNicoVideoFragment : Fragment() {
                                         .getString("id")
                             }
                             withContext(Dispatchers.Main) {
-                                Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.quality)}：$videoQuality", Snackbar.LENGTH_SHORT)
-                                    .show()
+                                Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.quality)}：$videoQuality", Snackbar.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -950,18 +949,18 @@ class DevNicoVideoFragment : Fragment() {
             return
         }
         // Nullチェック
-        if ((viewPager.fragmentList[1] as? DevNicoVideoCommentFragment)?.view?.findViewById<RecyclerView>(R.id.activity_nicovideo_recyclerview) != null) {
-            val recyclerView =
-                (viewPager.fragmentList[1] as? DevNicoVideoCommentFragment)?.activity_nicovideo_recyclerview
-            val list =
-                (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).recyclerViewList
-            // findを使って条件に合うコメントのはじめの値を取得する。この例では今の時間と同じか大きいくて最初の値。
-            val find =
-                list.find { commentJSONParse -> (commentJSONParse.vpos.toInt() / 100) >= seconds }
-            // 配列から位置をとる
-            val pos = list.indexOf(find)
+        val devNicoVideoCommentFragment = (viewPager.fragmentList[1] as? DevNicoVideoCommentFragment) ?: return
+        if (devNicoVideoCommentFragment.view?.findViewById<RecyclerView>(R.id.activity_nicovideo_recyclerview) != null) {
+            val recyclerView = devNicoVideoCommentFragment.activity_nicovideo_recyclerview
+            val list = devNicoVideoCommentFragment.recyclerViewList
+            // findを使って条件に合うコメントのはじめの位置を取得する。この例では今の時間と同じか大きいくて最初の値。
+            var currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> (commentJSONParse.vpos.toInt() / 100) >= seconds }
+            // ニコるの難しいので 現在表示分 を足す
+            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+            val recyclerViewVisibleCount = layoutManager.findLastVisibleItemPosition() - layoutManager.findFirstVisibleItemPosition()
+            currentPosCommentFirst -= recyclerViewVisibleCount
             // スクロール
-            (recyclerView?.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(pos, 0)
+            (recyclerView?.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(currentPosCommentFirst, 0)
         }
     }
 

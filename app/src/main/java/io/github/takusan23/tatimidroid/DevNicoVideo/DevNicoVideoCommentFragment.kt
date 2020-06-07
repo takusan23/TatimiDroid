@@ -110,8 +110,7 @@ class DevNicoVideoCommentFragment : Fragment() {
         val menuBuilder = MenuBuilder(context)
         val menuInflater = MenuInflater(context)
         menuInflater.inflate(R.menu.nicovideo_comment_sort, menuBuilder)
-        val menuPopupHelper =
-            MenuPopupHelper(context!!, menuBuilder, activity_nicovideo_sort_button)
+        val menuPopupHelper = MenuPopupHelper(context!!, menuBuilder, activity_nicovideo_sort_button)
         menuPopupHelper.setForceShowIcon(true)
         menuBuilder.setCallback(object : MenuBuilder.Callback {
             override fun onMenuModeChange(menu: MenuBuilder?) {
