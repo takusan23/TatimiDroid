@@ -885,7 +885,7 @@ class DevNicoVideoFragment : Fragment() {
                 if (!isDestory) {
                     if (exoPlayer.isPlaying) {
                         setProgress()
-                        scroll(exoPlayer.currentPosition / 1000L)
+                        scroll(exoPlayer.currentPosition)
                         drawComment()
                     }
                 }
@@ -941,9 +941,9 @@ class DevNicoVideoFragment : Fragment() {
 
     /**
      * RecyclerViewをスクロールする
-     * @param millSeconds 再生時間（秒）。
+     * @param millSeconds 再生時間（ミリ秒！！！）。
      * */
-    fun scroll(seconds: Long) {
+    fun scroll(milliSec: Long) {
         // スクロールしない設定 / ViewPagerまだ初期化してない
         if (prefSetting.getBoolean("nicovideo_comment_scroll", false) || !::viewPager.isInitialized) {
             return
@@ -954,7 +954,7 @@ class DevNicoVideoFragment : Fragment() {
             val recyclerView = devNicoVideoCommentFragment.activity_nicovideo_recyclerview
             val list = devNicoVideoCommentFragment.recyclerViewList
             // findを使って条件に合うコメントのはじめの位置を取得する。この例では今の時間と同じか大きいくて最初の値。
-            var currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> (commentJSONParse.vpos.toInt() / 100) >= seconds }
+            var currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> (commentJSONParse.vpos.toInt()) >= milliSec/10 }
             // ニコるの難しいので 現在表示分 を足す
             val layoutManager = recyclerView.layoutManager as LinearLayoutManager
             val recyclerViewVisibleCount = layoutManager.findLastVisibleItemPosition() - layoutManager.findFirstVisibleItemPosition()
