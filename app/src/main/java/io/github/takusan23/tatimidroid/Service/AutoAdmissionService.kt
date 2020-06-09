@@ -66,9 +66,9 @@ class AutoAdmissionService : Service() {
                     startActivity(intent)
                 }
                 // ぽっぴぽっぴぽっぴっぽーっぷあっぷ再生
-                app.contains("tatimidroid_popup") -> startLivePlayService(this@AutoAdmissionService, "popup", liveid, true, false)
+                app.contains("tatimidroid_popup") -> startLivePlayService(context = this@AutoAdmissionService, mode = "popup", liveId = liveid, isCommentPost = true, isNicocasMode = false)
                 // バッググラウンド再生
-                app.contains("tatimidroid_background") -> startLivePlayService(this@AutoAdmissionService, "background", liveid, true, false)
+                app.contains("tatimidroid_background") -> startLivePlayService(context = this@AutoAdmissionService, mode = "background", liveId = liveid, isCommentPost = true, isNicocasMode = false)
                 else -> {
                     //ニコニコ生放送アプリ
                     //Intentとばす

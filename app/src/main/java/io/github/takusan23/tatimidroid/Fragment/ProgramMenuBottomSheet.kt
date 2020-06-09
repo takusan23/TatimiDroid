@@ -296,10 +296,12 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
             bottom_fragment_program_info_background.visibility = View.GONE
         }
         bottom_fragment_program_info_popup.setOnClickListener {
-            startLivePlayService(context, "popup", liveId, true, false)
+            // ポップアップ再生
+            startLivePlayService(context = context, mode = "popup", liveId = liveId, isCommentPost = true, isNicocasMode = false)
         }
         bottom_fragment_program_info_background.setOnClickListener {
-            startLivePlayService(context, "background", liveId, true, false)
+            // バッググラウンド再生
+            startLivePlayService(context = context, mode = "background", liveId = liveId, isCommentPost = true, isNicocasMode = false)
         }
     }
 

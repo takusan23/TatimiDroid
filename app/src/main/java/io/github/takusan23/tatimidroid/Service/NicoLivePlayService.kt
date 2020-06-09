@@ -60,6 +60,7 @@ import kotlin.concurrent.timerTask
  * オプション。任意で
  * is_tokumei     |Boolean|184で投稿するか（省略時はtrue。匿名で投稿する。）
  * is_jk          |Boolean|ニコニコ実況の場合はtrue
+ * start_quality  |String | 画質を設定したい場合は入れてね。
  *
  * */
 class NicoLivePlayService : Service() {
@@ -135,6 +136,8 @@ class NicoLivePlayService : Service() {
         nicoLiveHTML.isLowLatency = prefSetting.getBoolean("nicolive_low_latency", true)
         // JK
         isJK = intent?.getBooleanExtra("is_jk", false) ?: false
+        // 開始時の画質を指定するか
+        nicoLiveHTML.startQuality = intent?.getStringExtra("start_quality") ?: "high"
 
         if (isJK) {
             jkCoroutine()
@@ -174,8 +177,7 @@ class NicoLivePlayService : Service() {
     private fun coroutine() {
         GlobalScope.launch {
             // ニコ生視聴ページリクエスト
-            val livePageResponse =
-                nicoLiveHTML.getNicoLiveHTML(liveId, userSession, true).await()
+            val livePageResponse = nicoLiveHTML.getNicoLiveHTML(liveId, userSession, true).await()
             if (!livePageResponse.isSuccessful) {
                 // 失敗のときはService落とす
                 this@NicoLivePlayService.stopSelf()
@@ -816,8 +818,9 @@ class NicoLivePlayService : Service() {
  * @param isNicocasMode ニコキャス式湖面投稿モードならtrue
  * @param isTokumei 匿名でコメントする場合はtrue。省略時true
  * @param isJK 実況ならtrue。省略時false
+ * @param startQuality 画質を指定する場合は入れてね。highとか。ない場合はそのままでいいです（省略時：high）。
  * */
-internal fun startLivePlayService(context: Context?, mode: String, liveId: String, isCommentPost: Boolean, isNicocasMode: Boolean, isJK: Boolean = false, isTokumei: Boolean = true) {
+internal fun startLivePlayService(context: Context?, mode: String, liveId: String, isCommentPost: Boolean, isNicocasMode: Boolean, isJK: Boolean = false, isTokumei: Boolean = true, startQuality: String = "high") {
     // ポップアップ再生の権限があるか
     if (mode == "popup") {
         if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -840,6 +843,7 @@ internal fun startLivePlayService(context: Context?, mode: String, liveId: Strin
         putExtra("is_nicocas", isNicocasMode)
         putExtra("is_tokumei", isTokumei)
         putExtra("is_jk", isJK)
+        putExtra("start_quality", startQuality)
     }
     // サービス終了（起動させてないときは何もならないと思う）させてから起動させる。（
     // 起動してない状態でstopService呼ぶ分にはなんの問題もないっぽい？）

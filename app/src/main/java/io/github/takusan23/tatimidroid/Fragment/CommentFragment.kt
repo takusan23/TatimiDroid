@@ -67,6 +67,7 @@ import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
+import java.io.Console
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -156,7 +157,7 @@ class CommentFragment : Fragment() {
     lateinit var qualitySelectBottomSheet: QualitySelectBottomSheet
 
     // 現在の画質
-    var beginQuality = ""
+    var currentQuality = ""
 
     //低遅延なのか。でふぉは低遅延有効
     var isLowLatency = true
@@ -307,7 +308,7 @@ class CommentFragment : Fragment() {
         // ユーザーの設定したフォント読み込み
         customFont = CustomFont(context)
         // CommentCanvasにも適用するかどうか
-        if(customFont.isApplyFontFileToCommentCanvas){
+        if (customFont.isApplyFontFileToCommentCanvas) {
             commentCanvas.typeface = customFont.typeface
         }
 
@@ -573,8 +574,8 @@ class CommentFragment : Fragment() {
                         // 画質変更BottomSheet初期化
                         initQualityChangeBottomFragment(getCurrentQuality(message), getQualityListJSONArray(message))
                         // 最初の画質を控える
-                        if (beginQuality.isEmpty()) {
-                            beginQuality = currentQuality
+                        if (this@CommentFragment.currentQuality.isEmpty()) {
+                            this@CommentFragment.currentQuality = currentQuality
                         } else {
                             // 画質変更SnackBar表示
                             showQualityChangeSnackBar(currentQuality)
@@ -985,10 +986,10 @@ class CommentFragment : Fragment() {
             return
         }
         //画質変更した。Snackbarでユーザーに教える
-        val oldQuality = QualitySelectBottomSheet.getQualityText(beginQuality, context)
+        val oldQuality = QualitySelectBottomSheet.getQualityText(currentQuality, context)
         val newQuality = QualitySelectBottomSheet.getQualityText(selectQuality, context)
         Snackbar.make(live_surface_view, "${getString(R.string.successful_quality)}\n${oldQuality}→${newQuality}", Snackbar.LENGTH_SHORT).show()
-        beginQuality = selectQuality
+        currentQuality = selectQuality
     }
 
     // 画質変更BottomFragment初期化
@@ -1539,7 +1540,7 @@ class CommentFragment : Fragment() {
      * */
     private fun startPlayService(mode: String) {
         // サービス起動
-        startLivePlayService(context, mode, liveId, isWatchingMode, isNicocasMode, isJK, nicoLiveHTML.isTokumeiComment)
+        startLivePlayService(context = context, mode = mode, liveId = liveId, isCommentPost = isWatchingMode, isNicocasMode = isNicocasMode, isJK = isJK, isTokumei = nicoLiveHTML.isTokumeiComment, startQuality = currentQuality)
         // Activity落とす
         activity?.finish()
     }

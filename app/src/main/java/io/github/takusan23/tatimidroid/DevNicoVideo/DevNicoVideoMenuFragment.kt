@@ -307,12 +307,9 @@ class DevNicoVideoMenuFragment : Fragment() {
                 val isDmcInfo = devNicoVideoFragment.nicoVideoHTML.isDMCServer(json)
                 // 画質一覧取得
                 val qualityList = if (isDmcInfo) {
-                    json.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality")
-                        .toString()
+                    json.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality").toString()
                 } else {
-                    json.getJSONObject("video").getJSONObject("smileInfo")
-                        .getJSONArray("qualityIds")
-                        .toString()
+                    json.getJSONObject("video").getJSONObject("smileInfo").getJSONArray("qualityIds").toString()
                 }
                 // 画質変更BottomSheet
                 val qualityBottomFragment = DevNicoVideoQualityBottomFragment()
