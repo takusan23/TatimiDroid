@@ -325,16 +325,16 @@
                 android:defaultValue="false"
                 android:icon="@drawable/ic_sports_esports_24px"
                 android:key="setting_comment_canvas_speed_fps_enable"
-                android:summary="有効にすると「コメント描画の更新頻度の変更」は適用されません。"
-                android:title="コメントの更新頻度をfpsで設定する" />
+                android:summary="@string/setting_comment_canvas_fps_enable_description"
+                android:title="@string/setting_comment_canvas_fps_enable_title" />
 
         <EditTextPreference
                 android:defaultValue="60"
                 android:dependency="setting_comment_canvas_speed_fps_enable"
                 android:icon="@drawable/ic_outline_query_builder_24px"
                 android:key="setting_comment_canvas_speed_fps"
-                android:summary="更新頻度の変更をfpsで設定できます。"
-                android:title="コメントの更新頻度をfpsで設定する" />
+                android:summary="@string/setting_comment_canvas_fps_description"
+                android:title="@string/setting_comment_canvas_fps_title" />
 
         <EditTextPreference
                 android:defaultValue="3"
@@ -347,8 +347,8 @@
                 android:defaultValue="1.0"
                 android:icon="@drawable/ic_paint_black"
                 android:key="setting_comment_alpha"
-                android:summary="コメントの透明度が設定できます。0.1から1.0（透過なし）の範囲で入力してください。"
-                android:title="コメントの透明度の設定" />
+                android:summary="@string/setting_comment_canvas_alpha_descripton"
+                android:title="@string/setting_comment_canvas_alpha_title" />
     </PreferenceCategory>
 
     <!--

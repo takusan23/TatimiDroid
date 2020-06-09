@@ -446,4 +446,10 @@
     <string name="setting_comment_canvas_font_file">Apply selected font file to flowing comments</string>
     <string name="setting_cache_background_play_prev_button_title">Replace the forward button with the back button.</string>
     <string name="setting_cache_background_play_prev_button_description">Replaces the next song button with the previous song button for continuous background playback (cache only). Since the seek bar is available on Android 10 or later, the following songs can be replaced by operating the seek bar.</string>
+    <string name="setting_comment_canvas_alpha_title">Setting comment transparency</string>
+    <string name="setting_comment_canvas_alpha_descripton">You can set the transparency of the comment. Enter within the range of 0.1 to 1.0 (no transparency).</string>
+    <string name="setting_comment_canvas_fps_enable_title">Set comment update frequency in fps</string>
+    <string name="setting_comment_canvas_fps_enable_description">When enabled, \"Change comment drawing update frequency\" is not applied.</string>
+    <string name="setting_comment_canvas_fps_title">Set comment update frequency in fps</string>
+    <string name="setting_comment_canvas_fps_description">You can set the change of update frequency with fps. Let\'s change the \"moving size\" together.</string>
 </resources>

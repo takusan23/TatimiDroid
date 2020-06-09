@@ -446,4 +446,10 @@
     <string name="setting_comment_canvas_font_file">流れるコメントにも選択したフォントファイルを適用する</string>
     <string name="setting_cache_background_play_prev_button_title">進むボタンを戻るボタンに置き換える。</string>
     <string name="setting_cache_background_play_prev_button_description">連続バックグラウンド再生（キャッシュ専用）で次の曲ボタンを前の曲ボタンに置き換えます。Android 10以降ではシークバーが利用可能なので、次の曲はシークバーを操作することで代替可能です。</string>
+    <string name="setting_comment_canvas_alpha_title">コメントの透明度の設定</string>
+    <string name="setting_comment_canvas_alpha_descripton">" コメントの透明度が設定できます。0.1から1.0（透過なし）の範囲で入力してください。 "</string>
+    <string name="setting_comment_canvas_fps_enable_title">コメントの更新頻度をfpsで設定する</string>
+    <string name="setting_comment_canvas_fps_enable_description">有効にすると「コメント描画の更新頻度の変更」は適用されません。</string>
+    <string name="setting_comment_canvas_fps_title">コメントの更新頻度をfpsで設定する</string>
+    <string name="setting_comment_canvas_fps_description">更新頻度の変更をfpsで設定できます。一緒に「移動する大きさ」も変更してみてね。</string>
 </resources>
