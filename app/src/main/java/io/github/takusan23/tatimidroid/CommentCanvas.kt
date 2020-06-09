@@ -118,28 +118,21 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     init {
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
-/*
-        //白色テキスト
-        paint = Paint()
-        paint.isAntiAlias = true
-        paint.textSize = fontsize
-        paint.style = Paint.Style.FILL
-        paint.color = Color.parseColor("#ffffff")
-
-        //黒色テキスト
-        blackPaint = Paint()
-        blackPaint.isAntiAlias = true
-        blackPaint.strokeWidth = 2.0f
-        blackPaint.style = Paint.Style.STROKE
-        blackPaint.textSize = fontsize
-        blackPaint.color = Color.parseColor("#000000")
-*/
-
         val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-        //コメントの流れる速度
+        // コメントの更新頻度をfpsで設定するかどうか
+        val enableCommentSpeedFPS = pref_setting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
+        // コメントの流れる速度
         val speed = pref_setting.getString("setting_comment_speed", "5")?.toInt() ?: 5
         // コメントキャンバスの更新頻度
-        val update = pref_setting.getString("setting_comment_canvas_timer", "10")?.toLong() ?: 10
+        val update = if (enableCommentSpeedFPS) {
+            // fpsで設定
+            val fps = pref_setting.getString("setting_comment_canvas_speed_fps", "60")?.toIntOrNull() ?: 60
+            // 1000で割る （例：1000/60=16....）
+            (1000 / fps)
+        } else {
+            // ミリ秒で指定
+            pref_setting.getString("setting_comment_canvas_timer", "10")?.toIntOrNull() ?: 10
+        }.toLong()
         // コメントの透明度
         commentAlpha = pref_setting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F
         // コメントの行を最低10行確保するモード

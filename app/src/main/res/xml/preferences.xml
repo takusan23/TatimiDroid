@@ -313,12 +313,28 @@
                 android:summary="@string/setting_custom_comment_line_value_description"
                 android:title="@string/setting_custom_comment_line_value_title" />
 
+
         <EditTextPreference
                 android:defaultValue="10"
                 android:icon="@drawable/ic_outline_query_builder_24px"
                 android:key="setting_comment_canvas_timer"
                 android:summary="@string/setting_comment_canvas_timer_description"
                 android:title="@string/setting_comment_canvas_timer_title" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_sports_esports_24px"
+                android:key="setting_comment_canvas_speed_fps_enable"
+                android:summary="有効にすると「コメント描画の更新頻度の変更」は適用されません。"
+                android:title="コメントの更新頻度をfpsで設定する" />
+
+        <EditTextPreference
+                android:defaultValue="60"
+                android:dependency="setting_comment_canvas_speed_fps_enable"
+                android:icon="@drawable/ic_outline_query_builder_24px"
+                android:key="setting_comment_canvas_speed_fps"
+                android:summary="更新頻度の変更をfpsで設定できます。"
+                android:title="コメントの更新頻度をfpsで設定する" />
 
         <EditTextPreference
                 android:defaultValue="3"
