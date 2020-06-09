@@ -175,15 +175,18 @@ class DevNicoVideoMenuFragment : Fragment() {
     }
 
 
-    // ポップアップ再生、バッググラウンド再生ボタン
+    // ポップアップ再生、バッググラウンド再生ボタン。startVideoPlayService()はNicoVideoPlayServiceに書いてあります。（internal funなのでどこでも呼べる）
     private fun initVideoPlayServiceButton() {
+        val devNicoVideoFragment = parentFragmentManager.findFragmentByTag(videoId) as DevNicoVideoFragment
         fragment_nicovideo_menu_popup.setOnClickListener {
-            startVideoPlayService(context, "popup", videoId, isCache)
+            // ポップアップ再生
+            startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = devNicoVideoFragment.currentVideoQuality, audioQuality = devNicoVideoFragment.currentAudioQuality)
             // Activity落とす
             activity?.finish()
         }
         fragment_nicovideo_menu_background.setOnClickListener {
-            startVideoPlayService(context, "background", videoId, isCache)
+            // バッググラウンド再生
+            startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = devNicoVideoFragment.currentVideoQuality, audioQuality = devNicoVideoFragment.currentAudioQuality)
             // Activity落とす
             activity?.finish()
         }
@@ -317,7 +320,7 @@ class DevNicoVideoMenuFragment : Fragment() {
                     putString("video_id", videoId)
                     putBoolean("is_dmc", isDmcInfo)
                     putString("quality", qualityList)
-                    putString("select", devNicoVideoFragment.selectQuality)
+                    putString("select", devNicoVideoFragment.currentVideoQuality)
                 }
                 qualityBottomFragment.arguments = bundle
                 qualityBottomFragment.show(fragmentManager!!, "quality")

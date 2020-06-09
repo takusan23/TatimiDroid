@@ -110,10 +110,10 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
                             context?.startActivity(intent)
                         }
                         "popup" -> {
-                            startVideoPlayService(context, "popup", data.videoId, data.isCache)
+                            startVideoPlayService(context = context, mode = "popup", videoId = data.videoId, isCache = data.isCache)
                         }
                         "background" -> {
-                            startVideoPlayService(context, "background", data.videoId, data.isCache)
+                            startVideoPlayService(context = context, mode = "background", videoId = data.videoId, isCache = data.isCache)
                         }
                     }
                 }

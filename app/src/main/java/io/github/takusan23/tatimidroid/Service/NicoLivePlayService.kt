@@ -43,7 +43,6 @@ import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 import java.util.*
 import kotlin.concurrent.timerTask
 

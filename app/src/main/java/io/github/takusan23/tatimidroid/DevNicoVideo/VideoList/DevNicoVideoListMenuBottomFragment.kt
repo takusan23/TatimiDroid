@@ -111,8 +111,12 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     // ポップアップ再生、バッググラウンド再生ボタン初期化
     private fun playServiceButton() {
-        bottom_fragment_nicovideo_list_menu_popup.setOnClickListener { startVideoPlayService(context, "popup", nicoVideoData.videoId, nicoVideoData.isCache) }
-        bottom_fragment_nicovideo_list_menu_background.setOnClickListener { startVideoPlayService(context, "background", nicoVideoData.videoId, nicoVideoData.isCache) }
+        bottom_fragment_nicovideo_list_menu_popup.setOnClickListener {
+            startVideoPlayService(context = context, mode = "popup", videoId = nicoVideoData.videoId, isCache = nicoVideoData.isCache)
+        }
+        bottom_fragment_nicovideo_list_menu_background.setOnClickListener {
+            startVideoPlayService(context = context, mode = "background", videoId = nicoVideoData.videoId, isCache = nicoVideoData.isCache)
+        }
         bottom_fragment_nicovideo_list_menu_play.setOnClickListener {
             // 通常再生
             val nicoVideoActivity = Intent(context, NicoVideoActivity::class.java).apply {

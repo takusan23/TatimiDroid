@@ -87,7 +87,7 @@ class NicoVideoHTML {
      * ハートビート処理はheartBeat()関数を一度呼んでください。後は勝手にハートビートをPOSTしてくれます。
      *
      * 注意
-     * DMCサーバーの動画はハートビート処理が必要。なおこの関数呼べば勝手にハートビート処理やります。
+     * DMCサーバーの動画はハートビート処理が必要。
      * Smileサーバーの動画 例(sm7518470)：ヘッダーにnicohistory?つけないと取得できない。
      *
      * @param jsonObject parseJSON()の返り値
@@ -166,99 +166,98 @@ class NicoVideoHTML {
      *
      *  @return APIのレスポンス。JSON形式
      * */
-    fun callSessionAPI(jsonObject: JSONObject, videoQualityId: String = "", audioQualityId: String = ""): Deferred<JSONObject?> =
-        GlobalScope.async {
-            val dmcInfo = jsonObject.getJSONObject("video").getJSONObject("dmcInfo")
-            val sessionAPI = dmcInfo.getJSONObject("session_api")
-            //JSONつくる
-            val sessionPOSTJSON = JSONObject().apply {
-                put("session", JSONObject().apply {
-                    put("recipe_id", sessionAPI.getString("recipe_id"))
-                    put("content_id", sessionAPI.getString("content_id"))
-                    put("content_type", "movie")
-                    put("content_src_id_sets", JSONArray().apply {
-                        this.put(JSONObject().apply {
-                            this.put("content_src_ids", JSONArray().apply {
-                                this.put(JSONObject().apply {
-                                    this.put("src_id_to_mux", JSONObject().apply {
-                                        if (videoQualityId.isNotEmpty() && audioQualityId.isNotEmpty()) {
-                                            // 画質変更対応Ver
-                                            this.remove("video_src_ids")
-                                            this.remove("audio_src_ids")
-                                            this.put("video_src_ids", JSONArray().put(videoQualityId))
-                                            this.put("audio_src_ids", JSONArray().put(audioQualityId))
-                                        } else {
-                                            // 画質はdmcInfoに任せた！
-                                            this.put("video_src_ids", sessionAPI.getJSONArray("videos"))
-                                            this.put("audio_src_ids", sessionAPI.getJSONArray("audios"))
-                                        }
-                                    })
+    fun callSessionAPI(jsonObject: JSONObject, videoQualityId: String = "", audioQualityId: String = ""): Deferred<JSONObject?> = GlobalScope.async {
+        val dmcInfo = jsonObject.getJSONObject("video").getJSONObject("dmcInfo")
+        val sessionAPI = dmcInfo.getJSONObject("session_api")
+        //JSONつくる
+        val sessionPOSTJSON = JSONObject().apply {
+            put("session", JSONObject().apply {
+                put("recipe_id", sessionAPI.getString("recipe_id"))
+                put("content_id", sessionAPI.getString("content_id"))
+                put("content_type", "movie")
+                put("content_src_id_sets", JSONArray().apply {
+                    this.put(JSONObject().apply {
+                        this.put("content_src_ids", JSONArray().apply {
+                            this.put(JSONObject().apply {
+                                this.put("src_id_to_mux", JSONObject().apply {
+                                    if (videoQualityId.isNotEmpty() && audioQualityId.isNotEmpty()) {
+                                        // 画質変更対応Ver
+                                        this.remove("video_src_ids")
+                                        this.remove("audio_src_ids")
+                                        this.put("video_src_ids", JSONArray().put(videoQualityId))
+                                        this.put("audio_src_ids", JSONArray().put(audioQualityId))
+                                    } else {
+                                        // 画質はdmcInfoに任せた！
+                                        this.put("video_src_ids", sessionAPI.getJSONArray("videos"))
+                                        this.put("audio_src_ids", sessionAPI.getJSONArray("audios"))
+                                    }
                                 })
                             })
                         })
                     })
-                    put("timing_constraint", "unlimited")
-                    put("keep_method", JSONObject().apply {
-                        put("heartbeat", JSONObject().apply {
-                            put("lifetime", 120000)
-                        })
-                    })
-                    put("protocol", JSONObject().apply {
-                        put("name", "http")
-                        put("parameters", JSONObject().apply {
-                            put("http_parameters", JSONObject().apply {
-                                put("parameters", JSONObject().apply {
-                                    put("http_output_download_parameters", JSONObject().apply {
-                                        put("use_well_known_port", "yes")
-                                        put("use_ssl", "yes")
-                                        // ログインしないモード対策
-                                        val transfer_preset =
-                                            sessionAPI.getJSONArray("transfer_presets")
-                                                .optString(0, "")
-                                        put("transfer_preset", transfer_preset)
-                                    })
-                                })
-                            })
-                        })
-                    })
-                    put("content_uri", "")
-                    put("session_operation_auth", JSONObject().apply {
-                        put("session_operation_auth_by_signature", JSONObject().apply {
-                            put("token", sessionAPI.getString("token"))
-                            put("signature", sessionAPI.getString("signature"))
-                        })
-                    })
-                    put("content_auth", JSONObject().apply {
-                        put("auth_type", "ht2")
-                        put("content_key_timeout", sessionAPI.getInt("content_key_timeout"))
-                        put("service_id", "nicovideo")
-                        put("service_user_id", sessionAPI.getString("service_user_id"))
-                    })
-                    put("client_info", JSONObject().apply {
-                        put("player_id", sessionAPI.getString("player_id"))
-                    })
-                    put("priority", sessionAPI.getDouble("priority"))
                 })
-            }
-            //POSTする
-            val requestBody =
-                sessionPOSTJSON.toString().toRequestBody("application/json".toMediaTypeOrNull())
-            val request = Request.Builder()
-                .url("https://api.dmc.nico/api/sessions?_format=json")
-                .post(requestBody)
-                .addHeader("User-Agent", "TatimiDroid;@takusan_23")
-                .addHeader("Content-Type", "application/json")
-                .build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            if (response.isSuccessful) {
-                val responseString = response.body?.string()
-                val jsonObject = JSONObject(responseString)
-                return@async jsonObject
-            } else {
-                return@async null
-            }
+                put("timing_constraint", "unlimited")
+                put("keep_method", JSONObject().apply {
+                    put("heartbeat", JSONObject().apply {
+                        put("lifetime", 120000)
+                    })
+                })
+                put("protocol", JSONObject().apply {
+                    put("name", "http")
+                    put("parameters", JSONObject().apply {
+                        put("http_parameters", JSONObject().apply {
+                            put("parameters", JSONObject().apply {
+                                put("http_output_download_parameters", JSONObject().apply {
+                                    put("use_well_known_port", "yes")
+                                    put("use_ssl", "yes")
+                                    // ログインしないモード対策
+                                    val transfer_preset =
+                                        sessionAPI.getJSONArray("transfer_presets")
+                                            .optString(0, "")
+                                    put("transfer_preset", transfer_preset)
+                                })
+                            })
+                        })
+                    })
+                })
+                put("content_uri", "")
+                put("session_operation_auth", JSONObject().apply {
+                    put("session_operation_auth_by_signature", JSONObject().apply {
+                        put("token", sessionAPI.getString("token"))
+                        put("signature", sessionAPI.getString("signature"))
+                    })
+                })
+                put("content_auth", JSONObject().apply {
+                    put("auth_type", "ht2")
+                    put("content_key_timeout", sessionAPI.getInt("content_key_timeout"))
+                    put("service_id", "nicovideo")
+                    put("service_user_id", sessionAPI.getString("service_user_id"))
+                })
+                put("client_info", JSONObject().apply {
+                    put("player_id", sessionAPI.getString("player_id"))
+                })
+                put("priority", sessionAPI.getDouble("priority"))
+            })
         }
+        //POSTする
+        val requestBody =
+            sessionPOSTJSON.toString().toRequestBody("application/json".toMediaTypeOrNull())
+        val request = Request.Builder()
+            .url("https://api.dmc.nico/api/sessions?_format=json")
+            .post(requestBody)
+            .addHeader("User-Agent", "TatimiDroid;@takusan_23")
+            .addHeader("Content-Type", "application/json")
+            .build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        if (response.isSuccessful) {
+            val responseString = response.body?.string()
+            val jsonObject = JSONObject(responseString)
+            return@async jsonObject
+        } else {
+            return@async null
+        }
+    }
 
 
     /**
@@ -590,15 +589,28 @@ class NicoVideoHTML {
 
     /**
      * 選択中の画質を取得する
-     * @param jsonObject callSessionAPI()叩いたときのレスポンス
-     * @return 画質
+     * @param sessionAPIJSONObject callSessionAPI()叩いたときのレスポンス
+     * @return 画質。例：archive_h264_360p_low
      * */
-    fun getSelectQuality(sessionAPIJSONObject: JSONObject): String? {
+    fun getCurrentVideoQuality(sessionAPIJSONObject: JSONObject): String? {
         val videoSrcId = sessionAPIJSONObject.getJSONObject("data").getJSONObject("session")
             .getJSONArray("content_src_id_sets").getJSONObject(0).getJSONArray("content_src_ids")
             .getJSONObject(0).getJSONObject("src_id_to_mux").getJSONArray("video_src_ids")
             .getString(0)
         return videoSrcId
+    }
+
+    /**
+     * 選択中の音質を取得する
+     * @param sessionAPIJSONObject callSessionAPI()叩いたときのレスポンス
+     * @return 音質。例：archive_aac_192kbps
+     * */
+    fun getCurrentAudioQuality(sessionAPIJSONObject: JSONObject): String? {
+        val audioQualityId = sessionAPIJSONObject.getJSONObject("data").getJSONObject("session")
+            .getJSONArray("content_src_id_sets").getJSONObject(0).getJSONArray("content_src_ids")
+            .getJSONObject(0).getJSONObject("src_id_to_mux").getJSONArray("audio_src_ids")
+            .getString(0)
+        return audioQualityId
     }
 
     /**

@@ -12,7 +12,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.Parcelable
 import android.text.format.DateUtils
 import android.view.*
 import android.view.animation.AnimationUtils
@@ -54,7 +53,6 @@ import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
-import java.io.Serializable
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
@@ -87,7 +85,10 @@ class DevNicoVideoFragment : Fragment() {
     var userId = ""
     var videoId = ""
     var videoTitle = ""
-    var selectQuality = "" // 選択中の画質
+
+    // 選択中の画質
+    var currentVideoQuality = ""
+    var currentAudioQuality = ""
 
     // キャッシュ取得用
     lateinit var nicoVideoCache: NicoVideoCache
@@ -451,8 +452,9 @@ class DevNicoVideoFragment : Fragment() {
                         contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
                         // ハートビート処理。これしないと切られる。
                         nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSONObject)
-                        // 選択中の画質
-                        selectQuality = nicoVideoHTML.getSelectQuality(sessionAPIJSONObject) ?: ""
+                        // 選択中の画質、音質控える
+                        currentVideoQuality = nicoVideoHTML.getCurrentVideoQuality(sessionAPIJSONObject) ?: ""
+                        currentAudioQuality = nicoVideoHTML.getCurrentAudioQuality(sessionAPIJSONObject) ?: ""
                     }
                 }
             } else {
@@ -744,7 +746,7 @@ class DevNicoVideoFragment : Fragment() {
      * */
     private fun initAspectRate(jsonObject: JSONObject, sessionJSONObject: JSONObject) {
         // 選択中の画質
-        val currentQuality = nicoVideoHTML.getSelectQuality(sessionAPIJSONObject)
+        val currentQuality = nicoVideoHTML.getCurrentVideoQuality(sessionAPIJSONObject)
         // 利用可能な画質パース
         val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
         // 選択中の画質を一つずつ見ていく
@@ -954,7 +956,7 @@ class DevNicoVideoFragment : Fragment() {
             val recyclerView = devNicoVideoCommentFragment.activity_nicovideo_recyclerview
             val list = devNicoVideoCommentFragment.recyclerViewList
             // findを使って条件に合うコメントのはじめの位置を取得する。この例では今の時間と同じか大きいくて最初の値。
-            var currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> (commentJSONParse.vpos.toInt()) >= milliSec/10 }
+            var currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> (commentJSONParse.vpos.toInt()) >= milliSec / 10 }
             // ニコるの難しいので 現在表示分 を足す
             val layoutManager = recyclerView.layoutManager as LinearLayoutManager
             val recyclerViewVisibleCount = layoutManager.findLastVisibleItemPosition() - layoutManager.findFirstVisibleItemPosition()

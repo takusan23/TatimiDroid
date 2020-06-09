@@ -54,7 +54,8 @@ import kotlin.concurrent.timerTask
  * is_cache       |Boolean|キャッシュ再生ならtrue
  * オプション
  * seek           |Long   |シークする場合は値（ms）を入れてね。
- *
+ * video_quality  |String |画質指定したい場合は入れてね。
+ * audio_quality  |String |音質指定したい場合は入れてね。
  * */
 class NicoVideoPlayService : Service() {
 
@@ -111,6 +112,10 @@ class NicoVideoPlayService : Service() {
     private var drewedList = arrayListOf<String>() // 描画したコメントのNoが入る配列。一秒ごとにクリアされる
     private var tmpPosition = 0L // いま再生している位置から一秒引いた値が入ってる。
 
+    // 視聴開始画質。こいつらnullの可能性あるからな
+    var startVideoQuality: String? = ""
+    var startAudioQuality: String? = ""
+
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
@@ -130,6 +135,9 @@ class NicoVideoPlayService : Service() {
         videoId = intent?.getStringExtra("video_id") ?: ""
         isCache = intent?.getBooleanExtra("is_cache", false) ?: false
         seekMs = intent?.getLongExtra("seek", 0L) ?: 0L
+        // 画質が指定されている場合
+        startVideoQuality = intent?.getStringExtra("video_quality")
+        startAudioQuality = intent?.getStringExtra("audio_quality")
         nicoVideoCache = NicoVideoCache(this)
         if (isCache) {
             // キャッシュ再生
@@ -166,7 +174,13 @@ class NicoVideoPlayService : Service() {
                     return@launch
                 }
                 // https://api.dmc.nico/api/sessions のレスポンス
-                val sessionAPIResponse = nicoVideoHTML.callSessionAPI(jsonObject).await()
+                val sessionAPIResponse = if (startVideoQuality != null && startAudioQuality != null) {
+                    // 画質指定あり
+                    nicoVideoHTML.callSessionAPI(jsonObject, startVideoQuality!!, startAudioQuality!!)
+                } else {
+                    // なし。おまかせ？
+                    nicoVideoHTML.callSessionAPI(jsonObject)
+                }.await()
                 if (sessionAPIResponse != null) {
                     sessionAPIJSONObject = sessionAPIResponse
                     // 動画URL
@@ -806,8 +820,10 @@ class NicoVideoPlayService : Service() {
  * @param videoId 動画ID
  * @param isCache キャッシュ再生ならtrue
  * @param seek シークするなら値を入れてね。省略可能。
+ * @param videoQuality 画質を指定する場合は入れてね。無くてもいいよ。キャッシュ再生の時は使わない。例：「archive_h264_4000kbps_1080p」
+ * @param audioQuality 音質を指定する場合は入れてね。無くてもいいよ。キャッシュ再生の時は使わない。例：「archive_aac_192kbps」
  * */
-internal fun startVideoPlayService(context: Context?, mode: String, videoId: String, isCache: Boolean, seek: Long = 0L) {
+internal fun startVideoPlayService(context: Context?, mode: String, videoId: String, isCache: Boolean, seek: Long = 0L, videoQuality: String = "", audioQuality: String = "") {
     // ポップアップ再生の権限あるか
     if (mode == "popup") {
         if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -828,6 +844,11 @@ internal fun startVideoPlayService(context: Context?, mode: String, videoId: Str
         putExtra("video_id", videoId)
         putExtra("is_cache", isCache)
         putExtra("seek", seek)
+        // 画質入れる。
+        if (videoQuality.isNotEmpty() && audioQuality.isNotEmpty()) {
+            putExtra("video_quality", videoQuality)
+            putExtra("audio_quality", audioQuality)
+        }
     }
     // サービス終了（起動させてないときは何もならないと思う）させてから起動させる。（
     // 起動してない状態でstopService呼ぶ分にはなんの問題もないっぽい？）
