@@ -42,7 +42,22 @@
         <service android:name=".Service.NicoLivePlayService" />
         <service android:name=".Service.NicoVideoPlayService" />
         <service android:name=".Service.GetCacheService" />
-        <service android:name=".Service.BackgroundPlaylistCachePlayService"></service>
+
+        <service
+                android:name=".Service.BackgroundPlaylistCachePlayService"
+                android:exported="false">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
+        <!-- これ書かないと通知から操作一生こない -->
+        <receiver android:name="androidx.media.session.MediaButtonReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
         <service android:name=".Service.CommentGetService" />
 
         <receiver android:name="androidx.media.session.MediaButtonReceiver">

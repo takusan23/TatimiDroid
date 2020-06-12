@@ -491,7 +491,7 @@ class NicoVideoCache(val context: Context?) {
      * @param 動画ID
      * */
     fun getCacheFolderVideoFilePath(videoId: String): String {
-        return "${getCacheFolderPath()}/$videoId/${getCacheFolderVideoFileName(videoId)}.mp4"
+        return "${getCacheFolderPath()}/$videoId/${getCacheFolderVideoFileName(videoId)}"
     }
 
     /**
