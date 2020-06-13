@@ -4,7 +4,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.*
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
@@ -13,8 +12,6 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
-import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -23,11 +20,12 @@ import androidx.media.session.MediaButtonReceiver
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.*
 import org.json.JSONObject
@@ -37,7 +35,7 @@ import java.util.*
 /**
  * キャッシュ連続再生用Service。
  * 入れてほしいもの↓
- * start_id     | String | 動画の再生開始のIDを指定するときに入れてね。（任意。未指定の場合最初から再生します）
+ * start_id     | String | 動画の再生開始のIDを指定するときに入れる。任意です。
  * */
 class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
 
@@ -46,9 +44,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
     lateinit var broadcastReceiver: BroadcastReceiver
     lateinit var exoPlayer: SimpleExoPlayer
     lateinit var mediaSessionCompat: MediaSessionCompat
-    lateinit var mediaSessionConnector: MediaSessionConnector
     lateinit var nicoVideoCache: NicoVideoCache
-    val timer = Timer()
 
     // 通知ID
     val NOTIFICAION_ID = 1919
@@ -59,8 +55,8 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
     // さあ？
     private val ROOT_ID = "background_playlist_service"
 
-    // 曲リスト
-    val videoQueueList = arrayListOf<MediaSessionCompat.QueueItem>()
+    // 動画一覧
+    var videoList = arrayListOf<NicoVideoData>()
 
     override fun onCreate() {
         super.onCreate()
@@ -85,9 +81,22 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         // ExoPlayer用意
         initExoPlayer()
 
-
         // 再生
-        this@BackgroundPlaylistCachePlayService.mediaSessionCompat.controller.transportControls.playFromMediaId(startVideoId, null)
+        mediaSessionCompat.controller.transportControls.apply {
+            // 再生
+            playFromMediaId(startVideoId, null)
+            // 前回リピートモード有効にしてたか
+            val repeatMode = prefSessing.getInt("cache_repeat_mode", 0)
+            setRepeatMode(repeatMode)
+            // 前回シャッフルモードを有効にしていたか
+            val isShuffleMode = prefSessing.getBoolean("cache_shuffle_mode", false)
+            val shuffleMode = if (isShuffleMode) {
+                PlaybackStateCompat.SHUFFLE_MODE_ALL
+            } else {
+                PlaybackStateCompat.REPEAT_MODE_NONE
+            }
+            setShuffleMode(shuffleMode)
+        }
 
         return START_NOT_STICKY
     }
@@ -145,7 +154,6 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
     private fun initMediaSessionCompat() {
         // MediaSession用意
         mediaSessionCompat = MediaSessionCompat(this, "background_playlist_play_session").apply {
-            // setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
             /**
              * コールバックの設定
              * もしなんか動かない時は、updateState()関数の setActions() に追加済みかどうかを確認してね。
@@ -156,27 +164,44 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                     super.onPlayFromMediaId(mediaId, extras)
                     // nullなら落とす
                     mediaId ?: return
-                    // 動画IDからUri生成からExoPlayerで再生
-                    val videoFilePathUri = nicoVideoCache.getCacheFolderVideoFilePath(mediaId)
-                    // MediaSource
-                    val dataSourceFactory = DefaultDataSourceFactory(this@BackgroundPlaylistCachePlayService, "TatimiDroid;@takusan_23")
-                    val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(videoFilePathUri.toUri())
-                    exoPlayer.prepare(mediaSource)
-                    exoPlayer.playWhenReady = true
-                    // メタデータ更新
-                    this@BackgroundPlaylistCachePlayService.mediaSessionCompat.setMetadata(createMetaData(mediaId))
-                    // 通知/状態 更新
-                    updateState()
-                    createNotification()
-                    // 再生
-                    onPlay()
+                    // 動画一覧読み込む
+                    GlobalScope.launch {
+                        videoList = getVideoList().await()
+                        // MediaSource作る
+                        val playList = ConcatenatingMediaSource()
+                        videoList.forEach { cacheData ->
+                            // 動画IDからUri生成からExoPlayerで再生
+                            val videoFilePathUri = nicoVideoCache.getCacheFolderVideoFilePath(cacheData.videoId)
+                            // MediaSource
+                            val dataSourceFactory = DefaultDataSourceFactory(this@BackgroundPlaylistCachePlayService, "TatimiDroid;@takusan_23")
+                            val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
+                                .setTag(cacheData.videoId)
+                                .createMediaSource(videoFilePathUri.toUri())
+                            playList.addMediaSource(mediaSource)
+                        }
+                        // 開始位置から再生
+                        val index = videoList.indexOfFirst { cacheData -> cacheData.videoId == startVideoId }
+                        withContext(Dispatchers.Main) {
+                            exoPlayer.apply {
+                                // プレイリストセットする
+                                prepare(playList)
+                                // seekToで移動
+                                seekTo(index, 0L)
+                                // 通知/状態 更新
+                                updateState()
+                                createNotification()
+                                // 再生
+                                onPlay()
+                            }
+                        }
+                    }
                 }
 
                 /** 再生 */
                 override fun onPlay() {
                     super.onPlay()
                     exoPlayer.playWhenReady = true
-                    this@BackgroundPlaylistCachePlayService.mediaSessionCompat.isActive = true
+                    mediaSessionCompat.isActive = true
                     // 通知/状態 更新
                     updateState()
                     createNotification()
@@ -186,7 +211,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                 override fun onPause() {
                     super.onPause()
                     exoPlayer.playWhenReady = false
-                    this@BackgroundPlaylistCachePlayService.mediaSessionCompat.isActive = false
+                    mediaSessionCompat.isActive = false
                     // 通知/状態 更新
                     updateState()
                     createNotification()
@@ -205,37 +230,13 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                 override fun onSkipToNext() {
                     super.onSkipToNext()
                     // いま再生中の場所取る
-                    // 再生中タイトルはこれで→ mediaSessionCompat.controller.metadata.description.title
-                    val index = videoQueueList.indexOfFirst { queueItem -> queueItem.description.title == mediaSessionCompat.controller.metadata.description.title }
-                    // 次の場所
-                    val nextIndex = index + 1
-                    // 次の動画あれば
-                    val queueItem = if (nextIndex < videoQueueList.size) {
-                        // 次の曲
-                        videoQueueList[nextIndex]
-                    } else {
-                        // 最初へ
-                        videoQueueList.first()
-                    }
-                    // 再生する
-                    onPlayFromMediaId(queueItem.description.mediaId, null)
+                    exoPlayer.next()
                 }
 
                 /** 前の曲 */
                 override fun onSkipToPrevious() {
                     super.onSkipToPrevious()
-                    // いま再生中の場所取る
-                    val index = videoQueueList.indexOfFirst { queueItem -> queueItem.description.title == mediaSessionCompat.controller.metadata.description.title }
-                    // 一個前の場所
-                    val prevIndex = if (index - 1 >= 0) {
-                        index - 1 // あれば
-                    } else {
-                        videoQueueList.size - 1 // なければ最後の値
-                    }
-                    // 前の動画あれば
-                    val queueItem = videoQueueList[prevIndex]
-                    // 再生する
-                    onPlayFromMediaId(queueItem.description.mediaId, null)
+                    exoPlayer.previous()
                 }
 
                 /** リピートモード切り替え */
@@ -261,24 +262,16 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                 override fun onSetShuffleMode(shuffleMode: Int) {
                     super.onSetShuffleMode(shuffleMode)
                     val isShuffleMode = shuffleMode == PlaybackStateCompat.SHUFFLE_MODE_ALL
-                    // ExoPlayerにシャッフル有効を伝えてもExoPlayerはこれから再生する曲持ってないからわからんと思うけど一応。
                     exoPlayer.shuffleModeEnabled = isShuffleMode
-                    if (isShuffleMode) {
-                        // 配列シャッフル？
-                        videoQueueList.shuffle()
-                    } else {
-                        loadVideoQueueList()
-                    }
                 }
 
                 /** 再生終了 */
                 override fun onStop() {
                     super.onStop()
                     exoPlayer.release()
-                    this@BackgroundPlaylistCachePlayService.mediaSessionCompat.isActive = false
+                    mediaSessionCompat.isActive = false
                     release()
                     stopSelf()
-                    timer.cancel()
                 }
             })
 
@@ -286,28 +279,8 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             setSessionToken(sessionToken)
 
         }
-        // キュー機能。ExoPlayerだけならこんなクソめんどいことしなくて済むのに。
-        loadVideoQueueList()
     }
 
-    /**
-     * キュー機能。
-     * 次の動画など。非同期です。
-     * */
-    fun loadVideoQueueList() {
-        // キュー機能。ExoPlayerだけならこんなクソめんどいことしなくて済むのに。
-        GlobalScope.launch(Dispatchers.Main) {
-            // キュー読み込み
-            withContext(Dispatchers.IO) {
-                videoQueueList.clear()
-                val items = getVideoList().await()
-                for (i in 0 until items.size) {
-                    videoQueueList.add(MediaSessionCompat.QueueItem(items[i].description, i.toLong()))
-                }
-            }
-            mediaSessionCompat.setQueue(videoQueueList)
-        }
-    }
 
     /**
      * 曲リストを返す。
@@ -324,13 +297,11 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         }
     }
 
-
     /**
-     * 動画一覧（MediaBrowserCompat.MediaItem）を返す。
+     * 再生する動画一覧を返す。コルーチンで使ってね。
+     * @return NicoVideoDataの配列
      * */
-    private fun getVideoList(): Deferred<ArrayList<MediaBrowserCompat.MediaItem>> = GlobalScope.async {
-        // 一覧配列
-        val videoMetaDataList = arrayListOf<MediaBrowserCompat.MediaItem>()
+    private fun getVideoList(): Deferred<ArrayList<NicoVideoData>> = GlobalScope.async {
         // 取得
         var videoList = nicoVideoCache.loadCache().await()
         val filter = CacheJSON().readJSON(this@BackgroundPlaylistCachePlayService)
@@ -340,14 +311,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         } else {
             videoList
         }
-        videoList.forEach { nicoVideoData ->
-            // メタデータ
-            val metadata = createMetaData(nicoVideoData.videoId)
-            // 配列に入れる
-            videoMetaDataList.add(MediaBrowserCompat.MediaItem(metadata.description, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE))
-        }
-        // クライアントへどぞー
-        return@async videoMetaDataList
+        return@async videoList
     }
 
     /**
@@ -379,20 +343,23 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             } else {
                 jsonObject.getJSONObject("owner").getString("nickname")
             }
-            val currentThumbBitmap =
-                BitmapFactory.decodeFile(nicoVideoCache.getCacheFolderVideoThumFilePath(videoId))
+            val thumbPath = nicoVideoCache.getCacheFolderVideoThumFilePath(videoId)
+            val currentThumbBitmap = BitmapFactory.decodeFile(thumbPath)
             // 再生時間
             val duration = jsonObject.getJSONObject("video").getLong("duration")
             // メタデータ
             val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
-                putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, videoFilePath)
+                // Android 11 の MediaSession で使われるやつ
+                putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, thumbPath)
                 putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentTitle)
+                putString(MediaMetadataCompat.METADATA_KEY_ARTIST, uploaderName)
+                putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration * 1000) // これあるとAndroid 10でシーク使えます
+                // ？
+                putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, videoFilePath)
                 putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, videoId)
                 putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentTitle)
                 putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, uploaderName)
-                putString(MediaMetadataCompat.METADATA_KEY_ARTIST, uploaderName)
                 putBitmap(MediaMetadataCompat.METADATA_KEY_ART, currentThumbBitmap)
-                putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration * 1000) // これあるとAndroid 10でシーク使えます
             }.build()
             return mediaMetadataCompat
         } else {
@@ -412,7 +379,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
     }
 
     /**
-     * 通知と再生状態（MediaSessionの再生状態）更新する
+     * 通知と再生状態（MediaSessionの再生状態）とメタデータを更新する
      * 受け付ける操作（例：一時停止「PlaybackStateCompat.ACTION_PLAY」など）もここで定義します。
      * */
     private fun updateState() {
@@ -438,6 +405,15 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             setState(state, currentPos, 1f)
         }
         mediaSessionCompat.setPlaybackState(stateBuilder.build())
+
+        // メタデータ更新など
+        if (isInitExoPlayer && exoPlayer.currentTag is String) {
+            // 再生中の動画IDはタグに入ってるので
+            val videoId = exoPlayer.currentTag as String
+            // メタデータセット
+            mediaSessionCompat.setMetadata(createMetaData(videoId))
+        }
+
     }
 
     /**
@@ -491,8 +467,6 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             setLargeIcon(thumb)
             // 停止ボタン
             addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_STOP)))
-
-
             if (::exoPlayer.isInitialized && exoPlayer.playWhenReady) {
                 // 一時停止
                 addAction(NotificationCompat.Action(R.drawable.ic_pause_black_24dp, "play", MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_PAUSE)))
@@ -509,8 +483,9 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                 addAction(NotificationCompat.Action(R.drawable.ic_skip_next_black_24dp, "next", MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)))
             }
 
+
             setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(sessionToken).run {
-                setShowActionsInCompactView(0)
+                setShowActionsInCompactView(0, 1, 3) // 複数個アイコンを表示（３個までだが）する際は区切りで指定
             })
 
             /**
