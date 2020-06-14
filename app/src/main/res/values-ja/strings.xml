@@ -452,4 +452,5 @@
     <string name="setting_comment_canvas_fps_enable_description">有効にすると「コメント描画の更新頻度の変更」は適用されません。</string>
     <string name="setting_comment_canvas_fps_title">コメントの更新頻度をfpsで設定する</string>
     <string name="setting_comment_canvas_fps_description">更新頻度の変更をfpsで設定できます。一緒に「移動する大きさ」も変更してみてね。</string>
+    <string name="tuizyuu">おいかける</string>
 </resources>

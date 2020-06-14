@@ -49,9 +49,25 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/activity_nicovideo_recyclerview"
+    <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scrollbars="vertical" />
+            android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/activity_nicovideo_recyclerview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+        <Button
+                android:id="@+id/dev_nicovideo_comment_fragment_following_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/tuizyuu"
+                android:visibility="gone"
+                app:icon="@drawable/ic_import_export_black_24dp" />
+    </FrameLayout>
 </LinearLayout>

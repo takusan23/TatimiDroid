@@ -452,4 +452,5 @@
     <string name="setting_comment_canvas_fps_enable_description">When enabled, \"Change comment drawing update frequency\" is not applied.</string>
     <string name="setting_comment_canvas_fps_title">Set comment update frequency in fps</string>
     <string name="setting_comment_canvas_fps_description">You can set the change of update frequency with fps. Let\'s change the \"moving size\" together.</string>
+    <string name="tuizyuu">Following</string>
 </resources>

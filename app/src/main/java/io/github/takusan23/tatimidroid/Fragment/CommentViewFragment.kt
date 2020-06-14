@@ -14,6 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Adapter.CommentRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
+import kotlinx.android.synthetic.main.fragment_commentview.*
+import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import org.java_websocket.client.WebSocketClient
 import java.util.*
 import kotlin.collections.ArrayList
@@ -57,9 +60,7 @@ class CommentViewFragment : Fragment() {
         stringArena = getString(R.string.arena)
 
         //CommentFragment取得
-        commentFragment =
-            (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId)
-                    as CommentFragment
+        commentFragment = (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
 
         commentFragment.apply {
             // RecyclerView初期化
@@ -71,6 +72,15 @@ class CommentViewFragment : Fragment() {
             recyclerView.adapter = commentRecyclerViewAdapter
             recyclerView.setItemAnimator(null);
         }
+
+        // スクロールボタン。追従するぞい
+        fragment_comment_following_button.setOnClickListener {
+            // Fragmentはクソ！
+            (recyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(0, 0)
+            // Visibilityゴーン。誰もカルロス・ゴーンの話しなくなったな
+            setFollowingButtonVisibility(false)
+        }
+
     }
 
     fun showToast(message: String) {
@@ -102,22 +112,31 @@ class CommentViewFragment : Fragment() {
      * 一番上にいない->この位置に留まる
      * */
     fun recyclerViewScrollPos() {
-        // 画面上で最上部に表示されているビューのポジションとTopを記録しておく
-        val pos =
-            (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
-        var top = 0
-        if ((recyclerView.layoutManager as LinearLayoutManager).childCount > 0) {
-            top = (recyclerView.layoutManager as LinearLayoutManager).getChildAt(0)!!.top
-        }
+        // れいあうとまねーじゃー
+        val linearLayoutManager = (recyclerView.layoutManager as LinearLayoutManager)
+        // RecyclerViewで表示されてる中で一番上に表示されてるコメントの位置
+        val visibleListFirstItemPos = linearLayoutManager.findFirstVisibleItemPosition()
         //一番上なら追いかける
-        if (pos == 0 || pos == 1) {
+        if (visibleListFirstItemPos == 0) {
             recyclerView.scrollToPosition(0)
+            // 追従ボタン非表示
+            setFollowingButtonVisibility(false)
         } else {
-            recyclerView.post {
-                (recyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(
-                    pos + 1,
-                    top
-                )
+            // 一番上じゃないので追従ボタン表示
+            setFollowingButtonVisibility(true)
+        }
+    }
+
+    /**
+     * コメント追いかけるボタンを表示、非表示する関数
+     * @param visible 表示する場合はtrue。非表示にする場合はfalse
+     * */
+    fun setFollowingButtonVisibility(visible: Boolean) {
+        fragment_comment_following_button?.apply {
+            visibility = if (visible) {
+                View.VISIBLE
+            } else {
+                View.GONE
             }
         }
     }

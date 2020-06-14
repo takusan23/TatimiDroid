@@ -63,6 +63,18 @@ class DevNicoVideoCommentFragment : Fragment() {
         // コメント検索
         initSearchButton()
 
+        // スクロールボタン。追従するぞい
+        dev_nicovideo_comment_fragment_following_button.setOnClickListener {
+            // Fragmentはクソ！
+            (parentFragmentManager.findFragmentByTag(id) as? DevNicoVideoFragment)?.apply {
+                // スクロール
+                val currentPos = exoPlayer.currentPosition
+                scroll(currentPos)
+                // Visibilityゴーン。誰もカルロス・ゴーンの話しなくなったな
+                setFollowingButtonVisibility(false)
+            }
+        }
+
     }
 
     /**
@@ -105,6 +117,38 @@ class DevNicoVideoCommentFragment : Fragment() {
             initRecyclerView()
         }
     }
+
+    /**
+     * 現在表示されているリストの中で一番下に表示されれいるコメントを返す
+     * こいつ関数名考えるの下手だな
+     * */
+    fun getCommentListVisibleLastItemComment(): CommentJSONParse {
+        return recyclerViewList[(recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()]
+    }
+
+    /**
+     * 現在表示されているリストの中で一番下に表示されれいるコメントが現在再生中の位置のコメントの場合はtrue
+     * @param sec 再生時間。10など
+     * @return 表示中の中で一番最後のアイテムが 再生時間 と同じならtrue
+     * */
+    fun isCheckLastItemTime(sec: Long): Boolean {
+        return (sec - 1) == getCommentListVisibleLastItemComment().vpos.toInt() / 100L
+    }
+
+    /**
+     * コメント追いかけるボタンを表示、非表示する関数
+     * @param visible 表示する場合はtrue。非表示にする場合はfalse
+     * */
+    fun setFollowingButtonVisibility(visible: Boolean) {
+        dev_nicovideo_comment_fragment_following_button?.apply {
+            visibility = if (visible) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+        }
+    }
+
 
     private fun initSortPopupMenu() {
         val menuBuilder = MenuBuilder(context)

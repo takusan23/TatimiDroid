@@ -6,8 +6,10 @@ import android.app.PendingIntent
 import android.content.*
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -279,6 +281,9 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             setSessionToken(sessionToken)
 
         }
+
+        updateState()
+
     }
 
 
@@ -400,7 +405,11 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         // 再生中の状態変更に対応する。
         val stateBuilder = PlaybackStateCompat.Builder().apply {
             // 重要：受け付ける操作。CallBack書いたのに動かない時は見てみて（とゆうか最初から全部いれとけよぼけ）
-            setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_SEEK_TO or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or PlaybackStateCompat.ACTION_SKIP_TO_NEXT)
+            setActions(
+                PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_SEEK_TO or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                        PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH or PlaybackStateCompat.ACTION_PLAY_FROM_URI or
+                        PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or PlaybackStateCompat.ACTION_PREPARE_FROM_URI or PlaybackStateCompat.ACTION_PREPARE
+            )
             // 再生状態
             setState(state, currentPos, 1f)
         }

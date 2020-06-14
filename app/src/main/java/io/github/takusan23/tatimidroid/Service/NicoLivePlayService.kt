@@ -138,6 +138,12 @@ class NicoLivePlayService : Service() {
         // 開始時の画質を指定するか
         nicoLiveHTML.startQuality = intent?.getStringExtra("start_quality") ?: "high"
 
+        // モバイルデータは最低画質で読み込む設定
+        if (prefSetting.getBoolean("setting_mobiledata_quality_low", false) && isConnectionInternet(this@NicoLivePlayService)) {
+            // 最低画質指定
+            nicoLiveHTML.startQuality = "super_low"
+        }
+
         if (isJK) {
             jkCoroutine()
         } else {
@@ -214,13 +220,6 @@ class NicoLivePlayService : Service() {
                         command == "stream" -> {
                             // HLSアドレス取得
                             hlsAddress = getHlsAddress(message) ?: ""
-                            // モバイルデータは最低画質で読み込む設定
-                            if (prefSetting.getBoolean("setting_mobiledata_quality_low", false)) {
-                                if (isConnectionInternet(this@NicoLivePlayService)) {
-                                    // 最低画質指定
-                                    nicoLiveHTML.sendQualityMessage("super_low")
-                                }
-                            }
                             // UI Thread
                             Handler(Looper.getMainLooper()).post {
                                 // 生放送再生
@@ -325,6 +324,7 @@ class NicoLivePlayService : Service() {
      * */
     private fun initPlayer() {
 
+
         // ポップアップ再生、バッググラウンド再生　共にExoPlayer、MediaSessionの初期化を行う。
 
         // ExoPlayer初期化
@@ -398,8 +398,6 @@ class NicoLivePlayService : Service() {
         ) {
             return
         }
-        // ポップアップ再生開始時のがめんの向き
-        val isStartOrientation = resources.configuration.orientation
 
         // 画面の半分を利用するように
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
