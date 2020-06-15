@@ -99,7 +99,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     // ポップアップ再生時はtrue
     var isPopupView = false
 
-    // コメントを流さないときはtrue
+    /** コメントを流さないときはtrue */
     var isPause = false
 
     // 10行確保モード

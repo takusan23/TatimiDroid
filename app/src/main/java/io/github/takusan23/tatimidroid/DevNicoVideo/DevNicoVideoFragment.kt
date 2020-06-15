@@ -49,6 +49,7 @@ import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
+import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.*
@@ -899,10 +900,14 @@ class DevNicoVideoFragment : Fragment() {
                             // スクロールしない。代わりに追いかけるボタンを表示する
                             val lastShowItemTime = requireCommentFragment()?.getCommentListVisibleLastItemComment()?.vpos?.toInt()?.div(100) ?: 1 // 100.div(100) は 100 / 100 と同じ。
                             val currentTimeSec = exoPlayer.currentPosition / 1000
+                            // 一番最初が0以外のとき？
                             // println("最後に表示されている時間：$lastShowItemTime　・　再生時間：$currentTimeSec")
                             // なお一番最後に表示されてるアイテムの時間と再生時間との佐が1秒以上かけ離れた場合は追従ボタン出す。にーげろー
-                            if (currentTimeSec - lastShowItemTime > 1 || -1 > currentTimeSec - lastShowItemTime) {
-                                requireCommentFragment()?.setFollowingButtonVisibility(true)
+                            if (currentTimeSec - lastShowItemTime > 5 || -5 > currentTimeSec - lastShowItemTime) {
+                                // しかも10秒以上かけ離れている場合は追いかけるボタン表示。こうしないとコメントが少ない動画で常に表示され続けてしまう。
+                                if (currentTimeSec - lastShowItemTime < 10 || -10 < currentTimeSec - lastShowItemTime) {
+                                    requireCommentFragment()?.setFollowingButtonVisibility(true)
+                                }
                             }
                         }
                     }
@@ -1233,6 +1238,7 @@ class DevNicoVideoFragment : Fragment() {
         super.onResume()
         if (::exoPlayer.isInitialized) {
             exoPlayer.playWhenReady = true
+            comment_canvas?.isPause = false
         }
     }
 
