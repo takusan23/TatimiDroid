@@ -8,6 +8,7 @@ import android.view.*
 import android.widget.Toast
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.menu.MenuPopupHelper
+import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -127,6 +128,18 @@ class DevNicoVideoCommentFragment : Fragment() {
     }
 
     /**
+     * 現在表示されているリストの中で一番下に表示されれいるコメントを返すではなくその次のコメントを取得する
+     * こいつ関数名考えるの下手だな
+     * */
+    fun getCommentListVisibleLastNextItemComment(): CommentJSONParse? {
+        val next = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition() + 1
+        if (recyclerViewList.size <= next) {
+            return null
+        }
+        return recyclerViewList[next]
+    }
+
+    /**
      * 現在表示されているリストの中で一番下に表示されれいるコメントが現在再生中の位置のコメントの場合はtrue
      * @param sec 再生時間。10など
      * @return 表示中の中で一番最後のアイテムが 再生時間 と同じならtrue
@@ -149,6 +162,21 @@ class DevNicoVideoCommentFragment : Fragment() {
         }
     }
 
+    fun getRecyclerViewLayoutManager() = recyclerView.layoutManager as LinearLayoutManager
+
+    /**
+     * 現在コメントが表示中かどうか。
+     * @param commentJSONParse コメント
+     * @return 表示中ならtrue。
+     * */
+    fun checkVisibleItem(commentJSONParse: CommentJSONParse?): Boolean {
+        val manager = getRecyclerViewLayoutManager()
+        // 一番最初+一番最後の場所
+        val firstVisiblePos = manager.findFirstVisibleItemPosition()
+        val lastVisiblePos = manager.findLastVisibleItemPosition() + 1
+        val rangeItems = recyclerViewList.subList(firstVisiblePos, lastVisiblePos)
+        return rangeItems.find { item -> item == commentJSONParse } != null
+    }
 
     private fun initSortPopupMenu() {
         val menuBuilder = MenuBuilder(context)

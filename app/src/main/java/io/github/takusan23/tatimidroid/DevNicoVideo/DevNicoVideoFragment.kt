@@ -881,6 +881,9 @@ class DevNicoVideoFragment : Fragment() {
                 }
             }
         })
+
+        var secInterval = 0L
+
         seekTimer.cancel()
         seekTimer = Timer()
         seekTimer.schedule(timerTask {
@@ -890,23 +893,29 @@ class DevNicoVideoFragment : Fragment() {
                         setProgress()
                         drawComment()
                         val sec = exoPlayer.currentPosition / 1000
-                        // スクロールするかどうか。
-                        if (requireCommentFragment()?.isCheckLastItemTime(sec) == true) {
-                            // コメント一覧で一番最後に表示されてるコメントが再生時間と同じなら自動スクロールさせる。
-                            scroll(exoPlayer.currentPosition)
-                            // スクロールしたので追いかけるボタンを非表示にする
-                            requireCommentFragment()?.setFollowingButtonVisibility(false)
-                        } else {
-                            // スクロールしない。代わりに追いかけるボタンを表示する
-                            val lastShowItemTime = requireCommentFragment()?.getCommentListVisibleLastItemComment()?.vpos?.toInt()?.div(100) ?: 1 // 100.div(100) は 100 / 100 と同じ。
-                            val currentTimeSec = exoPlayer.currentPosition / 1000
-                            // 一番最初が0以外のとき？
-                            // println("最後に表示されている時間：$lastShowItemTime　・　再生時間：$currentTimeSec")
-                            // なお一番最後に表示されてるアイテムの時間と再生時間との佐が1秒以上かけ離れた場合は追従ボタン出す。にーげろー
-                            if (currentTimeSec - lastShowItemTime > 5 || -5 > currentTimeSec - lastShowItemTime) {
-                                // しかも10秒以上かけ離れている場合は追いかけるボタン表示。こうしないとコメントが少ない動画で常に表示され続けてしまう。
-                                if (currentTimeSec - lastShowItemTime < 10 || -10 < currentTimeSec - lastShowItemTime) {
-                                    requireCommentFragment()?.setFollowingButtonVisibility(true)
+                        // 一秒ごとに動かしたい
+                        if (secInterval != sec) {
+                            secInterval = sec
+                            // スクロールするかどうか。
+                            if (requireCommentFragment()?.isCheckLastItemTime(sec) == true) {
+                                // コメント一覧で一番最後に表示されてるコメントが再生時間と同じなら自動スクロールさせる。
+                                scroll(exoPlayer.currentPosition)
+                                // スクロールしたので追いかけるボタンを非表示にする
+                                requireCommentFragment()?.setFollowingButtonVisibility(false)
+                            } else {
+                                // スクロール先が存在するか確認。
+                                val check = commentList.find { commentJSONParse ->
+                                    val vposToSec = commentJSONParse.vpos.toInt() / 100
+                                    vposToSec.toLong() == sec
+                                }
+                                if (check != null) {
+                                    // 存在する場合でも画面に表示中ならいらん
+                                    if (requireCommentFragment()?.checkVisibleItem(check) == false) {
+                                        requireCommentFragment()?.setFollowingButtonVisibility(true)
+                                    }
+                                } else {
+                                    // ないなら消す
+                                    requireCommentFragment()?.setFollowingButtonVisibility(false)
                                 }
                             }
                         }
@@ -980,7 +989,7 @@ class DevNicoVideoFragment : Fragment() {
             val recyclerView = devNicoVideoCommentFragment.activity_nicovideo_recyclerview
             val list = devNicoVideoCommentFragment.recyclerViewList
             // findを使って条件に合うコメントのはじめの位置を取得する。この例では今の時間と同じか大きいくて最初の値。
-            var currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> (commentJSONParse.vpos.toInt()) >= milliSec / 10 }
+            var currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> (commentJSONParse.vpos.toInt() / 100) >= sec }
             // ニコるの難しいので 現在表示分 を足す
             val layoutManager = recyclerView.layoutManager as LinearLayoutManager
             val recyclerViewVisibleCount = layoutManager.findLastVisibleItemPosition() - layoutManager.findFirstVisibleItemPosition()
