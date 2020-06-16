@@ -37,6 +37,13 @@
                 android:icon="@drawable/ic_do_not_disturb_alt_black_24dp"
                 android:key="setting_show_ng"
                 android:title="@string/setting_show_ng_score" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_import_export_black_24dp"
+                android:key="setting_oikakeru_hide"
+                android:summary="@string/setting_oikakeru_button_description"
+                android:title="@string/setting_oikakeru_button_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/video">

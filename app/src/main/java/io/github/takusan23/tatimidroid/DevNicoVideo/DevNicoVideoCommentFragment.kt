@@ -75,7 +75,6 @@ class DevNicoVideoCommentFragment : Fragment() {
                 setFollowingButtonVisibility(false)
             }
         }
-
     }
 
     /**
@@ -103,6 +102,9 @@ class DevNicoVideoCommentFragment : Fragment() {
             // 前回見た位置から再生が４ぬので消しとく
             Toast.makeText(context, "${getString(R.string.get_comment_count)}：${recyclerViewList.size}", Toast.LENGTH_SHORT).show()
         }
+        recyclerView.setOnClickListener {
+            println("おあした")
+        }
     }
 
     override fun onStart() {
@@ -128,18 +130,6 @@ class DevNicoVideoCommentFragment : Fragment() {
     }
 
     /**
-     * 現在表示されているリストの中で一番下に表示されれいるコメントを返すではなくその次のコメントを取得する
-     * こいつ関数名考えるの下手だな
-     * */
-    fun getCommentListVisibleLastNextItemComment(): CommentJSONParse? {
-        val next = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition() + 1
-        if (recyclerViewList.size <= next) {
-            return null
-        }
-        return recyclerViewList[next]
-    }
-
-    /**
      * 現在表示されているリストの中で一番下に表示されれいるコメントが現在再生中の位置のコメントの場合はtrue
      * @param sec 再生時間。10など
      * @return 表示中の中で一番最後のアイテムが 再生時間 と同じならtrue
@@ -162,7 +152,8 @@ class DevNicoVideoCommentFragment : Fragment() {
         }
     }
 
-    fun getRecyclerViewLayoutManager() = recyclerView.layoutManager as LinearLayoutManager
+    /** LayoutManager取得。書くのめんどくさくなったので */
+    private fun getRecyclerViewLayoutManager() = recyclerView.layoutManager as LinearLayoutManager
 
     /**
      * 現在コメントが表示中かどうか。
@@ -170,12 +161,34 @@ class DevNicoVideoCommentFragment : Fragment() {
      * @return 表示中ならtrue。
      * */
     fun checkVisibleItem(commentJSONParse: CommentJSONParse?): Boolean {
+        val rangeItems = getVisibleCommentList()
+        return rangeItems.find { item -> item == commentJSONParse } != null
+    }
+
+    /**
+     * 現在RecyclerViewに表示中のコメントを配列で取得する関数
+     * 注意：LinearLayoutManager#findLastVisibleItemPosition()が中途半端に表示しているViewのことを数えないので１足してます。
+     * */
+    fun getVisibleCommentList(): MutableList<CommentJSONParse> {
         val manager = getRecyclerViewLayoutManager()
         // 一番最初+一番最後の場所
         val firstVisiblePos = manager.findFirstVisibleItemPosition()
         val lastVisiblePos = manager.findLastVisibleItemPosition() + 1
-        val rangeItems = recyclerViewList.subList(firstVisiblePos, lastVisiblePos)
-        return rangeItems.find { item -> item == commentJSONParse } != null
+        return recyclerViewList.subList(firstVisiblePos, lastVisiblePos)
+    }
+
+    /**
+     * 現在RecyclerViewに表示中のコメントがすべて同じ時間（職人のコメントとか長くなって複数行にまたがるからワンチャンある。というかあった）
+     * かどうかを判断する関数。
+     * 注意：秒レベルで判断します。vposとかは1s=100vposだけど秒になおして扱います。
+     * */
+    fun getVisibleListItemEqualsTime(): Boolean {
+        // 表示中コメント
+        val rangeItem = getVisibleCommentList()
+        // 一番最初の値
+        val firstTime = rangeItem.first().vpos.toInt() / 100
+        // 同じなら配列から消して、中身が０になれば完成。Array#none{}は全てに一致しなければtrueを返す
+        return rangeItem.none { commentJSONParse -> commentJSONParse.vpos.toInt() / 100 != firstTime }
     }
 
     private fun initSortPopupMenu() {

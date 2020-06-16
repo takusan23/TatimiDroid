@@ -14,9 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Adapter.CommentRecyclerViewAdapter
-import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import kotlinx.android.synthetic.main.fragment_commentview.*
-import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import org.java_websocket.client.WebSocketClient
 import java.util.*
 import kotlin.collections.ArrayList
@@ -27,7 +25,7 @@ class CommentViewFragment : Fragment() {
     lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
 
     var websocketList: ArrayList<WebSocketClient> = arrayListOf()
-    lateinit var pref_setting: SharedPreferences
+    lateinit var prefSetting: SharedPreferences
 
     //定期的に立ち見席があるか
     var timer = Timer()
@@ -50,7 +48,7 @@ class CommentViewFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
         //LiveIDとる
         liveId = arguments?.getString("liveId") ?: ""
@@ -116,14 +114,25 @@ class CommentViewFragment : Fragment() {
         val linearLayoutManager = (recyclerView.layoutManager as LinearLayoutManager)
         // RecyclerViewで表示されてる中で一番上に表示されてるコメントの位置
         val visibleListFirstItemPos = linearLayoutManager.findFirstVisibleItemPosition()
-        //一番上なら追いかける
-        if (visibleListFirstItemPos == 0) {
-            recyclerView.scrollToPosition(0)
-            // 追従ボタン非表示
+        // 追いかけるボタンを利用するか
+        if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
+            // 利用しない
+            //一番上なら追いかける
+            if (visibleListFirstItemPos == 0 || visibleListFirstItemPos == 1) {
+                linearLayoutManager.scrollToPositionWithOffset(0, 0)
+            }
+            // 使わないので非表示
             setFollowingButtonVisibility(false)
         } else {
-            // 一番上じゃないので追従ボタン表示
-            setFollowingButtonVisibility(true)
+            // 利用する
+            if (visibleListFirstItemPos == 0 || commentFragment.commentJSONList.isEmpty()) {
+                recyclerView.scrollToPosition(0)
+                // 追従ボタン非表示
+                setFollowingButtonVisibility(false)
+            } else {
+                // 一番上じゃないので追従ボタン表示
+                setFollowingButtonVisibility(true)
+            }
         }
     }
 

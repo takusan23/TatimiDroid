@@ -221,7 +221,7 @@ class CommentFragment : Fragment() {
     // コメントサーバーあるか定期巡回
     var programInfoTimer = Timer()
 
-    // コメント配列。これをRecyclerViewにいれるんじゃ
+    /** コメント配列。これをRecyclerViewにいれるんじゃ */
     val commentJSONList = arrayListOf<CommentJSONParse>()
 
     // ニコニコ実況

@@ -453,4 +453,6 @@
     <string name="setting_comment_canvas_fps_title">コメントの更新頻度をfpsで設定する</string>
     <string name="setting_comment_canvas_fps_description">更新頻度の変更をfpsで設定できます。一緒に「移動する大きさ」も変更してみてね。</string>
     <string name="tuizyuu">おいかける</string>
+    <string name="setting_oikakeru_button_title">追いかけるボタンを利用しない</string>
+    <string name="setting_oikakeru_button_description">動画では再生時間、生放送では一番上に移動できるボタンを利用しない場合は有効にしてください。前の仕様がいい場合も有効にしてね。</string>
 </resources>
