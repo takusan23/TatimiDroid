@@ -893,46 +893,24 @@ class DevNicoVideoFragment : Fragment() {
                     if (exoPlayer.isPlaying) {
                         setProgress()
                         drawComment()
+                        val sec = exoPlayer.currentPosition / 1000
+                        // コメント一覧スクロールする
                         if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
-                            // 追いかけるボタン利用しない
-                            scroll(exoPlayer.currentPosition)
-                            // 使わないので非表示
-                            requireCommentFragment()?.setFollowingButtonVisibility(false)
+                            requireCommentFragment()?.apply {
+                                // 追いかけるボタン利用しない
+                                scroll(exoPlayer.currentPosition)
+                                // 使わないので非表示
+                                setFollowingButtonVisibility(false)
+                            }
                         } else {
-                            // 追いかけるボタン利用時
-                            val sec = exoPlayer.currentPosition / 1000
+                            // 追いかけるボタン表示するかなどをやってる関数
                             // 一秒ごとに動かしたい
                             if (secInterval != sec) {
                                 secInterval = sec
-                                // スクロールするかどうか。
-                                if (requireCommentFragment()?.isCheckLastItemTime(sec) == true) {
-                                    // コメント一覧で一番最後に表示されてるコメントが再生時間と同じなら自動スクロールさせる。
-                                    scroll(exoPlayer.currentPosition)
-                                    // スクロールしたので追いかけるボタンを非表示にする
-                                    requireCommentFragment()?.setFollowingButtonVisibility(false)
-                                } else if (requireCommentFragment()?.getVisibleListItemEqualsTime() == true) {
-                                    // 一番上から一番下まで同じ時間に投稿されたコメントの場合もとりあえずスクロールする
-                                    scroll(exoPlayer.currentPosition)
-                                    // スクロールしたので追いかけるボタンを非表示にする
-                                    requireCommentFragment()?.setFollowingButtonVisibility(false)
-                                } else {
-                                    // スクロール先が存在するか確認。
-                                    val check = commentList.find { commentJSONParse ->
-                                        val vposToSec = commentJSONParse.vpos.toInt() / 100
-                                        vposToSec.toLong() == sec
-                                    }
-                                    if (check != null) {
-                                        // 存在する場合でも画面に表示中ならいらん
-                                        if (requireCommentFragment()?.checkVisibleItem(check) == false) {
-                                            requireCommentFragment()?.setFollowingButtonVisibility(true)
-                                        }
-                                    } else {
-                                        // ないなら消す
-                                        requireCommentFragment()?.setFollowingButtonVisibility(false)
-                                    }
-                                }
+                                requireCommentFragment()?.setScrollFollowButton(exoPlayer.currentPosition)
                             }
                         }
+
                     }
                 }
             }
@@ -982,34 +960,6 @@ class DevNicoVideoFragment : Fragment() {
             commentLine.clear()
             ueCommentLine.clear()
             sitaCommentLine.clear()
-        }
-    }
-
-    /**
-     * RecyclerViewをスクロールする
-     * @param millSeconds 再生時間（ミリ秒！！！）。
-     * @param isCheckLastItemTime RecyclerViewに表示してるリストの中で一番最後のアイテムが現在再生中の場所に 一致していなくても スクロールする場合はtrue。名前思いつかなかったわ。
-     * */
-    fun scroll(milliSec: Long) {
-        // ミリ秒→秒
-        val sec = milliSec / 1000
-        // スクロールしない設定 / ViewPagerまだ初期化してない
-        if (prefSetting.getBoolean("nicovideo_comment_scroll", false) || !::viewPager.isInitialized) {
-            return
-        }
-        // Nullチェック
-        val devNicoVideoCommentFragment = requireCommentFragment() ?: return
-        if (devNicoVideoCommentFragment.view?.findViewById<RecyclerView>(R.id.activity_nicovideo_recyclerview) != null) {
-            val recyclerView = devNicoVideoCommentFragment.activity_nicovideo_recyclerview
-            val list = devNicoVideoCommentFragment.recyclerViewList
-            // findを使って条件に合うコメントのはじめの位置を取得する。この例では今の時間と同じか大きいくて最初の値。
-            var currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> (commentJSONParse.vpos.toInt()) >= (milliSec - 1000) / 10 } // ニコるの難しいので一秒前のコメントを表示？
-            // ニコるの難しいので 現在表示分 を足す
-            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-            val recyclerViewVisibleCount = requireCommentFragment()?.getVisibleCommentList()?.size ?: return
-            // currentPosCommentFirst -= recyclerViewVisibleCount
-            // スクロール
-            (recyclerView?.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(currentPosCommentFirst, 0)
         }
     }
 

@@ -102,9 +102,6 @@ class DevNicoVideoCommentFragment : Fragment() {
             // 前回見た位置から再生が４ぬので消しとく
             Toast.makeText(context, "${getString(R.string.get_comment_count)}：${recyclerViewList.size}", Toast.LENGTH_SHORT).show()
         }
-        recyclerView.setOnClickListener {
-            println("おあした")
-        }
     }
 
     override fun onStart() {
@@ -118,6 +115,64 @@ class DevNicoVideoCommentFragment : Fragment() {
         GlobalScope.launch(Dispatchers.Main) {
             devNicoVideoFragment.commentFilter(false).await()
             initRecyclerView()
+        }
+    }
+
+    /**
+     * 追いかけるボタンを表示/非表示する関数。
+     * @param milliSec 現在の再生時間。ミリ秒でたのんだ(ExoPlayer#currentPosition)
+     * */
+    fun setScrollFollowButton(milliSec: Long) {
+        // ミリ秒 -> 秒
+        val sec = milliSec / 1000
+        // スクロールするかどうか。
+        if (isCheckLastItemTime(sec)) {
+            // コメント一覧で一番最後に表示されてるコメントが再生時間と同じなら自動スクロールさせる。
+            scroll(milliSec)
+            // スクロールしたので追いかけるボタンを非表示にする
+            setFollowingButtonVisibility(false)
+        } else if (getVisibleListItemEqualsTime()) {
+            // 一番上から一番下まで同じ時間に投稿されたコメントの場合もとりあえずスクロールする
+            scroll(milliSec)
+            // スクロールしたので追いかけるボタンを非表示にする
+            setFollowingButtonVisibility(false)
+        } else {
+            // スクロール先が存在するか確認。
+            val check = devNicoVideoFragment.commentList.find { commentJSONParse ->
+                val vposToSec = commentJSONParse.vpos.toInt() / 100
+                vposToSec.toLong() == sec
+            }
+            if (check != null) {
+                // 存在する場合でも画面に表示中ならいらん
+                if (!checkVisibleItem(check)) {
+                    setFollowingButtonVisibility(true)
+                }
+            } else {
+                // ないなら消す
+                setFollowingButtonVisibility(false)
+            }
+        }
+    }
+
+    /**
+     * RecyclerViewをスクロールする
+     * @param millSeconds 再生時間（ミリ秒！！！）。
+     * @param isCheckLastItemTime RecyclerViewに表示してるリストの中で一番最後のアイテムが現在再生中の場所に 一致していなくても スクロールする場合はtrue。名前思いつかなかったわ。
+     * */
+    fun scroll(milliSec: Long) {
+        // スクロールしない設定 / ViewPagerまだ初期化してない
+        if (prefSetting.getBoolean("nicovideo_comment_scroll", false)) {
+            return
+        }
+        // Nullチェック
+        val devNicoVideoCommentFragment = this
+        if (devNicoVideoCommentFragment.view?.findViewById<RecyclerView>(R.id.activity_nicovideo_recyclerview) != null) {
+            val recyclerView = devNicoVideoCommentFragment.activity_nicovideo_recyclerview
+            val list = devNicoVideoCommentFragment.recyclerViewList
+            // findを使って条件に合うコメントのはじめの位置を取得する。ここでは 今の時間から一秒引いた時間 と同じか大きいくて最初の値。
+            val currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> (commentJSONParse.vpos.toInt()) >= (milliSec - 1000) / 10 } // ニコるの難しいので一秒前のコメントを表示？
+            // スクロール
+            (recyclerView?.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(currentPosCommentFirst, 0)
         }
     }
 
