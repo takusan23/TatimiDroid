@@ -24,7 +24,9 @@ import io.github.takusan23.tatimidroid.Fragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import java.io.Console
@@ -162,21 +164,30 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
 
         // ニコる押したとき
         holder.nicoruButton.setOnClickListener {
-            GlobalScope.launch {
-                devNicoVideoFragment.apply {
-                    if (isPremium) {
-                        val nicoruKey = nicoruAPI.nicoruKey
-                        val responseNicoru = nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey).await()
-                        if (!responseNicoru.isSuccessful) {
-                            // 失敗時
-                            showToast(context, "${context?.getString(R.string.error)}\n${responseNicoru.code}")
-                            return@launch
-                        }
-                        val responseString = responseNicoru.body?.string()
-                        // 成功したか
-                        val jsonObject = JSONArray(responseString).getJSONObject(0)
-                        val status = nicoruAPI.nicoruResultStatus(jsonObject)
-                        if (status == 0) {
+            postNicoru(context, holder, item)
+        }
+
+    }
+
+    /** ニコるくんニコる関数 */
+    private fun postNicoru(context: Context, holder: ViewHolder, item: CommentJSONParse) {
+        GlobalScope.launch {
+            devNicoVideoFragment.apply {
+                if (isPremium) {
+                    val nicoruKey = nicoruAPI.nicoruKey
+                    val responseNicoru = nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey).await()
+                    if (!responseNicoru.isSuccessful) {
+                        // 失敗時
+                        showToast(context, "${context?.getString(R.string.error)}\n${responseNicoru.code}")
+                        return@launch
+                    }
+                    val responseString = responseNicoru.body?.string()
+                    // 成功したか
+                    val jsonObject = JSONArray(responseString).getJSONObject(0)
+                    val status = nicoruAPI.nicoruResultStatus(jsonObject)
+                    when (status) {
+                        0 -> {
+                            // ニコれた
                             item.nicoru = nicoruAPI.nicoruResultNicoruCount(jsonObject)
                             val nicoruId = nicoruAPI.nicoruResultId(jsonObject)
                             showSnackbar("${getString(R.string.nicoru_ok)}：${item.nicoru}\n${item.comment}", getString(R.string.nicoru_delete)) {
@@ -194,16 +205,24 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
                             holder.nicoruButton.post {
                                 holder.nicoruButton.text = item.nicoru.toString()
                             }
-                        } else {
+                        }
+                        2 -> {
+                            // nicoruKey失効。
+                            GlobalScope.launch {
+                                // 再取得
+                                devNicoVideoFragment.nicoruAPI.getNicoruKey(userSession, threadId).await()
+                                postNicoru(context, holder, item)
+                            }
+                        }
+                        else -> {
                             this@NicoVideoAdapter.showToast(context, getString(R.string.nicoru_error))
                         }
-                    } else {
-                        showToast(context, "プレ垢限定です")
                     }
+                } else {
+                    showToast(context, "プレ垢限定です")
                 }
             }
         }
-
     }
 
     /**

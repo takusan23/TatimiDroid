@@ -8,7 +8,6 @@ import android.view.*
 import android.widget.Toast
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.menu.MenuPopupHelper
-import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,6 +19,7 @@ import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+
 
 /**
  * コメント表示Fragment
@@ -118,19 +118,50 @@ class DevNicoVideoCommentFragment : Fragment() {
         }
     }
 
+    private var oldFirstPos = -1
+
     /**
      * 追いかけるボタンを表示/非表示する関数。
      * @param milliSec 現在の再生時間。ミリ秒でたのんだ(ExoPlayer#currentPosition)
      * */
     fun setScrollFollowButton(milliSec: Long) {
+        // Attachしてなければ落とす
+        if (!isAdded) return
         // ミリ秒 -> 秒
         val sec = milliSec / 1000
-        // スクロールするかどうか。
-        if (isCheckLastItemTime(sec)) {
-            // コメント一覧で一番最後に表示されてるコメントが再生時間と同じなら自動スクロールさせる。
+        val manager = getRecyclerViewLayoutManager() ?: return
+        if (getVisibleCommentList()?.any { commentJSONParse -> (commentJSONParse.vpos.toLong() / 100) == (sec - 1) } == true) {
+            // スクロール実行
             scroll(milliSec)
             // スクロールしたので追いかけるボタンを非表示にする
             setFollowingButtonVisibility(false)
+            // 位置記録
+            oldFirstPos = manager.findFirstVisibleItemPosition()
+        } else {
+            // それ以外の場所にいる場合
+            setFollowingButtonVisibility(true)
+        }
+
+/*
+        // 前回スクロールした位置と同じ　もしくは　初回起動時か0（ほぼ無いけど0だと動かない）のとき
+        val manager = getRecyclerViewLayoutManager() ?: return
+        println("あ" + manager.findFirstVisibleItemPosition())
+        if (oldFirstPos == manager.findFirstVisibleItemPosition() || oldFirstPos <= 0) {
+            // スクロール実行
+            scroll(milliSec)
+            // スクロールしたので追いかけるボタンを非表示にする
+            setFollowingButtonVisibility(false)
+            println("い" + manager.findFirstVisibleItemPosition())
+            // 位置記録
+            oldFirstPos = manager.findFirstVisibleItemPosition()
+        } else {
+            // それ以外の場所にいる場合
+            setFollowingButtonVisibility(true)
+        }
+*/
+        // スクロールするかどうか。
+        if (isCheckLastItemTime(sec)) {
+            // コメント一覧で一番最後に表示されてるコメントが再生時間と同じなら自動スクロールさせる。
         } else if (getVisibleListItemEqualsTime()) {
             // 一番上から一番下まで同じ時間に投稿されたコメントの場合もとりあえずスクロールする
             scroll(milliSec)
@@ -160,6 +191,7 @@ class DevNicoVideoCommentFragment : Fragment() {
      * @param isCheckLastItemTime RecyclerViewに表示してるリストの中で一番最後のアイテムが現在再生中の場所に 一致していなくても スクロールする場合はtrue。名前思いつかなかったわ。
      * */
     fun scroll(milliSec: Long) {
+        if (!isAdded) return
         // スクロールしない設定 / ViewPagerまだ初期化してない
         if (prefSetting.getBoolean("nicovideo_comment_scroll", false)) {
             return
@@ -178,9 +210,12 @@ class DevNicoVideoCommentFragment : Fragment() {
 
     /**
      * 現在表示されているリストの中で一番下に表示されれいるコメントを返す
+     * RecyclerViewが初期化されていない場合はnullになります。
      * こいつ関数名考えるの下手だな
      * */
-    fun getCommentListVisibleLastItemComment(): CommentJSONParse {
+    fun getCommentListVisibleLastItemComment(): CommentJSONParse? {
+        // RecyclerView初期化してない時はnull
+        if (!isInitRecyclerView()) return null
         return recyclerViewList[(recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()]
     }
 
@@ -190,7 +225,7 @@ class DevNicoVideoCommentFragment : Fragment() {
      * @return 表示中の中で一番最後のアイテムが 再生時間 と同じならtrue
      * */
     fun isCheckLastItemTime(sec: Long): Boolean {
-        return (sec - 1) == getCommentListVisibleLastItemComment().vpos.toInt() / 100L
+        return sec / 10 == getCommentListVisibleLastItemComment()?.vpos?.toLong()
     }
 
     /**
@@ -208,7 +243,13 @@ class DevNicoVideoCommentFragment : Fragment() {
     }
 
     /** LayoutManager取得。書くのめんどくさくなったので */
-    private fun getRecyclerViewLayoutManager() = recyclerView.layoutManager as LinearLayoutManager
+    private fun getRecyclerViewLayoutManager(): LinearLayoutManager? {
+        if (!isInitRecyclerView()) return null
+        return recyclerView.layoutManager as LinearLayoutManager
+    }
+
+    /** RecyclerViewが初期化済みかどうかを返す関数 */
+    private fun isInitRecyclerView() = ::recyclerView.isInitialized
 
     /**
      * 現在コメントが表示中かどうか。
@@ -216,7 +257,7 @@ class DevNicoVideoCommentFragment : Fragment() {
      * @return 表示中ならtrue。
      * */
     fun checkVisibleItem(commentJSONParse: CommentJSONParse?): Boolean {
-        val rangeItems = getVisibleCommentList()
+        val rangeItems = getVisibleCommentList() ?: return false
         return rangeItems.find { item -> item == commentJSONParse } != null
     }
 
@@ -224,8 +265,8 @@ class DevNicoVideoCommentFragment : Fragment() {
      * 現在RecyclerViewに表示中のコメントを配列で取得する関数
      * 注意：LinearLayoutManager#findLastVisibleItemPosition()が中途半端に表示しているViewのことを数えないので１足してます。
      * */
-    fun getVisibleCommentList(): MutableList<CommentJSONParse> {
-        val manager = getRecyclerViewLayoutManager()
+    fun getVisibleCommentList(): MutableList<CommentJSONParse>? {
+        val manager = getRecyclerViewLayoutManager() ?: return null
         // 一番最初+一番最後の場所
         val firstVisiblePos = manager.findFirstVisibleItemPosition()
         val lastVisiblePos = manager.findLastVisibleItemPosition() + 1
@@ -239,7 +280,7 @@ class DevNicoVideoCommentFragment : Fragment() {
      * */
     fun getVisibleListItemEqualsTime(): Boolean {
         // 表示中コメント
-        val rangeItem = getVisibleCommentList()
+        val rangeItem = getVisibleCommentList() ?: return false
         // 一番最初の値
         val firstTime = rangeItem.first().vpos.toInt() / 100
         // 同じなら配列から消して、中身が０になれば完成。Array#none{}は全てに一致しなければtrueを返す
@@ -334,5 +375,5 @@ class DevNicoVideoCommentFragment : Fragment() {
             }
         })
     }
-
 }
+
