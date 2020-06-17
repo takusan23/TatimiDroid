@@ -135,8 +135,6 @@ class DevNicoVideoCommentFragment : Fragment() {
         }
     }
 
-    private var oldFirstPos = -1
-
     /**
      * 追いかけるボタンを表示/非表示する関数。
      * @param milliSec 現在の再生時間。ミリ秒でたのんだ(ExoPlayer#currentPosition)

@@ -34,7 +34,7 @@ import kotlinx.android.synthetic.main.fragment_comment_menu.*
 * ここをメンテしにきた私へ
 * CommentMenuBottomFragment と このクラスは違うよ。命名雑だった。ごめん
 * CommentFragmentのメニューはここ。
-* コメントを押した時にできる（ロックオン、コテハン登録）なんかはCommentMenuBottomFragmentへどうぞ
+* コメントを押した時にできる（ロックオン、コテハン登録）なんかは CommentLockonBottomFragment へどうぞ
 * */
 
 class CommentMenuFragment : Fragment() {
@@ -213,10 +213,7 @@ class CommentMenuFragment : Fragment() {
                     }
                 ) {
                     // 上に重ねる権限無いとき。取りに行く
-                    val intent = Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:${context?.packageName}")
-                    )
+                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${context?.packageName}"))
                     startActivity(intent)
                 } else {
                     //ポップアップ再生。コメント付き
@@ -290,6 +287,7 @@ class CommentMenuFragment : Fragment() {
             }
         }
 
+        // 横画面で番組情報を消す
         fragment_comment_fragment_menu_hide_program_info.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit {
                 putBoolean("setting_landscape_hide_program_info", isChecked)
@@ -374,7 +372,7 @@ class CommentMenuFragment : Fragment() {
     private fun setValue() {
         //コメント非表示
         fragment_comment_fragment_menu_comment_hidden_switch.isChecked =
-            commentFragment.isCommentHidden
+            commentFragment.isCommentHide
         //Infoコメント非表示
         fragment_comment_fragment_menu_hide_info_perm_switch.isChecked =
             commentFragment.hideInfoUnnkome
@@ -417,7 +415,7 @@ class CommentMenuFragment : Fragment() {
         //押したらすぐ反映できるように
         fragment_comment_fragment_menu_comment_hidden_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             //コメント非表示
-            commentFragment.isCommentHidden = isChecked
+            commentFragment.isCommentHide = isChecked
         }
         fragment_comment_fragment_menu_hide_info_perm_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             //Infoコメント非表示

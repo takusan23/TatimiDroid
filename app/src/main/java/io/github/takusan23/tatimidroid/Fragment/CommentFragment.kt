@@ -123,8 +123,8 @@ class CommentFragment : Fragment() {
     // NGコメント/ユーザー関連。Adapterでもここのを使ってる
     lateinit var ngDataBaseTool: NGDataBaseTool
 
-    //コメント非表示？
-    var isCommentHidden = false
+    /** コメント表示をOFFにする場合はtrue */
+    var isCommentHide = false
 
     //アンケート内容いれとく
     var enquateJSONArray = ""
@@ -689,6 +689,7 @@ class CommentFragment : Fragment() {
          * 多分originの値がC以外のときに元の部屋のコメントだと
          * */
         Handler(Looper.getMainLooper()).post {
+
             // UI Thread
             if (commentJSONParse.origin != "C" || nicoLiveHTML.isOfficial) {
                 // RecyclerViewに追加
@@ -702,24 +703,28 @@ class CommentFragment : Fragment() {
                     }
                 }
 
-                // 豆先輩とか
-                if (!commentJSONParse.comment.contains("\n")) {
-                    commentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
-                } else {
-                    // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
-                    // 豆先輩！！！！！！！！！！！！！！！！！！
-                    // 下固定コメントで複数行だとAA（アスキーアートの略 / CA(コメントアート)とも言う）がうまく動かない。配列の中身を逆にする必要がある
-                    // Kotlinのこの書き方ほんと好き
-                    val asciiArtComment = if (commentJSONParse.mail.contains("shita")) {
-                        commentJSONParse.comment.split("\n").reversed() // 下コメントだけ逆順にする
-                    } else {
-                        commentJSONParse.comment.split("\n")
-                    }
-                    for (line in asciiArtComment) {
-                        commentCanvas.postComment(line, commentJSONParse, true)
-                    }
-                }
+                // コメント非表示モードの場合はなさがない
+                if (!isCommentHide) {
 
+                    // 豆先輩とか
+                    if (!commentJSONParse.comment.contains("\n")) {
+                        commentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
+                    } else {
+                        // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
+                        // 豆先輩！！！！！！！！！！！！！！！！！！
+                        // 下固定コメントで複数行だとAA（アスキーアートの略 / CA(コメントアート)とも言う）がうまく動かない。配列の中身を逆にする必要がある
+                        // Kotlinのこの書き方ほんと好き
+                        val asciiArtComment = if (commentJSONParse.mail.contains("shita")) {
+                            commentJSONParse.comment.split("\n").reversed() // 下コメントだけ逆順にする
+                        } else {
+                            commentJSONParse.comment.split("\n")
+                        }
+                        for (line in asciiArtComment) {
+                            commentCanvas.postComment(line, commentJSONParse, true)
+                        }
+                    }
+
+                }
             }
         }
     }
@@ -1040,12 +1045,12 @@ class CommentFragment : Fragment() {
                 // Start->End
                 comment_fragment_program_info.visibility = View.VISIBLE
                 // バー消す
-                fragment_comment_bar.visibility = View.GONE
+                fragment_comment_bar?.visibility = View.GONE
             } else {
                 // End->Start
                 comment_fragment_program_info.visibility = View.GONE
                 // バー表示
-                fragment_comment_bar.visibility = View.VISIBLE
+                fragment_comment_bar?.visibility = View.VISIBLE
             }
         }
     }
@@ -1283,9 +1288,7 @@ class CommentFragment : Fragment() {
                     }
                 })
 
-            val hlsMediaSource = HlsMediaSource.Factory(sourceFactory)
-                // .setAllowChunklessPreparation(true)
-                .createMediaSource(hlsAddress.toUri());
+            val hlsMediaSource = HlsMediaSource.Factory(sourceFactory).createMediaSource(hlsAddress.toUri())
 
             //再生準備
             exoPlayer.prepare(hlsMediaSource)
@@ -1319,11 +1322,6 @@ class CommentFragment : Fragment() {
                     }
                 }
             })
-
-            //新しいバックグラウンド再生。バッググラウンドで常にExoPlayerを動かして離れた瞬間に再生をする。
-            if (pref_setting.getBoolean("setting_leave_background", false)) {
-
-            }
 
             // 16:9のLayoutParams
             val height = liveFrameLayout.layoutParams.height
