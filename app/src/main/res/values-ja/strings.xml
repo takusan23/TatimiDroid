@@ -455,4 +455,6 @@
     <string name="tuizyuu">おいかける</string>
     <string name="setting_oikakeru_button_title">追いかけるボタンを利用しない</string>
     <string name="setting_oikakeru_button_description">動画では再生時間、生放送では一番上に移動できるボタンを利用しない場合は有効にしてください。前の仕様がいい場合も有効にしてね。</string>
+    <string name="lockon_nicovideo_menu">マイリス登録、ポップアップ再生など</string>
+    <string name="lockon_nicolive_menu">TS登録、予定追加など</string>
 </resources>

@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.DevNicoVideo.Adapter
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -123,11 +124,11 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
             menuImageView.setOnClickListener {
                 val menuBottomSheet = DevNicoVideoListMenuBottomFragment()
                 // データ渡す
-                menuBottomSheet.apply {
-                    nicoVideoData = data
-                    nicoVideoListAdapter = this@DevNicoVideoListAdapter
-                    show((context as AppCompatActivity).supportFragmentManager, "menu")
-                }
+                val bundle = Bundle()
+                bundle.putString("video_id", data.videoId)
+                bundle.putBoolean("is_cache", data.isCache)
+                menuBottomSheet.arguments = bundle
+                menuBottomSheet.show((context as AppCompatActivity).supportFragmentManager, "menu")
             }
 
             // サムネイル

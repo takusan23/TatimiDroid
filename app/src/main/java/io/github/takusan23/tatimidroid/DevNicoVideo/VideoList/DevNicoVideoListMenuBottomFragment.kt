@@ -28,22 +28,26 @@ import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 /**
- * マイリスト、キャッシュ取得ボタンがあるBottomSheet
+ * マイリスト、キャッシュ取得ボタンがあるBottomSheet。動画IDとキャッシュかどうかを入れてください。
+ * NicoVideoDataで渡せた時代もありましたが他で使うのに大変だったので辞めました。
+ * 入れてほしいもの
+ * video_id | String  | 動画ID。画面回転時に詰むのでこっちがいい？
+ * is_cache | Boolean | キャッシュの場合はtrue
  * */
 class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     // データもらう
     lateinit var nicoVideoData: NicoVideoData
     lateinit var nicoVideoHTML: NicoVideoHTML
-    lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     lateinit var prefSetting: SharedPreferences
     var userSession = ""
+
+    // by lazy 使うか～（使うときまで lazy {} の中身は実行されない）
+    val videoId by lazy { arguments?.getString("video_id")!! }
+    val isCache by lazy { arguments?.getBoolean("is_cache") ?: false }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_nicovideo_list_menu, container, false)
@@ -56,39 +60,42 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         userSession = prefSetting.getString("user_session", "") ?: ""
         nicoVideoHTML = NicoVideoHTML()
 
-        // 画面回転するとNicoVideoData失うので無いときはもう落とす
-        if (!::nicoVideoData.isInitialized) {
-            dismiss()
-            return
+        // データ取得するかどうか。 nicoVideoData もってない場合は動画IDで持ってくる
+        GlobalScope.launch(Dispatchers.Main) {
+            // データ取得
+            withContext(Dispatchers.IO) {
+                // データ取得
+                nicoVideoData = nicoVideoHTML.getNicoVideoData(videoId, userSession).await() ?: return@withContext
+            }
+
+            // タイトル、ID設定
+            bottom_fragment_nicovideo_list_menu_title.text = nicoVideoData.title
+            bottom_fragment_nicovideo_list_menu_id.text = nicoVideoData.videoId
+
+            // コピーボタン
+            initCopyButton()
+
+            // マイリスト登録ボタン
+            mylistButton()
+
+            // キャッシュ関係
+            cacheButton()
+
+            // 再生、ポップアップ再生、バッググラウンド再生ボタン初期化
+            playServiceButton()
+
+            // キャッシュ用連続再生
+            initCachePlaylistPlay()
+
+            // ブラウザで開くボタン
+            initOpenBrowser()
         }
-
-        // タイトル、ID設定
-        bottom_fragment_nicovideo_list_menu_title.text = nicoVideoData.title
-        bottom_fragment_nicovideo_list_menu_id.text = nicoVideoData.videoId
-
-        // コピーボタン
-        initCopyButton()
-
-        // マイリスト登録ボタン
-        mylistButton()
-
-        // キャッシュ関係
-        cacheButton()
-
-        // 再生、ポップアップ再生、バッググラウンド再生ボタン初期化
-        playServiceButton()
-
-        // キャッシュ用連続再生
-        initCachePlaylistPlay()
-
-        // ブラウザで開くボタン
-        initOpenBrowser()
 
     }
 
     private fun initOpenBrowser() {
         // キャッシュ一覧では表示させない
-        if (nicoVideoData.isCache) {
+        if (isCache) {
             bottom_fragment_nicovideo_list_menu_browser.visibility = View.GONE
         }
         // ブラウザで開く。公式アニメが暗号化で見れん時に使って。
@@ -99,8 +106,8 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     }
 
     private fun initCachePlaylistPlay() {
-        if (!nicoVideoData.isCache) {
-            bottom_fragment_nicovideo_list_menu_playlist_background.visibility = View.GONE
+        if (isCache) {
+            bottom_fragment_nicovideo_list_menu_playlist_background.visibility = View.VISIBLE
         }
         bottom_fragment_nicovideo_list_menu_playlist_background.setOnClickListener {
             // 第二引数で再生開始動画指定
@@ -112,21 +119,21 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     // ポップアップ再生、バッググラウンド再生ボタン初期化
     private fun playServiceButton() {
         bottom_fragment_nicovideo_list_menu_popup.setOnClickListener {
-            startVideoPlayService(context = context, mode = "popup", videoId = nicoVideoData.videoId, isCache = nicoVideoData.isCache)
+            startVideoPlayService(context = context, mode = "popup", videoId = nicoVideoData.videoId, isCache = isCache)
         }
         bottom_fragment_nicovideo_list_menu_background.setOnClickListener {
-            startVideoPlayService(context = context, mode = "background", videoId = nicoVideoData.videoId, isCache = nicoVideoData.isCache)
+            startVideoPlayService(context = context, mode = "background", videoId = nicoVideoData.videoId, isCache = isCache)
         }
         bottom_fragment_nicovideo_list_menu_play.setOnClickListener {
             // 通常再生
             val nicoVideoActivity = Intent(context, NicoVideoActivity::class.java).apply {
                 putExtra("id", nicoVideoData.videoId)
-                putExtra("cache", nicoVideoData.isCache)
+                putExtra("cache", isCache)
             }
             startActivity(nicoVideoActivity)
         }
         // 強制エコノミーはキャッシュでは塞ぐ
-        if (nicoVideoData.isCache) {
+        if (isCache) {
             bottom_fragment_nicovideo_list_menu_economy_play.visibility = View.GONE
         }
         bottom_fragment_nicovideo_list_menu_economy_play.setOnClickListener {
@@ -223,7 +230,7 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // キャッシュ関係
         val nicoVideoCache = NicoVideoCache(context)
 
-        if (nicoVideoData.isCache) {
+        if (isCache) {
             // キャッシュのときは再取得メニュー表示させる
             bottom_fragment_nicovideo_list_menu_cache_menu.visibility = View.VISIBLE
             bottom_fragment_nicovideo_list_menu_get_cache.visibility = View.GONE

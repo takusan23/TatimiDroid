@@ -455,4 +455,6 @@
     <string name="tuizyuu">Following</string>
     <string name="setting_oikakeru_button_title">Don\'t use the chase button</string>
     <string name="setting_oikakeru_button_description">If you don\'t want to use the button that moves the playback time for videos and the top button for live broadcasting, enable it. Enable it even if the previous specifications are good.</string>
+    <string name="lockon_nicovideo_menu">Myris registration, popup playback, etc.</string>
+    <string name="lockon_nicolive_menu">TS registration, schedule addition, etc.</string>
 </resources>

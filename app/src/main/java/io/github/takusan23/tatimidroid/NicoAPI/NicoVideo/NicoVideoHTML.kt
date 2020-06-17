@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -29,18 +30,49 @@ class NicoVideoHTML {
      * HTML取得
      * @param eco 「１」を入れるとエコノミー
      * */
-    fun getHTML(videoId: String, userSession: String, eco: String = ""): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("https://www.nicovideo.jp/watch/$videoId?eco=$eco")
-                header("Cookie", "user_session=$userSession")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
+    fun getHTML(videoId: String, userSession: String, eco: String = ""): Deferred<Response> = GlobalScope.async {
+        val request = Request.Builder().apply {
+            url("https://www.nicovideo.jp/watch/$videoId?eco=$eco")
+            header("Cookie", "user_session=$userSession")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
+
+    /**
+     * NicoVideoDataを取得する関数。
+     * @param userSession ユーザーセッション
+     * @param videoId 動画ID
+     * @return 成功しなかった場合はnullが返ってきます。
+     * */
+    fun getNicoVideoData(videoId: String, userSession: String): Deferred<NicoVideoData?> = GlobalScope.async {
+        // 動画情報取得
+        val videoResponse = getHTML(videoId, userSession).await()
+        // 失敗時落とす
+        if (!videoResponse.isSuccessful) {
+            return@async null
         }
+        // JSON化
+        val jsonObject = parseJSON(videoResponse.body?.string())
+        val videoObject = jsonObject.getJSONObject("video")
+        // データクラス化
+        return@async NicoVideoData(
+            isCache = false,
+            isMylist = false,
+            title = videoObject.getString("title"),
+            videoId = videoId,
+            thum = videoObject.getString("thumbnailURL"),
+            date = postedDateTimeToUnixTime(videoObject.getString("postedDateTime")),
+            viewCount = videoObject.getString("viewCount"),
+            commentCount = jsonObject.getJSONObject("thread").getString("commentCount"),
+            mylistCount = videoObject.getString("mylistCount"),
+            isToriaezuMylist = false,
+            duration = videoObject.getLong("duration")
+        )
+    }
 
     /**
      * 動画が暗号化されているか

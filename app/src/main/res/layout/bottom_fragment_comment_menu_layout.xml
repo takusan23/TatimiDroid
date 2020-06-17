@@ -132,6 +132,24 @@
                 android:orientation="horizontal">
 
             <Button
+                    android:id="@+id/bottom_fragment_comment_menu_nicovideo_menu"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@drawable/ic_local_movies_24px"
+                    android:text="@string/lockon_nicovideo_menu"
+                    android:visibility="gone" />
+
+            <Button
+                    android:id="@+id/bottom_fragment_comment_menu_nicolive_menu"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@drawable/ic_outline_live_tv_24px_black"
+                    android:text="@string/lockon_nicolive_menu"
+                    android:visibility="gone" />
+
+            <Button
                     android:id="@+id/bottom_fragment_comment_menu_comment_url"
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"

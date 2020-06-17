@@ -22,8 +22,11 @@ import io.github.takusan23.tatimidroid.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
+import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.User
 import io.github.takusan23.tatimidroid.Tool.NGDataBaseTool
+import io.github.takusan23.tatimidroid.Tool.NICOLIVE_ID_REGEX
+import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
 import kotlinx.android.synthetic.main.adapter_comment_layout.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -45,12 +48,12 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
     //  lateinit var commentFragment: CommentFragment
     lateinit var prefSetting: SharedPreferences
-    var userSession = ""
+    private var userSession = ""
 
     //それぞれ
-    var comment = ""
-    var userId = ""
-    var liveId = ""
+    private var comment = ""
+    private var userId = ""
+    private var liveId = ""
 
     //RecyclerView
     var recyclerViewList = arrayListOf<CommentJSONParse>()
@@ -154,6 +157,42 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 openUserPage(userId)
             }
         }
+
+        /**
+         * 公式の動画と生放送アプリが独立した今できなさそうなことを。アプリ内完結
+         * 生放送で流れたコメントに動画IDが含まれている時に例えばマイリスト登録をしたり、ポップアップ再生をしたり、
+         * 生放送IDでもTS予約、予定追加機能が使えるように。
+         * */
+        val videoIdRegex = NICOVIDEO_ID_REGEX.toRegex().find(comment)
+        val liveIdRegex = NICOLIVE_ID_REGEX.toRegex().find(comment)
+        when {
+            videoIdRegex?.value != null -> {
+                // どーが
+                bottom_fragment_comment_menu_nicovideo_menu.visibility = View.VISIBLE
+                bottom_fragment_comment_menu_nicovideo_menu.setOnClickListener {
+                    // 動画メニュー出す
+                    val nicoVideoMenuBottomFragment = DevNicoVideoListMenuBottomFragment()
+                    val bundle = Bundle()
+                    bundle.putString("video_id", videoIdRegex.value)
+                    bundle.putBoolean("is_cache", false)
+                    nicoVideoMenuBottomFragment.arguments = bundle
+                    nicoVideoMenuBottomFragment.show(activity?.supportFragmentManager!!, "video_menu")
+                }
+            }
+            liveIdRegex?.value != null -> {
+                // なまほーそー
+                bottom_fragment_comment_menu_nicolive_menu.visibility = View.VISIBLE
+                bottom_fragment_comment_menu_nicolive_menu.setOnClickListener {
+                    // 生放送メニュー出す
+                    val programMenuBottomSheet = ProgramMenuBottomSheet()
+                    val bundle = Bundle()
+                    bundle.putString("liveId", liveId)
+                    programMenuBottomSheet.arguments = bundle
+                    programMenuBottomSheet.show(activity?.supportFragmentManager!!, "video_menu")
+                }
+            }
+        }
+
     }
 
     private fun showInfo() {

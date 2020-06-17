@@ -705,7 +705,6 @@ class CommentFragment : Fragment() {
 
                 // コメント非表示モードの場合はなさがない
                 if (!isCommentHide) {
-
                     // 豆先輩とか
                     if (!commentJSONParse.comment.contains("\n")) {
                         commentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
@@ -723,7 +722,6 @@ class CommentFragment : Fragment() {
                             commentCanvas.postComment(line, commentJSONParse, true)
                         }
                     }
-
                 }
             }
         }

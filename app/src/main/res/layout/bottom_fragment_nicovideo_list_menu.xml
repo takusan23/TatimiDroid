@@ -72,7 +72,8 @@
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10sp"
-                    android:text="連続バッググラウンド再生" />
+                    android:text="連続バッググラウンド再生"
+                    android:visibility="gone" />
 
             <TextView
                     android:id="@+id/bottom_fragment_nicovideo_list_menu_play"
