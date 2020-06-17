@@ -19,6 +19,7 @@ import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.xml.sax.ErrorHandler
 
 
 /**
@@ -35,6 +36,13 @@ class DevNicoVideoCommentFragment : Fragment() {
     var id = "sm157"
 
     lateinit var recyclerView: RecyclerView
+
+    /**
+     * 自動追従（自動でコメント一覧スクロール機能）を利用するか。
+     * 上方向へスクロールすることでこの値はfalseになる。（RecyclerView#addOnScrollListener()の部分）
+     * falseになったら「追いかけるボタン」を押すことで再度trueになります。
+     * */
+    var isAutoScroll = true
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_comment, container, false)
@@ -73,6 +81,7 @@ class DevNicoVideoCommentFragment : Fragment() {
                 scroll(currentPos)
                 // Visibilityゴーン。誰もカルロス・ゴーンの話しなくなったな
                 setFollowingButtonVisibility(false)
+                isAutoScroll = true
             }
         }
     }
@@ -102,6 +111,14 @@ class DevNicoVideoCommentFragment : Fragment() {
             // 前回見た位置から再生が４ぬので消しとく
             Toast.makeText(context, "${getString(R.string.get_comment_count)}：${recyclerViewList.size}", Toast.LENGTH_SHORT).show()
         }
+        // スクロールイベント。上方向へスクロールをしたら自動追従を解除する設定にした。
+        // これで自動スクロール止めたい場合は上方向へスクロールしてください。代わりに追いかけるボタンが表示されます。
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                isAutoScroll = dy >= 0
+            }
+        })
     }
 
     override fun onStart() {
@@ -127,61 +144,15 @@ class DevNicoVideoCommentFragment : Fragment() {
     fun setScrollFollowButton(milliSec: Long) {
         // Attachしてなければ落とす
         if (!isAdded) return
-        // ミリ秒 -> 秒
-        val sec = milliSec / 1000
-        val manager = getRecyclerViewLayoutManager() ?: return
-        if (getVisibleCommentList()?.any { commentJSONParse -> (commentJSONParse.vpos.toLong() / 100) == (sec - 1) } == true) {
+        // 追従有効時。この値は上方向スクロールをするとfalseになる。
+        if (isAutoScroll) {
             // スクロール実行
             scroll(milliSec)
             // スクロールしたので追いかけるボタンを非表示にする
             setFollowingButtonVisibility(false)
-            // 位置記録
-            oldFirstPos = manager.findFirstVisibleItemPosition()
         } else {
-            // それ以外の場所にいる場合
+            // 追いかけるボタン表示
             setFollowingButtonVisibility(true)
-        }
-
-/*
-        // 前回スクロールした位置と同じ　もしくは　初回起動時か0（ほぼ無いけど0だと動かない）のとき
-        val manager = getRecyclerViewLayoutManager() ?: return
-        println("あ" + manager.findFirstVisibleItemPosition())
-        if (oldFirstPos == manager.findFirstVisibleItemPosition() || oldFirstPos <= 0) {
-            // スクロール実行
-            scroll(milliSec)
-            // スクロールしたので追いかけるボタンを非表示にする
-            setFollowingButtonVisibility(false)
-            println("い" + manager.findFirstVisibleItemPosition())
-            // 位置記録
-            oldFirstPos = manager.findFirstVisibleItemPosition()
-        } else {
-            // それ以外の場所にいる場合
-            setFollowingButtonVisibility(true)
-        }
-*/
-        // スクロールするかどうか。
-        if (isCheckLastItemTime(sec)) {
-            // コメント一覧で一番最後に表示されてるコメントが再生時間と同じなら自動スクロールさせる。
-        } else if (getVisibleListItemEqualsTime()) {
-            // 一番上から一番下まで同じ時間に投稿されたコメントの場合もとりあえずスクロールする
-            scroll(milliSec)
-            // スクロールしたので追いかけるボタンを非表示にする
-            setFollowingButtonVisibility(false)
-        } else {
-            // スクロール先が存在するか確認。
-            val check = devNicoVideoFragment.commentList.find { commentJSONParse ->
-                val vposToSec = commentJSONParse.vpos.toInt() / 100
-                vposToSec.toLong() == sec
-            }
-            if (check != null) {
-                // 存在する場合でも画面に表示中ならいらん
-                if (!checkVisibleItem(check)) {
-                    setFollowingButtonVisibility(true)
-                }
-            } else {
-                // ないなら消す
-                setFollowingButtonVisibility(false)
-            }
         }
     }
 
@@ -202,7 +173,10 @@ class DevNicoVideoCommentFragment : Fragment() {
             val recyclerView = devNicoVideoCommentFragment.activity_nicovideo_recyclerview
             val list = devNicoVideoCommentFragment.recyclerViewList
             // findを使って条件に合うコメントのはじめの位置を取得する。ここでは 今の時間から一秒引いた時間 と同じか大きいくて最初の値。
-            val currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> (commentJSONParse.vpos.toInt()) >= (milliSec - 1000) / 10 } // ニコるの難しいので一秒前のコメントを表示？
+            var currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> commentJSONParse.vpos.toInt() >= milliSec / 10 }
+            // 上に合わせるんじゃなくて、下に合わせて欲しい。
+            val visibleCount = getVisibleCommentList()?.size ?: 0
+            currentPosCommentFirst -= visibleCount
             // スクロール
             (recyclerView?.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(currentPosCommentFirst, 0)
         }
