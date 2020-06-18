@@ -32,10 +32,11 @@ import kotlinx.coroutines.*
 
 /**
  * マイリスト、キャッシュ取得ボタンがあるBottomSheet。動画IDとキャッシュかどうかを入れてください。
- * NicoVideoDataで渡せた時代もありましたが他で使うのに大変だったので辞めました。
  * 入れてほしいもの
  * video_id | String  | 動画ID。画面回転時に詰むのでこっちがいい？
  * is_cache | Boolean | キャッシュの場合はtrue
+ * --- できれば（インターネット接続無いと詰む） ---
+ * data     | NicoVideoData | 入ってる場合はインターネットでの取得はせず、こちらを使います。
  * */
 class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
@@ -60,12 +61,18 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         userSession = prefSetting.getString("user_session", "") ?: ""
         nicoVideoHTML = NicoVideoHTML()
 
-        // データ取得するかどうか。 nicoVideoData もってない場合は動画IDで持ってくる
+        // データ取得するかどうか。
         GlobalScope.launch(Dispatchers.Main) {
-            // データ取得
-            withContext(Dispatchers.IO) {
-                // データ取得
-                nicoVideoData = nicoVideoHTML.getNicoVideoData(videoId, userSession).await() ?: return@withContext
+            // NicoVideoDataある時
+            val serializeData = arguments?.getSerializable("data")
+            if (serializeData != null) {
+                nicoVideoData = serializeData as NicoVideoData
+            } else {
+                // 無い時はインターネットから取得
+                withContext(Dispatchers.IO) {
+                    // データ取得
+                    nicoVideoData = nicoVideoHTML.getNicoVideoData(videoId, userSession).await() ?: return@withContext
+                }
             }
 
             // タイトル、ID設定

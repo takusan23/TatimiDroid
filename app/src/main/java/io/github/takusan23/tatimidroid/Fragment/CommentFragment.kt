@@ -20,6 +20,7 @@ import android.os.Looper
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
+import android.text.util.Linkify
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.EditorInfo
@@ -618,7 +619,7 @@ class CommentFragment : Fragment() {
                 // containsで部分一致にしてみた。なんで部分一致なのかは私も知らん
                 if (command.contains("disconnect")) {
                     //番組終了
-                    programEnd()
+                    programEnd(message)
                 }
             }
         }
@@ -644,8 +645,8 @@ class CommentFragment : Fragment() {
                     withContext(Dispatchers.Main) {
                         // 番組情報を表示させる
                         commentActivity.runOnUiThread {
-                            comment_fragment_program_title.text = "$programTitle - $liveId"
-                            comment_fragment_program_id.text = "$roomName - $chairNo"
+                            comment_fragment_program_title?.text = "$programTitle - $liveId"
+                            comment_fragment_program_id?.text = "$roomName - $chairNo"
                         }
                     }
                 } else {
@@ -901,6 +902,8 @@ class CommentFragment : Fragment() {
         commentActivity.runOnUiThread {
             if (status.toInt() == 0) {
                 Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
+            } else if (status.toInt() == 1) {
+                Snackbar.make(fab, "${getString(R.string.rentou_error)}：${status}", Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
             } else {
                 Snackbar.make(fab, "${getString(R.string.comment_post_error)}：${status}", Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
             }
@@ -910,7 +913,15 @@ class CommentFragment : Fragment() {
     /**
      * 番組終了。Activityを閉じる関数
      * */
-    fun programEnd() {
+    fun programEnd(message: String) {
+/*
+        // 理由？
+        val because = JSONObject(message).getJSONObject("data").getString("reason")
+        // 原因が混雑の場合はToast出す
+        if (because == "CROWDED") {
+            showToast("追い出されました。")
+        }
+*/
         // Activity終了
         if (pref_setting.getBoolean("setting_disconnect_activity_finish", false)) {
             if (activity is CommentActivity) {
@@ -1942,11 +1953,11 @@ class CommentFragment : Fragment() {
         commentActivity.runOnUiThread {
             //テキスト、背景色
             uncomeTextView.visibility = View.VISIBLE
-            uncomeTextView.text =
-                HtmlCompat.fromHtml(comment, HtmlCompat.FROM_HTML_MODE_COMPACT)
+            uncomeTextView.text = HtmlCompat.fromHtml(comment, HtmlCompat.FROM_HTML_MODE_COMPACT)
             uncomeTextView.textSize = 20F
             uncomeTextView.setTextColor(Color.WHITE)
             uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))
+            uncomeTextView.autoLinkMask = Linkify.WEB_URLS
             //追加
             val layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,

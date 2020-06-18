@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid
 
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.Serializable
 
@@ -72,8 +73,12 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
                 }
                 if (comment.contains("/nicoad")) {
                     // ニコニ広告
-                    val jsonObject = JSONObject(comment.replace("/nicoad ", ""))
-                    uneiComment = jsonObject.getString("message")
+                    try {
+                        val jsonObject = JSONObject(comment.replace("/nicoad ", "")) // HTML貼られると落ちてしまうので
+                        uneiComment = jsonObject.getString("message")
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                    }
                 }
                 if (comment.contains("/spi")) {
                     // 新市場に貼られたとき

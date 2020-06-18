@@ -127,6 +127,7 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
                 val bundle = Bundle()
                 bundle.putString("video_id", data.videoId)
                 bundle.putBoolean("is_cache", data.isCache)
+                bundle.putSerializable("data", data)
                 menuBottomSheet.arguments = bundle
                 menuBottomSheet.show((context as AppCompatActivity).supportFragmentManager, "menu")
             }

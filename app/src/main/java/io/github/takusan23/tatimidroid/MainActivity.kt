@@ -50,13 +50,11 @@ class MainActivity : AppCompatActivity() {
 
         //ダークモード対応
         if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
-            main_activity_bottom_navigationview.backgroundTintList =
-                ColorStateList.valueOf(darkModeSupport.getThemeColor())
+            main_activity_bottom_navigationview.backgroundTintList = ColorStateList.valueOf(darkModeSupport.getThemeColor())
             supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
         }
 
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(1234)
 
         //共有から起動した
@@ -75,12 +73,16 @@ class MainActivity : AppCompatActivity() {
         main_activity_bottom_navigationview.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.menu_login -> {
-                    val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
-                    fragmentTransaction.commit()
+                    if (isConnectionInternet(this)) {
+                        val fragmentTransaction = supportFragmentManager.beginTransaction()
+                        fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
+                        fragmentTransaction.commit()
+                    }
                 }
                 R.id.menu_community -> {
-                    showProgramListFragment()
+                    if (isConnectionInternet(this)) {
+                        showProgramListFragment()
+                    }
                 }
                 R.id.menu_setting -> {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
@@ -88,7 +90,9 @@ class MainActivity : AppCompatActivity() {
                     fragmentTransaction.commit()
                 }
                 R.id.menu_nicovideo -> {
-                    showVideoListFragment()
+                    if (isConnectionInternet(this)) {
+                        showVideoListFragment()
+                    }
                 }
                 R.id.menu_cache -> {
                     val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
