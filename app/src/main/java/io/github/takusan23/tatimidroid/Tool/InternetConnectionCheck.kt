@@ -26,7 +26,7 @@ internal fun isConnectionInternet(context: Context?): Boolean {
         }
     } else {
         // 今までのネットワーク接続チェック
-        return connectivityManager?.activeNetworkInfo != null && connectivityManager.activeNetworkInfo.isConnected
+        return connectivityManager?.activeNetworkInfo != null && connectivityManager.activeNetworkInfo!!.isConnected
     }
 }
 
@@ -46,7 +46,7 @@ internal fun isConnectionMobileDataInternet(context: Context?): Boolean {
             return true
         }
     } else {
-        if (connectivityManager.activeNetworkInfo.type == ConnectivityManager.TYPE_MOBILE) {
+        if (connectivityManager.activeNetworkInfo!!.type == ConnectivityManager.TYPE_MOBILE) {
             //モバイルデータ通信なら画質変更メッセージ送信
             return true
         }

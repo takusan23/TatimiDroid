@@ -147,8 +147,7 @@ class NicoVideoCache(val context: Context?) {
         }
         val mediaMetadataRetriever = MediaMetadataRetriever()
         mediaMetadataRetriever.setDataSource(videoFile.path)
-        val time: String =
-            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+        val time = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION) ?: return 0L
         mediaMetadataRetriever.release()
         return time.toLong() / 1000
     }

@@ -14,7 +14,7 @@ import androidx.preference.PreferenceManager
  * 注意：ハードウェアアクセラレーションをViewレベルで無効にします。
  * @param isWebViewPlayer コメント表示、生放送再生をWebViewで行います。完全にPC版サイトを表示していることになります。trueの場合は ハードウェアアクセラレーション を利用します
  * */
-class NicoNamaGameWebView(val context: Context?, val liveId: String, val isWebViewPlayer: Boolean = false) {
+class NicoNamaGameWebView(val context: Context, val liveId: String, val isWebViewPlayer: Boolean = false) {
 
     // WebView。これにニコ生のPC版サイトを表示させてゲームを遊べるようにする。
     val webView: WebView = WebView(context)

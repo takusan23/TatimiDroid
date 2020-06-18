@@ -87,19 +87,17 @@ class DevNicoVideoHistoryFragment : Fragment() {
                     }
                     response.code == 401 -> {
                         // ログイン切れ。再ログイン勧める
-                        Snackbar.make(fragment_comment_history_recyclerview, R.string.login_disable_message, Snackbar.LENGTH_SHORT)
-                            .apply {
-                                setAction(R.string.login) {
-                                    // ログインする
-                                    GlobalScope.launch {
-                                        NicoLogin.loginCoroutine(context).await()
-                                        userSession =
-                                            prefSetting.getString("user_session", "") ?: ""
-                                        getHistory()
-                                    }
+                        Snackbar.make(fragment_comment_history_recyclerview, R.string.login_disable_message, Snackbar.LENGTH_SHORT).apply {
+                            setAction(R.string.login) {
+                                // ログインする
+                                GlobalScope.launch {
+                                    NicoLogin.loginCoroutine(context).await()
+                                    userSession = prefSetting.getString("user_session", "") ?: ""
+                                    getHistory()
                                 }
-                                show()
                             }
+                            show()
+                        }
                     }
                     else -> showToast("${getString(R.string.error)}\n${response.code}")
 

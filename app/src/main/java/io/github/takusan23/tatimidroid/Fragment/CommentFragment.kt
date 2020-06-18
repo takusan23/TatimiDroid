@@ -914,14 +914,14 @@ class CommentFragment : Fragment() {
      * 番組終了。Activityを閉じる関数
      * */
     fun programEnd(message: String) {
-/*
+
         // 理由？
         val because = JSONObject(message).getJSONObject("data").getString("reason")
-        // 原因が混雑の場合はToast出す
+        // 原因が追い出しの場合はToast出す
         if (because == "CROWDED") {
-            showToast("追い出されました。")
+            showToast("${getString(R.string.oidashi)}\uD83C\uDD7F")
         }
-*/
+
         // Activity終了
         if (pref_setting.getBoolean("setting_disconnect_activity_finish", false)) {
             if (activity is CommentActivity) {
@@ -1076,7 +1076,7 @@ class CommentFragment : Fragment() {
         frameLayoutParams.height += 140
         liveFrameLayout.layoutParams = frameLayoutParams
         // ニコ生WebView
-        nicoNamaGameWebView = NicoNamaGameWebView(context, liveId, isWebViewPlayer)
+        nicoNamaGameWebView = NicoNamaGameWebView(requireContext(), liveId, isWebViewPlayer)
         live_framelayout.addView(nicoNamaGameWebView.webView)
         isAddedNicoNamaGame = true
     }
