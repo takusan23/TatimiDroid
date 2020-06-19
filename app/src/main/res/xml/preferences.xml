@@ -155,14 +155,6 @@
                 android:summary="@string/setting_nicolive_comment_outline_description"
                 android:title="@string/setting_nicolive_comment_outline_title" />
 
-        <!--
-            <SwitchPreference
-                    android:defaultValue="false"
-                    android:icon="@drawable/ic_flash_on_24px"
-                    android:key="setting_low_latency_off"
-                    android:title="@string/setting_low_latency_off_title" />
-        -->
-
         <SwitchPreference
                 android:defaultValue="true"
                 android:icon="@drawable/ic_keyboard_return_24px"

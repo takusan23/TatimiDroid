@@ -1322,11 +1322,16 @@ class CommentFragment : Fragment() {
                             exoPlayer.setVideoSurfaceView(live_surface_view)
                             //再生
                             exoPlayer.playWhenReady = true
-                            Snackbar.make(
-                                fab,
-                                getString(R.string.error_player),
-                                Snackbar.LENGTH_SHORT
-                            ).setAnchorView(getSnackbarAnchorView()).show()
+                            Snackbar.make(fab, getString(R.string.error_player), Snackbar.LENGTH_SHORT).apply {
+                                anchorView = getSnackbarAnchorView()
+                                // 再生が止まった時に低遅延が有効になっていればOFFにできるように。安定して見れない場合は低遅延が有効なのが原因
+                                if (nicoLiveHTML.isLowLatency) {
+                                    setAction(getString(R.string.low_latency_off)) {
+                                        nicoLiveHTML.sendLowLatency()
+                                    }
+                                }
+                                show()
+                            }
                         }
                     }
                 }

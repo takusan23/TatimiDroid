@@ -38,7 +38,7 @@ class NicoLiveHTML {
     // コメント送信用WebSocket
     lateinit var commentPOSTWebSocketClient: WebSocketClient
 
-    // 低遅延モードが有効ならtrue。
+    /** 低遅延モードが有効ならtrue */
     var isLowLatency = true
 
     // 画質設定。最初の接続でのみ使われる(WebSocket接続成功時に送る。それ以外では使わない)

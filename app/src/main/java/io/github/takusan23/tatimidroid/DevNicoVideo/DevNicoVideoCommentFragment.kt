@@ -116,7 +116,10 @@ class DevNicoVideoCommentFragment : Fragment() {
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                isAutoScroll = dy >= 0
+                // 自動スクロールが有効になってるときのみ監視する。自動スクロールOFFの状態でも動くようにすると勝手にスクロールされる問題があった。
+                if (isAutoScroll) {
+                    isAutoScroll = dy >= 0
+                }
             }
         })
     }
