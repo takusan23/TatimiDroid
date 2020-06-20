@@ -250,7 +250,7 @@ class CommentMenuFragment : Fragment() {
         // 低遅延
         fragment_comment_fragment_menu_low_latency_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit { putBoolean("nicolive_low_latency", isChecked) }
-            commentFragment.nicoLiveHTML.sendLowLatency()
+            commentFragment.nicoLiveHTML.sendLowLatency(isChecked)
         }
 
         // コメント一行モード on/off

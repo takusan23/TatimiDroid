@@ -289,7 +289,7 @@ class CommentFragment : Fragment() {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
         // 低遅延モードon/off
-        nicoLiveHTML.isLowLatency = !pref_setting.getBoolean("nicolive_low_latency", true)
+        nicoLiveHTML.isLowLatency = pref_setting.getBoolean("nicolive_low_latency", false)
         // 初回の画質を低画質にする設定（モバイル回線とか強制低画質モードとか）
         val isMobileDataLowQuality = pref_setting.getBoolean("setting_mobiledata_quality_low", false)
         val isPreferenceLowQuality = pref_setting.getBoolean("setting_nicolive_quality_low", false)
@@ -1327,7 +1327,7 @@ class CommentFragment : Fragment() {
                                 // 再生が止まった時に低遅延が有効になっていればOFFにできるように。安定して見れない場合は低遅延が有効なのが原因
                                 if (nicoLiveHTML.isLowLatency) {
                                     setAction(getString(R.string.low_latency_off)) {
-                                        nicoLiveHTML.sendLowLatency()
+                                        nicoLiveHTML.sendLowLatency(!nicoLiveHTML.isLowLatency)
                                     }
                                 }
                                 show()

@@ -132,7 +132,7 @@ class NicoLivePlayService : Service() {
         val isTokumei = intent?.getBooleanExtra("is_tokumei", true) ?: true
         nicoLiveHTML.isTokumeiComment = isTokumei
         // 低遅延モードon/off
-        nicoLiveHTML.isLowLatency = prefSetting.getBoolean("nicolive_low_latency", true)
+        nicoLiveHTML.isLowLatency = prefSetting.getBoolean("nicolive_low_latency", false)
         // JK
         isJK = intent?.getBooleanExtra("is_jk", false) ?: false
         // 開始時の画質を指定するか

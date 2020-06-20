@@ -637,22 +637,22 @@ class NicoLiveHTML {
     }
 
     /**
-     * 低遅延モード。isLowLatencyの値を使います。
+     * 低遅延モード。
+     * @param isLowLatency 低遅延モードをONにする場合はtrue。じゃなければfalse
      * */
-    fun sendLowLatency() {
+    fun sendLowLatency(isLowLatency: Boolean) {
         val jsonObject = JSONObject().apply {
             put("type", "changeStream")
             put("data", JSONObject().apply {
                 put("quality", currentQuality)
                 put("protocol", "hls")
-                put("latency", toLatencyString(!isLowLatency))
+                put("latency", toLatencyString(isLowLatency))
                 put("chasePlay", false)
             })
         }
-        //送信
+        // 送信
         nicoLiveWebSocketClient.send(jsonObject.toString())
-        //反転
-        isLowLatency = !isLowLatency
+        this.isLowLatency = isLowLatency
     }
 
     /**
