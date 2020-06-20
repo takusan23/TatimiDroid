@@ -283,7 +283,6 @@ class CommentFragment : Fragment() {
 
         initDB()
 
-        //liveId = intent?.getStringExtra("liveId") ?: ""
         liveId = arguments?.getString("liveId") ?: ""
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
@@ -1400,53 +1399,55 @@ class CommentFragment : Fragment() {
 
 
     fun showBubbles() {
-        //Android Q以降で利用可能
+        // Android Q以降で利用可能
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val intent = Intent(context, FloatingCommentViewer::class.java)
             intent.putExtra("liveId", liveId)
+            intent.putExtra("watch_mode", arguments?.getString("watch_mode"))
             val bubbleIntent = PendingIntent.getActivity(context, 25, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-            //通知作成？
-            val bubbleData = Notification.BubbleMetadata.Builder()
-                .setDesiredHeight(1200)
-                .setIcon(Icon.createWithResource(context, R.drawable.ic_library_books_24px))
-                .setIntent(bubbleIntent)
-                .build()
+            // 通知作成？
+            val bubbleData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Notification.BubbleMetadata.Builder(bubbleIntent, Icon.createWithResource(context, R.drawable.ic_library_books_24px))
+                    .setDesiredHeight(1200)
+                    .setIcon(Icon.createWithResource(context, R.drawable.ic_library_books_24px))
+                    .setIntent(bubbleIntent)
+                    .build()
+            } else {
+                Notification.BubbleMetadata.Builder()
+                    .setDesiredHeight(1200)
+                    .setIcon(Icon.createWithResource(context, R.drawable.ic_library_books_24px))
+                    .setIntent(bubbleIntent)
+                    .build()
+            }
             val timelineBot = Person.Builder()
                 .setBot(true)
                 .setName(getString(R.string.floating_comment_viewer))
                 .setImportant(true)
                 .build()
 
-            //通知送信
-            val notificationManager =
-                context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            //通知チャンネル作成
+            // 通知送信
+            val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            // 通知チャンネル作成
             val notificationId = "floating_comment_viewer"
             if (notificationManager.getNotificationChannel(notificationId) == null) {
-                //作成
-                val notificationChannel = NotificationChannel(
-                    notificationId, getString(R.string.floating_comment_viewer),
-                    NotificationManager.IMPORTANCE_DEFAULT
-                )
+                // 作成
+                val notificationChannel = NotificationChannel(notificationId, getString(R.string.floating_comment_viewer), NotificationManager.IMPORTANCE_DEFAULT)
                 notificationManager.createNotificationChannel(notificationChannel)
             }
-            //通知作成
+            // 通知作成
             val notification = Notification.Builder(context, notificationId)
                 .setContentText(getString(R.string.floating_comment_viewer_description))
                 .setContentTitle(getString(R.string.floating_comment_viewer))
                 .setSmallIcon(R.drawable.ic_library_books_24px)
                 .setBubbleMetadata(bubbleData)
                 .addPerson(timelineBot)
+                .setStyle(Notification.MessagingStyle(timelineBot))
                 .build()
-            //送信
+            // 送信
             notificationManager.notify(5, notification)
         } else {
-            //Android Pieなので..
-            Toast.makeText(
-                context,
-                getString(R.string.floating_comment_viewer_version),
-                Toast.LENGTH_SHORT
-            ).show()
+            // Android Pieなので..
+            Toast.makeText(context, getString(R.string.floating_comment_viewer_version), Toast.LENGTH_SHORT).show()
         }
     }
 

@@ -25,6 +25,7 @@ class FloatingCommentViewer : AppCompatActivity() {
         setContentView(R.layout.activity_floating_comment_viewer)
 
         val liveId = intent.getStringExtra("liveId")
+        val watchMode = intent.getStringExtra("watch_mode")
 
         //Fragment設置
         val trans = supportFragmentManager.beginTransaction()
@@ -32,6 +33,7 @@ class FloatingCommentViewer : AppCompatActivity() {
         //LiveID詰める
         val bundle = Bundle()
         bundle.putString("liveId", liveId)
+        bundle.putString("watch_mode", watchMode)
         commentFragment.arguments = bundle
         trans.replace(R.id.activity_floating_comment_viewer_linearlayout, commentFragment, liveId)
         trans.commit()
