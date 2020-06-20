@@ -5,6 +5,7 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.plus
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -42,10 +43,15 @@ class XMLCommentJSON(val context: Context?) {
          * Android標準でXMLをパースする。
          * 本当はJsoup使いたかったんだけど遅すぎた
          * */
-        val factory =
-            XmlPullParserFactory.newInstance()
+        val factory = XmlPullParserFactory.newInstance()
         val parser = factory.newPullParser()
-        parser.setInput(StringReader(xmlFile.readText()));
+        var xmlText = xmlFile.readText()
+        // ニコ生新配信録画ツール（仮　で取得したコメントに先頭に見えない文字（BOM付きってやつらしい）が有るのでもしあれば消す
+        if (Integer.toHexString(xmlText[0].toInt()) == "feff") {
+            // 先頭一文字を除く
+            xmlText = xmlText.substring(1)
+        }
+        parser.setInput(StringReader(xmlText))
         var eventType = parser.eventType
         // 終了まで繰り返す
         while (eventType != XmlPullParser.END_DOCUMENT) {

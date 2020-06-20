@@ -65,9 +65,13 @@ import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.coroutines.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
+import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -1401,54 +1405,77 @@ class CommentFragment : Fragment() {
     fun showBubbles() {
         // Android Q以降で利用可能
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val intent = Intent(context, FloatingCommentViewer::class.java)
-            intent.putExtra("liveId", liveId)
-            intent.putExtra("watch_mode", arguments?.getString("watch_mode"))
-            val bubbleIntent = PendingIntent.getActivity(context, 25, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-            // 通知作成？
-            val bubbleData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                Notification.BubbleMetadata.Builder(bubbleIntent, Icon.createWithResource(context, R.drawable.ic_library_books_24px))
-                    .setDesiredHeight(1200)
-                    .setIcon(Icon.createWithResource(context, R.drawable.ic_library_books_24px))
-                    .setIntent(bubbleIntent)
-                    .build()
-            } else {
-                Notification.BubbleMetadata.Builder()
-                    .setDesiredHeight(1200)
-                    .setIcon(Icon.createWithResource(context, R.drawable.ic_library_books_24px))
-                    .setIntent(bubbleIntent)
-                    .build()
-            }
-            val timelineBot = Person.Builder()
-                .setBot(true)
-                .setName(getString(R.string.floating_comment_viewer))
-                .setImportant(true)
-                .build()
+            GlobalScope.launch(Dispatchers.Main) {
 
-            // 通知送信
-            val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            // 通知チャンネル作成
-            val notificationId = "floating_comment_viewer"
-            if (notificationManager.getNotificationChannel(notificationId) == null) {
-                // 作成
-                val notificationChannel = NotificationChannel(notificationId, getString(R.string.floating_comment_viewer), NotificationManager.IMPORTANCE_DEFAULT)
-                notificationManager.createNotificationChannel(notificationChannel)
+                val intent = Intent(context, FloatingCommentViewer::class.java)
+                intent.putExtra("liveId", liveId)
+                intent.putExtra("watch_mode", arguments?.getString("watch_mode"))
+                val bubbleIntent = PendingIntent.getActivity(context, 25, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+                // 通知作成？
+                val bubbleData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    Notification.BubbleMetadata.Builder(bubbleIntent, Icon.createWithResource(context, R.drawable.ic_library_books_24px))
+                        .setDesiredHeight(1200)
+                        .setIcon(Icon.createWithResource(context, R.drawable.ic_library_books_24px))
+                        .setIntent(bubbleIntent)
+                        .build()
+                } else {
+                    Notification.BubbleMetadata.Builder()
+                        .setDesiredHeight(1200)
+                        .setIcon(Icon.createWithResource(context, R.drawable.ic_library_books_24px))
+                        .setIntent(bubbleIntent)
+                        .build()
+                }
+                val timelineBot = Person.Builder()
+                    .setBot(true)
+                    .setName(getString(R.string.floating_comment_viewer))
+                    .setImportant(true)
+                    .build()
+
+                // 通知送信
+                val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                // 通知チャンネル作成
+                val notificationId = "floating_comment_viewer"
+                if (notificationManager.getNotificationChannel(notificationId) == null) {
+                    // 作成
+                    val notificationChannel = NotificationChannel(notificationId, getString(R.string.floating_comment_viewer), NotificationManager.IMPORTANCE_DEFAULT)
+                    notificationManager.createNotificationChannel(notificationChannel)
+                }
+                // 通知作成
+                val notification = Notification.Builder(context, notificationId)
+                    .setContentText(getString(R.string.floating_comment_viewer_description))
+                    .setContentTitle(getString(R.string.floating_comment_viewer))
+                    .setSmallIcon(R.drawable.ic_library_books_24px)
+                    .setBubbleMetadata(bubbleData)
+                    .addPerson(timelineBot)
+                    .setStyle(Notification.MessagingStyle(timelineBot).apply {
+                        conversationTitle = nicoLiveHTML.programTitle
+                    })
+                    .build()
+                // 送信
+                notificationManager.notify(5, notification)
             }
-            // 通知作成
-            val notification = Notification.Builder(context, notificationId)
-                .setContentText(getString(R.string.floating_comment_viewer_description))
-                .setContentTitle(getString(R.string.floating_comment_viewer))
-                .setSmallIcon(R.drawable.ic_library_books_24px)
-                .setBubbleMetadata(bubbleData)
-                .addPerson(timelineBot)
-                .setStyle(Notification.MessagingStyle(timelineBot))
-                .build()
-            // 送信
-            notificationManager.notify(5, notification)
         } else {
             // Android Pieなので..
             Toast.makeText(context, getString(R.string.floating_comment_viewer_version), Toast.LENGTH_SHORT).show()
         }
+    }
+
+    fun getThumbToUri(url: String): Deferred<Uri?> = GlobalScope.async {
+        val request = Request.Builder().apply {
+            url(url)
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = try {
+            okHttpClient.newCall(request).execute()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
+        val file = File("${context?.externalCacheDir?.path}/${nicoLiveHTML.liveId}.png")
+        file.createNewFile()
+        file.writeBytes(response?.body?.bytes() ?: return@async null)
+        return@async file.path.toUri()
     }
 
 
