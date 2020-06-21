@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteDatabase
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
@@ -1401,81 +1402,16 @@ class CommentFragment : Fragment() {
         }
     }
 
-
+    /** フローティングコメントビューワー起動関数 */
     fun showBubbles() {
-        // Android Q以降で利用可能
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            GlobalScope.launch(Dispatchers.Main) {
-
-                val intent = Intent(context, FloatingCommentViewer::class.java)
-                intent.putExtra("liveId", liveId)
-                intent.putExtra("watch_mode", arguments?.getString("watch_mode"))
-                val bubbleIntent = PendingIntent.getActivity(context, 25, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-                // 通知作成？
-                val bubbleData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    Notification.BubbleMetadata.Builder(bubbleIntent, Icon.createWithResource(context, R.drawable.ic_library_books_24px))
-                        .setDesiredHeight(1200)
-                        .setIcon(Icon.createWithResource(context, R.drawable.ic_library_books_24px))
-                        .setIntent(bubbleIntent)
-                        .build()
-                } else {
-                    Notification.BubbleMetadata.Builder()
-                        .setDesiredHeight(1200)
-                        .setIcon(Icon.createWithResource(context, R.drawable.ic_library_books_24px))
-                        .setIntent(bubbleIntent)
-                        .build()
-                }
-                val timelineBot = Person.Builder()
-                    .setBot(true)
-                    .setName(getString(R.string.floating_comment_viewer))
-                    .setImportant(true)
-                    .build()
-
-                // 通知送信
-                val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                // 通知チャンネル作成
-                val notificationId = "floating_comment_viewer"
-                if (notificationManager.getNotificationChannel(notificationId) == null) {
-                    // 作成
-                    val notificationChannel = NotificationChannel(notificationId, getString(R.string.floating_comment_viewer), NotificationManager.IMPORTANCE_DEFAULT)
-                    notificationManager.createNotificationChannel(notificationChannel)
-                }
-                // 通知作成
-                val notification = Notification.Builder(context, notificationId)
-                    .setContentText(getString(R.string.floating_comment_viewer_description))
-                    .setContentTitle(getString(R.string.floating_comment_viewer))
-                    .setSmallIcon(R.drawable.ic_library_books_24px)
-                    .setBubbleMetadata(bubbleData)
-                    .addPerson(timelineBot)
-                    .setStyle(Notification.MessagingStyle(timelineBot).apply {
-                        conversationTitle = nicoLiveHTML.programTitle
-                    })
-                    .build()
-                // 送信
-                notificationManager.notify(5, notification)
-            }
-        } else {
-            // Android Pieなので..
-            Toast.makeText(context, getString(R.string.floating_comment_viewer_version), Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    fun getThumbToUri(url: String): Deferred<Uri?> = GlobalScope.async {
-        val request = Request.Builder().apply {
-            url(url)
-            get()
-        }.build()
-        val okHttpClient = OkHttpClient()
-        val response = try {
-            okHttpClient.newCall(request).execute()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-        val file = File("${context?.externalCacheDir?.path}/${nicoLiveHTML.liveId}.png")
-        file.createNewFile()
-        file.writeBytes(response?.body?.bytes() ?: return@async null)
-        return@async file.path.toUri()
+        // FloatingCommentViewer#showBubble()に移動させました
+        FloatingCommentViewer.showBubbles(
+            context = requireContext(),
+            liveId = liveId,
+            watchMode = arguments?.getString("watch_mode"),
+            title = nicoLiveHTML.programTitle,
+            thumbUrl = nicoLiveHTML.thumb
+        )
     }
 
 
@@ -1777,10 +1713,10 @@ class CommentFragment : Fragment() {
         }
         //閉じるボタン
         comment_cardview_close_button.setOnClickListener {
-            //非表示アニメーションに挑戦した。
+            // 非表示アニメーションに挑戦した。
             val hideAnimation =
                 AnimationUtils.loadAnimation(context, R.anim.comment_cardview_hide_animation)
-            //表示
+            // 表示
             comment_activity_comment_cardview.startAnimation(hideAnimation)
             comment_activity_comment_cardview.visibility = View.GONE
             fab.show()

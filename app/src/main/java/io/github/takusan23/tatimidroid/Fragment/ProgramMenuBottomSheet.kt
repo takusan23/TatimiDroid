@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
@@ -24,7 +25,9 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import kotlinx.android.synthetic.main.bottom_fragment_program_menu.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -59,24 +62,51 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
         liveId = arguments?.getString("liveId", "") ?: ""
         userSession = prefSetting.getString("user_session", "") ?: ""
 
-        // 番組情報取得
-        coroutine()
+        GlobalScope.launch(Dispatchers.Main) {
 
-        // カレンダー追加
-        initCalendarButton()
+            // 番組情報取得
+            coroutine()
 
-        // 共有ボタン
-        initShareButton()
+            // UI反映
+            applyUI()
 
-        // IDコピーとか
-        initCopyButton()
+            // 予約枠自動入場初期化
+            initAutoAdmission()
 
-        // TS予約とか
-        initTSButton()
+            // ポップアップ再生、バッググラウンド再生
+            initLiveServiceButton()
 
-        // 予約枠自動入場
-        initDB()
+            // フローティングコメビュ
+            initFloatingCommentViewer()
 
+            // カレンダー追加
+            initCalendarButton()
+
+            // 共有ボタン
+            initShareButton()
+
+            // IDコピーとか
+            initCopyButton()
+
+            // TS予約とか
+            initTSButton()
+
+            // 予約枠自動入場
+            initDB()
+
+        }
+
+    }
+
+    private fun initFloatingCommentViewer() {
+        // Android 10 以降 でなお 放送中の番組の場合
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && nicoLiveHTML.status == "ON_AIR") {
+            bottom_fragment_program_info_floaing_comment_viewer.visibility = View.VISIBLE
+        }
+        bottom_fragment_program_info_floaing_comment_viewer.setOnClickListener {
+            // フローティングコメビュ起動
+            FloatingCommentViewer.showBubbles(requireContext(), liveId, "comment_post", nicoLiveHTML.programTitle, nicoLiveHTML.thumb)
+        }
     }
 
     private fun initDB() {
@@ -197,19 +227,17 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
                     // 失敗時。500エラーは登録済み
                     // 削除するか？Snackbar出す
                     Handler(Looper.getMainLooper()).post {
-                        Snackbar.make(bottom_fragment_program_info_timeshift, R.string.timeshift_reserved, Snackbar.LENGTH_SHORT)
-                            .setAction(R.string.timeshift_delete_reservation_button) {
-                                GlobalScope.launch {
-                                    // TS削除API叩く
-                                    val deleteTS =
-                                        timeShiftAPI.deleteTimeShift(liveId, userSession).await()
-                                    if (deleteTS.isSuccessful) {
-                                        showToast(getString(R.string.timeshift_delete_reservation_successful))
-                                    } else {
-                                        showToast("${getString(R.string.error)}\n${deleteTS.code}")
-                                    }
+                        Snackbar.make(bottom_fragment_program_info_timeshift, R.string.timeshift_reserved, Snackbar.LENGTH_SHORT).setAction(R.string.timeshift_delete_reservation_button) {
+                            GlobalScope.launch {
+                                // TS削除API叩く
+                                val deleteTS = timeShiftAPI.deleteTimeShift(liveId, userSession).await()
+                                if (deleteTS.isSuccessful) {
+                                    showToast(getString(R.string.timeshift_delete_reservation_successful))
+                                } else {
+                                    showToast("${getString(R.string.error)}\n${deleteTS.code}")
                                 }
-                            }.show()
+                            }
+                        }.show()
                     }
                 }
             }
@@ -222,16 +250,14 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
                 context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboardManager.setPrimaryClip(ClipData.newPlainText("communityid", nicoLiveHTML.communityId))
             //コピーしました！
-            Toast.makeText(context, "${getString(R.string.copy_communityid)} : ${nicoLiveHTML.communityId}", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(context, "${getString(R.string.copy_communityid)} : ${nicoLiveHTML.communityId}", Toast.LENGTH_SHORT).show()
         }
         bottom_fragment_program_info_id_copy.setOnClickListener {
             val clipboardManager =
                 context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboardManager.setPrimaryClip(ClipData.newPlainText("liveid", liveId))
             //コピーしました！
-            Toast.makeText(context, "${getString(R.string.copy_program_id)} : $liveId", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(context, "${getString(R.string.copy_program_id)} : $liveId", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -255,37 +281,32 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun coroutine() {
-        GlobalScope.launch {
-            val response = nicoLiveHTML.getNicoLiveHTML(liveId, userSession).await()
-            if (!response.isSuccessful) {
-                // 失敗時
-                showToast("${getString(R.string.error)}\n${response.code}")
-                return@launch
-            }
-            nicoLiveJSONObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(response.body?.string())
-            nicoLiveHTML.initNicoLiveData(nicoLiveJSONObject)
-            programData = nicoLiveHTML.getProgramData(nicoLiveJSONObject)
-            // UI反映
-            activity?.runOnUiThread {
-                if (isAdded) {
-                    bottom_fragment_program_info_title.text = nicoLiveHTML.programTitle
-                    bottom_fragment_program_info_id.text = nicoLiveHTML.liveId
-                    // 時間
-                    val formattedStartTime =
-                        nicoLiveHTML.iso8601ToFormat(nicoLiveHTML.programOpenTime)
-                    val formattedEndTime =
-                        nicoLiveHTML.iso8601ToFormat(nicoLiveHTML.programEndTime)
-                    bottom_fragment_program_info_time.text =
-                        "開場時刻：$formattedStartTime\n終了時刻：$formattedEndTime"
-                    // 項目表示
-                    bottom_fragment_program_info_buttons_linearlayout.visibility = View.VISIBLE
-                    // 予約枠自動入場初期化
-                    initAutoAdmission()
-                    // ポップアップ再生、バッググラウンド再生
-                    initLiveServiceButton()
-                }
-            }
+    /** データ取得。取得が終わるまで一時停止する系の関数です。 */
+    private suspend fun coroutine() = GlobalScope.async(Dispatchers.IO) {
+        val response = nicoLiveHTML.getNicoLiveHTML(liveId, userSession).await()
+        if (!response.isSuccessful) {
+            // 失敗時
+            showToast("${getString(R.string.error)}\n${response.code}")
+            return@async
+        }
+        nicoLiveJSONObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(response.body?.string())
+        nicoLiveHTML.initNicoLiveData(nicoLiveJSONObject)
+        programData = nicoLiveHTML.getProgramData(nicoLiveJSONObject)
+    }.await()
+
+    /** データ取得し終わったらUI更新 */
+    private fun applyUI() {
+        if (isAdded) {
+            bottom_fragment_program_info_title.text = nicoLiveHTML.programTitle
+            bottom_fragment_program_info_id.text = nicoLiveHTML.liveId
+            // 時間
+            val formattedStartTime =
+                nicoLiveHTML.iso8601ToFormat(nicoLiveHTML.programOpenTime)
+            val formattedEndTime =
+                nicoLiveHTML.iso8601ToFormat(nicoLiveHTML.programEndTime)
+            bottom_fragment_program_info_time.text = "開場時刻：$formattedStartTime\n終了時刻：$formattedEndTime"
+            // 項目表示
+            bottom_fragment_program_info_buttons_linearlayout.visibility = View.VISIBLE
         }
     }
 

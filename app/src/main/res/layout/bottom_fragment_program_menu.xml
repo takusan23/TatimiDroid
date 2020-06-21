@@ -89,6 +89,18 @@
                         android:text="@string/background_play" />
 
                 <TextView
+                        android:id="@+id/bottom_fragment_program_info_floaing_comment_viewer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_library_books_24px"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10dp"
+                        android:text="@string/floating_comment_viewer"
+                        android:visibility="gone" />
+
+                <TextView
                         android:id="@+id/bottom_fragment_program_info_timeshift"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

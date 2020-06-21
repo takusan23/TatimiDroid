@@ -380,9 +380,7 @@
         </PreferenceCategory>
     -->
 
-
     <PreferenceCategory android:title="@string/leave_app">
-
 
         <SwitchPreference
                 android:defaultValue="false"
