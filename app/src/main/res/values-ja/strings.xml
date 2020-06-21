@@ -460,4 +460,5 @@
     <string name="rentou_error">連投しないでね</string>
     <string name="oidashi">追い出されました。</string>
     <string name="low_latency_off">低遅延をOFF</string>
+    <string name="lockon_jump_button">こっから再生</string>
 </resources>

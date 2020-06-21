@@ -607,8 +607,16 @@ class NicoVideoPlayService : Service() {
                 (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
             }
             drawList.forEach {
-                if (!drewedList.contains(it.commentNo)) {
-                    drewedList.add(it.commentNo)
+                // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
+                val isAddable = drewedList.none { id -> it.commentNo == id || it.vpos == id } // 条件に合わなければtrue
+                if (isAddable) {
+                    val commentNo = if (it.commentNo == "-1" || it.commentNo.isEmpty()) {
+                        // vposで代替
+                        it.vpos
+                    }else{
+                        it.commentNo
+                    }
+                    drewedList.add(commentNo)
                     if (!it.comment.contains("\n")) {
                         // SingleLine
                         commentCanvas.post {
@@ -628,7 +636,6 @@ class NicoVideoPlayService : Service() {
                         }
                     }
                 }
-
             }
         }
     }

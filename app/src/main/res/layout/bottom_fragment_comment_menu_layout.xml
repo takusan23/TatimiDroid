@@ -132,6 +132,15 @@
                 android:orientation="horizontal">
 
             <Button
+                    android:id="@+id/bottom_fragment_comment_menu_nicovideo_seek"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@drawable/ic_play_arrow_24px"
+                    android:text="@string/lockon_jump_button"
+                    android:visibility="gone" />
+
+            <Button
                     android:id="@+id/bottom_fragment_comment_menu_nicovideo_menu"
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"

@@ -75,7 +75,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
 
         holder.userNameTextView.maxLines = 1
         // たちみどろいど以外のキャッシュはCommentNoがないので？
-        if (item.commentNo == "-1") {
+        if (item.commentNo == "-1" || item.commentNo.isEmpty()) {
             holder.commentTextView.text = "$comment"
         } else {
             holder.commentTextView.text = "${item.commentNo}：$comment"
@@ -154,6 +154,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             bundle.putString("user_id", item.userId)
             bundle.putString("liveId", item.videoOrLiveId)
             bundle.putString("label", holder.userNameTextView.text.toString())
+            bundle.putLong("current_pos", item.vpos.toLong())
             val commentLockonBottomFragment = CommentLockonBottomFragment()
             commentLockonBottomFragment.arguments = bundle
             if (context is AppCompatActivity) {

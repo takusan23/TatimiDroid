@@ -460,4 +460,5 @@
     <string name="rentou_error">Don\'t send the same comment in succession</string>
     <string name="oidashi">I was kicked out.</string>
     <string name="low_latency_off">Turn off low latency</string>
+    <string name="lockon_jump_button">Play from here</string>
 </resources>

@@ -999,17 +999,12 @@ class DevNicoVideoFragment : Fragment() {
             val drawList = commentList.filter { commentJSONParse ->
                 (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
             }
-            // println(drawList.map { commentJSONParse -> "${DateUtils.formatElapsedTime(currentPositionSec)} | ${commentJSONParse.commentNo} | ${commentJSONParse.comment} | ${drewedList}" })
             drawList.forEach {
                 // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
-                val addable = if (it.commentNo == "-1") {
-                    !drewedList.contains(it.vpos)
-                } else {
-                    !drewedList.contains(it.commentNo)
-                }
-                if (addable) {
+                val isAddable = drewedList.none { id -> it.commentNo == id || it.vpos == id } // 条件に合わなければtrue
+                if (isAddable) {
                     // コメントIDない場合はvposで代替する
-                    if (it.commentNo == "-1") {
+                    if (it.commentNo == "-1" || it.commentNo.isEmpty()) {
                         drewedList.add(it.vpos)
                     } else {
                         drewedList.add(it.commentNo)

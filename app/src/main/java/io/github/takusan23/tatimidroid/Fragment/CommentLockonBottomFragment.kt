@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.Fragment
 
-import android.database.sqlite.SQLiteDatabase
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,12 +9,12 @@ import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
 import kotlinx.android.synthetic.main.bottom_fragment_comment_menu_layout.*
 import android.content.*
 import android.text.SpannableString
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
+import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.Adapter.CommentRecyclerViewAdapter
@@ -24,7 +23,6 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.User
-import io.github.takusan23.tatimidroid.Tool.NGDataBaseTool
 import io.github.takusan23.tatimidroid.Tool.NICOLIVE_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
 import kotlinx.android.synthetic.main.adapter_comment_layout.*
@@ -32,9 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.*
-import org.json.JSONObject
-import java.io.IOException
+import java.text.SimpleDateFormat
 import java.util.regex.Pattern
 
 /**
@@ -43,6 +39,8 @@ import java.util.regex.Pattern
  * user_id  | String  | ユーザーID
  * liveId   | String  | 生放送ID（動画なら動画ID）
  * label    | String  | 部屋名とか（コメント本文の上にあるユーザーID書いてある部分）
+ * 動画なら
+ * current_pos | Long | コメントのvpos。1秒==100vpos
  * */
 class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
@@ -57,6 +55,9 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
     //RecyclerView
     var recyclerViewList = arrayListOf<CommentJSONParse>()
+
+    // 動画Fragmentかどうか
+    var isNicoVideoFragment = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_comment_menu_layout, container, false)
@@ -97,6 +98,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             // 動画
             fragment is DevNicoVideoFragment -> {
                 recyclerViewList = fragment.commentList.filter { commentJSONParse -> commentJSONParse.userId == userId } as ArrayList<CommentJSONParse>
+                isNicoVideoFragment = true
             }
         }
 
@@ -143,6 +145,9 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
         // URL取り出し
         regexURL()
+
+        // 動画の場合は「ここから再生」ボタンを表示する
+        showJumpButton(fragment)
 
         // 生IDのみ、ユーザー名取得ボタン
         if ("([0-9]+)".toRegex().matches(userId)) { // 生IDは数字だけで構成されているので正規表現（じゃなくてもできるだろうけど）
@@ -195,6 +200,23 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
     }
 
+    /** こっから再生 */
+    private fun showJumpButton(fragment: Fragment) {
+        // 移動先
+        val currentPos = arguments?.getLong("current_pos", -1) ?: -1
+        // ボタン表示。動画Fragmentでかつcurrent_posが-1以外のとき表示
+        if (isNicoVideoFragment && currentPos != -1L) {
+            bottom_fragment_comment_menu_nicovideo_seek.visibility = View.VISIBLE
+            bottom_fragment_comment_menu_nicovideo_seek.append("(${formatTime(currentPos / 100F)})") // 移動先時間追記
+        }
+        bottom_fragment_comment_menu_nicovideo_seek.setOnClickListener {
+            // こっから再生できるようにする
+            if (fragment is DevNicoVideoFragment) {
+                fragment.exoPlayer.seekTo(currentPos * 10) // vposに*10すればミリ秒になる
+            }
+        }
+    }
+
     private fun showInfo() {
         // NGスコア/個数など
         bottom_fragment_comment_menu_count.text = "${getString(R.string.comment_count)}：${recyclerViewList.size}"
@@ -232,7 +254,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         }
     }
 
-    fun setCopy() {
+    private fun setCopy() {
         bottom_fragment_comment_menu_comment_copy.setOnClickListener {
             // コピーする
             val clipboardManager =
@@ -242,7 +264,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         }
     }
 
-    fun setNGClick() {
+    private fun setNGClick() {
         // Fragment取得
         val fragment = activity?.supportFragmentManager?.findFragmentByTag(liveId)
         val ngDataBaseTool = if (fragment is CommentFragment) {
@@ -295,7 +317,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     }
 
     //コテハン登録
-    fun registerKotehan(kotehanMap: MutableMap<String, String>) {
+    private fun registerKotehan(kotehanMap: MutableMap<String, String>) {
         val kotehan = bottom_fragment_comment_menu_kotehan_edit_text.text.toString()
         if (kotehan.isNotEmpty()) {
             kotehanMap.put(userId, kotehan)
@@ -305,7 +327,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     }
 
     //コテハン読み込み
-    fun loadKotehan(kotehanMap: MutableMap<String, String>) {
+    private fun loadKotehan(kotehanMap: MutableMap<String, String>) {
         if (kotehanMap.containsKey(userId)) {
             bottom_fragment_comment_menu_kotehan_edit_text.setText(kotehanMap.get(userId))
         } else {
@@ -319,5 +341,17 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
+
+    /**
+     * 時間表記をきれいにする関数
+     * @param time 秒。ミリ秒ではない
+     * */
+    private fun formatTime(time: Float): String {
+        val minutes = time / 60
+        val hour = (minutes / 60).toInt()
+        val simpleDateFormat = SimpleDateFormat("mm:ss")
+        return "${hour}:${simpleDateFormat.format(time * 1000)}"
+    }
+
 
 }
