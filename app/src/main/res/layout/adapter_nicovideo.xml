@@ -10,7 +10,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="2dp"
-            app:cardCornerRadius="5dp">
+            app:cardCornerRadius="5dp"
+            app:cardElevation="2dp">
 
         <LinearLayout
                 android:layout_width="match_parent"
@@ -40,17 +41,17 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:id="@+id/adapter_nicovideo_comment_nicoru"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:layout_margin="5sp"
                     android:minWidth="0dp"
-                    android:visibility="gone"
-                    android:padding="5dp"
                     android:minHeight="0dp"
+                    android:padding="5dp"
                     android:text="0"
+                    android:visibility="gone"
                     app:icon="@drawable/ic_sentiment_satisfied_black_24dp"
                     app:iconPadding="0dp" />
         </LinearLayout>

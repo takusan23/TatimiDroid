@@ -17,6 +17,8 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * ニコニコにログインする関数。
@@ -123,9 +125,9 @@ class NicoLogin {
          * @param context SharedPreferenceを使うため
          * @return ログイン成功すれば関数が終了します。値はSharedPreferenceに保存されます。
          * */
-        fun loginCoroutine(context: Context?): Deferred<Unit> = GlobalScope.async {
+        suspend fun loginCoroutine(context: Context?) = suspendCoroutine<Unit> { suspendCoroutine ->
             login(context) {
-                return@login
+                suspendCoroutine.resume(Unit)
             }
         }
     }

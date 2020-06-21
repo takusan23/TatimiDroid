@@ -36,7 +36,7 @@ class KonoApp : AppCompatActivity() {
     /*
     * バージョンとか
     * */
-    val version = "2020/06/18"
+    val version = "2020/06/21"
     val codeName1 = "（ββ)" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,8 +90,8 @@ class KonoApp : AppCompatActivity() {
     //10秒後に入場する機能。
     fun setEasterEgg(app: String) {
         //クリップボードのデータにアクセス。
-        var clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        var clipdata = clipboard.primaryClip
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipdata = clipboard.primaryClip
         if (clipboard != null) {
             //正規表現で取り出す
             val nicoID_Matcher = Pattern.compile("(lv)([0-9]+)")

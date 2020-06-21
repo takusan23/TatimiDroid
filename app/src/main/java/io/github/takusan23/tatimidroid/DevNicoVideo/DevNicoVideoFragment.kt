@@ -354,9 +354,11 @@ class DevNicoVideoFragment : Fragment() {
      * 縦画面のみ。動画のタイトルなど表示・非表示やタイトル設定など
      * @param jsonObject NicoVideoHTML#parseJSON()の戻り値
      * */
-    fun initTitleArea() {
+    private fun initTitleArea() {
+        // Fragmentがもう無い可能性が
+        if (!isAdded) return
         if (fragment_nicovideo_bar != null && fragment_nicovideo_video_title_linearlayout != null) {
-            fragment_nicovideo_bar.setOnClickListener {
+            fragment_nicovideo_bar?.setOnClickListener {
                 // バー押したら動画のタイトルなど表示・非表示
                 fragment_nicovideo_video_title_linearlayout.apply {
                     visibility = if (visibility == View.GONE) {
@@ -608,7 +610,7 @@ class DevNicoVideoFragment : Fragment() {
         if (isLoginMode(context) && !nicoVideoHTML.verifyLogin(jsonObject)) {
             showSnackbar(getString(R.string.login_disable_message), getString(R.string.login)) {
                 GlobalScope.launch {
-                    NicoLogin.loginCoroutine(context).await()
+                    NicoLogin.loginCoroutine(context)
                     activity?.runOnUiThread {
                         activity?.finish()
                         val intent = Intent(context, NicoVideoActivity::class.java)

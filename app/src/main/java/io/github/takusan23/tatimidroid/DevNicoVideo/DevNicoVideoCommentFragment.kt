@@ -245,6 +245,10 @@ class DevNicoVideoCommentFragment : Fragment() {
         // 一番最初+一番最後の場所
         val firstVisiblePos = manager.findFirstVisibleItemPosition()
         val lastVisiblePos = manager.findLastVisibleItemPosition() + 1
+        // IndexOutOfBoundsException: fromIndex = -1 対策
+        if (firstVisiblePos == -1 || lastVisiblePos == -1) {
+            return null
+        }
         return recyclerViewList.subList(firstVisiblePos, lastVisiblePos)
     }
 

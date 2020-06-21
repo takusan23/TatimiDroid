@@ -91,7 +91,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                     Toast.makeText(context, R.string.re_login, Toast.LENGTH_SHORT).show()
                 }
                 // 再ログインする
-                NicoLogin.loginCoroutine(context).await()
+                NicoLogin.loginCoroutine(context)
                 Handler(Looper.getMainLooper()).post {
                     Toast.makeText(context, R.string.re_login_successful, Toast.LENGTH_SHORT).show()
                 }

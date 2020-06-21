@@ -1,17 +1,15 @@
 package io.github.takusan23.tatimidroid.Fragment
 
-import android.app.*
+import android.app.Activity
 import android.content.*
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteDatabase
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Icon
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
@@ -66,13 +64,9 @@ import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
-import java.io.File
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -544,7 +538,7 @@ class CommentFragment : Fragment() {
         }
         if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
             // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
-            NicoLogin.loginCoroutine(context).await()
+            NicoLogin.loginCoroutine(context)
             usersession = pref_setting.getString("user_session", "") ?: ""
             // 視聴モードなら再度視聴ページリクエスト
             if (isWatchingMode) {
@@ -1034,15 +1028,34 @@ class CommentFragment : Fragment() {
      * */
     fun hideStatusBarAndSetFullScreen() {
         if (pref_setting.getBoolean("setting_display_cutout", false)) {
-            activity?.window?.decorView?.systemUiVisibility =
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // Android 11 systemUiVisibilityが非推奨になり、WindowInsetsControllerを使うように
+                activity?.window?.insetsController?.apply {
+                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE // View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY の WindowInset版。ステータスバー表示等でスワイプしても、操作しない場合はすぐに戻るやつです。
+                    hide(WindowInsets.Type.systemBars()) // Type#systemBars を使うと Type#statusBars() Type#captionBar() Type#navigationBars() 一斉に消せる
+                    hide(WindowInsets.Type.displayCutout()) // Type#systemBars() だとノッチ（マイクラの作者ではない）までは非表示にしてくれない。
+                }
+            } else {
+                // Android 10 以前
+                activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 val attrib = activity?.window?.attributes
                 attrib?.layoutInDisplayCutoutMode =
                     WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             }
         } else {
-            activity?.window?.decorView?.systemUiVisibility = 0
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // Android 11 systemUiVisibilityが非推奨になり、WindowInsetsControllerを使うように
+                activity?.window?.insetsController?.apply {
+                    // 前の状態を復元する
+                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_TOUCH
+                    show(WindowInsets.Type.systemBars())
+                    show(WindowInsets.Type.displayCutout())
+                }
+            } else {
+                activity?.window?.decorView?.systemUiVisibility = 0
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 val attrib = activity?.window?.attributes
                 attrib?.layoutInDisplayCutoutMode =
@@ -1155,6 +1168,7 @@ class CommentFragment : Fragment() {
                     // 生ID人数
                     val userIdCount = idList.count { commentJSONParse -> !commentJSONParse.mail.contains("184") }
                     withContext(Dispatchers.Main) {
+                        if (!isAdded) return@withContext
                         // 数えた結果
                         activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
                         // 統計情報表示
@@ -1382,11 +1396,10 @@ class CommentFragment : Fragment() {
                         // 成功時
                         if (response.isSuccessful) {
                             //成功
-                            Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT)
-                                .apply {
-                                    anchorView = getSnackbarAnchorView()
-                                    show()
-                                }
+                            Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT).apply {
+                                anchorView = getSnackbarAnchorView()
+                                show()
+                            }
                         } else {
                             showToast("${getString(R.string.error)}\n${response.code}")
                         }
@@ -1532,8 +1545,7 @@ class CommentFragment : Fragment() {
     }
 
     fun setEnquetePOSTLayout(message: String, type: String) {
-        enquateView =
-            layoutInflater.inflate(R.layout.bottom_fragment_enquate_layout, null, false)
+        enquateView = layoutInflater.inflate(R.layout.bottom_fragment_enquate_layout, null, false)
         if (type.contains("start")) {
             //アンケ開始
             comment_fragment_enquate_framelayout.removeAllViews()
@@ -1556,12 +1568,15 @@ class CommentFragment : Fragment() {
                 val button = MaterialButton(requireContext())
                 button.text = jsonArray.getString(i)
                 button.setOnClickListener {
-                    //投票
+                    // 投票
                     enquatePOST(i - 1)
-                    //アンケ画面消す
+                    // アンケ画面消す
                     comment_fragment_enquate_framelayout.removeAllViews()
-                    //Snackbar
-                    Snackbar.make(liveFrameLayout, getString(R.string.enquate) + " : " + jsonArray[i].toString(), Snackbar.LENGTH_SHORT).show()
+                    // SnackBar
+                    Snackbar.make(liveFrameLayout, "${getString(R.string.enquate)}：${jsonArray[i]}", Snackbar.LENGTH_SHORT).apply {
+                        anchorView = getSnackbarAnchorView()
+                        show()
+                    }
                 }
                 val layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -1628,20 +1643,22 @@ class CommentFragment : Fragment() {
                 shareText += "$question : ${enquatePerText(result)}\n"
             }
             //アンケ結果を共有
-            Snackbar.make(
-                liveFrameLayout,
-                getString(R.string.enquate_result),
-                Snackbar.LENGTH_LONG
-            ).setAction(getString(R.string.share)) {
-                //共有する
-                share(shareText, "$title($programTitle-$liveId)")
-            }.show()
+            Snackbar.make(liveFrameLayout, getString(R.string.enquate_result), Snackbar.LENGTH_SHORT).apply {
+                anchorView = getSnackbarAnchorView()
+                setAction(getString(R.string.share)) {
+                    //共有する
+                    share(shareText, "$title($programTitle-$liveId)")
+                }
+                show()
+            }
         }
     }
 
     //アンケートの結果を％表示
-    fun enquatePerText(per: String): StringBuilder {
-        val result = StringBuilder(per).insert(per.length - 1, ".").append("%")
+    private fun enquatePerText(per: String): String {
+        // 176 を 17.6% って表記するためのコード。１桁増やして（9%以下とき対応できないため）２桁消す
+        val percentToFloat = per.toFloat() * 10
+        val result = "${(percentToFloat / 100)}%"
         return result
     }
 

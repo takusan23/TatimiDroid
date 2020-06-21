@@ -191,7 +191,7 @@ class NicoLivePlayService : Service() {
             }
             if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
                 // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
-                NicoLogin.loginCoroutine(this@NicoLivePlayService).await()
+                NicoLogin.loginCoroutine(this@NicoLivePlayService)
                 // 視聴モードなら再度視聴ページリクエスト
                 if (isCommentPOSTMode) {
                     coroutine()
