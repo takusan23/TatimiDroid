@@ -1054,6 +1054,7 @@ class CommentFragment : Fragment() {
                     show(WindowInsets.Type.displayCutout())
                 }
             } else {
+                // Android 10以前
                 activity?.window?.decorView?.systemUiVisibility = 0
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
