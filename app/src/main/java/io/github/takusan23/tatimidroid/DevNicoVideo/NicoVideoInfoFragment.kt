@@ -22,9 +22,11 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
+import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.Tool.IDRegex
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_MYLIST_ID_REGEX
+import io.github.takusan23.tatimidroid.Tool.calcAnniversary
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
@@ -32,6 +34,9 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * 動画情報Fragment
+ * */
 class NicoVideoInfoFragment : Fragment() {
 
     lateinit var pref_setting: SharedPreferences
@@ -61,8 +66,7 @@ class NicoVideoInfoFragment : Fragment() {
         }
 
 
-        fragment_nicovideo_info_description_textview.movementMethod =
-            LinkMovementMethod.getInstance();
+        fragment_nicovideo_info_description_textview.movementMethod = LinkMovementMethod.getInstance()
 
     }
 
@@ -79,6 +83,10 @@ class NicoVideoInfoFragment : Fragment() {
      * @param jsonString js-initial-watch-data.data-api-dataの値
      * */
     fun parseJSONApplyUI(jsonString: String) {
+
+        // Fragment無いなら落とす
+        if (!isAdded) return
+
         val json = JSONObject(jsonString)
 
         val threadObject = json.getJSONObject("thread")
@@ -120,24 +128,24 @@ class NicoVideoInfoFragment : Fragment() {
             if (!isDetached) {
                 //UIスレッド
                 fragment_nicovideo_info_title_textview.text = title
-//                fragment_nicovideo_info_description_textview.text =
-//                    HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT)
                 setLinkText(HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT), fragment_nicovideo_info_description_textview)
-                fragment_nicovideo_info_upload_textview.text =
-                    "${getString(R.string.post_date)}：$postedDateTime"
-                fragment_nicovideo_info_upload_day_count_textview.text =
-                    "今日の日付から ${getDayCount(postedDateTime)} 日前に投稿"
-
-                fragment_nicovideo_info_play_count_textview.text =
-                    "${getString(R.string.play_count)}：$viewCount"
-
-                fragment_nicovideo_info_mylist_count_textview.text =
-                    "${getString(R.string.mylist)}：$mylistCount"
-
-                fragment_nicovideo_info_comment_count_textview.text =
-                    "${getString(R.string.comment_count)}：$commentCount"
-
+                // 投稿日時、再生数 等
+                fragment_nicovideo_info_upload_textview.text = "${getString(R.string.post_date)}：$postedDateTime"
+                fragment_nicovideo_info_play_count_textview.text = "${getString(R.string.play_count)}：$viewCount"
+                fragment_nicovideo_info_mylist_count_textview.text = "${getString(R.string.mylist)}：$mylistCount"
+                fragment_nicovideo_info_comment_count_textview.text = "${getString(R.string.comment_count)}：$commentCount"
                 fragment_nicovideo_info_owner_textview.text = nickname
+
+                // 今日の日付から計算
+                fragment_nicovideo_info_upload_day_count_textview.text = "今日の日付から ${getDayCount(postedDateTime)} 日前に投稿"
+                // 一周年とか。
+                val anniversary = calcAnniversary(toUnixTime(postedDateTime)) // AnniversaryDateクラス みて
+                if (anniversary != -1) {
+                    fragment_nicovideo_info_upload_anniversary_textview.apply {
+                        visibility = View.VISIBLE
+                        text = AnniversaryDate.makeAnniversaryMessage(anniversary) // お祝いメッセージ作成
+                    }
+                }
 
                 //たぐ
                 for (i in 0 until tagArray.length()) {
@@ -220,6 +228,10 @@ class NicoVideoInfoFragment : Fragment() {
             }
         }
     }
+
+
+    /** 投稿日のフォーマットをUnixTimeへ変換する */
+    private fun toUnixTime(postedDateTime: String) = SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(postedDateTime).time
 
     /**
      * 動画投稿日が何日前か数えるやつ。

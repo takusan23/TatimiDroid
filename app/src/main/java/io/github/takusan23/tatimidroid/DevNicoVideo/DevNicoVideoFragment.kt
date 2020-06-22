@@ -573,6 +573,13 @@ class DevNicoVideoFragment : Fragment() {
         }
         // メニューにJSON渡す
         (viewPager.fragmentList[0] as DevNicoVideoMenuFragment).jsonObject = jsonObject
+        // 動画情報あれば更新
+        if (::jsonObject.isInitialized) {
+            (viewPager.fragmentList[2] as NicoVideoInfoFragment).apply {
+                jsonObjectString = jsonObject.toString()
+                parseJSONApplyUI(jsonObjectString)
+            }
+        }
 /*
         // コメントFragmentにコメント配列を渡す
         (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {

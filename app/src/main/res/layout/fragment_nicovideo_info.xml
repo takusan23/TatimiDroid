@@ -37,6 +37,16 @@
                         android:textSize="16sp" />
 
                 <TextView
+                        android:id="@+id/fragment_nicovideo_info_upload_anniversary_textview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_cake_black_24dp"
+                        android:text="一周年"
+                        android:textColor="#ff0000"
+                        android:textSize="20sp"
+                        android:visibility="gone" />
+
+                <TextView
                         android:id="@+id/fragment_nicovideo_info_title_textview"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

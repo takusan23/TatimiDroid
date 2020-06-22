@@ -25,6 +25,8 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
+import io.github.takusan23.tatimidroid.Tool.AnniversaryDate
+import io.github.takusan23.tatimidroid.Tool.calcAnniversary
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import java.text.SimpleDateFormat
 import java.util.ArrayList
@@ -64,13 +66,30 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
                 prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
                 nicoVideoCache = NicoVideoCache(context)
             }
+            // 投稿日時。一周年とかを祝えるように
+            val anniversary = calcAnniversary(data.date)
+            when {
+                anniversary == 0 -> {
+                    // 本日投稿のときは文字赤くするだけ
+                    dateTextView.text = "${toFormatTime(data.date)} ${context?.getString(R.string.post)}"
+                    dateTextView.setTextColor(Color.RED)
+                }
+                anniversary != -1 -> {
+                    // お祝い！
+                    dateTextView.text = "${AnniversaryDate.makeAnniversaryMessage(anniversary)} | ${toFormatTime(data.date)} ${context?.getString(R.string.post)}"
+                    dateTextView.setTextColor(Color.RED)
+                }
+                else -> {
+                    // いつもどおり
+                    dateTextView.text = "${toFormatTime(data.date)} ${context?.getString(R.string.post)}"
+                    dateTextView.setTextColor(titleTextView.textColors)
+                }
+            }
             // TextView
-            dateTextView.text = "${toFormatTime(data.date)} ${context?.getString(R.string.post)}"
             titleTextView.text = "${data.title}\n${data.videoId}"
             // 再生回数、マイリスト数、コメント数がすべて-1以外なら表示させる（ニコレポは再生回数取れない）
             if (data.viewCount != "-1" && data.mylistCount != "-1" && data.commentCount != "-1") {
-                infoTextView.text =
-                    "${context.getString(R.string.view_count)}：${data.viewCount} | ${context.getString(R.string.comment_count)}：${data.commentCount} | ${context.getString(R.string.mylist_count)}：${data.mylistCount}"
+                infoTextView.text = "${context.getString(R.string.view_count)}：${data.viewCount} | ${context.getString(R.string.comment_count)}：${data.commentCount} | ${context.getString(R.string.mylist_count)}：${data.mylistCount}"
             } else {
                 infoTextView.text = ""
             }
