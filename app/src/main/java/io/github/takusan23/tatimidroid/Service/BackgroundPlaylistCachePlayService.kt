@@ -25,6 +25,7 @@ import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
@@ -473,6 +474,12 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
 
 
         val notification = notificationBuilder.apply {
+            // 通知押したときのIntent。MainActivityでキャッシュFragmentを開く。別に書くのめんどくさいので キャッシュ起動AppShortcut を装ってIntentを飛ばすことでキャッシュ一覧を開くことにする
+            val cacheIntent = Intent(this@BackgroundPlaylistCachePlayService, MainActivity::class.java)
+            cacheIntent.putExtra("app_shortcut", "cache")
+            val pendingIntent = PendingIntent.getActivity(this@BackgroundPlaylistCachePlayService, 123, cacheIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            setContentIntent(pendingIntent)
+            // アルバムアート
             setLargeIcon(thumb)
             // 停止ボタン
             addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_STOP)))

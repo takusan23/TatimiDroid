@@ -57,7 +57,7 @@ class CacheJSON {
     fun readJSON(context: Context?): CacheFilterDataClass? {
         val scopedStoragePath = context?.getExternalFilesDir(null)?.path
         val filterJSONFile = File("${scopedStoragePath}/filter.json")
-        // ファイル作成
+        // ファイルは何処へ・・・の場合はnull
         if (!filterJSONFile.exists()) {
             return null
         }

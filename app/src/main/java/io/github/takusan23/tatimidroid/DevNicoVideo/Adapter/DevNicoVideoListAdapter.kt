@@ -76,7 +76,7 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
                 }
                 anniversary != -1 -> {
                     // お祝い！
-                    dateTextView.text = "${AnniversaryDate.makeAnniversaryMessage(anniversary)} | ${toFormatTime(data.date)} ${context?.getString(R.string.post)}"
+                    dateTextView.text = "${AnniversaryDate.makeAnniversaryMessage(anniversary)}\n${toFormatTime(data.date)} ${context?.getString(R.string.post)}"
                     dateTextView.setTextColor(Color.RED)
                 }
                 else -> {

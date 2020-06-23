@@ -148,11 +148,11 @@ class NicoVideoInfoFragment : Fragment() {
                 }
 
                 //たぐ
+                fragment_nicovideo_info_title_linearlayout.removeAllViews()
                 for (i in 0 until tagArray.length()) {
                     val tag = tagArray.getJSONObject(i)
                     val name = tag.getString("name")
-                    val isDictionaryExists =
-                        tag.getBoolean("isDictionaryExists") //大百科があるかどうか
+                    val isDictionaryExists = tag.getBoolean("isDictionaryExists") //大百科があるかどうか
                     val linearLayout = LinearLayout(context)
                     linearLayout.orientation = LinearLayout.HORIZONTAL
                     //ボタン
