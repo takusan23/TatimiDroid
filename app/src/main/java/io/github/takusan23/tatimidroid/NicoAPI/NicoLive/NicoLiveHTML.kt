@@ -19,7 +19,6 @@ import org.java_websocket.protocols.Protocol
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
-import java.io.Console
 import java.io.IOException
 import java.net.URI
 import java.text.SimpleDateFormat
@@ -126,20 +125,19 @@ class NicoLiveHTML {
      * @param userSession ユーザーセッション
      * @return OkhttpのResponse
      * */
-    fun getPlayerStatus(liveId: String, userSession: String?): Deferred<Response> =
-        GlobalScope.async {
-            val url = "https://live.nicovideo.jp/api/getplayerstatus/$liveId"
-            val request = Request.Builder().apply {
-                get()
-                url(url)
-                addHeader("User-Agent", "TatimiDroid;@takusan_23")
-                addHeader("Cookie", "user_session=$userSession")
+    fun getPlayerStatus(liveId: String, userSession: String?): Deferred<Response> = GlobalScope.async {
+        val url = "https://live.nicovideo.jp/api/getplayerstatus/$liveId"
+        val request = Request.Builder().apply {
+            get()
+            url(url)
+            addHeader("User-Agent", "TatimiDroid;@takusan_23")
+            addHeader("Cookie", "user_session=$userSession")
 
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
 
     /**
      * 動画情報などをセットする。コメント投稿もこれを呼ばないと使えないので呼んでね。
@@ -201,20 +199,16 @@ class NicoLiveHTML {
         val relive = site.getJSONObject("relive")
         // WebSocketアドレス
         val webSocketUrl = relive.getString("webSocketUrl")
-        // 番組情報
-        val program = jsonObject.getJSONObject("program")
         // broadcastId
-        val broadcastId = program.getString("broadcastId")
-        connectionNicoLiveWebSocket(webSocketUrl, broadcastId, onMessageFun)
+        connectionNicoLiveWebSocket(webSocketUrl, onMessageFun)
     }
 
     /**
      * ニコ生の視聴に必要なデータを流してくれるWebSocketに接続する
      * @param webSocketUrl connectionWebSocket()のソース読め
-     * @param broadcastId connectionWebSocket()のソース読め
      * @param onMessageFun 第一引数はcommand（messageServerUriとか）。第二引数はJSONそのもの。なにもない時がある（なんだろうね？）
      * */
-    private fun connectionNicoLiveWebSocket(webSocketUrl: String, broadcastId: String, onMessageFun: (String, String) -> Unit) {
+    private fun connectionNicoLiveWebSocket(webSocketUrl: String, onMessageFun: (String, String) -> Unit) {
         nicoLiveWebSocketClient = object : WebSocketClient(URI(webSocketUrl)) {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 // 視聴セッションWebSocketに接続したら最初に送らないといけないJSONがあるので送りつける。2020/06/02から送るJSONの中身が変わっているぞおい勝手に変更するな
@@ -234,20 +228,7 @@ class NicoLiveHTML {
                         put("reconnect", false)
                     })
                 }
-/*
-                //もう一個
-                val secondObject = JSONObject()
-                secondObject.put("type", "watch")
-                val secondbodyObject = JSONObject()
-                secondbodyObject.put("command", "playerversion")
-                val paramsArray = JSONArray()
-                paramsArray.put("leo")
-                secondbodyObject.put("params", paramsArray)
-                secondObject.put("body", secondbodyObject)
-*/
-
                 // JSON送信！
-                //  this.send(secondObject.toString())
                 this.send(jsonObject.toString())
             }
 

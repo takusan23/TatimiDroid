@@ -289,7 +289,7 @@ class CommentFragment : Fragment() {
         // 低遅延モードon/off
         nicoLiveHTML.isLowLatency = pref_setting.getBoolean("nicolive_low_latency", false)
         // 初回の画質を低画質にする設定（モバイル回線とか強制低画質モードとか）
-        val isMobileDataLowQuality = pref_setting.getBoolean("setting_mobiledata_quality_low", false)
+        val isMobileDataLowQuality = pref_setting.getBoolean("setting_mobiledata_quality_low", false) == isConnectionMobileDataInternet(context) // +モバイルデータ接続時
         val isPreferenceLowQuality = pref_setting.getBoolean("setting_nicolive_quality_low", false)
         if (isMobileDataLowQuality || isPreferenceLowQuality) {
             nicoLiveHTML.startQuality = "super_low"
