@@ -6,10 +6,8 @@ import android.app.PendingIntent
 import android.content.*
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -350,7 +348,10 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                 jsonObject.getJSONObject("owner").getString("nickname")
             }
             val thumbPath = nicoVideoCache.getCacheFolderVideoThumFilePath(videoId)
-            val currentThumbBitmap = BitmapFactory.decodeFile(thumbPath)
+            val thumbBitmap = BitmapFactory.decodeFile(thumbPath)
+            // サムネ（縦長）をきれいに正方形にする一行。Android 11からMediaSession通知は専用領域が確保されるようになった
+            // なおStackOverflow先生：https://stackoverflow.com/questions/6908604/android-crop-center-of-bitmap
+            val thumbCropBitmap = Bitmap.createBitmap(thumbBitmap, thumbBitmap.width / 2 - thumbBitmap.height / 2, 0, thumbBitmap.height, thumbBitmap.height)
             // 再生時間
             val duration = jsonObject.getJSONObject("video").getLong("duration")
             // メタデータ
@@ -365,7 +366,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                 putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, videoId)
                 putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentTitle)
                 putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, uploaderName)
-                putBitmap(MediaMetadataCompat.METADATA_KEY_ART, currentThumbBitmap)
+                putBitmap(MediaMetadataCompat.METADATA_KEY_ART, thumbCropBitmap)
             }.build()
             return mediaMetadataCompat
         } else {
