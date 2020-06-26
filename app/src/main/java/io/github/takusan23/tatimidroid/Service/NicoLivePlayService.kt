@@ -40,6 +40,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
+import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -138,9 +139,11 @@ class NicoLivePlayService : Service() {
         // 開始時の画質を指定するか
         nicoLiveHTML.startQuality = intent?.getStringExtra("start_quality") ?: "high"
 
-        // モバイルデータは最低画質で読み込む設定
-        if (prefSetting.getBoolean("setting_mobiledata_quality_low", false) && isConnectionInternet(this@NicoLivePlayService)) {
-            // 最低画質指定
+        // 初回の画質を低画質にする設定（モバイル回線とか強制低画質モードとか）
+        val isMobileDataLowQuality = prefSetting.getBoolean("setting_mobiledata_quality_low", false) == isConnectionMobileDataInternet(this) // 有効時 でなお モバイルデータ接続時
+        val isPreferenceLowQuality = prefSetting.getBoolean("setting_nicolive_quality_low", false)
+        // 低画質設定
+        if (isMobileDataLowQuality || isPreferenceLowQuality) {
             nicoLiveHTML.startQuality = "super_low"
         }
 

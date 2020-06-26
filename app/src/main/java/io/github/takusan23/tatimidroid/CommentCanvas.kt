@@ -211,25 +211,13 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 when {
                     obj.command.contains("big") -> {
                         val fontSize = (fontsize * 1.3).toFloat()
-/*
-                        canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getBlackCommentTextPaint(fontSize))
-                        canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command, fontSize))
-*/
                         drawComment(canvas, obj, fontSize)
                     }
                     obj.command.contains("small") -> {
                         val fontSize = (fontsize * 0.8).toFloat()
-/*
-                        canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getBlackCommentTextPaint(fontSize))
-                        canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command, fontSize))
-*/
                         drawComment(canvas, obj, fontSize)
                     }
                     else -> {
-/*
-                        canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getBlackCommentTextPaint(fontsize))
-                        canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command))
-*/
                         drawComment(canvas, obj, obj.fontSize)
                     }
                 }
@@ -237,22 +225,12 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         }
         // 上付きコメントを描画する
         ueCommentList.toList().forEach {
-/*
-            if (it?.command != null && it?.comment != null) {
-                canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(it.fontSize))
-                canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, it.fontSize))
-            }
-*/
+            if (it == null) return // なんかnullの時がある？
             drawComment(canvas, it, it.fontSize)
         }
         // 下付きコメントを描画する
         sitaCommentList.toList().forEach {
-/*
-            if (it?.command != null && it?.comment != null) {
-                canvas?.drawText(it.comment, it.xPos, it.yPos, getBlackCommentTextPaint(it.fontSize))
-                canvas?.drawText(it.comment, it.xPos, it.yPos, getCommentTextPaint(it.command, it.fontSize))
-            }
-*/
+            if (it == null) return // なんかnullの時がある？
             drawComment(canvas, it, it.fontSize)
         }
     }
