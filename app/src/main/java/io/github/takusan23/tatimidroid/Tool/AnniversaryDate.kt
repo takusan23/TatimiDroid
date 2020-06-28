@@ -28,7 +28,7 @@ class AnniversaryDate {
          * お祝いテンプレ
          * @param anniversary 一周年なら1など。calcAnniversary()の返り値入れれば良くない？
          * */
-        fun makeAnniversaryMessage(anniversary: Int) = "\uD83E\uDD73  本日は${anniversary}周年目です  \uD83C\uDF89"
+        fun makeAnniversaryMessage(anniversary: Int) = "\uD83E\uDD73  本日は ${anniversary} 回目のお誕生日です \uD83C\uDF89"
     }
 
 }

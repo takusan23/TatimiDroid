@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Spannable
 import android.text.Spanned
@@ -140,10 +141,15 @@ class NicoVideoInfoFragment : Fragment() {
                 fragment_nicovideo_info_upload_day_count_textview.text = "今日の日付から ${getDayCount(postedDateTime)} 日前に投稿"
                 // 一周年とか。
                 val anniversary = calcAnniversary(toUnixTime(postedDateTime)) // AnniversaryDateクラス みて
-                if (anniversary != -1) {
-                    fragment_nicovideo_info_upload_anniversary_textview.apply {
-                        visibility = View.VISIBLE
-                        text = AnniversaryDate.makeAnniversaryMessage(anniversary) // お祝いメッセージ作成
+                when {
+                    anniversary == 0 -> {
+                        fragment_nicovideo_info_upload_textview.setTextColor(Color.RED)
+                    }
+                    anniversary != -1 -> {
+                        fragment_nicovideo_info_upload_anniversary_textview.apply {
+                            visibility = View.VISIBLE
+                            text = AnniversaryDate.makeAnniversaryMessage(anniversary) // お祝いメッセージ作成
+                        }
                     }
                 }
 
