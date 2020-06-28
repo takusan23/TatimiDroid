@@ -1,18 +1,20 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo.VideoList
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRSS
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_ranking.*
 import kotlinx.coroutines.*
@@ -22,15 +24,48 @@ import kotlinx.coroutines.*
  * */
 class DevNicoVideoRankingFragment : Fragment() {
 
-    val nicoRSS = NicoVideoRSS()
+    private val nicoRSS = NicoVideoRSS()
     lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     val recyclerViewList = arrayListOf<NicoVideoData>()
+    lateinit var prefSetting: SharedPreferences
 
     lateinit var launch: Job
 
-    // メニュー選んだ位置
-    var rankingMenuPos = 0
+    // メニュー選んだ位置。RANKING_GENRE#indexOf()を使い場所を特定しNicoVideoRSS#rankingGenreUrlListを使う際に使う
+    var rankingGenrePos = 0
     var rankingTimePos = 0
+
+    /** ランキングのジャンル一覧。NicoVideoRSS#rankingGenreUrlList のURL一覧と一致している */
+    private val RANKING_GENRE = arrayListOf(
+        "全ジャンル",
+        "話題",
+        "エンターテインメント",
+        "ラジオ",
+        "音楽・サウンド",
+        "ダンス",
+        "動物",
+        "自然",
+        "料理",
+        "旅行・アウトドア",
+        "乗り物",
+        "スポーツ",
+        "社会・政治・時事",
+        "技術・工作",
+        "解説・講座",
+        "アニメ",
+        "ゲーム",
+        "その他"
+    )
+
+    /** ランキングの集計時間。基本いじらない。NicoVideoRSS#rankingTimeList の配列の中身と一致している。 */
+    private val RANKING_TIME = arrayListOf(
+        "毎時",
+        "２４時間",
+        "週間",
+        "月間",
+        "全期間"
+    )
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_dev_nicovideo_ranking, container, false)
@@ -38,6 +73,8 @@ class DevNicoVideoRankingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
         // ドロップダウンメニュー初期化
         initDropDownMenu()
@@ -47,6 +84,16 @@ class DevNicoVideoRankingFragment : Fragment() {
 
         if (savedInstanceState == null) {
             // しょかい
+            // 前回開いてたランキングを開く
+            val lastOpenGenre = prefSetting.getString("nicovideo_ranking_genre", RANKING_GENRE[0])
+            val lastOpenTime = prefSetting.getString("nicovideo_ranking_time", RANKING_TIME[0])
+            // 配列の位置を探す
+            rankingGenrePos = RANKING_GENRE.indexOf(lastOpenGenre)
+            rankingTimePos = RANKING_TIME.indexOf(lastOpenTime)
+            // AutoCompleteTextViewにも入れる
+            fragment_nicovideo_ranking_menu.setText(lastOpenGenre)
+            fragment_nicovideo_ranking_time_menu.setText(lastOpenTime)
+            // データ取得
             getRanking()
         } else {
             // 画面回転復帰時
@@ -68,6 +115,13 @@ class DevNicoVideoRankingFragment : Fragment() {
         recyclerViewList.clear()
         nicoVideoListAdapter.notifyDataSetChanged()
         fragment_video_ranking_swipe.isRefreshing = true
+
+        // 次表示するときのために今選んでいるジャンル・集権時間を記録しておく
+        prefSetting.edit {
+            putString("nicovideo_ranking_genre", fragment_nicovideo_ranking_menu.text.toString())
+            putString("nicovideo_ranking_time", fragment_nicovideo_ranking_time_menu.text.toString())
+        }
+
         // すでにあるならキャンセル
         if (::launch.isInitialized) {
             launch.cancel()
@@ -77,9 +131,9 @@ class DevNicoVideoRankingFragment : Fragment() {
 
     }
 
-    fun loadRanking() {
+    private fun loadRanking() {
         // ジャンル
-        val genre = nicoRSS.rankingGenreUrlList[rankingMenuPos]
+        val genre = nicoRSS.rankingGenreUrlList[rankingGenrePos]
         // 集計期間
         val time = nicoRSS.rankingTimeList[rankingTimePos]
         // RSS取得
@@ -102,47 +156,27 @@ class DevNicoVideoRankingFragment : Fragment() {
     }
 
     private fun initDropDownMenu() {
-        val rankingGenre =
-            arrayListOf(
-                "全ジャンル",
-                "話題",
-                "エンターテインメント",
-                "ラジオ",
-                "音楽・サウンド",
-                "ダンス",
-                "動物",
-                "自然",
-                "料理",
-                "旅行・アウトドア",
-                "乗り物",
-                "スポーツ",
-                "社会・政治・時事",
-                "技術・工作",
-                "解説・講座",
-                "アニメ",
-                "ゲーム",
-                "その他"
-            )
         // Adapterセット
-        val adapter = AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, rankingGenre)
+        // ランキング
+        val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, RANKING_GENRE)
         fragment_nicovideo_ranking_menu.apply {
             setAdapter(adapter)
             // 押したとき
             onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-                rankingMenuPos = position
+                rankingGenrePos = position
                 getRanking()
             }
-            setText(rankingGenre[0], false)
+            setText(RANKING_GENRE[0], false)
         }
-        val timeGenre = arrayListOf("毎時", "２４時間", "週間", "月間", "全期間")
-        val timeAdapter = AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, timeGenre)
+        // 集計時間
+        val timeAdapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, RANKING_TIME)
         fragment_nicovideo_ranking_time_menu.apply {
             setAdapter(timeAdapter)
             onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
                 rankingTimePos = position
                 getRanking()
             }
-            setText(timeGenre[0], false)
+            setText(RANKING_TIME[0], false)
         }
     }
 
