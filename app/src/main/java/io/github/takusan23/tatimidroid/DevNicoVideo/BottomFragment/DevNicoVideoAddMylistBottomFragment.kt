@@ -13,8 +13,10 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoMylistAd
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_mylist.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 class DevNicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
@@ -70,7 +72,7 @@ class DevNicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
                             val pair = Pair(title, id)
                             recyclerViewList.add(pair)
                         }
-                        activity?.runOnUiThread {
+                        withContext(Dispatchers.Main) {
                             nicoVideoMylistAdapter.notifyDataSetChanged()
                         }
                     } else {

@@ -12,7 +12,9 @@ import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 
-
+/**
+ * CommentFragment（生放送再生Fragment）を乗っけるためのActivity。
+ * */
 class CommentActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences

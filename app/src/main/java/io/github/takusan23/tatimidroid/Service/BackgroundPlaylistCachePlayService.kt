@@ -8,7 +8,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
+import android.service.media.MediaBrowserService
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -167,7 +169,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                     mediaId ?: return
                     // 動画一覧読み込む
                     GlobalScope.launch {
-                        videoList = getVideoList().await()
+                        videoList = getVideoList()
                         // MediaSource作る
                         val playList = ConcatenatingMediaSource()
                         videoList.forEach { cacheData ->
@@ -296,7 +298,17 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             // 曲を読み込む
             GlobalScope.launch {
                 // クライアントへどぞー
-                //  result.sendResult(getVideoList().await())
+/*
+                val cacheItem = getVideoList().first()
+                val mediaDescriptionCompat = MediaDescriptionCompat.Builder().apply {
+                    setTitle(cacheItem.title)
+                    setSubtitle(cacheItem.uploaderName)
+                    setIconUri(cacheItem.thum.toUri())
+                    setMediaId(cacheItem.videoId)
+                }.build()
+                val mediaItem = MediaBrowserCompat.MediaItem(mediaDescriptionCompat, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
+                result.sendResult(arrayListOf(mediaItem))
+*/
             }
         }
     }
@@ -305,7 +317,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
      * 再生する動画一覧を返す。コルーチンで使ってね。
      * @return NicoVideoDataの配列
      * */
-    private fun getVideoList(): Deferred<ArrayList<NicoVideoData>> = GlobalScope.async {
+    private suspend fun getVideoList(): ArrayList<NicoVideoData> = GlobalScope.async {
         // 取得
         var videoList = nicoVideoCache.loadCache().await()
         val filter = CacheJSON().readJSON(this@BackgroundPlaylistCachePlayService)
@@ -316,7 +328,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             videoList
         }
         return@async videoList
-    }
+    }.await()
 
     /**
      * クライアント接続の制御（さあ？）
