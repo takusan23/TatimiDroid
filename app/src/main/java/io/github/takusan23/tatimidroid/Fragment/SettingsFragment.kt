@@ -3,7 +3,13 @@ package io.github.takusan23.tatimidroid.Fragment
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.TextView
 import androidx.core.net.toUri
+import androidx.core.widget.addTextChangedListener
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
@@ -12,12 +18,14 @@ import io.github.takusan23.tatimidroid.Activity.LicenceActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
+import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
 import java.text.SimpleDateFormat
 
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
-    val privacy_policy = "https://github.com/takusan23/TatimiDroid/blob/master/privacy_policy.md"
+    /** プライバシーポリシー */
+    val PRIVACY_POLICY_URL = "https://github.com/takusan23/TatimiDroid/blob/master/privacy_policy.md"
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
@@ -60,7 +68,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
         konoapp_privacy?.setOnPreferenceClickListener {
             //プライバシーポリシー
-            startBrowser(privacy_policy)
+            startBrowser(PRIVACY_POLICY_URL)
             true
         }
 

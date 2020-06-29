@@ -101,6 +101,10 @@ class CommentActivity : AppCompatActivity() {
 
     //戻るキーを押した時に本当に終わるか聞く
     override fun onBackPressed() {
+        val liveId = intent?.getStringExtra("liveId") ?: ""
+        //CommentFragment取得
+        val commentFragment = supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
+        // そうじゃないなら終了ダイアログを出す
         val message = "${getString(R.string.back_dialog)}\n${getString(R.string.back_dialog_description)}"
         val buttonList = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
             add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.end), R.drawable.ic_outline_meeting_room_24px))

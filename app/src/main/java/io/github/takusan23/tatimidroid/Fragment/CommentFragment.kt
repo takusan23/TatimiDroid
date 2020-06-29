@@ -20,15 +20,18 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.text.util.Linkify
+import android.util.Size
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.EditorInfo
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.core.view.children
+import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.ExoPlaybackException
@@ -227,6 +230,8 @@ class CommentFragment : Fragment() {
     // ニコニコ実況
     val nicoJK = NicoJKHTML()
     lateinit var getFlvData: NicoJKHTML.getFlvData
+
+    var isFullScreenMode = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.activity_comment, container, false)
@@ -471,6 +476,101 @@ class CommentFragment : Fragment() {
         //アクティブ人数クリアなど、追加部分はCommentViewFragmentです
         activeUserClear()
 
+    }
+
+    /**
+     * 全画面UIを起動する。
+     * */
+    fun setFullScreen() {
+        // コメビュ非表示
+        comment_activity_fragment_layout?.visibility = View.GONE
+        // 背景黒にする
+        comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(ColorStateList.valueOf(Color.BLACK))
+        // 番組情報非表示
+        hideProgramInfo()
+        // システムバー非表示
+        setSystemBarVisibility(false)
+        // 画面の大きさ取得
+        val displayWidth = getDisplayHeight()
+        // ExoPlayerのアスペクト比設定
+        val frameLayoutParams = liveFrameLayout.layoutParams
+        frameLayoutParams.height = displayWidth
+        frameLayoutParams.width = getAspectWidthFromHeight(displayWidth)
+        liveFrameLayout.layoutParams = frameLayoutParams
+        // コメント描画システムに教える
+        commentCanvas.apply {
+            finalHeight = commentCanvas.height
+            // コメントの高さの情報がある配列を消す。
+            // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
+            commentLine.clear()
+            ueCommentLine.clear()
+            sitaCommentLine.clear()
+        }
+        isFullScreenMode = true
+    }
+
+    /**
+     * 全画面解除
+     * */
+    fun setCloseFullScreen() {
+        // コメビュ非表示
+        comment_activity_fragment_layout?.visibility = View.VISIBLE
+        // 背景黒にする
+        comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(darkModeSupport.getThemeColor())
+        // 番組情報非表示
+        hideProgramInfo()
+        // システムバー非表示
+        setSystemBarVisibility(true)
+        // 画面の大きさ取得
+        // 従来の方法で
+        val display = commentActivity.windowManager.defaultDisplay
+        val point = Point()
+        display.getSize(point)
+        // ExoPlayerのアスペクト比設定
+        val frameLayoutParams = liveFrameLayout.layoutParams
+        frameLayoutParams.width = point.x / 2
+        frameLayoutParams.height = getAspectHeightFromWidth(point.x / 2)
+        liveFrameLayout.layoutParams = frameLayoutParams
+        // コメント描画システムに教える
+        commentCanvas.apply {
+            finalHeight = commentCanvas.height
+            // コメントの高さの情報がある配列を消す。
+            // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
+            commentLine.clear()
+            ueCommentLine.clear()
+            sitaCommentLine.clear()
+        }
+        isFullScreenMode = false
+    }
+
+    /**
+     * 画面の高さを返す。Android 11から取得方法が変わってるけどドキュメントに書いてあったのをパクってきた。
+     * @return 画面の高さ
+     * */
+    private fun getDisplayHeight(): Int {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val metrics = commentActivity.windowManager?.currentWindowMetrics ?: return 0
+            // なにしてるかわからん
+            val windowInsets = metrics.windowInsets
+            var insets = windowInsets.getInsets(WindowInsets.Type.navigationBars())
+            windowInsets.getInsets(WindowInsets.Type.navigationBars())
+            val cutout = windowInsets.displayCutout
+            if (cutout != null) {
+                val cutoutSafeInsets = android.graphics.Insets.of(cutout.safeInsetLeft, cutout.safeInsetTop, cutout.safeInsetRight, cutout.safeInsetBottom)
+                insets = android.graphics.Insets.max(insets, cutoutSafeInsets)
+            }
+            val insetsWidth = insets.right + insets.left
+            val insetsHeight = insets.top + insets.bottom
+            // Display#getHeight()と同じようになる
+            val legacySize = Size(metrics.bounds.width() - insetsWidth, metrics.bounds.height() - insetsHeight)
+            return legacySize.height
+        } else {
+            // 従来の方法で
+            val display = commentActivity.windowManager.defaultDisplay
+            val point = Point()
+            display.getSize(point)
+            return point.y
+        }
     }
 
     private fun initAllRoomConnect() {
@@ -1024,47 +1124,67 @@ class CommentFragment : Fragment() {
     }
 
     /**
-     * 全画面UI
+     * ステータスバーとノッチに侵略するやつ
      * */
     fun hideStatusBarAndSetFullScreen() {
         if (pref_setting.getBoolean("setting_display_cutout", false)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                // Android 11 systemUiVisibilityが非推奨になり、WindowInsetsControllerを使うように
-                activity?.window?.insetsController?.apply {
-                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE // View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY の WindowInset版。ステータスバー表示等でスワイプしても、操作しない場合はすぐに戻るやつです。
-                    hide(WindowInsets.Type.systemBars()) // Type#systemBars を使うと Type#statusBars() Type#captionBar() Type#navigationBars() 一斉に消せる
-                    hide(WindowInsets.Type.displayCutout()) // Type#systemBars() だとノッチ（マイクラの作者ではない）までは非表示にしてくれない。
-                }
-            } else {
-                // Android 10 以前
-                activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            }
+            // 非表示にする
+            setSystemBarVisibility(false)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val attrib = activity?.window?.attributes
-                attrib?.layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                setNotchVisibility(false)
             }
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                // Android 11 systemUiVisibilityが非推奨になり、WindowInsetsControllerを使うように
-                activity?.window?.insetsController?.apply {
-                    // 前の状態を復元する
-                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_TOUCH
-                    show(WindowInsets.Type.systemBars())
-                    show(WindowInsets.Type.displayCutout())
-                }
-            } else {
-                // Android 10以前
-                activity?.window?.decorView?.systemUiVisibility = 0
-            }
+            // 表示する
+            setSystemBarVisibility(true)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val attrib = activity?.window?.attributes
-                attrib?.layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT
+                setNotchVisibility(true)
             }
         }
     }
 
+    /**
+     * システムバーを非表示にする関数
+     * システムバーはステータスバーとナビゲーションバーのこと。多分
+     * @param isShow 表示する際はtrue。非表示の際はfalse
+     * */
+    fun setSystemBarVisibility(isShow: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11 systemUiVisibilityが非推奨になり、WindowInsetsControllerを使うように
+            activity?.window?.insetsController?.apply {
+                if (isShow) {
+                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_TOUCH
+                    show(WindowInsets.Type.systemBars())
+                } else {
+                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE // View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY の WindowInset版。ステータスバー表示等でスワイプしても、操作しない場合はすぐに戻るやつです。
+                    hide(WindowInsets.Type.systemBars()) // Type#systemBars を使うと Type#statusBars() Type#captionBar() Type#navigationBars() 一斉に消せる
+                }
+            }
+        } else {
+            // Android 10 以前
+            if (isShow) {
+                activity?.window?.decorView?.systemUiVisibility = 0
+            } else {
+                activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            }
+        }
+    }
+
+    /**
+     * ノッチ領域に侵略する関数。
+     * この関数はAndroid 9以降で利用可能なので各自条件分岐してね。
+     * @param isShow 侵略する際はtrue。そうじゃないならfalse
+     * */
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun setNotchVisibility(isShow: Boolean) {
+        val attribute = activity?.window?.attributes
+        attribute?.layoutInDisplayCutoutMode = if (isShow) {
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT
+        } else {
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
+    }
+
+    // 常に番組情報（放送時間、来場者数）を表示する関数
     fun setAlwaysShowProgramInfo() {
         if (comment_activity_fragment_layout_motionlayout != null) {
             val isAlwaysShowProgramInfo = pref_setting.getBoolean("setting_always_program_info", false)
@@ -1240,10 +1360,24 @@ class CommentFragment : Fragment() {
         }
     }
 
-    //16:9で横の大きさがわかるときに縦の大きさを返す
-    fun getAspectHeightFromWidth(width: Int): Int {
+    /**
+     * 16:9で横の大きさがわかるときに縦の大きさを返す
+     * @param width 幅
+     * @return 幅にあった高さ。16:9になる
+     * */
+    private fun getAspectHeightFromWidth(width: Int): Int {
         val heightCalc = width / 16
         return heightCalc * 9
+    }
+
+    /**
+     * 16:9で縦の大きさが分かる時に横の大きさを返す関数
+     * @param height 高さ
+     * @return 高さにあった幅。16:9になる
+     * */
+    private fun getAspectWidthFromHeight(height: Int): Int {
+        val widthCalc = height / 9
+        return widthCalc * 16
     }
 
     //視聴モード

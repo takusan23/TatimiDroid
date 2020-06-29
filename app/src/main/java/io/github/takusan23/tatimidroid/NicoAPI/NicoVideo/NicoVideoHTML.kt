@@ -12,6 +12,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.IOException
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -22,6 +24,7 @@ import kotlin.concurrent.timerTask
  * コルーチンで使ってね
  * */
 class NicoVideoHTML {
+
 
     // 定期実行（今回はハートビート処理）に必要なやつ
     var heartBeatTimer = Timer()
@@ -643,6 +646,42 @@ class NicoVideoHTML {
             .getJSONObject(0).getJSONObject("src_id_to_mux").getJSONArray("audio_src_ids")
             .getString(0)
         return audioQualityId
+    }
+
+    /**
+     * アスペクト比が 4:3 かどうか
+     * DMCサーバーの動画である必要があります。なんかうまく行かない場合はfalseになります
+     * @param jsonObject parseJSON()の返り値
+     * @param sessionJSONObject callSessionAPI()の返り値
+     * @return アスペクト比が4:3ならtrue
+     * */
+    fun isOldAspectRate(jsonObject: JSONObject, sessionJSONObject: JSONObject): Boolean {
+        // DMCサーバーであるか。もうsmileサーバー見かけなくなったけどどうなの？
+        if (isDMCServer(jsonObject)) {
+            // 選択中の画質
+            val currentQuality = getCurrentVideoQuality(sessionJSONObject)
+            // 利用可能な画質パース
+            val videoQualityList = parseVideoQualityDMC(jsonObject)
+            // 選択中の画質を一つずつ見ていく
+            for (i in 0 until videoQualityList.length()) {
+                val qualityObject = videoQualityList.getJSONObject(i)
+                val id = qualityObject.getString("id")
+                if (id == currentQuality) {
+                    // あった！
+                    val width = qualityObject.getJSONObject("resolution").getInt("width")
+                    val height = qualityObject.getJSONObject("resolution").getInt("height")
+                    // アスペクト比が4:3か16:9か
+                    // 4:3 = 1.333... 16:9 = 1.777..
+                    val calc = width.toFloat() / height.toFloat()
+                    // 小数点第二位を捨てる
+                    val round = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
+                    return round == 1.3
+                }
+            }
+            return false
+        } else {
+            return false
+        }
     }
 
     /**

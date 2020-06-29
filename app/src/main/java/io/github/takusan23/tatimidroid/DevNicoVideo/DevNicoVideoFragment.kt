@@ -7,24 +7,26 @@ import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.database.sqlite.SQLiteDatabase
+import android.graphics.Color
 import android.graphics.Point
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.format.DateUtils
 import android.view.*
 import android.view.animation.AnimationUtils
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -51,9 +53,9 @@ import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
-import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
+import java.io.PipedOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
@@ -86,6 +88,7 @@ class DevNicoVideoFragment : Fragment() {
     var userId = ""
     var videoId = ""
     var videoTitle = ""
+    var isAspectRate169 = true // 16:9の動画はtrue
 
     // 選択中の画質
     var currentVideoQuality = ""
@@ -150,6 +153,9 @@ class DevNicoVideoFragment : Fragment() {
     lateinit var ngDataBaseTool: NGDataBaseTool
     val kotehanMap = mutableMapOf<String, String>()
 
+    /** 全画面再生時はtrue */
+    var isFullScreenMode = false
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
     }
@@ -191,6 +197,11 @@ class DevNicoVideoFragment : Fragment() {
         // コントローラー表示
         initController()
 
+        // 全画面ぼたｎ
+        fragment_nicovideo_fullscreen_button?.setOnClickListener {
+            setFullScreen()
+        }
+
         exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
 
         /**
@@ -226,8 +237,8 @@ class DevNicoVideoFragment : Fragment() {
             // UIに反映
             GlobalScope.launch(Dispatchers.Main) {
                 applyUI().await()
-                commentFilter(false).await()
                 // NG適用
+                commentFilter(false).await()
                 if (!isCache) {
                     // 関連動画
                     (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
@@ -268,7 +279,157 @@ class DevNicoVideoFragment : Fragment() {
                 else -> coroutine()
             }
         }
+    }
 
+    /**
+     * フルスクリーンへ移行。
+     * 先日のことなんですけども、ついに（待望）（念願の）（満を持して）、わたくしの動画が、無断転載されてました（ﾄﾞｩﾋﾟﾝ）
+     * ↑これ sm29392869 全画面で見れるようになる
+     * 現状横画面のみ
+     * */
+    private fun setFullScreen(isMaxZoom: Boolean = false) {
+        isFullScreenMode = true
+        // コメント一覧非表示
+        fragment_nicovideo_viewpager_linarlayout?.visibility = View.GONE
+        // 下のタイトル非表示
+        fragment_nicovideo_video_title_linearlayout?.visibility = View.GONE
+        // システムバー消す
+        setSystemBarVisibility(false)
+        // 黒色へ。
+        (fragment_nicovideo_video_title_linearlayout.parent as View).setBackgroundColor(Color.BLACK)
+        // 全画面終了ボタン/最大に広げるボタン表示
+        fragment_nicovideo_fullscreen_button_linarlayout?.visibility = View.VISIBLE
+        // 全画面終了ボタン
+        fragment_nicovideo_fullscreen_close_button?.setOnClickListener {
+            setCloseFullScreen()
+        }
+        // 画面の高さ取得。はい非推奨
+        val display = activity?.windowManager?.defaultDisplay
+        val point = Point()
+        display?.getSize(point)
+        val params = if (isMaxZoom) {
+            val width = point.x
+            // アスペ（クト比）直す
+            val height = if (isAspectRate169) {
+                // 16:9動画
+                getAspectHeightFromWidth(width)
+            } else {
+                // 4:3 動画。リバースリバースユニバースって曲、わざと4:3の動画にしてるのかな
+                getOldAspectHeightFromWidth(width)
+            }
+            LinearLayout.LayoutParams(width, height)
+        } else {
+            val height = point.y
+            // アスペ（クト比）直す
+            val width = if (isAspectRate169) {
+                // 16:9動画
+                getAspectWidthFromHeight(height)
+            } else {
+                // 4:3 動画。リバースリバースユニバースって曲、わざと4:3の動画にしてるのかな
+                getOldAspectWidthFromHeight(height)
+            }
+            LinearLayout.LayoutParams(width, height)
+        }
+        fragment_nicovideo_framelayout.layoutParams = params
+        // Fab等消せるように
+        fragment_nicovideo_framelayout.setOnClickListener {
+            // コントローラー表示中は無視する
+            if (fragment_nicovideo_controller.visibility == View.VISIBLE) return@setOnClickListener
+            // FABの表示、非表示
+            if (fragment_nicovideo_fab.isShown) {
+                fragment_nicovideo_fab.hide()
+                fragment_nicovideo_fullscreen_button_linarlayout?.visibility = View.GONE
+            } else {
+                fragment_nicovideo_fab.show()
+                fragment_nicovideo_fullscreen_button_linarlayout?.visibility = View.VISIBLE
+            }
+        }
+        // コメントキャンバスに反映
+        fragment_nicovideo_comment_canvas.apply {
+            commentLine.clear()
+            ueCommentLine.clear()
+            sitaCommentLine.clear()
+        }
+    }
+
+    private fun setCloseFullScreen() {
+        isFullScreenMode = false
+        // コメント一覧表示
+        fragment_nicovideo_viewpager_linarlayout?.visibility = View.VISIBLE
+        // 下のタイトル表示
+        fragment_nicovideo_video_title_linearlayout?.visibility = View.VISIBLE
+        // システムバー表示
+        setSystemBarVisibility(true)
+        // 色戻す
+        (fragment_nicovideo_video_title_linearlayout.parent as View).setBackgroundColor(darkModeSupport.getThemeColor())
+        // 全画面終了ボタン/最大に広げるボタン消す
+        fragment_nicovideo_fullscreen_button_linarlayout?.visibility = View.GONE
+        // 画面の幅取得。はい非推奨
+        val display = activity?.windowManager?.defaultDisplay
+        val point = Point()
+        display?.getSize(point)
+        val width = point.x / 2
+        // アスペ（クト比）直す
+        val height = if (isAspectRate169) {
+            // 16:9動画
+            getAspectHeightFromWidth(width)
+        } else {
+            // 4:3 動画。リバースリバースユニバースって曲、わざと4:3の動画にしてるのかな
+            getOldAspectHeightFromWidth(width)
+        }
+        val params = LinearLayout.LayoutParams(width, height)
+        fragment_nicovideo_framelayout.layoutParams = params
+        // クリック消す
+        fragment_nicovideo_framelayout.setOnClickListener(null)
+        // コメントキャンバスに反映
+        fragment_nicovideo_comment_canvas.apply {
+            commentLine.clear()
+            ueCommentLine.clear()
+            sitaCommentLine.clear()
+        }
+    }
+
+
+    /**
+     * システムバーを非表示にする関数
+     * システムバーはステータスバーとナビゲーションバーのこと。多分
+     * @param isShow 表示する際はtrue。非表示の際はfalse
+     * */
+    fun setSystemBarVisibility(isShow: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11 systemUiVisibilityが非推奨になり、WindowInsetsControllerを使うように
+            activity?.window?.insetsController?.apply {
+                if (isShow) {
+                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_TOUCH
+                    show(WindowInsets.Type.systemBars())
+                } else {
+                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE // View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY の WindowInset版。ステータスバー表示等でスワイプしても、操作しない場合はすぐに戻るやつです。
+                    hide(WindowInsets.Type.systemBars()) // Type#systemBars を使うと Type#statusBars() Type#captionBar() Type#navigationBars() 一斉に消せる
+                }
+            }
+        } else {
+            // Android 10 以前
+            if (isShow) {
+                activity?.window?.decorView?.systemUiVisibility = 0
+            } else {
+                activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            }
+        }
+    }
+
+    /**
+     * ノッチ領域に侵略する関数。
+     * この関数はAndroid 9以降で利用可能なので各自条件分岐してね。
+     * @param isShow 侵略する際はtrue。そうじゃないならfalse
+     * */
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun setNotchVisibility(isShow: Boolean) {
+        val attribute = activity?.window?.attributes
+        attribute?.layoutInDisplayCutoutMode = if (isShow) {
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT
+        } else {
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
     }
 
     // コントローラーのUI変更
@@ -580,14 +741,6 @@ class DevNicoVideoFragment : Fragment() {
                 parseJSONApplyUI(jsonObjectString)
             }
         }
-/*
-        // コメントFragmentにコメント配列を渡す
-        (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).apply {
-            recyclerViewList = ArrayList(commentList)
-            initRecyclerView(true)
-        }
-        Toast.makeText(context, "${getString(R.string.get_comment_count)}：${commentList.size}", Toast.LENGTH_SHORT).show()
-*/
         // タイトル
         videoTitle = jsonObject.getJSONObject("video").getString("title")
         initTitleArea()
@@ -771,8 +924,7 @@ class DevNicoVideoFragment : Fragment() {
                 // 4:3 = 1.333... 16:9 = 1.777..
                 val calc = width.toFloat() / height.toFloat()
                 // 小数点第二位を捨てる
-                val round =
-                    BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
+                val round = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
                 setAspectRate(round)
             }
         }
@@ -883,16 +1035,19 @@ class DevNicoVideoFragment : Fragment() {
                 // 4:3 = 1.333... 16:9 = 1.777..
                 val calc = width.toFloat() / height.toFloat()
                 // 小数点第二位を捨てる
-                val round =
-                    BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
+                val round = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
+                // 16:9なら
+                isAspectRate169 = round == 1.7
                 if (isAdded) {
+                    // アスペ比直す
                     setAspectRate(round)
+                    // 全画面再生ボタン表示へ
+                    fragment_nicovideo_fullscreen_button?.visibility = View.VISIBLE
                 }
             }
         })
 
         var secInterval = 0L
-        var tmp = false
 
         seekTimer.cancel()
         seekTimer = Timer()
@@ -936,14 +1091,13 @@ class DevNicoVideoFragment : Fragment() {
             1.3 -> {
                 // 4:3動画
                 // 4:3をそのまま出すと大きすぎるので調整（代わりに黒帯出るけど仕方ない）
-                val width =
-                    if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                        // 縦
-                        (point.x / 1.2).toInt()
-                    } else {
-                        // 横
-                        point.x / 2
-                    }
+                val width = if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    // 縦
+                    (point.x / 1.2).toInt()
+                } else {
+                    // 横
+                    point.x / 2
+                }
                 val height = getOldAspectHeightFromWidth(width)
                 val params = LinearLayout.LayoutParams(width, height)
                 fragment_nicovideo_framelayout.layoutParams = params
@@ -951,14 +1105,13 @@ class DevNicoVideoFragment : Fragment() {
             1.7 -> {
                 // 16:9動画
                 // 横の長さから縦の高さ計算
-                val width =
-                    if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                        // 縦
-                        point.x
-                    } else {
-                        // 横
-                        point.x / 2
-                    }
+                val width = if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    // 縦
+                    point.x
+                } else {
+                    // 横
+                    point.x / 2
+                }
                 val height = getAspectHeightFromWidth(width)
                 val params = LinearLayout.LayoutParams(width, height)
                 fragment_nicovideo_framelayout.layoutParams = params
@@ -1010,7 +1163,8 @@ class DevNicoVideoFragment : Fragment() {
             }
             drawList.forEach {
                 // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
-                val isAddable = drewedList.none { id -> it.commentNo == id || it.vpos == id } // 条件に合わなければtrue
+                // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
+                val isAddable = drewedList.toList().none { id -> it.commentNo == id || it.vpos == id } // 条件に合わなければtrue
                 if (isAddable) {
                     // コメントIDない場合はvposで代替する
                     if (it.commentNo == "-1" || it.commentNo.isEmpty()) {
@@ -1095,6 +1249,8 @@ class DevNicoVideoFragment : Fragment() {
 
     /**
      * 16:9で横の大きさがわかるときに縦の大きさを返す
+     * @param width 横
+     * @return 高さ
      * */
     private fun getAspectHeightFromWidth(width: Int): Int {
         val heightCalc = width / 16
@@ -1103,11 +1259,34 @@ class DevNicoVideoFragment : Fragment() {
 
     /**
      * 4:3で横の長さがわかるときに縦の長さを返す
+     * @param width 横
+     * @return 高さ
      * */
     private fun getOldAspectHeightFromWidth(width: Int): Int {
         val heightCalc = width / 4
         return heightCalc * 3
     }
+
+    /**
+     * 16:9で縦の大きさが分かる時に横の大きさを返す。
+     * @param height 高さ
+     * @return 幅
+     * */
+    private fun getAspectWidthFromHeight(height: Int): Int {
+        val widthCalc = height / 9
+        return widthCalc * 16
+    }
+
+    /**
+     * 4:3で縦の大きさが分かる時に横の大きさを返す。
+     * @param height 高さ
+     * @return はば
+     * */
+    private fun getOldAspectWidthFromHeight(height: Int): Int {
+        val widthCalc = height / 3
+        return widthCalc * 4
+    }
+
 
     /**
      * ViewPager初期化
