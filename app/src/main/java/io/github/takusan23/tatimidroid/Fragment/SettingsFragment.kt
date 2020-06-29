@@ -3,8 +3,6 @@ package io.github.takusan23.tatimidroid.Fragment
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -14,10 +12,6 @@ import io.github.takusan23.tatimidroid.Activity.LicenceActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Files.readAttributes
-import java.nio.file.attribute.BasicFileAttributes
 import java.text.SimpleDateFormat
 
 
@@ -61,7 +55,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
         auto_admission_stop_preference?.setOnPreferenceClickListener {
             //Service再起動
             val intent = Intent(context, AutoAdmissionService::class.java)
-            context!!.stopService(intent)
+            context?.stopService(intent)
+            true
         }
         konoapp_privacy?.setOnPreferenceClickListener {
             //プライバシーポリシー
@@ -119,7 +114,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 val time = cursor.getString(2)
                 val id = cursor.getString(1)
                 val service = cursor.getString(0)
-                preference.summary = "最初に見たもの：$title ($id/ $service)\n一番最初に使った日：${toFormatTime(time.toLong() * 1000)}"
+                // 今日からの何日前か。詳しくは NicoVideoInfoFragment#getDayCount() みて。ほぼ同じことしてる。
+                val dayCalc = ((System.currentTimeMillis() / 1000) - time.toLong()) / 60 / 60 / 24
+                preference.summary = """
+                                        最初に見たもの：$title ($id/ $service)
+                                        一番最初に使った日：${toFormatTime(time.toLong() * 1000)}
+                                        今日から引くと：$dayCalc 日前
+                                    """.trimIndent()
             }
             cursor.close()
             false
