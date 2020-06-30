@@ -26,6 +26,7 @@ import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.ProgramShare
+import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_comment_menu.*
 
@@ -108,7 +109,7 @@ class CommentMenuFragment : Fragment() {
     }
 
     fun darkmode() {
-        if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+        if (isDarkMode(context)) {
             //ダークモード時ボタンのテキストの色が変わらないので
             val color = ColorStateList.valueOf(Color.parseColor("#ffffff"))
             fragment_comment_fragment_menu_rotation_button.setTextColor(color)

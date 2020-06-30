@@ -24,4 +24,16 @@
         <item>popup</item>
         <item>background</item>
     </string-array>
+    <!-- ダークモード選択肢。表示される値 -->
+    <string-array name="darkmode_setting_type">
+        <item>@string/setting_darkmode_device</item>
+        <item>@string/setting_darkmode_dark</item>
+        <item>@string/setting_darkmode_light</item>
+    </string-array>
+    <!-- ダークモード選択肢。保存される値 -->
+    <string-array name="darkmode_setting_type_value">
+        <item>device</item>
+        <item>dark</item>
+        <item>light</item>
+    </string-array>
 </resources>

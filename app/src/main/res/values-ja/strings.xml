@@ -461,4 +461,9 @@
     <string name="oidashi">追い出されました。</string>
     <string name="low_latency_off">低遅延をOFF</string>
     <string name="lockon_jump_button">こっから再生</string>
+    <string name="setting_darkmode_device">端末の設定に従う</string>
+    <string name="setting_darkmode_dark">ダークモード</string>
+    <string name="setting_darkmode_light">ライトモード</string>
+    <string name="setting_darkmode_app_title">テーマ（ダークモード）設定</string>
+    <string name="setting_darkmode_app_description">端末の設定と同じようにダークモードを有効にしたり、常にダークモードにできます。変更は再起動後に反映します。</string>
 </resources>

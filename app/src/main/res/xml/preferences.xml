@@ -2,6 +2,15 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <ListPreference
+            android:defaultValue="device"
+            android:entries="@array/darkmode_setting_type"
+            android:entryValues="@array/darkmode_setting_type_value"
+            android:icon="@drawable/ic_paint_black"
+            android:key="setting_darkmode_app"
+            android:summary="@string/setting_darkmode_app_description"
+            android:title="@string/setting_darkmode_app_title" />
+
     <PreferenceCategory
             android:summary="@string/launch_setting_description"
             android:title="@string/launch_setting">
@@ -23,15 +32,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/setting_video_and_live">
-
-        <SwitchPreference
-                android:defaultValue="false"
-                android:icon="@drawable/ic_paint_black"
-                android:key="setting_darkmode"
-                android:summary="@string/setting_darkmode_description"
-                android:title="@string/setting_darkmode_title"
-                app:isPreferenceVisible="false" />
-
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_do_not_disturb_alt_black_24dp"

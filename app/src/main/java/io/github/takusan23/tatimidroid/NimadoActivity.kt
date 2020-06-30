@@ -29,6 +29,7 @@ import io.github.takusan23.tatimidroid.Adapter.NimadoListRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import io.github.takusan23.tatimidroid.Fragment.NimadoLiveIDBottomFragment
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import kotlinx.android.synthetic.main.activity_nimado.*
 import okhttp3.*
 import okhttp3.Callback
@@ -88,7 +89,7 @@ class NimadoActivity : AppCompatActivity() {
         //window.statusBarColor = Color.TRANSPARENT
 
         //ダークモード対応
-        if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+        if (isDarkMode(this)) {
             supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
         }
 
@@ -180,7 +181,7 @@ class NimadoActivity : AppCompatActivity() {
         //ScrollViewなLinearLayoutに入れる
         cardView.addView(linearLayout)
         //ダークモード時はCardView黒くする
-        if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+        if (isDarkMode(this)) {
             cardView.backgroundTintList = ColorStateList.valueOf(Color.BLACK)
         }
         nimado_activity_linearlayout.addView(cardView)

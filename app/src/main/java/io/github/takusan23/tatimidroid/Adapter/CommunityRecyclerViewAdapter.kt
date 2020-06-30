@@ -24,6 +24,7 @@ import io.github.takusan23.tatimidroid.Fragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -76,7 +77,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         } else {
             //予約枠
             holder.timeTextView.text = time
-            if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            if (isDarkMode(content)) {
                 holder.timeTextView.setTextColor(Color.parseColor("#ffffff"))
             } else {
                 holder.timeTextView.setTextColor(-1979711488)   //デフォルトのTextViewのフォント色

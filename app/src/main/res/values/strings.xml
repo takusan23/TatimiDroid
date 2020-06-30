@@ -461,4 +461,9 @@
     <string name="oidashi">I was kicked out.</string>
     <string name="low_latency_off">Turn off low latency</string>
     <string name="lockon_jump_button">Play from here</string>
+    <string name="setting_darkmode_device">Follow device settings</string>
+    <string name="setting_darkmode_dark">"Dark mode "</string>
+    <string name="setting_darkmode_light">Light mode</string>
+    <string name="setting_darkmode_app_title">Theme (dark mode) setting</string>
+    <string name="setting_darkmode_app_description">You can enable dark mode as in the terminal settings, or you can always set it to dark mode.The change will be reflected after rebooting.</string>
 </resources>

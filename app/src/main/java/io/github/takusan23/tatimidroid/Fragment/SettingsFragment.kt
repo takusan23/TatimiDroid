@@ -15,6 +15,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.Activity.LicenceActivity
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
@@ -36,8 +37,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         val licence_preference = findPreference<Preference>("licence_preference")
         val konoapp_preference = findPreference<Preference>("konoapp_preference")
-        val auto_admission_stop_preference =
-            findPreference<Preference>("auto_admission_stop_preference")
+        val auto_admission_stop_preference = findPreference<Preference>("auto_admission_stop_preference")
         val konoapp_privacy = findPreference<Preference>("konoapp_privacy")
         // フォント設定へ行くPreference
         val fontPreference = findPreference<Preference>("font_preference")
@@ -73,9 +73,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
 
+/*
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
             darkmode_switch_preference?.isVisible = true
         }
+*/
 
         fontPreference?.setOnPreferenceClickListener {
             // フォント設定へ切り替え
@@ -133,6 +135,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             cursor.close()
             false
         }
+
     }
 
     /** UnixTime -> わかりやすい形式に */

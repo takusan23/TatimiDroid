@@ -34,7 +34,23 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-
+/**
+ * アプリ起動時に一番最初に起動するActivity。
+ * putExtra()で起動画面（Fragment）を直接指定できます。
+ * - app_shortcut / String
+ *     - nicolive
+ *         - ニコ生
+ *     - nicovideo
+ *         - ニコ動
+ *     - cache
+ *         - キャッシュ一覧
+ * ```kotlin
+ * // キャッシュ一覧を直接開く例
+ * val intent = Intent(context, MainActivity::class.java)
+ * intent.putExtra("app_shortcut", "cache")
+ * startActivity(intent)
+ * ```
+ * */
 class MainActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences
@@ -51,7 +67,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         //ダークモード対応
-        if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+        if (isDarkMode(this)) {
             main_activity_bottom_navigationview.backgroundTintList = ColorStateList.valueOf(darkModeSupport.getThemeColor())
             supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
         }

@@ -10,47 +10,18 @@ import io.github.takusan23.tatimidroid.R
 
 /**
  * ダークモードなど
+ * DarkModeUtilとかDarkModeToolとかにしとけばよかった。
  * */
 class DarkModeSupport(val context: Context) {
-
-    var nightMode: Int = Configuration.UI_MODE_NIGHT_NO
-
-    init {
-        //ダークモードかどうか
-        val conf = context.resources.configuration
-        nightMode = conf.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        //Oreo
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
-            val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-            if (pref_setting.getBoolean("setting_darkmode", false)) {
-                nightMode = Configuration.UI_MODE_NIGHT_YES
-            } else {
-                nightMode = Configuration.UI_MODE_NIGHT_NO
-            }
-        }
-    }
 
     /**
      * ダークモードテーマ。setContentView()の前に書いてね
      * */
     fun setActivityTheme(activity: AppCompatActivity) {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
-            //ダークモード
-            val pref_setting = PreferenceManager.getDefaultSharedPreferences(activity)
-            if (pref_setting.getBoolean("setting_darkmode", false)) {
-                activity.setTheme(R.style.OLEDTheme)
-            } else {
-                activity.setTheme(R.style.AppTheme)
-            }
+        if (isDarkMode(activity)) {
+            activity.setTheme(R.style.OLEDTheme)
         } else {
-            when (nightMode) {
-                Configuration.UI_MODE_NIGHT_NO -> {
-                    activity.setTheme(R.style.AppTheme)
-                }
-                Configuration.UI_MODE_NIGHT_YES -> {
-                    activity.setTheme(R.style.OLEDTheme)
-                }
-            }
+            activity.setTheme(R.style.AppTheme)
         }
     }
 
@@ -58,23 +29,10 @@ class DarkModeSupport(val context: Context) {
      * MainActivity用。TitleBarが表示されていない。setContentView()の前に書いてね
      * */
     fun setMainActivityTheme(activity: AppCompatActivity) {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
-            //ダークモード
-            val pref_setting = PreferenceManager.getDefaultSharedPreferences(activity)
-            if (pref_setting.getBoolean("setting_darkmode", false)) {
-                activity.setTheme(R.style.MainActivity_OLEDTheme)
-            } else {
-                activity.setTheme(R.style.MainActivity_AppTheme)
-            }
+        if (isDarkMode(activity)) {
+            activity.setTheme(R.style.MainActivity_OLEDTheme)
         } else {
-            when (nightMode) {
-                Configuration.UI_MODE_NIGHT_NO -> {
-                    activity.setTheme(R.style.MainActivity_AppTheme)
-                }
-                Configuration.UI_MODE_NIGHT_YES -> {
-                    activity.setTheme(R.style.MainActivity_OLEDTheme)
-                }
-            }
+            activity.setTheme(R.style.MainActivity_AppTheme)
         }
     }
 
@@ -83,23 +41,10 @@ class DarkModeSupport(val context: Context) {
      * 二窓Activity用ダークモード切り替えるやつ。setContentView()の前に書いてね
      * */
     fun setNimadoActivityTheme(activity: AppCompatActivity) {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
-            //ダークモード
-            val pref_setting = PreferenceManager.getDefaultSharedPreferences(activity)
-            if (pref_setting.getBoolean("setting_darkmode", false)) {
-                activity.setTheme(R.style.NimadoOLEDTheme)
-            } else {
-                activity.setTheme(R.style.NimadoTheme)
-            }
+        if (isDarkMode(activity)) {
+            activity.setTheme(R.style.NimadoOLEDTheme)
         } else {
-            when (nightMode) {
-                Configuration.UI_MODE_NIGHT_NO -> {
-                    activity.setTheme(R.style.NimadoTheme)
-                }
-                Configuration.UI_MODE_NIGHT_YES -> {
-                    activity.setTheme(R.style.NimadoOLEDTheme)
-                }
-            }
+            activity.setTheme(R.style.NimadoTheme)
         }
     }
 
@@ -108,50 +53,39 @@ class DarkModeSupport(val context: Context) {
      * ダークモード->黒
      * それ以外->白
      * */
-    fun getThemeColor(): Int {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
-            //ダークモード
-            val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-            if (pref_setting.getBoolean("setting_darkmode", false)) {
-                return Color.parseColor("#000000")
-            } else {
-                return Color.parseColor("#ffffff")
-            }
-        } else {
-            when (nightMode) {
-                Configuration.UI_MODE_NIGHT_NO -> {
-                    return Color.parseColor("#ffffff")
-                }
-                Configuration.UI_MODE_NIGHT_YES -> {
-                    return Color.parseColor("#000000")
-                }
-            }
-        }
-        return Color.parseColor("#ffffff")
-    }
+    @Deprecated("DarkModeSupport#getThemeColor(context)を使ってください。", ReplaceWith("io.github.takusan23.tatimidroid.Tool.getThemeColor(context)", "io"))
+    fun getThemeColor(): Int = getThemeColor(context)
 
 }
 
 /**
- * ダークモードかどうか。Oreo以前ではアプリの設定の値を返します。
+ * ダークモードかどうか。
+ * アプリの設定に従って返します。
+ * - 端末の設定に従う
+ *     - 端末がダークモードならダークモードにする
+ * - ダークモード
+ *     - 端末に関係なくダークモード
+ * - ライトモード
+ *     - 端末に関係なくライトモード
  * @param context こんてきすと
  * @return ダークモードならtrue。そうじゃなければfalse。
  * */
 internal fun isDarkMode(context: Context?): Boolean {
     if (context == null) return false
-    //ダークモードかどうか
-    val conf = context.resources.configuration
-    var nightMode = conf.uiMode and Configuration.UI_MODE_NIGHT_MASK
-    //Oreo
-    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
-        val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-        if (pref_setting.getBoolean("setting_darkmode", false)) {
-            nightMode = Configuration.UI_MODE_NIGHT_YES
-        } else {
-            nightMode = Configuration.UI_MODE_NIGHT_NO
+    val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+    // ダークモードの設定を　「端末の設定に従う」「ダークモード」「ライトテーマ」　から選べるように。
+    return when (prefSetting.getString("setting_darkmode_app", "device")) {
+        "device" -> {
+            // 端末の設定に従う。よく考えたらAndroid 9ってダークモードまだ普及して無くね？
+            //ダークモードかどうか
+            val conf = context.resources.configuration
+            val nightMode = conf.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            nightMode == Configuration.UI_MODE_NIGHT_YES // ダークモードなら true
         }
+        "dark" -> true // 設定に関係なくライトモード
+        "light" -> false // 設定に関係なくライトモード
+        else -> false // ありえる？
     }
-    return nightMode == Configuration.UI_MODE_NIGHT_YES
 }
 
 /**

@@ -260,7 +260,7 @@ class CommentFragment : Fragment() {
         volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
         //ダークモード対応
-        if (darkModeSupport.nightMode == Configuration.UI_MODE_NIGHT_YES) {
+        if (isDarkMode(context)) {
             commentActivity.supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
             activity_comment_tab_layout.background = ColorDrawable(darkModeSupport.getThemeColor())
             comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(darkModeSupport.getThemeColor())
