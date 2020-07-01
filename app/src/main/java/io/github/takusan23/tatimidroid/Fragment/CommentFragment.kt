@@ -31,7 +31,7 @@ import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.core.view.children
-import androidx.core.view.forEach
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.ExoPlaybackException
@@ -231,6 +231,7 @@ class CommentFragment : Fragment() {
     val nicoJK = NicoJKHTML()
     lateinit var getFlvData: NicoJKHTML.getFlvData
 
+    /** 全画面再生時はtrue */
     var isFullScreenMode = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -399,6 +400,11 @@ class CommentFragment : Fragment() {
         // ステータスバー透明化＋タイトルバー非表示＋ノッチ領域にも侵略。関数名にAndがつくことはあんまりない
         hideStatusBarAndSetFullScreen()
 
+        // 全画面移行ボタン
+        activity_comment_fullscreen_button?.setOnClickListener {
+            setFullScreen()
+        }
+
         //ログイン情報がなければ戻す
         if (pref_setting.getString("mail", "")?.contains("") != false) {
             usersession = pref_setting.getString("user_session", "") ?: ""
@@ -420,6 +426,10 @@ class CommentFragment : Fragment() {
                         programTitle = nicoLiveHTML.programTitle
                         communityID = nicoLiveHTML.communityId
                         thumbnailURL = nicoLiveHTML.thumb
+                        // 全画面再生だったら全画面にする
+                        if (data.isFullScreenMode) {
+                            setFullScreen()
+                        }
                     } else {
                         // はじめて ///
                         val html = getNicoLiveHTML().await()
@@ -479,9 +489,12 @@ class CommentFragment : Fragment() {
     }
 
     /**
-     * 全画面UIを起動する。
+     * フルスクリーン再生。
+     * 現状横画面のみ
      * */
-    fun setFullScreen() {
+    private fun setFullScreen() {
+        // 全画面だよ
+        isFullScreenMode = true
         // コメビュ非表示
         comment_activity_fragment_layout?.visibility = View.GONE
         // 背景黒にする
@@ -490,13 +503,32 @@ class CommentFragment : Fragment() {
         hideProgramInfo()
         // システムバー非表示
         setSystemBarVisibility(false)
+        // 全画面終了ボタン表示
+        activity_comment_fullscreen_button_linarlayout?.visibility = View.VISIBLE
+        // 全画面終了ボタン
+        activity_comment_fullscreen_close_button?.setOnClickListener {
+            setCloseFullScreen()
+        }
         // 画面の大きさ取得
-        val displayWidth = getDisplayHeight()
+        val displayHeight = getDisplayHeight()
         // ExoPlayerのアスペクト比設定
-        val frameLayoutParams = liveFrameLayout.layoutParams
-        frameLayoutParams.height = displayWidth
-        frameLayoutParams.width = getAspectWidthFromHeight(displayWidth)
-        liveFrameLayout.layoutParams = frameLayoutParams
+        liveFrameLayout.updateLayoutParams {
+            height = displayHeight
+            width = getAspectWidthFromHeight(displayHeight)
+        }
+        // Fab等消せるように
+        live_framelayout.setOnClickListener {
+            // コントローラー表示中は無視する
+            if (comment_activity_comment_cardview.visibility == View.VISIBLE) return@setOnClickListener
+            // FABの表示、非表示
+            if (fab.isShown) {
+                fab.hide()
+                activity_comment_fullscreen_button_linarlayout?.visibility = View.GONE
+            } else {
+                fab.show()
+                activity_comment_fullscreen_button_linarlayout?.visibility = View.VISIBLE
+            }
+        }
         // コメント描画システムに教える
         commentCanvas.apply {
             finalHeight = commentCanvas.height
@@ -506,31 +538,33 @@ class CommentFragment : Fragment() {
             ueCommentLine.clear()
             sitaCommentLine.clear()
         }
-        isFullScreenMode = true
     }
 
     /**
      * 全画面解除
      * */
-    fun setCloseFullScreen() {
-        // コメビュ非表示
+    private fun setCloseFullScreen() {
+        // 全画面ではない
+        isFullScreenMode = false
+        // コメビュ表示
         comment_activity_fragment_layout?.visibility = View.VISIBLE
-        // 背景黒にする
-        comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(darkModeSupport.getThemeColor())
-        // 番組情報非表示
+        // 背景黒戻す
+        comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(ColorStateList.valueOf(getThemeColor(context)))
+        // 番組情報表示
         hideProgramInfo()
-        // システムバー非表示
+        // システムバー表示
         setSystemBarVisibility(true)
-        // 画面の大きさ取得
-        // 従来の方法で
-        val display = commentActivity.windowManager.defaultDisplay
-        val point = Point()
-        display.getSize(point)
+        // 全画面終了ボタン非表示
+        activity_comment_fullscreen_button_linarlayout?.visibility = View.GONE
+        // 全画面終了ボタン
+        activity_comment_fullscreen_close_button?.setOnClickListener(null)
+        // 画面の幅取得
+        val displayWidth = getDisplayWidth()
         // ExoPlayerのアスペクト比設定
-        val frameLayoutParams = liveFrameLayout.layoutParams
-        frameLayoutParams.width = point.x / 2
-        frameLayoutParams.height = getAspectHeightFromWidth(point.x / 2)
-        liveFrameLayout.layoutParams = frameLayoutParams
+        liveFrameLayout.updateLayoutParams {
+            width = displayWidth / 2
+            height = getAspectHeightFromWidth(displayWidth / 2)
+        }
         // コメント描画システムに教える
         commentCanvas.apply {
             finalHeight = commentCanvas.height
@@ -540,7 +574,6 @@ class CommentFragment : Fragment() {
             ueCommentLine.clear()
             sitaCommentLine.clear()
         }
-        isFullScreenMode = false
     }
 
     /**
@@ -570,6 +603,36 @@ class CommentFragment : Fragment() {
             val point = Point()
             display.getSize(point)
             return point.y
+        }
+    }
+
+    /**
+     * 画面の幅を返す。Android 11から取得方法が変わってるけどドキュメントに書いてあったのをパクってきた。
+     * @return 画面の幅
+     * */
+    private fun getDisplayWidth(): Int {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val metrics = commentActivity.windowManager?.currentWindowMetrics ?: return 0
+            // なにしてるかわからん
+            val windowInsets = metrics.windowInsets
+            var insets = windowInsets.getInsets(WindowInsets.Type.navigationBars())
+            windowInsets.getInsets(WindowInsets.Type.navigationBars())
+            val cutout = windowInsets.displayCutout
+            if (cutout != null) {
+                val cutoutSafeInsets = android.graphics.Insets.of(cutout.safeInsetLeft, cutout.safeInsetTop, cutout.safeInsetRight, cutout.safeInsetBottom)
+                insets = android.graphics.Insets.max(insets, cutoutSafeInsets)
+            }
+            val insetsWidth = insets.right + insets.left
+            val insetsHeight = insets.top + insets.bottom
+            // Display#getHeight()と同じようになる
+            val legacySize = Size(metrics.bounds.width() - insetsWidth, metrics.bounds.height() - insetsHeight)
+            return legacySize.width
+        } else {
+            // 従来の方法で
+            val display = commentActivity.windowManager.defaultDisplay
+            val point = Point()
+            display.getSize(point)
+            return point.x
         }
     }
 
@@ -1395,27 +1458,31 @@ class CommentFragment : Fragment() {
             val point = Point()
             display.getSize(point)
             val frameLayoutParams = liveFrameLayout.layoutParams
-            //横画面のときの対応
-            if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                //二窓モードのときはとりあえず更に小さくしておく
-                if (isNimadoMode) {
-                    frameLayoutParams.width = point.x / 4
-                    frameLayoutParams.height = getAspectHeightFromWidth(point.x / 4)
+
+            // 全画面だった場合はアスペクト比調整しない
+            if (!isFullScreenMode) {
+                //横画面のときの対応
+                if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    //二窓モードのときはとりあえず更に小さくしておく
+                    if (isNimadoMode) {
+                        frameLayoutParams.width = point.x / 4
+                        frameLayoutParams.height = getAspectHeightFromWidth(point.x / 4)
+                    } else {
+                        //16:9の9を計算
+                        frameLayoutParams.height = getAspectHeightFromWidth(point.x / 2)
+                    }
+                    liveFrameLayout.layoutParams = frameLayoutParams
                 } else {
+                    //縦画面
+                    frameLayoutParams.width = point.x
+                    //二窓モードのときは小さくしておく
+                    if (isNimadoMode) {
+                        frameLayoutParams.width = point.x / 2
+                    }
                     //16:9の9を計算
-                    frameLayoutParams.height = getAspectHeightFromWidth(point.x / 2)
+                    frameLayoutParams.height = getAspectHeightFromWidth(frameLayoutParams.width)
+                    liveFrameLayout.layoutParams = frameLayoutParams
                 }
-                liveFrameLayout.layoutParams = frameLayoutParams
-            } else {
-                //縦画面
-                frameLayoutParams.width = point.x
-                //二窓モードのときは小さくしておく
-                if (isNimadoMode) {
-                    frameLayoutParams.width = point.x / 2
-                }
-                //16:9の9を計算
-                frameLayoutParams.height = getAspectHeightFromWidth(frameLayoutParams.width)
-                liveFrameLayout.layoutParams = frameLayoutParams
             }
 
             // コメント描画システムに教える
@@ -2178,7 +2245,8 @@ class CommentFragment : Fragment() {
                 val data = NicoLiveFragmentData(
                     isOfficial = isOfficial,
                     nicoLiveJSON = nicoLiveJSON.toString(),
-                    commentServerList = commentServerList
+                    commentServerList = commentServerList,
+                    isFullScreenMode = isFullScreenMode
                 )
                 putSerializable("data", data)
             }

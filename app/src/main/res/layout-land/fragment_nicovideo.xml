@@ -39,7 +39,7 @@
 
                     <io.github.takusan23.tatimidroid.CommentCanvas
                             android:id="@+id/fragment_nicovideo_comment_canvas"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="match_parent" />
                 </FrameLayout>
 
@@ -260,7 +260,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="2dp"
                 android:alpha="0.8"
-                android:text="全画面終了"
+                android:text="@string/close_fullscreen"
                 app:icon="@drawable/ic_fullscreen_exit_black_24dp" />
 
     </LinearLayout>

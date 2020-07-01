@@ -25,6 +25,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.Player
@@ -248,6 +249,10 @@ class DevNicoVideoFragment : Fragment() {
                         initRecyclerView()
                     }
                 }
+                // 全画面なら全画面にする
+                if (devNicoVideoFragmentData.isFullScreenMode) {
+                    setFullScreen()
+                }
             }
         } else {
             // 初めて///
@@ -297,7 +302,7 @@ class DevNicoVideoFragment : Fragment() {
         setSystemBarVisibility(false)
         // 黒色へ。
         (fragment_nicovideo_video_title_linearlayout.parent as View).setBackgroundColor(Color.BLACK)
-        // 全画面終了ボタン/最大に広げるボタン表示
+        // 全画面終了ボタン表示
         fragment_nicovideo_fullscreen_button_linarlayout?.visibility = View.VISIBLE
         // 全画面終了ボタン
         fragment_nicovideo_fullscreen_close_button?.setOnClickListener {
@@ -1038,7 +1043,8 @@ class DevNicoVideoFragment : Fragment() {
                 val round = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
                 // 16:9なら
                 isAspectRate169 = round == 1.7
-                if (isAdded) {
+                // Fragmentが息してて なお 画面回転する前が全画面では ないとき アスペクト比を直す
+                if (isAdded && !(::devNicoVideoFragmentData.isInitialized && devNicoVideoFragmentData.isFullScreenMode)) {
                     // アスペ比直す
                     setAspectRate(round)
                     // 全画面再生ボタン表示へ
@@ -1471,7 +1477,8 @@ class DevNicoVideoFragment : Fragment() {
                     null
                 },
                 nicoruKey = nicoruAPI.nicoruKey,
-                recommendList = recommendList
+                recommendList = recommendList,
+                isFullScreenMode = isFullScreenMode
             )
             putSerializable("data", data)
             putParcelableArrayList("tab", viewPager.dynamicAddFragmentList)

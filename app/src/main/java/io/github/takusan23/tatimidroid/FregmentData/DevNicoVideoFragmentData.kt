@@ -26,5 +26,7 @@ data class DevNicoVideoFragmentData(
     /** ニコるくん。キャッシュ再生時はnullでいいよ */
     val nicoruKey: String?,
     /** 関連動画。キャッシュ再生時はからの配列だと思う */
-    val recommendList: ArrayList<NicoVideoData>
+    val recommendList: ArrayList<NicoVideoData>,
+    /** フルスクリーンで再生していた場合はtrue */
+    val isFullScreenMode: Boolean = false
 ) : Serializable
