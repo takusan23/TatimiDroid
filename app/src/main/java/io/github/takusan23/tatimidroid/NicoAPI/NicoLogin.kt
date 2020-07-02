@@ -123,11 +123,12 @@ class NicoLogin {
          * ただし初回利用時は利用できません。（SharedPreferenceに値が保存されている必要があるため。）
          * 注意：これ取得したら必ずuser_sessionをPreferenceから再取得してください。
          * @param context SharedPreferenceを使うため
-         * @return ログイン成功すれば関数が終了します。値はSharedPreferenceに保存されます。
+         * @return ユーザーセッションを返します。
          * */
-        suspend fun loginCoroutine(context: Context?) = suspendCoroutine<Unit> { suspendCoroutine ->
+        suspend fun loginCoroutine(context: Context?) = suspendCoroutine<String> { suspendCoroutine ->
             login(context) {
-                suspendCoroutine.resume(Unit)
+                val userSession = PreferenceManager.getDefaultSharedPreferences(context).getString("user_session", "") ?: ""
+                suspendCoroutine.resume(userSession)
             }
         }
     }

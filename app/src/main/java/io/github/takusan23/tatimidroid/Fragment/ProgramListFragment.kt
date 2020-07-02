@@ -33,8 +33,7 @@ class ProgramListFragment : Fragment() {
         // 背景
         fragment_program_backdrop.background = ColorDrawable(darkModeSupport.getThemeColor())
         fragment_program_bar?.background = ColorDrawable(darkModeSupport.getThemeColor())
-        fragment_program_list_linearlayout.background =
-            ColorDrawable(darkModeSupport.getThemeColor())
+        fragment_program_list_linearlayout.background = ColorDrawable(darkModeSupport.getThemeColor())
 
         if (savedInstanceState == null) {
             setFragment(CommunityListFragment.FOLLOW)

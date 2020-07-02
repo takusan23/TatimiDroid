@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.Adapter
 
 import android.content.*
-import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -22,7 +21,7 @@ import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Fragment.BottomSheetDialogWatchMode
 import io.github.takusan23.tatimidroid.Fragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import java.text.SimpleDateFormat

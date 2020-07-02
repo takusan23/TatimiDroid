@@ -22,7 +22,7 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoListMenuBottomFragment
-import io.github.takusan23.tatimidroid.NicoAPI.User
+import io.github.takusan23.tatimidroid.NicoAPI.User.User
 import io.github.takusan23.tatimidroid.Tool.NICOLIVE_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
 import kotlinx.android.synthetic.main.adapter_comment_layout.*

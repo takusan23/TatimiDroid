@@ -4,7 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ScheduleDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
-import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -181,8 +181,8 @@ class NicoLiveHTML {
     }
 
     /**
-     * ログインが有効かどうか
-     * @param response getNicoLiveHTML()の戻り値
+     * ログインが有効かどうか。
+     * @param response [getNicoLiveHTML]の戻り値
      * @return x-niconico-idがあればtrue。なければ（ログインが切れていれば）false
      * */
     fun hasNiconicoID(response: Response): Boolean {

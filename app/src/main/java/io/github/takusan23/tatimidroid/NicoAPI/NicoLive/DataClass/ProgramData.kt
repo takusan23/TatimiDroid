@@ -1,7 +1,10 @@
-package io.github.takusan23.tatimidroid.NicoAPI
+package io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass
 
 import java.io.Serializable
 
+/**
+ * 番組一覧で表示するRecyclerViewに渡すデータクラス
+ * */
 data class ProgramData(
     val title: String,
     val communityName: String,

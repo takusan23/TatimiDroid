@@ -13,14 +13,18 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Adapter.AutoAdmissionAdapter
 import io.github.takusan23.tatimidroid.Adapter.CommunityRecyclerViewAdapter
-import io.github.takusan23.tatimidroid.NicoAPI.ProgramAPI
-import io.github.takusan23.tatimidroid.NicoAPI.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.*
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_community_list_layout.community_recyclerview
+import kotlinx.coroutines.*
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -28,7 +32,7 @@ import kotlin.collections.ArrayList
  * フォロー中とかニコ生TOP表示Fragment
  * */
 class CommunityListFragment : Fragment() {
-    var user_session = ""
+    var userSession = ""
     lateinit var pref_setting: SharedPreferences
     var recyclerViewList: ArrayList<ProgramData> = arrayListOf()
     var autoAdmissionRecyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
@@ -48,7 +52,7 @@ class CommunityListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-        user_session = pref_setting.getString("user_session", "") ?: ""
+        userSession = pref_setting.getString("user_session", "") ?: ""
 
         initRecyclerView()
 
@@ -81,6 +85,7 @@ class CommunityListFragment : Fragment() {
 
     }
 
+    // RecyclerView初期化
     private fun initRecyclerView() {
         recyclerViewList = ArrayList()
         community_recyclerview.setHasFixedSize(true)
@@ -98,12 +103,12 @@ class CommunityListFragment : Fragment() {
         // 読み込むTL
         val pos = arguments?.getInt("page") ?: FOLLOW
         when (pos) {
-            FOLLOW -> getFavouriteCommunity()
-            NICOREPO -> getNicorepo()
-            RECOMMEND -> getRecommend()
+            FOLLOW -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.FAVOURITE_PROGRAM)
+            NICOREPO -> getProgramDataFromNicorepo()
+            RECOMMEND -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.RECOMMEND_PROGRAM)
             RANKING -> getRanking()
-            GAME_MATCHING -> getNicoNamaGameMatching()
-            GAME_PLAYING -> getNicoNamaGamePlaying()
+            GAME_MATCHING -> getProgramFromNicoNamaGame(NicoLiveGameProgram.NICONAMA_GAME_MATCHING)
+            GAME_PLAYING -> getProgramFromNicoNamaGame(NicoLiveGameProgram.NICONAMA_GAME_PLAYING)
             ADMISSION -> {
                 getAutoAdmissionList()
                 //Service再起動
@@ -111,152 +116,182 @@ class CommunityListFragment : Fragment() {
                 context?.stopService(intent)
                 context?.startService(intent)
             }
-            CHUMOKU -> getChumoku()
-            YOYAKU -> getBeforeOpen()
-            KOREKARA -> getKorekara()
+            CHUMOKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.FORCUS_PROGRAM)
+            YOYAKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.POPULAR_BEFORE_OPEN_BROADCAST_STATUS_PROGRAM)
+            KOREKARA -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.RECENT_JUST_BEFORE_BROADCAST_STATUS_PROGRAM)
         }
     }
 
     /**
-     * ニコ生ゲーム募集中番組取得。
+     * ニコ生ゲーム募集中番組取得してRecyclerViewに入れる。
+     * @param url プレイ中なら[NicoLiveGameProgram.NICONAMA_GAME_PLAYING]。募集中なら[NicoLiveGameProgram.NICONAMA_GAME_MATCHING]
      * */
-    fun getNicoNamaGameMatching() {
+    private fun getProgramFromNicoNamaGame(url: String) {
         recyclerViewList.clear()
-        val programAPI = ProgramAPI(context)
-        programAPI.getNicoNamaGame(programAPI.NICONAMA_GAME_MATCHING, null) { response, arrayList ->
-            //リスト更新
-            activity?.runOnUiThread {
-                communityRecyclerViewAdapter.notifyDataSetChanged()
-                arrayList.forEach {
+        val nicoLiveGameProgram = NicoLiveGameProgram()
+        // 例外を捕まえる。これでtry/catchをそれぞれ書かなくても済む？
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            // エラー
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        // コルーチン実行
+        GlobalScope.launch(errorHandler) {
+            val html = nicoLiveGameProgram.getNicoNamaGameProgram(userSession, url)
+            if (html.isSuccessful) {
+                // 成功時
+                val gameProgram = nicoLiveGameProgram.parseJSON(html.body?.string())
+                gameProgram.forEach {
                     recyclerViewList.add(it)
                 }
-                swipeRefreshLayout.isRefreshing = false
+                withContext(Dispatchers.Main) {
+                    // Fragment無くなってたら落とす
+                    if (!isAdded) return@withContext
+                    // UIスレッドで反映
+                    communityRecyclerViewAdapter.notifyDataSetChanged()
+                    swipeRefreshLayout.isRefreshing = false
+                }
+            } else {
+                showToast("${getString(R.string.error)}\n${html.code}")
             }
         }
     }
 
     /**
-     * ニコ生ゲームプレイ中番組取得。
+     * ランキング取得
      * */
-    fun getNicoNamaGamePlaying() {
+    private fun getRanking() {
         recyclerViewList.clear()
-        val programAPI = ProgramAPI(context)
-        programAPI.getNicoNamaGame(programAPI.NICONAMA_GAME_PLAYING, null) { response, arrayList ->
-            //リスト更新
-            activity?.runOnUiThread {
-                communityRecyclerViewAdapter.notifyDataSetChanged()
-                arrayList.forEach {
+        val nicoLiveRanking = NicoLiveRanking()
+        // 例外を捕まえる。これでtry/catchをそれぞれ書かなくても済む？
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            // エラー
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        // コルーチン実行
+        GlobalScope.launch(errorHandler) {
+            val html = nicoLiveRanking.getRankingHTML()
+            if (html.isSuccessful) {
+                // 成功時
+                val rankingList = nicoLiveRanking.parseJSON(html.body?.string())
+                rankingList.forEach {
                     recyclerViewList.add(it)
                 }
-                swipeRefreshLayout.isRefreshing = false
+                withContext(Dispatchers.Main) {
+                    // Fragment無くなってたら落とす
+                    if (!isAdded) return@withContext
+                    // UIスレッドで反映
+                    communityRecyclerViewAdapter.notifyDataSetChanged()
+                    swipeRefreshLayout.isRefreshing = false
+                }
+            } else {
+                showToast("${getString(R.string.error)}\n${html.code}")
             }
         }
     }
 
-    //ランキング取得
-    fun getRanking() {
+    /**
+     * ニコ生TOPページから番組を取得してRecyclerViewに入れる。フォロー中番組など
+     * @param jsonObjectName [NicoLiveProgram.FAVOURITE_PROGRAM] 等入れてね。
+     * */
+    private fun getProgramDataFromNicoLiveTopPage(jsonObjectName: String) {
         recyclerViewList.clear()
-        ProgramAPI(context).getRanking(null) { response, arrayList ->
-            //リスト更新
-            activity?.runOnUiThread {
-                communityRecyclerViewAdapter.notifyDataSetChanged()
-                arrayList.forEach {
+        val nicoLiveProgram = NicoLiveProgram()
+        // 例外を捕まえる。これでtry/catchをそれぞれ書かなくても済む？
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            // エラー
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        // コルーチン実行
+        GlobalScope.launch(errorHandler) {
+            val html = nicoLiveProgram.getNicoLiveTopPageHTML(userSession)
+            if (html.isSuccessful) {
+                // ログインキレたとき
+                if (!NicoLiveHTML().hasNiconicoID(html)) {
+                    showSnackBar(getString(R.string.login_disable_message), getString(R.string.login)) {
+                        GlobalScope.launch {
+                            // 再ログイン+再取得
+                            userSession = NicoLogin.loginCoroutine(context)
+                            getProgramDataFromNicoLiveTopPage(jsonObjectName)
+                        }
+                        return@showSnackBar
+                    }
+                }
+                // 成功時
+                val followProgram = nicoLiveProgram.parseJSON(html.body?.string(), jsonObjectName)
+                followProgram.forEach {
                     recyclerViewList.add(it)
                 }
-                swipeRefreshLayout.isRefreshing = false
+                withContext(Dispatchers.Main) {
+                    // Fragment無くなってたら落とす
+                    if (!isAdded) return@withContext
+                    // UIスレッドで反映
+                    communityRecyclerViewAdapter.notifyDataSetChanged()
+                    swipeRefreshLayout.isRefreshing = false
+                }
+            } else {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${html.code}")
             }
         }
     }
 
-    //おすすめの番組
-    fun getRecommend() {
+    /**
+     * ニコレポを取得してRecyclerViewに入れる関数
+     * */
+    private fun getProgramDataFromNicorepo() {
         recyclerViewList.clear()
-        ProgramAPI(context).getRecommend(null) { arrayList ->
-            //リスト更新
-            activity?.runOnUiThread {
-                communityRecyclerViewAdapter.notifyDataSetChanged()
-                arrayList.forEach {
-                    recyclerViewList.add(it)
+        val nicoLiveNicoRepoAPI = NicoLiveNicoRepoAPI()
+        // 例外を捕まえる。これでtry/catchをそれぞれ書かなくても済む？
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            // エラー
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        // コルーチン実行
+        GlobalScope.launch(errorHandler) {
+            val nicorepo = nicoLiveNicoRepoAPI.getNicorepo(userSession)
+            when {
+                nicorepo.isSuccessful -> {
+                    // 成功時
+                    val followProgram = nicoLiveNicoRepoAPI.parseJSON(nicorepo.body?.string())
+                    followProgram.forEach {
+                        recyclerViewList.add(it)
+                    }
+                    withContext(Dispatchers.Main) {
+                        // Fragment無くなってたら落とす
+                        if (!isAdded) return@withContext
+                        // UIスレッドで反映
+                        communityRecyclerViewAdapter.notifyDataSetChanged()
+                        swipeRefreshLayout.isRefreshing = false
+                    }
                 }
-                swipeRefreshLayout.isRefreshing = false
+                !NicoLiveHTML().hasNiconicoID(nicorepo) -> {
+                    // ログインキレた
+                    showSnackBar(getString(R.string.login_disable_message), getString(R.string.login)) {
+                        GlobalScope.launch {
+                            // 再ログイン+再取得
+                            userSession = NicoLogin.loginCoroutine(context)
+                            getProgramDataFromNicorepo()
+                        }
+                        return@showSnackBar
+                    }
+                }
+                else -> {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${nicorepo.code}")
+                }
             }
         }
     }
 
-    // 放送中の注目番組
-    fun getChumoku() {
-        recyclerViewList.clear()
-        ProgramAPI(context).getFocusProgramListState(null) { arrayList ->
-            //リスト更新
-            activity?.runOnUiThread {
-                communityRecyclerViewAdapter.notifyDataSetChanged()
-                arrayList.forEach {
-                    recyclerViewList.add(it)
-                }
-                swipeRefreshLayout.isRefreshing = false
+    // SnackBar表示
+    private fun showSnackBar(message: String, buttonText: String? = null, click: (() -> Unit)? = null) = GlobalScope.launch(Dispatchers.Main) {
+        Snackbar.make(community_recyclerview, message, Snackbar.LENGTH_SHORT).apply {
+            anchorView = (activity as MainActivity).main_activity_bottom_navigationview
+            if (buttonText != null && click != null) {
+                // nullじゃなければボタン表示
+                setAction(buttonText) { click() }
             }
-        }
-    }
-
-    // 人気の予約番組
-    fun getBeforeOpen() {
-        recyclerViewList.clear()
-        ProgramAPI(context).getPopularBeforeOpenBroadcastStatusProgramListState(null) { arrayList ->
-            //リスト更新
-            activity?.runOnUiThread {
-                communityRecyclerViewAdapter.notifyDataSetChanged()
-                arrayList.forEach {
-                    recyclerViewList.add(it)
-                }
-                swipeRefreshLayout.isRefreshing = false
-            }
-        }
-    }
-
-    // これからの注目番組
-    fun getKorekara() {
-        recyclerViewList.clear()
-        ProgramAPI(context).getRecentJustBeforeBroadcastStatusProgramListState(null) { arrayList ->
-            //リスト更新
-            activity?.runOnUiThread {
-                communityRecyclerViewAdapter.notifyDataSetChanged()
-                arrayList.forEach {
-                    recyclerViewList.add(it)
-                }
-                swipeRefreshLayout.isRefreshing = false
-            }
-        }
-    }
-
-    // 参加中コミュニティから放送中、予約枠を取得する。
-    // 今まではスマホサイトにアクセスしてJSON取ってたけど動かなくなった。
-    // のでPC版にアクセスしてJSONを取得する（PC版にもJSON存在した。）
-    fun getFavouriteCommunity() {
-        recyclerViewList.clear()
-        ProgramAPI(context).getFollowProgram(null) { arrayList ->
-            //リスト更新
-            activity?.runOnUiThread {
-                communityRecyclerViewAdapter.notifyDataSetChanged()
-                arrayList.forEach {
-                    recyclerViewList.add(it)
-                }
-                swipeRefreshLayout.isRefreshing = false
-            }
-        }
-    }
-
-    //ニコレポ取得
-    fun getNicorepo() {
-        recyclerViewList.clear()
-        ProgramAPI(context).getNicorepo(null) { response, arrayList ->
-            //リスト更新
-            activity?.runOnUiThread {
-                communityRecyclerViewAdapter.notifyDataSetChanged()
-                arrayList.forEach {
-                    recyclerViewList.add(it)
-                }
-                swipeRefreshLayout.isRefreshing = false
-            }
+            show()
         }
     }
 
@@ -266,7 +301,7 @@ class CommunityListFragment : Fragment() {
 
         //初期化したか
         if (!this@CommunityListFragment::autoAdmissionSQLiteSQLite.isInitialized) {
-            autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(context!!)
+            autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(requireContext())
             sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
             autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
         }
