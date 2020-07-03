@@ -27,41 +27,14 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                <Button
-                        android:id="@+id/fragment_nicovideo_ranking"
+                <!-- Buttonを並べるより良さそう。 -->
+                <com.google.android.material.navigation.NavigationView
+                        android:id="@+id/fragment_nicovideo_select_menu"
+                        style="@style/NavigationViewSelectColor"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/ranking" />
-
-                <Button
-                        android:id="@+id/fragment_nicovideo_post"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/post_video" />
-
-                <Button
-                        android:id="@+id/fragment_nicovideo_nicorepo"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/nicorepo" />
-
-                <Button
-                        android:id="@+id/fragment_nicovideo_mylist"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/mylist" />
-
-                <Button
-                        android:id="@+id/fragment_nicovideo_history"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/history" />
-
-                <Button
-                        android:id="@+id/fragment_nicovideo_search"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/serch" />
+                        app:elevation="0dp"
+                        app:menu="@menu/nicovideo_select_menu" />
             </LinearLayout>
         </ScrollView>
     </LinearLayout>

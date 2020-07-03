@@ -10,14 +10,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.*
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_select.*
 
-
+/**
+ * ランキング、マイリスト等を表示するFragmentを乗せるFragment。
+ * BottonNavBar押した時に切り替わるFragmentはこれ
+ * */
 class DevNicoVideoSelectFragment : Fragment() {
 
     lateinit var prefSetting: SharedPreferences
@@ -47,44 +50,35 @@ class DevNicoVideoSelectFragment : Fragment() {
         // 未ログインで利用する場合
         if (isNotLoginMode(context)) {
             // ログインが必要なやつを非表示に
-            fragment_nicovideo_post.visibility = View.GONE
-            fragment_nicovideo_mylist.visibility = View.GONE
-            fragment_nicovideo_history.visibility = View.GONE
-            fragment_nicovideo_nicorepo.visibility = View.GONE
+            fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_post).isVisible = false
+            fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_mylist).isVisible = false
+            fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_history).isVisible = false
+            fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_nicorepo).isVisible = false
         }
 
-        fragment_nicovideo_ranking.setOnClickListener {
-            setFragment(DevNicoVideoRankingFragment())
-        }
-
-        fragment_nicovideo_post.setOnClickListener {
-            setFragment(DevNicoVideoPOSTFragment().apply {
-                arguments = Bundle().apply {
-                    putBoolean("my", true)
+        // メニュー押したとき
+        fragment_nicovideo_select_menu.setNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.nicovideo_select_menu_ranking -> setFragment(DevNicoVideoRankingFragment())
+                R.id.nicovideo_select_menu_mylist -> setFragment(DevNicoVideoMyListFragment())
+                R.id.nicovideo_select_menu_history -> setFragment(DevNicoVideoHistoryFragment())
+                R.id.nicovideo_select_menu_search -> setFragment(DevNicoVideoSearchFragment())
+                R.id.nicovideo_select_menu_nicorepo -> setFragment(DevNicoVideoNicoRepoFragment())
+                R.id.nicovideo_select_menu_post -> {
+                    setFragment(DevNicoVideoPOSTFragment().apply {
+                        arguments = Bundle().apply {
+                            putBoolean("my", true)
+                        }
+                    })
                 }
-            })
-        }
-
-        fragment_nicovideo_mylist.setOnClickListener {
-            setFragment(DevNicoVideoMyListFragment())
-        }
-
-        fragment_nicovideo_history.setOnClickListener {
-            setFragment(DevNicoVideoHistoryFragment())
-        }
-
-        fragment_nicovideo_search.setOnClickListener {
-            setFragment(DevNicoVideoSearchFragment())
-        }
-
-        fragment_nicovideo_nicorepo.setOnClickListener {
-            setFragment(DevNicoVideoNicoRepoFragment())
+            }
+            true
         }
 
     }
 
     private fun initDarkMode() {
-        val darkModeSupport = DarkModeSupport(context!!)
+        val darkModeSupport = DarkModeSupport(requireContext())
         fragment_video_list_linearlayout.background = ColorDrawable(darkModeSupport.getThemeColor())
         fragment_video_bar?.background = ColorDrawable(darkModeSupport.getThemeColor())
     }

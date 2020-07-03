@@ -5,22 +5,21 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoMyListViewPagerAdapter
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
-import kotlinx.coroutines.*
-import org.json.JSONObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * マイリストFragment。RecyclerViewが乗ってるFragmentはDevNicoVideoMyListListFragmentです。
@@ -28,7 +27,6 @@ import org.json.JSONObject
  * */
 class DevNicoVideoMyListFragment : Fragment() {
 
-    lateinit var nicoVideoListAdapter: DevNicoVideoListAdapter
     lateinit var adapter: DevNicoVideoMyListViewPagerAdapter
     private lateinit var prefSetting: SharedPreferences
     private var userSession = ""
@@ -61,6 +59,7 @@ class DevNicoVideoMyListFragment : Fragment() {
     // ViewPager初期化
     private fun initViewPager() {
         adapter = DevNicoVideoMyListViewPagerAdapter(activity as AppCompatActivity, myListItems)
+        fragment_nicovideo_mylist_viewpager.setBackgroundColor(getThemeColor(context))
         fragment_nicovideo_mylist_viewpager.adapter = adapter
         // TabLayout
         TabLayoutMediator(fragment_nicovideo_mylist_tablayout, fragment_nicovideo_mylist_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
