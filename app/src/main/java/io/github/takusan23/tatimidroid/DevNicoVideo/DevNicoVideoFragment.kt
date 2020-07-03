@@ -249,8 +249,8 @@ class DevNicoVideoFragment : Fragment() {
                         initRecyclerView()
                     }
                 }
-                // 全画面なら全画面にする
-                if (devNicoVideoFragmentData.isFullScreenMode) {
+                // 全画面なら全画面にする。ただし横画面のときのみ
+                if (devNicoVideoFragmentData.isFullScreenMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     setFullScreen()
                 }
             }

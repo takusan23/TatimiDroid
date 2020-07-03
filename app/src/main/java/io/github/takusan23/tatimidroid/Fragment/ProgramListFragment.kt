@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.Fragment
 
+import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
@@ -11,10 +12,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.fragment_program_list.*
 
 /**
- * 番組検索
+ * 番組一覧Fragmentを乗せるFragment
  * */
 class ProgramListFragment : Fragment() {
 
@@ -27,65 +29,52 @@ class ProgramListFragment : Fragment() {
 
         (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.nicolive)
 
-        // ダークモード
-        val darkModeSupport = DarkModeSupport(context!!)
-
-        // 背景
-        fragment_program_backdrop.background = ColorDrawable(darkModeSupport.getThemeColor())
-        fragment_program_bar?.background = ColorDrawable(darkModeSupport.getThemeColor())
-        fragment_program_list_linearlayout.background = ColorDrawable(darkModeSupport.getThemeColor())
+        // 背景色
+        fragment_program_backdrop.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
+        fragment_program_bar?.background = ColorDrawable(getThemeColor(context))
+        fragment_program_list_linearlayout.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
+        fragment_program_menu.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
 
         if (savedInstanceState == null) {
             setFragment(CommunityListFragment.FOLLOW)
         }
 
-        fragment_program_follow.setOnClickListener {
-            setFragment(CommunityListFragment.FOLLOW)
-        }
-        fragment_program_nicorepo.setOnClickListener {
-            setFragment(CommunityListFragment.NICOREPO)
-        }
-        fragment_program_osusume.setOnClickListener {
-            setFragment(CommunityListFragment.RECOMMEND)
-        }
-        fragment_program_ranking.setOnClickListener {
-            setFragment(CommunityListFragment.RANKING)
-        }
-        fragment_program_nicolive_top.setOnClickListener {
-            setFragment(CommunityListFragment.CHUMOKU)
-        }
-        fragment_program_ninki_yoyaku.setOnClickListener {
-            setFragment(CommunityListFragment.YOYAKU)
-        }
-        fragment_program_korekara.setOnClickListener {
-            setFragment(CommunityListFragment.KOREKARA)
-        }
-        fragment_program_auto_admission.setOnClickListener {
-            setFragment(CommunityListFragment.ADMISSION)
-        }
-        fragment_program_jk.setOnClickListener {
-            // ニコニコ実況。ｊｋ
-            val nicoJKChannelFragment = NicoJKChannelFragment()
-            fragmentManager?.beginTransaction()
-                ?.replace(fragment_program_list_linearlayout.id, nicoJKChannelFragment)
-                ?.commit()
-            fragment_program_motionlayout?.transitionToStart()
+        // メニュー押したとき
+        fragment_program_menu.setNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.nicolive_program_list_menu_follow -> setFragment(CommunityListFragment.FOLLOW)
+                R.id.nicolive_program_list_menu_nicorepo -> setFragment(CommunityListFragment.NICOREPO)
+                R.id.nicolive_program_list_menu_osusume -> setFragment(CommunityListFragment.RECOMMEND)
+                R.id.nicolive_program_list_menu_ranking -> setFragment(CommunityListFragment.RANKING)
+                R.id.nicolive_program_list_menu_top -> setFragment(CommunityListFragment.CHUMOKU)
+                R.id.nicolive_program_list_menu_korekara -> setFragment(CommunityListFragment.KOREKARA)
+                R.id.nicolive_program_list_menu_yoyaku -> setFragment(CommunityListFragment.YOYAKU)
+                R.id.nicolive_program_list_menu_auto_admission -> setFragment(CommunityListFragment.ADMISSION)
+                R.id.nicolive_program_list_menu_rookie -> setFragment(CommunityListFragment.ROOKIE)
+                R.id.nicolive_program_list_menu_jk -> {
+                    // ニコニコ実況。ｊｋ
+                    val nicoJKChannelFragment = NicoJKChannelFragment()
+                    parentFragmentManager.beginTransaction().replace(fragment_program_list_linearlayout.id, nicoJKChannelFragment).commit()
+                    fragment_program_motionlayout?.transitionToStart()
+                }
+            }
+            true
         }
 
     }
 
     /**
      * Fragment設置。
-     * @param page CommunityListFragment#FOLLOW など
+     * @param page [CommunityListFragment.FOLLOW] など
      * */
-    fun setFragment(page: Int) {
+    private fun setFragment(page: Int) {
         Handler(Looper.getMainLooper()).post {
             val communityListFragment = CommunityListFragment()
             val bundle = Bundle()
             bundle.putInt("page", page)
             communityListFragment.arguments = bundle
-            fragmentManager?.beginTransaction()
-                ?.replace(fragment_program_list_linearlayout.id, communityListFragment)?.commit()
+            parentFragmentManager.beginTransaction()
+                .replace(fragment_program_list_linearlayout.id, communityListFragment).commit()
             fragment_program_motionlayout?.transitionToStart()
         }
     }

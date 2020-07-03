@@ -196,11 +196,9 @@ class AutoAdmissionService : Service() {
         if (programList.isEmpty()) {
             programList = getString(R.string.auto_admission_empty)
             // 無いので落とす
-            stopSelf()
         }
-
-        //Oreo以降は通知チャンネルいる
-        //Oreo以降はサービス実行中です通知を出す必要がある。
+        // Oreo以降は通知チャンネルいる
+        // Oreo以降はサービス実行中です通知を出す必要がある。
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannel =
                 NotificationChannel("auto_admission_notification", getString(R.string.auto_admission_notification), NotificationManager.IMPORTANCE_LOW)
@@ -246,7 +244,9 @@ class AutoAdmissionService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(broadcastReceiver)
+        if (::broadcastReceiver.isInitialized) {
+            unregisterReceiver(broadcastReceiver)
+        }
         timer.cancel()
     }
 

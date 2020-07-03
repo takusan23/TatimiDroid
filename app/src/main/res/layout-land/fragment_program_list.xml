@@ -29,76 +29,15 @@
                     android:layout_margin="10sp"
                     android:orientation="vertical">
 
-                <Button
-                        android:id="@+id/fragment_program_follow"
+                <!-- Buttonを並べるより良さそう。 -->
+                <com.google.android.material.navigation.NavigationView
+                        android:id="@+id/fragment_program_menu"
+                        style="@style/NavigationViewSelectColor"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="2sp"
-                        android:layout_weight="1"
-                        android:text="@string/follow_program" />
+                        app:elevation="0dp"
+                        app:menu="@menu/nicolive_program_list_menu" />
 
-                <Button
-                        android:id="@+id/fragment_program_nicorepo"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="2sp"
-                        android:layout_weight="1"
-                        android:text="@string/nicorepo" />
-
-                <Button
-                        android:id="@+id/fragment_program_osusume"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="2sp"
-                        android:layout_weight="1"
-                        android:text="@string/osusume" />
-
-                <Button
-                        android:id="@+id/fragment_program_ranking"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="2sp"
-                        android:layout_weight="1"
-                        android:text="@string/ranking" />
-
-                <Button
-                        android:id="@+id/fragment_program_nicolive_top"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="2sp"
-                        android:layout_weight="1"
-                        android:text="@string/nicolive_top" />
-
-                <Button
-                        android:id="@+id/fragment_program_korekara"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="2sp"
-                        android:layout_weight="1"
-                        android:text="@string/upcoming_programs" />
-
-                <Button
-                        android:id="@+id/fragment_program_ninki_yoyaku"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="2sp"
-                        android:layout_weight="1"
-                        android:text="@string/popular_reservation_program" />
-
-                <Button
-                        android:id="@+id/fragment_program_jk"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/nico_jk" />
-
-                <Button
-                        android:id="@+id/fragment_program_auto_admission"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="2sp"
-                        android:layout_weight="1"
-                        android:text="@string/auto_admission" />
             </LinearLayout>
         </ScrollView>
 

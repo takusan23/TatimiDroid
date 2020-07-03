@@ -426,8 +426,8 @@ class CommentFragment : Fragment() {
                         programTitle = nicoLiveHTML.programTitle
                         communityID = nicoLiveHTML.communityId
                         thumbnailURL = nicoLiveHTML.thumb
-                        // 全画面再生だったら全画面にする
-                        if (data.isFullScreenMode) {
+                        // 全画面再生だったら全画面にする。ただし横画面のときのみ
+                        if (data.isFullScreenMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                             setFullScreen()
                         }
                     } else {

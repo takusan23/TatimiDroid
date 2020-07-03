@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.Fragment
 import android.content.Intent
 import android.content.SharedPreferences
 import android.database.sqlite.SQLiteDatabase
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -114,11 +115,16 @@ class CommunityListFragment : Fragment() {
                 //Service再起動
                 val intent = Intent(context, AutoAdmissionService::class.java)
                 context?.stopService(intent)
-                context?.startService(intent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context?.startForegroundService(intent)
+                } else {
+                    context?.startService(intent)
+                }
             }
             CHUMOKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.FORCUS_PROGRAM)
             YOYAKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.POPULAR_BEFORE_OPEN_BROADCAST_STATUS_PROGRAM)
             KOREKARA -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.RECENT_JUST_BEFORE_BROADCAST_STATUS_PROGRAM)
+            ROOKIE -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.ROOKIE_PROGRAM)
         }
     }
 
@@ -354,16 +360,38 @@ class CommunityListFragment : Fragment() {
     }
 
     companion object {
-        val FOLLOW = 0 // フォロー中番組
-        val NICOREPO = 1 // ニコレポ
-        val RECOMMEND = 2 // おすすめ
-        val RANKING = 3 // ランキング
-        val GAME_MATCHING = 4 // ゲームマッチング
-        val GAME_PLAYING = 5 // ゲームプレイ中
-        val ADMISSION = 6 // 予約枠自動入場
-        val CHUMOKU = 7 // 放送中の注目番組
-        val YOYAKU = 8 // 人気の予約されてる番組
-        val KOREKARA = 9 // これから
+        /** フォロー中番組 */
+        const val FOLLOW = 0
+
+        /** ニコレポ */
+        const val NICOREPO = 1
+
+        /** おすすめ */
+        const val RECOMMEND = 2
+
+        /** ランキング */
+        const val RANKING = 3
+
+        /** ゲームマッチング */
+        const val GAME_MATCHING = 4
+
+        /** ゲームプレイ中 */
+        const val GAME_PLAYING = 5
+
+        /** 予約枠自動入場 */
+        const val ADMISSION = 6
+
+        /** 放送中の注目番組 */
+        const val CHUMOKU = 7
+
+        /** 人気の予約されている番組 */
+        const val YOYAKU = 8
+
+        /** これから */
+        const val KOREKARA = 9
+
+        /** ルーキー番組 */
+        const val ROOKIE = 10
     }
 
 }

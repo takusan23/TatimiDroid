@@ -3,36 +3,28 @@ package io.github.takusan23.tatimidroid
 import android.app.NotificationManager
 import android.content.*
 import android.content.res.ColorStateList
-import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.View
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.widget.addTextChangedListener
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
-import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import io.github.takusan23.tatimidroid.Tool.*
-import io.github.takusan23.tatimidroid.Tool.IDRegex
-import io.github.takusan23.tatimidroid.Tool.NICOCOMMUNITY_ID_REGEX
-import io.github.takusan23.tatimidroid.Tool.NICOLIVE_ID_REGEX
-import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
-import io.github.takusan23.tatimidroid.Tool.hasMailPass
-import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
-import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+
 
 /**
  * アプリ起動時に一番最初に起動するActivity。

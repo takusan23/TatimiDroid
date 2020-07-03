@@ -97,5 +97,12 @@
         <item name="backgroundTint">#ffffff</item>
     </style>
 
+    <!-- NavigationViewの色が薄くて見にくいので特別に作ってあげた -->
+    <style name="NavigationViewSelectColor" parent="Widget.Design.NavigationView">
+        <item name="itemShapeFillColor">@color/navigation_item_color</item>
+        <item name="itemTextColor">@color/navigation_item_text_color</item>
+        <item name="itemIconTint">@color/navigation_item_text_color</item>
+    </style>
+
 
 </resources>
