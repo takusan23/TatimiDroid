@@ -1,12 +1,11 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
 
@@ -29,25 +28,40 @@ class NicoVideoSearchHTML {
      *              m マイリスト数
      *              n コメント数
      * */
-    fun getHTML(userSession: String, searchText: String, tagOrSearch: String, sort: String, order: String, page: String): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("https://www.nicovideo.jp/$tagOrSearch/$searchText?page=$page&sort=$sort&order=$order")
-                addHeader("Cookie", "user_session=$userSession")
-                addHeader("User-Agent", "TatimiDroid;@takusan_23")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    suspend fun getHTML(userSession: String, searchText: String, tagOrSearch: String, sort: String, order: String, page: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("https://www.nicovideo.jp/$tagOrSearch/$searchText?page=$page&sort=$sort&order=$order")
+            addHeader("Cookie", "user_session=$userSession")
+            addHeader("User-Agent", "TatimiDroid;@takusan_23")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        response
+    }
 
     /**
      * HTMLをパースする
+     * そういえば検索結果HTMLにJSONが入るようになったけどなんかコメント投稿数だけ取れないんだよね。はい？
      * */
-    fun parseHTML(html: String?): ArrayList<NicoVideoData> {
+    suspend fun parseHTML(html: String?): ArrayList<NicoVideoData> = withContext(Dispatchers.Default) {
         val list = arrayListOf<NicoVideoData>()
         val document = Jsoup.parse(html)
+
+/*
+        // なんでか知らんけどコメント投稿数だけ取れない。
+        val jsonString = document.getElementsByTag("script")[27].html()
+        val videoList = JSONObject(jsonString).getJSONArray("itemListElement")
+        for (i in 0 until videoList.length()) {
+            val videoObject = videoList.getJSONObject(i)
+            val title = videoObject.getString("name")
+            val thumb = videoObject.getJSONArray("thumbnailUrl").getJSONObject(0).getString("url")
+            val date = iso8601ToUnixTime(videoObject.getString("uploadDate"))
+            val viewCount = videoObject.getJSONArray("interactionStatistic").getJSONObject(0).getInt("userInteractionCount")
+            val mylistCount = videoObject.getJSONArray("interactionStatistic").getJSONObject(1).getInt("userInteractionCount")
+        }
+*/
+
         val li = document.getElementsByTag("li")
         li.forEach {
             // ニコニ広告はのせない？
@@ -67,7 +81,7 @@ class NicoVideoSearchHTML {
                 list.add(data)
             }
         }
-        return list
+        list
     }
 
     // 投稿時間をUnixTimeへ変換

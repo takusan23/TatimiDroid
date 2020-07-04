@@ -59,7 +59,7 @@ class DevNicoVideoMyListFragment : Fragment() {
     // ViewPager初期化
     private fun initViewPager() {
         adapter = DevNicoVideoMyListViewPagerAdapter(activity as AppCompatActivity, myListItems)
-        fragment_nicovideo_mylist_viewpager.setBackgroundColor(getThemeColor(context))
+        fragment_nicovideo_mylist_tablayout.setBackgroundColor(getThemeColor(context))
         fragment_nicovideo_mylist_viewpager.adapter = adapter
         // TabLayout
         TabLayoutMediator(fragment_nicovideo_mylist_tablayout, fragment_nicovideo_mylist_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->

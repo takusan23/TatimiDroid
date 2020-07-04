@@ -113,6 +113,17 @@ class DevNicoVideoSearchFragment : Fragment() {
             }
         }
 
+        // タグ、並び替え常に出す必要なくない？というわけで非表示にできるようにする
+        fragment_nicovideo_search_option.setOnClickListener {
+            fragment_nicovideo_search_sort_parent_linarlayout.apply {
+                if (visibility == View.VISIBLE) {
+                    visibility = View.GONE
+                } else {
+                    visibility = View.VISIBLE
+                }
+            }
+        }
+
         // たぐ、並び替えメニュー押しても検索できるように
         fragment_nicovideo_search_sort_menu.addTextChangedListener {
             page = 1 // RecyclerView空にするので
@@ -136,52 +147,59 @@ class DevNicoVideoSearchFragment : Fragment() {
             if (::coroutine.isInitialized) {
                 coroutine.cancel()
             }
-            coroutine = GlobalScope.launch(Dispatchers.Main) {
-                // 1ならクリアとRecyclerViewの位置クリア
-                if (page == 1) {
-                    recyclerViewList.clear()
-                    position = 0
-                    yPos = 0
-                    isMaxCount = false
-                }
-                fragment_nicovideo_search_swipe_refresh.isRefreshing = true
-                // ソート条件生成
-                val sort = nicoVideoSearchHTML.makeSortOrder(fragment_nicovideo_search_sort_menu.text.toString())
-                // タグかキーワードか
-                val tagOrKeyword = if (fragment_nicovideo_search_tag_key_menu.text.toString() == "タグ") {
-                    "tag"
-                } else {
-                    "search"
-                }
-                withContext(Dispatchers.IO) {
-                    val response = nicoVideoSearchHTML.getHTML(
+            // 例外処理。コルーチン内で例外出るとここに来るようになるらしい。あたまいい
+            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                showToast("${getString(R.string.error)}${throwable.message}")
+            }
+            coroutine = GlobalScope.launch(errorHandler) {
+                val response = withContext(Dispatchers.Main) {
+                    // 1ならクリアとRecyclerViewの位置クリア
+                    if (page == 1) {
+                        recyclerViewList.clear()
+                        position = 0
+                        yPos = 0
+                        isMaxCount = false
+                    }
+                    fragment_nicovideo_search_swipe_refresh.isRefreshing = true
+                    // ソート条件生成
+                    val sort = nicoVideoSearchHTML.makeSortOrder(fragment_nicovideo_search_sort_menu.text.toString())
+                    // タグかキーワードか
+                    val tagOrKeyword = if (fragment_nicovideo_search_tag_key_menu.text.toString() == "タグ") {
+                        "tag"
+                    } else {
+                        "search"
+                    }
+                    // 検索結果html取りに行く
+                    nicoVideoSearchHTML.getHTML(
                         userSession,
                         searchText,
                         tagOrKeyword,
                         sort.first,
                         sort.second,
                         page.toString()
-                    ).await()
-                    if (!response.isSuccessful) {
-                        // 失敗時
-                        showToast("${getString(R.string.error)}\n${response.code}")
-                        // もう読み込まない
-                        isMaxCount = true
-                        return@withContext
-                    }
-                    nicoVideoSearchHTML.parseHTML(response.body?.string()).forEach {
-                        recyclerViewList.add(it)
-                    }
+                    )
                 }
-                // 追加
+                if (!response.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                    // もう読み込まない
+                    isMaxCount = true
+                    return@launch
+                }
+                nicoVideoSearchHTML.parseHTML(response.body?.string()).forEach {
+                    recyclerViewList.add(it)
+                }
+                // 追加。UIスレッドへ
                 if (isAdded) {
-                    // スクロール位置復元
-                    fragment_nicovideo_search_recyclerview.apply {
-                        (layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, yPos)
+                    withContext(Dispatchers.Main) {
+                        // スクロール位置復元
+                        fragment_nicovideo_search_recyclerview.apply {
+                            (layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, yPos)
+                        }
+                        fragment_nicovideo_search_swipe_refresh.isRefreshing = false
+                        // また読み込めるように
+                        isLoading = false
                     }
-                    fragment_nicovideo_search_swipe_refresh.isRefreshing = false
-                    // また読み込めるように
-                    isLoading = false
                 }
             }
         }
@@ -218,7 +236,7 @@ class DevNicoVideoSearchFragment : Fragment() {
     private fun initDropDownMenu() {
         // タグかキーワードか
         val spinnerList = arrayListOf("タグ", "キーワード")
-        val tagOrKeywordAdapter = AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, spinnerList)
+        val tagOrKeywordAdapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, spinnerList)
         fragment_nicovideo_search_tag_key_menu.apply {
             setAdapter(tagOrKeywordAdapter)
             setText(spinnerList[0], false)
@@ -240,7 +258,7 @@ class DevNicoVideoSearchFragment : Fragment() {
             "再生時間が長い順",
             "再生時間が短い順"
         )
-        val sortAdapter = AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, sortList)
+        val sortAdapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, sortList)
         fragment_nicovideo_search_sort_menu.apply {
             setAdapter(sortAdapter)
             setText(sortList[0], false)
