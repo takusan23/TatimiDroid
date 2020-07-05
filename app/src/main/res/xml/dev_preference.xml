@@ -38,5 +38,14 @@
                 android:title="履歴DBの復元をする" />
     </PreferenceCategory>
 
+    <PreferenceCategory
+            android:icon="@drawable/ic_outline_comment_24px"
+            android:title="コメント描画">
+        <SwitchPreference
+                android:defaultValue="false"
+                android:key="dev_setting_comment_canvas_text_rect"
+                android:title="テキストに枠を付けて検証する" />
+    </PreferenceCategory>
+
 
 </PreferenceScreen>
