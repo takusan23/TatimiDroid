@@ -9,6 +9,11 @@ import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.random.Random
 
+
+/**
+ * コメントを流すView。
+ * バージョン３
+ * */
 class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
 /*
@@ -67,8 +72,11 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     var commentLines = arrayListOf<Long>()
 
+    /** 定期実行 */
+    private val timer = Timer()
+
     // コメントの配列
-    val commentObjList = arrayListOf<CommentObject>()
+    var commentObjList = arrayListOf<CommentObject>()
 
     /**
      * 高さ：横の位置
@@ -145,7 +153,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             pref_setting.getString("setting_comment_canvas_custom_line_value", "10")?.toInt() ?: 20
         // 開発者用項目
         isShowDrawTextRect = pref_setting.getBoolean("dev_setting_comment_canvas_text_rect", false) ?: false
-        Timer().schedule(update, update) {
+        // 定期実行
+        timer.schedule(update, update) {
 
             // コメント移動止めるやつ
             if (isPause) {
@@ -153,23 +162,23 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             }
 
             // コメントを移動させる
-            for (i in 0 until commentObjList.size) {
-                val obj = commentObjList[i]
+            commentObjList.toList().forEach { obj ->
                 if (obj.asciiArt) {
                     // AAの場合は速度を固定する
                     if ((obj.rect?.right) ?: 0 > 0) {
-                        commentObjList[i].xPos -= speed
+                        obj.xPos -= speed
                     }
                 } else {
                     if ((obj.rect?.right) ?: 0 > 0) {
-                        commentObjList[i].xPos -= speed + (obj.comment.length / 8)
-                        commentObjList[i].rect?.left =
-                            commentObjList[i].rect?.left?.minus(speed + (obj.comment.length / 8))
-                        commentObjList[i].rect?.right =
-                            commentObjList[i].rect?.right?.minus(speed + (obj.comment.length / 8))
+                        obj.xPos -= speed + (obj.comment.length / 8)
+                        obj.rect?.left = obj.rect?.left?.minus(speed + (obj.comment.length / 8))
+                        obj.rect?.right = obj.rect?.right?.minus(speed + (obj.comment.length / 8))
                     }
                 }
             }
+
+            // 画面の端っこまで行ってないコメントを選別する。画面外は消す。dropWhileでも良いんじゃね
+            commentObjList = commentObjList.filter { commentObject -> commentObject.rect?.right ?: 0 > 0 } as ArrayList<CommentObject>
 
             val nowUnixTime = System.currentTimeMillis()
             // toList() を使って forEach すればエラー回避できます
@@ -199,12 +208,10 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     }
 
-
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         // コメントを描画する。
-        for (i in 0 until commentObjList.size) {
-            val obj = commentObjList[i]
+        commentObjList.toList().forEach { obj ->
             if ((obj.rect?.right ?: 0) > 0) {
                 when {
                     obj.command.contains("big") -> {
@@ -248,13 +255,15 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getBlackCommentTextPaint(fontSize))
             // もじ
             canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command, fontSize))
+            // 私が検証で使う。基本使わん
             if (isShowDrawTextRect) {
+                val checkRect = Rect(obj.xPos.toInt(), (obj.yPos - obj.fontSize).toInt(), (obj.xPos + obj.commentMeasure).toInt(), (obj.yPos).toInt())
                 obj.rect?.apply {
                     val strokePaint = Paint()
                     strokePaint.strokeWidth = 5f
                     strokePaint.color = Color.YELLOW
                     strokePaint.style = Paint.Style.STROKE
-                    canvas?.drawRect(this, strokePaint)
+                    canvas?.drawRect(checkRect, strokePaint)
                 }
             }
         }
@@ -407,6 +416,57 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         val tmpCommand = command
         // 上でもなければ下でもないときは流す
         if (!command.contains("ue") && !command.contains("shita")) {
+            val tmpList = commentObjList.toList()
+
+            // 流れるコメント
+            var yPos = commandFontSize
+            for (i in 0 until commentLine.size) {
+                val obj = commentLine.toList().get(i).second
+                val space = width - obj.xPos
+                // println(space)
+                yPos = obj.yPos
+                if (space < -1) {
+                    // 画面外。負の値
+                    // println("画面外です")
+                    yPos += commandFontSize
+                } else if (space < measure) {
+                    // 空きスペースよりコメントの長さが大きいとき
+                    // println("コメントのほうが長いです")
+                    yPos += commandFontSize
+                } else {
+                    // 位置決定
+                    // println("位置が決定しました")
+                    break
+                }
+                if (yPos > finalHeight) {
+                    // 画面外に行く場合はランダムで決定
+                    if (finalHeight > 0 && fontsize.toInt() < finalHeight) {
+                        // Canvasの高さが取得できているとき
+                        yPos = Random.nextInt(fontsize.toInt(), finalHeight).toFloat()
+                    } else {
+                        // 取得できてないとき。ほんとに適当
+                        yPos = Random.nextInt(1, 10) * fontsize
+                    }
+                    // println("らんだむ")
+                }
+            }
+            val commentObj = CommentObject(
+                comment,
+                width.toFloat(),
+                yPos,
+                System.currentTimeMillis(),
+                measure,
+                command,
+                asciiArt,
+                Rect(width, (yPos - commandFontSize).toInt(), (width + measure).toInt(), yPos.toInt()),
+                commandFontSize
+            )
+            commentObjList.add(commentObj)
+            commentLine[yPos] = commentObj
+
+
+
+/*
             // 流れるコメント
             // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
             // 開始地点は画面の端
@@ -414,14 +474,14 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             // 幅はコメントの大きさ
             // 最後はフォントサイズ分下に伸ばしておk
             val addRect = Rect(width, 0, (width + measure).toInt(), commandFontSize.toInt())
-            for (i in 0 until commentObjList.size) {
-                val obj = commentObjList[i]
-                // rectで当たり判定計算！？
-                val rect = Rect(obj.xPos.toInt(), (obj.yPos - fontsize).toInt(), (obj.xPos + obj.commentMeasure).toInt(), obj.yPos.toInt())
+            for (i in 0 until tmpList.size) {
+                val obj = tmpList[i]
+                // Rectで当たり判定計算？
+                val rect = obj.rect ?: return
                 if (Rect.intersects(rect, addRect)) {
                     // あたっているので下へ
                     addRect.top += (obj.rect!!.bottom - obj.rect!!.top)
-                    addRect.bottom += (obj.rect!!.bottom - obj.rect!!.top)
+                    addRect.bottom = (addRect.top + commandFontSize).toInt()
                 }
                 // なお画面外の場合はランダム。
                 if (addRect.bottom > height) {
@@ -443,6 +503,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 commandFontSize
             )
             commentObjList.add(commentObj)
+*/
+
         } else if (command.contains("ue") && tmpCommand.replace("blue|blue([0-9])".toRegex(), "").contains("ue")) {
             // 上コメ
             // なんだけどコメントがコメントキャンバスを超えるときの対応をしないといけない。
@@ -526,7 +588,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 val range = (height / commandFontSize)
                 addRect.top = (Random.nextInt(1, range.toInt()) * commandFontSize).toInt()
                 addRect.bottom = (addRect.top + commandFontSize).toInt()
-                println("$comment ${addRect.top} $range")
+                // println("$comment ${addRect.top} $range")
             }
             val commentObj = CommentObject(
                 comment,
@@ -548,14 +610,14 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             // 幅はコメントの大きさ
             // 最後はフォントサイズ分下に伸ばしておk
             val addRect = Rect(width, 0, (width + measure).toInt(), commandFontSize.toInt())
+            val tmpList = commentObjList.toList()
             for (i in 0 until commentObjList.size) {
-                val obj = commentObjList[i]
-                // rectで当たり判定計算！？
-                val rect = Rect(obj.xPos.toInt(), (obj.yPos - fontsize).toInt(), (obj.xPos + obj.commentMeasure).toInt(), obj.yPos.toInt())
+                val obj = tmpList[i]
+                val rect = obj.rect ?: return
                 if (Rect.intersects(rect, addRect)) {
                     // あたっているので下へ
                     addRect.top += (obj.rect!!.bottom - obj.rect!!.top)
-                    addRect.bottom += (obj.rect!!.bottom - obj.rect!!.top)
+                    addRect.bottom = (addRect.top + commandFontSize).toInt()
                 }
                 // なお画面外の場合はランダム。
                 if (addRect.bottom > height) {
@@ -579,6 +641,27 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             commentObjList.add(commentObj)
         }
     }
+
+    /**
+     * Viewが外されたとき（Activity/FragmentのonDestroy()みたいな）
+     * */
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        timer.cancel()
+    }
+
+    fun IsInBox(x1: Int, y1: Int, width1: Int, height1: Int, x2: Int, y2: Int, width2: Int, height2: Int): Boolean {
+        val right1 = x1 + width1
+        val right2 = x2 + width2
+        val bottom1 = y1 + height1
+        val bottom2 = y2 + height2
+
+        // Check if top-left point is in box
+        if (x2 >= x1 && x2 <= right1 && y2 >= y2 && y2 <= bottom1) return true
+        // Check if bottom-right point is in box
+        return if (right2 >= x1 && right2 <= right1 && bottom2 >= y2 && bottom2 <= bottom1) true else false
+    }
+
 
     fun getCommentPosition(comment: String): Int {
 
