@@ -194,6 +194,7 @@ class NicoVideoInfoFragment : Fragment() {
                                 arguments = Bundle().apply {
                                     putString("search", name)
                                     putBoolean("search_hide", true)
+                                    putBoolean("sort_show", true)
                                 }
                             }
                             // 追加位置

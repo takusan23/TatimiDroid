@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import kotlin.random.Random
 
@@ -177,8 +178,13 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 }
             }
 
-            // 画面の端っこまで行ってないコメントを選別する。画面外は消す。dropWhileでも良いんじゃね
-            commentObjList = commentObjList.filter { commentObject -> commentObject.rect?.right ?: 0 > 0 } as ArrayList<CommentObject>
+            // 画面の端っこまで行ってないコメントを選別する。画面外は消す。filter{}はよく落ちるので辞めた
+            commentObjList.toList().forEach {
+                if (it.rect?.right ?: 0 < 0) {
+                    commentObjList.remove(it)
+                }
+            }
+            // commentObjList = commentObjList.filter { commentObject -> commentObject.rect?.right ?: 0 > 0 } as ArrayList<CommentObject>
 
             val nowUnixTime = System.currentTimeMillis()
             // toList() を使って forEach すればエラー回避できます
@@ -212,6 +218,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         super.onDraw(canvas)
         // コメントを描画する。
         commentObjList.toList().forEach { obj ->
+            if (obj == null) return
             if ((obj.rect?.right ?: 0) > 0) {
                 when {
                     obj.command.contains("big") -> {
@@ -418,6 +425,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         if (!command.contains("ue") && !command.contains("shita")) {
             val tmpList = commentObjList.toList()
 
+
+/*
             // 流れるコメント
             var yPos = commandFontSize
             for (i in 0 until commentLine.size) {
@@ -463,10 +472,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             )
             commentObjList.add(commentObj)
             commentLine[yPos] = commentObj
+*/
 
 
-
-/*
             // 流れるコメント
             // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
             // 開始地点は画面の端
@@ -476,19 +484,31 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             val addRect = Rect(width, 0, (width + measure).toInt(), commandFontSize.toInt())
             for (i in 0 until tmpList.size) {
                 val obj = tmpList[i]
-                // Rectで当たり判定計算？
-                val rect = obj.rect ?: return
-                if (Rect.intersects(rect, addRect)) {
-                    // あたっているので下へ
-                    addRect.top += (obj.rect!!.bottom - obj.rect!!.top)
-                    addRect.bottom = (addRect.top + commandFontSize).toInt()
-                }
-                // なお画面外の場合はランダム。
-                if (addRect.bottom > height) {
-                    val randomStart = Random.nextInt(1, height)
-                    addRect.top = randomStart
-                    addRect.bottom = (addRect.top + commandFontSize).toInt()
-                    return
+                // nullの時がある
+                if (obj != null) {
+                    // Rectで当たり判定計算？
+                    //  val rect = obj.rect ?: return
+                    val rect = Rect(obj.xPos.toInt(), (obj.yPos - fontsize).toInt(), (obj.xPos + obj.commentMeasure).toInt(), obj.yPos.toInt())
+                    if (
+                        Rect.intersects(rect, addRect)
+/*
+                        rect.left < addRect.right &&
+                        rect.right > addRect.left &&
+                        rect.top < addRect.bottom &&
+                        rect.bottom > addRect.top
+*/
+                    ) {
+                        // あたっているので下へ
+                        addRect.top = obj.yPos.toInt()
+                        addRect.bottom = (addRect.top + commandFontSize).toInt()
+                    }
+                    // なお画面外の場合はランダム。
+                    if (addRect.bottom > height) {
+                        val randomStart = Random.nextInt(1, height)
+                        addRect.top = randomStart
+                        addRect.bottom = (addRect.top + commandFontSize).toInt()
+                        return
+                    }
                 }
             }
             val commentObj = CommentObject(
@@ -503,7 +523,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 commandFontSize
             )
             commentObjList.add(commentObj)
-*/
+
 
         } else if (command.contains("ue") && tmpCommand.replace("blue|blue([0-9])".toRegex(), "").contains("ue")) {
             // 上コメ

@@ -32,6 +32,7 @@ import java.lang.IndexOutOfBoundsException
  *
  * search       | String | 検索したい内容
  * search_hide  | Boolean| 検索領域を非表示にする場合はtrue
+ * sort_show    | Boolean| 並び替えを初めから表示する場合はtrue。なおタグ/キーワードの変更は出ない
  * */
 class DevNicoVideoSearchFragment : Fragment() {
 
@@ -132,6 +133,12 @@ class DevNicoVideoSearchFragment : Fragment() {
         fragment_nicovideo_search_tag_key_menu.addTextChangedListener {
             page = 1 // RecyclerView空にするので
             search()
+        }
+
+        // 動画再生中に検索した時に、ソートが消えるので表示
+        if (arguments?.getBoolean("sort_show") == true) {
+            fragment_nicovideo_search_sort_parent_linarlayout.visibility = View.VISIBLE
+            (fragment_nicovideo_search_tag_key_menu.parent as View).visibility = View.GONE
         }
 
     }
