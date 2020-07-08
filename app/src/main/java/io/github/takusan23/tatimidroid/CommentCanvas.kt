@@ -241,9 +241,10 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         // 下付きコメントを描画する
         sitaCommentList.toList().reversed().forEach {
             if (it == null) return // なんかnullの時がある？
-            // 上付きコメントを反転させるなどして実現してるのでちょっとややこしい
-            canvas?.drawText(it.comment, it.xPos, height - it.yPos, getBlackCommentTextPaint(it.fontSize))
-            canvas?.drawText(it.comment, it.xPos, height - it.yPos, getCommentTextPaint(it.command, it.fontSize))
+            // 上付きコメントを反転させるなどして下付きコメントを実現してるのでちょっとややこしい（なんか当たり判定がうまく行かなくて上付きを使いまわしている）。
+            // あと10引いてるのはなんか埋まるから。
+            canvas?.drawText(it.comment, it.xPos, (height - 10) - it.yPos, getBlackCommentTextPaint(it.fontSize))
+            canvas?.drawText(it.comment, it.xPos, (height - 10) - it.yPos, getCommentTextPaint(it.command, it.fontSize))
         }
     }
 
@@ -604,7 +605,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 }
             }
             // 画面外はランダム
-            if (addRect.top > height) {
+            if (addRect.bottom > height) {
                 val range = (height / commandFontSize)
                 addRect.top = (Random.nextInt(1, range.toInt()) * commandFontSize).toInt()
                 addRect.bottom = (addRect.top + commandFontSize).toInt()

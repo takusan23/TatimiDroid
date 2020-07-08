@@ -199,6 +199,8 @@ class DevNicoVideoSearchFragment : Fragment() {
                 // 追加。UIスレッドへ
                 if (isAdded) {
                     withContext(Dispatchers.Main) {
+                        // リスト更新
+                        nicoVideoListAdapter.notifyDataSetChanged()
                         // スクロール位置復元
                         fragment_nicovideo_search_recyclerview.apply {
                             (layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, yPos)
