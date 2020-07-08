@@ -64,7 +64,7 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         // RecyclerViewのNicoVideoDataの中から投稿者の配列を取る
         val nameList = cacheFragment.recyclerViewList.map { nicoVideoData ->
             nicoVideoData.uploaderName
-        }.toList()
+        }.toList().distinct()
         nameList.forEach {
             if (it != null) {
                 uploaderNameList.add(it)
@@ -72,7 +72,7 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         }
         // Adapter作成
         val adapter =
-            AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_list_item_1, uploaderNameList)
+            AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_list_item_1, uploaderNameList)
         bottom_fragment_cache_filter_uploader_textview.setAdapter(adapter)
         bottom_fragment_cache_filter_uploader_textview.addTextChangedListener {
             filter()
@@ -89,25 +89,23 @@ class DevNicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         val tagVideoList = cacheFragment.recyclerViewList.map { nicoVideoData ->
             nicoVideoData.videoTag ?: arrayListOf()
         }
-        // 全ての動画のタグを一つの配列にしてまとめる
-        val tagList = tagVideoList.flatten().distinct()
-        val adapter = ArrayAdapter(context!!, android.R.layout.simple_list_item_1, tagList)
+        // 全ての動画のタグを一つの配列にしてまとめる。そして被りを消してアルファベット順？
+        val tagList = tagVideoList.flatten().distinct().sorted()
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, tagList)
         bottom_fragment_cache_filter_tag_autocomplete.setAdapter(adapter)
-        bottom_fragment_cache_filter_tag_autocomplete.addTextChangedListener {
-            if (it.toString().isNotEmpty()) {
-                // Chip追加
-                val chip = Chip(context).apply {
-                    text = it.toString()
-                    isCloseIconVisible = true // 閉じる追加
-                    setOnCloseIconClickListener {
-                        bottom_fragment_cache_filter_tag_chip.removeView(it)
-                        filter()
-                    }
+        bottom_fragment_cache_filter_tag_autocomplete.setOnItemClickListener { adapterView, view, i, l ->
+            // Chip追加
+            val chip = Chip(context).apply {
+                text = tagList[i]
+                isCloseIconVisible = true // 閉じる追加
+                setOnCloseIconClickListener {
+                    bottom_fragment_cache_filter_tag_chip.removeView(it)
+                    filter()
                 }
-                bottom_fragment_cache_filter_tag_chip.addView(chip)
-                bottom_fragment_cache_filter_tag_autocomplete.setText("", false)
-                filter()
             }
+            bottom_fragment_cache_filter_tag_chip.addView(chip)
+            bottom_fragment_cache_filter_tag_autocomplete.setText("", true)
+            filter()
         }
     }
 
