@@ -195,7 +195,9 @@ class AutoAdmissionService : Service() {
         //予約無い時
         if (programList.isEmpty()) {
             programList = getString(R.string.auto_admission_empty)
-            // 無いので落とす
+            // 無いので落とす。stopSelf()は使えなかった
+            stopForeground(true)
+            return
         }
         // Oreo以降は通知チャンネルいる
         // Oreo以降はサービス実行中です通知を出す必要がある。

@@ -329,7 +329,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     //コテハン読み込み
     private fun loadKotehan(kotehanMap: MutableMap<String, String>) {
         if (kotehanMap.containsKey(userId)) {
-            bottom_fragment_comment_menu_kotehan_edit_text.setText(kotehanMap.get(userId))
+            bottom_fragment_comment_menu_kotehan_edit_text.setText(kotehanMap[userId])
         } else {
             //コテハンなかった
             bottom_fragment_comment_menu_kotehan_edit_text.setText(userId)

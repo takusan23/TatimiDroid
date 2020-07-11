@@ -100,7 +100,6 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             }
             setShuffleMode(shuffleMode)
         }
-
         return START_NOT_STICKY
     }
 

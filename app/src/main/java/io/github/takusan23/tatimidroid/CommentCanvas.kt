@@ -503,9 +503,12 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                         addRect.top = obj.yPos.toInt()
                         addRect.bottom = (addRect.top + commandFontSize).toInt()
                     }
+
                     // なお画面外の場合はランダム。
                     if (addRect.bottom > height) {
-                        val randomStart = Random.nextInt(1, height)
+                        // heightが0の時は適当に10にする
+                        val until = if (height > 0) height else 10
+                        val randomStart = Random.nextInt(1, until)
                         addRect.top = randomStart
                         addRect.bottom = (addRect.top + commandFontSize).toInt()
                         return
@@ -524,8 +527,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 commandFontSize
             )
             commentObjList.add(commentObj)
-
-
+            // commentLine[addRect.left.toFloat()] = commentObj
         } else if (command.contains("ue") && tmpCommand.replace("blue|blue([0-9])".toRegex(), "").contains("ue")) {
             // 上コメ
             // なんだけどコメントがコメントキャンバスを超えるときの対応をしないといけない。

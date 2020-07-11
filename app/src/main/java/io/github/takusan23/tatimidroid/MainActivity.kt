@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences
     //val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
