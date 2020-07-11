@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.Adapter
 
 import android.content.Context
 import android.content.Intent
-import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
@@ -14,15 +13,23 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.Fragment.CommunityListFragment
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
+import io.github.takusan23.tatimidroid.Room.Database.AutoAdmissionDB
+import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * 予約枠自動入場の一覧表示で使うAdapter
+ * */
 class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
     RecyclerView.Adapter<AutoAdmissionAdapter.ViewHolder>() {
 
-    private lateinit var autoAdmissionSQLiteSQLite: AutoAdmissionSQLiteSQLite
-    private lateinit var sqLiteDatabase: SQLiteDatabase
+    // データベース
+    lateinit var autoAdmissionDB: AutoAdmissionDB
     lateinit var communityListFragment: CommunityListFragment
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -50,21 +57,19 @@ class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayLis
         holder.deleteButton.setOnClickListener {
 
             //初期化したか
-            if (!this@AutoAdmissionAdapter::autoAdmissionSQLiteSQLite.isInitialized) {
-                autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(content)
-                sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
-                autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
+            if (!this@AutoAdmissionAdapter::autoAdmissionDB.isInitialized) {
+                autoAdmissionDB = AutoAdmissionDBInit(content).commentCollectionDB
             }
 
             //削除
-            Snackbar.make(holder.timeTextView, content.getText(R.string.delete_message), Snackbar.LENGTH_SHORT)
-                .setAction(content.getText(R.string.delete)) {
-                    // 削除
-                    sqLiteDatabase.delete("auto_admission", "liveid=?", arrayOf(liveid))
-
+            Snackbar.make(holder.timeTextView, content.getText(R.string.delete_message), Snackbar.LENGTH_SHORT).setAction(content.getText(R.string.delete)) {
+                // 削除
+                GlobalScope.launch(Dispatchers.Main) {
+                    withContext(Dispatchers.IO) {
+                        autoAdmissionDB.autoAdmissionDBDAO().deleteById(liveid)
+                    }
                     // 再読み込み
                     communityListFragment.getAutoAdmissionList()
-
                     // Service再起動
                     val intent = Intent(content, AutoAdmissionService::class.java)
                     content.stopService(intent)
@@ -73,8 +78,8 @@ class AutoAdmissionAdapter(private val arrayListArrayAdapter: ArrayList<ArrayLis
                     } else {
                         content.startService(intent)
                     }
-
-                }.show()
+                }
+            }.show()
 
         }
     }

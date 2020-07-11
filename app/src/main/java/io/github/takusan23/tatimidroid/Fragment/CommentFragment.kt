@@ -59,7 +59,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
+import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.*
@@ -122,9 +122,6 @@ class CommentFragment : Fragment() {
     var roomName = ""         // 部屋の名前
     var chairNo = ""         // 席の場所
     lateinit var nicoLiveJSON: JSONObject
-
-    // NGコメント/ユーザー関連。Adapterでもここのを使ってる
-    lateinit var ngDataBaseTool: NGDataBaseTool
 
     /** コメント表示をOFFにする場合はtrue */
     var isCommentHide = false
@@ -234,6 +231,10 @@ class CommentFragment : Fragment() {
     /** 全画面再生時はtrue */
     var isFullScreenMode = false
 
+    // NG関係
+    var ngUserList = listOf<String>()
+    var ngCommentList = listOf<String>()
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.activity_comment, container, false)
     }
@@ -274,8 +275,11 @@ class CommentFragment : Fragment() {
             googleCast.init()
         }
 
-        // NGデータベース
-        ngDataBaseTool = NGDataBaseTool(context)
+        // データベース初期化
+        GlobalScope.launch(Dispatchers.IO) {
+            ngCommentList = NGDBInit(requireContext()).ngDataBase.ngDBDAO().getNGCommentList().map { ngdbEntity -> ngdbEntity.value }
+            ngUserList = NGDBInit(requireContext()).ngDataBase.ngDBDAO().getNGUserList().map { ngdbEntity -> ngdbEntity.value }
+        }
 
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
         isOfficial = arguments?.getBoolean("isOfficial") ?: false
@@ -839,8 +843,8 @@ class CommentFragment : Fragment() {
         registerKotehan(commentJSONParse)
         // NGユーザー/コメントの場合は「NGコメントです表記」からそもそも非表示に(配列に追加しない)するように。
         when {
-            ngDataBaseTool.ngUserStringList.contains(commentJSONParse.userId) -> return
-            ngDataBaseTool.ngCommentStringList.contains(commentJSONParse.comment) -> return
+            ngCommentList.contains(commentJSONParse.userId) -> return
+            ngCommentList.contains(commentJSONParse.comment) -> return
         }
         /*
          * 重複しないように。
@@ -2090,8 +2094,9 @@ class CommentFragment : Fragment() {
         }
     }
 
+    /** コメントコレクションのデータベースを読み出す */
     fun loadCommentPOSTList() {
-        //データベース
+/*
         val commentCollection = CommentCollectionSQLiteHelper(context!!)
         val sqLiteDatabase = commentCollection.writableDatabase
         commentCollection.setWriteAheadLoggingEnabled(false)
@@ -2125,6 +2130,7 @@ class CommentFragment : Fragment() {
         comment_cardview_comment_list_button.setOnClickListener {
             popup.show()
         }
+*/
     }
 
     fun getSnackbarAnchorView(): View? {
@@ -2156,7 +2162,7 @@ class CommentFragment : Fragment() {
             uncomeTextView.gravity = Gravity.CENTER
             //表示アニメーション
             val showAnimation =
-                AnimationUtils.loadAnimation(context!!, R.anim.unnei_comment_show_animation)
+                AnimationUtils.loadAnimation(requireContext(), R.anim.unnei_comment_show_animation)
             //表示
             uncomeTextView.startAnimation(showAnimation)
             Timer().schedule(timerTask {
@@ -2172,7 +2178,7 @@ class CommentFragment : Fragment() {
             if (this@CommentFragment::uncomeTextView.isInitialized) {
                 //表示アニメーション
                 val hideAnimation =
-                    AnimationUtils.loadAnimation(context!!, R.anim.unnei_comment_close_animation)
+                    AnimationUtils.loadAnimation(requireContext(), R.anim.unnei_comment_close_animation)
                 //表示
                 uncomeTextView.startAnimation(hideAnimation)
                 //初期化済みなら
@@ -2198,7 +2204,7 @@ class CommentFragment : Fragment() {
         infoTextView.gravity = Gravity.CENTER
         //表示アニメーション
         val showAnimation =
-            AnimationUtils.loadAnimation(context!!, R.anim.comment_cardview_show_animation)
+            AnimationUtils.loadAnimation(requireContext(), R.anim.comment_cardview_show_animation)
         //表示
         infoTextView.startAnimation(showAnimation)
         infoTextView.visibility = View.VISIBLE

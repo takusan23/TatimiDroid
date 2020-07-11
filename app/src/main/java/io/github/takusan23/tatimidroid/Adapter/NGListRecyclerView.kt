@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.Adapter
 
-import android.database.sqlite.SQLiteDatabase
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,18 +10,18 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
-import io.github.takusan23.tatimidroid.Tool.DataClass.NGData
-import io.github.takusan23.tatimidroid.Tool.NGDataBaseTool
+import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
+import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.ArrayList
 
 /**
  * NG一覧表示RecyclerView。削除とかできるよ
  * */
-class NGListRecyclerView(private val arrayListArrayAdapter: ArrayList<NGData>) : RecyclerView.Adapter<NGListRecyclerView.ViewHolder>() {
-
-    // NGデータベース関連
-    lateinit var ngDataBaseTool: NGDataBaseTool
+class NGListRecyclerView(private val arrayListArrayAdapter: ArrayList<NGDBEntity>) : RecyclerView.Adapter<NGListRecyclerView.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_ng_list_layout, parent, false)
@@ -38,35 +37,30 @@ class NGListRecyclerView(private val arrayListArrayAdapter: ArrayList<NGData>) :
         val item = arrayListArrayAdapter[position]
         val context = holder.nameTextView.context
 
-        // 初期化する
-        if (!::ngDataBaseTool.isInitialized) {
-            ngDataBaseTool = (context as NGListActivity).ngDataBaseTool
-        }
-
-        //入れる
+        // 入れる
         val type = item.type
         val value = item.value
         holder.nameTextView.text = value
-        //削除
+        // 削除
         holder.deleteButton.setOnClickListener {
-            //Snackbar
+            // Snackbar
             Snackbar.make(holder.nameTextView, context.getText(R.string.delete_message), Snackbar.LENGTH_SHORT).setAction(context.getText(R.string.delete)) {
-                //削除
-                if (item.isComment) {
-                    ngDataBaseTool.deleteNGComment(value)
-                } else {
-                    ngDataBaseTool.deleteNGUser(value)
-                }
-                //再読み込み
-                if (context is NGListActivity) {
-                    if (item.isComment) {
-                        context.loadNGComment()
-                    } else {
-                        context.loadNGUser()
+                GlobalScope.launch(Dispatchers.Main) {
+                    //削除
+                    withContext(Dispatchers.IO) {
+                        NGDBInit(context).ngDataBase.ngDBDAO().deleteByValue(value)
                     }
+                    //再読み込み
+                    if (context is NGListActivity) {
+                        if (type == "comment") {
+                            context.loadNGComment()
+                        } else {
+                            context.loadNGUser()
+                        }
+                    }
+                    //消したメッセージ
+                    Toast.makeText(context, context.getText(R.string.delete_successful), Toast.LENGTH_SHORT).show()
                 }
-                //消したメッセージ
-                Toast.makeText(context, context.getText(R.string.delete_successful), Toast.LENGTH_SHORT).show()
             }.show()
         }
 

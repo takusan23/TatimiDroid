@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.Adapter
 
-import android.database.sqlite.SQLiteDatabase
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,15 +9,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Activity.CommentCollectionListActivity
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
 import kotlinx.android.synthetic.main.activity_comment_postlist.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
-class CommentPOSTListRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
-    RecyclerView.Adapter<CommentPOSTListRecyclerViewAdapter.ViewHolder>() {
-
-    lateinit var commentCollectionSQLiteHelper: CommentCollectionSQLiteHelper
-    lateinit var sqLiteDatabase: SQLiteDatabase
+class CommentPOSTListRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) : RecyclerView.Adapter<CommentPOSTListRecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -39,42 +37,25 @@ class CommentPOSTListRecyclerViewAdapter(private val arrayListArrayAdapter: Arra
         val context = holder.textview.context
         val commentActivity = context as CommentCollectionListActivity
 
-        if (!this@CommentPOSTListRecyclerViewAdapter::commentCollectionSQLiteHelper.isInitialized) {
-            //データベース
-            commentCollectionSQLiteHelper = CommentCollectionSQLiteHelper(context)
-            sqLiteDatabase = commentCollectionSQLiteHelper.writableDatabase
-            commentCollectionSQLiteHelper.setWriteAheadLoggingEnabled(false)
-        }
-
-        //入れる
+        // 入れる
         holder.textview.text = title
         holder.yomitextview.text = yomi
 
-        //削除
+        // 削除
         holder.deletebutton.setOnClickListener {
-            //Snackbar
-            Snackbar.make(
-                holder.textview,
-                context.getText(R.string.delete_message),
-                Snackbar.LENGTH_SHORT
-            )
-                .setAction(context.getText(R.string.delete)) {
-                    //削除
-                    sqLiteDatabase.delete(
-                        "comment_collection_db",
-                        "comment=?",
-                        arrayOf(title)
-                    )
-                    //再読み込み
+            // Snackbar
+            Snackbar.make(holder.textview, context.getText(R.string.delete_message), Snackbar.LENGTH_SHORT).setAction(context.getText(R.string.delete)) {
+                GlobalScope.launch(Dispatchers.Main) {
+                    withContext(Dispatchers.IO) {
+                        // 削除
+                        context.commentCollectionDB.commentCollectionDBDAO().deleteByComment(title)
+                    }
+                    // 再読み込み
                     context.loadList()
-
-                    //消したメッセージ
-                    Snackbar.make(
-                        holder.textview,
-                        context.getText(R.string.delete_successful),
-                        Snackbar.LENGTH_SHORT
-                    ).show()
-                }.show()
+                    // 消したメッセージ
+                    Snackbar.make(holder.textview, context.getText(R.string.delete_successful), Snackbar.LENGTH_SHORT).show()
+                }
+            }.show()
         }
 
         //編集

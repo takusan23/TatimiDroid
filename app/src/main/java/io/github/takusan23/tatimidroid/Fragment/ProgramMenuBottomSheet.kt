@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.*
-import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -22,13 +21,12 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
 import io.github.takusan23.tatimidroid.Tool.ProgramShare
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
+import io.github.takusan23.tatimidroid.Room.Database.AutoAdmissionDB
+import io.github.takusan23.tatimidroid.Room.Entity.AutoAdmissionDBEntity
+import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import kotlinx.android.synthetic.main.bottom_fragment_program_menu.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.json.JSONObject
 
 /**
@@ -40,8 +38,7 @@ import org.json.JSONObject
 class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
     private lateinit var prefSetting: SharedPreferences
-    private lateinit var autoAdmissionSQLite: AutoAdmissionSQLiteSQLite
-    private lateinit var sqLiteDatabase: SQLiteDatabase
+    private lateinit var autoAdmissionDB: AutoAdmissionDB
     lateinit var programData: ProgramData
 
     // データ取得
@@ -110,9 +107,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun initDB() {
-        autoAdmissionSQLite = AutoAdmissionSQLiteSQLite(context!!)
-        sqLiteDatabase = autoAdmissionSQLite.writableDatabase
-        autoAdmissionSQLite.setWriteAheadLoggingEnabled(false)
+        autoAdmissionDB = AutoAdmissionDBInit(requireContext()).commentCollectionDB
     }
 
     private fun initAutoAdmission() {
@@ -133,10 +128,10 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
             }
         }
         // 予約枠自動入場
-        bottom_fragment_program_info_auto_admission_official_app.setOnClickListener { addAutoAdmissionDB(AutoAdmissionSQLiteSQLite.LAUNCH_OFFICIAL_APP) }
-        bottom_fragment_program_info_auto_admission_tatimidroid_app.setOnClickListener { addAutoAdmissionDB(AutoAdmissionSQLiteSQLite.LAUNCH_TATIMIDROID_APP) }
-        bottom_fragment_program_info_auto_admission_popup.setOnClickListener { addAutoAdmissionDB(AutoAdmissionSQLiteSQLite.LAUNCH_POPUP) }
-        bottom_fragment_program_info_auto_admission_background.setOnClickListener { addAutoAdmissionDB(AutoAdmissionSQLiteSQLite.LAUNCH_BACKGROUND) }
+        bottom_fragment_program_info_auto_admission_official_app.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_OFFICIAL_APP) }
+        bottom_fragment_program_info_auto_admission_tatimidroid_app.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_TATIMIDROID_APP) }
+        bottom_fragment_program_info_auto_admission_popup.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_POPUP) }
+        bottom_fragment_program_info_auto_admission_background.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_BACKGROUND) }
 
         // Android 10だとバッググラウンドからActivity開けないので塞ぎ
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -150,67 +145,62 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
      * */
     private fun addAutoAdmissionDB(type: String) {
         // 書き込み済みか確認
-        if (!isAddedDB()) {
-            // 未登録
-            val contentValues = ContentValues()
-            contentValues.put("name", programData.title)
-            contentValues.put("liveid", programData.programId)
-            contentValues.put("start", programData.beginAt)
-            contentValues.put("app", type)
-            contentValues.put("description", "")
-            sqLiteDatabase.insert("auto_admission", null, contentValues)
-            // Service再起動
-            // Toastに表示させるアプリ名
-            val appName = when (type) {
-                AutoAdmissionSQLiteSQLite.LAUNCH_TATIMIDROID_APP -> getString(R.string.app_name)
-                AutoAdmissionSQLiteSQLite.LAUNCH_OFFICIAL_APP -> getString(R.string.nicolive_app)
-                AutoAdmissionSQLiteSQLite.LAUNCH_POPUP -> getString(R.string.popup_player)
-                AutoAdmissionSQLiteSQLite.LAUNCH_BACKGROUND -> getString(R.string.background_play)
-                else -> getString(R.string.app_name)
-            }
-            Toast.makeText(
-                context,
-                "${context?.getString(R.string.added)}\n${programData.title} ${nicoLiveHTML.iso8601ToFormat(programData.beginAt.toLong())} (${appName})",
-                Toast.LENGTH_SHORT
-            ).show()
-            //Service再起動
-            val intent = Intent(context, AutoAdmissionService::class.java)
-            context?.stopService(intent)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context?.startForegroundService(intent)
+        GlobalScope.launch(Dispatchers.Main) {
+            if (!isAddedDB()) {
+                // 未登録なら登録
+                withContext(Dispatchers.IO) {
+                    val autoAdmissionData = AutoAdmissionDBEntity(name = programData.title, liveId = programData.programId, startTime = programData.beginAt, lanchApp = type, description = "")
+                    autoAdmissionDB.autoAdmissionDBDAO().insert(autoAdmissionData)
+                }
+                // Service再起動
+                // Toastに表示させるアプリ名
+                val appName = when (type) {
+                    AutoAdmissionDBEntity.LAUNCH_TATIMIDROID_APP -> getString(R.string.app_name)
+                    AutoAdmissionDBEntity.LAUNCH_OFFICIAL_APP -> getString(R.string.nicolive_app)
+                    AutoAdmissionDBEntity.LAUNCH_POPUP -> getString(R.string.popup_player)
+                    AutoAdmissionDBEntity.LAUNCH_BACKGROUND -> getString(R.string.background_play)
+                    else -> getString(R.string.app_name)
+                }
+                Toast.makeText(context, "${context?.getString(R.string.added)}\n${programData.title} ${nicoLiveHTML.iso8601ToFormat(programData.beginAt.toLong())} (${appName})", Toast.LENGTH_SHORT).show()
+                //Service再起動
+                val intent = Intent(context, AutoAdmissionService::class.java)
+                context?.stopService(intent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context?.startForegroundService(intent)
+                } else {
+                    context?.startService(intent)
+                }
+                dismiss()
+
             } else {
-                context?.startService(intent)
-            }
-            dismiss()
-        } else {
-            // 登録済みなら削除できるように
-            Snackbar.make(bottom_fragment_program_info_auto_admission_official_app, R.string.already_added, Snackbar.LENGTH_SHORT)
-                .apply {
+                // 登録済みなら削除できるように
+                Snackbar.make(bottom_fragment_program_info_auto_admission_official_app, R.string.already_added, Snackbar.LENGTH_SHORT).apply {
                     setAction(R.string.delete) {
                         deleteAutoAdmissionDB()
                         dismiss()
                     }
                     show()
                 }
+            }
         }
     }
 
-    // すでに予約枠自動入場DBに追加済みか。書き込み済みならtrue
-    private fun isAddedDB(): Boolean {
-        val cursor =
-            sqLiteDatabase.query(AutoAdmissionSQLiteSQLite.TABLE_NAME, arrayOf("liveid"), "liveid=?", arrayOf(liveId), null, null, null)
-        val count = cursor.count
-        cursor.close()
-        return count != 0
+    // すでに予約枠自動入場DBに追加済みか。書き込み済みならtrue。コルーチン内で使ってね
+    private suspend fun isAddedDB() = withContext(Dispatchers.IO) {
+        autoAdmissionDB.autoAdmissionDBDAO().getLiveIdList(liveId).isNotEmpty()
     }
 
     // 予約枠自動入場から番組を消す
     private fun deleteAutoAdmissionDB() {
-        sqLiteDatabase.delete(AutoAdmissionSQLiteSQLite.TABLE_NAME, "liveid=?", arrayOf(liveId))
-        //Service再起動
-        val intent = Intent(context, AutoAdmissionService::class.java)
-        context?.stopService(intent)
-        context?.startService(intent)
+        GlobalScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                autoAdmissionDB.autoAdmissionDBDAO().deleteById(liveId)
+            }
+            // Service再起動
+            val intent = Intent(context, AutoAdmissionService::class.java)
+            context?.stopService(intent)
+            context?.startService(intent)
+        }
     }
 
 

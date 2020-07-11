@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -13,16 +12,12 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.chip.Chip
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 
 class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
-    lateinit var commentCollectionSQLiteHelper: CommentCollectionSQLiteHelper
-    lateinit var sqLiteDatabase: SQLiteDatabase
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,10 +33,6 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_post_linearlayout.background =
             ColorDrawable(darkModeSupport.getThemeColor())
 
-        //データベース
-        commentCollectionSQLiteHelper = CommentCollectionSQLiteHelper(context!!)
-        sqLiteDatabase = commentCollectionSQLiteHelper.writableDatabase
-        commentCollectionSQLiteHelper.setWriteAheadLoggingEnabled(false)
 
         val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         val nicocasmode = pref_setting.getBoolean("setting_nicocas_mode", false)
@@ -80,10 +71,6 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
             false
         }
 
-
-        //コメントリスト読み込む
-        loadCommentPOSTList()
-
     }
 
     override fun onDestroy() {
@@ -92,31 +79,4 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
         //val imm = context!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         //imm.hideSoftInputFromWindow(bottom_fragment_post_edittext.windowToken, 0)
     }
-
-    fun loadCommentPOSTList() {
-        val cursor = sqLiteDatabase.query(
-            "comment_collection_db",
-            arrayOf("comment", "description"),
-            null, null, null, null, null
-        )
-        cursor.moveToFirst()
-        for (i in 0 until cursor.count) {
-            //コメント
-            val comment = cursor.getString(0)
-
-            //コメントChip
-            val chip = Chip(context)
-            chip.text = comment
-            bottom_fragment_chip_group.addView(chip)
-
-            //クリック
-            chip.setOnClickListener {
-                bottom_fragment_post_edittext.append(comment)
-            }
-
-            cursor.moveToNext()
-        }
-        cursor.close()
-    }
-
 }

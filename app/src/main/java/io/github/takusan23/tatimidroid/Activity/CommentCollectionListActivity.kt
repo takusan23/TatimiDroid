@@ -1,7 +1,5 @@
 package io.github.takusan23.tatimidroid.Activity
 
-import android.content.ContentValues
-import android.database.sqlite.SQLiteDatabase
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
@@ -10,13 +8,19 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.Adapter.CommentPOSTListRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
+import io.github.takusan23.tatimidroid.Room.Database.CommentCollectionDB
+import io.github.takusan23.tatimidroid.Room.Entity.CommentCollectionDBEntity
+import io.github.takusan23.tatimidroid.Room.Init.CommentCollectionDBInit
 import kotlinx.android.synthetic.main.activity_comment_postlist.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CommentCollectionListActivity : AppCompatActivity() {
 
-    lateinit var commentCollection: CommentCollectionSQLiteHelper
-    lateinit var sqLiteDatabase: SQLiteDatabase
+    // データベース
+    lateinit var commentCollectionDB: CommentCollectionDB
 
     //コメントコレクションにすでに登録されていれば上書きする
     val commentCollectionYomiList = arrayListOf<String>()
@@ -41,82 +45,73 @@ class CommentCollectionListActivity : AppCompatActivity() {
         val mLayoutManager = LinearLayoutManager(this)
         activity_comment_post_list_recyclerview.layoutManager =
             mLayoutManager as RecyclerView.LayoutManager?
-        commentPOSTListRecyclerViewAdapter =
-            CommentPOSTListRecyclerViewAdapter(recyclerViewList)
+        commentPOSTListRecyclerViewAdapter = CommentPOSTListRecyclerViewAdapter(recyclerViewList)
         activity_comment_post_list_recyclerview.adapter = commentPOSTListRecyclerViewAdapter
         recyclerViewLayoutManager = activity_comment_post_list_recyclerview.layoutManager!!
 
-        //データベース
-        commentCollection = CommentCollectionSQLiteHelper(this)
-        sqLiteDatabase = commentCollection.writableDatabase
-        commentCollection.setWriteAheadLoggingEnabled(false)
+        // データベース初期化
+        commentCollectionDB = CommentCollectionDBInit(this).commentCollectionDB
 
         //登録
         activity_comment_post_list_add.setOnClickListener {
             val comment = activity_comment_post_list_comment_inputedittext.text.toString()
             val yomi = activity_comment_post_list_yomi_inputedittext.text.toString()
-            val contentValues = ContentValues()
-            contentValues.put("comment", comment)
-            contentValues.put("yomi", yomi)
-            contentValues.put("description", "")
-            //上書きするか新規で入れるか。読みがかぶったら上書き。
-            if (commentCollectionYomiList.contains(yomi)) {
-                //上書き
-                sqLiteDatabase.update(
-                    "comment_collection_db",
-                    contentValues,
-                    "yomi=?",
-                    arrayOf(yomi)
-                )
-                //Toast
-                Toast.makeText(
-                    this,
-                    getString(R.string.comment_collection_change_successful),
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                //新規
-                sqLiteDatabase.insert("comment_collection_db", null, contentValues)
-                //Toast
-                Toast.makeText(
-                    this,
-                    getString(R.string.comment_collection_add_successful),
-                    Toast.LENGTH_SHORT
-                ).show()
+            GlobalScope.launch(Dispatchers.Main) {
+                val filterList = withContext(Dispatchers.IO) {
+                    commentCollectionDB.commentCollectionDBDAO().getAll().filter { commentCollectionEntity -> commentCollectionEntity.yomi == yomi }
+                }
+                // 上書きするか新規で入れるか。読みがかぶったら上書き。
+                if (filterList.isNotEmpty()) {
+                    // 上書き
+                    val newEntity = filterList[0].copy(comment = comment, yomi = yomi)
+                    withContext(Dispatchers.IO) {
+                        commentCollectionDB.commentCollectionDBDAO().update(newEntity)
+                    }
+                    //Toast
+                    Toast.makeText(this@CommentCollectionListActivity, getString(R.string.comment_collection_change_successful), Toast.LENGTH_SHORT).show()
+                    //読み込み
+                    loadList()
+                } else {
+                    // 新規作成
+                    withContext(Dispatchers.IO) {
+                        val commentCollectionEntity = CommentCollectionDBEntity(comment = comment, yomi = yomi, description = "")
+                        commentCollectionDB.commentCollectionDBDAO().insert(commentCollectionEntity)
+                    }
+                    //Toast
+                    Toast.makeText(this@CommentCollectionListActivity, getString(R.string.comment_collection_add_successful), Toast.LENGTH_SHORT).show()
+                    //読み込み
+                    loadList()
+                }
             }
-            //読み込み
-            loadList()
         }
 
         //読み込み
         loadList()
     }
 
+    /**
+     * 読み込む
+     * */
     fun loadList() {
         recyclerViewList.clear()
-        val cursor = sqLiteDatabase.query(
-            "comment_collection_db",
-            arrayOf("comment", "yomi", "description"),
-            null, null, null, null, null
-        )
-        cursor.moveToFirst()
-        for (i in 0 until cursor.count) {
-            val comment = cursor.getString(0)
-            val yomi = cursor.getString(1)
-            //RecyclerView追加
-            val item = arrayListOf<String>()
-            item.add("")
-            item.add(comment)
-            item.add(yomi)
-            recyclerViewList.add(item)
-            //上書きか新規か確認できるように配列に入れておく
-            commentCollectionYomiList.add(yomi)
-            //つぎへ
-            cursor.moveToNext()
-        }
-        cursor.close()
-        //リスト更新
-        runOnUiThread {
+        commentCollectionYomiList.clear()
+        GlobalScope.launch(Dispatchers.Main) {
+            // コルーチン
+            withContext(Dispatchers.IO) {
+                // データベースから値を取る
+                commentCollectionDB.commentCollectionDBDAO().getAll().forEach { data ->
+                    //RecyclerView追加
+                    val item = arrayListOf<String>()
+                    item.add(data.id.toString())
+                    item.add(data.comment)
+                    item.add(data.yomi)
+                    recyclerViewList.add(item)
+                    //上書きか新規か確認できるように配列に入れておく
+                    commentCollectionYomiList.add(data.yomi)
+                }
+            }
+            println(recyclerViewList)
+            // 更新
             commentPOSTListRecyclerViewAdapter.notifyDataSetChanged()
         }
     }

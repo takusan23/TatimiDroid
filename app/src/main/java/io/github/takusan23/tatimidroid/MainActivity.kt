@@ -5,7 +5,6 @@ import android.content.*
 import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.View
 import android.widget.Toast
@@ -18,8 +17,6 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
-import io.github.takusan23.tatimidroid.SQLiteHelper.CommentCollectionSQLiteHelper
-import io.github.takusan23.tatimidroid.SQLiteHelper.CommentPOSTListSQLiteHelper
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.GlobalScope
@@ -138,7 +135,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         //データベース移行
-        convertCommentPOSTListToCommentCollection()
+        // convertCommentPOSTListToCommentCollection()
 
     }
 
@@ -247,6 +244,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+/*
     //コメント投稿リストからコメントコメントコレクションにデータベース移動
     //移動理由は単純に名前がわかりにくいってだけです。
     fun convertCommentPOSTListToCommentCollection() {
@@ -284,6 +282,7 @@ class MainActivity : AppCompatActivity() {
             println("新データベース（コメントコレクション）へ移行済みです。")
         }
     }
+*/
 
     /**
      * 生放送、番組ID入力画面

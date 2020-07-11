@@ -48,6 +48,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
+import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
 import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
@@ -151,7 +152,6 @@ class DevNicoVideoFragment : Fragment() {
     lateinit var devNicoVideoFragmentData: DevNicoVideoFragmentData
 
     // NG機能とコテハン
-    lateinit var ngDataBaseTool: NGDataBaseTool
     val kotehanMap = mutableMapOf<String, String>()
 
     /** 全画面再生時はtrue */
@@ -166,7 +166,6 @@ class DevNicoVideoFragment : Fragment() {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(requireContext())
         nicoVideoCache = NicoVideoCache(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
-        ngDataBaseTool = NGDataBaseTool(context)
 
         // 端末内履歴DB初期化
         nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(requireContext())
@@ -703,10 +702,12 @@ class DevNicoVideoFragment : Fragment() {
     fun commentFilter(notify: Boolean = true) = GlobalScope.async(Dispatchers.IO) {
         // 3DSけす？
         val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
+        // NG配列。mapでNGコメント/NGユーザーの配列に変換する
+        val ngList = NGDBInit(requireContext()).ngDataBase.ngDBDAO().getAll().map { ngdbEntity -> ngdbEntity.value }
         // NG機能
-        commentList = rawCommentList.filter { commentJSONParse ->
-            !ngDataBaseTool.ngCommentStringList.contains(commentJSONParse.comment) || !ngDataBaseTool.ngUserStringList.contains(commentJSONParse.userId)
-        } as ArrayList<CommentJSONParse>
+        commentList = rawCommentList
+            .filter { commentJSONParse -> !ngList.contains(commentJSONParse.comment) }
+            .filter { commentJSONParse -> !ngList.contains(commentJSONParse.userId) } as ArrayList<CommentJSONParse>
         if (is3DSCommentHidden) {
             // device:3DSが入ってるコメント削除。dropWhileでもいい気がする
             commentList = commentList.toList().filter { commentJSONParse -> !commentJSONParse.mail.contains("device:3DS") } as ArrayList<CommentJSONParse>

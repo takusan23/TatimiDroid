@@ -8,7 +8,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -16,14 +15,24 @@ import androidx.core.net.toUri
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
+import io.github.takusan23.tatimidroid.Room.Database.AutoAdmissionDB
+import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.concurrent.timerTask
 
+/**
+ * 予約枠自動入場サービス
+ * バックグラウンドから起動できるように
+ * */
 class AutoAdmissionService : Service() {
 
-    lateinit var autoAdmissionSQLiteSQLite: AutoAdmissionSQLiteSQLite
-    lateinit var sqLiteDatabase: SQLiteDatabase
+    // データベース
+    lateinit var autoAdmissionDB: AutoAdmissionDB
+
     lateinit var notificationManager: NotificationManager
     lateinit var broadcastReceiver: BroadcastReceiver
 
@@ -32,16 +41,12 @@ class AutoAdmissionService : Service() {
     override fun onCreate() {
         super.onCreate()
 
-        notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         //データベース読み込み
         //初期化したか
-        if (!this@AutoAdmissionService::autoAdmissionSQLiteSQLite.isInitialized) {
-            autoAdmissionSQLiteSQLite =
-                AutoAdmissionSQLiteSQLite(applicationContext)
-            sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
-            autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
+        if (!this@AutoAdmissionService::autoAdmissionDB.isInitialized) {
+            autoAdmissionDB = AutoAdmissionDBInit(this).commentCollectionDB
         }
         //通知
         showForegroundNotification()
@@ -82,8 +87,9 @@ class AutoAdmissionService : Service() {
             stopSelf()
             startService(Intent(applicationContext, AutoAdmissionService::class.java))
             // 該当の番組をデータベースから消す
-            sqLiteDatabase.delete("auto_admission", "liveid=?", arrayOf(liveid))
-
+            GlobalScope.launch(Dispatchers.IO) {
+                autoAdmissionDB.autoAdmissionDBDAO().deleteById(liveid)
+            }
         }, calendar.time)
 
         /**
@@ -159,89 +165,82 @@ class AutoAdmissionService : Service() {
 
     fun showForegroundNotification() {
         var programList = ""
-        //SQLite読み出し
-        val cursor = sqLiteDatabase.query(
-            "auto_admission",
-            arrayOf("name", "liveid", "start", "app"),
-            null, null, null, null, null
-        )
-        cursor.moveToFirst()
-        for (i in 0 until cursor.count) {
-
-            val programName = cursor.getString(0)
-            val liveId = cursor.getString(1)
-            val start = cursor.getString(2)
-            val app = cursor.getString(3)
-
-            //未来の番組だけ読み込む（終わってるのは読み込まない）
-            if ((Calendar.getInstance().timeInMillis / 1000L) < start.toLong()) {
-                val calendar = Calendar.getInstance()
-                calendar.timeInMillis = start.toLong() * 1000L
-                //登録
-                registerAutoAdmission(liveId, programName, app, calendar)
-                //通知に表示
-                val month = calendar.get(Calendar.MONTH)
-                val date = calendar.get(Calendar.DATE)
-                val hour = calendar.get(Calendar.HOUR_OF_DAY)
-                val minute = calendar.get(Calendar.MINUTE)
-
-                val program = "${programName}- ${liveId} (${month + 1}/$date $hour:$minute)"
-                programList = programList + "\n" + program
+        // データベースへ
+        GlobalScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                // 取り出す
+                autoAdmissionDB.autoAdmissionDBDAO().getAll().forEach { data ->
+                    val programName = data.name
+                    val liveId = data.liveId
+                    val start = data.startTime
+                    val app = data.lanchApp
+                    // 未来の番組だけ読み込む（終わってるのは読み込まない）
+                    if ((Calendar.getInstance().timeInMillis / 1000L) < start.toLong()) {
+                        val calendar = Calendar.getInstance()
+                        calendar.timeInMillis = start.toLong() * 1000L
+                        //登録
+                        registerAutoAdmission(liveId, programName, app, calendar)
+                        //通知に表示
+                        val month = calendar.get(Calendar.MONTH)
+                        val date = calendar.get(Calendar.DATE)
+                        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+                        val minute = calendar.get(Calendar.MINUTE)
+                        val program = "${programName}- ${liveId} (${month + 1}/$date $hour:$minute)"
+                        programList = programList + "\n" + program
+                    }
+                }
             }
-            cursor.moveToNext()
-        }
-        cursor.close()
-
-        //予約無い時
-        if (programList.isEmpty()) {
-            programList = getString(R.string.auto_admission_empty)
-            // 無いので落とす。stopSelf()は使えなかった
-            stopForeground(true)
-            return
-        }
-        // Oreo以降は通知チャンネルいる
-        // Oreo以降はサービス実行中です通知を出す必要がある。
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel =
-                NotificationChannel("auto_admission_notification", getString(R.string.auto_admission_notification), NotificationManager.IMPORTANCE_LOW)
-            // 通知チャンネル登録
-            if (notificationManager.getNotificationChannel("auto_admission_notification") == null) {
-                notificationManager.createNotificationChannel(notificationChannel)
+            //予約無い時
+            if (programList.isEmpty()) {
+                programList = getString(R.string.auto_admission_empty)
+                // 無いので落とす。stopSelf()は使えなかった
+                stopForeground(true)
+                return@launch
             }
-            // 通知作成
-            val notification =
-                NotificationCompat.Builder(applicationContext, "auto_admission_notification")
-                    .setContentTitle(getString(R.string.auto_admission_notification))
-                    .setSmallIcon(R.drawable.ic_auto_admission_icon)
-                    .setContentTitle(getString(R.string.auto_admission_notification_message))
-                    .setStyle(NotificationCompat.BigTextStyle().bigText(programList))
-                    .addAction(R.drawable.ic_clear_black, getString(R.string.end), PendingIntent.getBroadcast(this, 865, Intent("close_auto_admission"), PendingIntent.FLAG_UPDATE_CURRENT))
-                    .build()
-            // 表示
-            startForeground(1, notification)
-        } else {
-            // Android ぬがーでも通知出す
-            // 通知作成
-            val notification =
-                NotificationCompat.Builder(applicationContext)
-                    .setContentTitle(getString(R.string.auto_admission_notification))
-                    .setSmallIcon(R.drawable.ic_auto_admission_icon)
-                    .setContentTitle(getString(R.string.auto_admission_notification_message))
-                    .setStyle(NotificationCompat.BigTextStyle().bigText(programList))
-                    .addAction(R.drawable.ic_clear_black, getString(R.string.end), PendingIntent.getBroadcast(this, 865, Intent("close_auto_admission"), PendingIntent.FLAG_UPDATE_CURRENT))
-                    .build()
-            // 表示
-            startForeground(1, notification)
-        }
-        // ブロードキャスト受け取る
-        val intentFilter = IntentFilter()
-        intentFilter.addAction("close_auto_admission")
-        broadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                stopSelf()
+            // Oreo以降は通知チャンネルいる
+            // Oreo以降はサービス実行中です通知を出す必要がある。
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val notificationChannel =
+                    NotificationChannel("auto_admission_notification", getString(R.string.auto_admission_notification), NotificationManager.IMPORTANCE_LOW)
+                // 通知チャンネル登録
+                if (notificationManager.getNotificationChannel("auto_admission_notification") == null) {
+                    notificationManager.createNotificationChannel(notificationChannel)
+                }
+                // 通知作成
+                val notification =
+                    NotificationCompat.Builder(applicationContext, "auto_admission_notification")
+                        .setContentTitle(getString(R.string.auto_admission_notification))
+                        .setSmallIcon(R.drawable.ic_auto_admission_icon)
+                        .setContentTitle(getString(R.string.auto_admission_notification_message))
+                        .setStyle(NotificationCompat.BigTextStyle().bigText(programList))
+                        .addAction(R.drawable.ic_clear_black, getString(R.string.end), PendingIntent.getBroadcast(this@AutoAdmissionService, 865, Intent("close_auto_admission"), PendingIntent.FLAG_UPDATE_CURRENT))
+                        .build()
+                // 表示
+                startForeground(1, notification)
+            } else {
+                // Android ぬがーでも通知出す
+                // 通知作成
+                val notification =
+                    NotificationCompat.Builder(applicationContext)
+                        .setContentTitle(getString(R.string.auto_admission_notification))
+                        .setSmallIcon(R.drawable.ic_auto_admission_icon)
+                        .setContentTitle(getString(R.string.auto_admission_notification_message))
+                        .setStyle(NotificationCompat.BigTextStyle().bigText(programList))
+                        .addAction(R.drawable.ic_clear_black, getString(R.string.end), PendingIntent.getBroadcast(this@AutoAdmissionService, 865, Intent("close_auto_admission"), PendingIntent.FLAG_UPDATE_CURRENT))
+                        .build()
+                // 表示
+                startForeground(1, notification)
             }
+            // ブロードキャスト受け取る
+            val intentFilter = IntentFilter()
+            intentFilter.addAction("close_auto_admission")
+            broadcastReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    stopSelf()
+                }
+            }
+            registerReceiver(broadcastReceiver, intentFilter)
         }
-        registerReceiver(broadcastReceiver, intentFilter)
     }
 
     override fun onDestroy() {

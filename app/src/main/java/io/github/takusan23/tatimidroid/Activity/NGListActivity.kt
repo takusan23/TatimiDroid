@@ -1,18 +1,18 @@
 package io.github.takusan23.tatimidroid.Activity
 
-import android.database.sqlite.SQLiteDatabase
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Adapter.NGListRecyclerView
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.NGListSQLiteHelper
-import io.github.takusan23.tatimidroid.Tool.DataClass.NGData
-import io.github.takusan23.tatimidroid.Tool.NGDataBaseTool
+import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
+import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import kotlinx.android.synthetic.main.activity_nglist.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * NG一覧Activity
@@ -20,11 +20,8 @@ import kotlinx.android.synthetic.main.activity_nglist.*
 class NGListActivity : AppCompatActivity() {
 
     // RecyclerView関連
-    var recyclerViewList = arrayListOf<NGData>()
+    var recyclerViewList = arrayListOf<NGDBEntity>()
     lateinit var ngListRecyclerView: NGListRecyclerView
-
-    // NGデータベース
-    lateinit var ngDataBaseTool: NGDataBaseTool
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,8 +37,6 @@ class NGListActivity : AppCompatActivity() {
         activity_ng_recyclerview.layoutManager = mLayoutManager
         ngListRecyclerView = NGListRecyclerView(recyclerViewList)
         activity_ng_recyclerview.adapter = ngListRecyclerView
-
-        ngDataBaseTool = NGDataBaseTool(this)
 
         // BottomNavigation
         activity_ng_bottom_nav.setOnNavigationItemSelectedListener {
@@ -59,10 +54,14 @@ class NGListActivity : AppCompatActivity() {
     //NGコメント読み込み
     fun loadNGComment() {
         recyclerViewList.clear()
-        ngDataBaseTool.ngCommentList.forEach {
-            recyclerViewList.add(it)
-        }
-        runOnUiThread {
+        GlobalScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                // データ読み出し
+                NGDBInit(this@NGListActivity).ngDataBase.ngDBDAO().getNGCommentList().forEach {
+                    recyclerViewList.add(it)
+                }
+            }
+            // リスト更新
             ngListRecyclerView.notifyDataSetChanged()
         }
     }
@@ -70,10 +69,14 @@ class NGListActivity : AppCompatActivity() {
     //NGユーザー読み込み
     fun loadNGUser() {
         recyclerViewList.clear()
-        ngDataBaseTool.ngUserList.forEach {
-            recyclerViewList.add(it)
-        }
-        runOnUiThread {
+        GlobalScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                // データ読み出し
+                NGDBInit(this@NGListActivity).ngDataBase.ngDBDAO().getNGUserList().forEach {
+                    recyclerViewList.add(it)
+                }
+            }
+            // リスト更新
             ngListRecyclerView.notifyDataSetChanged()
         }
     }

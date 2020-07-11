@@ -1,29 +1,28 @@
 package io.github.takusan23.tatimidroid.Activity
 
 import android.content.ClipboardManager
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.SpannableString
 import androidx.core.net.toUri
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Room.Entity.AutoAdmissionDBEntity
+import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
 import kotlinx.android.synthetic.main.activity_kono_app.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.regex.Pattern
 
 class KonoApp : AppCompatActivity() {
-
-    //データベース
-    lateinit var autoAdmissionSQLiteSQLite: AutoAdmissionSQLiteSQLite
-    lateinit var sqLiteDatabase: SQLiteDatabase
 
     /*
     * 作者のTwitter、Mastodonリンク
@@ -65,13 +64,13 @@ class KonoApp : AppCompatActivity() {
 
         kono_app_imageview.setOnLongClickListener {
             //いーすたーえっぐ
-            setEasterEgg(AutoAdmissionSQLiteSQLite.LAUNCH_POPUP)
+            setEasterEgg(AutoAdmissionDBEntity.LAUNCH_POPUP)
             false
         }
 
         kono_app_title.setOnLongClickListener {
             //いーすたーえっぐ
-            setEasterEgg(AutoAdmissionSQLiteSQLite.LAUNCH_OFFICIAL_APP)
+            setEasterEgg(AutoAdmissionDBEntity.LAUNCH_POPUP)
             false
         }
 
@@ -96,41 +95,26 @@ class KonoApp : AppCompatActivity() {
         val nicoID_Matcher = Pattern.compile("(lv)([0-9]+)")
             .matcher(SpannableString(clipdata?.getItemAt(0)?.text ?: ""))
         if (nicoID_Matcher.find()) {
-            //番組ID
+            // 番組ID
             val liveId = nicoID_Matcher.group()
-
-            //初期化済みか
-            if (!this@KonoApp::autoAdmissionSQLiteSQLite.isInitialized) {
-                //初期化
-                autoAdmissionSQLiteSQLite =
-                    AutoAdmissionSQLiteSQLite(this)
-                sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
-                //読み込む速度が上がる機能？データベースファイル以外の謎ファイルが生成されるので無効化。
-                autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
-            }
-
-            //10秒先を指定
+            // 10秒先を指定
             val calender = Calendar.getInstance()
             calender.add(Calendar.SECOND, +10)
-
-            //書き込む
-            val contentValues = ContentValues()
-            contentValues.put("name", "イースターエッグ")
-            contentValues.put("liveid", liveId)
-            contentValues.put("start", (calender.timeInMillis / 1000L).toString())
-            contentValues.put("app", app)
-            contentValues.put("description", "")
-
-            sqLiteDatabase.insert("auto_admission", null, contentValues)
-            Snackbar.make(kono_app_imageview, "10秒後にコピーした番組へ移動します！", Snackbar.LENGTH_SHORT)
-                .show()
-            //Service再起動
-            val intent = Intent(this, AutoAdmissionService::class.java)
-            stopService(intent)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
+            GlobalScope.launch(Dispatchers.Main) {
+                // DB追加
+                val autoAdmissionDBEntity = AutoAdmissionDBEntity(name = "イースターエッグ", startTime = (calender.timeInMillis / 1000L).toString(), liveId = liveId, lanchApp = app, description = "")
+                withContext(Dispatchers.IO) {
+                    AutoAdmissionDBInit(this@KonoApp).commentCollectionDB.autoAdmissionDBDAO().insert(autoAdmissionDBEntity)
+                }
+                Snackbar.make(kono_app_imageview, "10秒後にコピーした番組へ移動します！", Snackbar.LENGTH_SHORT).show()
+                //Service再起動
+                val intent = Intent(this@KonoApp, AutoAdmissionService::class.java)
+                stopService(intent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent)
+                } else {
+                    startService(intent)
+                }
             }
         } else {
             Snackbar.make(kono_app_imageview, "番組IDをコピーしてね！", Snackbar.LENGTH_SHORT).show()

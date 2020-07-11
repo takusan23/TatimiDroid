@@ -21,7 +21,7 @@ import io.github.takusan23.tatimidroid.Adapter.CommunityRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
-import io.github.takusan23.tatimidroid.SQLiteHelper.AutoAdmissionSQLiteSQLite
+import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_community_list_layout.community_recyclerview
@@ -42,7 +42,6 @@ class CommunityListFragment : Fragment() {
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
     lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
-    lateinit var autoAdmissionSQLiteSQLite: AutoAdmissionSQLiteSQLite
     lateinit var sqLiteDatabase: SQLiteDatabase
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -301,47 +300,30 @@ class CommunityListFragment : Fragment() {
         }
     }
 
-    //予約枠自動入場機能
+    //予約枠自動入場一覧取得
     fun getAutoAdmissionList() {
         recyclerViewList.clear()
-
-        //初期化したか
-        if (!this@CommunityListFragment::autoAdmissionSQLiteSQLite.isInitialized) {
-            autoAdmissionSQLiteSQLite = AutoAdmissionSQLiteSQLite(requireContext())
-            sqLiteDatabase = autoAdmissionSQLiteSQLite.writableDatabase
-            autoAdmissionSQLiteSQLite.setWriteAheadLoggingEnabled(false)
-        }
-        //SQLite読み出し
-        val cursor = sqLiteDatabase.query(
-            "auto_admission",
-            arrayOf("name", "liveid", "start", "app"),
-            null, null, null, null, null
-        )
-        cursor.moveToFirst()
-        for (i in 0 until cursor.count) {
-
-            val programName = cursor.getString(0)
-            val liveId = cursor.getString(1)
-            val start = cursor.getString(2)
-            val app = cursor.getString(3)
-
-            //未来の番組だけ読み込む（終わってるのは読み込まない）
-            if ((Calendar.getInstance().timeInMillis / 1000L) < start.toLong()) {
-                //RecyclerView追加
-                val item = arrayListOf<String>()
-                item.add("")
-                item.add(programName)
-                item.add(liveId)
-                item.add(start)
-                item.add(app)
-                autoAdmissionRecyclerViewList.add(item)
+        autoAdmissionRecyclerViewList.clear()
+        // データベースアクセス
+        GlobalScope.launch(Dispatchers.Main) {
+            // 取り出す
+            withContext(Dispatchers.IO) {
+                val autoAdmissionList = AutoAdmissionDBInit(requireContext()).commentCollectionDB.autoAdmissionDBDAO().getAll()
+                // RecyclerViewへ
+                autoAdmissionList.forEach { data ->
+                    //未来の番組だけ読み込む（終わってるのは読み込まない）
+                    if ((Calendar.getInstance().timeInMillis / 1000L) < data.startTime.toLong()) {
+                        // RecyclerView追加
+                        val item = arrayListOf<String>()
+                        item.add("")
+                        item.add(data.name)
+                        item.add(data.liveId)
+                        item.add(data.startTime)
+                        item.add(data.lanchApp)
+                        autoAdmissionRecyclerViewList.add(item)
+                    }
+                }
             }
-            cursor.moveToNext()
-        }
-        cursor.close()
-
-        //リスト更新
-        activity?.runOnUiThread {
             autoAdmissionAdapter.notifyDataSetChanged()
             community_recyclerview.adapter = autoAdmissionAdapter
             swipeRefreshLayout.isRefreshing = false

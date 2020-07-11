@@ -23,6 +23,8 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.User.User
+import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
+import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.Tool.NICOLIVE_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
 import kotlinx.android.synthetic.main.adapter_comment_layout.*
@@ -267,51 +269,52 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     private fun setNGClick() {
         // Fragment取得
         val fragment = activity?.supportFragmentManager?.findFragmentByTag(liveId)
-        val ngDataBaseTool = if (fragment is CommentFragment) {
-            fragment.ngDataBaseTool // 生放送
-        } else if (fragment is DevNicoVideoFragment) {
-            fragment.ngDataBaseTool // 祝 動画にもNG機能
-        } else {
-            null // あ り え な い
-        }
-        //コメントNG追加
-        //長押しで登録
+        // コメントNG追加
+        // 長押しで登録
         bottom_fragment_comment_menu_comment_ng_button.setOnClickListener {
             showToast(getString(R.string.long_click))
         }
         bottom_fragment_comment_menu_comment_ng_button.setOnLongClickListener {
-            // NG追加
-            ngDataBaseTool?.addNGComment(comment)
-            //とーすと
-            showToast(getString(R.string.add_ng_comment_message))
-            // 動画なら一覧更新する
-            if (fragment is DevNicoVideoFragment) {
-                GlobalScope.launch {
-                    fragment.commentFilter().await()
+            GlobalScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.IO) {
+                    // NGコメント追加
+                    NGDBInit(requireContext()).ngDataBase.ngDBDAO().insert(NGDBEntity(value = comment, type = "comment", description = ""))
                 }
+                //とーすと
+                showToast(getString(R.string.add_ng_comment_message))
+                // 動画なら一覧更新する
+                if (fragment is DevNicoVideoFragment) {
+                    GlobalScope.launch {
+                        fragment.commentFilter().await()
+                    }
+                }
+                // 閉じる
+                dismiss()
             }
-            // 閉じる
-            dismiss()
             true
         }
-        //ユーザーNG追加
-        //長押しで登録
+        // ユーザーNG追加
+        // 長押しで登録
         bottom_fragment_comment_menu_user_ng_button.setOnClickListener {
             showToast(getString(R.string.long_click))
         }
         bottom_fragment_comment_menu_user_ng_button.setOnLongClickListener {
-            // NG追加
-            ngDataBaseTool?.addNGUser(userId)
-            //とーすと
-            showToast(getString(R.string.add_ng_user_message))
-            // 動画なら一覧更新する
-            if (fragment is DevNicoVideoFragment) {
-                GlobalScope.launch {
-                    fragment.commentFilter().await()
+            GlobalScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.IO) {
+                    // NGユーザー追加
+                    NGDBInit(requireContext()).ngDataBase.ngDBDAO().insert(NGDBEntity(value = userId, type = "user", description = ""))
                 }
+                // とーすと
+                showToast(getString(R.string.add_ng_user_message))
+                // 動画なら一覧更新する
+                if (fragment is DevNicoVideoFragment) {
+                    GlobalScope.launch {
+                        fragment.commentFilter().await()
+                    }
+                }
+                // 閉じる
+                dismiss()
             }
-            // 閉じる
-            dismiss()
             true
         }
     }

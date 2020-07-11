@@ -832,6 +832,7 @@ internal fun startLivePlayService(context: Context?, mode: String, liveId: Strin
             // 権限取得画面出す
             val intent =
                 Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${context?.packageName}"))
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             context?.startActivity(intent)
             return
         }
