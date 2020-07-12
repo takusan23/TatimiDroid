@@ -19,6 +19,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.view.updateLayoutParams
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -330,13 +331,8 @@ class NicoVideoPlayService : Service() {
                 val calc = width.toFloat() / height.toFloat()
                 // 小数点第二位を捨てる
                 aspect = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
-                popupLayoutParams = getParams(realSize.x / 2)
+                popupLayoutParams = getParams(prefSetting.getInt("nicovideo_popup_width", if (aspect == 1.3) 480 else 640)) // なければ 640 (4:3動画なら480)
                 windowManager.updateViewLayout(popupView, popupLayoutParams)
-                // 設定読み込む
-                // サイズ適用
-                popupView.overlay_video_size_seekbar.progress =
-                    prefSetting.getInt("nicovideo_popup_size_progress", 0)
-                // CommentCanvasに反映
                 applyCommentCanvas()
                 // 位置が保存されていれば適用
                 if (prefSetting.getInt("nicovideo_popup_x_pos", 0) != 0) {
@@ -417,8 +413,32 @@ class NicoVideoPlayService : Service() {
                 }
             }
 
-            // 画面サイズ
-            var displaySize = getDisplaySize()
+            // ピンチイン、ピンチアウトでズームできるようにする
+            val scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
+                override fun onScaleBegin(p0: ScaleGestureDetector?): Boolean {
+                    return true
+                }
+
+                override fun onScaleEnd(p0: ScaleGestureDetector?) {
+
+                }
+
+                override fun onScale(p0: ScaleGestureDetector?): Boolean {
+                    // ピンチイン/アウト中。
+                    if (p0 == null) return true
+                    // なんかうまくいくコード
+                    popupLayoutParams.height = (popupLayoutParams.height * p0.scaleFactor).toInt()
+                    popupLayoutParams.width = (popupLayoutParams.width * p0.scaleFactor).toInt()
+                    // 更新
+                    windowManager.updateViewLayout(popupView, popupLayoutParams)
+                    // 大きさを保持しておく
+                    prefSetting.edit {
+                        putInt("nicovideo_popup_height", popupLayoutParams.height)
+                        putInt("nicovideo_popup_width", popupLayoutParams.width)
+                    }
+                    return true
+                }
+            })
 
             // 移動
             popupView.setOnTouchListener { view, motionEvent ->
@@ -426,7 +446,10 @@ class NicoVideoPlayService : Service() {
                 val x = motionEvent.rawX.toInt()
                 val y = motionEvent.rawY.toInt()
                 // 画面回転に対応する（これで横/縦画面のときの最大値とか変えられる）
-                displaySize = getDisplaySize()
+                val displaySize = getDisplaySize()
+                // ついに直感的なズームが！？
+                scaleGestureDetector.onTouchEvent(motionEvent)
+                // 移動できるように
                 when (motionEvent.action) {
                     // Viewを移動させてるときに呼ばれる
                     MotionEvent.ACTION_MOVE -> {
@@ -446,59 +469,10 @@ class NicoVideoPlayService : Service() {
                             putInt("nicovideo_popup_x_pos", popupLayoutParams.x)
                             putInt("nicovideo_popup_y_pos", popupLayoutParams.y)
                         }
+                        return@setOnTouchListener true // setOnclickListenerが呼ばれてしまうため true 入れる
                     }
                 }
-                false
-            }
-
-            // 大きさ変更。まず変更前を入れておく
-            var normalHeight = -1
-            var normalWidth = -1
-            popupView.overlay_video_size_seekbar.apply {
-                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                        displaySize = getDisplaySize()
-                        // 初期値。動画再生時までアスペ比が取得できないのでサイズ変更を一番最初に行うときに最小サイズを取得。
-                        if (normalHeight == -1) {
-                            normalHeight = popupLayoutParams.height
-                            normalWidth = popupLayoutParams.width
-                        }
-                        // 大きさ変更シークの最大値設定。なんかこの式で期待通り動く。なんでか知らないけど動く。:thinking_face:
-                        popupView.overlay_video_size_seekbar.max = when (aspect) {
-                            1.3 -> (displaySize.x / 4) / 2
-                            1.7 -> (displaySize.x / 16) / 2
-                            else -> (displaySize.x / 16) / 2
-                        }
-                        // 操作中
-                        when (aspect) {
-                            1.3 -> {
-                                popupLayoutParams.height = normalHeight + (progress + 1) * 3
-                                popupLayoutParams.width = normalWidth + (progress + 1) * 4
-                            }
-                            1.7 -> {
-                                popupLayoutParams.height = normalHeight + (progress + 1) * 9
-                                popupLayoutParams.width = normalWidth + (progress + 1) * 16
-                            }
-                        }
-                        windowManager.updateViewLayout(popupView, popupLayoutParams)
-                        // CommentCanvasに反映
-                        applyCommentCanvas()
-                        // 位置保存。サイズ変更シーク位置を保存
-                        prefSetting.edit {
-                            putInt("nicovideo_popup_size_progress", popupView.overlay_video_size_seekbar.progress)
-                        }
-                        // コントローラー表示可能かどうか
-                        showVideoController()
-                    }
-
-                    override fun onStartTrackingTouch(seekBar: SeekBar?) {
-
-                    }
-
-                    override fun onStopTrackingTouch(seekBar: SeekBar?) {
-
-                    }
-                })
+                return@setOnTouchListener false
             }
 
             //アプリ起動
@@ -561,7 +535,7 @@ class NicoVideoPlayService : Service() {
     private fun showVideoController() {
 
         val buttonHeight = popupView.overlay_video_button_layout_button.height
-        val sizeSeekHeight = popupView.overlay_video_button_layout_size.height
+        val sizeSeekHeight = popupView.overlay_video_button_layout_button.height
         val totalHeight = buttonHeight + sizeSeekHeight
         if (totalHeight == 0) {
             // getHeight()が正しい値を返さないときは落とす
@@ -583,16 +557,19 @@ class NicoVideoPlayService : Service() {
 
     // サイズ変更をCommentCanvasに反映させる
     private fun applyCommentCanvas() {
-        commentCanvas.viewTreeObserver.addOnGlobalLayoutListener {
-            commentCanvas.apply {
-                finalHeight = commentCanvas.height
-                // コメントの高さの情報がある配列を消す。
-                // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
-                commentLine.clear()
-                ueCommentLine.clear()
-                sitaCommentLine.clear()
+        commentCanvas.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                commentCanvas.apply {
+                    finalHeight = commentCanvas.height
+                    // コメントの高さの情報がある配列を消す。
+                    // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
+                    commentLine.clear()
+                    ueCommentLine.clear()
+                    sitaCommentLine.clear()
+                }
+                commentCanvas.viewTreeObserver.removeOnGlobalLayoutListener(this)
             }
-        }
+        })
     }
 
     // コメント描画あああ
@@ -613,7 +590,7 @@ class NicoVideoPlayService : Service() {
                     val commentNo = if (it.commentNo == "-1" || it.commentNo.isEmpty()) {
                         // vposで代替
                         it.vpos
-                    }else{
+                    } else {
                         it.commentNo
                     }
                     drewedList.add(commentNo)
