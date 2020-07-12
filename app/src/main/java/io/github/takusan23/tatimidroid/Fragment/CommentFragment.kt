@@ -6,7 +6,6 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
 import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
@@ -59,8 +58,9 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
-import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
+import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
@@ -192,10 +192,6 @@ class CommentFragment : Fragment() {
     // 公式かどうか
     var isOfficial = false
 
-    //履歴機能
-    lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
-    lateinit var nicoHistorySQLiteDatabase: SQLiteDatabase
-
     // フォント変更機能
     lateinit var customFont: CustomFont
 
@@ -289,8 +285,6 @@ class CommentFragment : Fragment() {
 
         //スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        initDB()
 
         liveId = arguments?.getString("liveId") ?: ""
 
@@ -1297,13 +1291,6 @@ class CommentFragment : Fragment() {
         isAddedNicoNamaGame = false
     }
 
-    private fun initDB() {
-        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(requireContext())
-        nicoHistorySQLiteDatabase = nicoHistorySQLiteHelper.writableDatabase
-        nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
-    }
-
-
     private fun testEnquate() {
         setEnquetePOSTLayout(
             "/vote start コロナ患者近くにいる？ はい いいえ 僕がコロナです",
@@ -1386,19 +1373,21 @@ class CommentFragment : Fragment() {
     }
 
     // データベースに履歴追加
-    fun insertDB() {
-        val type = "live"
-        val unixTime = System.currentTimeMillis() / 1000
-        val contentValues = ContentValues()
-        contentValues.apply {
-            put("service_id", liveId)
-            put("user_id", communityID)
-            put("title", programTitle)
-            put("type", type)
-            put("date", unixTime)
-            put("description", "")
+    private fun insertDB() {
+        // Roomはメインスレッドでは使えない
+        GlobalScope.launch(Dispatchers.IO) {
+            val unixTime = System.currentTimeMillis() / 1000
+            // 入れるデータ
+            val nicoHistoryDBEntity = NicoHistoryDBEntity(
+                type = "video",
+                serviceId = liveId,
+                userId = communityID,
+                title = programTitle,
+                unixTime = unixTime,
+                description = ""
+            )
+            NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().insert(nicoHistoryDBEntity)
         }
-        nicoHistorySQLiteDatabase.insert(NicoHistorySQLiteHelper.TABLE_NAME, null, contentValues)
     }
 
     //経過時間計算

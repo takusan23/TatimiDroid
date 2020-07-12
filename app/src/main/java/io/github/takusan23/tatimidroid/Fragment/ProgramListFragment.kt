@@ -68,6 +68,8 @@ class ProgramListFragment : Fragment() {
      * @param page [CommunityListFragment.FOLLOW] など
      * */
     private fun setFragment(page: Int) {
+        // Fragmentが設置されてなければ落とす
+        if (!isAdded) return
         Handler(Looper.getMainLooper()).post {
             val communityListFragment = CommunityListFragment()
             val bundle = Bundle()

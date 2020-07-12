@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
 import android.graphics.Point
 import android.net.Uri
@@ -17,7 +16,6 @@ import android.os.Looper
 import android.text.format.DateUtils
 import android.view.*
 import android.view.animation.AnimationUtils
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.Toast
@@ -25,7 +23,6 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.Player
@@ -48,8 +45,9 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
+import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
-import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
+import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
@@ -57,7 +55,6 @@ import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
-import java.io.PipedOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
@@ -73,10 +70,6 @@ class DevNicoVideoFragment : Fragment() {
     lateinit var prefSetting: SharedPreferences
     lateinit var exoPlayer: SimpleExoPlayer
     lateinit var darkModeSupport: DarkModeSupport
-
-    // 端末内履歴DB
-    lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
-    lateinit var nicoHistorySQLiteDB: SQLiteDatabase
 
     // ハートビート
     var heartBeatTimer = Timer()
@@ -166,11 +159,6 @@ class DevNicoVideoFragment : Fragment() {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(requireContext())
         nicoVideoCache = NicoVideoCache(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
-
-        // 端末内履歴DB初期化
-        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(requireContext())
-        nicoHistorySQLiteDB = nicoHistorySQLiteHelper.writableDatabase
-        nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
 
         // ふぉんと
         font = CustomFont(context)
@@ -789,19 +777,24 @@ class DevNicoVideoFragment : Fragment() {
         }
     }
 
+    /** 端末内履歴に書き込む */
     private fun insertDB(videoTitle: String) {
-        val type = "video"
-        val unixTime = System.currentTimeMillis() / 1000
-        val contentValues = ContentValues()
-        contentValues.apply {
-            put("service_id", videoId)
-            put("user_id", "")
-            put("title", videoTitle)
-            put("type", type)
-            put("date", unixTime)
-            put("description", "")
+        // Roomはメインスレッドでは扱えない
+        GlobalScope.launch(Dispatchers.IO) {
+            val unixTime = System.currentTimeMillis() / 1000
+            // 入れるデータ
+            val publisherId = nicoVideoHTML.parsePublisherId(jsonObject)
+            val nicoHistoryDBEntity = NicoHistoryDBEntity(
+                type = "video",
+                serviceId = videoId,
+                userId = publisherId,
+                title = videoTitle,
+                unixTime = unixTime,
+                description = ""
+            )
+            // 追加
+            NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().insert(nicoHistoryDBEntity)
         }
-        nicoHistorySQLiteDB.insert(NicoHistorySQLiteHelper.TABLE_NAME, null, contentValues)
     }
 
     // Snackbarを表示させる関数
@@ -1158,15 +1151,17 @@ class DevNicoVideoFragment : Fragment() {
      * という複雑な方法をとっている（代わりに普通に動くようになった）
      * */
     fun drawComment() {
-        val currentPosition = exoPlayer.contentPosition / 100L
-        val currentPositionSec = exoPlayer.contentPosition / 1000
-        GlobalScope.launch {
+        GlobalScope.launch(Dispatchers.Main) {
+            val currentPosition = exoPlayer.contentPosition / 100L
+            val currentPositionSec = exoPlayer.contentPosition / 1000
             if (tmpPosition != currentPositionSec) {
                 drewedList.clear()
                 tmpPosition = currentPositionSec
             }
-            val drawList = commentList.filter { commentJSONParse ->
-                (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
+            val drawList = withContext(Dispatchers.IO) {
+                commentList.filter { commentJSONParse ->
+                    (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
+                }
             }
             drawList.forEach {
                 // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
@@ -1181,11 +1176,9 @@ class DevNicoVideoFragment : Fragment() {
                     }
                     if (!it.comment.contains("\n")) {
                         // SingleLine
-                        fragment_nicovideo_comment_canvas.post {
-                            // 画面回転するとnullになるのでちぇちぇちぇっくわんつー
-                            if (fragment_nicovideo_comment_canvas != null) {
-                                fragment_nicovideo_comment_canvas.postComment(it.comment, it)
-                            }
+                        // 画面回転するとnullになるのでちぇちぇちぇっくわんつー
+                        if (fragment_nicovideo_comment_canvas != null) {
+                            fragment_nicovideo_comment_canvas.postComment(it.comment, it)
                         }
                     } else {
                         // 複数行？
@@ -1195,11 +1188,9 @@ class DevNicoVideoFragment : Fragment() {
                             it.comment.split("\n")
                         }
                         for (line in asciiArtComment) {
-                            fragment_nicovideo_comment_canvas.post {
-                                // 画面回転対策
-                                if (fragment_nicovideo_comment_canvas != null) {
-                                    fragment_nicovideo_comment_canvas.postComment(line, it, true)
-                                }
+                            // 画面回転対策
+                            if (fragment_nicovideo_comment_canvas != null) {
+                                fragment_nicovideo_comment_canvas.postComment(line, it, true)
                             }
                         }
                     }

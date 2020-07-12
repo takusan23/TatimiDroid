@@ -11,10 +11,11 @@ import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 
-class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<String>>) :
+class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistoryDBEntity>) :
     RecyclerView.Adapter<NicoHistoryAdapter.ViewHolder>() {
 
     lateinit var editText: EditText
@@ -31,15 +32,15 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = arrayListArrayAdapter[position] as ArrayList<String>
-        val id = item.get(1)
-        val type = item.get(2)
-        val date = item.get(3)
-        val title = item.get(4)
-        val communityId = item.get(5)
+        val item = arrayListArrayAdapter[position]
+        val id = item.serviceId
+        val type = item.type
+        val date = item.unixTime
+        val title = item.title
+        val communityId = item.userId
 
         holder.titleTextView.text = "$title / $id"
-        holder.dateTextView.text = unixToDataFormat(date.toLong()).toString()
+        holder.dateTextView.text = unixToDataFormat(date).toString()
 
         //コミュIDをいれる
         holder.cardView.setOnClickListener {

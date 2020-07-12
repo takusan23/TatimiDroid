@@ -712,6 +712,25 @@ class NicoVideoHTML {
     }
 
     /**
+     * 投稿者のユーザーIDを取得する。
+     * ユーザー投稿動画ならユーザーID。
+     * 公式動画ならチャンネルID。
+     * アカウント消した場合は空文字が返ってきます。
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * */
+    fun parsePublisherId(jsonObject: JSONObject): String {
+        return when {
+            !jsonObject.isNull("owner") -> {
+                jsonObject.getJSONObject("owner").getString("id") // ユーザーID
+            }
+            !jsonObject.isNull("channel") -> {
+                jsonObject.getJSONObject("channel").getString("globalId") // 公式動画の時はチャンネルIDを
+            }
+            else -> "" // うｐ主が動画を消さずにアカウント消した場合は owner channel ともにnullになる。（というかアカウント消しても動画は残るんか）
+        }
+    }
+
+    /**
      * 終了時に呼んで
      * */
     fun destory() {

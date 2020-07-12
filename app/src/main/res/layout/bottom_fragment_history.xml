@@ -22,6 +22,7 @@
 
         <Button
                 android:id="@+id/bottom_fragment_history_delete_button"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/delete" />
@@ -74,10 +75,10 @@
     </HorizontalScrollView>
 
     <androidx.recyclerview.widget.RecyclerView
-            android:scrollbars="vertical"
             android:id="@+id/bottom_fragment_history_recyclerview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:scrollbars="vertical">
 
     </androidx.recyclerview.widget.RecyclerView>
 </LinearLayout>

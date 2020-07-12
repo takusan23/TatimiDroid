@@ -1,36 +1,35 @@
 package io.github.takusan23.tatimidroid.Fragment
 
-import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
-import android.provider.CalendarContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Adapter.NicoHistoryAdapter
-import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
+import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
+import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import kotlinx.android.synthetic.main.bottom_fragment_history.*
-import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 import kotlinx.android.synthetic.main.fragment_liveid.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.collections.ArrayList
 
+/**
+ * 端末内履歴[NicoHistoryDB]を表示するボトムシート
+ * */
 class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
 
     lateinit var editText: EditText
     lateinit var nicoHistoryAdapter: NicoHistoryAdapter
-    var recyclerViewList = arrayListOf<ArrayList<String>>()
-
-    lateinit var nicoHistorySQLiteHelper: NicoHistorySQLiteHelper
-    lateinit var sqLiteDatabase: SQLiteDatabase
+    var recyclerViewList = arrayListOf<NicoHistoryDBEntity>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_history, container, false)
@@ -39,11 +38,8 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //RecyclerView初期化
+        // RecyclerView初期化
         initRecyclerView()
-
-        //DB初期化
-        initDB()
 
         // 読み込み。初回のみ実行してあとはChip押したとき読み込む
         if (recyclerViewList.size == 0) {
@@ -52,7 +48,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
         // 件数表示
         showDBCount()
 
-        //削除
+        // 削除
         bottom_fragment_history_delete_button.setOnClickListener {
             showDeleteDialog()
         }
@@ -70,16 +66,20 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
             add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel)))
         }
         DialogBottomSheet(getString(R.string.delete_message), buttons) { i, bottomSheetDialogFragment ->
-            sqLiteDatabase.delete(NicoHistorySQLiteHelper.TABLE_NAME, null, null)
-            bottomSheetDialogFragment.dismiss()
-            dismiss()
+            GlobalScope.launch(Dispatchers.Main) {
+                // 吹っ飛ばす（全削除）
+                withContext(Dispatchers.IO) {
+                    NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().deleteAll()
+                }
+                bottomSheetDialogFragment.dismiss()
+                dismiss()
+            }
         }.show(getParentFragmentManager(), "delete")
     }
 
     // 件数表示
     private fun showDBCount() {
-        bottom_fragment_history_textview.text =
-            "${getString(R.string.history)}：${recyclerViewList.size}"
+        bottom_fragment_history_textview.text = "${getString(R.string.history)}：${recyclerViewList.size}"
     }
 
     /**
@@ -87,73 +87,51 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
      * */
     private fun loadHistory() {
         recyclerViewList.clear()
-        val query =
-            sqLiteDatabase.query(NicoHistorySQLiteHelper.TABLE_NAME, arrayOf("service_id", "type", "date", "title", "user_id"), null, null, null, null, null)
-        query.moveToFirst()
-        for (i in 0 until query.count) {
-            val id = query.getString(0)
-            val type = query.getString(1)
-            val date = query.getLong(2)
-            val title = query.getString(3)
-            val communityId = query.getString(4)
-            val item = arrayListOf<String>().apply {
-                add("")
-                add(id)
-                add(type)
-                add(date.toString())
-                add(title)
-                add(communityId)
+        GlobalScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                // DBから取り出す
+                NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().getAll().forEach { history ->
+                    recyclerViewList.add(0, history)
+                }
+                // 動画、生放送フィルター
+                val isVideo = bottom_fragment_history_chip_video.isChecked
+                val isLive = bottom_fragment_history_chip_live.isChecked
+                when {
+                    isVideo && isLive -> {
+                        recyclerViewList = recyclerViewList.filter { history ->
+                            history.type == "video" || history.type == "live"
+                        } as ArrayList<NicoHistoryDBEntity>
+                    }
+                    isVideo -> {
+                        recyclerViewList = recyclerViewList.filter { history ->
+                            history.type == "video"
+                        } as ArrayList<NicoHistoryDBEntity>
+                    }
+                    isLive -> {
+                        recyclerViewList = recyclerViewList.filter { history ->
+                            history.type == "live"
+                        } as ArrayList<NicoHistoryDBEntity>
+                    }
+                }
+                // 今日のみ
+                if (bottom_fragment_history_chip_today.isChecked) {
+                    // から
+                    val calender = Calendar.getInstance()
+                    calender.set(Calendar.HOUR, 0)
+                    calender.set(Calendar.MINUTE, 0)
+                    calender.set(Calendar.SECOND, 0)
+                    val from = calender.time.time / 1000L
+                    // まで
+                    val to = System.currentTimeMillis() / 1000L
+                    recyclerViewList = recyclerViewList.filter { history ->
+                        history.unixTime in from..to // 範囲に入ってるか
+                    } as ArrayList<NicoHistoryDBEntity>
+                }
             }
-            recyclerViewList.add(0, item)
-            query.moveToNext()
+            // 結果表示
+            initRecyclerView()
+            showDBCount()
         }
-        query.close()
-
-        // 動画、生放送フィルター
-        val isVideo = bottom_fragment_history_chip_video.isChecked
-        val isLive = bottom_fragment_history_chip_live.isChecked
-        when {
-            isVideo && isLive -> {
-                recyclerViewList = recyclerViewList.filter { arrayList ->
-                    arrayList[2] == "video" || arrayList[2] == "live"
-                } as ArrayList<ArrayList<String>>
-            }
-            isVideo -> {
-                recyclerViewList = recyclerViewList.filter { arrayList ->
-                    arrayList[2] == "video"
-                } as ArrayList<ArrayList<String>>
-            }
-            isLive -> {
-                recyclerViewList = recyclerViewList.filter { arrayList ->
-                    arrayList[2] == "live"
-                } as ArrayList<ArrayList<String>>
-            }
-        }
-
-        // 今日のみ
-        if (bottom_fragment_history_chip_today.isChecked) {
-            // から
-            val calender = Calendar.getInstance()
-            calender.set(Calendar.HOUR, 0)
-            calender.set(Calendar.MINUTE, 0)
-            calender.set(Calendar.SECOND, 0)
-            val from = calender.time.time / 1000L
-            // まで
-            val to = System.currentTimeMillis() / 1000L
-            recyclerViewList = recyclerViewList.filter { arrayList ->
-                arrayList[3].toLong() in from..to // 範囲に入ってるか
-            } as ArrayList<ArrayList<String>>
-        }
-
-        // 結果表示
-        initRecyclerView()
-        showDBCount()
-    }
-
-    private fun initDB() {
-        nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(context!!)
-        sqLiteDatabase = nicoHistorySQLiteHelper.writableDatabase
-        nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
     }
 
     private fun initRecyclerView() {

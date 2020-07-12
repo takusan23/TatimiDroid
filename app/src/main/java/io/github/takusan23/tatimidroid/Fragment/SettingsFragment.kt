@@ -1,25 +1,20 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.TextView
 import androidx.core.net.toUri
-import androidx.core.widget.addTextChangedListener
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.Activity.LicenceActivity
-import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.SQLiteHelper.NicoHistorySQLiteHelper
+import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
-import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 
 
@@ -112,27 +107,26 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         firstTimeDay?.setOnPreferenceClickListener { preference ->
-            // DB用意
-            val nicoHistorySQLiteHelper = NicoHistorySQLiteHelper(requireContext())
-            val sqLiteDatabase = nicoHistorySQLiteHelper.writableDatabase
-            nicoHistorySQLiteHelper.setWriteAheadLoggingEnabled(false)
-            // 探す
-            val cursor = sqLiteDatabase.query(NicoHistorySQLiteHelper.TABLE_NAME, arrayOf("service_id", "type", "date", "title", "user_id"), null, null, null, null, null)
-            cursor.moveToFirst()
-            if (cursor.count > 0) {
-                val title = cursor.getString(3)
-                val time = cursor.getString(2)
-                val id = cursor.getString(1)
-                val service = cursor.getString(0)
+            GlobalScope.launch(Dispatchers.Main) {
+                // 最初に使った日特定
+                val list = withContext(Dispatchers.IO) {
+                    NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().getAll()
+                }
+                if (list.isEmpty()) return@launch // なければ落とす
+                // 取り出す
+                val history = list.first()
+                val title = history.title
+                val time = history.unixTime
+                val id = history.serviceId
+                val service = history.type
                 // 今日からの何日前か。詳しくは NicoVideoInfoFragment#getDayCount() みて。ほぼ同じことしてる。
-                val dayCalc = ((System.currentTimeMillis() / 1000) - time.toLong()) / 60 / 60 / 24
+                val dayCalc = ((System.currentTimeMillis() / 1000) - time) / 60 / 60 / 24
                 preference.summary = """
-                                        最初に見たもの：$title ($id/ $service)
-                                        一番最初に使った日：${toFormatTime(time.toLong() * 1000)}
-                                        今日から引くと：$dayCalc 日前
-                                    """.trimIndent()
+                最初に見たもの：$title ($id/ $service)
+                一番最初に使った日：${toFormatTime(time * 1000)}
+                今日から引くと：$dayCalc 日前
+             """.trimIndent()
             }
-            cursor.close()
             false
         }
 
