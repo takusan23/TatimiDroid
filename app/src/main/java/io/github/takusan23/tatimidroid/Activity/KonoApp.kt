@@ -35,8 +35,8 @@ class KonoApp : AppCompatActivity() {
     /*
     * バージョンとか
     * */
-    val version = "2020/06/25"
-    val codeName1 = "（ββ)" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
+    val version = "2020/07/14"
+    val codeName1 = "（９)" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
