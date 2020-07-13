@@ -14,10 +14,8 @@ import android.provider.Settings
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.WindowManager
+import android.text.method.NumberKeyListener
+import android.view.*
 import android.widget.FrameLayout
 import android.widget.SeekBar
 import android.widget.Toast
@@ -407,10 +405,9 @@ class NicoLivePlayService : Service() {
         val disp = wm.getDefaultDisplay()
         val realSize = Point();
         disp.getRealSize(realSize);
-        val width = realSize.x / 2
-
+        val width = 640
         //アスペクト比16:9なので
-        val height = (width / 16) * 9
+        val height = 360
         //レイアウト読み込み
         val layoutInflater = LayoutInflater.from(this)
         // オーバーレイViewの設定をする
@@ -461,6 +458,11 @@ class NicoLivePlayService : Service() {
             stopSelf()
         }
 
+        // サイズ変更の仕様変更メッセージ
+        popupView.overlay_size_change_message_button.setOnClickListener {
+            Toast.makeText(this, getString(R.string.popup_size_change_message), Toast.LENGTH_SHORT).show()
+        }
+
         //アプリ起動
         popupView.overlay_activity_launch.setOnClickListener {
             stopSelf()
@@ -496,18 +498,43 @@ class NicoLivePlayService : Service() {
             }
         }
 
-        // 画面サイズ
-        var displaySize = getDisplaySize()
+        // ピンチイン、ピンチアウトでズームなど
+        // ピンチイン、ピンチアウトって単語、スマホ黎明期みたいで懐かしいな
+        val scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
+            override fun onScaleBegin(p0: ScaleGestureDetector?): Boolean {
+                return true
+            }
+
+            override fun onScaleEnd(p0: ScaleGestureDetector?) {
+
+            }
+
+            override fun onScale(p0: ScaleGestureDetector?): Boolean {
+                // ズーム操作中
+                if (p0 == null) return true
+                // なんかうまくいくコード
+                params.height = (params.height * p0.scaleFactor).toInt()
+                params.width = (params.width * p0.scaleFactor).toInt()
+                // 更新
+                windowManager.updateViewLayout(popupView, params)
+                // 大きさを保持しておく
+                prefSetting.edit {
+                    putInt("nicolive_popup_width", params.height)
+                    putInt("nicolive_popup_width", params.width)
+                }
+                return true
+            }
+        })
 
         // 移動
         popupView.setOnTouchListener { view, motionEvent ->
             // タップした位置を取得する
             val x = motionEvent.rawX.toInt()
             val y = motionEvent.rawY.toInt()
-
             // 画面回転対応させるために画面サイズ再取得
-            displaySize = getDisplaySize()
-
+            val displaySize = getDisplaySize()
+            // ピンチイン、ピンチアウト対応
+            scaleGestureDetector.onTouchEvent(motionEvent)
             when (motionEvent.action) {
                 // Viewを移動させてるときに呼ばれる
                 MotionEvent.ACTION_MOVE -> {
@@ -524,9 +551,10 @@ class NicoLivePlayService : Service() {
                         putInt("nicolive_popup_x_pos", params.x)
                         putInt("nicolive_popup_y_pos", params.y)
                     }
+                    return@setOnTouchListener true // ここのtrue意味あるんかな
                 }
             }
-            false
+            return@setOnTouchListener false
         }
 
         //ボタン表示
@@ -542,51 +570,6 @@ class NicoLivePlayService : Service() {
 
         popupView.overlay_send_comment_button.setOnClickListener {
             showNotification(programTitle)
-        }
-
-        // 大きさ変更。まず変更前を入れておく
-        var normalWidth = params.width
-        var normalHeight = params.height
-        popupView.overlay_size_seekbar.apply {
-            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    // はみ出すときはデフォルトに戻す
-                    if (params.width > displaySize.x) {
-                        normalWidth = displaySize.x / 2
-                        normalHeight = (normalWidth / 16) * 9
-                    }
-                    // 大きさ変更シークの最大値設定。なんかこの式で期待通り動く。なんでか知らないけど動く。:thinking_face:
-                    popupView.overlay_size_seekbar.max = (displaySize.x / 16) / 2
-                    // 操作中
-                    params.height = normalHeight + (progress + 1) * 9
-                    params.width = normalWidth + (progress + 1) * 16
-                    windowManager.updateViewLayout(popupView, params)
-                    // サイズ変更をCommentCanvasに反映させる
-                    commentCanvas.viewTreeObserver.addOnGlobalLayoutListener {
-                        commentCanvas.apply {
-                            finalHeight = commentCanvas.height
-                            // コメントの高さの情報がある配列を消す。
-                            // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
-                            commentLine.clear()
-                            ueCommentLine.clear()
-                            sitaCommentLine.clear()
-                        }
-                    }
-                    // サイズを保存しておく
-                    prefSetting.edit {
-                        putInt("nicolive_popup_width", params.width)
-                        putInt("nicolive_popup_height", params.height)
-                    }
-                }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {
-
-                }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {
-
-                }
-            })
         }
 
         // サイズが保存されていれば適用
@@ -606,6 +589,7 @@ class NicoLivePlayService : Service() {
             }
             windowManager.updateViewLayout(popupView, params)
         }
+
         // 位置が保存されていれば適用
         if (prefSetting.getInt("nicolive_popup_x_pos", 0) != 0) {
             params.x = prefSetting.getInt("nicolive_popup_x_pos", 0)

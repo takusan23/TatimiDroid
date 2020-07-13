@@ -399,6 +399,11 @@ class NicoVideoPlayService : Service() {
                 }
             }
 
+            // サイズ変更の仕様変更メッセージ
+            popupView.overlay_video_size_change_message_button.setOnClickListener {
+                Toast.makeText(this, getString(R.string.popup_size_change_message), Toast.LENGTH_SHORT).show()
+            }
+
             // ボタン表示
             popupView.setOnClickListener {
                 if (popupView.overlay_video_button_layout.visibility == View.GONE) {
@@ -548,8 +553,7 @@ class NicoVideoPlayService : Service() {
 
         // 表示可能でなおボタン類が表示状態なら表示
         if (space > controllerHeight && popupView.overlay_video_button_layout.visibility == View.VISIBLE) {
-            popupView.overlay_video_controller_layout.visibility =
-                View.VISIBLE
+            popupView.overlay_video_controller_layout.visibility = View.VISIBLE
         } else {
             popupView.overlay_video_controller_layout.visibility = View.GONE
         }

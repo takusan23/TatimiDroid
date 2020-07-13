@@ -468,4 +468,5 @@
     <string name="setting_darkmode_app_description">You can enable dark mode as in the terminal settings, or you can always set it to dark mode.The change will be reflected after rebooting.</string>
     <string name="close_fullscreen">End full screen</string>
     <string name="rookie">rookie</string>
+    <string name="popup_size_change_message">You can adjust the size with pinch in and pinch out.</string>
 </resources>

@@ -468,4 +468,5 @@
     <string name="setting_darkmode_app_description">端末の設定と同じようにダークモードを有効にしたり、常にダークモードにできます。変更は再起動後に反映します。</string>
     <string name="close_fullscreen">全画面終了</string>
     <string name="rookie">ルーキー番組</string>
+    <string name="popup_size_change_message">ピンチイン、ピンチアウトで大きさを調整できます。</string>
 </resources>
