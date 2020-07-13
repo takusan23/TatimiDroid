@@ -432,8 +432,13 @@ class NicoVideoPlayService : Service() {
                     // ピンチイン/アウト中。
                     if (p0 == null) return true
                     // なんかうまくいくコード
-                    popupLayoutParams.height = (popupLayoutParams.height * p0.scaleFactor).toInt()
                     popupLayoutParams.width = (popupLayoutParams.width * p0.scaleFactor).toInt()
+                    // 縦の大きさは計算で出す（widthの時と同じようにやるとアスペクト比が崩れる。）
+                    popupLayoutParams.height = if (aspect == 1.7) {
+                        (popupLayoutParams.width / 16) * 9 // 16:9
+                    } else {
+                        (popupLayoutParams.width / 4) * 3 // 4:3
+                    }
                     // 更新
                     windowManager.updateViewLayout(popupView, popupLayoutParams)
                     // 大きさを保持しておく

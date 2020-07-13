@@ -403,11 +403,11 @@ class NicoLivePlayService : Service() {
         // 画面の半分を利用するように
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val disp = wm.getDefaultDisplay()
-        val realSize = Point();
-        disp.getRealSize(realSize);
-        val width = 640
+        val realSize = Point()
+        disp.getRealSize(realSize)
+        val width = realSize.x / 2
         //アスペクト比16:9なので
-        val height = 360
+        val height = (width / 16) * 9
         //レイアウト読み込み
         val layoutInflater = LayoutInflater.from(this)
         // オーバーレイViewの設定をする
@@ -513,14 +513,15 @@ class NicoLivePlayService : Service() {
                 // ズーム操作中
                 if (p0 == null) return true
                 // なんかうまくいくコード
-                params.height = (params.height * p0.scaleFactor).toInt()
                 params.width = (params.width * p0.scaleFactor).toInt()
+                // アスペクト比が(頭)おかCなるので計算で出す。(16対9なので)
+                params.height = (params.width / 16) * 9
                 // 更新
                 windowManager.updateViewLayout(popupView, params)
                 // 大きさを保持しておく
                 prefSetting.edit {
-                    putInt("nicolive_popup_width", params.height)
                     putInt("nicolive_popup_width", params.width)
+                    putInt("nicolive_popup_height", params.height)
                 }
                 return true
             }
@@ -576,17 +577,6 @@ class NicoLivePlayService : Service() {
         if (prefSetting.getInt("nicolive_popup_width", 0) != 0) {
             params.width = prefSetting.getInt("nicolive_popup_width", width)
             params.height = prefSetting.getInt("nicolive_popup_height", height)
-            // サイズ変更をCommentCanvasに反映させる
-            commentCanvas.viewTreeObserver.addOnGlobalLayoutListener {
-                commentCanvas.apply {
-                    finalHeight = commentCanvas.height
-                    // コメントの高さの情報がある配列を消す。
-                    // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
-                    commentLine.clear()
-                    ueCommentLine.clear()
-                    sitaCommentLine.clear()
-                }
-            }
             windowManager.updateViewLayout(popupView, params)
         }
 
