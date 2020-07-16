@@ -6,7 +6,6 @@ import android.content.SharedPreferences
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.content.res.ColorStateList
-import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.Icon
 import android.net.Uri
@@ -22,22 +21,22 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.ProgramShare
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_comment_menu.*
 
 
-/*
-* ここをメンテしにきた私へ
-* CommentMenuBottomFragment と このクラスは違うよ。命名雑だった。ごめん
-* CommentFragmentのメニューはここ。
-* コメントを押した時にできる（ロックオン、コテハン登録）なんかは CommentLockonBottomFragment へどうぞ
-* */
-
+/**
+ * ここをメンテしにきた私へ
+ * CommentMenuBottomFragment と このクラスは違うよ。命名雑だった。ごめん
+ * CommentFragmentのメニューはここ。
+ * コメントを押した時にできる（ロックオン、コテハン登録）なんかは [CommentLockonBottomFragment] へどうぞ
+ * */
 class CommentMenuFragment : Fragment() {
 
     lateinit var commentFragment: CommentFragment
@@ -338,6 +337,12 @@ class CommentMenuFragment : Fragment() {
 
             }
         })
+
+        // コテハン一覧画面
+        fragment_comment_fragment_menu_kotehan_button.setOnClickListener {
+            val intent = Intent(context, KotehanListActivity::class.java)
+            startActivity(intent)
+        }
 
     }
 

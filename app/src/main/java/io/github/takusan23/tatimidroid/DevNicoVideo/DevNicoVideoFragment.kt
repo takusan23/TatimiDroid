@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.app.Activity
-import android.content.ContentValues
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
@@ -46,6 +45,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
+import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Tool.*
@@ -144,7 +144,7 @@ class DevNicoVideoFragment : Fragment() {
     // 画面回転復帰時
     lateinit var devNicoVideoFragmentData: DevNicoVideoFragmentData
 
-    // NG機能とコテハン
+    /** NG機能とコテハン。コテハンを書き換えた時は、ここの配列も更新してね。[updateKotehanMapFromDB]関数で更新できます。 */
     val kotehanMap = mutableMapOf<String, String>()
 
     /** 全画面再生時はtrue */
@@ -175,6 +175,9 @@ class DevNicoVideoFragment : Fragment() {
 
         // ActionBar消す
         (activity as AppCompatActivity).supportActionBar?.hide()
+
+        // コテハンDB初期化
+        updateKotehanMapFromDB()
 
         // View初期化
         showSwipeToRefresh()
@@ -269,6 +272,18 @@ class DevNicoVideoFragment : Fragment() {
                 isEconomy || isPreferenceEconomyMode -> coroutine(true, "", "", true)
                 // それ以外：インターネットで取得
                 else -> coroutine()
+            }
+        }
+    }
+
+    /**
+     * コテハンデータベースから値を取り出す
+     * */
+    fun updateKotehanMapFromDB() {
+        GlobalScope.launch(Dispatchers.IO) {
+            kotehanMap.clear()
+            KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().getAll().forEach { kotehan ->
+                kotehanMap.put(kotehan.userId, kotehan.kotehan)
             }
         }
     }

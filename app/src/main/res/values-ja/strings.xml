@@ -469,4 +469,5 @@
     <string name="close_fullscreen">全画面終了</string>
     <string name="rookie">ルーキー番組</string>
     <string name="popup_size_change_message">ピンチイン、ピンチアウトで大きさを調整できます。</string>
+    <string name="kotehan_list">コテハン一覧</string>
 </resources>

@@ -17,6 +17,7 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoQualityBottomFragment
@@ -129,6 +130,17 @@ class DevNicoVideoMenuFragment : Fragment() {
         // 3DS消す
         init3DSHide()
 
+        // コテハン一覧Activityボタン初期化
+        initKotehanButton()
+
+    }
+
+    private fun initKotehanButton() {
+        fragment_nicovideo_menu_kotehan_activity.setOnClickListener {
+            // コテハン一覧
+            val intent = Intent(context, KotehanListActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun init3DSHide() {

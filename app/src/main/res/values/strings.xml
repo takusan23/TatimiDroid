@@ -469,4 +469,5 @@
     <string name="close_fullscreen">End full screen</string>
     <string name="rookie">rookie</string>
     <string name="popup_size_change_message">You can adjust the size with pinch in and pinch out.</string>
+    <string name="kotehan_list">Fixed handle name list</string>
 </resources>

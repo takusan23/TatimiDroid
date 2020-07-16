@@ -150,6 +150,13 @@
                             android:text="@string/ng_list" />
 
                     <Button
+                            android:id="@+id/fragment_nicovideo_menu_kotehan_activity"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/kotehan_list" />
+
+                    <Button
                             android:id="@+id/fragment_nicovideo_menu_skip_setting"
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="match_parent"

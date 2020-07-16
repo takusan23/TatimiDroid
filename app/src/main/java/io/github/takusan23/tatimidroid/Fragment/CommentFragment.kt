@@ -58,7 +58,9 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
+import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
@@ -102,8 +104,8 @@ class CommentFragment : Fragment() {
     //hls
     var hlsAddress = ""
 
-    //こてはん（固定ハンドルネーム　配列
-    val kotehanMap = mutableMapOf<String, String>()
+    /** NG機能とコテハン。コテハンを書き換えた時は、ここの配列も更新してね。[updateKotehanMapFromDB]関数で更新できます。 */
+    var kotehanMap = mutableMapOf<String, String>()
 
     //生放送を見る場合はtrue
     var watchLive = false
@@ -271,11 +273,11 @@ class CommentFragment : Fragment() {
             googleCast.init()
         }
 
-        // データベース初期化
-        GlobalScope.launch(Dispatchers.IO) {
-            ngCommentList = NGDBInit(requireContext()).ngDataBase.ngDBDAO().getNGCommentList().map { ngdbEntity -> ngdbEntity.value }
-            ngUserList = NGDBInit(requireContext()).ngDataBase.ngDBDAO().getNGUserList().map { ngdbEntity -> ngdbEntity.value }
-        }
+        // NGデータベース初期化
+        initNGDB()
+
+        // コテハンデータベース初期化
+        updateKotehanMapFromDB()
 
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
         isOfficial = arguments?.getBoolean("isOfficial") ?: false
@@ -484,6 +486,28 @@ class CommentFragment : Fragment() {
         //アクティブ人数クリアなど、追加部分はCommentViewFragmentです
         activeUserClear()
 
+    }
+
+    /**
+     * コテハンデータベース初期化
+     * */
+    fun updateKotehanMapFromDB() {
+        GlobalScope.launch(Dispatchers.IO) {
+            kotehanMap.clear()
+            KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().getAll().forEach { kotehan ->
+                kotehanMap[kotehan.userId] = kotehan.kotehan
+            }
+        }
+    }
+
+    /**
+     * NGデータベース初期化
+     * */
+    fun initNGDB() {
+        GlobalScope.launch(Dispatchers.IO) {
+            ngCommentList = NGDBInit(requireContext()).ngDataBase.ngDBDAO().getNGCommentList().map { ngdbEntity -> ngdbEntity.value }
+            ngUserList = NGDBInit(requireContext()).ngDataBase.ngDBDAO().getNGUserList().map { ngdbEntity -> ngdbEntity.value }
+        }
     }
 
     /**
@@ -888,7 +912,8 @@ class CommentFragment : Fragment() {
     }
 
     /**
-     * コテハンがコメントに含まれている場合はコテハンmapに追加する関数
+     * コテハンがコメントに含まれている場合はコテハンDBに追加する関数
+     * コテハンmap反映もしている。
      * */
     private fun registerKotehan(commentJSONParse: CommentJSONParse) {
         val comment = commentJSONParse.comment
@@ -901,7 +926,23 @@ class CommentFragment : Fragment() {
             }
             if (index != -1) {
                 val kotehan = comment.substring(index)
-                kotehanMap.put(commentJSONParse.userId, kotehan)
+                // データベースにも入れる
+                GlobalScope.launch(Dispatchers.IO) {
+                    val kotehanDB = KotehanDBInit(requireContext()).kotehanDB
+                    // すでに存在する場合・・・？
+                    val kotehanData = kotehanDB.kotehanDBDAO().findKotehanByUserId(commentJSONParse.userId)
+                    if (kotehanDB != null) {
+                        // 存在した
+                        val kotehanDBEntity = kotehanData.copy(kotehan = kotehan, addTime = (System.currentTimeMillis() / 1000))
+                        KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().update(kotehanDBEntity)
+                    } else {
+                        // 存在してない
+                        val kotehanDBEntity = KotehanDBEntity(kotehan = kotehan, addTime = (System.currentTimeMillis() / 1000), userId = commentJSONParse.userId)
+                        KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().insert(kotehanDBEntity)
+                    }
+                }
+                // コテハンmap更新
+                updateKotehanMapFromDB()
             }
         }
     }

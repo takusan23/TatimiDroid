@@ -277,6 +277,16 @@
 
 
         <Preference
+                android:icon="@drawable/ic_local_offer_24px"
+                android:title="@string/kotehan_list">
+            <!--Activity起動-->
+            <intent
+                    android:action="android.intent.action.MAIN"
+                    android:targetClass="io.github.takusan23.tatimidroid.Activity.KotehanListActivity"
+                    android:targetPackage="io.github.takusan23.tatimidroid" />
+        </Preference>
+
+        <Preference
                 android:icon="@drawable/ic_outline_comment_24px"
                 android:key="comment_list_activity"
                 android:title="@string/comment_collection">

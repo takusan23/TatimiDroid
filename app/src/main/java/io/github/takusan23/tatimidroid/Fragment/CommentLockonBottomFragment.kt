@@ -23,7 +23,9 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.User.User
+import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
+import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.Tool.NICOLIVE_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
@@ -121,18 +123,19 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             bottom_fragment_comment_menu_recyclerview.adapter = nicoVideoAdapter
         }
 
-
-        // コテハン読み出し、登録
-        val kotehanMap = when {
-            fragment is CommentFragment -> fragment.kotehanMap
-            fragment is DevNicoVideoFragment -> fragment.kotehanMap
-            else -> null // まずありえないけど
-        }
-        if (kotehanMap != null) {
+        // コテハンを読み出す
+        GlobalScope.launch(Dispatchers.Main) {
+            // とりあえずユーザーID表示
             bottom_fragment_comment_menu_kotehan_edit_text.setText(userId)
-            loadKotehan(kotehanMap)
+            // コテハン読み込み
+            val kotehan = loadKotehan()
+            // 存在すればテキストに入れる。なければnullになる
+            if (kotehan != null) {
+                bottom_fragment_comment_menu_kotehan_edit_text.setText(kotehan.kotehan)
+            }
+            // コテハン登録
             bottom_fragment_comment_menu_kotehan_button.setOnClickListener {
-                registerKotehan(kotehanMap)
+                registerKotehan(fragment)
             }
         }
 
@@ -282,10 +285,16 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 }
                 //とーすと
                 showToast(getString(R.string.add_ng_comment_message))
-                // 動画なら一覧更新する
-                if (fragment is DevNicoVideoFragment) {
-                    GlobalScope.launch {
-                        fragment.commentFilter().await()
+                when {
+                    fragment is DevNicoVideoFragment -> {
+                        // 動画なら一覧更新する
+                        GlobalScope.launch {
+                            fragment.commentFilter().await()
+                        }
+                    }
+                    fragment is CommentFragment -> {
+                        // 生放送ならNGリスト更新
+                        fragment.initNGDB()
                     }
                 }
                 // 閉じる
@@ -319,24 +328,44 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         }
     }
 
-    //コテハン登録
-    private fun registerKotehan(kotehanMap: MutableMap<String, String>) {
+    //コテハン登録。非同期
+    private fun registerKotehan(fragment: Fragment) {
         val kotehan = bottom_fragment_comment_menu_kotehan_edit_text.text.toString()
         if (kotehan.isNotEmpty()) {
-            kotehanMap.put(userId, kotehan)
-            //登録しました！
-            Toast.makeText(context, "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}", Toast.LENGTH_SHORT).show()
+            GlobalScope.launch(Dispatchers.Main) {
+                // データベース用意
+                val kotehanDB = KotehanDBInit(requireContext()).kotehanDB
+                withContext(Dispatchers.IO) {
+                    // すでに存在する場合・・・？
+                    val kotehanData = kotehanDB.kotehanDBDAO().findKotehanByUserId(userId)
+                    if (kotehanData != null) {
+                        // 存在するなら上書き
+                        val kotehanEntity = kotehanData.copy(kotehan = kotehan, addTime = (System.currentTimeMillis() / 1000))
+                        kotehanDB.kotehanDBDAO().update(kotehanEntity)
+                    } else {
+                        // データ追加
+                        val kotehanEntity = KotehanDBEntity(userId = userId, kotehan = kotehan, addTime = (System.currentTimeMillis() / 1000))
+                        kotehanDB.kotehanDBDAO().insert(kotehanEntity)
+                    }
+                }
+                //登録しました！
+                Toast.makeText(context, "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}", Toast.LENGTH_SHORT).show()
+                // コテハン配列更新
+                when {
+                    fragment is CommentFragment -> {
+                        fragment.updateKotehanMapFromDB()
+                    }
+                    fragment is DevNicoVideoFragment -> {
+                        fragment.updateKotehanMapFromDB()
+                    }
+                }
+            }
         }
     }
 
     //コテハン読み込み
-    private fun loadKotehan(kotehanMap: MutableMap<String, String>) {
-        if (kotehanMap.containsKey(userId)) {
-            bottom_fragment_comment_menu_kotehan_edit_text.setText(kotehanMap[userId])
-        } else {
-            //コテハンなかった
-            bottom_fragment_comment_menu_kotehan_edit_text.setText(userId)
-        }
+    private suspend fun loadKotehan() = withContext(Dispatchers.IO) {
+        KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().findKotehanByUserId(userId)
     }
 
     fun showToast(message: String) {

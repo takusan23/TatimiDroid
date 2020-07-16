@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" /> <!-- インターネット -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- 予約枠自動入場のServiceよう -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /> <!-- 他のアプリに重ねて表示 -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- インターネット接続の種類 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
             android:allowBackup="true"
@@ -22,7 +22,7 @@
                 android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
                 android:value="io.github.takusan23.tatimidroid.GoogleCast.CastOptionsProvider" />
 
-        <activity android:name=".DevNicoVideo.NicoVideoActivity"></activity>
+        <activity android:name=".DevNicoVideo.NicoVideoActivity" />
         <activity
                 android:name=".NimadoActivity"
                 android:label="@string/nimado"
@@ -37,14 +37,14 @@
         <activity android:name=".Activity.KonoApp" />
         <activity android:name=".Activity.CommentActivity" />
         <activity android:name=".Activity.LicenceActivity" />
+        <activity
+                android:name=".Activity.KotehanListActivity"
+                android:label="@string/kotehan_list" />
 
         <service android:name=".Service.AutoAdmissionService" />
-
         <service android:name=".Service.NicoLivePlayService" />
         <service android:name=".Service.NicoVideoPlayService" />
-        <service android:name=".Service.GetCacheService" />
-
-        <!-- キャッシュ連続再生用サービス -->
+        <service android:name=".Service.GetCacheService" /> <!-- キャッシュ連続再生用サービス -->
         <service
                 android:name=".Service.BackgroundPlaylistCachePlayService"
                 android:exported="false">
@@ -52,7 +52,6 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
-
         <!-- これ書かないと通知から操作一生こない -->
         <receiver android:name="androidx.media.session.MediaButtonReceiver">
             <intent-filter>
@@ -61,7 +60,6 @@
         </receiver>
 
         <service android:name=".Service.CommentGetService" />
-
         <!--
                 <receiver android:name="androidx.media.session.MediaButtonReceiver">
                     <intent-filter>
@@ -69,8 +67,6 @@
                     </intent-filter>
                 </receiver>
         -->
-
-
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -91,7 +87,6 @@
             <meta-data
                     android:name="android.app.shortcuts"
                     android:resource="@xml/app_shortcut" />
-
         </activity>
     </application>
 
