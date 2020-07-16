@@ -12,8 +12,7 @@
             android:layout_height="match_parent"
             android:layout_margin="2dp"
             android:clickable="true"
-            android:foreground="?android:attr/selectableItemBackground"
-            app:cardCornerRadius="5dp">
+            android:foreground="?android:attr/selectableItemBackground">
 
         <LinearLayout
                 android:id="@+id/adapter_community_before_motion"
@@ -66,13 +65,13 @@
                 </LinearLayout>
 
                 <ImageView
+                        android:id="@+id/adapter_community_menu_icon"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:padding="10dp"
-                        android:id="@+id/adapter_community_menu_icon"
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="10dp"
                         android:src="@drawable/ic_more_vert_24px" />
 
             </LinearLayout>

@@ -17,10 +17,7 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoC
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.R
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import okhttp3.*
 import org.json.JSONObject
 import java.io.File
@@ -49,10 +46,11 @@ class NicoVideoCache(val context: Context?) {
 
     /**
      * キャッシュ用フォルダからデータ持ってくる。
+     * [Dispatchers.IO]だとスレッド数が多いらしい←？
      * 多分重いのでコルーチンです。
      * @return NicoVideoDataの配列
      * */
-    fun loadCache(): Deferred<ArrayList<NicoVideoData>> = GlobalScope.async {
+    suspend fun loadCache() = withContext(Dispatchers.IO) {
         cacheTotalSize = 0
         val list = arrayListOf<NicoVideoData>()
         // ScopedStorage
@@ -99,15 +97,22 @@ class NicoVideoCache(val context: Context?) {
                         }
                     }
                     // 投稿者
-                    val uploaderName = if (jsonObject.isNull("owner")) {
-                        jsonObject.getJSONObject("channel").getString("name")
-                    } else {
-                        jsonObject.getJSONObject("owner").getString("nickname")
+                    val uploaderName = when {
+                        !jsonObject.isNull("owner") -> {
+                            jsonObject.getJSONObject("owner").getString("nickname") // ユーザー
+                        }
+                        !jsonObject.isNull("channel") -> {
+                            jsonObject.getJSONObject("channel").getString("name") // チャンネル
+                        }
+                        else -> null // 垢消し
                     }
                     // キャッシュ取得日時
                     val data = NicoVideoData(isCache = isCache, isMylist = false, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = duration, cacheAddedDate = cacheAddedDate, uploaderName = uploaderName, videoTag = tagsJSONArray)
                     list.add(data)
                 } else {
+                    /**
+                     * 動画情報JSON、サムネイルがない場合で読み込みたいときに使う。主にニコ生TSを見るときに使って。
+                     * */
                     /**
                      * 動画情報JSON、サムネイルがない場合で読み込みたいときに使う。主にニコ生TSを見るときに使って。
                      * */
@@ -130,7 +135,7 @@ class NicoVideoCache(val context: Context?) {
         }
         // 新たしい順にソート
         list.sortByDescending { nicoVideoData -> nicoVideoData.cacheAddedDate }
-        return@async list
+        list
     }
 
     /**
@@ -266,7 +271,7 @@ class NicoVideoCache(val context: Context?) {
      * */
     fun getVideoCache(videoIdFolder: File, videoId: String, url: String, userSession: String, nicoHistory: String, resultFun: (Int) -> Unit) {
         // 動画mp4ファイル作成
-        val videoIdMp4 = File("${videoIdFolder.path}/${videoId}_tmp.mp4")
+        val videoIdMp4 = File("${videoIdFolder.path}/${videoId}.mp4")
         // リクエスト
         val request = Request.Builder().apply {
             url(url)

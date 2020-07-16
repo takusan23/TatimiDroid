@@ -251,7 +251,6 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     /**
      * コメント描画。
      * Canvas#drawText()を隠しただけ。
-     * 自分のコメントには本家に追従して囲います
      * @param canvas きゃんばす。
      * @param commentObject CommentObject。コメント描画に使う
      * @param fontSize 文字サイズ。big/smallのときはこの関数では扱わないので呼ぶ前に引数に入れてね。

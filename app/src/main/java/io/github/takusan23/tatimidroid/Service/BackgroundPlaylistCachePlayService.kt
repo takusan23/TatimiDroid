@@ -316,9 +316,9 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
      * 再生する動画一覧を返す。コルーチンで使ってね。
      * @return NicoVideoDataの配列
      * */
-    private suspend fun getVideoList(): ArrayList<NicoVideoData> = GlobalScope.async {
+    private suspend fun getVideoList(): ArrayList<NicoVideoData> = withContext(Dispatchers.IO) {
         // 取得
-        var videoList = nicoVideoCache.loadCache().await()
+        var videoList = nicoVideoCache.loadCache()
         val filter = CacheJSON().readJSON(this@BackgroundPlaylistCachePlayService)
         // フィルター
         videoList = if (filter != null) {
@@ -326,8 +326,8 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         } else {
             videoList
         }
-        return@async videoList
-    }.await()
+        videoList
+    }
 
     /**
      * クライアント接続の制御（さあ？）

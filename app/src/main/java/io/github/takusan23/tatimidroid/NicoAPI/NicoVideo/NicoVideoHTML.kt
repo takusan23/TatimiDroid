@@ -2,9 +2,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -67,6 +65,31 @@ class NicoVideoHTML {
             isMylist = false,
             title = videoObject.getString("title"),
             videoId = videoId,
+            thum = videoObject.getString("thumbnailURL"),
+            date = postedDateTimeToUnixTime(videoObject.getString("postedDateTime")),
+            viewCount = videoObject.getString("viewCount"),
+            commentCount = jsonObject.getJSONObject("thread").getString("commentCount"),
+            mylistCount = videoObject.getString("mylistCount"),
+            isToriaezuMylist = false,
+            duration = videoObject.getLong("duration")
+        )
+    }
+
+    /**
+     * js-initial-watch-dataのdata-api-dataのJSONをデータクラス（[NicoVideoData]）へ変換する。
+     * なんとなくコルーチンです。
+     * @param jsonObject [parseJSON]の返り値
+     * @param isCache キャッシュならtrue。省略時false
+     * */
+    suspend fun createNicoVideoData(jsonObject: JSONObject, isCache: Boolean = false) = withContext(Dispatchers.Default) {
+        // JSON化
+        val videoObject = jsonObject.getJSONObject("video")
+        // データクラス化
+        NicoVideoData(
+            isCache = isCache,
+            isMylist = false,
+            title = videoObject.getString("title"),
+            videoId = videoObject.getString("id"),
             thum = videoObject.getString("thumbnailURL"),
             date = postedDateTimeToUnixTime(videoObject.getString("postedDateTime")),
             viewCount = videoObject.getString("viewCount"),

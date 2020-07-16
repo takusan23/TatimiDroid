@@ -49,7 +49,7 @@ class DevSettingFragment : PreferenceFragmentCompat() {
         var titleList = arrayListOf<String>()
         runBlocking {
             // 読み込んでIDとタイトルの文字が入った配列に変換
-            val cacheList = nicoVideoCache.loadCache().await()
+            val cacheList = nicoVideoCache.loadCache()
             titleList = ArrayList(cacheList.map { nicoVideoData -> nicoVideoData.title })
             idList = ArrayList(cacheList.map { nicoVideoData -> nicoVideoData.videoId })
         }

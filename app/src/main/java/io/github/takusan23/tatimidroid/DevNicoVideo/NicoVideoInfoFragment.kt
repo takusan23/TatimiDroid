@@ -17,12 +17,17 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
+import io.github.takusan23.tatimidroid.NicoAPI.User.User
 import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.Tool.IDRegex
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
@@ -31,6 +36,10 @@ import io.github.takusan23.tatimidroid.Tool.calcAnniversary
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
@@ -151,6 +160,19 @@ class NicoVideoInfoFragment : Fragment() {
                             text = AnniversaryDate.makeAnniversaryMessage(anniversary) // お祝いメッセージ作成
                         }
                     }
+                }
+
+                // 投稿者情報がない場合は消す
+                if (nickname.isEmpty()) {
+                    fragment_nicovideo_info_owner_cardview.isVisible = false
+                }
+
+                // 投稿者アイコン。インターネット接続時
+                if (isConnectionInternet(context) && iconURL.isNotEmpty()) {
+                    Glide.with(fragment_nicovideo_info_owner_imageview)
+                        .load(iconURL)
+                        .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
+                        .into(fragment_nicovideo_info_owner_imageview)
                 }
 
                 //たぐ

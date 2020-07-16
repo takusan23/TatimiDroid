@@ -96,12 +96,10 @@ class DevNicoVideoCacheFragment : Fragment() {
     // FAB押したとき
     private fun initFabClick() {
         fragment_cache_fab.setOnClickListener {
-            if (fragmentManager != null) {
-                val cacheFilterBottomFragment = DevNicoVideoCacheFilterBottomFragment().apply {
-                    cacheFragment = this@DevNicoVideoCacheFragment
-                }
-                cacheFilterBottomFragment.show(fragmentManager!!, "filter")
+            val cacheFilterBottomFragment = DevNicoVideoCacheFilterBottomFragment().apply {
+                cacheFragment = this@DevNicoVideoCacheFragment
             }
+            cacheFilterBottomFragment.show(parentFragmentManager, "filter")
         }
     }
 
@@ -110,7 +108,7 @@ class DevNicoVideoCacheFragment : Fragment() {
         launch = GlobalScope.launch {
             recyclerViewList.clear()
             cacheVideoList.clear()
-            nicoVideoCache.loadCache().await().forEach {
+            nicoVideoCache.loadCache().forEach {
                 recyclerViewList.add(it)
                 cacheVideoList.add(it)
             }

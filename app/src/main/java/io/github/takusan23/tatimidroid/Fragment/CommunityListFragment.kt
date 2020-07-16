@@ -42,8 +42,6 @@ class CommunityListFragment : Fragment() {
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
     lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
-    lateinit var sqLiteDatabase: SQLiteDatabase
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_commnunity_list_layout, container, false)
@@ -90,7 +88,7 @@ class CommunityListFragment : Fragment() {
         recyclerViewList = ArrayList()
         community_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
-        community_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
+        community_recyclerview.layoutManager = mLayoutManager
         communityRecyclerViewAdapter = CommunityRecyclerViewAdapter(recyclerViewList)
         autoAdmissionAdapter = AutoAdmissionAdapter(autoAdmissionRecyclerViewList)
         autoAdmissionAdapter.communityListFragment = this
