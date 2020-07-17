@@ -27,6 +27,7 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.R
@@ -353,11 +354,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             val jsonObject = JSONObject(videoJSON)
             val currentTitle = jsonObject.getJSONObject("video").getString("title")
             // 投稿者
-            val uploaderName = if (jsonObject.isNull("owner")) {
-                jsonObject.getJSONObject("channel").getString("name")
-            } else {
-                jsonObject.getJSONObject("owner").getString("nickname")
-            }
+            val uploaderName = NicoVideoHTML().getUploaderName(jsonObject)
             val thumbPath = nicoVideoCache.getCacheFolderVideoThumFilePath(videoId)
             val thumbBitmap = BitmapFactory.decodeFile(thumbPath)
             // サムネ（縦長）をきれいに正方形にする一行。Android 11からMediaSession通知は専用領域が確保されるようになった

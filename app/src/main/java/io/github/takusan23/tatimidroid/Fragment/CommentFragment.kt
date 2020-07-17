@@ -931,7 +931,7 @@ class CommentFragment : Fragment() {
                     val kotehanDB = KotehanDBInit(requireContext()).kotehanDB
                     // すでに存在する場合・・・？
                     val kotehanData = kotehanDB.kotehanDBDAO().findKotehanByUserId(commentJSONParse.userId)
-                    if (kotehanDB != null) {
+                    if (kotehanData != null) {
                         // 存在した
                         val kotehanDBEntity = kotehanData.copy(kotehan = kotehan, addTime = (System.currentTimeMillis() / 1000))
                         KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().update(kotehanDBEntity)

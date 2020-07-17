@@ -798,7 +798,7 @@ class DevNicoVideoFragment : Fragment() {
         GlobalScope.launch(Dispatchers.IO) {
             val unixTime = System.currentTimeMillis() / 1000
             // 入れるデータ
-            val publisherId = nicoVideoHTML.parsePublisherId(jsonObject)
+            val publisherId = nicoVideoHTML.getUploaderId(jsonObject)
             val nicoHistoryDBEntity = NicoHistoryDBEntity(
                 type = "video",
                 serviceId = videoId,
