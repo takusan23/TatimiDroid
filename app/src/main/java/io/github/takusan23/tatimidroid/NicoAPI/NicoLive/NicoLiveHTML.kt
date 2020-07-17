@@ -5,9 +5,7 @@ import android.os.Looper
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ScheduleDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -103,7 +101,7 @@ class NicoLiveHTML {
      * @param userSession ユーザーセッション
      * @param isLogin ログイン状態で行うか。省略時はログイン状態で行います（true）。
      * */
-    fun getNicoLiveHTML(liveId: String, userSession: String?, isLogin: Boolean = true): Deferred<Response> = GlobalScope.async {
+    suspend fun getNicoLiveHTML(liveId: String, userSession: String?, isLogin: Boolean = true) = withContext(Dispatchers.IO) {
         val url = "https://live2.nicovideo.jp/watch/$liveId"
         val request = Request.Builder().apply {
             get()
@@ -116,7 +114,7 @@ class NicoLiveHTML {
         }.build()
         val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
-        return@async response
+        response
     }
 
     /**
@@ -125,7 +123,7 @@ class NicoLiveHTML {
      * @param userSession ユーザーセッション
      * @return OkhttpのResponse
      * */
-    fun getPlayerStatus(liveId: String, userSession: String?): Deferred<Response> = GlobalScope.async {
+    suspend fun getPlayerStatus(liveId: String, userSession: String?) = withContext(Dispatchers.IO) {
         val url = "https://live.nicovideo.jp/api/getplayerstatus/$liveId"
         val request = Request.Builder().apply {
             get()
@@ -136,7 +134,7 @@ class NicoLiveHTML {
         }.build()
         val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
-        return@async response
+        response
     }
 
     /**
@@ -547,10 +545,9 @@ class NicoLiveHTML {
      * 延長検知JSONをパースして終了時刻をフォーマットして返す。
      * 注意：typeがscheduleのときのみ
      * @param message ニコ生視聴セッションWebSocketから流れてくるJSON文字列
-     * @param timeFormat 省略可能。時間フォーマットをしていたい場合は入れてね。Javaのフォーマットで頼んだ。
      * @return 終了時間（文字列）
      * */
-    fun getScheduleEndTime(message: String?, timeFormat: String = "MM/dd HH:mm:ss"): String? {
+    fun getScheduleEndTime(message: String?): String? {
         // JSONパース
         val data = JSONObject(message).getJSONObject("data")
         // ISO8601 -> UnixTime

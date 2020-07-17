@@ -410,8 +410,12 @@ class CommentFragment : Fragment() {
             usersession = pref_setting.getString("user_session", "") ?: ""
             // データ取得からコメント取得など
             if (!isJK) {
+                // エラーのとき（タイムアウトなど）はここでToastを出すなど
+                val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                    showToast("${getString(R.string.error)}\n${throwable.message}")
+                }
                 // ニコ生
-                GlobalScope.launch(Dispatchers.IO) {
+                GlobalScope.launch(errorHandler) {
                     if (savedInstanceState != null) {
                         // 画面回転復帰時
                         val data = savedInstanceState.getSerializable("data") as NicoLiveFragmentData
@@ -432,7 +436,7 @@ class CommentFragment : Fragment() {
                         }
                     } else {
                         // はじめて ///
-                        val html = getNicoLiveHTML().await()
+                        val html = getNicoLiveHTML()
                         nicoLiveJSON = nicoLiveHTML.nicoLiveHTMLtoJSONObject(html)
                         // 番組名取得など
                         nicoLiveHTML.initNicoLiveData(nicoLiveJSON)
@@ -661,7 +665,7 @@ class CommentFragment : Fragment() {
     private fun initAllRoomConnect() {
         GlobalScope.launch {
             // 全部屋接続
-            val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, usersession).await()
+            val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, usersession)
             if (!allRoomResponse.isSuccessful) {
                 showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
                 return@launch
@@ -710,27 +714,26 @@ class CommentFragment : Fragment() {
     }
 
     /**
-     * ニコ生放送ページのHTML取得
+     * ニコ生放送ページのHTML取得。コルーチンです
      * */
-    private fun getNicoLiveHTML(): Deferred<String?> = GlobalScope.async {
+    private suspend fun getNicoLiveHTML(): String? = withContext(Dispatchers.Default) {
         // ニコ生視聴ページリクエスト
-        val livePageResponse = nicoLiveHTML.getNicoLiveHTML(liveId, usersession, isWatchingMode).await()
+        val livePageResponse = nicoLiveHTML.getNicoLiveHTML(liveId, usersession, isWatchingMode)
         if (!livePageResponse.isSuccessful) {
             // 失敗のときは落とす
             activity?.finish()
             showToast("${getString(R.string.error)}\n${livePageResponse.code}")
-            return@async null
+            null
         }
         if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
             // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
-            NicoLogin.loginCoroutine(context)
-            usersession = pref_setting.getString("user_session", "") ?: ""
+            usersession = NicoLogin.loginCoroutine(context)
             // 視聴モードなら再度視聴ページリクエスト
             if (isWatchingMode) {
-                return@async getNicoLiveHTML().await()
+                getNicoLiveHTML()
             }
         }
-        return@async livePageResponse.body?.string()
+        livePageResponse.body?.string()
     }
 
     /**
@@ -811,34 +814,32 @@ class CommentFragment : Fragment() {
     /**
      * 座席番号と部屋の名前取得
      * */
-    private fun getPlayerStatus() {
-        GlobalScope.launch(Dispatchers.IO) {
-            // getPlayerStatus叩いて座席番号取得
-            val getPlayerStatusResponse = nicoLiveHTML.getPlayerStatus(liveId, usersession).await()
-            if (getPlayerStatusResponse.isSuccessful) {
-                // なおステータスコード200でも中身がgetPlayerStatusのものかどうかはまだわからないので、、、
-                val document =
-                    Jsoup.parse(getPlayerStatusResponse.body?.string())
-                // 番組開始直後（開始数秒でアクセス）すると何故か視聴ページにリダイレクト（302）されるのでチェック
-                val hasGetPlayerStatusTag = document.getElementsByTag("getplayerstatus ").isNotEmpty()
-                // 番組が終わっててもレスポンスは200を返すのでチェック
-                if (hasGetPlayerStatusTag && document.getElementsByTag("getplayerstatus ")[0].attr("status") == "ok") {
-                    roomName = document.getElementsByTag("room_label")[0].text() // 部屋名
-                    chairNo = document.getElementsByTag("room_seetno")[0].text() // 座席番号
-                    withContext(Dispatchers.Main) {
-                        // 番組情報を表示させる
-                        commentActivity.runOnUiThread {
-                            comment_fragment_program_title?.text = "$programTitle - $liveId"
-                            comment_fragment_program_id?.text = "$roomName - $chairNo"
-                        }
+    private suspend fun getPlayerStatus() = withContext(Dispatchers.IO) {
+        // getPlayerStatus叩いて座席番号取得
+        val getPlayerStatusResponse = nicoLiveHTML.getPlayerStatus(liveId, usersession)
+        if (getPlayerStatusResponse.isSuccessful) {
+            // なおステータスコード200でも中身がgetPlayerStatusのものかどうかはまだわからないので、、、
+            val document =
+                Jsoup.parse(getPlayerStatusResponse.body?.string())
+            // 番組開始直後（開始数秒でアクセス）すると何故か視聴ページにリダイレクト（302）されるのでチェック
+            val hasGetPlayerStatusTag = document.getElementsByTag("getplayerstatus ").isNotEmpty()
+            // 番組が終わっててもレスポンスは200を返すのでチェック
+            if (hasGetPlayerStatusTag && document.getElementsByTag("getplayerstatus ")[0].attr("status") == "ok") {
+                roomName = document.getElementsByTag("room_label")[0].text() // 部屋名
+                chairNo = document.getElementsByTag("room_seetno")[0].text() // 座席番号
+                withContext(Dispatchers.Main) {
+                    // 番組情報を表示させる
+                    commentActivity.runOnUiThread {
+                        comment_fragment_program_title?.text = "$programTitle - $liveId"
+                        comment_fragment_program_id?.text = "$roomName - $chairNo"
                     }
-                } else {
-                    // getPlayerStatus取得失敗時
-                    withContext(Dispatchers.Main) {
-                        Snackbar.make(comment_fragment_program_title, R.string.error_getplayserstatus, Snackbar.LENGTH_SHORT).apply {
-                            anchorView = getSnackbarAnchorView()
-                            show()
-                        }
+                }
+            } else {
+                // getPlayerStatus取得失敗時
+                withContext(Dispatchers.Main) {
+                    Snackbar.make(comment_fragment_program_title, R.string.error_getplayserstatus, Snackbar.LENGTH_SHORT).apply {
+                        anchorView = getSnackbarAnchorView()
+                        show()
                     }
                 }
             }

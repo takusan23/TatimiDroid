@@ -13,10 +13,7 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoMylistAd
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_mylist.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.json.JSONObject
 
 class DevNicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
@@ -53,15 +50,18 @@ class DevNicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
 
 
     fun coroutine() {
-        GlobalScope.launch {
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        GlobalScope.launch(errorHandler) {
             recyclerViewList.clear()
             // マイリストToken取得
-            val mylistHTMLResponse = myListAPI.getMyListHTML(userSession).await()
+            val mylistHTMLResponse = myListAPI.getMyListHTML(userSession)
             if (mylistHTMLResponse.isSuccessful) {
                 val token = myListAPI.getToken(mylistHTMLResponse.body?.string())
                 if (token != null) {
                     // マイリスト一覧取得
-                    val listResponse = myListAPI.getMyListList(token, userSession).await()
+                    val listResponse = myListAPI.getMyListList(token, userSession)
                     if (listResponse.isSuccessful) {
                         val jsonObject = JSONObject(listResponse.body?.string())
                         val mylistGroup = jsonObject.getJSONArray("mylistgroup")

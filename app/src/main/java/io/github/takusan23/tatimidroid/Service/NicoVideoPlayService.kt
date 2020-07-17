@@ -36,6 +36,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -153,14 +154,19 @@ class NicoVideoPlayService : Service() {
 
     // データ取得など
     private fun coroutine() {
-        GlobalScope.launch {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+
+        GlobalScope.launch(errorHandler) {
             // ログインしないならそもそもuserSessionの値を空にすれば！？
             val userSession = if (isLoginMode(this@NicoVideoPlayService)) {
                 this@NicoVideoPlayService.userSession
             } else {
                 ""
             }
-            val response = nicoVideoHTML.getHTML(videoId, userSession, "").await()
+            val response = nicoVideoHTML.getHTML(videoId, userSession, "")
             nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
             val responseString = response.body?.string()
             jsonObject = nicoVideoHTML.parseJSON(responseString)
@@ -181,7 +187,7 @@ class NicoVideoPlayService : Service() {
                 } else {
                     // なし。おまかせ？
                     nicoVideoHTML.callSessionAPI(jsonObject)
-                }.await()
+                }
                 if (sessionAPIResponse != null) {
                     sessionAPIJSONObject = sessionAPIResponse
                     // 動画URL
@@ -194,10 +200,9 @@ class NicoVideoPlayService : Service() {
                 contentUrl = nicoVideoHTML.getContentURI(jsonObject, null)
             }
             // コメント取得
-            val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject).await()
+            val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject)
             if (commentJSON != null) {
-                commentList =
-                    ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
+                commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
             }
             // タイトル
             videoTitle = jsonObject.getJSONObject("video").getString("title")

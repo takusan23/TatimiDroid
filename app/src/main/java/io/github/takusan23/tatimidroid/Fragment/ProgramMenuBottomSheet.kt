@@ -59,38 +59,43 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
         liveId = arguments?.getString("liveId", "") ?: ""
         userSession = prefSetting.getString("user_session", "") ?: ""
 
-        GlobalScope.launch(Dispatchers.Main) {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
 
-            // 番組情報取得
-            coroutine()
+        GlobalScope.launch(errorHandler) {
+            withContext(Dispatchers.Main) {
+                // 番組情報取得
+                coroutine()
 
-            // UI反映
-            applyUI()
+                // UI反映
+                applyUI()
 
-            // 予約枠自動入場初期化
-            initAutoAdmission()
+                // 予約枠自動入場初期化
+                initAutoAdmission()
 
-            // ポップアップ再生、バッググラウンド再生
-            initLiveServiceButton()
+                // ポップアップ再生、バッググラウンド再生
+                initLiveServiceButton()
 
-            // フローティングコメビュ
-            initFloatingCommentViewer()
+                // フローティングコメビュ
+                initFloatingCommentViewer()
 
-            // カレンダー追加
-            initCalendarButton()
+                // カレンダー追加
+                initCalendarButton()
 
-            // 共有ボタン
-            initShareButton()
+                // 共有ボタン
+                initShareButton()
 
-            // IDコピーとか
-            initCopyButton()
+                // IDコピーとか
+                initCopyButton()
 
-            // TS予約とか
-            initTSButton()
+                // TS予約とか
+                initTSButton()
 
-            // 予約枠自動入場
-            initDB()
-
+                // 予約枠自動入場
+                initDB()
+            }
         }
 
     }
@@ -207,20 +212,24 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     private fun initTSButton() {
         val timeShiftAPI = NicoLiveTimeShiftAPI()
         bottom_fragment_program_info_timeshift.setOnClickListener {
-            GlobalScope.launch {
+            // エラー時
+            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                showToast("${getString(R.string.error)}\n${throwable.message}")
+            }
+            GlobalScope.launch(errorHandler) {
                 // TS予約
-                val registerTS = timeShiftAPI.registerTimeShift(liveId, userSession).await()
+                val registerTS = timeShiftAPI.registerTimeShift(liveId, userSession)
                 if (registerTS.isSuccessful) {
                     // 成功
                     showToast(getString(R.string.timeshift_reservation_successful))
                 } else if (registerTS.code == 500) {
                     // 失敗時。500エラーは登録済み
                     // 削除するか？Snackbar出す
-                    Handler(Looper.getMainLooper()).post {
+                    withContext(Dispatchers.Main) {
                         Snackbar.make(bottom_fragment_program_info_timeshift, R.string.timeshift_reserved, Snackbar.LENGTH_SHORT).setAction(R.string.timeshift_delete_reservation_button) {
                             GlobalScope.launch {
                                 // TS削除API叩く
-                                val deleteTS = timeShiftAPI.deleteTimeShift(liveId, userSession).await()
+                                val deleteTS = timeShiftAPI.deleteTimeShift(liveId, userSession)
                                 if (deleteTS.isSuccessful) {
                                     showToast(getString(R.string.timeshift_delete_reservation_successful))
                                 } else {
@@ -272,17 +281,17 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     }
 
     /** データ取得。取得が終わるまで一時停止する系の関数です。 */
-    private suspend fun coroutine() = GlobalScope.async(Dispatchers.IO) {
-        val response = nicoLiveHTML.getNicoLiveHTML(liveId, userSession).await()
+    private suspend fun coroutine() = withContext(Dispatchers.Default) {
+        val response = nicoLiveHTML.getNicoLiveHTML(liveId, userSession)
         if (!response.isSuccessful) {
             // 失敗時
             showToast("${getString(R.string.error)}\n${response.code}")
-            return@async
+            return@withContext
         }
         nicoLiveJSONObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(response.body?.string())
         nicoLiveHTML.initNicoLiveData(nicoLiveJSONObject)
         programData = nicoLiveHTML.getProgramData(nicoLiveJSONObject)
-    }.await()
+    }
 
     /** データ取得し終わったらUI更新 */
     private fun applyUI() {

@@ -1,9 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -54,21 +52,19 @@ class NicoVideoRSS {
      * @param time 集計期間。rankingTimeListから取ってきてね
      * @return 成功時NicoVideoData配列。失敗時nullね
      * */
-    fun getRanking(genre: String, time: String): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("https://www.nicovideo.jp/ranking/$genre?term=$time&rss=2.0&lang=ja-jp")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    suspend fun getRanking(genre: String, time: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("https://www.nicovideo.jp/ranking/$genre?term=$time&rss=2.0&lang=ja-jp")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).execute()
+    }
 
     /**
      * RSSパース
      * */
-    fun parseHTML(response: Response): ArrayList<NicoVideoData> {
+    suspend fun parseHTML(response: Response) = withContext(Dispatchers.Default) {
         val rankingList = arrayListOf<NicoVideoData>()
 
         val rss = response.body?.string()
@@ -104,7 +100,7 @@ class NicoVideoRSS {
             val nicoVideoData = NicoVideoData(isCache = false, isMylist = false, title = title, videoId = videoId, thum = thum, date = stringToUnixTime(date), viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = null, cacheAddedDate = null)
             rankingList.add(nicoVideoData)
         }
-        return rankingList
+        rankingList
     }
 
     // 日付表示をUnixTimeにするやつ。ミリ秒

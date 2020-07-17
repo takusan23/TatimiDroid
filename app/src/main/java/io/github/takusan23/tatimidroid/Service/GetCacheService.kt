@@ -16,6 +16,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -122,7 +123,11 @@ class GetCacheService : Service() {
 
     // コルーチン
     private fun coroutine(position: Int = 0) {
-        launch = GlobalScope.launch {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        launch = GlobalScope.launch(errorHandler) {
             // キャッシュ取得クラス
             val nicoVideoHTML = NicoVideoHTML()
             nicoVideoCache = NicoVideoCache(this@GetCacheService)
@@ -139,7 +144,7 @@ class GetCacheService : Service() {
             // 進捗通知
             showNotification("${getString(R.string.loading)}：$currentCacheVideoId / ${getString(R.string.cache_get_list_size)}：${cacheList.size - cacheGuttedList.size}")
             // リクエスト
-            val response = nicoVideoHTML.getHTML(videoId, userSession, eco).await()
+            val response = nicoVideoHTML.getHTML(videoId, userSession, eco)
             if (!response.isSuccessful) {
                 // 失敗時
                 showToast("${getString(R.string.error)} : $videoId\n${response.code}")
@@ -153,7 +158,7 @@ class GetCacheService : Service() {
                 if (nicoVideoHTML.isDMCServer(jsonObject)) {
                     // https://api.dmc.nico/api/sessions のレスポンス
                     val sessionAPIJSONObject =
-                        nicoVideoHTML.callSessionAPI(jsonObject).await()
+                        nicoVideoHTML.callSessionAPI(jsonObject)
                     if (sessionAPIJSONObject != null) {
                         // 動画URL
                         contentUrl =

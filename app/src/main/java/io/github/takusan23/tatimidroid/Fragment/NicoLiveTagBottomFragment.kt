@@ -67,13 +67,18 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
         }
 
         bottom_fragment_tag_add_button.setOnClickListener {
+            // エラー
+            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                activity?.runOnUiThread {
+                    Toast.makeText(context, "${getString(R.string.error)}\n${throwable.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
             // タグ追加
-            GlobalScope.launch {
+            GlobalScope.launch(errorHandler) {
                 val nicoLiveTagAPI = NicoLiveTagAPI()
                 val tokenText = bottom_fragment_tag_edittext.text.toString()
                 // タグ追加API叩く
-                val response =
-                    nicoLiveTagAPI.addTag(liveId, user_session, tagToken, tokenText).await()
+                val response = nicoLiveTagAPI.addTag(liveId, user_session, tagToken, tokenText)
                 if (!response.isSuccessful) {
                     return@launch
                 }
@@ -90,12 +95,17 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
 
     }
 
-    // タグAPI叩く。メインスレッド指定
+    // タグAPI叩く。
     fun tagCoroutine() {
         recyclerViewList.clear()
-        GlobalScope.launch(Dispatchers.Main) {
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            activity?.runOnUiThread {
+                Toast.makeText(context, "${getString(R.string.error)}\n${throwable.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+        GlobalScope.launch(errorHandler) {
             val nicoLiveTagAPI = NicoLiveTagAPI()
-            val response = nicoLiveTagAPI.getTags(liveId, user_session).await()
+            val response = nicoLiveTagAPI.getTags(liveId, user_session)
             if (!response.isSuccessful) {
                 return@launch
             }
@@ -105,7 +115,7 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
             list.forEach {
                 recyclerViewList.add(it)
             }
-            activity?.runOnUiThread {
+            withContext(Dispatchers.Main) {
                 tagRecyclerViewAdapter.notifyDataSetChanged()
                 // タグ件数
                 parseTagSize(jsonString)

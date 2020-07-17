@@ -552,8 +552,11 @@ class DevNicoVideoFragment : Fragment() {
      * */
     fun coroutine(isGetComment: Boolean = true, videoQualityId: String = "", audioQualityId: String = "", smileServerLowRequest: Boolean = false) {
         // HTML取得
-        // val nicoVideoHTML = NicoVideoHTML()
-        GlobalScope.launch(Dispatchers.IO) {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        GlobalScope.launch(errorHandler) {
             // smileサーバーの動画は多分最初の視聴ページHTML取得のときに?eco=1をつけないと低画質リクエストできない
             val eco = if (smileServerLowRequest) {
                 "1"
@@ -566,7 +569,7 @@ class DevNicoVideoFragment : Fragment() {
             } else {
                 ""
             }
-            val response = nicoVideoHTML.getHTML(videoId, userSession, eco).await()
+            val response = nicoVideoHTML.getHTML(videoId, userSession, eco)
             // 失敗したら落とす
             if (!response.isSuccessful) {
                 showToast("${getString(R.string.error)}\n${response.code}")
@@ -616,7 +619,7 @@ class DevNicoVideoFragment : Fragment() {
                     }
 
                     // https://api.dmc.nico/api/sessions のレスポンス
-                    val sessionAPIResponse = nicoVideoHTML.callSessionAPI(jsonObject, videoQuality, audioQuality).await()
+                    val sessionAPIResponse = nicoVideoHTML.callSessionAPI(jsonObject, videoQuality, audioQuality)
                     if (sessionAPIResponse != null) {
                         sessionAPIJSONObject = sessionAPIResponse
                         // 動画URL
@@ -634,7 +637,7 @@ class DevNicoVideoFragment : Fragment() {
             }
             // コメント取得
             if (isGetComment) {
-                val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject).await()
+                val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject)
                 if (commentJSON != null) {
                     rawCommentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
                 }
@@ -652,7 +655,7 @@ class DevNicoVideoFragment : Fragment() {
             threadId = nicoVideoHTML.getThreadId(jsonObject)
             userId = nicoVideoHTML.getUserId(jsonObject)
             if (isPremium) {
-                val nicoruResponse = nicoruAPI.getNicoruKey(userSession, threadId).await()
+                val nicoruResponse = nicoruAPI.getNicoruKey(userSession, threadId)
                 if (!nicoruResponse.isSuccessful) {
                     showToast("${getString(R.string.error)}\n${nicoruResponse.code}")
                     return@launch
@@ -665,7 +668,7 @@ class DevNicoVideoFragment : Fragment() {
             try {
                 val watchRecommendationRecipe = jsonObject.getString("watchRecommendationRecipe")
                 val nicoVideoRecommendAPI = NicoVideoRecommendAPI()
-                val recommendAPIResponse = nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe).await()
+                val recommendAPIResponse = nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe)
                 if (!recommendAPIResponse.isSuccessful) {
                     // 失敗時
                     if (isAdded) {

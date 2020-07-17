@@ -22,10 +22,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
 import io.github.takusan23.tatimidroid.NicoAPI.User.User
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_info.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -175,7 +172,7 @@ class ProgramInfoFragment : Fragment() {
                 userId = supplier.getString("programProviderId")
                 // ユーザー情報取得。フォロー中かどうか判断するため
                 val userData = withContext(Dispatchers.IO) {
-                    User().getUserCoroutine(userId, usersession).await()
+                    User().getUserCoroutine(userId, usersession)
                 }
                 // ユーザーフォロー中？
                 if (userData?.isFollowing == true) {
@@ -303,9 +300,12 @@ class ProgramInfoFragment : Fragment() {
         activity?.runOnUiThread {
             fragment_program_info_swipe.isRefreshing = true
         }
-        GlobalScope.launch {
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        GlobalScope.launch(errorHandler) {
             val nicoLiveTagAPI = NicoLiveTagAPI()
-            val response = nicoLiveTagAPI.getTags(liveId, usersession).await()
+            val response = nicoLiveTagAPI.getTags(liveId, usersession)
             if (!response.isSuccessful) {
                 // 失敗時
                 showToast("${getString(R.string.error)}\n${response.code}")
@@ -314,7 +314,7 @@ class ProgramInfoFragment : Fragment() {
             // パース
             val list = nicoLiveTagAPI.parseTags(response.body?.string())
             // タグをUIに反映させる
-            activity?.runOnUiThread {
+            withContext(Dispatchers.Main) {
                 // 全部消す
                 fragment_program_info_tag_linearlayout.removeAllViews()
                 list.forEach {

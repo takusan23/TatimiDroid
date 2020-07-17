@@ -1,9 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -25,7 +23,7 @@ class NicoVideoMyListAPI {
      * @param userSession ユーザーセッション
      * @return Response
      * */
-    fun getMyListHTML(userSession: String): Deferred<Response> = GlobalScope.async {
+    suspend fun getMyListHTML(userSession: String) = withContext(Dispatchers.IO) {
         val url = "https://www.nicovideo.jp/my/mylist"
         val request = Request.Builder().apply {
             url(url)
@@ -36,7 +34,7 @@ class NicoVideoMyListAPI {
         }.build()
         val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
-        return@async response
+        response
     }
 
     /**
@@ -64,7 +62,7 @@ class NicoVideoMyListAPI {
      * @param userSession ユーザーセッション
      * @return Response
      * */
-    fun getMyListList(token: String, userSession: String): Deferred<Response> = GlobalScope.async {
+    suspend fun getMyListList(token: String, userSession: String) = withContext(Dispatchers.IO) {
         val url = "https://www.nicovideo.jp/api/mylistgroup/list"
         // POSTする内容
         val post = FormBody.Builder()
@@ -78,8 +76,7 @@ class NicoVideoMyListAPI {
             post(post)
         }.build()
         val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        return@async response
+        okHttpClient.newCall(request).execute()
     }
 
     /**
@@ -89,32 +86,31 @@ class NicoVideoMyListAPI {
      * @param userSession ユーザーセッション
      * @return Response
      * */
-    fun getMyListItems(token: String, mylistId: String, userSession: String): Deferred<Response> =
-        GlobalScope.async {
-            val post = FormBody.Builder().apply {
-                add("token", token)
-                //とりあえずマイリスト以外ではIDを入れる、
-                if (mylistId.isNotEmpty()) {
-                    add("group_id", mylistId)
-                }
-            }.build()
-            //とりあえずマイリストと普通のマイリスト。
-            val url = if (mylistId.isEmpty()) {
-                "https://www.nicovideo.jp/api/deflist/list"
-            } else {
-                "https://www.nicovideo.jp/api/mylist/list"
+    fun getMyListItems(token: String, mylistId: String, userSession: String): Deferred<Response> = GlobalScope.async {
+        val post = FormBody.Builder().apply {
+            add("token", token)
+            //とりあえずマイリスト以外ではIDを入れる、
+            if (mylistId.isNotEmpty()) {
+                add("group_id", mylistId)
             }
-            val request = Request.Builder().apply {
-                header("Cookie", "user_session=${userSession}")
-                header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                url(url)
-                post(post)
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
+        }.build()
+        //とりあえずマイリストと普通のマイリスト。
+        val url = if (mylistId.isEmpty()) {
+            "https://www.nicovideo.jp/api/deflist/list"
+        } else {
+            "https://www.nicovideo.jp/api/mylist/list"
         }
+        val request = Request.Builder().apply {
+            header("Cookie", "user_session=${userSession}")
+            header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            url(url)
+            post(post)
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@async response
+    }
 
     /**
      * マイリストJSONパース
@@ -156,25 +152,23 @@ class NicoVideoMyListAPI {
      * @param token getMyListHTML()とgetToken()を使って取得できるToken
      * @param userSession ユーザーセッション
      * */
-    fun mylistAddVideo(mylistId: String, threadId: String, description: String, token: String, userSession: String): Deferred<Response> =
-        GlobalScope.async {
-            val formBody = FormBody.Builder().apply {
-                add("group_id", mylistId)
-                add("item_type", "0") // 0が動画らしい
-                add("item_id", threadId)
-                add("description", description)
-                add("token", token)
-            }.build()
-            val request = Request.Builder().apply {
-                url("https://www.nicovideo.jp/api/mylist/add")
-                header("Cookie", "user_session=${userSession}")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                post(formBody)
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    suspend fun mylistAddVideo(mylistId: String, threadId: String, description: String, token: String, userSession: String) = withContext(Dispatchers.IO) {
+        val formBody = FormBody.Builder().apply {
+            add("group_id", mylistId)
+            add("item_type", "0") // 0が動画らしい
+            add("item_id", threadId)
+            add("description", description)
+            add("token", token)
+        }.build()
+        val request = Request.Builder().apply {
+            url("https://www.nicovideo.jp/api/mylist/add")
+            header("Cookie", "user_session=${userSession}")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            post(formBody)
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).execute()
+    }
 
     /**
      * マイリストから動画を消す。

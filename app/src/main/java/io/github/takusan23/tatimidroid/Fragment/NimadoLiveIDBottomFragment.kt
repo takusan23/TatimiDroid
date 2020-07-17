@@ -75,10 +75,10 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
                 NicoLiveHTML()
             val user_session = pref_setting.getString("user_session", "")
             val htmlResponse = if (!isCommunityOrChannelID()) {
-                nicoLiveHTML.getNicoLiveHTML(getLiveIDRegex(), user_session).await()
+                nicoLiveHTML.getNicoLiveHTML(getLiveIDRegex(), user_session)
             } else {
                 val liveID = getLiveIDFromCommunityID().await()
-                nicoLiveHTML.getNicoLiveHTML(liveID, user_session).await()
+                nicoLiveHTML.getNicoLiveHTML(liveID, user_session)
             }
             // JSONパース
             val html = htmlResponse.body?.string()

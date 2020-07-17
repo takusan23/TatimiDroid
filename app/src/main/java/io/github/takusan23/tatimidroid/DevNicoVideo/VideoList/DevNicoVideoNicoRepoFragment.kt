@@ -14,8 +14,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoRepoAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_nicorepo.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class DevNicoVideoNicoRepoFragment : Fragment() {
 
@@ -59,19 +58,22 @@ class DevNicoVideoNicoRepoFragment : Fragment() {
     private fun coroutine() {
         recyclerViewList.clear()
         fragment_nicovideo_nicorepo_swipe.isRefreshing = true
-        val nicoRepoAPI = NicoRepoAPI()
-        GlobalScope.launch {
-            val response = nicoRepoAPI.getNicoRepoResponse(userSession).await()
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        GlobalScope.launch(errorHandler) {
+            val nicoRepoAPI = NicoRepoAPI()
+            val response = nicoRepoAPI.getNicoRepoResponse(userSession)
             if (!response.isSuccessful) {
                 // 失敗時
                 showToast("${getString(R.string.error)}\n${response.code}")
                 return@launch
             }
-            val nicorepo = nicoRepoAPI.parseNicoRepoResponse(response.body?.string())
-            nicorepo.forEach {
+            nicoRepoAPI.parseNicoRepoResponse(response.body?.string()).forEach {
                 recyclerViewList.add(it)
             }
-            activity?.runOnUiThread {
+            withContext(Dispatchers.Main) {
                 nicoVideoListAdapter.notifyDataSetChanged()
                 fragment_nicovideo_nicorepo_swipe.isRefreshing = false
             }

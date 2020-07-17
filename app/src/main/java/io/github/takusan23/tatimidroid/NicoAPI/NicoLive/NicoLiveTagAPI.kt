@@ -1,8 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -20,7 +18,7 @@ class NicoLiveTagAPI {
      * @param liveId 番組ID
      * @param userSession ユーザーセッション
      * */
-    fun getTags(liveId: String, userSession: String): Deferred<Response> = GlobalScope.async {
+    suspend fun getTags(liveId: String, userSession: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             url("https://papi.live.nicovideo.jp/api/relive/livetag/$liveId")
             header("Cookie", "user_session=$userSession")
@@ -29,7 +27,7 @@ class NicoLiveTagAPI {
         }.build()
         val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
-        return@async response
+        response
     }
 
     /**
@@ -37,7 +35,7 @@ class NicoLiveTagAPI {
      * @param responseString getTags()のレスポンス
      * @return NicoLiveTagItemDataの配列
      * */
-    fun parseTags(responseString: String?): ArrayList<NicoLiveTagItemData> {
+    suspend fun parseTags(responseString: String?) = withContext(Dispatchers.Default) {
         val list = arrayListOf<NicoLiveTagItemData>()
         val tags = JSONObject(responseString).getJSONObject("data").getJSONArray("tags")
         for (i in 0 until tags.length()) {
@@ -50,7 +48,7 @@ class NicoLiveTagAPI {
             val data = NicoLiveTagItemData(title, isLocked, isDeletable, hasNicoPedia, nicoPediaUrl)
             list.add(data)
         }
-        return list
+        list
     }
 
     /**
@@ -60,22 +58,21 @@ class NicoLiveTagAPI {
      * @param token タグ操作トークン
      * @param tagName 追加するタグの名前
      * */
-    fun addTag(liveId: String, userSession: String, token: String, tagName: String): Deferred<Response> =
-        GlobalScope.async {
-            val sendData = FormBody.Builder().apply {
-                add("tag", tagName)
-                add("token", token)
-            }.build()
-            val request = Request.Builder().apply {
-                url("https://papi.live.nicovideo.jp/api/relive/livetag/$liveId/?_method=PUT")
-                header("Cookie", "user_session=$userSession")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                post(sendData)
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    suspend fun addTag(liveId: String, userSession: String, token: String, tagName: String) = withContext(Dispatchers.IO) {
+        val sendData = FormBody.Builder().apply {
+            add("tag", tagName)
+            add("token", token)
+        }.build()
+        val request = Request.Builder().apply {
+            url("https://papi.live.nicovideo.jp/api/relive/livetag/$liveId/?_method=PUT")
+            header("Cookie", "user_session=$userSession")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            post(sendData)
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        response
+    }
 
     // タグのデータクラス
     data class NicoLiveTagItemData(

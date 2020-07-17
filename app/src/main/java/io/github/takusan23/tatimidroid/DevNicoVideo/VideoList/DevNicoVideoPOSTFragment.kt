@@ -111,7 +111,11 @@ class DevNicoVideoPOSTFragment : Fragment() {
         if (::coroutine.isInitialized) {
             coroutine.cancel()
         }
-        coroutine = GlobalScope.launch(Dispatchers.IO) {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        coroutine = GlobalScope.launch(errorHandler) {
             val url = if (arguments?.getBoolean("my", false) == true) {
                 "https://nvapi.nicovideo.jp/v1/users/me"
             } else {
@@ -119,9 +123,8 @@ class DevNicoVideoPOSTFragment : Fragment() {
             }
             // ユーザーID取得
             val userId = arguments?.getString("userId") ?: ""
-            val user =
-                User().getUserCoroutine(userId, userSession, url).await()
-            val response = post.getList(page, user?.userId.toString(), userSession).await()
+            val user = User().getUserCoroutine(userId, userSession, url)
+            val response = post.getList(page, user?.userId.toString(), userSession)
             if (response.isSuccessful) {
                 val postVideoList = post.parseHTML(response.body?.string())
                 // 最後判定

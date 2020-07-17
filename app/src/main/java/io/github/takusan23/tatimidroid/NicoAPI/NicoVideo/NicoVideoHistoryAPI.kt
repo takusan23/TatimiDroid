@@ -1,9 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.*
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -21,7 +19,7 @@ class NicoVideoHistoryAPI {
      * @param userSession ユーザーセッション
      * @return Response
      * */
-    fun getHistory(userSession: String): Deferred<Response> = GlobalScope.async {
+    suspend fun getHistory(userSession: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             url("https://nvapi.nicovideo.jp/v1/users/me/watch/history?page=1&pageSize=200") // 最大200件？
             header("Cookie", "user_session=${userSession}")
@@ -30,8 +28,7 @@ class NicoVideoHistoryAPI {
             get()
         }.build()
         val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        return@async response
+        okHttpClient.newCall(request).execute()
     }
 
     /**
@@ -39,7 +36,7 @@ class NicoVideoHistoryAPI {
      * @param json getHistory()で取得した値
      * @return NicoVideoDataの配列
      * */
-    fun parseHistoryJSONParse(json: String?): ArrayList<NicoVideoData> {
+    suspend fun parseHistoryJSONParse(json: String?) = withContext(Dispatchers.Default) {
         val list = arrayListOf<NicoVideoData>()
         val jsonObject = JSONObject(json)
         val items = jsonObject.getJSONObject("data").getJSONArray("items")
@@ -60,13 +57,12 @@ class NicoVideoHistoryAPI {
             val data = NicoVideoData(isCache = false, isMylist = false, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = null, cacheAddedDate = null)
             list.add(data)
         }
-        return list
+        list
     }
 
     // UnixTimeへ変換
     private fun toUnixTime(time: String): Long {
-        val simpleDateFormat =
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
         return simpleDateFormat.parse(time).time
     }
 

@@ -238,7 +238,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     private fun getUserName(userId: String) = GlobalScope.launch(Dispatchers.Main) {
         // API叩く
         val user = withContext(Dispatchers.IO) {
-            User().getUserCoroutine(userId, userSession).await()
+            User().getUserCoroutine(userId, userSession)
         }
         bottom_fragment_comment_menu_kotehan_edit_text.setText(user?.nickName)
     }

@@ -31,7 +31,7 @@ class NicoVideoHTML {
      * HTML取得
      * @param eco 「１」を入れるとエコノミー
      * */
-    fun getHTML(videoId: String, userSession: String, eco: String = ""): Deferred<Response> = GlobalScope.async {
+    suspend fun getHTML(videoId: String, userSession: String, eco: String = "") = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             url("https://www.nicovideo.jp/watch/$videoId?eco=$eco")
             header("Cookie", "user_session=$userSession")
@@ -39,8 +39,7 @@ class NicoVideoHTML {
             get()
         }.build()
         val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        return@async response
+        okHttpClient.newCall(request).execute()
     }
 
     /**
@@ -49,30 +48,33 @@ class NicoVideoHTML {
      * @param videoId 動画ID
      * @return 成功しなかった場合はnullが返ってきます。
      * */
-    fun getNicoVideoData(videoId: String, userSession: String): Deferred<NicoVideoData?> = GlobalScope.async {
+    suspend fun getNicoVideoData(videoId: String, userSession: String) = withContext(Dispatchers.IO) {
         // 動画情報取得
-        val videoResponse = getHTML(videoId, userSession).await()
+        val videoResponse = getHTML(videoId, userSession)
         // 失敗時落とす
         if (!videoResponse.isSuccessful) {
-            return@async null
+            null
+        } else {
+            withContext(Dispatchers.Default) {
+                // JSONパース
+                val jsonObject = parseJSON(videoResponse.body?.string())
+                val videoObject = jsonObject.getJSONObject("video")
+                // データクラス化
+                NicoVideoData(
+                    isCache = false,
+                    isMylist = false,
+                    title = videoObject.getString("title"),
+                    videoId = videoId,
+                    thum = videoObject.getString("thumbnailURL"),
+                    date = postedDateTimeToUnixTime(videoObject.getString("postedDateTime")),
+                    viewCount = videoObject.getString("viewCount"),
+                    commentCount = jsonObject.getJSONObject("thread").getString("commentCount"),
+                    mylistCount = videoObject.getString("mylistCount"),
+                    isToriaezuMylist = false,
+                    duration = videoObject.getLong("duration")
+                )
+            }
         }
-        // JSON化
-        val jsonObject = parseJSON(videoResponse.body?.string())
-        val videoObject = jsonObject.getJSONObject("video")
-        // データクラス化
-        return@async NicoVideoData(
-            isCache = false,
-            isMylist = false,
-            title = videoObject.getString("title"),
-            videoId = videoId,
-            thum = videoObject.getString("thumbnailURL"),
-            date = postedDateTimeToUnixTime(videoObject.getString("postedDateTime")),
-            viewCount = videoObject.getString("viewCount"),
-            commentCount = jsonObject.getJSONObject("thread").getString("commentCount"),
-            mylistCount = videoObject.getString("mylistCount"),
-            isToriaezuMylist = false,
-            duration = videoObject.getLong("duration")
-        )
     }
 
     /**
@@ -224,7 +226,7 @@ class NicoVideoHTML {
      *
      *  @return APIのレスポンス。JSON形式
      * */
-    fun callSessionAPI(jsonObject: JSONObject, videoQualityId: String = "", audioQualityId: String = ""): Deferred<JSONObject?> = GlobalScope.async {
+    suspend fun callSessionAPI(jsonObject: JSONObject, videoQualityId: String = "", audioQualityId: String = "") = withContext(Dispatchers.IO) {
         val dmcInfo = jsonObject.getJSONObject("video").getJSONObject("dmcInfo")
         val sessionAPI = dmcInfo.getJSONObject("session_api")
         //JSONつくる
@@ -311,9 +313,9 @@ class NicoVideoHTML {
         if (response.isSuccessful) {
             val responseString = response.body?.string()
             val jsonObject = JSONObject(responseString)
-            return@async jsonObject
+            jsonObject
         } else {
-            return@async null
+            null
         }
     }
 
@@ -347,21 +349,20 @@ class NicoVideoHTML {
      * @param userSession ユーザーセッション
      * @return 取得失敗時はnull。成功時はResponse
      * */
-    fun getThumbInfo(videoId: String, userSession: String): Deferred<Response?> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("https://ext.nicovideo.jp/api/getthumbinfo/$videoId")
-                header("Cookie", "user_session=$userSession")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            if (response.isSuccessful) {
-                return@async response
-            } else {
-                return@async null
-            }
+    fun getThumbInfo(videoId: String, userSession: String): Deferred<Response?> = GlobalScope.async {
+        val request = Request.Builder().apply {
+            url("https://ext.nicovideo.jp/api/getthumbinfo/$videoId")
+            header("Cookie", "user_session=$userSession")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        if (response.isSuccessful) {
+            return@async response
+        } else {
+            return@async null
         }
+    }
 
 
     /**
@@ -371,130 +372,128 @@ class NicoVideoHTML {
      * @param jsonObject js-initial-watch-dataのdata-api-dataのJSON
      * @return 取得失敗時はnull。成功時はResponse
      * */
-    fun makeCommentAPIJSON(videoId: String, userSession: String, jsonObject: JSONObject): Deferred<JSONArray> =
-        GlobalScope.async {
-            /**
-             * dmcInfoが存在するかで分ける。たまによくない動画に当たる。ちなみにこいつ無くてもThreadIdとかuser_id取れるけど、
-             * 再生時間が取れないので無理。非公式？XML形式で返してくれるコメント取得APIを叩くことにする。
-             * 再生時間、JSONの中に入れないといけないっぽい。
-             * */
-            // userkey
-            val userkey = jsonObject.getJSONObject("context").getString("userkey")
-            // user_id
-            val user_id = if (verifyLogin(jsonObject)) {
-                jsonObject.getJSONObject("viewer").getString("id")
-            } else {
-                ""
-            }
-
-            // 動画時間（分）
-            // duration(再生時間
-            val length = jsonObject.getJSONObject("video").getInt("duration")
-            // 必要なのは「分」なので割る
-            // そして分に+1している模様
-            // 一時間超えでも分を使う模様？66みたいに
-            val minute = (length / 60) + 1
-
-            //contentつくる。1000が限界？
-            val content = "0-${minute}:100,1000,nicoru:100"
-
-            /**
-             * JSONの構成を指示してくれるJSONArray
-             * threads[]の中になんのJSONを作ればいいかが書いてある。
-             * */
-            val commentComposite =
-                jsonObject.getJSONObject("commentComposite").getJSONArray("threads")
-            // 投げるJSON
-            val postJSONArray = JSONArray()
-            for (i in 0 until commentComposite.length()) {
-                val thread = commentComposite.getJSONObject(i)
-                val thread_id =
-                    thread.getString("id")  //thread まじでなんでこの管理方法にしたんだ運営・・
-                val fork = thread.getInt("fork")    //わからん。
-                val isOwnerThread = thread.getBoolean("isOwnerThread")
-
-                // 公式動画のみ？threadkeyとforce_184が必要かどうか
-                val isThreadkeyRequired = thread.getBoolean("isThreadkeyRequired")
-
-                // 公式動画のコメント取得に必須なthreadkeyとforce_184を取得する。
-                var threadResponse: String? = ""
-                var threadkey: String? = ""
-                var force_184: String? = ""
-                if (isThreadkeyRequired) {
-                    // 公式動画に必要なキーを取り出す。
-                    threadResponse = getThreadKeyForce184(thread_id, userSession).await()
-                    //なーんかUriでパースできないので仕方なく＆のいちを取り出して無理やり取り出す。
-                    val andPos = threadResponse?.indexOf("&")
-                    // threadkeyとforce_184パース
-                    threadkey =
-                        threadResponse?.substring(0, andPos!!)
-                            ?.replace("threadkey=", "")
-                    force_184 =
-                        threadResponse?.substring(andPos!!, threadResponse.length)
-                            ?.replace("&force_184=", "")
-                }
-
-                // threads[]のJSON配列の中に「isActive」がtrueなら次のJSONを作成します
-                if (thread.getBoolean("isActive")) {
-                    val jsonObject = JSONObject().apply {
-                        // 投稿者コメントも見れるように。「isOwnerThread」がtrueの場合は「version」を20061206にする？
-                        if (isOwnerThread) {
-                            put("version", "20061206")
-                            put("res_from", -1000)
-                        } else {
-                            put("version", "20090904")
-                        }
-                        put("thread", thread_id)
-                        put("fork", fork)
-                        put("language", 0)
-                        put("user_id", user_id)
-                        put("with_global", 1)
-                        put("score", 1)
-                        put("nicoru", 3)
-                        //公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
-                        //threadkeyのときはもしかするとuserkeyいらない
-                        if (isThreadkeyRequired) {
-                            put("force_184", force_184)
-                            put("threadkey", threadkey)
-                        } else {
-                            if (userkey.isEmpty()) {
-                                put("userkey", userkey)
-                            }
-                        }
-                    }
-                    val post_thread = JSONObject().apply {
-                        put("thread", jsonObject)
-                    }
-                    postJSONArray.put(post_thread)
-                }
-                // threads[]のJSON配列の中に「isLeafRequired」がtrueなら次のJSONを作成します
-                if (thread.getBoolean("isLeafRequired")) {
-                    val jsonObject = JSONObject().apply {
-                        put("thread", thread_id)
-                        put("language", 0)
-                        put("user_id", user_id)
-                        put("content", content)
-                        put("scores", 1)
-                        put("nicoru", 3)
-                        // 公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
-                        // threadkeyのときはもしかするとuserkeyいらない
-                        if (isThreadkeyRequired) {
-                            put("force_184", force_184)
-                            put("threadkey", threadkey)
-                        } else {
-                            if (userkey.isEmpty()) {
-                                put("userkey", userkey)
-                            }
-                        }
-                    }
-                    val thread_leaves = JSONObject().apply {
-                        put("thread_leaves", jsonObject)
-                    }
-                    postJSONArray.put(thread_leaves)
-                }
-            }
-            return@async postJSONArray
+    private suspend fun makeCommentAPIJSON(videoId: String, userSession: String, jsonObject: JSONObject) = withContext(Dispatchers.Default) {
+        /**
+         * dmcInfoが存在するかで分ける。たまによくない動画に当たる。ちなみにこいつ無くてもThreadIdとかuser_id取れるけど、
+         * 再生時間が取れないので無理。非公式？XML形式で返してくれるコメント取得APIを叩くことにする。
+         * 再生時間、JSONの中に入れないといけないっぽい。
+         * */
+        // userkey
+        val userkey = jsonObject.getJSONObject("context").getString("userkey")
+        // user_id
+        val user_id = if (verifyLogin(jsonObject)) {
+            jsonObject.getJSONObject("viewer").getString("id")
+        } else {
+            ""
         }
+
+        // 動画時間（分）
+        // duration(再生時間
+        val length = jsonObject.getJSONObject("video").getInt("duration")
+        // 必要なのは「分」なので割る
+        // そして分に+1している模様
+        // 一時間超えでも分を使う模様？66みたいに
+        val minute = (length / 60) + 1
+
+        //contentつくる。1000が限界？
+        val content = "0-${minute}:100,1000,nicoru:100"
+
+        /**
+         * JSONの構成を指示してくれるJSONArray
+         * threads[]の中になんのJSONを作ればいいかが書いてある。
+         * */
+        val commentComposite = jsonObject.getJSONObject("commentComposite").getJSONArray("threads")
+        // 投げるJSON
+        val postJSONArray = JSONArray()
+        for (i in 0 until commentComposite.length()) {
+            val thread = commentComposite.getJSONObject(i)
+            val thread_id =
+                thread.getString("id")  //thread まじでなんでこの管理方法にしたんだ運営・・
+            val fork = thread.getInt("fork")    //わからん。
+            val isOwnerThread = thread.getBoolean("isOwnerThread")
+
+            // 公式動画のみ？threadkeyとforce_184が必要かどうか
+            val isThreadkeyRequired = thread.getBoolean("isThreadkeyRequired")
+
+            // 公式動画のコメント取得に必須なthreadkeyとforce_184を取得する。
+            var threadResponse: String? = ""
+            var threadkey: String? = ""
+            var force_184: String? = ""
+            if (isThreadkeyRequired) {
+                // 公式動画に必要なキーを取り出す。
+                threadResponse = getThreadKeyForce184(thread_id, userSession)
+                //なーんかUriでパースできないので仕方なく＆のいちを取り出して無理やり取り出す。
+                val andPos = threadResponse?.indexOf("&")
+                // threadkeyとforce_184パース
+                threadkey =
+                    threadResponse?.substring(0, andPos!!)
+                        ?.replace("threadkey=", "")
+                force_184 =
+                    threadResponse?.substring(andPos!!, threadResponse.length)
+                        ?.replace("&force_184=", "")
+            }
+
+            // threads[]のJSON配列の中に「isActive」がtrueなら次のJSONを作成します
+            if (thread.getBoolean("isActive")) {
+                val jsonObject = JSONObject().apply {
+                    // 投稿者コメントも見れるように。「isOwnerThread」がtrueの場合は「version」を20061206にする？
+                    if (isOwnerThread) {
+                        put("version", "20061206")
+                        put("res_from", -1000)
+                    } else {
+                        put("version", "20090904")
+                    }
+                    put("thread", thread_id)
+                    put("fork", fork)
+                    put("language", 0)
+                    put("user_id", user_id)
+                    put("with_global", 1)
+                    put("score", 1)
+                    put("nicoru", 3)
+                    //公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
+                    //threadkeyのときはもしかするとuserkeyいらない
+                    if (isThreadkeyRequired) {
+                        put("force_184", force_184)
+                        put("threadkey", threadkey)
+                    } else {
+                        if (userkey.isEmpty()) {
+                            put("userkey", userkey)
+                        }
+                    }
+                }
+                val post_thread = JSONObject().apply {
+                    put("thread", jsonObject)
+                }
+                postJSONArray.put(post_thread)
+            }
+            // threads[]のJSON配列の中に「isLeafRequired」がtrueなら次のJSONを作成します
+            if (thread.getBoolean("isLeafRequired")) {
+                val jsonObject = JSONObject().apply {
+                    put("thread", thread_id)
+                    put("language", 0)
+                    put("user_id", user_id)
+                    put("content", content)
+                    put("scores", 1)
+                    put("nicoru", 3)
+                    // 公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
+                    // threadkeyのときはもしかするとuserkeyいらない
+                    if (isThreadkeyRequired) {
+                        put("force_184", force_184)
+                        put("threadkey", threadkey)
+                    } else {
+                        if (userkey.isEmpty()) {
+                            put("userkey", userkey)
+                        }
+                    }
+                }
+                val thread_leaves = JSONObject().apply {
+                    put("thread_leaves", jsonObject)
+                }
+                postJSONArray.put(thread_leaves)
+            }
+        }
+        postJSONArray
+    }
 
     /**
      * コメント取得API。コルーチン。JSON形式の方です。xmlではない（ニコるくん取れないしCommentJSONParse使い回せない）。
@@ -503,25 +502,24 @@ class NicoVideoHTML {
      * @param jsonObject js-initial-watch-dataのdata-api-dataのJSON
      * @return 取得失敗時はnull。成功時はResponse
      * */
-    fun getComment(videoId: String, userSession: String, jsonObject: JSONObject): Deferred<Response?> =
-        GlobalScope.async {
-            val postData = makeCommentAPIJSON(videoId, userSession, jsonObject).await().toString()
-                .toRequestBody()
-            // リクエスト
-            val request = Request.Builder().apply {
-                url("https://nmsg.nicovideo.jp/api.json/")
-                header("Cookie", "user_session=${userSession}")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                post(postData)
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            if (response.isSuccessful) {
-                return@async response
-            } else {
-                return@async null
-            }
+    suspend fun getComment(videoId: String, userSession: String, jsonObject: JSONObject) = withContext(Dispatchers.IO) {
+        val postData = makeCommentAPIJSON(videoId, userSession, jsonObject).toString()
+            .toRequestBody()
+        // リクエスト
+        val request = Request.Builder().apply {
+            url("https://nmsg.nicovideo.jp/api.json/")
+            header("Cookie", "user_session=${userSession}")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            post(postData)
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        if (response.isSuccessful) {
+            response
+        } else {
+            null
         }
+    }
 
     /**
      * コメントJSONをパースする
@@ -549,22 +547,21 @@ class NicoVideoHTML {
      * @param userSession ユーザーセッション
      * @return 成功時threadKey。失敗時nullです
      * */
-    private fun getThreadKeyForce184(thread: String, userSession: String): Deferred<String?> =
-        GlobalScope.async {
-            val url = "https://flapi.nicovideo.jp/api/getthreadkey?thread=$thread"
-            val request = Request.Builder()
-                .url(url).get()
-                .header("Cookie", "user_session=${userSession}")
-                .header("User-Agent", "TatimiDroid;@takusan_23")
-                .build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            if (response.isSuccessful) {
-                return@async response.body?.string()
-            } else {
-                return@async null
-            }
+    private suspend fun getThreadKeyForce184(thread: String, userSession: String) = withContext(Dispatchers.IO) {
+        val url = "https://flapi.nicovideo.jp/api/getthreadkey?thread=$thread"
+        val request = Request.Builder()
+            .url(url).get()
+            .header("Cookie", "user_session=${userSession}")
+            .header("User-Agent", "TatimiDroid;@takusan_23")
+            .build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        if (response.isSuccessful) {
+            response.body?.string()
+        } else {
+            null
         }
+    }
 
     /**
      * ハートビートをPOSTする関数。非同期処理です。Smileサーバーならこの処理はいらない？

@@ -1,9 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -21,22 +19,20 @@ class NicoVideoPOST {
      * @param page ページ数。。何もなければ空でいいよ。
      * @param userSession ユーザーセッション
      * */
-    fun getList(page: Int, userId: String, userSession: String): Deferred<Response> =
-        GlobalScope.async {
-            val url = "https://www.nicovideo.jp/user/$userId/video?page=$page"
-            val request = Request.Builder().apply {
-                url(url)
-                header("Cookie", "user_session=${userSession}")
-                header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    suspend fun getList(page: Int, userId: String, userSession: String) = withContext(Dispatchers.IO) {
+        val url = "https://www.nicovideo.jp/user/$userId/video?page=$page"
+        val request = Request.Builder().apply {
+            url(url)
+            header("Cookie", "user_session=${userSession}")
+            header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).execute()
+    }
 
-    fun parseHTML(responseString: String?): ArrayList<NicoVideoData> {
+    suspend fun parseHTML(responseString: String?) = withContext(Dispatchers.Default) {
         val videoList = arrayListOf<NicoVideoData>()
         val document = Jsoup.parse(responseString)
         //動画のDiv要素を取り出す
@@ -56,7 +52,7 @@ class NicoVideoPOST {
             val data = NicoVideoData(isCache = false, isMylist = false, title = title, videoId = videoId, thum = thumbnailUrl, date = toUnixTime(postDate), viewCount = playCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = null, cacheAddedDate = null)
             videoList.add(data)
         }
-        return videoList
+        videoList
     }
 
     // UnixTime（ミリ秒）に変換する関数

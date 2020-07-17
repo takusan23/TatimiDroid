@@ -434,7 +434,7 @@ class NicoVideoCache(val context: Context?) {
             // POSTするJSON作成
             val response =
                 NicoVideoHTML()
-                    .getComment(videoId, userSession, JSONObject(json)).await()
+                    .getComment(videoId, userSession, JSONObject(json))
             if (response != null && response.isSuccessful) {
                 // 動画コメントJSON作成
                 val videoJSONFile = File("${videoIdFolder.path}/${videoId}_comment.json")
@@ -566,7 +566,7 @@ class NicoVideoCache(val context: Context?) {
             val nicoVideoHTML =
                 NicoVideoHTML()
             // 動画HTML取得
-            val response = nicoVideoHTML.getHTML(videoId, userSession).await()
+            val response = nicoVideoHTML.getHTML(videoId, userSession)
             if (response.isSuccessful) {
                 // 動画情報更新
                 val jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
@@ -574,9 +574,7 @@ class NicoVideoCache(val context: Context?) {
                     File("${getCacheFolderPath()}/${videoId}")
                 saveVideoInfo(videoIdFolder, videoId, jsonObject.toString())
                 // コメント取得
-                val commentResponse =
-                    nicoVideoHTML.getComment(videoId, userSession, jsonObject)
-                        .await()
+                val commentResponse = nicoVideoHTML.getComment(videoId, userSession, jsonObject)
                 val commentString = commentResponse?.body?.string()
                 if (commentResponse?.isSuccessful == true && commentString != null) {
                     // コメント更新

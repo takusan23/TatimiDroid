@@ -13,7 +13,9 @@ import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Adapter.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoAdAPI
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.fragment_nicoad_layout.*
+import kotlinx.coroutines.*
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
@@ -47,8 +49,7 @@ class NicoAdFragment : Fragment() {
         // 情報取得
         getNicoAd()
 
-        val darkModeSupport = DarkModeSupport(context!!)
-        nicoad_tablayout.setBackgroundColor(darkModeSupport.getThemeColor())
+        nicoad_tablayout.setBackgroundColor(getThemeColor(context))
 
         //TabLayout
         nicoad_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -75,15 +76,24 @@ class NicoAdFragment : Fragment() {
     }
 
     private fun getNicoAd() {
-        val nicoAdAPI =
-            NicoAdAPI()
-        nicoAdAPI.getNicoAdInfo(liveId, null) {
-            if (it.isSuccessful) {
-                val jsonObject = JSONObject(it.body?.string())
+        // えらー
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        GlobalScope.launch(errorHandler) {
+            // API叩く
+            val nicoAd = NicoAdAPI().getNicoAd(liveId)
+            if (!nicoAd.isSuccessful) {
+                showToast("${getString(R.string.error)}\n${nicoAd.code}")
+            }
+            withContext(Dispatchers.Default) {
+                // JSONパース
+                val jsonObject = JSONObject(nicoAd.body?.string())
                 val data = jsonObject.getJSONObject("data")
                 val totalPoint = data.getInt("totalPoint")
                 val activePoint = data.getInt("activePoint")
-                activity?.runOnUiThread {
+                withContext(Dispatchers.Main) {
+                    // UIに反映
                     gift_total_point.text = "${getString(R.string.nicoad_total)}：${totalPoint}pt"
                     gift_active_point.text = "${getString(R.string.nicoad_active)}：${activePoint}pt"
                 }

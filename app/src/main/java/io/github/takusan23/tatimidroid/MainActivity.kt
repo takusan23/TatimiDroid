@@ -19,6 +19,7 @@ import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -43,6 +44,7 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences
+
     //val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -345,12 +347,14 @@ class MainActivity : AppCompatActivity() {
                 // コミュID
                 val communityId = communityIDMatcher.group()
                 if (hasMailPass(this)) {
-                    GlobalScope.launch {
+                    // エラー時
+                    val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                        showToast("${getString(R.string.error)}\n${throwable.message}")
+                    }
+                    GlobalScope.launch(errorHandler) {
                         // コミュID->生放送ID
                         val nicoLiveHTML = NicoLiveHTML()
-                        val response =
-                            nicoLiveHTML.getNicoLiveHTML(communityId, pref_setting.getString("user_session", ""), false)
-                                .await()
+                        val response = nicoLiveHTML.getNicoLiveHTML(communityId, pref_setting.getString("user_session", ""), false)
                         val responseString = response.body?.string()
                         if (!response.isSuccessful) {
                             // 失敗時

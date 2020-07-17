@@ -16,6 +16,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHistoryAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_history.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -72,8 +73,12 @@ class DevNicoVideoHistoryFragment : Fragment() {
         if (::coroutine.isInitialized) {
             coroutine.cancel()
         }
-        coroutine = GlobalScope.launch {
-            val response = nicoVideoHistoryAPI.getHistory(userSession).await()
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        coroutine = GlobalScope.launch(errorHandler) {
+            val response = nicoVideoHistoryAPI.getHistory(userSession)
             try {
                 when {
                     response.isSuccessful -> {
@@ -91,8 +96,7 @@ class DevNicoVideoHistoryFragment : Fragment() {
                             setAction(R.string.login) {
                                 // ログインする
                                 GlobalScope.launch {
-                                    NicoLogin.loginCoroutine(context)
-                                    userSession = prefSetting.getString("user_session", "") ?: ""
+                                    userSession = NicoLogin.loginCoroutine(context)
                                     getHistory()
                                 }
                             }

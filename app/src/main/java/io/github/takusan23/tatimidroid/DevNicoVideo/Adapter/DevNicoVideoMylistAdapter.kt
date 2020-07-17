@@ -60,14 +60,17 @@ class DevNicoVideoMylistAdapter(val mylistList: ArrayList<Pair<String, String>>)
 
             // マイリスト追加
             linearLayout.setOnClickListener {
-                GlobalScope.launch(Dispatchers.IO) {
+                val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                    showToast(context, "${context.getString(R.string.error)}\n${throwable.message}")
+                }
+                GlobalScope.launch(errorHandler) {
                     // 登録終わるまで閉じれないようにする。
                     withContext(Dispatchers.Main) {
                         mylistBottomFragment.isCancelable = false
                     }
                     // マイリストToken取得
-                    val mylistHTMLResponse = myListAPI.getMyListHTML(userSession).await()
-                    val nicoVideoResponse = nicoVideoHTML.getHTML(id, userSession).await()
+                    val mylistHTMLResponse = myListAPI.getMyListHTML(userSession)
+                    val nicoVideoResponse = nicoVideoHTML.getHTML(id, userSession)
                     if (mylistHTMLResponse.isSuccessful && nicoVideoResponse.isSuccessful) {
                         // ThreadId
                         val htmlJSON = nicoVideoHTML.parseJSON(nicoVideoResponse.body?.string())
@@ -75,21 +78,17 @@ class DevNicoVideoMylistAdapter(val mylistList: ArrayList<Pair<String, String>>)
                         // マイリストToken
                         val token = myListAPI.getToken(mylistHTMLResponse.body?.string()) ?: ""
                         // マイリスト追加API叩く
-                        val mylistResponse = myListAPI.mylistAddVideo(mylistId, threadId, "", token, userSession).await()
+                        val mylistResponse = myListAPI.mylistAddVideo(mylistId, threadId, "", token, userSession)
                         if (mylistResponse.isSuccessful) {
                             // 成功したかどうか
                             val mylistResponseJSON = JSONObject(mylistResponse.body?.string())
                             // 閉じれるようにする
                             withContext(Dispatchers.Main) {
-                                withContext(Dispatchers.Main) {
-                                    mylistBottomFragment.isCancelable = true
-                                }
+                                mylistBottomFragment.isCancelable = true
                                 if (mylistResponseJSON.has("status") && mylistResponseJSON.getString("status") == "ok") {
                                     // 成功時
                                     showToast(context, context.getString(R.string.mylist_add_ok))
-                                    withContext(Dispatchers.Main) {
-                                        mylistBottomFragment.dismiss()
-                                    }
+                                    mylistBottomFragment.dismiss()
                                 } else {
                                     // 失敗時。すでに登録済みなど
                                     val error = mylistResponseJSON.getString("error")

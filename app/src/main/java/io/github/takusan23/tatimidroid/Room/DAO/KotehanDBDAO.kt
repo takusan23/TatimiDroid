@@ -26,6 +26,6 @@ interface KotehanDBDAO {
 
     /** ユーザーIDからコテハンを取り出す */
     @Query("SELECT * FROM kotehan WHERE user_id = :userId")
-    fun findKotehanByUserId(userId: String): KotehanDBEntity
+    fun findKotehanByUserId(userId: String): KotehanDBEntity?
 
 }

@@ -18,8 +18,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
 
@@ -67,11 +66,17 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
         val liveId = arguments?.getString("liveId") ?: ""
         val user_session = pref_setting.getString("user_session", "")
 
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            activity?.runOnUiThread {
+                Toast.makeText(context, "${getString(R.string.error)}\n${throwable.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
         // 番組情報取得
         val nicoLiveHTML = NicoLiveHTML()
-        GlobalScope.launch {
+        GlobalScope.launch(errorHandler) {
             // 視聴ページHTML取得
-            val nicoHTMLResponse = nicoLiveHTML.getNicoLiveHTML(liveId, user_session).await()
+            val nicoHTMLResponse = nicoLiveHTML.getNicoLiveHTML(liveId, user_session)
             if (!nicoHTMLResponse.isSuccessful) {
                 Handler(Looper.getMainLooper()).post {
                     // 失敗時は落とす
@@ -175,8 +180,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
                 //フォロワー限定番組だった
                 activity?.runOnUiThread {
                     dismiss()
-                    Toast.makeText(context, getString(R.string.error_follower_only), Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(context, getString(R.string.error_follower_only), Toast.LENGTH_SHORT).show()
                 }
             } else if (status == "RELEASED" && canWatchLive) {
                 // 予約枠で視聴が可能な場合（コミュ限とかではない場合）

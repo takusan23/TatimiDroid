@@ -1,9 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -18,24 +16,22 @@ class NicoVideoRecommendAPI {
      * 関連動画取得APIを叩く。
      * @param watchRecommendationRecipe parseJSON()#watchRecommendationRecipeの値。
      * */
-    fun getVideoRecommend(watchRecommendationRecipe: String): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("https://nvapi.nicovideo.jp/v1/recommend?recipe=$watchRecommendationRecipe&site=nicovideo&_frontendId=6")
-                addHeader("User-Agent", "TatimiDroid;@takusan_23")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    suspend fun getVideoRecommend(watchRecommendationRecipe: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("https://nvapi.nicovideo.jp/v1/recommend?recipe=$watchRecommendationRecipe&site=nicovideo&_frontendId=6")
+            addHeader("User-Agent", "TatimiDroid;@takusan_23")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).execute()
+    }
 
     /**
      * getVideoRecommend()のレスポンスをパースする。
      * @param responseString getVideoRecommend()の返り値
      * @return NicoVideoDataの配列
      * */
-    fun parseVideoRecommend(responseString: String?): ArrayList<NicoVideoData> {
+    suspend fun parseVideoRecommend(responseString: String?) = withContext(Dispatchers.Default) {
         val list = arrayListOf<NicoVideoData>()
         val jsonObject = JSONObject(responseString)
         val items = jsonObject.getJSONObject("data").getJSONArray("items")
@@ -63,13 +59,12 @@ class NicoVideoRecommendAPI {
                 list.add(data)
             }
         }
-        return list
+        list
     }
 
     // UnixTimeへ変換
     private fun toUnixTime(time: String): Long {
-        val simpleDateFormat =
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
         return simpleDateFormat.parse(time).time
     }
 

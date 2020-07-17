@@ -71,7 +71,7 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                 // 無い時はインターネットから取得
                 withContext(Dispatchers.IO) {
                     // データ取得
-                    nicoVideoData = nicoVideoHTML.getNicoVideoData(videoId, userSession).await() ?: return@withContext
+                    nicoVideoData = nicoVideoHTML.getNicoVideoData(videoId, userSession) ?: return@withContext
                 }
             }
 
@@ -198,10 +198,10 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                             val deleteResponse = withContext(Dispatchers.IO) {
                                 if (!nicoVideoData.isToriaezuMylist) {
                                     // マイリストから動画を削除
-                                    nicoVideoSPMyListAPI.deleteMyListVideo(nicoVideoData.mylistId!!, nicoVideoData.mylistItemId, userSession).await()
+                                    nicoVideoSPMyListAPI.deleteMyListVideo(nicoVideoData.mylistId!!, nicoVideoData.mylistItemId, userSession)
                                 } else {
                                     // とりあえずマイリストから動画を削除
-                                    nicoVideoSPMyListAPI.deleteToriaezuMyListVideo(nicoVideoData.mylistItemId, userSession).await()
+                                    nicoVideoSPMyListAPI.deleteToriaezuMyListVideo(nicoVideoData.mylistItemId, userSession)
                                 }
                             }
                             if (deleteResponse.isSuccessful) {

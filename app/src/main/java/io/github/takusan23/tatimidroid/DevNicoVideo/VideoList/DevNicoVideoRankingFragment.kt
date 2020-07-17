@@ -136,9 +136,13 @@ class DevNicoVideoRankingFragment : Fragment() {
         val genre = nicoRSS.rankingGenreUrlList[rankingGenrePos]
         // 集計期間
         val time = nicoRSS.rankingTimeList[rankingTimePos]
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
         // RSS取得
-        launch = GlobalScope.launch {
-            val response = nicoRSS.getRanking(genre, time).await()
+        launch = GlobalScope.launch(errorHandler) {
+            val response = nicoRSS.getRanking(genre, time)
             if (response.isSuccessful) {
                 nicoRSS.parseHTML(response).forEach {
                     recyclerViewList.add(it)

@@ -1,9 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -21,7 +19,7 @@ class NicoRepoAPI {
      * @param userSession ユーザーセッション
      * @return OkHttpのレスポンス。
      * */
-    fun getNicoRepoResponse(userSession: String): Deferred<Response> = GlobalScope.async {
+    suspend fun getNicoRepoResponse(userSession: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             url("https://www.nicovideo.jp/api/nicorepo/timeline/my/all?client_app=pc_myrepo")
             header("Cookie", "user_session=$userSession")
@@ -30,7 +28,7 @@ class NicoRepoAPI {
         }.build()
         val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
-        return@async response
+        response
     }
 
     /**
@@ -38,7 +36,7 @@ class NicoRepoAPI {
      * @param responseString getNicoRepoResponse()の返り値
      * @return NicoVideoDataの配列
      * */
-    fun parseNicoRepoResponse(responseString: String?): ArrayList<NicoVideoData> {
+    suspend fun parseNicoRepoResponse(responseString: String?) = withContext(Dispatchers.Default) {
         val list = arrayListOf<NicoVideoData>()
         val jsonObject = JSONObject(responseString)
         val dataList = jsonObject.getJSONArray("data")
@@ -57,7 +55,7 @@ class NicoRepoAPI {
                 list.add(data)
             }
         }
-        return list
+        list
     }
 
     // UnixTimeへ変換

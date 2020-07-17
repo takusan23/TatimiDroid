@@ -67,41 +67,47 @@ class DevNicoVideoMyListListFragment : Fragment() {
 
     // マイリストの中身取得
     fun getMyListItems() {
-        GlobalScope.launch(Dispatchers.Main) {
-            // 初期化
-            recyclerViewList.clear()
-            nicoVideoListAdapter.notifyDataSetChanged()
-            fragment_nicovideo_mylist_list_swipe.isRefreshing = true
-            // データ取得
-            withContext(Dispatchers.IO) {
-                // とりあえずマイリストかマイリストか？
-                val myListItemsReponse = when {
-                    isOther -> nicoVideoSPMyListAPI.getOtherUserMyListItems(myListId, userSession)
-                    myListId.isEmpty() -> nicoVideoSPMyListAPI.getToriaezuMyListList(userSession)
-                    else -> nicoVideoSPMyListAPI.getMyListItems(myListId, userSession)
-                }.await()
-                if (!myListItemsReponse.isSuccessful) {
-                    // 失敗時
-                    showToast("${getString(R.string.error)}\n${myListItemsReponse.code}")
-                    return@withContext
-                }
-                // パース
-                val videoItems = if (isOther) {
-                    nicoVideoSPMyListAPI.parseOtherUserMyListJSON(myListItemsReponse.body?.string())
-                } else {
-                    nicoVideoSPMyListAPI.parseMyListItems(myListId, myListItemsReponse.body?.string())
-                }
-                // ソート
-                videoItems.sortByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate }
-                // RecyclerViewへ追加
-                videoItems.forEach {
-                    recyclerViewList.add(it)
-                }
-            }
-            if (isAdded) {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        GlobalScope.launch(errorHandler) {
+            withContext(Dispatchers.Main) {
+                // 初期化
+                recyclerViewList.clear()
                 nicoVideoListAdapter.notifyDataSetChanged()
-                fragment_nicovideo_mylist_list_swipe.isRefreshing = false
-                sort()
+                fragment_nicovideo_mylist_list_swipe.isRefreshing = true
+            }
+            // データ取得
+            // とりあえずマイリストかマイリストか？
+            val myListItemsReponse = when {
+                isOther -> nicoVideoSPMyListAPI.getOtherUserMyListItems(myListId, userSession)
+                myListId.isEmpty() -> nicoVideoSPMyListAPI.getToriaezuMyListList(userSession)
+                else -> nicoVideoSPMyListAPI.getMyListItems(myListId, userSession)
+            }
+            if (!myListItemsReponse.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${myListItemsReponse.code}")
+                return@launch
+            }
+            // パース
+            val videoItems = if (isOther) {
+                nicoVideoSPMyListAPI.parseOtherUserMyListJSON(myListItemsReponse.body?.string())
+            } else {
+                nicoVideoSPMyListAPI.parseMyListItems(myListId, myListItemsReponse.body?.string())
+            }
+            // ソート
+            videoItems.sortByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate }
+            // RecyclerViewへ追加
+            videoItems.forEach {
+                recyclerViewList.add(it)
+            }
+            withContext(Dispatchers.Main) {
+                if (isAdded) {
+                    nicoVideoListAdapter.notifyDataSetChanged()
+                    fragment_nicovideo_mylist_list_swipe.isRefreshing = false
+                    sort()
+                }
             }
         }
     }
@@ -122,7 +128,7 @@ class DevNicoVideoMyListListFragment : Fragment() {
                 "マイリスト数の多い順",
                 "マイリスト数の少ない順"
             )
-        val adapter = AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_spinner_dropdown_item, sortList)
+        val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, sortList)
         fragment_nicovideo_mylist_list_sort.apply {
             setAdapter(adapter)
             setOnItemClickListener { parent, view, position, id ->

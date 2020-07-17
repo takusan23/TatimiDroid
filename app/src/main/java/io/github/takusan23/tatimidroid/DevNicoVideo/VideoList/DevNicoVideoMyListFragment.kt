@@ -16,10 +16,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 /**
  * マイリストFragment。RecyclerViewが乗ってるFragmentはDevNicoVideoMyListListFragmentです。
@@ -69,17 +66,19 @@ class DevNicoVideoMyListFragment : Fragment() {
 
     // マイリスト一覧取得
     private fun getMyListItems() {
-        GlobalScope.launch(Dispatchers.Main) {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        GlobalScope.launch(errorHandler) {
             val nicoVideoSPMyListAPI = NicoVideoSPMyListAPI()
             // マイリスト一覧取得
-            myListItems = withContext(Dispatchers.IO) {
-                val response = nicoVideoSPMyListAPI.getMyListList(userSession).await()
-                if (!response.isSuccessful) {
-                    // 失敗時
-                    showToast("${getString(R.string.error)}\n${response.code}")
-                }
-                nicoVideoSPMyListAPI.parseMyListList(response.body?.string())
+            val response = nicoVideoSPMyListAPI.getMyListList(userSession)
+            if (!response.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${response.code}")
             }
+            myListItems = nicoVideoSPMyListAPI.parseMyListList(response.body?.string())
             if (!isAdded) return@launch
             // とりあえずマイリスト追加
             myListItems.add(0, NicoVideoSPMyListAPI.MyListData(getString(R.string.toriaezu_mylist), "", 500))

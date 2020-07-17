@@ -40,6 +40,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
@@ -181,9 +182,13 @@ class NicoLivePlayService : Service() {
 
     // データ取得
     private fun coroutine() {
-        GlobalScope.launch {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}")
+        }
+        GlobalScope.launch(errorHandler) {
             // ニコ生視聴ページリクエスト
-            val livePageResponse = nicoLiveHTML.getNicoLiveHTML(liveId, userSession, true).await()
+            val livePageResponse = nicoLiveHTML.getNicoLiveHTML(liveId, userSession, true)
             if (!livePageResponse.isSuccessful) {
                 // 失敗のときはService落とす
                 this@NicoLivePlayService.stopSelf()
@@ -268,7 +273,7 @@ class NicoLivePlayService : Service() {
     private fun initAllRoomConnect() {
         GlobalScope.launch {
             // 全部屋接続
-            val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, userSession).await()
+            val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, userSession)
             if (!allRoomResponse.isSuccessful) {
                 showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
                 return@launch

@@ -24,10 +24,7 @@ import io.github.takusan23.tatimidroid.Fragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.json.JSONArray
 import java.io.Console
 import java.text.SimpleDateFormat
@@ -172,11 +169,14 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
 
     /** ニコるくんニコる関数 */
     private fun postNicoru(context: Context, holder: ViewHolder, item: CommentJSONParse) {
-        GlobalScope.launch {
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast(context, "${context.getString(R.string.error)}\n${throwable.message}")
+        }
+        GlobalScope.launch(errorHandler) {
             devNicoVideoFragment.apply {
                 if (isPremium) {
                     val nicoruKey = nicoruAPI.nicoruKey
-                    val responseNicoru = nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey).await()
+                    val responseNicoru = nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey)
                     if (!responseNicoru.isSuccessful) {
                         // 失敗時
                         showToast(context, "${context?.getString(R.string.error)}\n${responseNicoru.code}")
@@ -194,7 +194,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
                             showSnackbar("${getString(R.string.nicoru_ok)}：${item.nicoru}\n${item.comment}", getString(R.string.nicoru_delete)) {
                                 // 取り消しAPI叩く
                                 GlobalScope.launch {
-                                    val deleteResponse = nicoruAPI.deleteNicoru(userSession, nicoruId).await()
+                                    val deleteResponse = nicoruAPI.deleteNicoru(userSession, nicoruId)
                                     if (deleteResponse.isSuccessful) {
                                         this@NicoVideoAdapter.showToast(context, getString(R.string.nicoru_delete_ok))
                                     } else {
@@ -211,7 +211,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
                             // nicoruKey失効。
                             GlobalScope.launch {
                                 // 再取得
-                                devNicoVideoFragment.nicoruAPI.getNicoruKey(userSession, threadId).await()
+                                devNicoVideoFragment.nicoruAPI.getNicoruKey(userSession, threadId)
                                 postNicoru(context, holder, item)
                             }
                         }

@@ -1,8 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -25,7 +23,7 @@ class NicoruAPI {
      * @param userSession ユーザーセッション
      * @param threadId js-initial-watch-dataのdata-api-dataのthread.ids.defaultの値
      * */
-    fun getNicoruKey(userSession: String, threadId: String): Deferred<Response> = GlobalScope.async {
+    suspend fun getNicoruKey(userSession: String, threadId: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             url("https://nvapi.nicovideo.jp/v1/nicorukey?language=0&threadId=$threadId")
             header("User-Agent", "TatimiDroid;@takusan_23")
@@ -35,8 +33,7 @@ class NicoruAPI {
             get()
         }.build()
         val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        return@async response
+        okHttpClient.newCall(request).execute()
     }
 
     /**
@@ -45,7 +42,7 @@ class NicoruAPI {
      * @param responseString getNicoruKey()のレスポンス
      * @return nicoruKeyに値が入る
      * */
-    fun parseNicoruKey(responseString: String?) {
+    suspend fun parseNicoruKey(responseString: String?) = withContext(Dispatchers.Default) {
         val jsonObject = JSONObject(responseString)
         nicoruKey = jsonObject.getJSONObject("data").getString("nicorukey")
     }
@@ -61,7 +58,7 @@ class NicoruAPI {
      * @param postDate コメントの投稿時間（UnixTime）。決してニコった時間ではない。
      * @param nicoruKey getNicoruKey()で取得した値。
      * */
-    fun postNicoru(userSession: String, threadId: String, userId: String, id: String, commentText: String, postDate: String, nicoruKey: String): Deferred<Response> = GlobalScope.async {
+    suspend fun postNicoru(userSession: String, threadId: String, userId: String, id: String, commentText: String, postDate: String, nicoruKey: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             // POSTするJSON
             val postData = JSONArray().apply {
@@ -86,8 +83,7 @@ class NicoruAPI {
             post(postData.toString().toRequestBody("application/json".toMediaTypeOrNull()))
         }.build()
         val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        return@async response
+        okHttpClient.newCall(request).execute()
     }
 
     /**
@@ -96,7 +92,7 @@ class NicoruAPI {
      * @param nicoruId ニコった後に生成されるnicoru_idを使う（nicoruResultIdで取れる）
      * @return okhttpのResponse
      * */
-    fun deleteNicoru(userSession: String, nicoruId: String): Deferred<Response> = GlobalScope.async {
+    suspend fun deleteNicoru(userSession: String, nicoruId: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             url("https://nvapi.nicovideo.jp/v1/users/me/nicoru/send/$nicoruId")
             header("User-Agent", "TatimiDroid;@takusan_23")
@@ -107,8 +103,7 @@ class NicoruAPI {
             delete()
         }.build()
         val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        return@async response
+        okHttpClient.newCall(request).execute()
     }
 
     /**

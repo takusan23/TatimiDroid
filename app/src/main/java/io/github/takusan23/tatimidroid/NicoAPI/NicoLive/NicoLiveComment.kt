@@ -1,8 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.*
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
@@ -17,14 +15,15 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 /**
- * 全部屋コメントサーバーに接続する関数
+ * 全部屋コメントサーバーに接続する関数。
+ * 全部屋の中にstoreってのが混じる様になったけどこれ部屋の統合（全部アリーナ）で入り切らなかったコメントが流れてくる場所らしい。
  * 公式番組では今の部屋のみ接続している。
  *
  * @param liveId 生放送ID
  * @param userSession ユーザーセッション
  *
  * */
-class NicoLiveComment() {
+class NicoLiveComment {
 
     // 接続済みWebSocketアドレスが入る
     val connectedWebSocketAddressList = arrayListOf<String>()
@@ -42,18 +41,17 @@ class NicoLiveComment() {
      * 全部屋WebSocketアドレスがあるAPIがあるので使わせてもらう
      * @return OkhttpのResponse
      * */
-    fun getProgramInfo(liveId: String, userSession: String): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("https://live2.nicovideo.jp/watch/$liveId/programinfo")
-                header("Cookie", "user_session=$userSession")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    suspend fun getProgramInfo(liveId: String, userSession: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("https://live2.nicovideo.jp/watch/$liveId/programinfo")
+            header("Cookie", "user_session=$userSession")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        response
+    }
 
     /**
      * データクラスの配列にパースする
@@ -61,7 +59,7 @@ class NicoLiveComment() {
      * @param arena アリーナの文字列をローカライズする場合は
      * @return CommentServerDataの配列
      * */
-    fun parseCommentServerDataList(responseString: String?, arena: String? = "アリーナ"): ArrayList<CommentServerData> {
+    suspend fun parseCommentServerDataList(responseString: String?, arena: String? = "アリーナ") = withContext(Dispatchers.Default) {
         val list = arrayListOf<CommentServerData>()
         val jsonObject = JSONObject(responseString)
         val data = jsonObject.getJSONObject("data")
@@ -80,7 +78,7 @@ class NicoLiveComment() {
             val data = CommentServerData(webSocketUri, threadId, roomName ?: "アリーナ")
             list.add(data)
         }
-        return list
+        list
     }
 
     /**
