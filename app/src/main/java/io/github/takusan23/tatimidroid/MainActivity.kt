@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid
 import android.app.NotificationManager
 import android.content.*
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.KeyEvent
@@ -22,6 +23,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.*
 
 
 /**
@@ -44,6 +46,16 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences
+
+
+/*
+    override fun attachBaseContext(newBase: Context?) {
+        val configuration = Configuration()
+        configuration.setLocale(Locale.ENGLISH)
+        super.attachBaseContext(newBase?.createConfigurationContext(configuration))
+    }
+*/
+
 
     //val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
     override fun onCreate(savedInstanceState: Bundle?) {

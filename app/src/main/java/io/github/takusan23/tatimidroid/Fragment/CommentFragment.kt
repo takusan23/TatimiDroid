@@ -858,8 +858,6 @@ class CommentFragment : Fragment() {
         if (isTokumeiHide && commentJSONParse.mail.contains("184")) {
             return
         }
-        // コテハン追加など
-        registerKotehan(commentJSONParse)
         // NGユーザー/コメントの場合は「NGコメントです表記」からそもそも非表示に(配列に追加しない)するように。
         when {
             ngCommentList.contains(commentJSONParse.userId) -> return
@@ -877,6 +875,8 @@ class CommentFragment : Fragment() {
 
             // UI Thread
             if (commentJSONParse.origin != "C" || nicoLiveHTML.isOfficial) {
+                // コテハン追加など
+                registerKotehan(commentJSONParse)
                 // RecyclerViewに追加
                 commentJSONList.add(0, commentJSONParse)
                 // CommentFragment更新かける
@@ -887,7 +887,6 @@ class CommentFragment : Fragment() {
                         recyclerViewScrollPos()
                     }
                 }
-
                 // コメント非表示モードの場合はなさがない
                 if (!isCommentHide) {
                     // 豆先輩とか

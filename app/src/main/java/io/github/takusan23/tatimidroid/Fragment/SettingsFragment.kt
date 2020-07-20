@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.preference.Preference
@@ -16,6 +17,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
+import java.util.*
 
 
 class SettingsFragment : PreferenceFragmentCompat() {
@@ -29,7 +31,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         val licence_preference = findPreference<Preference>("licence_preference")
         val konoapp_preference = findPreference<Preference>("konoapp_preference")
         val auto_admission_stop_preference = findPreference<Preference>("auto_admission_stop_preference")
