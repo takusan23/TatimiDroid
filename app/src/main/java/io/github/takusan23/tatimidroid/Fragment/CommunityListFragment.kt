@@ -210,7 +210,7 @@ class CommunityListFragment : Fragment() {
             if (html.isSuccessful) {
                 // ログインキレたとき
                 if (!NicoLiveHTML().hasNiconicoID(html)) {
-                    showSnackBar(getString(R.string.login_disable_message), getString(R.string.login)) {
+                    showSnackBar(message = getString(R.string.login_disable_message), showTime = Snackbar.LENGTH_INDEFINITE, buttonText = getString(R.string.login)) {
                         GlobalScope.launch {
                             // 再ログイン+再取得
                             userSession = NicoLogin.loginCoroutine(context)
@@ -269,7 +269,7 @@ class CommunityListFragment : Fragment() {
                 }
                 !NicoLiveHTML().hasNiconicoID(nicorepo) -> {
                     // ログインキレた
-                    showSnackBar(getString(R.string.login_disable_message), getString(R.string.login)) {
+                    showSnackBar(message = getString(R.string.login_disable_message), showTime = Snackbar.LENGTH_INDEFINITE, buttonText = getString(R.string.login)) {
                         GlobalScope.launch {
                             // 再ログイン+再取得
                             userSession = NicoLogin.loginCoroutine(context)
@@ -287,8 +287,8 @@ class CommunityListFragment : Fragment() {
     }
 
     // SnackBar表示
-    private fun showSnackBar(message: String, buttonText: String? = null, click: (() -> Unit)? = null) = GlobalScope.launch(Dispatchers.Main) {
-        Snackbar.make(community_recyclerview, message, Snackbar.LENGTH_SHORT).apply {
+    private fun showSnackBar(message: String, showTime: Int = Snackbar.LENGTH_SHORT, buttonText: String? = null, click: (() -> Unit)? = null) = GlobalScope.launch(Dispatchers.Main) {
+        Snackbar.make(community_recyclerview, message, showTime).apply {
             anchorView = (activity as MainActivity).main_activity_bottom_navigationview
             if (buttonText != null && click != null) {
                 // nullじゃなければボタン表示

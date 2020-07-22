@@ -14,8 +14,7 @@ import io.github.takusan23.tatimidroid.R
 class NicoJKProgramAdapter(val nicoJKDataList: ArrayList<NicoJKData>) : RecyclerView.Adapter<NicoJKProgramAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.adapter_nico_jk, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_nico_jk, parent, false)
         return ViewHolder(view)
     }
 

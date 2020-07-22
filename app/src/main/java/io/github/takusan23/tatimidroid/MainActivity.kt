@@ -47,16 +47,6 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences
 
-
-/*
-    override fun attachBaseContext(newBase: Context?) {
-        val configuration = Configuration()
-        configuration.setLocale(Locale.ENGLISH)
-        super.attachBaseContext(newBase?.createConfigurationContext(configuration))
-    }
-*/
-
-
     //val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

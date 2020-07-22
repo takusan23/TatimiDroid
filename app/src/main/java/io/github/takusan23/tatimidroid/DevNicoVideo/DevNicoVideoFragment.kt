@@ -8,10 +8,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Point
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.text.format.DateUtils
 import android.view.*
 import android.view.animation.AnimationUtils
@@ -32,7 +29,7 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
-import io.github.takusan23.tatimidroid.*
+import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoRecyclerPagerAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.FregmentData.DevNicoVideoFragmentData
@@ -44,13 +41,12 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Tool.*
-import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
-import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.coroutines.*

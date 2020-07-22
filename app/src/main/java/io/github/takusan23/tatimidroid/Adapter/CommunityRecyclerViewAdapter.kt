@@ -33,8 +33,7 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
     lateinit var prefSetting: SharedPreferences
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.adapter_community_layout, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_community_layout, parent, false)
         return ViewHolder(view)
     }
 

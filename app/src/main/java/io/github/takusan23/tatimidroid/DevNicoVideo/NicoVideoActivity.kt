@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.StrictMode
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport

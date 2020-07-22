@@ -11,8 +11,7 @@
             android:layout_margin="2dp"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?android:attr/selectableItemBackground"
-            app:cardCornerRadius="5dp">
+            android:foreground="?android:attr/selectableItemBackground">
 
         <LinearLayout
                 android:layout_width="match_parent"
@@ -25,14 +24,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="読み込み中"
-                    android:textSize="14sp" />
+                    android:textSize="12sp" />
 
             <TextView
                     android:id="@+id/adapter_nico_jk_channel_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="読み込み中"
-                    android:textSize="18sp" />
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
             <TextView
                     android:id="@+id/adapter_nico_jk_ikioi"

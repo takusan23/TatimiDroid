@@ -8,6 +8,7 @@ import android.view.*
 import android.widget.Toast
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.menu.MenuPopupHelper
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -57,20 +58,6 @@ class DevNicoVideoCommentFragment : Fragment() {
         usersession = prefSetting.getString("user_session", "") ?: ""
         recyclerView = view.findViewById(R.id.activity_nicovideo_recyclerview)
         devNicoVideoFragment = parentFragmentManager.findFragmentByTag(id) as DevNicoVideoFragment
-
-        // コメント検索ボタン、コメント並び替えボタンを非表示にするか
-        if (prefSetting.getBoolean("nicovideo_hide_search_button", true)) {
-            (activity_nicovideo_comment_serch_button.parent as View).visibility = View.GONE
-        }
-
-        //ポップアップメニュー初期化
-        initSortPopupMenu()
-
-        // RecyclerView
-        //  initRecyclerView()
-
-        // コメント検索
-        initSearchButton()
 
         // スクロールボタン。追従するぞい
         dev_nicovideo_comment_fragment_following_button.setOnClickListener {
@@ -266,93 +253,5 @@ class DevNicoVideoCommentFragment : Fragment() {
         return rangeItem.none { commentJSONParse -> commentJSONParse.vpos.toInt() / 100 != firstTime }
     }
 
-    private fun initSortPopupMenu() {
-        val menuBuilder = MenuBuilder(context)
-        val menuInflater = MenuInflater(context)
-        menuInflater.inflate(R.menu.nicovideo_comment_sort, menuBuilder)
-        val menuPopupHelper = MenuPopupHelper(context!!, menuBuilder, activity_nicovideo_sort_button)
-        menuPopupHelper.setForceShowIcon(true)
-        menuBuilder.setCallback(object : MenuBuilder.Callback {
-            override fun onMenuModeChange(menu: MenuBuilder?) {
-
-            }
-
-            override fun onMenuItemSelected(menu: MenuBuilder?, item: MenuItem?): Boolean {
-
-                when (item?.itemId) {
-                    R.id.nicovideo_comment_sort_time -> {
-                        //再生時間
-                        recyclerViewList.sortBy { commentJSONParse -> commentJSONParse.vpos }
-                    }
-                    R.id.nicovideo_comment_sort_reverse_time -> {
-                        //再生時間逆順
-                        recyclerViewList.sortByDescending { commentJSONParse -> commentJSONParse.vpos }
-                    }
-                    R.id.nicovideo_comment_nicoru -> {
-                        //ニコる数
-                        recyclerViewList.sortByDescending { commentJSONParse -> commentJSONParse.nicoru }
-                    }
-                    R.id.nicovideo_date -> {
-                        //投稿日時(新→古)
-                        recyclerViewList.sortByDescending { commentJSONParse -> commentJSONParse.date }
-                    }
-                    R.id.nicovideo_reverse_date -> {
-                        //投稿日時(古→新)
-                        recyclerViewList.sortBy { commentJSONParse -> commentJSONParse.date }
-                    }
-                }
-                nicoVideoAdapter.notifyDataSetChanged()
-                return false
-            }
-        })
-        //押したら開く
-        activity_nicovideo_sort_button.setOnClickListener {
-            menuPopupHelper.show()
-        }
-    }
-
-    /**
-     * コメント検索関係
-     * */
-    private fun initSearchButton() {
-        activity_nicovideo_comment_serch_button.setOnClickListener {
-            // 検索UI表示・非表示
-            activity_nicovideo_comment_serch_linearlayout.visibility =
-                if (activity_nicovideo_comment_serch_linearlayout.visibility == View.GONE) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
-        }
-        // テキストボックス監視
-        var tmpList = arrayListOf<CommentJSONParse>()
-        activity_nicovideo_comment_serch_input.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // 一時的に
-                tmpList.clear()
-                recyclerViewList.forEach {
-                    tmpList.add(it)
-                }
-                if (s?.isNotEmpty() == true) {
-                    // フィルター
-                    tmpList = recyclerViewList.filter { commentJSONParse ->
-                        commentJSONParse.comment.contains(s)
-                    } as ArrayList<CommentJSONParse>
-                }
-                // Adapter更新
-                nicoVideoAdapter =
-                    NicoVideoAdapter(tmpList)
-                activity_nicovideo_recyclerview.adapter = nicoVideoAdapter
-            }
-        })
-    }
 }
 

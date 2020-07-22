@@ -38,7 +38,8 @@
                         android:id="@+id/adapter_nicovideo_list_date"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="" />
+                        android:text=""
+                        android:textSize="12sp" />
 
                 <TextView
                         android:id="@+id/adapter_nicovideo_list_title"
@@ -47,13 +48,15 @@
                         android:maxLines="2"
                         android:scrollbars="none"
                         android:text=""
-                        android:textSize="18sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                 <TextView
                         android:id="@+id/adapter_nicovideo_list_info"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="" />
+                        android:text=""
+                        android:textSize="14sp" />
             </LinearLayout>
 
             <ImageView

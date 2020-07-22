@@ -6,29 +6,6 @@
         android:orientation="vertical">
 
     <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="right"
-            android:orientation="horizontal">
-
-        <Button
-                android:id="@+id/activity_nicovideo_comment_serch_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5sp"
-                android:text="@string/serch"
-                app:icon="@drawable/ic_24px" />
-
-        <com.google.android.material.button.MaterialButton
-                android:id="@+id/activity_nicovideo_sort_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5sp"
-                android:text="@string/comment_sort"
-                app:icon="@drawable/ic_sort_black_24dp" />
-    </LinearLayout>
-
-    <LinearLayout
             android:id="@+id/activity_nicovideo_comment_serch_linearlayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

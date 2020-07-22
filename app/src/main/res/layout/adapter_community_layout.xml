@@ -52,14 +52,15 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="読み込み中"
-                                android:textSize="14dp" />
+                                android:textSize="12sp" />
 
                         <TextView
                                 android:id="@+id/adapter_community_title_textview"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="読み込み中"
-                                android:textSize="18dp" />
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
                     </LinearLayout>
 
                 </LinearLayout>

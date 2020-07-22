@@ -402,7 +402,6 @@ class DevNicoVideoMenuFragment : Fragment() {
      * 値セット
      * */
     fun getValue() {
-        fragment_nicovideo_menu_scroll.isChecked = prefSetting.getBoolean("nicovideo_comment_scroll", false)
         fragment_nicovideo_menu_hide_comment_search.isChecked = prefSetting.getBoolean("nicovideo_hide_search_button", true)
     }
 
@@ -410,7 +409,6 @@ class DevNicoVideoMenuFragment : Fragment() {
      * 値保存
      * */
     fun setValue() {
-        switchListener(fragment_nicovideo_menu_scroll, "nicovideo_comment_scroll")
         switchListener(fragment_nicovideo_menu_hide_comment_search, "nicovideo_hide_search_button")
     }
 
