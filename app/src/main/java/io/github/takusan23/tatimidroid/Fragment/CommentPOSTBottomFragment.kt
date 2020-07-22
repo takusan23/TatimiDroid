@@ -15,6 +15,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.bottom_sheet_fragment_post_layout.*
 
 class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
@@ -31,7 +32,7 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
         //ダークモード
         val darkModeSupport = DarkModeSupport(context!!)
         bottom_fragment_post_linearlayout.background =
-            ColorDrawable(darkModeSupport.getThemeColor())
+            ColorDrawable(getThemeColor(darkModeSupport.context))
 
 
         val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)

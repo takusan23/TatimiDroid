@@ -306,13 +306,10 @@ class DevNicoVideoFragment : Fragment() {
         fragment_nicovideo_fullscreen_close_button?.setOnClickListener {
             setCloseFullScreen()
         }
-        // 画面の高さ取得。はい非推奨
-        val display = activity?.windowManager?.defaultDisplay
-        val point = Point()
-        display?.getSize(point)
+        // アスペクト比調整
         val params = if (isMaxZoom) {
-            val width = point.x
-            // アスペ（クト比）直す
+            // 画面の幅取得。令和最新版（ビリビリワイヤレスイヤホン並感）
+            val width = DisplaySizeTool().getDisplayWidth(context)
             val height = if (isAspectRate169) {
                 // 16:9動画
                 getAspectHeightFromWidth(width)
@@ -322,7 +319,7 @@ class DevNicoVideoFragment : Fragment() {
             }
             LinearLayout.LayoutParams(width, height)
         } else {
-            val height = point.y
+            val height = DisplaySizeTool().getDisplayHeight(context)
             // アスペ（クト比）直す
             val width = if (isAspectRate169) {
                 // 16:9動画
@@ -347,12 +344,6 @@ class DevNicoVideoFragment : Fragment() {
                 fragment_nicovideo_fullscreen_button_linarlayout?.visibility = View.VISIBLE
             }
         }
-        // コメントキャンバスに反映
-        fragment_nicovideo_comment_canvas.apply {
-            commentLine.clear()
-            ueCommentLine.clear()
-            sitaCommentLine.clear()
-        }
     }
 
     private fun setCloseFullScreen() {
@@ -364,14 +355,11 @@ class DevNicoVideoFragment : Fragment() {
         // システムバー表示
         setSystemBarVisibility(true)
         // 色戻す
-        (fragment_nicovideo_video_title_linearlayout.parent as View).setBackgroundColor(darkModeSupport.getThemeColor())
+        (fragment_nicovideo_video_title_linearlayout.parent as View).setBackgroundColor(getThemeColor(context))
         // 全画面終了ボタン/最大に広げるボタン消す
         fragment_nicovideo_fullscreen_button_linarlayout?.visibility = View.GONE
-        // 画面の幅取得。はい非推奨
-        val display = activity?.windowManager?.defaultDisplay
-        val point = Point()
-        display?.getSize(point)
-        val width = point.x / 2
+        // 画面の幅取得。令和最新版（ビリビリワイヤレスイヤホン並感）
+        val width = DisplaySizeTool().getDisplayWidth(context)
         // アスペ（クト比）直す
         val height = if (isAspectRate169) {
             // 16:9動画
@@ -384,12 +372,6 @@ class DevNicoVideoFragment : Fragment() {
         fragment_nicovideo_framelayout.layoutParams = params
         // クリック消す
         fragment_nicovideo_framelayout.setOnClickListener(null)
-        // コメントキャンバスに反映
-        fragment_nicovideo_comment_canvas.apply {
-            commentLine.clear()
-            ueCommentLine.clear()
-            sitaCommentLine.clear()
-        }
     }
 
 
@@ -510,8 +492,8 @@ class DevNicoVideoFragment : Fragment() {
     // ダークモード
     private fun initDarkmode() {
         darkModeSupport = DarkModeSupport(requireContext())
-        fragment_nicovideo_tablayout.backgroundTintList = ColorStateList.valueOf(darkModeSupport.getThemeColor())
-        fragment_nicovideo_framelayout_elevation_cardview.setBackgroundColor(darkModeSupport.getThemeColor())
+        fragment_nicovideo_tablayout.backgroundTintList = ColorStateList.valueOf(getThemeColor(darkModeSupport.context))
+        fragment_nicovideo_framelayout_elevation_cardview.setBackgroundColor(getThemeColor(darkModeSupport.context))
     }
 
     /**
@@ -1097,20 +1079,32 @@ class DevNicoVideoFragment : Fragment() {
 
     // アスペクト比合わせる。引数は 横/縦 の答え
     private fun setAspectRate(round: Double) {
-        // 画面の幅取得
-        val display = activity?.windowManager?.defaultDisplay
-        val point = Point()
-        display?.getSize(point)
+        // 画面の幅取得。令和最新版（ビリビリワイヤレスイヤホン並感）
+        val displayWidth = DisplaySizeTool().getDisplayWidth(context)
+        // 縦画面だったらtrue
+        val isPortLait = context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT
         when (round) {
+            1.0 -> {
+                // 横の長さから縦の高さ計算
+                val width = if (isPortLait) {
+                    // 縦
+                    (displayWidth / 1.5).toInt()
+                } else {
+                    // 横
+                    displayWidth / 2
+                }
+                val params = LinearLayout.LayoutParams(width, width)
+                fragment_nicovideo_framelayout.layoutParams = params
+            }
             1.3 -> {
                 // 4:3動画
                 // 4:3をそのまま出すと大きすぎるので調整（代わりに黒帯出るけど仕方ない）
-                val width = if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                val width = if (isPortLait) {
                     // 縦
-                    (point.x / 1.2).toInt()
+                    (displayWidth / 1.2).toInt()
                 } else {
                     // 横
-                    point.x / 2
+                    displayWidth / 2
                 }
                 val height = getOldAspectHeightFromWidth(width)
                 val params = LinearLayout.LayoutParams(width, height)
@@ -1119,23 +1113,17 @@ class DevNicoVideoFragment : Fragment() {
             1.7 -> {
                 // 16:9動画
                 // 横の長さから縦の高さ計算
-                val width = if (context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                val width = if (isPortLait) {
                     // 縦
-                    point.x
+                    displayWidth
                 } else {
                     // 横
-                    point.x / 2
+                    displayWidth / 2
                 }
                 val height = getAspectHeightFromWidth(width)
                 val params = LinearLayout.LayoutParams(width, height)
                 fragment_nicovideo_framelayout.layoutParams = params
             }
-        }
-        // サイズ変更に対応
-        fragment_nicovideo_comment_canvas.apply {
-            commentLine.clear()
-            ueCommentLine.clear()
-            sitaCommentLine.clear()
         }
     }
 

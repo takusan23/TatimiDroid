@@ -1,9 +1,11 @@
 package io.github.takusan23.tatimidroid
 
 import android.app.NotificationManager
-import android.content.*
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.ColorStateList
-import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.KeyEvent
@@ -23,7 +25,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.*
 
 
 /**
@@ -60,8 +61,8 @@ class MainActivity : AppCompatActivity() {
 
         //ダークモード対応
         if (isDarkMode(this)) {
-            main_activity_bottom_navigationview.backgroundTintList = ColorStateList.valueOf(darkModeSupport.getThemeColor())
-            supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
+            main_activity_bottom_navigationview.backgroundTintList = ColorStateList.valueOf(getThemeColor(darkModeSupport.context))
+            supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(darkModeSupport.context)))
         }
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

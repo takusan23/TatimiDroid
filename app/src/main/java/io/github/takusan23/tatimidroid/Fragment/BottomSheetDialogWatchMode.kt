@@ -17,6 +17,7 @@ import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
 import kotlinx.coroutines.*
 
@@ -50,7 +51,7 @@ class BottomSheetDialogWatchMode : BottomSheetDialogFragment() {
         //ダークモード
         val darkModeSupport = DarkModeSupport(context!!)
         dialog_watchmode_parent_linearlayout.background =
-            ColorDrawable(darkModeSupport.getThemeColor())
+            ColorDrawable(getThemeColor(darkModeSupport.context))
 
         getProgram()
 

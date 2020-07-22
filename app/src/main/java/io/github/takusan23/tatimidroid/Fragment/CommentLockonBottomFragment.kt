@@ -29,6 +29,7 @@ import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.Tool.NICOLIVE_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.adapter_comment_layout.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -75,7 +76,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
         // ダークモード
         val darkModeSupport = DarkModeSupport(requireContext())
-        bottom_fragment_comment_menu_parent_linearlayout.background = ColorDrawable(darkModeSupport.getThemeColor())
+        bottom_fragment_comment_menu_parent_linearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
 
         // Fragment取得
         val fragment = activity?.supportFragmentManager?.findFragmentByTag(liveId)

@@ -1,6 +1,9 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
+import android.app.ActivityManager
+import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import androidx.appcompat.app.AppCompatActivity
@@ -23,7 +26,6 @@ class NicoVideoActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         darkModeSupport = DarkModeSupport(this)
         darkModeSupport.setActivityTheme(this)
 

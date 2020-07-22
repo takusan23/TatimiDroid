@@ -261,9 +261,9 @@ class CommentFragment : Fragment() {
 
         //ダークモード対応
         if (isDarkMode(context)) {
-            commentActivity.supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
-            activity_comment_tab_layout.background = ColorDrawable(darkModeSupport.getThemeColor())
-            comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(darkModeSupport.getThemeColor())
+            commentActivity.supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(darkModeSupport.context)))
+            activity_comment_tab_layout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
+            comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(getThemeColor(darkModeSupport.context))
         }
 
         // GoogleCast？
@@ -320,7 +320,7 @@ class CommentFragment : Fragment() {
 
         // 縦画面のときのみやる作業
         fragment_comment_bar?.apply {
-            background = ColorDrawable(darkModeSupport.getThemeColor())
+            background = ColorDrawable(getThemeColor(darkModeSupport.context))
             setOnClickListener {
                 // 表示、非表示
                 comment_fragment_program_info.visibility = if (comment_fragment_program_info.visibility == View.GONE) {
@@ -536,7 +536,7 @@ class CommentFragment : Fragment() {
             setCloseFullScreen()
         }
         // 画面の大きさ取得
-        val displayHeight = getDisplayHeight()
+        val displayHeight = DisplaySizeTool().getDisplayHeight(context)
         // ExoPlayerのアスペクト比設定
         liveFrameLayout.updateLayoutParams {
             height = displayHeight
@@ -555,15 +555,8 @@ class CommentFragment : Fragment() {
                 activity_comment_fullscreen_button_linarlayout?.visibility = View.VISIBLE
             }
         }
-        // コメント描画システムに教える
-        commentCanvas.apply {
-            finalHeight = commentCanvas.height
-            // コメントの高さの情報がある配列を消す。
-            // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
-            commentLine.clear()
-            ueCommentLine.clear()
-            sitaCommentLine.clear()
-        }
+        // 高さ更新
+        commentCanvas.finalHeight = commentCanvas.height
     }
 
     /**
@@ -585,81 +578,14 @@ class CommentFragment : Fragment() {
         // 全画面終了ボタン
         activity_comment_fullscreen_close_button?.setOnClickListener(null)
         // 画面の幅取得
-        val displayWidth = getDisplayWidth()
+        val displayWidth = DisplaySizeTool().getDisplayWidth(context)
         // ExoPlayerのアスペクト比設定
         liveFrameLayout.updateLayoutParams {
             width = displayWidth / 2
             height = getAspectHeightFromWidth(displayWidth / 2)
         }
-        // コメント描画システムに教える
-        commentCanvas.apply {
-            finalHeight = commentCanvas.height
-            // コメントの高さの情報がある配列を消す。
-            // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
-            commentLine.clear()
-            ueCommentLine.clear()
-            sitaCommentLine.clear()
-        }
-    }
-
-    /**
-     * 画面の高さを返す。Android 11から取得方法が変わってるけどドキュメントに書いてあったのをパクってきた。
-     * @return 画面の高さ
-     * */
-    private fun getDisplayHeight(): Int {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val metrics = commentActivity.windowManager?.currentWindowMetrics ?: return 0
-            // なにしてるかわからん
-            val windowInsets = metrics.windowInsets
-            var insets = windowInsets.getInsets(WindowInsets.Type.navigationBars())
-            windowInsets.getInsets(WindowInsets.Type.navigationBars())
-            val cutout = windowInsets.displayCutout
-            if (cutout != null) {
-                val cutoutSafeInsets = android.graphics.Insets.of(cutout.safeInsetLeft, cutout.safeInsetTop, cutout.safeInsetRight, cutout.safeInsetBottom)
-                insets = android.graphics.Insets.max(insets, cutoutSafeInsets)
-            }
-            val insetsWidth = insets.right + insets.left
-            val insetsHeight = insets.top + insets.bottom
-            // Display#getHeight()と同じようになる
-            val legacySize = Size(metrics.bounds.width() - insetsWidth, metrics.bounds.height() - insetsHeight)
-            return legacySize.height
-        } else {
-            // 従来の方法で
-            val display = commentActivity.windowManager.defaultDisplay
-            val point = Point()
-            display.getSize(point)
-            return point.y
-        }
-    }
-
-    /**
-     * 画面の幅を返す。Android 11から取得方法が変わってるけどドキュメントに書いてあったのをパクってきた。
-     * @return 画面の幅
-     * */
-    private fun getDisplayWidth(): Int {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val metrics = commentActivity.windowManager?.currentWindowMetrics ?: return 0
-            // なにしてるかわからん
-            val windowInsets = metrics.windowInsets
-            var insets = windowInsets.getInsets(WindowInsets.Type.navigationBars())
-            windowInsets.getInsets(WindowInsets.Type.navigationBars())
-            val cutout = windowInsets.displayCutout
-            if (cutout != null) {
-                val cutoutSafeInsets = android.graphics.Insets.of(cutout.safeInsetLeft, cutout.safeInsetTop, cutout.safeInsetRight, cutout.safeInsetBottom)
-                insets = android.graphics.Insets.max(insets, cutoutSafeInsets)
-            }
-            val insetsWidth = insets.right + insets.left
-            val insetsHeight = insets.top + insets.bottom
-            // Display#getHeight()と同じようになる
-            val legacySize = Size(metrics.bounds.width() - insetsWidth, metrics.bounds.height() - insetsHeight)
-            return legacySize.width
-        } else {
-            // 従来の方法で
-            val display = commentActivity.windowManager.defaultDisplay
-            val point = Point()
-            display.getSize(point)
-            return point.x
-        }
+        // 高さ更新
+        commentCanvas.finalHeight = commentCanvas.height
     }
 
     private fun initAllRoomConnect() {
@@ -1487,10 +1413,10 @@ class CommentFragment : Fragment() {
             live_surface_view.visibility = View.VISIBLE
             // println("生放送再生：HLSアドレス : $hls_address")
 
+            // 画面の幅取得。Android 11に対応した
+            val displayWidth = DisplaySizeTool().getDisplayWidth(context)
+
             //ウィンドウの半分ぐらいの大きさに設定
-            val display = commentActivity.windowManager.defaultDisplay
-            val point = Point()
-            display.getSize(point)
             val frameLayoutParams = liveFrameLayout.layoutParams
 
             // 全画面だった場合はアスペクト比調整しない
@@ -1499,19 +1425,19 @@ class CommentFragment : Fragment() {
                 if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     //二窓モードのときはとりあえず更に小さくしておく
                     if (isNimadoMode) {
-                        frameLayoutParams.width = point.x / 4
-                        frameLayoutParams.height = getAspectHeightFromWidth(point.x / 4)
+                        frameLayoutParams.width = displayWidth / 4
+                        frameLayoutParams.height = getAspectHeightFromWidth(displayWidth / 4)
                     } else {
                         //16:9の9を計算
-                        frameLayoutParams.height = getAspectHeightFromWidth(point.x / 2)
+                        frameLayoutParams.height = getAspectHeightFromWidth(displayWidth / 2)
                     }
                     liveFrameLayout.layoutParams = frameLayoutParams
                 } else {
                     //縦画面
-                    frameLayoutParams.width = point.x
+                    frameLayoutParams.width = displayWidth
                     //二窓モードのときは小さくしておく
                     if (isNimadoMode) {
-                        frameLayoutParams.width = point.x / 2
+                        frameLayoutParams.width = displayWidth / 2
                     }
                     //16:9の9を計算
                     frameLayoutParams.height = getAspectHeightFromWidth(frameLayoutParams.width)
@@ -1519,15 +1445,8 @@ class CommentFragment : Fragment() {
                 }
             }
 
-            // コメント描画システムに教える
-            commentCanvas.apply {
-                finalHeight = commentCanvas.height
-                // コメントの高さの情報がある配列を消す。
-                // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
-                commentLine.clear()
-                ueCommentLine.clear()
-                sitaCommentLine.clear()
-            }
+            // 高さ更新
+            commentCanvas.finalHeight = commentCanvas.height
 
             exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
             val sourceFactory = DefaultDataSourceFactory(

@@ -22,6 +22,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.Player
@@ -37,6 +38,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
+import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
@@ -406,11 +408,7 @@ class NicoLivePlayService : Service() {
         }
 
         // 画面の半分を利用するように
-        val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val disp = wm.getDefaultDisplay()
-        val realSize = Point()
-        disp.getRealSize(realSize)
-        val width = realSize.x / 2
+        val width = DisplaySizeTool().getDisplayWidth(this) / 2
         //アスペクト比16:9なので
         val height = (width / 16) * 9
         //レイアウト読み込み
@@ -537,8 +535,6 @@ class NicoLivePlayService : Service() {
             // タップした位置を取得する
             val x = motionEvent.rawX.toInt()
             val y = motionEvent.rawY.toInt()
-            // 画面回転対応させるために画面サイズ再取得
-            val displaySize = getDisplaySize()
             // ピンチイン、ピンチアウト対応
             scaleGestureDetector.onTouchEvent(motionEvent)
             when (motionEvent.action) {
@@ -546,8 +542,8 @@ class NicoLivePlayService : Service() {
                 MotionEvent.ACTION_MOVE -> {
 
                     // オーバーレイ表示領域の座標を移動させる
-                    params.x = x - (displaySize.x / 2)
-                    params.y = y - (displaySize.y / 2)
+                    params.x = x - (DisplaySizeTool().getDisplayWidth(this) / 2)
+                    params.y = y - (DisplaySizeTool().getDisplayHeight(this) / 2)
 
                     // 移動した分を更新する
                     windowManager.updateViewLayout(view, params)
@@ -565,13 +561,8 @@ class NicoLivePlayService : Service() {
 
         //ボタン表示
         popupView.setOnClickListener {
-            if (popupView.overlay_button_layout.visibility == View.GONE) {
-                //表示
-                popupView.overlay_button_layout.visibility = View.VISIBLE
-            } else {
-                //非表示
-                popupView.overlay_button_layout.visibility = View.GONE
-            }
+            // ktxで表示/非表示を短く書こう！
+            popupView.overlay_button_layout.isVisible = !popupView.overlay_button_layout.isVisible
         }
 
         popupView.overlay_send_comment_button.setOnClickListener {
@@ -592,14 +583,6 @@ class NicoLivePlayService : Service() {
             windowManager.updateViewLayout(popupView, params)
         }
 
-    }
-
-    // 画面サイズのPoint返す関数。
-    private fun getDisplaySize(): Point {
-        val display = windowManager.defaultDisplay
-        val displaySize = Point()
-        display.getSize(displaySize)
-        return displaySize
     }
 
     /** MediaSession。音楽アプリの再生中のあれ */

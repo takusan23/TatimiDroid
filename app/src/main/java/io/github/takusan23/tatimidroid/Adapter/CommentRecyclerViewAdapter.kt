@@ -20,6 +20,7 @@ import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import io.github.takusan23.tatimidroid.Fragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -167,7 +168,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
                     strokeColor = getRoomColor(commentJSONParse.roomName, context)
                     strokeWidth = 2
                     elevation = 0f
-                    setBackgroundColor(DarkModeSupport(context).getThemeColor())
+                    setBackgroundColor(getThemeColor(DarkModeSupport(context).context))
                 }
             }
         }

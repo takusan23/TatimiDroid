@@ -13,6 +13,7 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.*
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_select.*
@@ -79,8 +80,8 @@ class DevNicoVideoSelectFragment : Fragment() {
 
     private fun initDarkMode() {
         val darkModeSupport = DarkModeSupport(requireContext())
-        fragment_video_list_linearlayout.background = ColorDrawable(darkModeSupport.getThemeColor())
-        fragment_video_bar?.background = ColorDrawable(darkModeSupport.getThemeColor())
+        fragment_video_list_linearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
+        fragment_video_bar?.background = ColorDrawable(getThemeColor(darkModeSupport.context))
     }
 
     fun setFragment(fragment: Fragment) {

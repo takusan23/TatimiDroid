@@ -34,6 +34,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -321,12 +322,6 @@ class NicoVideoPlayService : Service() {
             }
         })
 
-        // Displayの大きさ
-        val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val disp = wm.getDefaultDisplay()
-        val realSize = Point()
-        disp.getRealSize(realSize)
-
         // アスペクトひ
         exoPlayer.addVideoListener(object : VideoListener {
             override fun onVideoSizeChanged(width: Int, height: Int, unappliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
@@ -364,7 +359,7 @@ class NicoVideoPlayService : Service() {
                 return
             }
             // 画面の半分を利用するように
-            val width = realSize.x / 2
+            val width = DisplaySizeTool().getDisplayWidth(this) / 2
 
             // レイアウト読み込み
             val layoutInflater = LayoutInflater.from(this)
@@ -460,8 +455,6 @@ class NicoVideoPlayService : Service() {
                 // タップした位置を取得する
                 val x = motionEvent.rawX.toInt()
                 val y = motionEvent.rawY.toInt()
-                // 画面回転に対応する（これで横/縦画面のときの最大値とか変えられる）
-                val displaySize = getDisplaySize()
                 // ついに直感的なズームが！？
                 scaleGestureDetector.onTouchEvent(motionEvent)
                 // 移動できるように
@@ -469,8 +462,8 @@ class NicoVideoPlayService : Service() {
                     // Viewを移動させてるときに呼ばれる
                     MotionEvent.ACTION_MOVE -> {
                         // 中心からの座標を計算する
-                        val centerX = x - (displaySize.x / 2)
-                        val centerY = y - (displaySize.y / 2)
+                        val centerX = x - (DisplaySizeTool().getDisplayWidth(this) / 2)
+                        val centerY = y - (DisplaySizeTool().getDisplayHeight(this) / 2)
 
                         // オーバーレイ表示領域の座標を移動させる
                         popupLayoutParams.x = centerX
@@ -573,14 +566,8 @@ class NicoVideoPlayService : Service() {
     private fun applyCommentCanvas() {
         commentCanvas.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
-                commentCanvas.apply {
-                    finalHeight = commentCanvas.height
-                    // コメントの高さの情報がある配列を消す。
-                    // これ消さないとサイズ変更時にコメント描画で見切れる文字が発生する。
-                    commentLine.clear()
-                    ueCommentLine.clear()
-                    sitaCommentLine.clear()
-                }
+                // 高さ更新
+                commentCanvas.finalHeight = commentCanvas.height
                 commentCanvas.viewTreeObserver.removeOnGlobalLayoutListener(this)
             }
         })
@@ -677,14 +664,6 @@ class NicoVideoPlayService : Service() {
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
-    }
-
-    // 画面サイズのPoint返す関数。
-    private fun getDisplaySize(): Point {
-        val display = windowManager.defaultDisplay
-        val displaySize = Point()
-        display.getSize(displaySize)
-        return displaySize
     }
 
     /**

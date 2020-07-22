@@ -29,6 +29,8 @@ import io.github.takusan23.tatimidroid.Adapter.NimadoListRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.Fragment.CommentFragment
 import io.github.takusan23.tatimidroid.Fragment.NimadoLiveIDBottomFragment
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import kotlinx.android.synthetic.main.activity_nimado.*
 import okhttp3.*
@@ -90,7 +92,7 @@ class NimadoActivity : AppCompatActivity() {
 
         //ダークモード対応
         if (isDarkMode(this)) {
-            supportActionBar?.setBackgroundDrawable(ColorDrawable(darkModeSupport.getThemeColor()))
+            supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(darkModeSupport.context)))
         }
 
         //ハンバーガーアイコンを実装
@@ -151,11 +153,7 @@ class NimadoActivity : AppCompatActivity() {
             htmlList.add(html)
         }
         //動的にView作成
-        val disp = windowManager.defaultDisplay
-        val size = Point()
-        disp.getSize(size)
-        val screenWidth = size.x
-        val screenHeight = size.y
+        val screenWidth = DisplaySizeTool().getDisplayWidth(this)
 
         //区切りがあれなのでCardViewの上にLinearLayoutを乗せる
         val cardView = CardView(this)

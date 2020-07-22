@@ -79,24 +79,11 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     // コメントの配列
     var commentObjList = arrayListOf<CommentObject>()
 
-    /**
-     * 高さ：横の位置
-     * 注意：コメントのフォントサイズ変更時はこの配列の中身をすべて消す必要があるよ。
-     * コメントサイズ変更してもこの配列から最初の縦の位置（コメントフォントサイズ）を決定するので一行目のコメント描画で見切れる文字が発生する。
-     * */
-    val commentLine = mutableMapOf<Float, CommentObject>()
-
     // 上付きコメントの配列
     val ueCommentList = arrayListOf<CommentObject>()
 
-    // 高さ：追加時間（UnixTime）
-    val ueCommentLine = mutableMapOf<Float, CommentObject>()
-
     // 下付きコメントの配列
     val sitaCommentList = arrayListOf<CommentObject>()
-
-    // 高さ：追加時間（UnixTime）
-    val sitaCommentLine = mutableMapOf<Float, CommentObject>()
 
     // Canvasの高さ。なぜかgetHeight()が0を返すので一工夫する必要がある。くっっっっっっそ
     var finalHeight = 10
