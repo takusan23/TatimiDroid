@@ -35,6 +35,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
+import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -788,6 +789,15 @@ class NicoVideoPlayService : Service() {
         }
         seekTimer.cancel()
     }
+
+    /**
+     * 言語変更機能をつける
+     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
+     * */
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
+    }
+
 }
 
 /**

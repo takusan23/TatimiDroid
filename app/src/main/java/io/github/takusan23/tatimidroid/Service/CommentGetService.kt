@@ -12,6 +12,7 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoLegacyAPI
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -140,6 +141,14 @@ class CommentGetService : Service() {
             setSmallIcon(R.drawable.ic_outline_comment_24px)
         }
         startForeground(321, notification.build())
+    }
+
+    /**
+     * 言語変更機能をつける
+     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
+     * */
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
     }
 
 }

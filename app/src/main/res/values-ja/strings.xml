@@ -470,4 +470,9 @@
     <string name="rookie">ルーキー番組</string>
     <string name="popup_size_change_message">ピンチイン、ピンチアウトで大きさを調整できます。</string>
     <string name="kotehan_list">コテハン一覧</string>
+    <string name="setting_language_title">アプリの言語を変更する</string>
+    <string name="setting_language_description">日本語と英語が選べます。再起動後に適用されます。</string>
+    <string name="setting_language_default">端末の設定に従う</string>
+    <string name="setting_language_ja">日本語</string>
+    <string name="setting_language_en">英語</string>
 </resources>

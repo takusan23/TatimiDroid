@@ -31,6 +31,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.util.*
@@ -584,6 +585,14 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         exoPlayer.release()
         mediaSessionCompat.isActive = false
         mediaSessionCompat.release()
+    }
+
+    /**
+     * 言語変更機能をつける
+     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
+     * */
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
     }
 
 }

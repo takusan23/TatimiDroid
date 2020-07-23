@@ -211,47 +211,54 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
 
     }
 
-    //コメビュの部屋の色。NCVに追従する
-    fun getRoomColor(room: String, context: Context): Int {
-        when (room) {
+    /**
+     * コメビュの部屋の色。NCVに（勝手に）追従する
+     * まあ後数日でここも使わなくなるんですけどね（部屋統合で）
+     * もう立ち見部屋の数でどれだけ人気かどうかって見れたのにもう見れなくなるのか。
+     * */
+    private fun getRoomColor(room: String, context: Context): Int {
+        return when (room) {
             context.getString(R.string.official_program) -> {
-                return Color.argb(255, 0, 153, 229)
+                Color.argb(255, 0, 153, 229)
             }
             context.getString(R.string.arena) -> {
-                return Color.argb(255, 0, 153, 229)
+                Color.argb(255, 0, 153, 229)
+            }
+            "store" -> {
+                Color.argb(255, 234, 90, 61) // コメント流量規制にかかったコメントはstoreに流れてくる
             }
             "立ち見1" -> {
-                return Color.argb(255, 234, 90, 61)
+                Color.argb(255, 234, 90, 61)
             }
             "立ち見2" -> {
-                return Color.argb(255, 172, 209, 94)
+                Color.argb(255, 172, 209, 94)
             }
             "立ち見3" -> {
-                return Color.argb(255, 0, 217, 181)
+                Color.argb(255, 0, 217, 181)
             }
             "立ち見4" -> {
-                return Color.argb(255, 229, 191, 0)
+                Color.argb(255, 229, 191, 0)
             }
             "立ち見5" -> {
-                return Color.argb(255, 235, 103, 169)
+                Color.argb(255, 235, 103, 169)
             }
             "立ち見6" -> {
-                return Color.argb(255, 181, 89, 217)
+                Color.argb(255, 181, 89, 217)
             }
             "立ち見7" -> {
-                return Color.argb(255, 20, 109, 199)
+                Color.argb(255, 20, 109, 199)
             }
             "立ち見8" -> {
-                return Color.argb(255, 226, 64, 33)
+                Color.argb(255, 226, 64, 33)
             }
             "立ち見9" -> {
-                return Color.argb(255, 142, 193, 51)
+                Color.argb(255, 142, 193, 51)
             }
             "立ち見10" -> {
-                return Color.argb(255, 0, 189, 120)
+                Color.argb(255, 0, 189, 120)
             }
             else -> {
-                return Color.argb(255, 0, 153, 229)
+                Color.argb(255, 0, 153, 229)
             }
         }
     }

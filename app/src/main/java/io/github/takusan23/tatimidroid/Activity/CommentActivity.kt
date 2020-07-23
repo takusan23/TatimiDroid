@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.LanguageTool
 
 /**
  * CommentFragment（生放送再生Fragment）を乗っけるためのActivity。
@@ -18,6 +19,7 @@ import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 class CommentActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,11 +63,13 @@ class CommentActivity : AppCompatActivity() {
 
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-
+    /**
+     * 言語変更機能をつける
+     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
+     * */
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
     }
-
 
     //ホームボタンおした
     //これはActivityじゃないと使えないと思う

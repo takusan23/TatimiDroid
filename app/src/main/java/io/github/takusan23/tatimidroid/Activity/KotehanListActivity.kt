@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.Activity
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -9,6 +10,7 @@ import io.github.takusan23.tatimidroid.Adapter.NGListRecyclerView
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
+import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.android.synthetic.main.activity_kotehan_list.*
 import kotlinx.android.synthetic.main.activity_nglist.*
 import kotlinx.coroutines.Dispatchers
@@ -63,5 +65,12 @@ class KotehanListActivity : AppCompatActivity() {
         activity_kotehan_list_recyclerview.addItemDecoration(itemDecoration)
     }
 
+    /**
+     * 言語変更機能をつける
+     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
+     * */
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
+    }
 
 }

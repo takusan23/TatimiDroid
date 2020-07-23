@@ -470,4 +470,9 @@
     <string name="rookie">rookie</string>
     <string name="popup_size_change_message">You can adjust the size with pinch in and pinch out.</string>
     <string name="kotehan_list">Fixed handle name list</string>
+    <string name="setting_language_title">Change the app language</string>
+    <string name="setting_language_description">You can choose between Japanese and English.It will be applied after reboot.</string>
+    <string name="setting_language_default">Follow terminal settings</string>
+    <string name="setting_language_ja">Japanese</string>
+    <string name="setting_language_en">English</string>
 </resources>

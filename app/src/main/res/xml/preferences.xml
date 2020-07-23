@@ -431,6 +431,16 @@
 
     <PreferenceCategory android:title="@string/sonta">
 
+        <ListPreference
+                android:defaultValue="default"
+                android:dialogTitle="@string/setting_language_title"
+                android:entries="@array/setting_language_type"
+                android:entryValues="@array/setting_language_value"
+                android:icon="@drawable/ic_translate_black_24dp"
+                android:key="setting_language"
+                android:summary="@string/setting_language_description"
+                android:title="@string/setting_language_title" />
+
         <Preference
                 android:icon="@drawable/ic_history_24px"
                 android:key="first_time_preference"

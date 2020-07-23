@@ -14,6 +14,7 @@ import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.AutoAdmissionDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
+import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.android.synthetic.main.activity_kono_app.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -119,6 +120,14 @@ class KonoApp : AppCompatActivity() {
         } else {
             Snackbar.make(kono_app_imageview, "番組IDをコピーしてね！", Snackbar.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * 言語変更機能をつける
+     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
+     * */
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
     }
 
 }

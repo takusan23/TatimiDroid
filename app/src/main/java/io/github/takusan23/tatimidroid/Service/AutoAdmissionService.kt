@@ -17,6 +17,7 @@ import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Database.AutoAdmissionDB
 import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
+import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -251,8 +252,16 @@ class AutoAdmissionService : Service() {
         timer.cancel()
     }
 
-
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
+
+    /**
+     * 言語変更機能をつける
+     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
+     * */
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
+    }
+
 }

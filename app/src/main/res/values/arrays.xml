@@ -36,4 +36,17 @@
         <item>dark</item>
         <item>light</item>
     </string-array>
+    <!-- アプリの言語を変更 -->
+    <string-array name="setting_language_type">
+        <item>@string/setting_language_default</item>
+        <item>@string/setting_language_ja</item>
+        <item>@string/setting_language_en</item>
+    </string-array>
+    <!-- アプリの言語を変更。保存される値 -->
+    <string-array name="setting_language_value">
+        <item>default</item>
+        <item>ja</item>
+        <item>en</item>
+    </string-array>
+
 </resources>

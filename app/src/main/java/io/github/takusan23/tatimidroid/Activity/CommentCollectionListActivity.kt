@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.Activity
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
@@ -11,6 +12,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Database.CommentCollectionDB
 import io.github.takusan23.tatimidroid.Room.Entity.CommentCollectionDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.CommentCollectionDBInit
+import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.android.synthetic.main.activity_comment_postlist.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -115,5 +117,14 @@ class CommentCollectionListActivity : AppCompatActivity() {
             commentPOSTListRecyclerViewAdapter.notifyDataSetChanged()
         }
     }
+
+    /**
+     * 言語変更機能をつける
+     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
+     * */
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
+    }
+
 
 }

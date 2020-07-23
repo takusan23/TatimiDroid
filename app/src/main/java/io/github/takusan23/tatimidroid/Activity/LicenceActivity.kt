@@ -1,9 +1,11 @@
 package io.github.takusan23.tatimidroid.Activity
 
+import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.android.synthetic.main.fragment_licence.*
 
 class LicenceActivity : AppCompatActivity() {
@@ -560,4 +562,13 @@ class LicenceActivity : AppCompatActivity() {
             "$java_WebSocket_licence $jsoup_licence $coroutines_licence $okhttp3_licence $exoplayer_licence $material_icon_license $material_licence $glide"
 
     }
+
+    /**
+     * 言語変更機能をつける
+     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
+     * */
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
+    }
+
 }
