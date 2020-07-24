@@ -61,7 +61,7 @@
     <string name="link">リンク</string>
     <string name="kono_app">このアプリについて</string>
     <string name="licence">ライセンス</string>
-    <string name="kono_app_contact_description">なにかあればこちらへどうぞ。</string>
+    <string name="kono_app_contact_description">なにかあればこちらへどうぞ。ブラウザが起動します。</string>
     <string name="version">バージョン</string>
     <string name="sonta">その他</string>
     <string name="auto_admission">予約枠自動入場機能</string>
@@ -475,4 +475,6 @@
     <string name="setting_language_default">端末の設定に従う</string>
     <string name="setting_language_ja">日本語</string>
     <string name="setting_language_en">英語</string>
+    <string name="show">表示</string>
+    <string name="hide">格納</string>
 </resources>

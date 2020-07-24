@@ -11,10 +11,12 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHistoryAPI
 import io.github.takusan23.tatimidroid.R
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_history.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
@@ -93,6 +95,7 @@ class DevNicoVideoHistoryFragment : Fragment() {
                     response.code == 401 -> {
                         // ログイン切れ。再ログイン勧める
                         Snackbar.make(fragment_comment_history_recyclerview, R.string.login_disable_message, Snackbar.LENGTH_INDEFINITE).apply {
+                            anchorView = (activity as MainActivity).main_activity_bottom_navigationview
                             setAction(R.string.login) {
                                 // ログインする
                                 GlobalScope.launch {
