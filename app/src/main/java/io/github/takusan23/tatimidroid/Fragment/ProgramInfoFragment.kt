@@ -202,6 +202,7 @@ class ProgramInfoFragment : Fragment() {
             if (supplier.has("icons")) {
                 val userIcon = supplier.getJSONObject("icons").getString("uri150x150")
                 // ユーザーアイコン
+                fragment_program_info_broadcaster_imageview.imageTintList = null
                 Glide.with(fragment_program_info_broadcaster_imageview)
                     .load(userIcon)
                     .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
@@ -220,6 +221,7 @@ class ProgramInfoFragment : Fragment() {
             fragment_program_info_community_name.text = "${getString(R.string.community_name)} : $communityName"
             fragment_program_info_community_level.text = "${getString(R.string.community_level)} : $communityLevel"
             // コミュアイコン
+            fragment_program_info_community_imageview.imageTintList = null
             Glide.with(fragment_program_info_community_imageview)
                 .load(communityThumb)
                 .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))

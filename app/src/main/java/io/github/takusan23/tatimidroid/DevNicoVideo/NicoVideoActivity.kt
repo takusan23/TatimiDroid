@@ -1,15 +1,13 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
-import android.app.ActivityManager
 import android.content.Context
 import android.content.SharedPreferences
-import android.os.Build
 import android.os.Bundle
-import android.os.StrictMode
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.android.synthetic.main.activity_nicovideo.*
 
 /**
@@ -57,4 +55,13 @@ class NicoVideoActivity : AppCompatActivity() {
             .commit()
 
     }
+
+    /**
+     * 言語変更機能をつける
+     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
+     * */
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
+    }
+
 }

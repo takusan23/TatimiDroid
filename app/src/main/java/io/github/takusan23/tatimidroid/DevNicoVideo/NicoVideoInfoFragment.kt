@@ -169,6 +169,8 @@ class NicoVideoInfoFragment : Fragment() {
 
                 // 投稿者アイコン。インターネット接続時
                 if (isConnectionInternet(context) && iconURL.isNotEmpty()) {
+                    // ダークモード対策
+                    fragment_nicovideo_info_owner_imageview.imageTintList = null
                     Glide.with(fragment_nicovideo_info_owner_imageview)
                         .load(iconURL)
                         .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
