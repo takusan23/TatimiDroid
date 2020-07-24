@@ -112,42 +112,6 @@ class KonoApp : AppCompatActivity() {
         }
     }
 
-    //予約枠自動入場のお試し機能
-    //10秒後に入場する機能。
-    fun setEasterEgg(app: String) {
-        //クリップボードのデータにアクセス。
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clipdata = clipboard.primaryClip
-        //正規表現で取り出す
-        val nicoID_Matcher = Pattern.compile("(lv)([0-9]+)")
-            .matcher(SpannableString(clipdata?.getItemAt(0)?.text ?: ""))
-        if (nicoID_Matcher.find()) {
-            // 番組ID
-            val liveId = nicoID_Matcher.group()
-            // 10秒先を指定
-            val calender = Calendar.getInstance()
-            calender.add(Calendar.SECOND, +10)
-            GlobalScope.launch(Dispatchers.Main) {
-                // DB追加
-                val autoAdmissionDBEntity = AutoAdmissionDBEntity(name = "イースターエッグ", startTime = (calender.timeInMillis / 1000L).toString(), liveId = liveId, lanchApp = app, description = "")
-                withContext(Dispatchers.IO) {
-                    AutoAdmissionDBInit(this@KonoApp).commentCollectionDB.autoAdmissionDBDAO().insert(autoAdmissionDBEntity)
-                }
-                Snackbar.make(kono_app_imageview, "10秒後にコピーした番組へ移動します！", Snackbar.LENGTH_SHORT).show()
-                //Service再起動
-                val intent = Intent(this@KonoApp, AutoAdmissionService::class.java)
-                stopService(intent)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(intent)
-                } else {
-                    startService(intent)
-                }
-            }
-        } else {
-            Snackbar.make(kono_app_imageview, "番組IDをコピーしてね！", Snackbar.LENGTH_SHORT).show()
-        }
-    }
-
     /**
      * これ使って作った。 → https://www.nicovideo.jp/watch/sm37001529
      * イースターエッグの割には何の対策もしない
@@ -190,7 +154,7 @@ class KonoApp : AppCompatActivity() {
             commentJSON.comment = it
             commentJSON.mail = "small $color"
             // コメント描画
-            konoapp_comment_canvas.postComment(it, commentJSON, false)
+            konoapp_comment_canvas.postComment(it, commentJSON, true)
         }
 
     }

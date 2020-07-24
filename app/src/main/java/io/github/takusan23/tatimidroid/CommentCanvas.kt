@@ -110,6 +110,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     /** てｓｔ */
     lateinit var typeface: Typeface
 
+    /** アスキーアート（コメントアート・職人）のために使う。最後に追加しあ高さが入る */
+    private var oldHeight = 0;
+
     init {
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
@@ -368,7 +371,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     /**
      * コメント投稿
-     * @param asciiArt アスキーアートのときはtrueにすると速度が一定になります
+     * @param asciiArt アスキーアートのときはtrueにすると速度が一定になり、画面外になった場合もできる限り再現します。
      * */
     fun postComment(comment: String, commentJSONParse: CommentJSONParse, asciiArt: Boolean = false) {
         when {
@@ -492,15 +495,25 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
                     // なお画面外の場合はランダム。
                     if (addRect.bottom > height) {
-                        // heightが0の時は適当に10にする
-                        val until = if (height > 0) height else 10
-                        val randomStart = Random.nextInt(1, until)
-                        addRect.top = randomStart
-                        addRect.bottom = (addRect.top + commandFontSize).toInt()
-                        return
+                        if (!asciiArt) {
+                            // heightが0の時は適当に10にする
+                            val until = if (height > 0) height else 10
+                            val randomStart = Random.nextInt(1, until)
+                            addRect.top = randomStart
+                            addRect.bottom = (addRect.top + commandFontSize).toInt()
+                        } else {
+                            // 画面外対策。なおこれでもコメントアートが見切れるから別の策を取らねば
+                            if (oldHeight > height) {
+                                oldHeight = 0
+                            }
+                            addRect.top = oldHeight
+                            addRect.bottom = (addRect.top + commandFontSize).toInt()
+                            oldHeight = addRect.bottom
+                        }
                     }
                 }
             }
+
             val commentObj = CommentObject(
                 comment,
                 addRect.left.toFloat(),
