@@ -45,7 +45,7 @@ import java.util.regex.Pattern
  * liveId   | String  | 生放送ID（動画なら動画ID）
  * label    | String  | 部屋名とか（コメント本文の上にあるユーザーID書いてある部分）
  * 動画なら
- * current_pos | Long | コメントのvpos。1秒==100vpos
+ * current_pos | Long   | コメントのvpos。1秒==100vpos
  * */
 class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
@@ -78,8 +78,8 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         val darkModeSupport = DarkModeSupport(requireContext())
         bottom_fragment_comment_menu_parent_linearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
 
-        // Fragment取得
-        val fragment = activity?.supportFragmentManager?.findFragmentByTag(liveId)
+        // Fragment取得。コテハン登録/コメント取得等で使ってる。
+        val fragment = parentFragmentManager.findFragmentByTag(liveId)
 
         // argmentから取り出す
         comment = arguments?.getString("comment") ?: ""
@@ -108,20 +108,22 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         }
 
         // RecyclerView
-        if (fragment is CommentFragment) {
-            // 生放送
-            bottom_fragment_comment_menu_recyclerview.setHasFixedSize(true)
-            bottom_fragment_comment_menu_recyclerview.layoutManager = LinearLayoutManager(context)
-            val commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
-            bottom_fragment_comment_menu_recyclerview.adapter = commentRecyclerViewAdapter
-            commentRecyclerViewAdapter.setActivity((activity as AppCompatActivity?)!!)
-        } else {
-            // 動画
-            bottom_fragment_comment_menu_recyclerview.setHasFixedSize(true)
-            bottom_fragment_comment_menu_recyclerview.layoutManager = LinearLayoutManager(context)
-            val nicoVideoAdapter = NicoVideoAdapter(recyclerViewList)
-            nicoVideoAdapter.devNicoVideoFragment = fragment as DevNicoVideoFragment
-            bottom_fragment_comment_menu_recyclerview.adapter = nicoVideoAdapter
+        when {
+            fragment is CommentFragment -> {
+                // 生放送
+                bottom_fragment_comment_menu_recyclerview.setHasFixedSize(true)
+                bottom_fragment_comment_menu_recyclerview.layoutManager = LinearLayoutManager(context)
+                val commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
+                bottom_fragment_comment_menu_recyclerview.adapter = commentRecyclerViewAdapter
+                commentRecyclerViewAdapter.setActivity((activity as AppCompatActivity?)!!)
+            }
+            fragment is DevNicoVideoFragment -> {
+                // 動画
+                bottom_fragment_comment_menu_recyclerview.setHasFixedSize(true)
+                bottom_fragment_comment_menu_recyclerview.layoutManager = LinearLayoutManager(context)
+                val nicoVideoAdapter = NicoVideoAdapter(recyclerViewList, fragment)
+                bottom_fragment_comment_menu_recyclerview.adapter = nicoVideoAdapter
+            }
         }
 
         // コテハンを読み出す
@@ -136,7 +138,9 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             }
             // コテハン登録
             bottom_fragment_comment_menu_kotehan_button.setOnClickListener {
-                registerKotehan(fragment)
+                if (fragment != null) {
+                    registerKotehan(fragment)
+                }
             }
         }
 
@@ -153,7 +157,9 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         regexURL()
 
         // 動画の場合は「ここから再生」ボタンを表示する
-        showJumpButton(fragment)
+        if (fragment != null) {
+            showJumpButton(fragment)
+        }
 
         // 生IDのみ、ユーザー名取得ボタン
         if ("([0-9]+)".toRegex().matches(userId)) { // 生IDは数字だけで構成されているので正規表現（じゃなくてもできるだろうけど）
@@ -290,7 +296,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                     fragment is DevNicoVideoFragment -> {
                         // 動画なら一覧更新する
                         GlobalScope.launch {
-                            fragment.commentFilter().await()
+                            fragment.commentFilter()
                         }
                     }
                     fragment is CommentFragment -> {
@@ -319,7 +325,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 // 動画なら一覧更新する
                 if (fragment is DevNicoVideoFragment) {
                     GlobalScope.launch {
-                        fragment.commentFilter().await()
+                        fragment.commentFilter()
                     }
                 }
                 // 閉じる

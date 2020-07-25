@@ -3,10 +3,7 @@ package io.github.takusan23.tatimidroid.DevNicoVideo.Adapter
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.google.android.material.tabs.TabLayout
-import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DevNicoVideo.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
@@ -14,21 +11,19 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearch
 import io.github.takusan23.tatimidroid.FregmentData.TabLayoutData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
-import org.json.JSONObject
-import java.io.FileReader
 
 /**
  * ニコ動の方だけViewPager2になった。
  * Fragmentをフリックで切り替えられるやつ。２にしたおかげか動的追加できるようになった
- * @param parentDevNicoVideoFragment コメント配列とかをこっからもらう。生成後にわたすとなんかうまく行かなくて；；
  * @param dynamicAddFragmentList 動的に追加したFragmentがある場合は入れてね。ない場合は省略していいよ（そこにないなら無いですね）。主に画面回転復帰時に使う。
  * */
-class DevNicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId: String, val isCache: Boolean, val parentDevNicoVideoFragment: DevNicoVideoFragment, val dynamicAddFragmentList: ArrayList<TabLayoutData> = arrayListOf()) : FragmentStateAdapter(activity) {
+class DevNicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId: String, val isCache: Boolean, val dynamicAddFragmentList: ArrayList<TabLayoutData> = arrayListOf()) : FragmentStateAdapter(activity) {
 
+    // 画面回転時に回転前に動的にFragmentを追加場合復元するからその時使う
     companion object {
-        val TAB_LAYOUT_DATA_SEARCH = "search"
-        val TAB_LAYOUT_DATA_MYLIST = "mylist"
-        val TAB_LAYOUT_DATA_POST = "post"
+        const val TAB_LAYOUT_DATA_SEARCH = "search"
+        const val TAB_LAYOUT_DATA_MYLIST = "mylist"
+        const val TAB_LAYOUT_DATA_POST = "post"
     }
 
     /** Fragment一覧 */
@@ -36,9 +31,6 @@ class DevNicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val vide
 
     /** Fragment名一覧 */
     val fragmentTabName = arrayListOf<String>()
-
-    /** ViewPagerに動的に追加されたFragmentの配列。 */
-    // val dynamicList = arrayListOf<TabLayoutData>()
 
     val bundle = Bundle()
 
@@ -150,7 +142,7 @@ class DevNicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val vide
      * FragmentからTAB_LAYOUT_DATA_SEARCHとかを生成する
      * @param fragment addFragment()で追加可能なFragment
      * */
-    fun getType(fragment: Fragment): String {
+    private fun getType(fragment: Fragment): String {
         return when {
             fragment is DevNicoVideoPOSTFragment -> TAB_LAYOUT_DATA_POST
             fragment is DevNicoVideoMyListFragment -> TAB_LAYOUT_DATA_MYLIST

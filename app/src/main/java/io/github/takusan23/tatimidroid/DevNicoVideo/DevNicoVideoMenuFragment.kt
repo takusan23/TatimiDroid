@@ -55,6 +55,12 @@ class DevNicoVideoMenuFragment : Fragment() {
     // JSON
     lateinit var jsonObject: JSONObject
 
+    /** [DevNicoVideoFragment]。このFragmentが置いてあるFragment。by lazy で使われるまで初期化しないように */
+    private val devNicoVideoFragment by lazy {
+        val videoId = arguments?.getString("id")
+        parentFragmentManager.findFragmentByTag(videoId) as DevNicoVideoFragment
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_menu, container, false)
     }
@@ -73,7 +79,7 @@ class DevNicoVideoMenuFragment : Fragment() {
         setValue()
 
         // 動画ID
-        videoId = arguments?.getString("id") ?: ""
+        videoId = arguments?.getString("id", "") ?: ""
 
         // そもそもキャッシュ取得できない（アニメ公式はhls形式でAES-128で暗号化されてるので取れない）動画はキャッシュボタン非表示
         if (::jsonObject.isInitialized) {
@@ -145,13 +151,12 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     private fun init3DSHide() {
         fragment_nicovideo_menu_3ds_switch.isChecked = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
-        val devNicoVideoFragment = parentFragmentManager.findFragmentByTag(videoId) as DevNicoVideoFragment
         fragment_nicovideo_menu_3ds_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             // 変更
             prefSetting.edit { putBoolean("nicovideo_comment_3ds_hidden", isChecked) }
             // コメント再適用
             GlobalScope.launch {
-                devNicoVideoFragment.commentFilter().await()
+                devNicoVideoFragment.commentFilter()
             }
         }
     }
@@ -189,7 +194,6 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     // ポップアップ再生、バッググラウンド再生ボタン。startVideoPlayService()はNicoVideoPlayServiceに書いてあります。（internal funなのでどこでも呼べる）
     private fun initVideoPlayServiceButton() {
-        val devNicoVideoFragment = parentFragmentManager.findFragmentByTag(videoId) as DevNicoVideoFragment
         fragment_nicovideo_menu_popup.setOnClickListener {
             // ポップアップ再生
             startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = devNicoVideoFragment.currentVideoQuality, audioQuality = devNicoVideoFragment.currentAudioQuality)
@@ -231,7 +235,6 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     // 動画再生ボタン
     private fun initPlayButton() {
-        val devNicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
         fragment_nicovideo_menu_video_play.setOnClickListener {
             devNicoVideoFragment.apply {
                 if (fragment_nicovideo_framelayout.visibility == View.GONE) {
@@ -254,7 +257,7 @@ class DevNicoVideoMenuFragment : Fragment() {
             val bundle = Bundle()
             bundle.putString("id", videoId)
             addMylistBottomFragment.arguments = bundle
-            addMylistBottomFragment.show(fragmentManager!!, "mylist")
+            addMylistBottomFragment.show(parentFragmentManager, "mylist")
         }
     }
 
@@ -273,8 +276,6 @@ class DevNicoVideoMenuFragment : Fragment() {
         // 取得
         fragment_nicovideo_menu_get_cache.setOnClickListener {
             if (!isCache) {
-                // DevNicoVideoFragment取得
-                val devNicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
                 // キャッシュ取得サービス起動
                 startCacheService(context, devNicoVideoFragment.videoId)
             }
@@ -282,8 +283,6 @@ class DevNicoVideoMenuFragment : Fragment() {
         // ログインするかはService側に書いてあるので。。。
         fragment_nicovideo_menu_get_cache_eco.setOnClickListener {
             if (!isCache) {
-                // DevNicoVideoFragment取得
-                val devNicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
                 // キャッシュ取得サービス起動
                 startCacheService(context, devNicoVideoFragment.videoId)
             }
@@ -310,7 +309,6 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     // 画質変更ボタン初期化
     private fun initQualityButton() {
-        val devNicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
         // キャッシュ再生時またはキャッシュ優先再生時は非表示
         if (isCache) {
             fragment_nicovideo_menu_quality.visibility = View.GONE
@@ -335,7 +333,7 @@ class DevNicoVideoMenuFragment : Fragment() {
                     putString("select", devNicoVideoFragment.currentVideoQuality)
                 }
                 qualityBottomFragment.arguments = bundle
-                qualityBottomFragment.show(fragmentManager!!, "quality")
+                qualityBottomFragment.show(parentFragmentManager, "quality")
             }
         }
     }
@@ -343,10 +341,9 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     // 共有
     fun initShare() {
-        val nicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
         // 写真付き共有
         fragment_nicovideo_menu_share_media_attach.setOnClickListener {
-            nicoVideoFragment.apply {
+            devNicoVideoFragment.apply {
                 // 再生時間も載せる
                 val currentTime = if (isInitExoPlayer()) {
                     val currentPos = exoPlayer.currentPosition
@@ -359,7 +356,7 @@ class DevNicoVideoMenuFragment : Fragment() {
         }
         // 共有
         fragment_nicovideo_menu_share.setOnClickListener {
-            nicoVideoFragment.apply {
+            devNicoVideoFragment.apply {
                 // 再生時間も載せる
                 val currentTime = if (isInitExoPlayer()) {
                     val currentPos = exoPlayer.currentPosition
@@ -374,13 +371,12 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     // 音量コントロール
     fun initVolumeControl() {
-        val nicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
         // 音量
         fragment_nicovideo_menu_volume_seek.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (nicoVideoFragment.isInitExoPlayer()) {
-                    nicoVideoFragment.exoPlayer.volume = (progress.toFloat() / 10)
+                if (devNicoVideoFragment.isInitExoPlayer()) {
+                    devNicoVideoFragment.exoPlayer.volume = (progress.toFloat() / 10)
                 }
             }
 
@@ -392,9 +388,8 @@ class DevNicoVideoMenuFragment : Fragment() {
 
             }
         })
-        if (nicoVideoFragment.isInitExoPlayer()) {
-            fragment_nicovideo_menu_volume_seek.progress =
-                (nicoVideoFragment.exoPlayer.volume * 10).toInt()
+        if (devNicoVideoFragment.isInitExoPlayer()) {
+            fragment_nicovideo_menu_volume_seek.progress = (devNicoVideoFragment.exoPlayer.volume * 10).toInt()
         }
     }
 

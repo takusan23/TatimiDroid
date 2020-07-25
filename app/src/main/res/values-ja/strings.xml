@@ -477,4 +477,7 @@
     <string name="setting_language_en">英語</string>
     <string name="show">表示</string>
     <string name="hide">格納</string>
+    <string name="room_integration">部屋統合</string>
+    <string name="room_limit">流量制限</string>
+    <string name="atodemiru">あとで見る</string>
 </resources>

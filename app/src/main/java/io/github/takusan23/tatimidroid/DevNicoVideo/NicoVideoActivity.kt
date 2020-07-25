@@ -35,12 +35,12 @@ class NicoVideoActivity : AppCompatActivity() {
         val isCache = intent?.getBooleanExtra("cache", false) ?: false
         val isEconomy = intent?.getBooleanExtra("eco", false) ?: false
 
-        // Fragment再生成するかどうか
-        val checkCommentViewFragment =
-            supportFragmentManager.findFragmentByTag(id)
+        // Fragment再生成するかどうか。
+        val checkCommentViewFragment = supportFragmentManager.findFragmentByTag(id)
         val fragment = if (checkCommentViewFragment != null) {
-            checkCommentViewFragment as DevNicoVideoFragment
+            checkCommentViewFragment as DevNicoVideoFragment // 画面回転してもFragmentは生き残る
         } else {
+            // 初回
             val nicoVideoFragment = DevNicoVideoFragment()
             val bundle = Bundle()
             bundle.putString("id", id)

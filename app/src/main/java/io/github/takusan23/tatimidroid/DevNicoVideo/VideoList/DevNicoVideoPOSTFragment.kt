@@ -22,8 +22,8 @@ import kotlinx.coroutines.*
 
 /**
  * 投稿動画取得
- * argumentsにputBoolean("my",true)で入れると自分の投稿動画を取りに行きます。（非公開は無理）
- * argumentsにputString("userId","ユーザーID")で入れると入れたユーザーIDの投稿動画を取りに行きます。
+ * my           |Boolean| trueのときは自分の投稿動画を取得しに行きます。（非公開は無理）
+ * userId       |String | ユーザーIDを入れるとそのユーザーの投稿した動画を取得しに行きます。
  * */
 class DevNicoVideoPOSTFragment : Fragment() {
 
@@ -169,6 +169,7 @@ class DevNicoVideoPOSTFragment : Fragment() {
             setHasFixedSize(true)
             val linearLayoutManager = LinearLayoutManager(context)
             layoutManager = linearLayoutManager
+            // Adapterセット
             nicoVideoListAdapter = DevNicoVideoListAdapter(recyclerViewList)
             adapter = nicoVideoListAdapter
             addOnScrollListener(object : RecyclerView.OnScrollListener() {

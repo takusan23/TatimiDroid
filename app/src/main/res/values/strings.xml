@@ -477,4 +477,7 @@
     <string name="setting_language_en">English</string>
     <string name="show">Show</string>
     <string name="hide">Hide</string>
+    <string name="room_integration">ALL</string>
+    <string name="room_limit">Limit</string>
+    <string name="atodemiru">See later</string>
 </resources>

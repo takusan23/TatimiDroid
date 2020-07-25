@@ -24,22 +24,12 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
-import io.github.takusan23.tatimidroid.NicoAPI.User.User
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.*
-import io.github.takusan23.tatimidroid.Tool.IDRegex
-import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
-import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_MYLIST_ID_REGEX
-import io.github.takusan23.tatimidroid.Tool.calcAnniversary
-import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
@@ -50,11 +40,15 @@ import java.util.*
 class NicoVideoInfoFragment : Fragment() {
 
     lateinit var pref_setting: SharedPreferences
-
     var videoId = ""
     var usersession = ""
-
     var jsonObjectString = ""
+
+    /** [DevNicoVideoFragment]。このFragmentが置いてあるFragment。by lazy で使われるまで初期化しないように */
+    private val devNicoVideoFragment by lazy {
+        val videoId = arguments?.getString("id")
+        parentFragmentManager.findFragmentByTag(videoId) as? DevNicoVideoFragment
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_info, container, false)
@@ -82,9 +76,11 @@ class NicoVideoInfoFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        val fragment = fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment
-        if (fragment.isInitJsonObject() && fragment.jsonObject.toString().isNotEmpty()) {
-            parseJSONApplyUI(fragment.jsonObject.toString())
+        // DevNicoVideoFragment取得できたら
+        devNicoVideoFragment?.apply {
+            if (isInitJsonObject() && jsonObject.toString().isNotEmpty()) {
+                parseJSONApplyUI(jsonObject.toString())
+            }
         }
     }
 
@@ -211,9 +207,7 @@ class NicoVideoInfoFragment : Fragment() {
                     // タグ検索FragmentをViewPagerに追加する
                     button.setOnClickListener {
                         // オフライン時は動かさない
-                        if (isConnectionInternet(context)) {
-                            // DevNicoVideoFragment
-                            val fragment = parentFragmentManager.findFragmentByTag(id) as DevNicoVideoFragment
+                        if (isConnectionInternet(context) && devNicoVideoFragment != null) {
                             val searchFragment = DevNicoVideoSearchFragment().apply {
                                 arguments = Bundle().apply {
                                     putString("search", name)
@@ -222,26 +216,24 @@ class NicoVideoInfoFragment : Fragment() {
                                 }
                             }
                             // 追加位置
-                            val addPos = fragment.viewPager.fragmentList.size
+                            val addPos = devNicoVideoFragment!!.viewPager.fragmentList.size
                             // ViewPager追加
-                            fragment.viewPager.addFragment(searchFragment, "${getString(R.string.tag)}：$name")
+                            devNicoVideoFragment!!.viewPager.addFragment(searchFragment, "${getString(R.string.tag)}：$name")
                             // ViewPager移動
-                            fragment.fragment_nicovideo_viewpager.currentItem = addPos
+                            devNicoVideoFragment!!.fragment_nicovideo_viewpager.currentItem = addPos
                         }
                         // 動画IDのとき。例：「後編→sm」とか
                         val id = IDRegex(name)
                         if (id != null) {
-                            Snackbar.make(button, "${getString(R.string.find_video_id)} : $id", Snackbar.LENGTH_SHORT)
-                                .apply {
-                                    setAction(R.string.play) {
-                                        val intent =
-                                            Intent(context, NicoVideoActivity::class.java).apply {
-                                                putExtra("id", id)
-                                            }
-                                        startActivity(intent)
+                            Snackbar.make(button, "${getString(R.string.find_video_id)} : $id", Snackbar.LENGTH_SHORT).apply {
+                                setAction(R.string.play) {
+                                    val intent = Intent(context, NicoVideoActivity::class.java).apply {
+                                        putExtra("id", id)
                                     }
-                                    show()
+                                    startActivity(intent)
                                 }
+                                show()
+                            }
                         }
                     }
                 }
@@ -336,8 +328,7 @@ class NicoVideoInfoFragment : Fragment() {
                             putBoolean("is_other", true)
                         }
                     }
-                    // DevNicoVideoFragment
-                    (parentFragmentManager.findFragmentByTag(videoId) as DevNicoVideoFragment).apply {
+                    devNicoVideoFragment?.apply {
                         // ViewPager追加
                         viewPager.addFragment(mylistFragment, "${getString(R.string.mylist)}：$mylist")
                         // ViewPager移動
@@ -367,7 +358,7 @@ class NicoVideoInfoFragment : Fragment() {
             span.setSpan(object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     // 再生時間操作
-                    (fragmentManager?.findFragmentByTag(videoId) as DevNicoVideoFragment).apply {
+                    devNicoVideoFragment?.apply {
                         if (isInitExoPlayer()) {
                             // 分：秒　を ミリ秒へ
                             val minute = time.split(":")[0].toLong() * 60

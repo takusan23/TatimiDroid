@@ -2,42 +2,40 @@ package io.github.takusan23.tatimidroid.DevNicoVideo.Adapter
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.Tool.CustomFont
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
 import io.github.takusan23.tatimidroid.Fragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.CustomFont
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.json.JSONArray
-import java.io.Console
 import java.text.SimpleDateFormat
 import java.util.*
 
 /**
  * ニコ動のコメント表示Adapter
+ * @param devNicoVideoFragment ニコるくんとコテハンで使う。ニコるくん/コテハンがいらないならnullでおーけー
  * */
-class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONParse>) : RecyclerView.Adapter<NicoVideoAdapter.ViewHolder>() {
+class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONParse>, private val devNicoVideoFragment: DevNicoVideoFragment? = null) : RecyclerView.Adapter<NicoVideoAdapter.ViewHolder>() {
 
-    lateinit var font: CustomFont
-    lateinit var devNicoVideoFragment: DevNicoVideoFragment
     lateinit var prefSetting: SharedPreferences
+    lateinit var font: CustomFont
 
     var textColor = Color.parseColor("#000000")
 
@@ -78,19 +76,6 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             holder.commentTextView.text = "${item.commentNo}：$comment"
         }
 
-        // プレ垢
-        val isPremium = if (!devNicoVideoFragment.isCache) {
-            devNicoVideoFragment.nicoVideoHTML.isPremium(devNicoVideoFragment.jsonObject)
-        } else {
-            false
-        }
-
-        // オフライン再生かどうか
-        val isOfflinePlay = devNicoVideoFragment.isCache
-
-        // 動画でコテハン？いる
-        val kotehanOrUserId = devNicoVideoFragment.kotehanMap[item.userId] ?: item.userId
-
         // ニコるくん表示
         val isShowNicoruButton = prefSetting.getBoolean("setting_nicovideo_nicoru_show", false)
         // mail（コマンド）がないときは表示しない
@@ -118,11 +103,6 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             setTextViewFont(holder.userNameTextView)
         }
 
-        // プレ垢はニコるくんつける
-        if (isInitDevNicoVideoFragment() && isPremium && isShowNicoruButton && !isOfflinePlay) {
-            holder.nicoruButton.visibility = View.VISIBLE
-        }
-
         // ニコるカウントに合わせて色つける
         if (prefSetting.getBoolean("setting_nicovideo_nicoru_color", false)) {
             holder.cardView.apply {
@@ -135,11 +115,14 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
 
         // 一般会員にはニコる提供されてないのでニコる数だけ表示
         // あとDevNicoVideoFragmentはがめんスワイプしてたらなんか落ちたので
-        val nicoruCount = if (holder.nicoruButton.visibility == View.GONE && item.nicoru > 0) {
+        val nicoruCount = if (!isShowNicoruButton && devNicoVideoFragment == null && item.nicoru > 0) {
             "| ニコる ${item.nicoru} "
         } else {
             ""
         }
+
+        // 動画でコテハン。DevNicoVideoFragment（第二引数）がnullなら動きません。
+        val kotehanOrUserId = devNicoVideoFragment?.kotehanMap?.get(item.userId) ?: item.userId
 
         holder.userNameTextView.text = "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount$ngScore| ${kotehanOrUserId}"
         holder.nicoruButton.text = item.nicoru.toString()
@@ -159,12 +142,29 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             }
         }
 
+        // DevNicoVideoFragmentに依存してる系。なにかに依存させるとかFragmentの意味ないやんけ！
+        if (devNicoVideoFragment != null) {
 
-        // ニコる押したとき
-        holder.nicoruButton.setOnClickListener {
-            postNicoru(context, holder, item)
+            // オフライン再生かどうか
+            val isOfflinePlay = devNicoVideoFragment.isCache
+
+            // プレ垢
+            val isPremium = if (!devNicoVideoFragment.isCache) {
+                devNicoVideoFragment.nicoVideoHTML.isPremium(devNicoVideoFragment.jsonObject)
+            } else {
+                false
+            }
+
+            // ニコる押したとき
+            holder.nicoruButton.setOnClickListener {
+                postNicoru(context, holder, item)
+            }
+
+            // プレ垢はニコるくんつける
+            if (isPremium && isShowNicoruButton && !isOfflinePlay) {
+                holder.nicoruButton.isVisible = true
+            }
         }
-
     }
 
     /** ニコるくんニコる関数 */
@@ -173,8 +173,8 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             showToast(context, "${context.getString(R.string.error)}\n${throwable.message}")
         }
         GlobalScope.launch(errorHandler) {
-            devNicoVideoFragment.apply {
-                if (isPremium) {
+            devNicoVideoFragment?.apply {
+                if (nicoVideoHTML.isPremium(jsonObject)) {
                     val nicoruKey = nicoruAPI.nicoruKey
                     val responseNicoru = nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey)
                     if (!responseNicoru.isSuccessful) {
@@ -253,9 +253,6 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
-
-    // DevNicoVideoFragmentが初期化済みか
-    fun isInitDevNicoVideoFragment(): Boolean = ::devNicoVideoFragment.isInitialized
 
     // ニコる色。
     private fun getNicoruLevelColor(nicoruCount: Int, context: Context) = when {

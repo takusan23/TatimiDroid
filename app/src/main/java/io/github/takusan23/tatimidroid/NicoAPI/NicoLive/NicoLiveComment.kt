@@ -69,11 +69,7 @@ class NicoLiveComment {
             val roomObject = room.getJSONObject(index)
             val webSocketUri = roomObject.getString("webSocketUri")
             val name = roomObject.getString("name")
-            val roomName = if (name.contains("co") || name.contains("ch")) {
-                arena // コミュID -> アリーナ
-            } else {
-                name
-            }
+            val roomName = name
             val threadId = roomObject.getString("threadId")
             val data = CommentServerData(webSocketUri, threadId, roomName ?: "アリーナ")
             list.add(data)

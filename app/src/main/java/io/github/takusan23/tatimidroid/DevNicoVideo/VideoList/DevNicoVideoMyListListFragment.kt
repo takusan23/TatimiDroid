@@ -21,8 +21,8 @@ import kotlinx.coroutines.*
  * マイリスト一覧表示Fragment。
  * ViewPagerで表示するFragmentです。
  * 入れてほしいもの↓
- * |mylist_id   |String |マイリストのID。空の場合はとりあえずマイリストをリクエストします
- * |is_other    |Boolean|他の人のマイリストを読み込む時に使う。
+ * mylist_id   |String |マイリストのID。空の場合はとりあえずマイリストをリクエストします
+ * is_other    |Boolean|他の人のマイリストを読み込む時に使う。
  * */
 class DevNicoVideoMyListListFragment : Fragment() {
 
@@ -171,6 +171,7 @@ class DevNicoVideoMyListListFragment : Fragment() {
         fragment_nicovideo_mylist_list_recyclerview.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
+            // Adapterセット
             nicoVideoListAdapter = DevNicoVideoListAdapter(recyclerViewList)
             adapter = nicoVideoListAdapter
         }

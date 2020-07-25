@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.DevNicoVideo
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
@@ -29,12 +30,11 @@ import org.xml.sax.ErrorHandler
 class DevNicoVideoCommentFragment : Fragment() {
 
     var recyclerViewList = arrayListOf<CommentJSONParse>()
-    lateinit var nicoVideoAdapter: NicoVideoAdapter
-    lateinit var prefSetting: SharedPreferences
-    lateinit var devNicoVideoFragment: DevNicoVideoFragment
+    private lateinit var nicoVideoAdapter: NicoVideoAdapter
+    private lateinit var prefSetting: SharedPreferences
 
-    var usersession = ""
-    var id = "sm157"
+    private var usersession = ""
+    private var id = "sm157"
 
     lateinit var recyclerView: RecyclerView
 
@@ -44,6 +44,12 @@ class DevNicoVideoCommentFragment : Fragment() {
      * falseになったら「追いかけるボタン」を押すことで再度trueになります。
      * */
     var isAutoScroll = true
+
+    /** [DevNicoVideoFragment]。このFragmentが置いてあるFragment。by lazy で使われるまで初期化しないように */
+    private val devNicoVideoFragment by lazy {
+        val videoId = arguments?.getString("id")
+        parentFragmentManager.findFragmentByTag(videoId) as? DevNicoVideoFragment
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_comment, container, false)
@@ -57,12 +63,17 @@ class DevNicoVideoCommentFragment : Fragment() {
         id = arguments?.getString("id") ?: "sm157"
         usersession = prefSetting.getString("user_session", "") ?: ""
         recyclerView = view.findViewById(R.id.activity_nicovideo_recyclerview)
-        devNicoVideoFragment = parentFragmentManager.findFragmentByTag(id) as DevNicoVideoFragment
+
+        // 画面回転復帰時
+        if (savedInstanceState?.getSerializable("comment") != null) {
+            recyclerViewList = savedInstanceState.getSerializable("comment") as ArrayList<CommentJSONParse>
+            initRecyclerView(recyclerViewList)
+        }
 
         // スクロールボタン。追従するぞい
         dev_nicovideo_comment_fragment_following_button.setOnClickListener {
             // Fragmentはクソ！
-            (parentFragmentManager.findFragmentByTag(id) as? DevNicoVideoFragment)?.apply {
+            devNicoVideoFragment?.apply {
                 // スクロール
                 val currentPos = exoPlayer.currentPosition
                 scroll(currentPos)
@@ -73,31 +84,23 @@ class DevNicoVideoCommentFragment : Fragment() {
         }
     }
 
+
     /**
      * RecyclerView初期化とか
      * @param recyclerViewList RecyclerViewに表示させる中身の配列。省略時はDevNicoVideoCommentFragment.recyclerViewListを使います。
      * @param snackbarShow Toastに取得コメント数を表示させる場合はtrue、省略時はfalse
      * */
-    fun initRecyclerView(snackbarShow: Boolean = false) {
+    fun initRecyclerView(commentList: ArrayList<CommentJSONParse>) {
+        recyclerViewList = commentList
         if (!isAdded) {
             return
         }
-        // DevNicoVideoFragment
-        devNicoVideoFragment = fragmentManager?.findFragmentByTag(id) as DevNicoVideoFragment
-        recyclerViewList = ArrayList(devNicoVideoFragment.commentList)
         recyclerView.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
         recyclerView.layoutManager = mLayoutManager
-        // Adapter用意
-        nicoVideoAdapter = NicoVideoAdapter(recyclerViewList)
-        nicoVideoAdapter.devNicoVideoFragment = devNicoVideoFragment
-        // DevNicoVideoFragment渡す
+        // Adapter用意。実は第二引数渡さなくても動いたりする（ニコるできなくなるけど）
+        nicoVideoAdapter = NicoVideoAdapter(commentList, devNicoVideoFragment)
         recyclerView.adapter = nicoVideoAdapter
-        //  Snackbar
-        if (snackbarShow) {
-            // 前回見た位置から再生が４ぬので消しとく
-            Toast.makeText(context, "${getString(R.string.get_comment_count)}：${recyclerViewList.size}", Toast.LENGTH_SHORT).show()
-        }
         // スクロールイベント。上方向へスクロールをしたら自動追従を解除する設定にした。
         // これで自動スクロール止めたい場合は上方向へスクロールしてください。代わりに追いかけるボタンが表示されます。
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -109,20 +112,6 @@ class DevNicoVideoCommentFragment : Fragment() {
                 }
             }
         })
-    }
-
-    override fun onStart() {
-        super.onStart()
-        // initRecyclerView()
-    }
-
-    // FragmentがAttachされてからRecyclerView用意する
-    override fun onResume() {
-        super.onResume()
-        GlobalScope.launch(Dispatchers.Main) {
-            devNicoVideoFragment.commentFilter(false).await()
-            initRecyclerView()
-        }
     }
 
     /**
@@ -251,6 +240,14 @@ class DevNicoVideoCommentFragment : Fragment() {
         val firstTime = rangeItem.first().vpos.toInt() / 100
         // 同じなら配列から消して、中身が０になれば完成。Array#none{}は全てに一致しなければtrueを返す
         return rangeItem.none { commentJSONParse -> commentJSONParse.vpos.toInt() / 100 != firstTime }
+    }
+
+    /**
+     * コメント一覧を保存しておく
+     * */
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable("comment", recyclerViewList)
     }
 
 }

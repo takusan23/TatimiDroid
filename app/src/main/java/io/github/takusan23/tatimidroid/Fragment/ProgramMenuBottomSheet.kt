@@ -69,6 +69,9 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
                 // 番組情報取得
                 coroutine()
 
+                // Fragment無くなってれば落とす
+                if (!isAdded) return@withContext
+
                 // UI反映
                 applyUI()
 

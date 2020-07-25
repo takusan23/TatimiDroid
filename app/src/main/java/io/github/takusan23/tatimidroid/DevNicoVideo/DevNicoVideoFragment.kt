@@ -6,7 +6,6 @@ import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
-import android.graphics.Point
 import android.net.Uri
 import android.os.*
 import android.text.format.DateUtils
@@ -34,6 +33,7 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoRecycler
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.FregmentData.DevNicoVideoFragmentData
 import io.github.takusan23.tatimidroid.FregmentData.TabLayoutData
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
@@ -60,6 +60,10 @@ import kotlin.concurrent.timerTask
 
 /**
  * 開発中のニコ動クライアント（？）
+ *
+ * id           |   動画ID。必須
+ * cache        |   キャッシュ再生ならtrue。なければfalse
+ * eco          |   エコノミー再生するなら（?eco=1）true
  * */
 class DevNicoVideoFragment : Fragment() {
 
@@ -163,9 +167,6 @@ class DevNicoVideoFragment : Fragment() {
             fragment_nicovideo_comment_canvas.typeface = font.typeface
         }
 
-        // 動画ID
-        videoId = arguments?.getString("id") ?: ""
-
         // スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
@@ -191,6 +192,9 @@ class DevNicoVideoFragment : Fragment() {
 
         exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
 
+        // 動画ID
+        videoId = arguments?.getString("id") ?: ""
+
         /**
          * 画面回転復帰時かどうか
          * 画面回転復帰時はデータを取りに行かずに、ハートビート処理のみ行う
@@ -210,6 +214,10 @@ class DevNicoVideoFragment : Fragment() {
             // 動画情報無いとき（動画情報JSON無くても再生はできる）有る
             if (devNicoVideoFragmentData.dataApiData != null) {
                 jsonObject = JSONObject(devNicoVideoFragmentData.dataApiData!!)
+                // プレ垢かどうか、ユーザー情報等（ニコるくんで使う）
+                isPremium = nicoVideoHTML.isPremium(jsonObject)
+                threadId = nicoVideoHTML.getThreadId(jsonObject)
+                userId = nicoVideoHTML.getUserId(jsonObject)
             }
             // TabLayout（ViewPager）の回転前の状態取得とViewPagerの初期化
             val dynamicAddFragmentList = savedInstanceState.getParcelableArrayList<TabLayoutData>("tab") as ArrayList<TabLayoutData>
@@ -223,9 +231,9 @@ class DevNicoVideoFragment : Fragment() {
             }
             // UIに反映
             GlobalScope.launch(Dispatchers.Main) {
-                applyUI().await()
+                applyUI()
                 // NG適用
-                commentFilter(false).await()
+                commentFilter(false)
                 if (!isCache) {
                     // 関連動画
                     (viewPager.fragmentList[3] as DevNicoVideoRecommendFragment).apply {
@@ -243,32 +251,44 @@ class DevNicoVideoFragment : Fragment() {
         } else {
             // 初めて///
 
-            // キャッシュを優先的に使う設定有効？
-            val isPriorityCache = prefSetting.getBoolean("setting_nicovideo_cache_priority", false)
+            firstPlay()
 
-            // キャッシュ再生が有効ならtrue
-            isCache = when {
-                arguments?.getBoolean("cache") ?: false -> true // キャッシュ再生
-                NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache -> true // キャッシュ優先再生が可能
-                else -> false // オンライン
-            }
+        }
+    }
 
-            // キャッシュ再生かどうかが分かったところでViewPager初期化
+    /**
+     * 動画再生。これは画面回展示ではなく初回の再生時や、他の動画に切り替える際に使う。関数名えっっっっっち
+     * 動画ID変更はとりあえずargment#putString("id","動画ID")でたのんだ。
+     * @param isInitViewPager ViewPagerを初期化する際はtrue。初回実行時のみ。動画を切り替える際はfalseにしてくれ
+     * */
+    private fun firstPlay(isInitViewPager: Boolean = true) {
+        // キャッシュを優先的に使う設定有効？
+        val isPriorityCache = prefSetting.getBoolean("setting_nicovideo_cache_priority", false)
+
+        // キャッシュ再生が有効ならtrue
+        isCache = when {
+            arguments?.getBoolean("cache") ?: false -> true // キャッシュ再生
+            NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache -> true // キャッシュ優先再生が可能
+            else -> false // オンライン
+        }
+
+        // キャッシュ再生かどうかが分かったところでViewPager初期化
+        if (isInitViewPager) {
             initViewPager()
+        }
 
-            // 強制エコノミーの設定有効なら
-            val isPreferenceEconomyMode = prefSetting.getBoolean("setting_nicovideo_economy", false)
-            // エコノミー再生するなら
-            val isEconomy = arguments?.getBoolean("eco") ?: false
+        // 強制エコノミーの設定有効なら
+        val isPreferenceEconomyMode = prefSetting.getBoolean("setting_nicovideo_economy", false)
+        // エコノミー再生するなら
+        val isEconomy = arguments?.getBoolean("eco") ?: false
 
-            when {
-                // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
-                isCache -> cachePlay()
-                // エコノミー再生？
-                isEconomy || isPreferenceEconomyMode -> coroutine(true, "", "", true)
-                // それ以外：インターネットで取得
-                else -> coroutine()
-            }
+        when {
+            // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
+            isCache -> cachePlay()
+            // エコノミー再生？
+            isEconomy || isPreferenceEconomyMode -> coroutine(true, "", "", true)
+            // それ以外：インターネットで取得
+            else -> coroutine()
         }
     }
 
@@ -622,9 +642,9 @@ class DevNicoVideoFragment : Fragment() {
             }
             withContext(Dispatchers.Main) {
                 // UI表示
-                applyUI().await()
+                applyUI()
                 // フィルターで3ds消したりする
-                commentFilter().await()
+                commentFilter()
                 // 端末内DB履歴追記
                 insertDB(videoTitle)
             }
@@ -681,9 +701,11 @@ class DevNicoVideoFragment : Fragment() {
      * 注意：NG操作が終わったときに呼ぶとうまく動く？。
      * 注意：この関数を呼ぶと勝手にコメント一覧のRecyclerViewも更新されます。（代わりにapplyUI関数からコメントRecyclerView関係を消します）
      * rawCommentListはそのままで、フィルターにかけた結果がcommentListになる
-     * @param notify DevNicoVideoCommentFragmentに更新をかけたい時はtrue。画面回転時に落ちる（ほんとこの仕様４ね）のでその時だけfalse
+     * @param notify DevNicoVideoCommentFragmentに更新をかけたい時はtrue。コメント一覧Fragmentは別に画面回転処理を書いてるため、画面回転復帰時は使わない。
      * */
-    fun commentFilter(notify: Boolean = true) = GlobalScope.async(Dispatchers.IO) {
+    suspend fun commentFilter(notify: Boolean = true) = withContext(Dispatchers.Default) {
+        // Fragmentが無い時があるからその時は落とす
+        if (!isAdded) return@withContext
         // 3DSけす？
         val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
         // NG配列。mapでNGコメント/NGユーザーの配列に変換する
@@ -698,7 +720,9 @@ class DevNicoVideoFragment : Fragment() {
         }
         if (notify) {
             withContext(Dispatchers.Main) {
-                (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).initRecyclerView(true)
+                (viewPager.fragmentList[1] as DevNicoVideoCommentFragment).initRecyclerView(commentList)
+                // 前回見た位置から再生が４ぬので消しとく
+                showToast("${getString(R.string.get_comment_count)}：${commentList.size}")
             }
         }
     }
@@ -706,9 +730,9 @@ class DevNicoVideoFragment : Fragment() {
     /**
      * データ取得終わった時にUIに反映させる
      * */
-    fun applyUI() = GlobalScope.async(Dispatchers.Main) {
+    suspend fun applyUI() = withContext(Dispatchers.Main) {
         // ここに来る頃にはFragmentがもう存在しない可能性があるので（速攻ブラウザバックなど）
-        if (!isAdded) return@async
+        if (!isAdded) return@withContext
         // ViewPager初期化
         //   initViewPager().await()
         if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
@@ -719,9 +743,7 @@ class DevNicoVideoFragment : Fragment() {
             initVideoPlayer(contentUrl, nicoHistory)
         }
         // 動画情報なければ終わる
-        if (!::jsonObject.isInitialized) {
-            return@async
-        }
+        if (!::jsonObject.isInitialized) return@withContext
         // メニューにJSON渡す
         (viewPager.fragmentList[0] as DevNicoVideoMenuFragment).jsonObject = jsonObject
         // 動画情報あれば更新
@@ -853,9 +875,9 @@ class DevNicoVideoFragment : Fragment() {
                 // UIスレッドへ
                 withContext(Dispatchers.Main) {
                     // 再生
-                    applyUI().await()
+                    applyUI()
                     // フィルターで3ds消したりする
-                    commentFilter().await()
+                    commentFilter()
                     // タイトル
                     videoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                         JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video").getString("title")
@@ -1008,14 +1030,13 @@ class DevNicoVideoFragment : Fragment() {
                     if (rotationProgress == 0L) {
                         val progress = prefSetting.getLong("progress_$videoId", 0)
                         if (progress != 0L && isCache) {
-                            Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", Snackbar.LENGTH_LONG)
-                                .apply {
-                                    anchorView = fragment_nicovideo_fab
-                                    setAction(R.string.play) {
-                                        exoPlayer.seekTo(progress)
-                                    }
-                                    show()
+                            Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", Snackbar.LENGTH_LONG).apply {
+                                anchorView = fragment_nicovideo_fab
+                                setAction(R.string.play) {
+                                    exoPlayer.seekTo(progress)
                                 }
+                                show()
+                            }
                         }
                     }
                 }
@@ -1049,29 +1070,27 @@ class DevNicoVideoFragment : Fragment() {
         seekTimer = Timer()
         seekTimer.schedule(timerTask {
             Handler(Looper.getMainLooper()).post {
-                if (!isDestory) {
-                    if (exoPlayer.isPlaying) {
-                        setProgress()
-                        drawComment()
-                        val sec = exoPlayer.currentPosition / 1000
-                        // コメント一覧スクロールする
-                        if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
-                            requireCommentFragment()?.apply {
-                                // 追いかけるボタン利用しない
-                                scroll(exoPlayer.currentPosition)
-                                // 使わないので非表示
-                                setFollowingButtonVisibility(false)
-                            }
-                        } else {
-                            // 追いかけるボタン表示するかなどをやってる関数
-                            // 一秒ごとに動かしたい
-                            if (secInterval != sec) {
-                                secInterval = sec
-                                requireCommentFragment()?.setScrollFollowButton(exoPlayer.currentPosition)
-                            }
+                if (exoPlayer.isPlaying) {
+                    setProgress()
+                    drawComment()
+                    val sec = exoPlayer.currentPosition / 1000
+                    // コメント一覧スクロールする
+                    if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
+                        requireCommentFragment()?.apply {
+                            // 追いかけるボタン利用しない
+                            scroll(exoPlayer.currentPosition)
+                            // 使わないので非表示
+                            setFollowingButtonVisibility(false)
                         }
-
+                    } else {
+                        // 追いかけるボタン表示するかなどをやってる関数
+                        // 一秒ごとに動かしたい
+                        if (secInterval != sec) {
+                            secInterval = sec
+                            requireCommentFragment()?.setScrollFollowButton(exoPlayer.currentPosition)
+                        }
                     }
+
                 }
             }
         }, 100, 100)
@@ -1294,7 +1313,8 @@ class DevNicoVideoFragment : Fragment() {
      * @param dynamicAddFragmentList 動的に追加したFragmentがある場合は入れてね。なければ省略していいです。
      * */
     private fun initViewPager(dynamicAddFragmentList: ArrayList<TabLayoutData> = arrayListOf()) {
-        viewPager = DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache, this@DevNicoVideoFragment, dynamicAddFragmentList)
+        // このFragmentを置いたときに付けたTag
+        viewPager = DevNicoVideoRecyclerPagerAdapter(activity as AppCompatActivity, videoId, isCache, dynamicAddFragmentList)
         fragment_nicovideo_viewpager.adapter = viewPager
         TabLayoutMediator(fragment_nicovideo_tablayout, fragment_nicovideo_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
             tab.text = viewPager.fragmentTabName[position]
@@ -1324,72 +1344,6 @@ class DevNicoVideoFragment : Fragment() {
         }
     }
 
-/*
-    */
-    /**
-     * Fragmentをセットする
-     * *//*
-
-    private fun initFragment() {
-        //FragmentにID詰める
-        val bundle = Bundle()
-        bundle.putString("id", videoId)
-        val fragment =
-            NicoVideoCommentFragment()
-        fragment.arguments = bundle
-        (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_nicovideo_fragment_linearlayout, fragment)
-            .commit()
-        fragment_nicovideo_tablayout.selectTab(fragment_nicovideo_tablayout.getTabAt(1))
-        fragment_nicovideo_tablayout.addOnTabSelectedListener(object :
-            TabLayout.OnTabSelectedListener {
-            override fun onTabReselected(tab: TabLayout.Tab?) {
-
-            }
-
-            override fun onTabUnselected(tab: TabLayout.Tab?) {
-
-            }
-
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                when (tab?.text) {
-                    getString(R.string.comment) -> {
-                        //コメント
-                        (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
-                            .replace(R.id.fragment_nicovideo_fragment_linearlayout, fragment)
-                            .commit()
-                    }
-                    getString(R.string.nicovideo_info) -> {
-                        //動画情報
-                        val fragment =
-                            NicoVideoInfoFragment()
-                        fragment.arguments = bundle
-                        (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
-                            .replace(R.id.fragment_nicovideo_fragment_linearlayout, fragment)
-                            .commit()
-                    }
-                    getString(R.string.menu) -> {
-                        val fragment =
-                            NicoVideoMenuFragment()
-                        fragment.arguments = bundle
-                        (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
-                            .replace(R.id.fragment_nicovideo_fragment_linearlayout, fragment)
-                            .commit()
-                    }
-                    getString(R.string.parent_contents) -> {
-                        val fragment =
-                            NicoVideoContentTreeFragment()
-                        fragment.arguments = bundle
-                        (activity as AppCompatActivity).supportFragmentManager.beginTransaction()
-                            .replace(R.id.fragment_nicovideo_fragment_linearlayout, fragment)
-                            .commit()
-                    }
-                }
-            }
-        })
-    }
-*/
-
     override fun onResume() {
         super.onResume()
         if (::exoPlayer.isInitialized) {
@@ -1413,7 +1367,7 @@ class DevNicoVideoFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Fragment終了のち止める
+        // Fragment終了
         if (::exoPlayer.isInitialized) {
             exoPlayer.release()
         }
@@ -1421,6 +1375,7 @@ class DevNicoVideoFragment : Fragment() {
         nicoVideoCache.destroy()
         nicoVideoHTML.destory()
         isDestory = true
+        seekTimer.cancel()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

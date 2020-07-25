@@ -81,13 +81,15 @@ class DevNicoVideoMyListFragment : Fragment() {
             myListItems = nicoVideoSPMyListAPI.parseMyListList(response.body?.string())
             if (!isAdded) return@launch
             // とりあえずマイリスト追加
-            myListItems.add(0, NicoVideoSPMyListAPI.MyListData(getString(R.string.toriaezu_mylist), "", 500))
-            // 動画の登録の多い順に並び替える？
-            if (prefSetting.getBoolean("setting_nicovideo_mylist_sort_itemcount", false)) {
-                myListItems.sortByDescending { myListData -> myListData.itemsCount }
+            withContext(Dispatchers.Main) {
+                myListItems.add(0, NicoVideoSPMyListAPI.MyListData(getString(R.string.atodemiru), "", 500))
+                // 動画の登録の多い順に並び替える？
+                if (prefSetting.getBoolean("setting_nicovideo_mylist_sort_itemcount", false)) {
+                    myListItems.sortByDescending { myListData -> myListData.itemsCount }
+                }
+                // ViewPager初期化
+                initViewPager()
             }
-            // ViewPager初期化
-            initViewPager()
         }
     }
 

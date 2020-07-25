@@ -98,7 +98,14 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             }
         }
 
-        var info = "${commentJSONParse.roomName} | $time | $userId"
+        // 7/27の部屋統合に備えて、部屋名の表示を直す。
+        val roomName = if (commentJSONParse.roomName != "store") {
+            context.getString(R.string.room_integration) // 部屋統合。良いな名前が思いつかなかった。
+        } else {
+            context.getString(R.string.room_limit) // 流量制限。おそらくコメビュで取れるはず。コメントが多すぎて制限されたコメントはstoreってところに流れてくるらしい。詳しくは programinfo API叩いて
+        }
+
+        var info = "$roomName | $time | $userId"
 
         // 公式番組のコメントはコメント番号存在しない
         val comment = if (commentJSONParse.commentNo.isEmpty()) {

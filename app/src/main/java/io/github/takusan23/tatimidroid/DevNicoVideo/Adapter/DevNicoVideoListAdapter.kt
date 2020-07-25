@@ -31,8 +31,11 @@ import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 
-class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
-    RecyclerView.Adapter<DevNicoVideoListAdapter.ViewHolder>() {
+/**
+ * ニコ動の動画を一覧で表示するときに使うAdapter。
+ * ランキング、視聴履歴の一覧から関連動画等色んな所で使ってる。
+ * */
+class DevNicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideoData>) : RecyclerView.Adapter<DevNicoVideoListAdapter.ViewHolder>() {
 
     lateinit var prefSetting: SharedPreferences
     lateinit var nicoVideoCache: NicoVideoCache
@@ -120,14 +123,14 @@ class DevNicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) :
                     }.show((context as AppCompatActivity).supportFragmentManager, "cache")
                 } else {
                     // 再生方法
-                    val playType =
-                        prefSetting.getString("setting_play_type_video", "default") ?: "default"
+                    val playType = prefSetting.getString("setting_play_type_video", "default") ?: "default"
                     when (playType) {
                         "default" -> {
+                            // 画面遷移
                             val intent = Intent(context, NicoVideoActivity::class.java)
                             intent.putExtra("id", data.videoId)
                             intent.putExtra("cache", data.isCache)
-                            context?.startActivity(intent)
+                            context.startActivity(intent)
                         }
                         "popup" -> {
                             startVideoPlayService(context = context, mode = "popup", videoId = data.videoId, isCache = data.isCache)
