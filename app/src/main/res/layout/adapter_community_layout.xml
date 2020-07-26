@@ -92,7 +92,7 @@
 
                     <Button
                             android:id="@+id/adapter_community_watchmode_comeview"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
@@ -100,14 +100,16 @@
 
                     <Button
                             android:id="@+id/adapter_community_watchmode_comepost"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="wrap_content"
+                            android:textColor="@color/colorPrimaryDark"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
                             android:text="@string/mode_post" />
 
                     <Button
                             android:id="@+id/adapter_community_watchmode_nicocas"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
@@ -115,7 +117,7 @@
 
                     <Button
                             android:id="@+id/adapter_community_watchmode_description"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"

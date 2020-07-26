@@ -14,7 +14,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.Adapter.MainActivityFragmentStateViewAdapter
 import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
@@ -25,6 +27,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.*
+import kotlin.concurrent.schedule
 
 
 /**
@@ -76,6 +80,9 @@ class MainActivity : AppCompatActivity() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(1234)
 
+        // ViewPager2初期化
+        // initViewPager2()
+
         // 共有から起動した
         lunchShareIntent()
 
@@ -93,9 +100,8 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.menu_login -> {
                     if (isConnectionInternet(this)) {
-                        val fragmentTransaction = supportFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
-                        fragmentTransaction.commit()
+                        setFragment(LoginFragment())
+                        // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_LOGIN)
                     }
                 }
                 R.id.menu_community -> {
@@ -104,9 +110,8 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 R.id.menu_setting -> {
-                    val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    fragmentTransaction.replace(R.id.main_activity_linearlayout, SettingsFragment())
-                    fragmentTransaction.commit()
+                    setFragment(SettingsFragment())
+                    // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_SETTING)
                 }
                 R.id.menu_nicovideo -> {
                     if (isConnectionInternet(this)) {
@@ -114,13 +119,13 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 R.id.menu_cache -> {
-                    val fragmentTransitionSupport = supportFragmentManager.beginTransaction()
-                    fragmentTransitionSupport.replace(R.id.main_activity_linearlayout, DevNicoVideoCacheFragment())
-                    fragmentTransitionSupport.commit()
+                    setFragment(DevNicoVideoCacheFragment())
+                    // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_CACHE)
                 }
             }
             true
         }
+
 
         // 画面回転時・・・はsavedInstanceStateがnull以外になる。これないと画面回転時にFragmentを再生成（2個目作成）するはめになりますよ！
         if (savedInstanceState == null) {
@@ -147,10 +152,40 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        //データベース移行
-        // convertCommentPOSTListToCommentCollection()
-
     }
+
+    val createdFragmentList = arrayListOf<Fragment>()
+
+    private fun setFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction().replace(R.id.main_activity_linearlayout, fragment).commit()
+    }
+
+
+//    /**
+//     * ViewPager2を初期化
+//     * なんでMainActivityでViewPagerなんて使ってるのかというと画面を切り替えても状態を維持するためです。
+//     * */
+//    private fun initViewPager2() {
+//        // スワイプ無効
+//        activity_main_viewpager2.isUserInputEnabled = false
+//        // Fragment保持数を増やす。
+//        activity_main_viewpager2.offscreenPageLimit = 1
+//        // セットする
+//        adapter = MainActivityFragmentStateViewAdapter(this)
+//        activity_main_viewpager2.adapter = adapter
+//    }
+
+//
+//    /**
+//     * ViewPager2のFragmentを置き換える。
+//     * @param page [MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_SETTING]等を参考に
+//     * */
+//    private fun setPage(page: Int) {
+//        //activity_main_viewpager2.currentItem = page
+//        adapter.setFragment(page, activity_main_viewpager2)
+//    }
+//
+//
 
     // Android 10からアプリにフォーカスが当たらないとクリップボードの中身が取れなくなったため
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -193,17 +228,14 @@ class MainActivity : AppCompatActivity() {
 
     // 番組一覧
     private fun showProgramListFragment() {
-        //ログイン情報がない場合
+        //ログイン情報があるかどうか
         if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
-            val fragmentTransaction = supportFragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.main_activity_linearlayout, ProgramListFragment())
-            fragmentTransaction.commit()
+            setFragment(ProgramListFragment())
+            // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_NICOLIVE)
         } else {
             // ログイン画面へ切り替える
-            main_activity_bottom_navigationview.selectedItemId = R.id.menu_login
-            val fragmentTransaction = supportFragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
-            fragmentTransaction.commit()
+            setFragment(LoginFragment())
+            // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_LOGIN)
             Toast.makeText(this, getString(R.string.mail_pass_error), Toast.LENGTH_SHORT).show()
         }
     }
@@ -212,9 +244,8 @@ class MainActivity : AppCompatActivity() {
     private fun showVideoListFragment() {
         if (pref_setting.getString("mail", "")?.isNotEmpty() == true || isNotLoginMode(this)) {
             // ニコニコ動画
-            val fragmentTransaction = supportFragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.main_activity_linearlayout, DevNicoVideoSelectFragment())
-            fragmentTransaction.commit()
+            setFragment(DevNicoVideoSelectFragment())
+            // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_NICOVIDEO)
             //タイトル
             supportActionBar?.title = getString(R.string.nicovideo)
         } else {
@@ -234,12 +265,10 @@ class MainActivity : AppCompatActivity() {
                     1 -> {
                         // ログインする
                         main_activity_bottom_navigationview.selectedItemId = R.id.menu_login
-                        val fragmentTransaction = supportFragmentManager.beginTransaction()
-                        fragmentTransaction.replace(R.id.main_activity_linearlayout, LoginFragment())
-                        fragmentTransaction.commit()
+                        setFragment(LoginFragment())
+                        // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_LOGIN)
                         //メアド設定してね！
-                        Toast.makeText(this, getString(R.string.login_or_is_not_login_mode), Toast.LENGTH_SHORT)
-                            .show()
+                        Toast.makeText(this, getString(R.string.login_or_is_not_login_mode), Toast.LENGTH_SHORT).show()
                     }
                 }
             }.show(supportFragmentManager, "nicovideo_init")
@@ -256,46 +285,6 @@ class MainActivity : AppCompatActivity() {
             idRegexLaunchPlay(url.toString())
         }
     }
-
-/*
-    //コメント投稿リストからコメントコメントコレクションにデータベース移動
-    //移動理由は単純に名前がわかりにくいってだけです。
-    fun convertCommentPOSTListToCommentCollection() {
-        //コメント投稿リスト
-        val commentPOSTListSQLiteHelper = CommentPOSTListSQLiteHelper(this)
-        val commentPOSTListSqLiteDatabase = commentPOSTListSQLiteHelper.writableDatabase
-        commentPOSTListSQLiteHelper.setWriteAheadLoggingEnabled(false)
-
-        //コメントコレクション
-        val commentCollection = CommentCollectionSQLiteHelper(this)
-        val commentCollectionSqLiteDatabase = commentCollection.writableDatabase
-        commentCollection.setWriteAheadLoggingEnabled(false)
-
-        //コメント投稿リストの内容を読み込む
-        val cursor =
-            commentPOSTListSqLiteDatabase.query("comment_post_list", arrayOf("comment"), null, null, null, null, null)
-        //リストがある・ない
-        if (cursor.moveToFirst()) {
-            //あるのでコメントコレクションへ移行
-            for (i in 0 until cursor.count) {
-                val comment = cursor.getString(0)
-                val yomi = cursor.getString(0)
-                //移行
-                val contentValues = ContentValues()
-                contentValues.put("comment", comment)
-                contentValues.put("yomi", yomi)
-                commentCollectionSqLiteDatabase.insert("comment_collection_db", null, contentValues)
-                //次へ行こう
-                cursor.moveToNext()
-            }
-            cursor.close()
-            //移行完了後、コメント投稿リストの内容を全消去
-            commentPOSTListSqLiteDatabase.delete("comment_post_list", null, null)
-        } else {
-            println("新データベース（コメントコレクション）へ移行済みです。")
-        }
-    }
-*/
 
     /**
      * 生放送、番組ID入力画面

@@ -480,4 +480,6 @@
     <string name="room_integration">部屋統合</string>
     <string name="room_limit">流量制限</string>
     <string name="atodemiru">あとで見る</string>
+    <string name="comment_per_second">秒間コメント数</string>
+    <string name="max_value">最大値</string>
 </resources>

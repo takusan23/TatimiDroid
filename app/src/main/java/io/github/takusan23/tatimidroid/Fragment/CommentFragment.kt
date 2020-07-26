@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
-import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
 import android.media.AudioManager
 import android.net.Uri
@@ -18,8 +17,8 @@ import android.os.Looper
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
+import android.text.format.DateUtils
 import android.text.util.Linkify
-import android.util.Size
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.EditorInfo
@@ -1309,13 +1308,33 @@ class CommentFragment : Fragment() {
                     val premiumCount = idList.count { commentJSONParse -> commentJSONParse.premium == "\uD83C\uDD7F" }
                     // 生ID人数
                     val userIdCount = idList.count { commentJSONParse -> !commentJSONParse.mail.contains("184") }
+
+                    // UnixTime(ms)をmm:ssのssだけを取り出すためのSimpleDataFormat。
+                    val simpleDateFormat = SimpleDateFormat("ss")
+                    // 秒間コメントを取得する。なお最大値
+                    val commentPerSecondMap = timeList.groupBy({ comment ->
+                        // 一分間のコメント配列から秒、コメント配列のMapに変換するためのコード
+                        // 例。51秒に投稿されたコメントは以下のように：51=[いいよ, がっつコラボ, ガッツ, 歓迎]
+                        val programStartTime = nicoLiveHTML.programStartTime
+                        val calc = comment.date.toLong() - programStartTime
+                        simpleDateFormat.format(calc * 1000).toInt()
+                    }, { comment ->
+                        comment
+                    }).maxBy { map ->
+                        // 秒Mapから一番多いのを取る。
+                        map.value.size
+                    }
+
                     withContext(Dispatchers.Main) {
                         if (!isAdded) return@withContext
                         // 数えた結果
                         activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
                         // 統計情報表示
-                        val toukei =
-                            "${getString(R.string.one_minute_statistics)}\n${getString(R.string.one_minute_statistics_premium)}：$premiumCount\n${getString(R.string.one_minute_statistics_user_id)}：$userIdCount\n${getString(R.string.one_minute_statistics_ng_score)}：${ngScoreAverage.average().toInt()}\n${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAverage"
+                        val toukei = """${getString(R.string.one_minute_statistics)}
+${getString(R.string.comment_per_second)}（${getString(R.string.max_value)}：${calcLiveTime(commentPerSecondMap?.value?.first()?.date?.toLong() ?: 0L)}）：${commentPerSecondMap?.value?.size}
+${getString(R.string.one_minute_statistics_premium)}：$premiumCount
+${getString(R.string.one_minute_statistics_user_id)}：$userIdCount
+${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAverage"""
                         activity_comment_comment_statistics.visibility = View.VISIBLE
                         activity_comment_comment_statistics.setOnClickListener {
                             multiLineSnackbar(it, toukei)
@@ -1362,25 +1381,27 @@ class CommentFragment : Fragment() {
         //1秒ごとに
         programTimer = Timer()
         programTimer.schedule(0, 1000) {
-
+            // 現在時刻
             val unixtime = System.currentTimeMillis() / 1000L
-
-            val calc = unixtime - nicoLiveHTML.programStartTime
-
-            val date = Date(calc * 1000L)
-
-            //時間はUNIX時間から計算する
-            val hour = (calc / 60 / 60)
-
-            val simpleDateFormat = SimpleDateFormat("mm:ss")
-
+            // フォーマット！
             commentActivity.runOnUiThread {
-                if (activity_comment_comment_time != null) {
-                    activity_comment_comment_time.text =
-                        "$hour:" + simpleDateFormat.format(date.time)
-                }
+                activity_comment_comment_time?.text = calcLiveTime(unixtime)
             }
         }
+    }
+
+    /**
+     * 相対時間を計算する。25:25みたいなこと。
+     * @param unixTime 基準時間。
+     * */
+    private fun calcLiveTime(unixTime: Long): String {
+        // 経過時間 - 番組開始時間
+        val calc = unixTime - nicoLiveHTML.programStartTime
+        val date = Date(calc * 1000L)
+        //時間はUNIX時間から計算する
+        val hour = (calc / 60 / 60)
+        val simpleDateFormat = SimpleDateFormat("mm:ss")
+        return "$hour:${simpleDateFormat.format(date.time)}"
     }
 
     /**

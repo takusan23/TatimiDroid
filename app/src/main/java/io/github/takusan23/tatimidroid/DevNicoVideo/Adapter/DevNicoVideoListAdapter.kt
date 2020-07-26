@@ -116,8 +116,7 @@ class DevNicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideo
                                 // 再取得
                                 startCacheService(context, data.videoId, false)
                             } else {
-                                Toast.makeText(context, "インターネットへ接続できません", Toast.LENGTH_SHORT)
-                                    .show()
+                                Toast.makeText(context, "インターネットへ接続できません", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }.show((context as AppCompatActivity).supportFragmentManager, "cache")

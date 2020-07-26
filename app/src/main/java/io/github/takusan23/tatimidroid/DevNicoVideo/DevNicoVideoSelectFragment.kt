@@ -87,42 +87,9 @@ class DevNicoVideoSelectFragment : Fragment() {
     fun setFragment(fragment: Fragment) {
         // Handler(UIスレッド指定)で実行するとダークモード、画面切り替えに耐えるアプリが作れる。
         Handler(Looper.getMainLooper()).post {
-            if (fragment_video_motionlayout != null) {
-                fragment_video_motionlayout.transitionToStart()
-            }
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.replace(fragment_video_list_linearlayout.id, fragment)?.commit()
+            fragment_video_motionlayout?.transitionToStart()
+            activity?.supportFragmentManager?.beginTransaction()?.replace(fragment_video_list_linearlayout.id, fragment)?.commit()
         }
     }
-
-/*
-    */
-    /**
-     * ネットワーク接続確認
-     * https://stackoverflow.com/questions/57277759/getactivenetworkinfo-is-deprecated-in-api-29
-     * *//*
-
-    fun isConnectionInternet(): Boolean {
-        val connectivityManager =
-            context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10時代のネットワーク接続チェック
-            val network = connectivityManager?.activeNetwork
-            val networkCapabilities = connectivityManager?.getNetworkCapabilities(network)
-            return when {
-                networkCapabilities == null -> false
-                // Wi-Fi / MobileData / EtherNet / Bluetooth のどれかでつながっているか
-                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> true
-                else -> false
-            }
-        } else {
-            // 今までのネットワーク接続チェック
-            return connectivityManager?.activeNetworkInfo != null && connectivityManager.activeNetworkInfo.isConnected
-        }
-    }
-*/
 
 }

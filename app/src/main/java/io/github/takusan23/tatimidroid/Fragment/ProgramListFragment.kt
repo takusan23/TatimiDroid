@@ -75,8 +75,7 @@ class ProgramListFragment : Fragment() {
             val bundle = Bundle()
             bundle.putInt("page", page)
             communityListFragment.arguments = bundle
-            parentFragmentManager.beginTransaction()
-                .replace(fragment_program_list_linearlayout.id, communityListFragment).commit()
+            parentFragmentManager.beginTransaction().replace(fragment_program_list_linearlayout.id, communityListFragment).commit()
             fragment_program_motionlayout?.transitionToStart()
         }
     }

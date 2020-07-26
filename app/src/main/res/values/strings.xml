@@ -480,4 +480,6 @@
     <string name="room_integration">ALL</string>
     <string name="room_limit">Limit</string>
     <string name="atodemiru">See later</string>
+    <string name="comment_per_second">Number of comments per second</string>
+    <string name="max_value">Maximum value</string>
 </resources>

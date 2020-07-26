@@ -379,7 +379,7 @@ class DevNicoVideoFragment : Fragment() {
         // 全画面終了ボタン/最大に広げるボタン消す
         fragment_nicovideo_fullscreen_button_linarlayout?.visibility = View.GONE
         // 画面の幅取得。令和最新版（ビリビリワイヤレスイヤホン並感）
-        val width = DisplaySizeTool().getDisplayWidth(context)
+        val width = DisplaySizeTool().getDisplayWidth(context) / 2
         // アスペ（クト比）直す
         val height = if (isAspectRate169) {
             // 16:9動画
