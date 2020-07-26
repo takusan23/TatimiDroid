@@ -336,7 +336,7 @@ class NicoVideoHTML {
         heartBeatTimer.schedule(timerTask {
             // ハートビート処理
             postHeartBeat(heartBeatURL, postData) {
-                // println("Angel Beats!")
+                //  println("Angel Beats!")
             }
         }, 0, 40 * 1000)
     }

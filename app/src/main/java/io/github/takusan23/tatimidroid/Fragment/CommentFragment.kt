@@ -1331,7 +1331,7 @@ class CommentFragment : Fragment() {
                         activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
                         // 統計情報表示
                         val toukei = """${getString(R.string.one_minute_statistics)}
-${getString(R.string.comment_per_second)}（${getString(R.string.max_value)}：${calcLiveTime(commentPerSecondMap?.value?.first()?.date?.toLong() ?: 0L)}）：${commentPerSecondMap?.value?.size}
+${getString(R.string.comment_per_second)}(${getString(R.string.max_value)}/${calcLiveTime(commentPerSecondMap?.value?.first()?.date?.toLong() ?: 0L)})：${commentPerSecondMap?.value?.size}
 ${getString(R.string.one_minute_statistics_premium)}：$premiumCount
 ${getString(R.string.one_minute_statistics_user_id)}：$userIdCount
 ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAverage"""

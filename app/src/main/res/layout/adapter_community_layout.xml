@@ -100,9 +100,8 @@
 
                     <Button
                             android:id="@+id/adapter_community_watchmode_comepost"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="wrap_content"
-                            android:textColor="@color/colorPrimaryDark"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
                             android:text="@string/mode_post" />
