@@ -65,6 +65,19 @@
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
 
+                        <com.google.android.material.chip.Chip
+                                android:id="@+id/fragment_nicovideo_info_like_chip"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/like"
+                                android:visibility="gone"
+                                app:chipBackgroundColor="@android:color/transparent"
+                                app:chipEndPadding="5dp"
+                                app:chipIcon="@drawable/ic_favorite_black_24dp"
+                                app:chipStartPadding="5dp"
+                                app:chipStrokeColor="@color/colorPrimary"
+                                app:chipStrokeWidth="1dp" />
+
                         <TextView
                                 android:id="@+id/fragment_nicovideo_info_description_textview"
                                 android:layout_width="match_parent"
@@ -135,6 +148,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
+                                android:drawableEnd="@drawable/ic_outline_open_in_browser_24px"
                                 android:gravity="center_vertical"
                                 android:text="投稿者"
                                 android:textSize="18sp" />

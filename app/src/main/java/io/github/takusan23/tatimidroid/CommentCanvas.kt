@@ -120,7 +120,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         // コメントの更新頻度をfpsで設定するかどうか
         val enableCommentSpeedFPS = pref_setting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
         // コメントの流れる速度
-        val speed = pref_setting.getString("setting_comment_speed", "5")?.toInt() ?: 5
+        val speed = pref_setting.getString("setting_comment_speed", "3")?.toInt() ?: 3
         // コメントキャンバスの更新頻度
         val update = if (enableCommentSpeedFPS) {
             // fpsで設定

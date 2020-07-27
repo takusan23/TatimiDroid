@@ -450,15 +450,12 @@ class NicoVideoHTML {
                     put("with_global", 1)
                     put("score", 1)
                     put("nicoru", 3)
-                    //公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
-                    //threadkeyのときはもしかするとuserkeyいらない
+                    put("userkey", userkey)
+                    // 公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
+                    // threadkeyのときはもしかするとuserkeyいらない
                     if (isThreadkeyRequired) {
                         put("force_184", force_184)
                         put("threadkey", threadkey)
-                    } else {
-                        if (userkey.isEmpty()) {
-                            put("userkey", userkey)
-                        }
                     }
                 }
                 val post_thread = JSONObject().apply {
@@ -475,15 +472,13 @@ class NicoVideoHTML {
                     put("content", content)
                     put("scores", 1)
                     put("nicoru", 3)
+                    put("userkey", userkey)
+                    put("fork", fork)
                     // 公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
                     // threadkeyのときはもしかするとuserkeyいらない
                     if (isThreadkeyRequired) {
                         put("force_184", force_184)
                         put("threadkey", threadkey)
-                    } else {
-                        if (userkey.isEmpty()) {
-                            put("userkey", userkey)
-                        }
                     }
                 }
                 val thread_leaves = JSONObject().apply {
@@ -492,6 +487,7 @@ class NicoVideoHTML {
                 postJSONArray.put(thread_leaves)
             }
         }
+        println(postJSONArray.toString(4))
         postJSONArray
     }
 
@@ -765,6 +761,24 @@ class NicoVideoHTML {
             }
             else -> "" // うｐ主が動画を消さずにアカウント消した場合は owner channel ともにnullになる。（というかアカウント消しても動画は残るんか）
         }
+    }
+
+    /**
+     * いいね済みかどうかを取得する。
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * */
+    fun isLiked(jsonObject: JSONObject): Boolean {
+        return jsonObject.getJSONObject("context").getBoolean("isLiked")
+    }
+
+    /**
+     * いいねを変更をJSONに適用する関数。
+     * @param isLiked いいねしてればtrue
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * */
+    fun setLiked(jsonObject: JSONObject, isLiked: Boolean) {
+        jsonObject.getJSONObject("context").remove("isLiked")
+        jsonObject.getJSONObject("context").put("isLiked", isLiked)
     }
 
     /**

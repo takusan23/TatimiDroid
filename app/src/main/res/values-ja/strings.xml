@@ -485,4 +485,10 @@
     <string name="color">色</string>
     <string name="position">位置</string>
     <string name="size">大きさ</string>
+    <string name="close">閉じる</string>
+    <string name="like">いいね！</string>
+    <string name="liked">いいね済み！</string>
+    <string name="unlike">いいねを取り消してもいいですか？</string>
+    <string name="torikesu">取り消す</string>
+    <string name="like_ok">いいねしました！</string>
 </resources>

@@ -485,4 +485,10 @@
     <string name="color">Color</string>
     <string name="position">Position</string>
     <string name="size">Size</string>
+    <string name="close">Close</string>
+    <string name="like">Like!</string>
+    <string name="liked">Liked!</string>
+    <string name="unlike">Can I cancel the likes?</string>
+    <string name="torikesu">cancel</string>
+    <string name="like_ok">I like it!</string>
 </resources>

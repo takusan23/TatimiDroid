@@ -98,3 +98,15 @@ internal fun getThemeColor(context: Context?): Int = if (isDarkMode(context)) {
 } else {
     Color.parseColor("#ffffff")
 }
+
+/**
+ * テーマに合ったテキスト色を返す関数。
+ * ダークモード時は白を返します。
+ * @param context こんてきすと
+ * @return ダークモードなら白
+ * */
+internal fun getThemeTextColor(context: Context?): Int = if (isDarkMode(context)) {
+    Color.parseColor("#ffffff")
+} else {
+    Color.parseColor("#000000")
+}

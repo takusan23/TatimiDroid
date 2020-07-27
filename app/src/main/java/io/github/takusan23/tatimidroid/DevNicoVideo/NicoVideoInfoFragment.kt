@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.DevNicoVideo
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.text.Spannable
@@ -24,12 +25,15 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoLikeBottomFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoSearchFragment
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoLikeAPI
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,7 +43,7 @@ import java.util.*
  * */
 class NicoVideoInfoFragment : Fragment() {
 
-    lateinit var pref_setting: SharedPreferences
+    lateinit var prefSetting: SharedPreferences
     var videoId = ""
     var usersession = ""
     var jsonObjectString = ""
@@ -57,8 +61,8 @@ class NicoVideoInfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-        usersession = pref_setting.getString("user_session", "") ?: ""
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+        usersession = prefSetting.getString("user_session", "") ?: ""
 
         //動画ID受け取る（sm9とかsm157とか）
         videoId = arguments?.getString("id") ?: "sm157"
@@ -68,7 +72,6 @@ class NicoVideoInfoFragment : Fragment() {
         if (jsonObjectString.isNotEmpty()) {
             parseJSONApplyUI(jsonObjectString)
         }
-
 
         fragment_nicovideo_info_description_textview.movementMethod = LinkMovementMethod.getInstance()
 
@@ -131,7 +134,7 @@ class NicoVideoInfoFragment : Fragment() {
 
         activity?.runOnUiThread {
             // Fragmentがアタッチされているか確認する。
-            if (!isDetached) {
+            if (isAdded) {
                 //UIスレッド
                 fragment_nicovideo_info_title_textview.text = title
                 setLinkText(HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT), fragment_nicovideo_info_description_textview)
@@ -248,10 +251,114 @@ class NicoVideoInfoFragment : Fragment() {
                     }
                 }
 
+                // いいね機能
+                setLike()
+
             }
         }
     }
 
+    private fun setLike() {
+        // いいね！機能。キャッシュのときは使わない
+        devNicoVideoFragment?.apply {
+            if (!isCache && isLoginMode(context)) {
+                // キャッシュじゃない　かつ　ログイン必須モード
+                this@NicoVideoInfoFragment.fragment_nicovideo_info_like_chip.isVisible = true
+                // いいね♡済みかもしれないので
+                // いいねボタンのテキスト、アイコン変更
+                setLikeChipStatus(nicoVideoHTML.isLiked(jsonObject))
+                // 押したとき
+                this@NicoVideoInfoFragment.fragment_nicovideo_info_like_chip.setOnClickListener {
+                    if (nicoVideoHTML.isLiked(jsonObject)) {
+                        // いいね済み。取り消しSnackBar
+                        showSnackbar(getString(R.string.unlike), getString(R.string.torikesu)) {
+                            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                                showToast("${getString(R.string.error)}\n${throwable.message}") // エラーのときはToast出すなど
+                            }
+                            // いいね解除API叩く
+                            GlobalScope.launch(errorHandler) {
+                                sendLike(false)
+                            }
+                        }
+                    } else {
+                        // いいね開く
+                        val nicoVideoLikeBottomFragment = DevNicoVideoLikeBottomFragment()
+                        val bundle = Bundle().apply {
+                            putString("video_id", videoId)
+                        }
+                        nicoVideoLikeBottomFragment.arguments = bundle
+                        nicoVideoLikeBottomFragment.show(parentFragmentManager, "like")
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * いいねAPIを叩く
+     * @param like いいねする場合はtrue
+     * */
+    suspend fun sendLike(like: Boolean = true) = withContext(Dispatchers.Main) {
+        // nullチェック
+        if (devNicoVideoFragment == null) {
+            return@withContext
+        }
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable.message}") // エラーのときはToast出すなど
+        }
+        // API叩く
+        GlobalScope.launch(errorHandler) {
+            val nicoLikeAPI = NicoLikeAPI()
+            val likeResponse = if (like) {
+                nicoLikeAPI.postLike(usersession, videoId)
+            } else {
+                nicoLikeAPI.deleteLike(usersession, videoId)
+            }
+            if (!likeResponse.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${likeResponse.code}")
+                return@launch
+            }
+            val responseString = likeResponse.body?.string()
+            // いいね登録なのか解除なのか
+            if (likeResponse.code == 201) {
+                // 登録
+                devNicoVideoFragment!!.nicoVideoHTML.setLiked(devNicoVideoFragment!!.jsonObject, true)
+                setLikeChipStatus(true)
+                // お礼メッセージ表示
+                val thanksMessage = nicoLikeAPI.parseLike(responseString)
+                if (thanksMessage != null) {
+                    withContext(Dispatchers.Main) {
+                        // nullの可能性
+                        val message = if (thanksMessage == "null") getString(R.string.like_ok) else thanksMessage
+                        devNicoVideoFragment!!.showSnackbar(message, null, null)
+                    }
+                }
+            } else {
+                // 解除
+                devNicoVideoFragment!!.nicoVideoHTML.setLiked(devNicoVideoFragment!!.jsonObject, false)
+                setLikeChipStatus(false)
+            }
+        }
+    }
+
+    /** ハートのアイコン色とテキストを変更する関数 */
+    private fun setLikeChipStatus(liked: Boolean) {
+        activity?.runOnUiThread {
+            // いいね済み
+            if (liked) {
+                fragment_nicovideo_info_like_chip.apply {
+                    chipIconTint = ColorStateList.valueOf(Color.parseColor("#ffc0cb")) // ピンク
+                    text = getString(R.string.liked) // いいね済み
+                }
+            } else {
+                fragment_nicovideo_info_like_chip.apply {
+                    chipIconTint = ColorStateList.valueOf(getThemeTextColor(context)) // テーマの色
+                    text = getString(R.string.like) // いいね済み
+                }
+            }
+        }
+    }
 
     /** 投稿日のフォーマットをUnixTimeへ変換する */
     private fun toUnixTime(postedDateTime: String) = SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(postedDateTime).time

@@ -44,11 +44,7 @@ class CommentMenuFragment : Fragment() {
     lateinit var prefSetting: SharedPreferences
 
     var liveId = ""
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_comment_menu, container, false)
     }
 
