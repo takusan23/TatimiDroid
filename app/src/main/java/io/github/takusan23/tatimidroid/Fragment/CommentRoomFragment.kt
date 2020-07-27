@@ -49,15 +49,6 @@ class CommentRoomFragment : Fragment() {
     lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
 
-    //部屋の配列
-    val commentRoomList = arrayListOf<String>()
-
-    //WebSocketの配列
-    val commentRoomWebSocketList = arrayListOf<String>()
-
-    //threadの配列
-    val commentRoomThreadList = arrayListOf<String>()
-
     //定期的に立ち見席が出てないかチェック
     val timer = Timer()
 
@@ -92,13 +83,9 @@ class CommentRoomFragment : Fragment() {
         super.onResume()
         // 今つながってる部屋分TabItem生成する
         comment_room_tablayout.removeAllTabs()
-        commentFragment.commentServerList.forEach { server ->
-            val item = comment_room_tablayout.newTab().apply {
-                text = server.roomName
-                tag = server // tagにCommentServerData詰める
-            }
-            comment_room_tablayout.addTab(item)
-        }
+        // 部屋統合+Store
+        comment_room_tablayout.addTab(comment_room_tablayout.newTab().setText(getString(R.string.room_integration)).setTag(commentFragment.commentServerData))
+        comment_room_tablayout.addTab(comment_room_tablayout.newTab().setText(getString(R.string.room_limit)).setTag(commentFragment.storeCommentServerData))
         //TabLayout選択
         comment_room_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
@@ -117,9 +104,9 @@ class CommentRoomFragment : Fragment() {
                 }
             }
         })
-        // とりあえずアリーナに接続
-        if (commentFragment.commentServerList.isNotEmpty()) {
-            connectionWebSocket(commentFragment.commentServerList[0])
+
+        if (commentFragment.commentServerData != null) {
+            connectionWebSocket(commentFragment.commentServerData!!)
         }
     }
 
@@ -132,6 +119,7 @@ class CommentRoomFragment : Fragment() {
     private fun connectionWebSocket(data: NicoLiveComment.CommentServerData) {
         // List消す+WebSocket切断
         recyclerViewList.clear()
+        commentRecyclerViewAdapter.notifyDataSetChanged()
         nicoLiveComment.destroy()
         // 接続
         nicoLiveComment.connectionWebSocket(data.webSocketUri, data.threadId, data.roomName) { commentText, roomMane, isHistory ->
@@ -181,7 +169,7 @@ class CommentRoomFragment : Fragment() {
         commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
         comment_room_recycler_view.adapter = commentRecyclerViewAdapter
         recyclerViewLayoutManager = comment_room_recycler_view.layoutManager!!
-        comment_room_recycler_view.itemAnimator = null;
+        comment_room_recycler_view.itemAnimator = null
     }
 
     fun showToast(message: String) {

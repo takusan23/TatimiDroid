@@ -482,4 +482,7 @@
     <string name="atodemiru">See later</string>
     <string name="comment_per_second">Number of comments per second</string>
     <string name="max_value">Maximum value</string>
+    <string name="color">Color</string>
+    <string name="position">Position</string>
+    <string name="size">Size</string>
 </resources>

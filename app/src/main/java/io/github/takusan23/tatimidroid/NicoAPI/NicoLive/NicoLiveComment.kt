@@ -1,8 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
-import io.github.takusan23.tatimidroid.R
-import kotlinx.coroutines.*
-import okhttp3.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
@@ -10,10 +11,8 @@ import org.java_websocket.protocols.IProtocol
 import org.java_websocket.protocols.Protocol
 import org.json.JSONObject
 import java.io.Serializable
-import java.lang.Exception
 import java.net.URI
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * 全部屋コメントサーバーに接続する関数。
@@ -60,7 +59,7 @@ class NicoLiveComment {
      * @param arena アリーナの文字列をローカライズする場合は
      * @return CommentServerDataの配列
      * */
-    suspend fun parseCommentServerDataList(responseString: String?, allRoomName:String,storeRoomName:String) = withContext(Dispatchers.Default) {
+    suspend fun parseCommentServerDataList(responseString: String?, allRoomName: String, storeRoomName: String) = withContext(Dispatchers.Default) {
         val list = arrayListOf<CommentServerData>()
         val jsonObject = JSONObject(responseString)
         val data = jsonObject.getJSONObject("data")
@@ -70,16 +69,38 @@ class NicoLiveComment {
             val roomObject = room.getJSONObject(index)
             val webSocketUri = roomObject.getString("webSocketUri")
             val name = roomObject.getString("name")
-            val roomName = if (name != "store") {
-                context.getString(R.string.room_integration) // 部屋統合。良いな名前が思いつかなかった。
-            } else {
-                context.getString(R.string.room_limit) // 流量制限。おそらくコメビュで取れるはず。コメントが多すぎて制限されたコメントはstoreってところに流れてくるらしい。詳しくは programinfo API叩いて
-            }
+            val roomName = name
             val threadId = roomObject.getString("threadId")
             val data = CommentServerData(webSocketUri, threadId, roomName)
             list.add(data)
         }
         list
+    }
+
+    /**
+     * 流量制限にかかったコメントが流れてくるコメント鯖に接続するのに必要な値をJSONから取り出す関数。
+     * 流量制限のコメントサーバーは他のコメントビューアーでは「store」って表記されていると思いますが、わからんので流量制限って書いてます。覚えとくと良いかも
+     * 注意：公式番組（アニメ一挙放送など。ハナヤマタよかった）では利用できません。
+     * @param responseString [getProgramInfo]のレスポンスボディー
+     * @param storeRoomName 流量制限って文字列を入れて
+     * @return [connectionWebSocket]で使う値の入ったデータクラス
+     * */
+    suspend fun parseStoreRoomServerData(responseString: String?, storeRoomName: String) = withContext(Dispatchers.Default) {
+        val jsonObject = JSONObject(responseString)
+        val data = jsonObject.getJSONObject("data")
+        val room = data.getJSONArray("rooms")
+        // 部屋の中から部屋名がstoreなものを探す
+        for (index in 0 until room.length()) {
+            val roomObject = room.getJSONObject(index)
+            val webSocketUri = roomObject.getString("webSocketUri")
+            val name = roomObject.getString("name")
+            if (name == "store") {
+                // ここが流量制限で入り切らないコメントが流れてくるコメントサーバー
+                val threadId = roomObject.getString("threadId")
+                return@withContext CommentServerData(webSocketUri, threadId, storeRoomName)
+            }
+        }
+        return@withContext null
     }
 
     /**

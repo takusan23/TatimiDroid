@@ -39,9 +39,7 @@ import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -77,9 +75,8 @@ class NicoLivePlayService : Service() {
     private val nicoJK = NicoJKHTML()
     lateinit var getFlvData: NicoJKHTML.getFlvData
 
-    // ニコ生前部屋接続など
+    /** コメントサーバー接続など */
     val nicoLiveComment = NicoLiveComment()
-    val timer = Timer() // 定期的に新しい部屋が出てないか確認
 
     // View
     private lateinit var popupView: View
@@ -239,15 +236,8 @@ class NicoLivePlayService : Service() {
                                 val commentMessageServerUri = getCommentServerWebSocketAddress(message)
                                 val commentThreadId = getCommentServerThreadId(message)
                                 val commentRoomName = getCommentRoomName(message)
-                                // 公式番組のとき
-                                if (isOfficial) {
-                                    Handler(Looper.getMainLooper()).post {
-                                        // WebSocketで流れてきたアドレスへ接続する
-                                        nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
-                                    }
-                                }
-                                // コメント投稿時に使うWebSocketに接続する
-                                commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
+                                // 部屋が統合したので
+                                nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
                             }
                         }
                     }
@@ -258,31 +248,31 @@ class NicoLivePlayService : Service() {
                     }
                 }
             }
-            // 全部屋接続。定期的にAPIを叩く
-            // ただし公式番組ではなくてなおポップアップ再生時は定期監視する
+
+            // Store鯖（流量制限で溢れたコメントが流れてくる鯖）へ接続する。
+            // 公式番組以外 で ポップアップ再生時
             if (!nicoLiveHTML.isOfficial && isPopupPlay()) {
-                timer.schedule(timerTask { initAllRoomConnect() }, 0, 60 * 1000)
+                connectionStoreCommentServer()
             }
+
         }
     }
 
     /**
-     * 全部屋接続！！！
+     * Store鯖（流量制限で溢れたコメントが流れてくるサーバー）へ接続する
      * */
-    private fun initAllRoomConnect() {
-        GlobalScope.launch {
-            // 全部屋接続
-            val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, userSession)
-            if (!allRoomResponse.isSuccessful) {
-                showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
-                return@launch
-            }
-            // CommentServerDataの配列に変換
-            val list = nicoLiveComment.parseCommentServerDataList(allRoomResponse.body?.string(), getString(R.string.arena))
-            list.forEach { server ->
-                //WebSocket接続。::関数 で高階関数を引数に入れられる
-                nicoLiveComment.connectionWebSocket(server.webSocketUri, server.threadId, server.roomName, ::commentFun)
-            }
+    private suspend fun connectionStoreCommentServer() = withContext(Dispatchers.Default) {
+        // コメントサーバー取得API叩く
+        val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, userSession)
+        if (!allRoomResponse.isSuccessful) {
+            showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
+            return@withContext
+        }
+        // Store鯖を取り出す
+        val storeCommentServerData = nicoLiveComment.parseStoreRoomServerData(allRoomResponse.body?.string(), getString(R.string.room_limit))
+        if (storeCommentServerData != null) {
+            // Store鯖へ接続する。（超）大手でなければ別に接続する必要はない
+            nicoLiveComment.connectionWebSocket(storeCommentServerData.webSocketUri, storeCommentServerData.threadId, storeCommentServerData.roomName, ::commentFun)
         }
     }
 
@@ -320,7 +310,7 @@ class NicoLivePlayService : Service() {
      * ポップアップ再生かどうかを返す
      * @return ポップアップ再生ならtrue
      * */
-    fun isPopupPlay(): Boolean {
+    private fun isPopupPlay(): Boolean {
         return playMode == "popup"
     }
 

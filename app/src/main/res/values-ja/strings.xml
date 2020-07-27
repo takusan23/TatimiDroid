@@ -482,4 +482,7 @@
     <string name="atodemiru">あとで見る</string>
     <string name="comment_per_second">秒間コメント数</string>
     <string name="max_value">最大値</string>
+    <string name="color">色</string>
+    <string name="position">位置</string>
+    <string name="size">大きさ</string>
 </resources>

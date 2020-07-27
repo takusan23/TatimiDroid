@@ -315,23 +315,67 @@
                                 android:padding="10dp"
                                 android:src="@drawable/ic_backspace_24px" />
 
-                        <com.google.android.material.textfield.TextInputLayout
-                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        <LinearLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_margin="2sp"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal">
 
-                            <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/comment_cardview_command_textinputlayout"
+                            <com.google.android.material.textfield.TextInputLayout
+                                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:hint="@string/command"
-                                    android:maxLines="1" />
+                                    android:layout_margin="2sp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/comment_cardview_command_color_textinputlayout"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:hint="@string/color"
+                                        android:maxLines="1" />
 
 
-                        </com.google.android.material.textfield.TextInputLayout>
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_margin="2sp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/comment_cardview_command_size_textinputlayout"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:hint="@string/size"
+                                        android:maxLines="1" />
+
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_margin="2sp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/comment_cardview_command_position_textinputlayout"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:hint="@string/position"
+                                        android:maxLines="1" />
+
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
 
                     </LinearLayout>
 

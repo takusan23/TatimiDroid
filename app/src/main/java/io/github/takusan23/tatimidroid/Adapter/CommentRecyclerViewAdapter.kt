@@ -227,7 +227,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             context.getString(R.string.arena) -> {
                 Color.argb(255, 0, 153, 229)
             }
-            "store" -> {
+            context.getString(R.string.room_limit) -> {
                 Color.argb(255, 234, 90, 61) // コメント流量規制にかかったコメントはstoreに流れてくる
             }
             "立ち見1" -> {

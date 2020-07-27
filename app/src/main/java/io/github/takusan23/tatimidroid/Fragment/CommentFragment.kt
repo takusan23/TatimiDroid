@@ -212,10 +212,12 @@ class CommentFragment : Fragment() {
 
     // ニコ生前部屋接続など
     val nicoLiveComment = NicoLiveComment()
-    var commentServerList = arrayListOf<NicoLiveComment.CommentServerData>()
 
-    // コメントサーバーあるか定期巡回
-    var programInfoTimer = Timer()
+    /** 流量制限コメント鯖の情報 */
+    var storeCommentServerData: NicoLiveComment.CommentServerData? = null
+
+    /** アリーナ（部屋統合）のコメントサーバーの情報 */
+    var commentServerData: NicoLiveComment.CommentServerData? = null
 
     /** コメント配列。これをRecyclerViewにいれるんじゃ */
     val commentJSONList = arrayListOf<CommentJSONParse>()
@@ -228,8 +230,8 @@ class CommentFragment : Fragment() {
     var isFullScreenMode = false
 
     // NG関係
-    var ngUserList = listOf<String>()
-    var ngCommentList = listOf<String>()
+    private var ngUserList = listOf<String>()
+    private var ngCommentList = listOf<String>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.activity_comment, container, false)
@@ -418,10 +420,10 @@ class CommentFragment : Fragment() {
                         // 画面回転復帰時
                         val data = savedInstanceState.getSerializable("data") as NicoLiveFragmentData
                         nicoLiveJSON = JSONObject(data.nicoLiveJSON)
-                        // 全部屋接続（API叩く手間を減らした）
-                        commentServerList = ArrayList(data.commentServerList)
-                        commentServerList.forEach { server ->
-                            nicoLiveComment.connectionWebSocket(server.webSocketUri, server.threadId, server.roomName, ::commentFun)
+                        // Storeコメント鯖へ接続する
+                        storeCommentServerData = data.storeCommentServerData
+                        if (storeCommentServerData != null) {
+                            nicoLiveComment.connectionWebSocket(storeCommentServerData!!.webSocketUri, storeCommentServerData!!.threadId, storeCommentServerData!!.roomName, ::commentFun)
                         }
                         // 番組名取得など
                         nicoLiveHTML.initNicoLiveData(nicoLiveJSON)
@@ -443,15 +445,10 @@ class CommentFragment : Fragment() {
                         thumbnailURL = nicoLiveHTML.thumb
                         // 履歴に追加
                         insertDB()
-                        // 全部屋API
+                        // 流量制限コメント鯖に接続する
                         if (!nicoLiveHTML.isOfficial) {
-                            initAllRoomConnect()
+                            connectionStoreCommentServer()
                         }
-                    }
-                    // 全部屋接続。定期的にAPIを叩く
-                    // ただし公式番組では利用できないので分岐
-                    if (!nicoLiveHTML.isOfficial) {
-                       // programInfoTimer.schedule(timerTask { initAllRoomConnect() }, 60 * 1000, 60 * 1000)
                     }
                     // IO -> Main Thread
                     withContext(Dispatchers.Main) {
@@ -485,9 +482,35 @@ class CommentFragment : Fragment() {
             commentActivity.finish()
         }
 
-        //アクティブ人数クリアなど、追加部分はCommentViewFragmentです
+        /** コメント人数を定期的に数える */
         activeUserClear()
 
+        /** 統計情報は押したときに計算するようにした。 */
+        activity_comment_comment_statistics.setOnClickListener {
+            calcToukei(true)
+        }
+
+    }
+
+    /**
+     * 流量制限コメントサーバーに接続する関数。コルーチンで
+     * 流量制限コメントサーバーってのはコメントが多すぎてコメントが溢れてしまう際、溢れてしまったコメントが流れてくるサーバーのことだと思います。
+     * ただまぁ超がつくほどの大手じゃないとここのWebSocketに接続しても特に流れてこないと思う。
+     * 公式番組では利用できない。
+     * */
+    private suspend fun connectionStoreCommentServer() = withContext(Dispatchers.Default) {
+        // コメントサーバー取得API叩く
+        val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, usersession)
+        if (!allRoomResponse.isSuccessful) {
+            showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
+            return@withContext
+        }
+        // Store鯖を取り出す
+        storeCommentServerData = nicoLiveComment.parseStoreRoomServerData(allRoomResponse.body?.string(), getString(R.string.room_limit))
+        if (storeCommentServerData != null) {
+            // Store鯖へ接続する。（超）大手でなければ別に接続する必要はない
+            nicoLiveComment.connectionWebSocket(storeCommentServerData!!.webSocketUri, storeCommentServerData!!.threadId, storeCommentServerData!!.roomName, ::commentFun)
+        }
     }
 
     /**
@@ -584,28 +607,6 @@ class CommentFragment : Fragment() {
         }
         // 高さ更新
         commentCanvas.finalHeight = commentCanvas.height
-    }
-
-    /**
-     * コメント鯖一覧を返すAPIを叩いて接続する関数。
-     * 部屋統合WebSocket+Store(流量制限で反映されてないコメントが流れてくるWebSocket)のアドレスを取得する。
-     * */
-    private fun initAllRoomConnect() {
-        GlobalScope.launch {
-            // 全部屋接続
-            val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, usersession)
-            if (!allRoomResponse.isSuccessful) {
-                showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
-                return@launch
-            }
-            // CommentServerDataの配列に変換
-            val list = nicoLiveComment.parseCommentServerDataList(allRoomResponse.body?.string(), context?.getString(R.string.arena))
-            list.forEach { server ->
-                // WebSocket接続。::関数 で高階関数を引数に入れられる
-                nicoLiveComment.connectionWebSocket(server.webSocketUri, server.threadId, server.roomName, ::commentFun)
-            }
-            commentServerList = ArrayList(list)
-        }
     }
 
     /**
@@ -710,18 +711,14 @@ class CommentFragment : Fragment() {
                         // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
                         val commentMessageServerUri = getCommentServerWebSocketAddress(message)
                         val commentThreadId = getCommentServerThreadId(message)
-                        val commentRoomName = getCommentRoomName(message)
-                        // 公式番組のとき
-                        if (isOfficial) {
-                            commentActivity.runOnUiThread {
-                                // WebSocketで流れてきたアドレスへ接続する
-                                nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
-                            }
+                        val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
+                        // コメントサーバーへ接続する
+                        commentServerData = NicoLiveComment.CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName)
+                        commentActivity.runOnUiThread {
+                            nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
                         }
-                        // コメントサーバーへ接続
-                        commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
                     }
-                    command=="postCommentResult"->{
+                    command == "postCommentResult" -> {
                         // コメント送信結果。
                         showCommentPOSTResultSnackBar(message)
                     }
@@ -779,13 +776,37 @@ class CommentFragment : Fragment() {
     }
 
     // コメントが来たらこの関数が呼ばれる
-    fun commentFun(comment: String, roomName: String, isHistoryComment: Boolean) {
+    private fun commentFun(comment: String, roomName: String, isHistoryComment: Boolean) {
         val room = if (isJK) {
             getFlvData.channelName
         } else {
             roomName
         }
+        // JSONぱーす
         val commentJSONParse = CommentJSONParse(comment, room, liveId)
+        // アンケートや運コメを表示させる。
+        if (roomName != getString(R.string.room_limit)) {
+            when {
+                comment.contains("/vote") -> {
+                    // アンケート
+                    showEnquate(comment)
+                }
+                comment.contains("/disconnect") -> {
+                    // disconnect受け取ったらSnackBar表示
+                    showProgramEndMessageSnackBar(comment, commentJSONParse)
+                }
+            }
+            if (!hideInfoUnnkome) {
+                //運営コメント
+                if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
+                    initUneiComment(commentJSONParse)
+                }
+                //運営コメントけす
+                if (commentJSONParse.comment.contains("/clear")) {
+                    removeUnneiComment()
+                }
+            }
+        }
         // 匿名コメント落とすモード
         if (isTokumeiHide && commentJSONParse.mail.contains("184")) {
             return
@@ -875,48 +896,6 @@ class CommentFragment : Fragment() {
                 }
                 // コテハンmap更新
                 updateKotehanMapFromDB()
-            }
-        }
-    }
-
-    /**
-     * コメント投稿用WebSocketに接続する関数。ここのWebSocketにコメントを投稿する。
-     * @param url getCommentServerWebSocketAddress()の戻り値
-     * @param threadId getCommentServerThreadId()の戻り値
-     * @param userId ニコニコユーザーID
-     * */
-    fun commentPOSTWebSocketConnection(url: String, threadId: String, userId: String?) {
-        if (userId == null) {
-            return
-        }
-        nicoLiveHTML.apply {
-            // コメントサーバー接続
-            connectionCommentPOSTWebSocket(url, threadId, userId) { message ->
-                val commentJSONParse = CommentJSONParse(message, getString(R.string.arena), liveId)
-                when {
-                    message.contains("chat_result") -> {
-                        // コメント投稿に成功したかを表示するやつ
-                       // showCommentPOSTResultSnackBar(message)
-                    }
-                    message.contains("/vote") -> {
-                        // アンケート
-                        showEnquate(message)
-                    }
-                    message.contains("/disconnect") -> {
-                        // disconnect受け取ったらSnackBar表示
-                        showProgramEndMessageSnackBar(message, commentJSONParse)
-                    }
-                }
-                if (!hideInfoUnnkome) {
-                    //運営コメント
-                    if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
-                        initUneiComment(commentJSONParse)
-                    }
-                    //運営コメントけす
-                    if (commentJSONParse.comment.contains("/clear")) {
-                        removeUnneiComment()
-                    }
-                }
             }
         }
     }
@@ -1278,78 +1257,89 @@ class CommentFragment : Fragment() {
         }, 5000)
     }
 
-    /*
-    * アクティブ人数を1分ごとにクリア
-    * */
+    /** アクティブ人数を計算する。一分間間隔 */
     private fun activeUserClear() {
         //1分でリセット
         activeTimer.schedule(10000, 60000) {
-            commentActivity.runOnUiThread {
-                GlobalScope.launch(Dispatchers.IO) {
-                    val calender = Calendar.getInstance()
-                    calender.add(Calendar.MINUTE, -1)
-                    val unixTime = calender.timeInMillis / 1000L
-                    // 今のUnixTime
-                    val nowUnixTime = System.currentTimeMillis() / 1000L
-                    // 範囲内のコメントを取得する
-                    val timeList = commentJSONList.toList().filter { comment ->
-                        if (comment.date.toFloatOrNull() != null) {
-                            comment.date.toLong() in unixTime..nowUnixTime
-                        } else {
-                            false
-                        }
-                    }
-                    // 同じIDを取り除く
-                    val idList = timeList.distinctBy { comment -> comment.userId }
-                    // NGスコア平均。NGSoreだけの配列にして、NGScoreを数値に変換して、平均を取る
-                    val ngScoreAverage = idList.filter { commentJSONParse -> commentJSONParse.score.isNotEmpty() }.map { commentJSONParse -> commentJSONParse.score.toInt() }
-                    // 平均コメント数
-                    val commentLengthAverageDouble = timeList.map { commentJSONParse -> commentJSONParse.comment.length }.average()
-                    val commentLengthAverage = if (!commentLengthAverageDouble.isNaN()) {
-                        commentLengthAverageDouble.roundToInt()
-                    } else {
-                        -1
-                    }
-                    // プレ垢人数
-                    val premiumCount = idList.count { commentJSONParse -> commentJSONParse.premium == "\uD83C\uDD7F" }
-                    // 生ID人数
-                    val userIdCount = idList.count { commentJSONParse -> !commentJSONParse.mail.contains("184") }
+            calcToukei()
+        }
+    }
 
-                    // UnixTime(ms)をmm:ssのssだけを取り出すためのSimpleDataFormat。
-                    val simpleDateFormat = SimpleDateFormat("ss")
-                    // 秒間コメントを取得する。なお最大値
-                    val commentPerSecondMap = timeList.groupBy({ comment ->
-                        // 一分間のコメント配列から秒、コメント配列のMapに変換するためのコード
-                        // 例。51秒に投稿されたコメントは以下のように：51=[いいよ, がっつコラボ, ガッツ, 歓迎]
-                        val programStartTime = nicoLiveHTML.programStartTime
-                        val calc = comment.date.toLong() - programStartTime
-                        simpleDateFormat.format(calc * 1000).toInt()
-                    }, { comment ->
-                        comment
-                    }).maxBy { map ->
-                        // 秒Mapから一番多いのを取る。
-                        map.value.size
-                    }
+    /**
+     * 統計情報を表示する。立ち見部屋の数が出なくなったの少し残念。人気番組の指数だったのに
+     * @param showSnackBar SnackBarを表示する場合はtrue
+     * */
+    private fun calcToukei(showSnackBar: Boolean = false) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val calender = Calendar.getInstance()
+            calender.add(Calendar.MINUTE, -1)
+            val unixTime = calender.timeInMillis / 1000L
+            // 今のUnixTime
+            val nowUnixTime = System.currentTimeMillis() / 1000L
+            // 範囲内のコメントを取得する
+            val timeList = commentJSONList.toList().filter { comment ->
+                if (comment.date.toFloatOrNull() != null) {
+                    comment.date.toLong() in unixTime..nowUnixTime
+                } else {
+                    false
+                }
+            }
+            // 同じIDを取り除く
+            val idList = timeList.distinctBy { comment -> comment.userId }
 
-                    withContext(Dispatchers.Main) {
-                        if (!isAdded) return@withContext
-                        // 数えた結果
-                        activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
-                        // 統計情報表示
-                        val toukei = """${getString(R.string.one_minute_statistics)}
+            // 数えた結果
+            withContext(Dispatchers.Main) {
+                // 数えた結果
+                activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
+                // 統計ボタン押せるように
+                activity_comment_comment_statistics.visibility = View.VISIBLE
+            }
+
+            // SnackBarで統計を表示する場合
+            if (showSnackBar) {
+                // プレ垢人数
+                val premiumCount = idList.count { commentJSONParse -> commentJSONParse.premium == "\uD83C\uDD7F" }
+                // 生ID人数
+                val userIdCount = idList.count { commentJSONParse -> !commentJSONParse.mail.contains("184") }
+                // 平均コメント数
+                val commentLengthAverageDouble = timeList.map { commentJSONParse -> commentJSONParse.comment.length }.average()
+                val commentLengthAverage = if (!commentLengthAverageDouble.isNaN()) {
+                    commentLengthAverageDouble.roundToInt()
+                } else {
+                    -1
+                }
+                // UnixTime(ms)をmm:ssのssだけを取り出すためのSimpleDataFormat。
+                val simpleDateFormat = SimpleDateFormat("ss")
+                // 秒間コメントを取得する。なお最大値
+                val commentPerSecondMap = timeList.groupBy({ comment ->
+                    // 一分間のコメント配列から秒、コメント配列のMapに変換するためのコード
+                    // 例。51秒に投稿されたコメントは以下のように：51=[いいよ, がっつコラボ, ガッツ, 歓迎]
+                    val programStartTime = nicoLiveHTML.programStartTime
+                    val calc = comment.date.toLong() - programStartTime
+                    simpleDateFormat.format(calc * 1000).toInt()
+                }, { comment ->
+                    comment
+                }).maxBy { map ->
+                    // 秒Mapから一番多いのを取る。
+                    map.value.size
+                }
+                withContext(Dispatchers.Main) {
+                    if (!isAdded) return@withContext
+                    // 数えた結果
+                    activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
+                    // 統計情報表示
+                    val toukei = """${getString(R.string.one_minute_statistics)}
 ${getString(R.string.comment_per_second)}(${getString(R.string.max_value)}/${calcLiveTime(commentPerSecondMap?.value?.first()?.date?.toLong() ?: 0L)})：${commentPerSecondMap?.value?.size}
 ${getString(R.string.one_minute_statistics_premium)}：$premiumCount
 ${getString(R.string.one_minute_statistics_user_id)}：$userIdCount
 ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAverage"""
-                        activity_comment_comment_statistics.visibility = View.VISIBLE
-                        activity_comment_comment_statistics.setOnClickListener {
-                            multiLineSnackbar(it, toukei)
-                        }
-                    }
+                    multiLineSnackbar(activity_comment_comment_statistics, toukei)
                 }
             }
+
         }
     }
+
 
     /**
      * MultilineなSnackbar
@@ -1561,8 +1551,15 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         googleCast.pause()
     }
 
-    //コメント投稿用
-    fun sendComment(comment: String, command: String) {
+    /**
+     * コメント投稿用
+     * コメント送信処理は[NicoLiveHTML.sendPOSTWebSocketComment]でやってる
+     * @param comment コメント内容。「お大事に」とか
+     * @param size コメントの大きさ。これらは省略が可能
+     * @param position コメントの位置。これらは省略が可能
+     * @param color コメントの色。これらは省略が可能
+     * */
+    private fun sendComment(comment: String, color: String = "white", size: String = "medium", position: String = "naka") {
         if (isJK) {
             // ニコニコ実況
             nicoJK.postCommnet(comment, getFlvData.userId, getFlvData.baseTime.toLong(), getFlvData.threadId, usersession)
@@ -1571,8 +1568,10 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 if (isWatchingMode) {
                     // postKeyを視聴用セッションWebSocketに払い出してもらう
                     // PC版ニコ生だとコメントを投稿のたびに取得してるので
-                    nicoLiveHTML.sendPOSTWebSocketComment(comment)
+                    nicoLiveHTML.sendPOSTWebSocketComment(comment, color, size, position)
                 } else if (isNicocasMode) {
+                    // コマンドをくっつける
+                    val command = "$color $size $position"
                     // ニコキャスのAPIを叩いてコメントを投稿する
                     nicoLiveHTML.sendCommentNicocasAPI(comment, command, liveId, usersession, { showToast(getString(R.string.error)) }, { response ->
                         // 成功時
@@ -1683,7 +1682,6 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         }
         nicoLiveHTML.destroy()
         nicoLiveComment.destroy()
-        programInfoTimer.cancel()
         nicoJK.destroy()
         // println("とじます")
     }
@@ -1882,9 +1880,15 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         //投稿ボタンを押したら投稿
         comment_cardview_comment_send_button.setOnClickListener {
             val comment = comment_cardview_comment_textinput_edittext.text.toString()
-            val command = comment_cardview_command_textinputlayout.text.toString()
-            sendComment(comment, command)
+            // 7/27からコマンド（色や位置の指定）は全部つなげて送るのではなく、それぞれ指定する必要があるので
+            val color = comment_cardview_command_color_textinputlayout.text.toString()
+            val position = comment_cardview_command_position_textinputlayout.text.toString()
+            val size = comment_cardview_command_size_textinputlayout.text.toString()
+            // コメ送信
+            sendComment(comment, color, size, position)
+            // コメントリセットとコマンドリセットボタンを押す
             comment_cardview_comment_textinput_edittext.setText("")
+            comment_cardview_comment_command_edit_reset_button.callOnClick()
         }
         // Enterキー(紙飛行機ボタン)を押したら投稿する
         if (pref_setting.getBoolean("setting_enter_post", true)) {
@@ -1892,11 +1896,17 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             comment_cardview_comment_textinput_edittext.setOnEditorActionListener { v, actionId, event ->
                 if (actionId == EditorInfo.IME_ACTION_SEND) {
                     val text = comment_cardview_comment_textinput_edittext.text.toString()
-                    val command = comment_cardview_command_textinputlayout.text.toString()
                     if (text.isNotEmpty()) {
-                        //コメント投稿
-                        sendComment(text, command)
+                        // 空じゃなければ、コメント投稿
+                        // 7/27からコマンド（色や位置の指定）は全部つなげて送るのではなく、それぞれ指定する必要があるので
+                        val color = comment_cardview_command_color_textinputlayout.text.toString()
+                        val position = comment_cardview_command_position_textinputlayout.text.toString()
+                        val size = comment_cardview_command_size_textinputlayout.text.toString()
+                        // コメ送信
+                        sendComment(text, color, size, position)
+                        // コメントリセットとコマンドリセットボタンを押す
                         comment_cardview_comment_textinput_edittext.setText("")
+                        comment_cardview_comment_command_edit_reset_button.callOnClick()
                     }
                     true
                 } else {
@@ -1906,15 +1916,13 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         } else {
             // 複数行？一筋縄では行かない
             // https://stackoverflow.com/questions/51391747/multiline-does-not-work-inside-textinputlayout
-            comment_cardview_comment_textinput_edittext.inputType =
-                InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_CLASS_TEXT
+            comment_cardview_comment_textinput_edittext.inputType = InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_CLASS_TEXT
             comment_cardview_comment_textinput_edittext.maxLines = Int.MAX_VALUE
         }
         //閉じるボタン
         comment_cardview_close_button.setOnClickListener {
             // 非表示アニメーションに挑戦した。
-            val hideAnimation =
-                AnimationUtils.loadAnimation(context, R.anim.comment_cardview_hide_animation)
+            val hideAnimation = AnimationUtils.loadAnimation(context, R.anim.comment_cardview_hide_animation)
             // 表示
             comment_activity_comment_cardview.startAnimation(hideAnimation)
             comment_activity_comment_cardview.visibility = View.GONE
@@ -1935,55 +1943,45 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             }
         }
 
-        var commentSize = ""
-        var commentColor = ""
-        var commentPos = ""
-
         // コマンドリセットボタン
         comment_cardview_comment_command_edit_reset_button.setOnClickListener {
-            comment_cardview_command_textinputlayout.setText("")
+            // リセット
+            comment_cardview_command_color_textinputlayout.setText("")
+            comment_cardview_command_position_textinputlayout.setText("")
+            comment_cardview_command_size_textinputlayout.setText("")
             clearColorCommandSizeButton()
             clearColorCommandPosButton()
-            commentSize = ""
-            commentColor = ""
-            commentPos = ""
         }
         // 大きさ
         comment_cardview_comment_command_big_button.setOnClickListener {
-            commentSize = "big"
-            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            comment_cardview_command_size_textinputlayout.setText("big")
             clearColorCommandSizeButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
         comment_cardview_comment_command_medium_button.setOnClickListener {
-            commentSize = "medium"
-            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            comment_cardview_command_size_textinputlayout.setText("medium")
             clearColorCommandSizeButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
         comment_cardview_comment_command_small_button.setOnClickListener {
-            commentSize = "small"
-            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            comment_cardview_command_size_textinputlayout.setText("small")
             clearColorCommandSizeButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
 
         // コメントの位置
         comment_cardview_comment_command_ue_button.setOnClickListener {
-            commentPos = "ue"
-            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            comment_cardview_command_position_textinputlayout.setText("ue")
             clearColorCommandPosButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
         comment_cardview_comment_command_naka_button.setOnClickListener {
-            commentPos = "naka"
-            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            comment_cardview_command_position_textinputlayout.setText("naka")
             clearColorCommandPosButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
         comment_cardview_comment_command_shita_button.setOnClickListener {
-            commentPos = "shita"
-            comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+            comment_cardview_command_position_textinputlayout.setText("shita")
             clearColorCommandPosButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
@@ -1991,21 +1989,17 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         // コメントの色。流石にすべてのボタンにクリックリスナー書くと長くなるので、タグに色（文字列）を入れる方法で対処
         comment_cardview_command_edit_color_linearlayout.children.forEach {
             it.setOnClickListener {
-                commentColor = it.tag as String
-                comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+                comment_cardview_command_color_textinputlayout.setText(it.tag as String)
             }
         }
         // ↑のプレ垢版
         comment_cardview_command_edit_color_premium_linearlayout.children.forEach {
             it.setOnClickListener {
-                commentColor = it.tag as String
-                comment_cardview_command_textinputlayout.setText("$commentSize $commentPos $commentColor")
+                comment_cardview_command_color_textinputlayout.setText(it.tag as String)
             }
         }
 
         if (pref_setting.getBoolean("setting_comment_collection_useage", false)) {
-            //コメント投稿リスト読み込み
-            loadCommentPOSTList()
             //コメントコレクション補充機能
             if (pref_setting.getBoolean("setting_comment_collection_assist", false)) {
                 comment_cardview_comment_textinput_edittext.addTextChangedListener(object :
@@ -2068,45 +2062,6 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         comment_cardview_comment_command_pos_layout.children.forEach {
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.parseColor("#757575"))
         }
-    }
-
-    /** コメントコレクションのデータベースを読み出す */
-    fun loadCommentPOSTList() {
-/*
-        val commentCollection = CommentCollectionSQLiteHelper(context!!)
-        val sqLiteDatabase = commentCollection.writableDatabase
-        commentCollection.setWriteAheadLoggingEnabled(false)
-        val cursor = sqLiteDatabase.query(
-            "comment_collection_db",
-            arrayOf("comment", "yomi", "description"),
-            null, null, null, null, null
-        )
-        cursor.moveToFirst()
-        //ポップアップメニュー
-        val popup = PopupMenu(context!!, comment_cardview_comment_list_button)
-        for (i in 0 until cursor.count) {
-            //コメント
-            val comment = cursor.getString(0)
-            val yomi = cursor.getString(1)
-            //メニュー追加
-            popup.menu.add(comment)
-            //追加
-            commentCollectionList.add(comment)
-            commentCollectionYomiList.add(yomi)
-            cursor.moveToNext()
-        }
-        //閉じる
-        cursor.close()
-        //ポップアップメニュー押したとき
-        popup.setOnMenuItemClickListener {
-            comment_cardview_comment_textinput_edittext.text?.append(it.title)
-            true
-        }
-        //表示
-        comment_cardview_comment_list_button.setOnClickListener {
-            popup.show()
-        }
-*/
     }
 
     fun getSnackbarAnchorView(): View? {
@@ -2227,7 +2182,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 val data = NicoLiveFragmentData(
                     isOfficial = isOfficial,
                     nicoLiveJSON = nicoLiveJSON.toString(),
-                    commentServerList = commentServerList,
+                    storeCommentServerData = storeCommentServerData,
                     isFullScreenMode = isFullScreenMode
                 )
                 putSerializable("data", data)

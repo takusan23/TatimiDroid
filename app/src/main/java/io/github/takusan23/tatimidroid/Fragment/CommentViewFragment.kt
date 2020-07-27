@@ -33,9 +33,6 @@ class CommentViewFragment : Fragment() {
     //getString(R.string.arena)
     lateinit var stringArena: String
 
-    //TTS
-    lateinit var tts: TextToSpeech
-
     var liveId = ""
 
     lateinit var commentFragment: CommentFragment
@@ -65,10 +62,9 @@ class CommentViewFragment : Fragment() {
             recyclerView.setHasFixedSize(true)
             val mLayoutManager = LinearLayoutManager(context)
             recyclerView.layoutManager = mLayoutManager
-            commentRecyclerViewAdapter =
-                CommentRecyclerViewAdapter(commentFragment.commentJSONList)
+            commentRecyclerViewAdapter = CommentRecyclerViewAdapter(commentFragment.commentJSONList)
             recyclerView.adapter = commentRecyclerViewAdapter
-            recyclerView.setItemAnimator(null);
+            recyclerView.itemAnimator = null
         }
 
         // スクロールボタン。追従するぞい
@@ -94,9 +90,6 @@ class CommentViewFragment : Fragment() {
             it.close()
         }
         timer.cancel()
-        if (this@CommentViewFragment::tts.isInitialized) {
-            tts.shutdown()
-        }
     }
 
     // Adapter初期化済みかどうか

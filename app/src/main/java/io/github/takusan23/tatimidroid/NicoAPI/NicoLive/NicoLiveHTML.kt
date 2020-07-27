@@ -48,8 +48,6 @@ class NicoLiveHTML {
     var threadId = ""
 
     // コメント投稿で使う。isPremiumとかはinitNicoLiveData()を呼ばないとこの値は入りません！！！
-    var postCommentText = ""
-    var postCommentCommand = ""
     var premium = 0     // プレ垢なら1
     var isPremium = false   // 550円課金してるならtrue
     var userId = ""     // ユーザーID
@@ -246,38 +244,6 @@ class NicoLiveHTML {
                         type == "room" -> {
                             threadId = getCommentServerThreadId(message)
                         }
-                        type == "postkey" -> {
-                            // コメント投稿時に使うpostkeyを受け取る
-                            val postKey = getPostKey(message)
-                            if (postKey != null) {
-                                // コメント投稿時刻を計算する（なんでこれクライアント側でやらないといけないの？？？）
-                                // 100=1秒らしい。 例：300->3秒
-                                val unixTime = System.currentTimeMillis() / 1000L
-                                val vpos = (unixTime - programOpenTime) * 100
-                                // println(vpos)
-                                val jsonObject = JSONObject()
-                                val chatObject = JSONObject()
-                                chatObject.put("thread", threadId)
-                                // 視聴用セッションWebSocketからとれる
-                                chatObject.put("vpos", vpos)
-                                // 番組情報取得で取得した値 - = System.currentTimeMillis() UNIX時間
-                                // 匿名が有効の場合は184をつける
-                                if (isTokumeiComment) {
-                                    postCommentCommand = "184 $postCommentCommand"
-                                }
-                                chatObject.put("mail", postCommentCommand)
-                                chatObject.put("ticket", commentTicket)
-                                //視聴用セッションWebSocketからとれるコメントが流れるWebSocketに接続して最初に必要な情報を送ったら取得できる
-                                chatObject.put("content", postCommentText)
-                                chatObject.put("postkey", postKey)
-                                //この２つ、ユーザーIDとプレミアム会員かどうか。これどうやってとる？gatPlayerStatus？　もしgetPlayerStatusなくなってもHTML解析すればとれそう？
-                                chatObject.put("premium", premium)
-                                chatObject.put("user_id", userId)
-                                jsonObject.put("chat", chatObject)
-                                // 投稿
-                                commentPOSTWebSocketClient.send(jsonObject.toString())
-                            }
-                        }
                     }
                 }
             }
@@ -308,7 +274,7 @@ class NicoLiveHTML {
     }
 
     /**
-     * コメント送信用WebSocketに接続する。今見てる部屋のWebSocketに接続する
+     * コメントサーバーWebSocketに接続する関数。
      * @param url getCommentServerWebSocketAddress()
      * @param threadId getCommentServerThreadId()
      * @param userId ニコニコのユーザーID
@@ -367,23 +333,20 @@ class NicoLiveHTML {
      * @param position コメントの位置
      * @param color コメントの色
      * */
-    fun sendPOSTWebSocketComment(comment: String, color: String="white", size: String="medium", position: String="naka") {
-/*
-        postCommentText = comment
-        postCommentCommand = command
-        // postKeyを視聴用セッションWebSocketに払い出してもらう
-        // PC版ニコ生だとコメントを投稿のたびに取得してるので
-        // 2020/06/02の更新で{type:"getPostKey"}を送りつけるだけで動くようになる
-        // 送信する
-        //この後の処理は視聴用セッションWebSocketでpostKeyを受け取る処理に行きます。
-        nicoLiveWebSocketClient.send("{\"type\":\"getPostkey\"}")
-*/
+    fun sendPOSTWebSocketComment(comment: String, color: String = "white", size: String = "medium", position: String = "naka") {
         // コメント位置(vpos)算出
         val unixTime = System.currentTimeMillis() / 1000L
         val vpos = (unixTime - programOpenTime) * 100
 
+        // コマンドが指定してない場合のとき
+        val commentColor = if (color.isEmpty()) "white" else color
+        val commentPosition = if (position.isEmpty()) "naka" else position
+        val commentSize = if (size.isEmpty()) "medium" else size
+
         /**
          * 7/27の更新でコメント投稿は視聴セッション用WebSocketにJSONを送り付けるらしい。
+         * これによりpostKeyを払い出すコードが要らなくなる。
+         * それ以外にもticketとかpremiumかどうかもいらなくなったので良くなった：）。
          * */
         val postComment = JSONObject().apply {
             put("type", "postComment")
@@ -391,14 +354,13 @@ class NicoLiveHTML {
                 put("text", comment)
                 put("vpos", vpos)
                 put("isAnonymous", isTokumeiComment)
-                put("color", color)
-                put("size", size)
-                put("position", position)
+                put("color", commentColor)
+                put("size", commentSize)
+                put("position", commentPosition)
             })
         }
-
+        // 送信
         nicoLiveWebSocketClient.send(postComment.toString())
-
     }
 
     /**
