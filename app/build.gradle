@@ -14,7 +14,7 @@ android {
         minSdkVersion 22
         targetSdkVersion 30
         versionCode 58
-        versionName "10.0 Beta 1"
+        versionName "10.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
