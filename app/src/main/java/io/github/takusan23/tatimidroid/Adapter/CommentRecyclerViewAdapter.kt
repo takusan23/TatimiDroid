@@ -98,12 +98,8 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             }
         }
 
-        // 7/27の部屋統合に備えて、部屋名の表示を直す。
-        val roomName = if (commentJSONParse.roomName != "store") {
-            context.getString(R.string.room_integration) // 部屋統合。良いな名前が思いつかなかった。
-        } else {
-            context.getString(R.string.room_limit) // 流量制限。おそらくコメビュで取れるはず。コメントが多すぎて制限されたコメントはstoreってところに流れてくるらしい。詳しくは programinfo API叩いて
-        }
+        // 部屋名。部屋の名前はNicoLiveCommentで決定する
+        val roomName = commentJSONParse.roomName
 
         var info = "$roomName | $time | $userId"
 

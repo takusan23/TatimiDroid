@@ -361,11 +361,14 @@ class NicoLiveHTML {
     }
 
     /**
-     * コメント投稿用WebSocketへコメントを送信する。これは今の部屋のコメントサーバーに投げる
-     * @param comment コメント内容。「よお」とか
-     * @param command コマンド内容。「shita」とか
+     * コメントを投稿する関数。7/27の仕様変更で視聴セッションWebSocketに投げるようになった。
+     * @param comment コメント内容。「よ」とか
+     * @param size コメントの大きさ
+     * @param position コメントの位置
+     * @param color コメントの色
      * */
-    fun sendPOSTWebSocketComment(comment: String, command: String) {
+    fun sendPOSTWebSocketComment(comment: String, color: String="white", size: String="medium", position: String="naka") {
+/*
         postCommentText = comment
         postCommentCommand = command
         // postKeyを視聴用セッションWebSocketに払い出してもらう
@@ -374,6 +377,28 @@ class NicoLiveHTML {
         // 送信する
         //この後の処理は視聴用セッションWebSocketでpostKeyを受け取る処理に行きます。
         nicoLiveWebSocketClient.send("{\"type\":\"getPostkey\"}")
+*/
+        // コメント位置(vpos)算出
+        val unixTime = System.currentTimeMillis() / 1000L
+        val vpos = (unixTime - programOpenTime) * 100
+
+        /**
+         * 7/27の更新でコメント投稿は視聴セッション用WebSocketにJSONを送り付けるらしい。
+         * */
+        val postComment = JSONObject().apply {
+            put("type", "postComment")
+            put("data", JSONObject().apply {
+                put("text", comment)
+                put("vpos", vpos)
+                put("isAnonymous", isTokumeiComment)
+                put("color", color)
+                put("size", size)
+                put("position", position)
+            })
+        }
+
+        nicoLiveWebSocketClient.send(postComment.toString())
+
     }
 
     /**

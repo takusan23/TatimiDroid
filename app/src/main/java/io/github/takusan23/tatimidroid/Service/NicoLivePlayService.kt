@@ -4,7 +4,6 @@ import android.app.*
 import android.content.*
 import android.graphics.Color
 import android.graphics.PixelFormat
-import android.graphics.Point
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -14,10 +13,8 @@ import android.provider.Settings
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.method.NumberKeyListener
 import android.view.*
 import android.widget.FrameLayout
-import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
@@ -40,7 +37,6 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
-import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -722,7 +718,7 @@ class NicoLivePlayService : Service() {
                                 nicoJK.postCommnet(comment as String, getFlvData.userId, getFlvData.baseTime.toLong(), getFlvData.threadId, userSession)
                             }
                             isCommentPOSTMode -> {
-                                nicoLiveHTML.sendPOSTWebSocketComment(comment as String, "") // コメント投稿
+                                nicoLiveHTML.sendPOSTWebSocketComment(comment as String) // コメント投稿
                                 showNotification(programTitle) // 通知再設置
                             }
                             isNicoCasMode -> {

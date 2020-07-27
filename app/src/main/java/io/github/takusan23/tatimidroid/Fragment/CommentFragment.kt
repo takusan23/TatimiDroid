@@ -17,7 +17,6 @@ import android.os.Looper
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
-import android.text.format.DateUtils
 import android.text.util.Linkify
 import android.view.*
 import android.view.animation.AnimationUtils
@@ -452,7 +451,7 @@ class CommentFragment : Fragment() {
                     // 全部屋接続。定期的にAPIを叩く
                     // ただし公式番組では利用できないので分岐
                     if (!nicoLiveHTML.isOfficial) {
-                        programInfoTimer.schedule(timerTask { initAllRoomConnect() }, 60 * 1000, 60 * 1000)
+                       // programInfoTimer.schedule(timerTask { initAllRoomConnect() }, 60 * 1000, 60 * 1000)
                     }
                     // IO -> Main Thread
                     withContext(Dispatchers.Main) {
@@ -587,6 +586,10 @@ class CommentFragment : Fragment() {
         commentCanvas.finalHeight = commentCanvas.height
     }
 
+    /**
+     * コメント鯖一覧を返すAPIを叩いて接続する関数。
+     * 部屋統合WebSocket+Store(流量制限で反映されてないコメントが流れてくるWebSocket)のアドレスを取得する。
+     * */
     private fun initAllRoomConnect() {
         GlobalScope.launch {
             // 全部屋接続
@@ -598,7 +601,7 @@ class CommentFragment : Fragment() {
             // CommentServerDataの配列に変換
             val list = nicoLiveComment.parseCommentServerDataList(allRoomResponse.body?.string(), context?.getString(R.string.arena))
             list.forEach { server ->
-                //WebSocket接続。::関数 で高階関数を引数に入れられる
+                // WebSocket接続。::関数 で高階関数を引数に入れられる
                 nicoLiveComment.connectionWebSocket(server.webSocketUri, server.threadId, server.roomName, ::commentFun)
             }
             commentServerList = ArrayList(list)
@@ -715,8 +718,12 @@ class CommentFragment : Fragment() {
                                 nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
                             }
                         }
-                        // コメント投稿時に使うWebSocketに接続する
+                        // コメントサーバーへ接続
                         commentPOSTWebSocketConnection(commentMessageServerUri, commentThreadId, userId)
+                    }
+                    command=="postCommentResult"->{
+                        // コメント送信結果。
+                        showCommentPOSTResultSnackBar(message)
                     }
                     command == "statistics" -> {
                         // 総来場者数、コメント数を表示させる
@@ -889,7 +896,7 @@ class CommentFragment : Fragment() {
                 when {
                     message.contains("chat_result") -> {
                         // コメント投稿に成功したかを表示するやつ
-                        showCommentPOSTResultSnackBar(message)
+                       // showCommentPOSTResultSnackBar(message)
                     }
                     message.contains("/vote") -> {
                         // アンケート
@@ -1022,15 +1029,14 @@ class CommentFragment : Fragment() {
      * */
     private fun showCommentPOSTResultSnackBar(message: String) {
         val jsonObject = JSONObject(message)
-        val status =
-            jsonObject.getJSONObject("chat_result").getString("status")
+        // 成功してるか？
+        val restricted = jsonObject.getJSONObject("data").getJSONObject("chat").getBoolean("restricted")
         commentActivity.runOnUiThread {
-            if (status.toInt() == 0) {
+            if (!restricted) {
+                // 制限されてない（つまり成功？）
                 Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
-            } else if (status.toInt() == 1) {
-                Snackbar.make(fab, "${getString(R.string.rentou_error)}：${status}", Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
             } else {
-                Snackbar.make(fab, "${getString(R.string.comment_post_error)}：${status}", Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
+                Snackbar.make(fab, "${getString(R.string.comment_post_error)}：${message}", Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
             }
         }
     }
@@ -1565,7 +1571,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 if (isWatchingMode) {
                     // postKeyを視聴用セッションWebSocketに払い出してもらう
                     // PC版ニコ生だとコメントを投稿のたびに取得してるので
-                    nicoLiveHTML.sendPOSTWebSocketComment(comment, command)
+                    nicoLiveHTML.sendPOSTWebSocketComment(comment)
                 } else if (isNicocasMode) {
                     // ニコキャスのAPIを叩いてコメントを投稿する
                     nicoLiveHTML.sendCommentNicocasAPI(comment, command, liveId, usersession, { showToast(getString(R.string.error)) }, { response ->

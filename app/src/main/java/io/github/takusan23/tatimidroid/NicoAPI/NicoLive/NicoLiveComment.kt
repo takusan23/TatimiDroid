@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
+import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.*
 import okhttp3.*
 import org.java_websocket.client.WebSocketClient
@@ -59,7 +60,7 @@ class NicoLiveComment {
      * @param arena アリーナの文字列をローカライズする場合は
      * @return CommentServerDataの配列
      * */
-    suspend fun parseCommentServerDataList(responseString: String?, arena: String? = "アリーナ") = withContext(Dispatchers.Default) {
+    suspend fun parseCommentServerDataList(responseString: String?, allRoomName:String,storeRoomName:String) = withContext(Dispatchers.Default) {
         val list = arrayListOf<CommentServerData>()
         val jsonObject = JSONObject(responseString)
         val data = jsonObject.getJSONObject("data")
@@ -69,9 +70,13 @@ class NicoLiveComment {
             val roomObject = room.getJSONObject(index)
             val webSocketUri = roomObject.getString("webSocketUri")
             val name = roomObject.getString("name")
-            val roomName = name
+            val roomName = if (name != "store") {
+                context.getString(R.string.room_integration) // 部屋統合。良いな名前が思いつかなかった。
+            } else {
+                context.getString(R.string.room_limit) // 流量制限。おそらくコメビュで取れるはず。コメントが多すぎて制限されたコメントはstoreってところに流れてくるらしい。詳しくは programinfo API叩いて
+            }
             val threadId = roomObject.getString("threadId")
-            val data = CommentServerData(webSocketUri, threadId, roomName ?: "アリーナ")
+            val data = CommentServerData(webSocketUri, threadId, roomName)
             list.add(data)
         }
         list
