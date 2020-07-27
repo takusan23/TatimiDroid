@@ -473,7 +473,7 @@ class NicoVideoHTML {
                     put("scores", 1)
                     put("nicoru", 3)
                     put("userkey", userkey)
-                    put("fork", fork)
+                    put("fork", fork) // これ指定するとなんか仕様変更耐えた
                     // 公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
                     // threadkeyのときはもしかするとuserkeyいらない
                     if (isThreadkeyRequired) {
@@ -487,7 +487,6 @@ class NicoVideoHTML {
                 postJSONArray.put(thread_leaves)
             }
         }
-        println(postJSONArray.toString(4))
         postJSONArray
     }
 

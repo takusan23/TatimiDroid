@@ -85,7 +85,7 @@ class DevNicoVideoPOSTFragment : Fragment() {
         }
 
         fragment_nicovideo_post_swipe_to_refresh.setOnRefreshListener {
-            page = 0
+            page = 1
             position = 0
             yPos = 0
             recyclerViewList.clear()
@@ -116,17 +116,19 @@ class DevNicoVideoPOSTFragment : Fragment() {
             showToast("${getString(R.string.error)}\n${throwable.message}")
         }
         coroutine = GlobalScope.launch(errorHandler) {
-            val url = if (arguments?.getBoolean("my", false) == true) {
-                "https://nvapi.nicovideo.jp/v1/users/me"
+            // 自分の場合はまずユーザーIDを取る
+            val userId = if (arguments?.getBoolean("my", false) == true) {
+                // 自分の場合はAPI叩いてユーザーID取る
+                User().getUserCoroutine("", userSession, "https://nvapi.nicovideo.jp/v1/users/me")?.userId?.toString()
             } else {
-                "https://nvapi.nicovideo.jp/v1/users/${arguments?.getString("userId")}"
-            }
-            // ユーザーID取得
-            val userId = arguments?.getString("userId") ?: ""
-            val user = User().getUserCoroutine(userId, userSession, url)
-            val response = post.getList(page, user?.userId.toString(), userSession)
+                // ユーザーID指定
+                arguments?.getString("userId")
+            } ?: return@launch // 取れないなら終了
+            // 投稿動画取得する
+            val response = post.getPOSTVideo(userId, userSession, page)
             if (response.isSuccessful) {
-                val postVideoList = post.parseHTML(response.body?.string())
+                // 成功時。JSONパース
+                val postVideoList = post.parsePOSTVideo(response.body?.string())
                 // 最後判定
                 isMaxCount = postVideoList.size == 0
                 postVideoList.forEach {

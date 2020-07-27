@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
 import kotlin.collections.ArrayList
@@ -15,41 +16,64 @@ import kotlin.collections.ArrayList
 class NicoVideoPOST {
 
     /**
-     * 投稿動画スクレイピング。
-     * @param page ページ数。。何もなければ空でいいよ。
+     * 投稿動画取得APIを叩く。
+     * マイページが変わって（というか私GINZA時代だしずっと変わってなかったんやな）投稿動画APIが出現した
+     * というわけでスクレイピング回避することに成功しました。
+     * @param userId ユーザーID。
      * @param userSession ユーザーセッション
+     * @param page ページ。最近のサイトみたいに必要な部分だけAPIを叩いて取得するようになった。
      * */
-    suspend fun getList(page: Int, userId: String, userSession: String) = withContext(Dispatchers.IO) {
-        val url = "https://www.nicovideo.jp/user/$userId/video?page=$page"
+    suspend fun getPOSTVideo(userId: String, userSession: String, page: Int = 0) = withContext(Dispatchers.IO) {
+        // うらる
+        val url = "https://nvapi.nicovideo.jp/v1/users/$userId/videos?sortKey=registeredAt&sortOrder=desc&pageSize=25&page=$page"
         val request = Request.Builder().apply {
             url(url)
-            header("Cookie", "user_session=${userSession}")
-            header("x-frontend-id", "6") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
-            header("User-Agent", "TatimiDroid;@takusan_23")
+            addHeader("Cookie", "user_session=${userSession}")
+            addHeader("User-Agent", "TatimiDroid;@takusan_23")
+            addHeader("x-frontend-id", "6")
+            addHeader("X-Frontend-Version", "0")
             get()
         }.build()
         val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
-    suspend fun parseHTML(responseString: String?) = withContext(Dispatchers.Default) {
+    /**
+     * [getPOSTVideo]のレスポンスぼでーJSONをパースする。
+     * @param responseString レスポンス。JSON
+     * @return [NicoVideoData]の配列
+     * */
+    suspend fun parsePOSTVideo(responseString: String?) = withContext(Dispatchers.Default) {
         val videoList = arrayListOf<NicoVideoData>()
-        val document = Jsoup.parse(responseString)
-        //動画のDiv要素を取り出す
-        val divList = document.getElementsByClass("outer VideoItem")
-        divList.forEach {
-            // 動画ID
-            val videoId = it.getElementsByTag("a")[0].attr("href").replace("watch/", "")
-            //一つずつ見ていく
-            val title =
-                it.getElementsByTag("h5").first().getElementsByTag("a").text()
-            val postDate =
-                it.getElementsByClass("posttime").first().text().replace(" 投稿", "")
-            val thumbnailUrl = it.getElementsByTag("img")[0].attr("data-original")
-            val commentCount = it.getElementsByClass("comment").first().text()
-            val playCount = it.getElementsByClass("play").first().text()
-            val mylistCount = it.getElementsByClass("mylist").first().text()
-            val data = NicoVideoData(isCache = false, isMylist = false, title = title, videoId = videoId, thum = thumbnailUrl, date = toUnixTime(postDate), viewCount = playCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = null, cacheAddedDate = null)
+        val jsonObject = JSONObject(responseString)
+        val items = jsonObject.getJSONObject("data").getJSONArray("items")
+        // まわす
+        for (i in 0 until items.length()) {
+            val videoObject = items.getJSONObject(i)
+            val title = videoObject.getString("title")
+            val videoId = videoObject.getString("id")
+            val thumbnailUrl = videoObject.getJSONObject("thumbnail").getString("url")
+            val postDate = videoObject.getString("registeredAt")
+            val countObject = videoObject.getJSONObject("count")
+            val playCount = countObject.getInt("view").toString()
+            val commentCount = countObject.getInt("comment").toString()
+            val mylistCount = countObject.getInt("mylist").toString()
+            val duration = videoObject.getInt("duration").toLong()
+            val data = NicoVideoData(
+                isCache = false,
+                isMylist = false,
+                title = title,
+                videoId = videoId,
+                thum = thumbnailUrl,
+                date = toUnixTime(postDate),
+                viewCount = playCount,
+                commentCount = commentCount,
+                mylistCount = mylistCount,
+                mylistItemId = "",
+                mylistAddedDate = null,
+                duration = duration,
+                cacheAddedDate = null
+            )
             videoList.add(data)
         }
         videoList
@@ -57,7 +81,7 @@ class NicoVideoPOST {
 
     // UnixTime（ミリ秒）に変換する関数
     private fun toUnixTime(time: String): Long {
-        val simpleDateFormat = SimpleDateFormat("yy年MM月dd日 HH:mm")
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX")
         return simpleDateFormat.parse(time).time
     }
 
