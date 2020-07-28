@@ -113,6 +113,12 @@
                             android:text="@string/quality" />
 
                     <Button
+                            android:id="@+id/fragment_nicovideo_menu_atodemiru"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/atodemiru_add" />
+
+                    <Button
                             android:id="@+id/fragment_nicovideo_menu_rotation"
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="match_parent"

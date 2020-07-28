@@ -135,15 +135,15 @@ class DevNicoVideoPOSTFragment : Fragment() {
                     recyclerViewList.add(it)
                 }
                 withContext(Dispatchers.Main) {
+                    if (!isAdded) return@withContext
                     nicoVideoListAdapter.notifyDataSetChanged()
                     // スクロール
                     fragment_nicovideo_post_recyclerview.apply {
                         (layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, yPos)
                     }
-                    if (isAdded) {
-                        fragment_nicovideo_post_swipe_to_refresh.isRefreshing = false
-                        isLoading = false
-                    }
+                    fragment_nicovideo_post_swipe_to_refresh.isRefreshing = false
+                    isLoading = false
+
                     // これで最後です。；；は配列の中身が一個以上あればな話。
                     if (isMaxCount && recyclerViewList.isNotEmpty()) {
                         showToast(getString(R.string.end_scroll))

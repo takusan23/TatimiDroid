@@ -14,7 +14,10 @@ import kotlin.collections.ArrayList
 
 /**
  * マイリストAPI
+ * もう使えない（7/27の仕様変更でAPIのうらるが変わってたりしてる）
+ * [NicoVideoSPMyListAPI]で同じことができると思います。（マイリストコメントとか使えなくなったけど誰も使ってねえしいいやろ）
  * */
+@Deprecated("NicoVideoSPMyListAPIを使って")
 class NicoVideoMyListAPI {
 
     /**

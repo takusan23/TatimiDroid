@@ -11,11 +11,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoMylistAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_mylist.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
 
+/**
+ * マイリスト追加BottomFragment
+ * */
 class DevNicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
 
     // アダプター
@@ -26,9 +30,8 @@ class DevNicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
     lateinit var prefSetting: SharedPreferences
     var userSession = ""
 
-    // マイリスト
-    val myListAPI =
-        NicoVideoMyListAPI()
+    // スマホ版マイリストAPI
+    private val spMyListAPI = NicoVideoSPMyListAPI()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_nicovideo_mylist, container, false)
@@ -55,32 +58,22 @@ class DevNicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
         }
         GlobalScope.launch(errorHandler) {
             recyclerViewList.clear()
-            // マイリストToken取得
-            val mylistHTMLResponse = myListAPI.getMyListHTML(userSession)
-            if (mylistHTMLResponse.isSuccessful) {
-                val token = myListAPI.getToken(mylistHTMLResponse.body?.string())
-                if (token != null) {
-                    // マイリスト一覧取得
-                    val listResponse = myListAPI.getMyListList(token, userSession)
-                    if (listResponse.isSuccessful) {
-                        val jsonObject = JSONObject(listResponse.body?.string())
-                        val mylistGroup = jsonObject.getJSONArray("mylistgroup")
-                        // 追加
-                        for (i in 0 until mylistGroup.length()) {
-                            val title = mylistGroup.getJSONObject(i).getString("name")
-                            val id = mylistGroup.getJSONObject(i).getString("id")
-                            val pair = Pair(title, id)
-                            recyclerViewList.add(pair)
-                        }
-                        withContext(Dispatchers.Main) {
-                            nicoVideoMylistAdapter.notifyDataSetChanged()
-                        }
-                    } else {
-                        showToast("${getString(R.string.error)}\n${mylistHTMLResponse.code}")
-                    }
-                }
-            } else {
-                showToast("${getString(R.string.error)}\n${mylistHTMLResponse.code}")
+            // マイリスト一覧APIを叩く
+            val myListListResponse = spMyListAPI.getMyListList(userSession)
+            if (!myListListResponse.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${myListListResponse.code}")
+                return@launch
+            }
+            // レスポンスをパースしてRecyclerViewに突っ込む
+            spMyListAPI.parseMyListList(myListListResponse.body?.string()).forEach { myList ->
+                val pair = Pair(myList.title, myList.id)
+                recyclerViewList.add(pair)
+            }
+            // 一覧更新
+            withContext(Dispatchers.Main) {
+                if (!isAdded) return@withContext
+                nicoVideoMylistAdapter.notifyDataSetChanged()
             }
         }
     }

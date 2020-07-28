@@ -74,6 +74,7 @@ class DevNicoVideoNicoRepoFragment : Fragment() {
                 recyclerViewList.add(it)
             }
             withContext(Dispatchers.Main) {
+                if (!isAdded) return@withContext
                 nicoVideoListAdapter.notifyDataSetChanged()
                 fragment_nicovideo_nicorepo_swipe.isRefreshing = false
             }

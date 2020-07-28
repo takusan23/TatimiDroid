@@ -15,16 +15,19 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoMyListAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.util.ArrayList
 
+/**
+ * マイリスト追加BottomFragmentで使ってるRecyclerViewで使うAdapter
+ * */
 class DevNicoVideoMylistAdapter(val mylistList: ArrayList<Pair<String, String>>) : RecyclerView.Adapter<DevNicoVideoMylistAdapter.ViewHolder>() {
 
-    // マイリスAPI
-    val myListAPI = NicoVideoMyListAPI()
-    val nicoVideoHTML = NicoVideoHTML()
+    // スマホ版マイリストAPI
+    private val spMyListAPI = NicoVideoSPMyListAPI()
 
     // 動画ID
     var id = ""
@@ -42,9 +45,7 @@ class DevNicoVideoMylistAdapter(val mylistList: ArrayList<Pair<String, String>>)
         return ViewHolder(view)
     }
 
-    override fun getItemCount(): Int {
-        return mylistList.size
-    }
+    override fun getItemCount() = mylistList.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.apply {
@@ -68,34 +69,25 @@ class DevNicoVideoMylistAdapter(val mylistList: ArrayList<Pair<String, String>>)
                     withContext(Dispatchers.Main) {
                         mylistBottomFragment.isCancelable = false
                     }
-                    // マイリストToken取得
-                    val mylistHTMLResponse = myListAPI.getMyListHTML(userSession)
-                    val nicoVideoResponse = nicoVideoHTML.getHTML(id, userSession)
-                    if (mylistHTMLResponse.isSuccessful && nicoVideoResponse.isSuccessful) {
-                        // ThreadId
-                        val htmlJSON = nicoVideoHTML.parseJSON(nicoVideoResponse.body?.string())
-                        val threadId = htmlJSON.getJSONObject("thread").getJSONObject("ids").getString("default")
-                        // マイリストToken
-                        val token = myListAPI.getToken(mylistHTMLResponse.body?.string()) ?: ""
-                        // マイリスト追加API叩く
-                        val mylistResponse = myListAPI.mylistAddVideo(mylistId, threadId, "", token, userSession)
-                        if (mylistResponse.isSuccessful) {
-                            // 成功したかどうか
-                            val mylistResponseJSON = JSONObject(mylistResponse.body?.string())
-                            // 閉じれるようにする
-                            withContext(Dispatchers.Main) {
-                                mylistBottomFragment.isCancelable = true
-                                if (mylistResponseJSON.has("status") && mylistResponseJSON.getString("status") == "ok") {
-                                    // 成功時
-                                    showToast(context, context.getString(R.string.mylist_add_ok))
-                                    mylistBottomFragment.dismiss()
-                                } else {
-                                    // 失敗時。すでに登録済みなど
-                                    val error = mylistResponseJSON.getString("error")
-                                    showToast(context, "${context.getString(R.string.error)}\n${error}")
-                                }
-                            }
+                    // マイリスト追加APIを叩く
+                    val addResponse = spMyListAPI.addMylistVideo(userSession, mylistId, id)
+                    when (addResponse.code) {
+                        201 -> {
+                            // マイリスト追加成功
+                            showToast(context, context.getString(R.string.mylist_add_ok))
                         }
+                        200 -> {
+                            // すでに追加済み
+                            showToast(context, context.getString(R.string.mylist_added))
+                        }
+                        else -> {
+                            // エラー
+                            showToast(context, "${context.getString(R.string.error)}\n${addResponse.code}")
+                        }
+                    }
+                    // 閉じる
+                    withContext(Dispatchers.Main) {
+                        mylistBottomFragment.dismiss()
                     }
                 }
             }

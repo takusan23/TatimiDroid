@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoListAdapter
@@ -168,17 +169,21 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     private fun mylistButton() {
         // 動画ID以外はマイリスト登録ボタンを消す
         if (nicoVideoData.videoId.contains("sm") || nicoVideoData.videoId.contains("so")) {
-            bottom_fragment_nicovideo_list_menu_mylist.visibility = View.VISIBLE
+            bottom_fragment_nicovideo_list_menu_mylist.isVisible = true
+            bottom_fragment_nicovideo_list_menu_atodemiru.isVisible = true
         } else {
-            bottom_fragment_nicovideo_list_menu_mylist.visibility = View.GONE
+            bottom_fragment_nicovideo_list_menu_mylist.isVisible = false
+            bottom_fragment_nicovideo_list_menu_atodemiru.isVisible = false
         }
         // マイリスト画面の場合は消すに切り替える
         if (nicoVideoData.isMylist) {
             bottom_fragment_nicovideo_list_menu_mylist.text = getString(R.string.mylist_delete)
+            bottom_fragment_nicovideo_list_menu_atodemiru.isVisible = false
         }
         // 非ログインモード時も消す
         if (isNotLoginMode(context)) {
-            bottom_fragment_nicovideo_list_menu_mylist.visibility = View.GONE
+            bottom_fragment_nicovideo_list_menu_mylist.isVisible = false
+            bottom_fragment_nicovideo_list_menu_atodemiru.isVisible = false
         }
         bottom_fragment_nicovideo_list_menu_mylist.setOnClickListener {
             if (nicoVideoData.isMylist) {
@@ -217,9 +222,7 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                             }
                         }
                     }
-                }.apply {
-                    show(this@DevNicoVideoListMenuBottomFragment.fragmentManager!!, "delete")
-                }
+                }.show(this@DevNicoVideoListMenuBottomFragment.parentFragmentManager, "delete")
             } else {
                 // マイリスト一覧以外。追加ボタン
                 val mylistBottomFragment = DevNicoVideoAddMylistBottomFragment()
@@ -228,6 +231,45 @@ class DevNicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                 }
                 mylistBottomFragment.arguments = bundle
                 mylistBottomFragment.show((activity as AppCompatActivity).supportFragmentManager, "mylist")
+            }
+        }
+        // あとで見る（とりあえずマイリスト）に追加する
+        bottom_fragment_nicovideo_list_menu_atodemiru.setOnClickListener {
+            // あとで見るに追加する
+            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                showToast("${getString(R.string.error)}\n${throwable.message}")
+            }
+            GlobalScope.launch(errorHandler) {
+                withContext(Dispatchers.Main) {
+                    // 消せないように
+                    isCancelable = false
+                }
+                // あとで見る追加APIを叩く
+                val spMyListAPI = NicoVideoSPMyListAPI()
+                val atodemiruResponse = spMyListAPI.addAtodemiruListVideo(userSession, videoId)
+                if (!atodemiruResponse.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${atodemiruResponse.code}")
+                    return@launch
+                }
+                // 成功したか
+                when (atodemiruResponse.code) {
+                    201 -> {
+                        // 成功時
+                        showToast(getString(R.string.atodemiru_ok))
+                    }
+                    200 -> {
+                        // すでに追加済み
+                        showToast(getString(R.string.already_added))
+                    }
+                    else -> {
+                        // えらー
+                        showToast(getString(R.string.error))
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    dismiss()
+                }
             }
         }
     }

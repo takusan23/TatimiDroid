@@ -60,7 +60,9 @@ class DevNicoVideoMyListFragment : Fragment() {
         fragment_nicovideo_mylist_viewpager.adapter = adapter
         // TabLayout
         TabLayoutMediator(fragment_nicovideo_mylist_tablayout, fragment_nicovideo_mylist_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
-            tab.text = myListItems[position].title
+            // マイリストに登録してる動画数。あとで見るは何件かわからんので（API叩くのもめんどい）
+            val itemCount = if (myListItems[position].title != getString(R.string.atodemiru)) ":${myListItems[position].itemsCount}" else ""
+            tab.text = "${myListItems[position].title}$itemCount"
         }).attach()
     }
 

@@ -64,6 +64,17 @@
                     android:text="@string/add_mylist" />
 
             <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_atodemiru"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_outline_query_builder_24px"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="@string/atodemiru_add" />
+
+            <TextView
                     android:id="@+id/bottom_fragment_nicovideo_list_menu_playlist_background"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -15,6 +15,7 @@ import android.widget.Switch
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
@@ -23,15 +24,19 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoA
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoQualityBottomFragment
 import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoSkipCustomizeBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.Tool.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
+import io.github.takusan23.tatimidroid.Tool.IDRegex
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_menu.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -248,9 +253,10 @@ class DevNicoVideoMenuFragment : Fragment() {
 
     // マイリスト追加ボタン初期化
     private fun initMylistButton() {
-        // マイリスト追加ボタン。インターネット未接続時は非表示にする
-        if (!isConnectionInternet(context)) {
-            fragment_nicovideo_menu_add_mylist.visibility = View.GONE
+        // マイリスト追加ボタン。インターネット接続時で動画IDでなければ消す
+        if (!isConnectionInternet(context) && (videoId.contains("sm") || videoId.contains("so"))) {
+            fragment_nicovideo_menu_add_mylist.isVisible = false
+            fragment_nicovideo_menu_atodemiru.isVisible = false
         }
         fragment_nicovideo_menu_add_mylist.setOnClickListener {
             val addMylistBottomFragment = DevNicoVideoAddMylistBottomFragment()
@@ -258,6 +264,37 @@ class DevNicoVideoMenuFragment : Fragment() {
             bundle.putString("id", videoId)
             addMylistBottomFragment.arguments = bundle
             addMylistBottomFragment.show(parentFragmentManager, "mylist")
+        }
+        fragment_nicovideo_menu_add_mylist.setOnClickListener {
+            // あとで見るに追加する
+            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                showToast("${getString(R.string.error)}\n${throwable.message}")
+            }
+            GlobalScope.launch(errorHandler) {
+                // あとで見る追加APIを叩く
+                val spMyListAPI = NicoVideoSPMyListAPI()
+                val atodemiruResponse = spMyListAPI.addAtodemiruListVideo(userSession, videoId)
+                if (!atodemiruResponse.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${atodemiruResponse.code}")
+                    return@launch
+                }
+                // 成功したか
+                when (atodemiruResponse.code) {
+                    201 -> {
+                        // 成功時
+                        showToast(getString(R.string.atodemiru_ok))
+                    }
+                    200 -> {
+                        // すでに追加済み
+                        showToast(getString(R.string.already_added))
+                    }
+                    else -> {
+                        // えらー
+                        showToast(getString(R.string.error))
+                    }
+                }
+            }
         }
     }
 

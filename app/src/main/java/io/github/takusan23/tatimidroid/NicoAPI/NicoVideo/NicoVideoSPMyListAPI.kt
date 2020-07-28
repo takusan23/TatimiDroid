@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import kotlinx.coroutines.*
+import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -243,6 +244,48 @@ class NicoVideoSPMyListAPI {
             header("x-frontend-id", "3")
             header("x-request-with", "nicovideo")
             delete()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).execute()
+    }
+
+    /**
+     * マイリストへ追加する。
+     * スマホ版はマイリストのメッセージを追加できないけど、Tokenなしでマイリスト登録ができるのでもうそれでいいわ。
+     * PC版で叩いてるAPIは複雑なのでスマホ版でいいわ。なおマイリストコメントとかいう機能はPC版APIにしか無い模様。まあ使ってないし使いたきゃ本家いけ
+     * @param myListId マイリストのID。https://www.nicovideo.jp/my/mylist/{ここの数字}
+     * @param userSession ユーザーセッション
+     * @param videoId 動画ID
+     * @return OkHttpのレスポンス。成功時のステータスコードは201、すでに登録済みの場合は200が帰ってくる模様。
+     * */
+    suspend fun addMylistVideo(userSession: String, myListId: String, videoId: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("https://nvapi.nicovideo.jp/v1/users/me/mylists/$myListId/items?itemId=$videoId")
+            header("Cookie", "user_session=$userSession")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("x-frontend-id", "3")
+            header("x-request-with", "nicovideo")
+            post(FormBody.Builder().build())
+        }.build()
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).execute()
+    }
+
+    /**
+     * あとで見るに追加する。旧：とりあえずマイリスト
+     * これもToken不要で登録できる。
+     * @param userSession ユーザーセッション
+     * @param videoId 動画ID
+     * @return OkHttpのレスポンス。登録成功時は201、すでに登録しているときは200
+     * */
+    suspend fun addAtodemiruListVideo(userSession: String, videoId: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("https://nvapi.nicovideo.jp/v1/users/me/deflist/items/$videoId")
+            header("Cookie", "user_session=$userSession")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("x-frontend-id", "3")
+            header("x-request-with", "nicovideo")
+            post(FormBody.Builder().build())
         }.build()
         val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
