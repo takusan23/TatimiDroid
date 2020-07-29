@@ -48,7 +48,7 @@ class KonoApp : AppCompatActivity() {
     /*
     * バージョンとか
     * */
-    val version = "2020/07/29"
+    val version = "2020/07/30"
     val codeName1 = "（９）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,15 +81,14 @@ class KonoApp : AppCompatActivity() {
                 // 格納
                 (button as MaterialButton).apply {
                     text = getString(R.string.hide)
-                    icon = getDrawable(R.drawable.ic_expand_less_black_24dp)
+                    icon = getDrawable(R.drawable.ic_expand_more_24px)
                 }
             } else {
                 // 表示
                 (button as MaterialButton).apply {
                     text = getString(R.string.show)
-                    icon = getDrawable(R.drawable.ic_expand_more_24px)
+                    icon = getDrawable(R.drawable.ic_expand_less_black_24dp)
                 }
-
             }
         }
 

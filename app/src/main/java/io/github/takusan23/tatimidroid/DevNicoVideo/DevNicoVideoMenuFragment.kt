@@ -79,10 +79,6 @@ class DevNicoVideoMenuFragment : Fragment() {
         // キャッシュ
         isCache = arguments?.getBoolean("cache") ?: false
 
-        // 設定保存、取得
-        getValue()
-        setValue()
-
         // 動画ID
         videoId = arguments?.getString("id", "") ?: ""
 
@@ -144,6 +140,20 @@ class DevNicoVideoMenuFragment : Fragment() {
         // コテハン一覧Activityボタン初期化
         initKotehanButton()
 
+        // コメント流さないモード
+        initCommentCanvasVisibleSwitch()
+
+    }
+
+    private fun initCommentCanvasVisibleSwitch() {
+        fragment_nicovideo_menu_hide_comment_canvas.setOnCheckedChangeListener { compoundButton, b ->
+            // 設定保存
+            prefSetting.edit { putBoolean("nicovideo_comment_canvas_hide", b) }
+            // 消す
+            devNicoVideoFragment.fragment_nicovideo_comment_canvas.isVisible = !b
+        }
+        // 設定読み出し
+        fragment_nicovideo_menu_hide_comment_canvas.isChecked = prefSetting.getBoolean("nicovideo_comment_canvas_hide", false)
     }
 
     private fun initKotehanButton() {
@@ -427,26 +437,6 @@ class DevNicoVideoMenuFragment : Fragment() {
         })
         if (devNicoVideoFragment.isInitExoPlayer()) {
             fragment_nicovideo_menu_volume_seek.progress = (devNicoVideoFragment.exoPlayer.volume * 10).toInt()
-        }
-    }
-
-    /**
-     * 値セット
-     * */
-    fun getValue() {
-        fragment_nicovideo_menu_hide_comment_search.isChecked = prefSetting.getBoolean("nicovideo_hide_search_button", true)
-    }
-
-    /**
-     * 値保存
-     * */
-    fun setValue() {
-        switchListener(fragment_nicovideo_menu_hide_comment_search, "nicovideo_hide_search_button")
-    }
-
-    private fun switchListener(switch: Switch, key: String) {
-        switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            prefSetting.edit { putBoolean(key, isChecked) }
         }
     }
 

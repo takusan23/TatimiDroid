@@ -822,13 +822,18 @@ class DevNicoVideoFragment : Fragment() {
             if (clickMessage != null && click != null) {
                 setAction(clickMessage) { click() }
             }
-            anchorView = if (fragment_nicovideo_fab.isShown) {
-                fragment_nicovideo_fab
-            } else {
-                fragment_nicovideo_controller
-            }
+            anchorView = getSnackBarAnchorView()
             show()
         }
+    }
+
+    /**
+     * SnackBarを表示する際にFab（コントローラー）の上に表示しろと指定するときに使う。
+     * */
+    fun getSnackBarAnchorView() = if (fragment_nicovideo_fab.isShown) {
+        fragment_nicovideo_fab
+    } else {
+        fragment_nicovideo_controller
     }
 
     /**

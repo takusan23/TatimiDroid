@@ -331,7 +331,14 @@ class NicoVideoInfoFragment : Fragment() {
                     withContext(Dispatchers.Main) {
                         // nullの可能性
                         val message = if (thanksMessage == "null") getString(R.string.like_ok) else thanksMessage
-                        devNicoVideoFragment!!.showSnackbar(message, null, null)
+                        Snackbar.make(fragment_nicovideo_info_like_chip, message, Snackbar.LENGTH_INDEFINITE).apply {
+                            // お礼メッセージ読んでる途中に消されると迷惑なので自分で閉じるように
+                            setAction(R.string.close) {
+                                dismiss()
+                            }
+                            // SnackBarの位置
+                            anchorView = devNicoVideoFragment?.getSnackBarAnchorView()
+                        }.show()
                     }
                 }
             } else {

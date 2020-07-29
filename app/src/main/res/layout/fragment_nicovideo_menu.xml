@@ -67,38 +67,31 @@
 
                 <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical">
-
-                    <Switch
-                            android:id="@+id/fragment_nicovideo_menu_3ds_switch"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="5sp"
-                            android:text="@string/menu_device_3ds_block" />
-
-                    <Switch
-                            android:id="@+id/fragment_nicovideo_menu_hide_comment_search"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="5sp"
-                            android:text="@string/hide_comment_search_area" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_margin="5sp">
-
-                <LinearLayout
-                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="10sp">
 
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+                        <Switch
+                                android:id="@+id/fragment_nicovideo_menu_3ds_switch"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="5sp"
+                                android:text="@string/menu_device_3ds_block" />
+
+                        <Switch
+                                android:id="@+id/fragment_nicovideo_menu_hide_comment_canvas"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="5sp"
+                                android:text="@string/comment_hidden" />
+
+                    </LinearLayout>
 
                     <Button
                             android:id="@+id/fragment_nicovideo_menu_add_mylist"

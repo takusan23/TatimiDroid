@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import kotlin.random.Random
 

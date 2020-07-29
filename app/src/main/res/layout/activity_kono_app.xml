@@ -115,7 +115,7 @@
                             android:layout_height="wrap_content"
                             android:padding="10dp"
                             android:text="@string/show"
-                            app:icon="@drawable/ic_expand_more_24px" />
+                            app:icon="@drawable/ic_expand_less_black_24dp" />
 
                 </LinearLayout>
 
