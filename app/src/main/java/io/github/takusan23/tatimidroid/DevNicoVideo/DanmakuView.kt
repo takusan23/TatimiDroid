@@ -4,12 +4,9 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.os.Bundle
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.AttributeSet
-import android.view.AbsSavedState
 import android.view.View
+import androidx.core.view.isVisible
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -42,6 +39,11 @@ class DanmakuView(context: Context?, attrs: AttributeSet?) : View(context, attrs
      * @param finalWidth ここでgetWidth()しても0帰ってくるから、addOnGlobalLayoutListener{}で取得して。
      * */
     fun init(videoDuration: Long, commentList: ArrayList<CommentJSONParse>, finalWidth: Int) {
+        // 0なら動かない。ついでに非表示
+        if (commentList.isEmpty()) {
+            isVisible = false
+            return
+        }
         // 幅決定
         viewWidth = finalWidth
         // 秒

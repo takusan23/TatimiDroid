@@ -425,12 +425,8 @@ class NicoVideoHTML {
                 //なーんかUriでパースできないので仕方なく＆のいちを取り出して無理やり取り出す。
                 val andPos = threadResponse?.indexOf("&")
                 // threadkeyとforce_184パース
-                threadkey =
-                    threadResponse?.substring(0, andPos!!)
-                        ?.replace("threadkey=", "")
-                force_184 =
-                    threadResponse?.substring(andPos!!, threadResponse.length)
-                        ?.replace("&force_184=", "")
+                threadkey = threadResponse?.substring(0, andPos!!)?.replace("threadkey=", "")
+                force_184 = threadResponse?.substring(andPos!!, threadResponse.length)?.replace("&force_184=", "")
             }
 
             // threads[]のJSON配列の中に「isActive」がtrueなら次のJSONを作成します
@@ -456,6 +452,8 @@ class NicoVideoHTML {
                     if (isThreadkeyRequired) {
                         put("force_184", force_184)
                         put("threadkey", threadkey)
+                    } else {
+                        put("userkey", userkey) // 公式動画のときは userkey いらない模様
                     }
                 }
                 val post_thread = JSONObject().apply {
@@ -472,13 +470,14 @@ class NicoVideoHTML {
                     put("content", content)
                     put("scores", 1)
                     put("nicoru", 3)
-                    put("userkey", userkey)
                     put("fork", fork) // これ指定するとなんか仕様変更耐えた
                     // 公式動画（isThreadkeyRequiredはtrue）はthreadkeyとforce_184必須。
                     // threadkeyのときはもしかするとuserkeyいらない
                     if (isThreadkeyRequired) {
                         put("force_184", force_184)
                         put("threadkey", threadkey)
+                    } else {
+                        put("userkey", userkey) // 公式動画のときは userkey いらない模様
                     }
                 }
                 val thread_leaves = JSONObject().apply {
@@ -498,8 +497,7 @@ class NicoVideoHTML {
      * @return 取得失敗時はnull。成功時はResponse
      * */
     suspend fun getComment(videoId: String, userSession: String, jsonObject: JSONObject) = withContext(Dispatchers.IO) {
-        val postData = makeCommentAPIJSON(videoId, userSession, jsonObject).toString()
-            .toRequestBody()
+        val postData = makeCommentAPIJSON(videoId, userSession, jsonObject).toString().toRequestBody()
         // リクエスト
         val request = Request.Builder().apply {
             url("https://nmsg.nicovideo.jp/api.json/")

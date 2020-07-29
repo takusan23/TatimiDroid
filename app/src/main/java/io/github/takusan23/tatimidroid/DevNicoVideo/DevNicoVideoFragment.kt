@@ -1054,7 +1054,6 @@ class DevNicoVideoFragment : Fragment() {
                 val round = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
                 // 16:9なら
                 isAspectRate169 = round == 1.7
-
                 // Fragmentが息してて 全画面と横画面　でなければ　アスペクト比を直す
                 if (isAdded && !(::devNicoVideoFragmentData.isInitialized && (devNicoVideoFragmentData.isFullScreenMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE))) {
                     // アスペ比直す
