@@ -7,7 +7,7 @@
 <p align="center" style="font-size:20px;font-weight:300">
 (非公式の)Androidで動くニコニコ動画・生放送・実況クライアント<br>
 ユーザー生放送では全部屋表示に対応。<br>
-Android 5以上で利用可能<br>
+Android 5.1以上で利用可能<br>
 </p>
 
 <p align="center">

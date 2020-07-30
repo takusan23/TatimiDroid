@@ -100,16 +100,17 @@
                             android:text="@string/add_mylist" />
 
                     <Button
+                            android:id="@+id/fragment_nicovideo_menu_atodemiru"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/atodemiru_add" />
+
+                    <Button
                             android:id="@+id/fragment_nicovideo_menu_quality"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/quality" />
 
-                    <Button
-                            android:id="@+id/fragment_nicovideo_menu_atodemiru"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/atodemiru_add" />
 
                     <Button
                             android:id="@+id/fragment_nicovideo_menu_rotation"

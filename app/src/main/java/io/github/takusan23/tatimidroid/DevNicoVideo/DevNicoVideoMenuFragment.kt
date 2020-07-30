@@ -275,7 +275,7 @@ class DevNicoVideoMenuFragment : Fragment() {
             addMylistBottomFragment.arguments = bundle
             addMylistBottomFragment.show(parentFragmentManager, "mylist")
         }
-        fragment_nicovideo_menu_add_mylist.setOnClickListener {
+        fragment_nicovideo_menu_atodemiru.setOnClickListener {
             // あとで見るに追加する
             val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
                 showToast("${getString(R.string.error)}\n${throwable.message}")
