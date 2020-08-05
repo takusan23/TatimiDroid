@@ -22,8 +22,7 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistor
     lateinit var bottomSheetDialogFragment: BottomSheetDialogFragment
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.adapter_nico_history, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_nico_history, parent, false)
         return ViewHolder(view)
     }
 
@@ -45,7 +44,7 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistor
         //コミュIDをいれる
         holder.cardView.setOnClickListener {
             if (::editText.isInitialized) {
-                val text = if (communityId.isNotEmpty()) {
+                val text = if (type == "live") {
                     communityId
                 } else {
                     id // 動画用に

@@ -86,7 +86,7 @@ class NicoVideoRSS {
         // ぱーす
         for (i in 0 until 100) {
             val title = titleTag[i].text()
-            val videoId = linkTag[i].text().replace("https://www.nicovideo.jp/watch/", "")
+            val videoId = linkTag[i].text().replace("https://www.nicovideo.jp/watch/", "").replace("?ref=rss_specified_ranking_rss2","") // いらない部分を消す
             // これ特殊
             val descriptionJsoup = Jsoup.parse(description[i].text())
             val thum = descriptionJsoup.getElementsByTag("img")[0].attr("src")
