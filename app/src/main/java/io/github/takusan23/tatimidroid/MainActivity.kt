@@ -154,38 +154,16 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    val createdFragmentList = arrayListOf<Fragment>()
-
     private fun setFragment(fragment: Fragment) {
+        // 同じFragmentの場合はやらない（例：生放送開いてるのにもう一回生放送開いたときは何もしない）
+        val findFragment = supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
+        if (findFragment != null && findFragment.javaClass == fragment.javaClass) {
+            return // Fragmentはすでに設置済みなので
+        }
+        // Fragmentセット
         supportFragmentManager.beginTransaction().replace(R.id.main_activity_linearlayout, fragment).commit()
     }
 
-
-//    /**
-//     * ViewPager2を初期化
-//     * なんでMainActivityでViewPagerなんて使ってるのかというと画面を切り替えても状態を維持するためです。
-//     * */
-//    private fun initViewPager2() {
-//        // スワイプ無効
-//        activity_main_viewpager2.isUserInputEnabled = false
-//        // Fragment保持数を増やす。
-//        activity_main_viewpager2.offscreenPageLimit = 1
-//        // セットする
-//        adapter = MainActivityFragmentStateViewAdapter(this)
-//        activity_main_viewpager2.adapter = adapter
-//    }
-
-//
-//    /**
-//     * ViewPager2のFragmentを置き換える。
-//     * @param page [MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_SETTING]等を参考に
-//     * */
-//    private fun setPage(page: Int) {
-//        //activity_main_viewpager2.currentItem = page
-//        adapter.setFragment(page, activity_main_viewpager2)
-//    }
-//
-//
 
     // Android 10からアプリにフォーカスが当たらないとクリップボードの中身が取れなくなったため
     override fun onWindowFocusChanged(hasFocus: Boolean) {
