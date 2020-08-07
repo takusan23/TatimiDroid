@@ -331,14 +331,15 @@ class NicoVideoInfoFragment : Fragment() {
                     withContext(Dispatchers.Main) {
                         // nullの可能性
                         val message = if (thanksMessage == "null") getString(R.string.like_ok) else thanksMessage
-                        Snackbar.make(fragment_nicovideo_info_like_chip, message, Snackbar.LENGTH_INDEFINITE).apply {
+                        multiLineSnackbar(fragment_nicovideo_info_like_chip, message, Snackbar.LENGTH_INDEFINITE).apply {
                             // お礼メッセージ読んでる途中に消されると迷惑なので自分で閉じるように
                             setAction(R.string.close) {
                                 dismiss()
                             }
                             // SnackBarの位置
                             anchorView = devNicoVideoFragment?.getSnackBarAnchorView()
-                        }.show()
+                            show()
+                        }
                     }
                 }
             } else {
@@ -347,6 +348,18 @@ class NicoVideoInfoFragment : Fragment() {
                 setLikeChipStatus(false)
             }
         }
+    }
+
+    /**
+     * MultilineなSnackbar。Material Design的にはよろしくない
+     * https://stackoverflow.com/questions/30705607/android-multiline-snackbar
+     * */
+    private fun multiLineSnackbar(view: View, message: String, time: Int = Snackbar.LENGTH_SHORT): Snackbar {
+        val snackbar = Snackbar.make(view, message, time)
+        val snackbarView = snackbar.view
+        val textView = snackbarView.findViewById(com.google.android.material.R.id.snackbar_text) as TextView
+        textView.maxLines = Int.MAX_VALUE
+        return snackbar
     }
 
     /** ハートのアイコン色とテキストを変更する関数 */
