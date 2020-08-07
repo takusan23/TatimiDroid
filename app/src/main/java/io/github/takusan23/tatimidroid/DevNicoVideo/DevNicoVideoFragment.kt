@@ -33,7 +33,6 @@ import io.github.takusan23.tatimidroid.DevNicoVideo.Adapter.DevNicoVideoRecycler
 import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.FregmentData.DevNicoVideoFragmentData
 import io.github.takusan23.tatimidroid.FregmentData.TabLayoutData
-import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
@@ -782,7 +781,7 @@ class DevNicoVideoFragment : Fragment() {
         if (isLoginMode(context) && !nicoVideoHTML.verifyLogin(jsonObject)) {
             showSnackbar(getString(R.string.login_disable_message), getString(R.string.login)) {
                 GlobalScope.launch {
-                    NicoLogin.loginCoroutine(context)
+                    NicoLogin.reNicoLogin(context)
                     activity?.runOnUiThread {
                         activity?.finish()
                         val intent = Intent(context, NicoVideoActivity::class.java)

@@ -19,6 +19,12 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
     var uneiComment = "" // ニコニ広告、ランクインなどをきれいにする
     var nicoru = 0 // ニコ動のみ。ニコる
 
+    /**
+     * ニコ動のみ。forkが1なら投稿者コメント、2ならかんたんコメントです。0なら通常
+     * でもコメントしない層は何してもコメントしないと思いました。
+     * */
+    var fork = 0
+
     /** 自分が投稿したコメントの場合 true */
     var yourPost = false
 
@@ -62,6 +68,8 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
             if (chatObject.has("nicoru")) {
                 nicoru = chatObject.getInt("nicoru")
             }
+            // ニコ動限定。投稿者、かんたんコメントの判断に使える
+            fork = chatObject.optInt("fork", 0)
             // yourpost（自分が投稿したコメントかどうか。ニコ生のみ？）取得←originのフィルターのせいで動いてない
             yourPost = chatObject.optInt("yourpost", 0) == 1
             // /nicoad、/info

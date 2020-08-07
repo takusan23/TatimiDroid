@@ -72,7 +72,6 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import kotlin.concurrent.timerTask
 import kotlin.math.roundToInt
@@ -656,7 +655,7 @@ class CommentFragment : Fragment() {
         }
         if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
             // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
-            usersession = NicoLogin.loginCoroutine(context)
+            usersession = NicoLogin.reNicoLogin(context)
             // 視聴モードなら再度視聴ページリクエスト
             if (isWatchingMode) {
                 getNicoLiveHTML()

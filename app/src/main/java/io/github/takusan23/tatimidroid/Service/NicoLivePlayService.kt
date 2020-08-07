@@ -41,7 +41,6 @@ import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.*
 import java.util.*
-import kotlin.concurrent.timerTask
 
 
 /**
@@ -193,7 +192,7 @@ class NicoLivePlayService : Service() {
             }
             if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
                 // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
-                NicoLogin.loginCoroutine(this@NicoLivePlayService)
+                NicoLogin.reNicoLogin(this@NicoLivePlayService)
                 // 視聴モードなら再度視聴ページリクエスト
                 if (isCommentPOSTMode) {
                     coroutine()

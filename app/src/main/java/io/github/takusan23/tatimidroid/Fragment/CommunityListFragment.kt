@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -213,7 +212,7 @@ class CommunityListFragment : Fragment() {
                     showSnackBar(message = getString(R.string.login_disable_message), showTime = Snackbar.LENGTH_INDEFINITE, buttonText = getString(R.string.login)) {
                         GlobalScope.launch {
                             // 再ログイン+再取得
-                            userSession = NicoLogin.loginCoroutine(context)
+                            userSession = NicoLogin.reNicoLogin(context)
                             getProgramDataFromNicoLiveTopPage(jsonObjectName)
                         }
                         return@showSnackBar
@@ -272,7 +271,7 @@ class CommunityListFragment : Fragment() {
                     showSnackBar(message = getString(R.string.login_disable_message), showTime = Snackbar.LENGTH_INDEFINITE, buttonText = getString(R.string.login)) {
                         GlobalScope.launch {
                             // 再ログイン+再取得
-                            userSession = NicoLogin.loginCoroutine(context)
+                            userSession = NicoLogin.reNicoLogin(context)
                             getProgramDataFromNicorepo()
                         }
                         return@showSnackBar

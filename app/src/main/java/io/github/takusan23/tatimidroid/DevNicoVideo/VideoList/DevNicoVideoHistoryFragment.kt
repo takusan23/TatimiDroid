@@ -99,7 +99,7 @@ class DevNicoVideoHistoryFragment : Fragment() {
                             setAction(R.string.login) {
                                 // ログインする
                                 GlobalScope.launch {
-                                    userSession = NicoLogin.loginCoroutine(context)
+                                    userSession = NicoLogin.reNicoLogin(context)
                                     getHistory()
                                 }
                             }

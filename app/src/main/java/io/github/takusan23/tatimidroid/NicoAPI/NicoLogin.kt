@@ -1,18 +1,16 @@
 package io.github.takusan23.tatimidroid.NicoAPI
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.R
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import okhttp3.*
-import org.json.JSONObject
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -22,114 +20,87 @@ import kotlin.coroutines.suspendCoroutine
 
 /**
  * ニコニコにログインする関数。
- * 高階関数とコルーチン版どちらもあります。
+ * コルーチンで使ってください
+ *
+ * ```kotlin
+ * //ログイン
+ * GlobalScope.launch(Dispatchers.Main) {
+ *     // ログインAPIを叩く
+ *     val userSession = withContext(Dispatchers.Default) {
+ *         NicoLogin.nicoLoginCoroutine(mail, pass)
+ *     }
+ * }
+ * ```
  * */
 class NicoLogin {
     companion object {
-        /**
-         * UIスレッドでは実行できません。
-         * ニコ動へログインする関数。ただし初回利用時は利用できません。（SharedPreferenceに値が保存されている必要があるため。）
-         * @param context SharedPreferenceに保存するときなどに必要。
-         * @param loginSuccessful ログインに成功したら呼ばれます。（注意：UIスレッドではありません。）
-         * */
-        fun login(context: Context?, loginSuccessful: () -> Unit) {
-            val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-            val mail = pref_setting.getString("mail", "")
-            val pass = pref_setting.getString("password", "")
-            // 使用するサーバーのURLに合わせる
-            val urlSt = "https://secure.nicovideo.jp/secure/login?site=niconico"
-
-            var httpConn: HttpURLConnection? = null
-
-            val postData = "mail_tel=$mail&password=$pass"
-
-            try {
-                // URL設定
-                val url = URL(urlSt)
-
-                // HttpURLConnection
-                httpConn = url.openConnection() as HttpURLConnection
-
-                // request POST
-                httpConn.requestMethod = "POST"
-
-                // no Redirects
-                httpConn.instanceFollowRedirects = false
-
-                // データを書き込む
-                httpConn.doOutput = true
-
-                // 時間制限
-                httpConn.readTimeout = 10000
-                httpConn.connectTimeout = 20000
-
-                //ユーザーエージェント
-                httpConn.setRequestProperty("User-Agent", "TatimiDroid;@takusan_23")
-
-                // 接続
-                httpConn.connect()
-
-                try {
-                    httpConn.outputStream.use { outStream ->
-                        outStream.write(postData.toByteArray(StandardCharsets.UTF_8))
-                        outStream.flush()
-                    }
-                } catch (e: IOException) {
-                    // POST送信エラー
-                    e.printStackTrace()
-                }
-                // POSTデータ送信処理
-                val status = httpConn.responseCode
-                if (status == HttpURLConnection.HTTP_MOVED_TEMP) {
-                    // レスポンスを受け取る処理等
-                    for (cookie in httpConn.headerFields.get("Set-Cookie")!!) {
-                        //user_sessionだけほしい！！！
-                        if (cookie.contains("user_session") &&
-                            !cookie.contains("deleted") &&
-                            !cookie.contains("secure")
-                        ) {
-                            //邪魔なのを取る
-                            var user_session = cookie.replace("user_session=", "")
-                            //uset_settionは文字数86なので切り取る
-                            user_session = user_session.substring(0, 86)
-                            //保存する
-                            val editor = pref_setting.edit()
-                            editor.putString("user_session", user_session)
-                            //めあど、ぱすわーども保存する
-                            editor.putString("mail", mail)
-                            editor.putString("password", pass)
-                            editor.apply()
-                            // ログイン成功なので関数を呼ぶ
-                            loginSuccessful()
-                        }
-                    }
-                } else {
-                    //失敗
-                    val mHandler = Handler(Looper.getMainLooper())
-                    mHandler.post {
-                        // 失敗メッセージ
-                        Toast.makeText(context, "${context?.getString(R.string.error)}\n${status}", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } finally {
-                httpConn?.disconnect()
-            }
-        }
 
         /**
-         * ニコニコにログインする関数。コルーチン版
+         * ニコニコにログインする関数。こちらはPreferenceの値を使うので二回目以降から利用できます（だからContextが引数で必要だったのですね！）
          * ただし初回利用時は利用できません。（SharedPreferenceに値が保存されている必要があるため。）
-         * 注意：これ取得したら必ずuser_sessionをPreferenceから再取得してください。
+         * 取得に成功したらSharedPreferenceに保存します。ので自分で保存処理を書かなくていいよ
          * @param context SharedPreferenceを使うため
-         * @return ユーザーセッションを返します。
+         * @return ユーザーセッションを返します。失敗時は空文字（どうにかしたい）
          * */
-        suspend fun loginCoroutine(context: Context?) = suspendCoroutine<String> { suspendCoroutine ->
-            login(context) {
-                val userSession = PreferenceManager.getDefaultSharedPreferences(context).getString("user_session", "") ?: ""
-                suspendCoroutine.resume(userSession)
+        suspend fun reNicoLogin(context: Context?): String = withContext(Dispatchers.Default) {
+            // メアドを取り出す
+            val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+            val mail = prefSetting.getString("mail", "")
+            val pass = prefSetting.getString("password", "")
+            if (mail == null && pass == null) {
+                withContext(Dispatchers.Main) {
+                    // メアド設定してね
+                    Toast.makeText(context, R.string.mail_pass_error, Toast.LENGTH_SHORT).show()
+                }
+                return@withContext ""
+            }
+            // ログインしてログイン情報保存
+            val userSession = nicoLoginCoroutine(mail!!, pass!!) ?: return@withContext ""
+            prefSetting.edit {
+                putString("user_session", userSession)
+            }
+            return@withContext userSession
+        }
+
+        /**
+         * ニコニコにログインする関数。
+         * OkHttpで書き直した。リダイレクト禁止すればできます。Set-Cookieが複数あるので注意
+         * @param mail メアド
+         * @param pass パスワード
+         * @return ユーザーセッション。ログイン情報
+         * */
+        suspend fun nicoLoginCoroutine(mail: String, pass: String): String? = withContext(Dispatchers.Default) {
+            val url = "https://secure.nicovideo.jp/secure/login?site=niconico"
+            val postData = "mail_tel=$mail&password=$pass"
+            val request = Request.Builder().apply {
+                url(url)
+                addHeader("User-Agent", "TatimiDroid;@takusan_23")
+                post(postData.toRequestBody("application/x-www-form-urlencoded".toMediaTypeOrNull())) // 送信するデータ。
+            }.build()
+            // リダイレクト禁止（そうしないとステータスコードが302にならない）
+            val okHttpClient = OkHttpClient().newBuilder().apply {
+                followRedirects(false)
+                followSslRedirects(false)
+            }.build()
+            val response = okHttpClient.newCall(request).execute()
+            // 成功時
+            if (response.code == 302) {
+                // Set-Cookieを探す。
+                // なんか複雑なことしてるけどおそらくヘッダーSet-Cookieが複数あるせいで最後のSet-Cookieの値しか取れないのでめんどい
+                response.headers.filter { pair ->
+                    pair.second.contains("user_session") && !pair.second.contains("secure") && !pair.second.contains("deleted")
+                }.forEach { header ->
+                    // user_session
+                    val user_session = header.second.split(";")[0].replace("user_session=", "")
+                    return@withContext user_session
+                }
+                // なかった
+                return@withContext null
+            } else {
+                // そもそも失敗
+                return@withContext null
             }
         }
+
     }
 }
