@@ -4,10 +4,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
-import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.Fragment.LoginFragment
-import io.github.takusan23.tatimidroid.Fragment.ProgramListFragment
+import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
 import io.github.takusan23.tatimidroid.Fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.MainActivity
 
@@ -52,8 +52,8 @@ class MainActivityFragmentStateViewAdapter(val activity: AppCompatActivity) : Fr
         // すでに同じFragmentがあれば追加しない
         val fragment = when (fragmentNo) {
             MAIN_ACTIVITY_VIEWPAGER2_NICOLIVE -> ProgramListFragment()
-            MAIN_ACTIVITY_VIEWPAGER2_NICOVIDEO -> DevNicoVideoSelectFragment()
-            MAIN_ACTIVITY_VIEWPAGER2_CACHE -> DevNicoVideoCacheFragment()
+            MAIN_ACTIVITY_VIEWPAGER2_NICOVIDEO -> NicoVideoSelectFragment()
+            MAIN_ACTIVITY_VIEWPAGER2_CACHE -> NicoVideoCacheFragment()
             MAIN_ACTIVITY_VIEWPAGER2_LOGIN -> LoginFragment()
             MAIN_ACTIVITY_VIEWPAGER2_SETTING -> SettingsFragment()
             else -> LoginFragment()

@@ -4,8 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentStatePagerAdapter
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import io.github.takusan23.tatimidroid.Fragment.*
+import io.github.takusan23.tatimidroid.NicoLive.*
 import io.github.takusan23.tatimidroid.R
 
 class CommentViewPager(val activity: AppCompatActivity, val liveId: String, val isOfficial: Boolean = false, val isJK: Boolean = false) :

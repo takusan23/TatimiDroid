@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.R
@@ -40,7 +41,7 @@ class LoginFragment : Fragment() {
         //おしたとき
         fragment_login_button.setOnClickListener {
             //ログイン
-            GlobalScope.launch(Dispatchers.Main) {
+            lifecycleScope.launch(Dispatchers.Main) {
                 val mail = fragment_login_mail_inputedittext.text.toString()
                 val pass = fragment_login_password_inputedittext.text.toString()
                 // ログインAPIを叩く

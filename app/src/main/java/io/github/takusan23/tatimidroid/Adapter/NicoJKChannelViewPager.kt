@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import io.github.takusan23.tatimidroid.Fragment.NicoJKProgramListFragment
+import io.github.takusan23.tatimidroid.NicoLive.NicoJKProgramListFragment
 import io.github.takusan23.tatimidroid.R
 
 /**

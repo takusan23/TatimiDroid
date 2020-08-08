@@ -414,7 +414,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         if (!command.contains("ue") && !command.contains("shita")) {
             // sortedByで検証
             val tmpList = commentObjList.toList()
-                .sortedBy { commentObject -> commentObject.yPos }
+                .sortedBy { commentObject ->
+                    return@sortedBy if (commentObject != null) commentObject.yPos else 0f
+                }
 
 /*
             // 流れるコメント

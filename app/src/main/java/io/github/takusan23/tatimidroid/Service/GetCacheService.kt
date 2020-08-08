@@ -126,7 +126,7 @@ class GetCacheService : Service() {
     private fun coroutine(position: Int = 0) {
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            showToast("${getString(R.string.error)}\n${throwable.message}")
+            showToast("${getString(R.string.error)}\n${throwable}")
         }
         launch = GlobalScope.launch(errorHandler) {
             // キャッシュ取得クラス

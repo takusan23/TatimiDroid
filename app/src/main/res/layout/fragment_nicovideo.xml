@@ -124,7 +124,7 @@
                                 android:layout_weight="1"
                                 android:orientation="vertical">
 
-                            <io.github.takusan23.tatimidroid.DevNicoVideo.DanmakuView
+                            <io.github.takusan23.tatimidroid.NicoVideo.DanmakuView
                                     android:id="@+id/danmakuView"
                                     android:layout_width="match_parent"
                                     android:layout_height="15dp"

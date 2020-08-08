@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.JK
 
+import androidx.annotation.WorkerThread
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async

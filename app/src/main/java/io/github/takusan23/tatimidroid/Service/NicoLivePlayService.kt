@@ -30,7 +30,7 @@ import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
 import io.github.takusan23.tatimidroid.*
-import io.github.takusan23.tatimidroid.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
@@ -179,7 +179,7 @@ class NicoLivePlayService : Service() {
     private fun coroutine() {
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            showToast("${getString(R.string.error)}\n${throwable.message}")
+            showToast("${getString(R.string.error)}\n${throwable}")
         }
         GlobalScope.launch(errorHandler) {
             // ニコ生視聴ページリクエスト

@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.Activity
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.Adapter.KotehanListAdapter
@@ -44,7 +45,7 @@ class KotehanListActivity : AppCompatActivity() {
      * */
     fun loadDB() {
         kotehanList.clear()
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
                 KotehanDBInit(this@KotehanListActivity).kotehanDB.kotehanDBDAO().getAll().forEach {
                     kotehanList.add(0, it)

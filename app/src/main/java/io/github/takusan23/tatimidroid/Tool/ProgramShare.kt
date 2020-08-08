@@ -13,8 +13,8 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
-import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoFragment
-import io.github.takusan23.tatimidroid.Fragment.CommentFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
+import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.R
 import java.text.SimpleDateFormat
 
@@ -154,7 +154,7 @@ class ProgramShare(val activity: AppCompatActivity, val view: View, val programN
         val fragment = if (programId.contains("lv")) {
             activity.supportFragmentManager.findFragmentByTag(programId) as CommentFragment
         } else {
-            activity.supportFragmentManager.findFragmentByTag(programId) as DevNicoVideoFragment
+            activity.supportFragmentManager.findFragmentByTag(programId) as NicoVideoFragment
         }
         fragment.startActivityForResult(intent, requestCode)
     }

@@ -3,7 +3,6 @@ package io.github.takusan23.tatimidroid.Service
 import android.app.*
 import android.content.*
 import android.graphics.PixelFormat
-import android.graphics.Point
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -19,7 +18,6 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.core.view.updateLayoutParams
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -29,7 +27,7 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
@@ -158,7 +156,7 @@ class NicoVideoPlayService : Service() {
     private fun coroutine() {
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            showToast("${getString(R.string.error)}\n${throwable.message}")
+            showToast("${getString(R.string.error)}\n${throwable}")
         }
 
         GlobalScope.launch(errorHandler) {

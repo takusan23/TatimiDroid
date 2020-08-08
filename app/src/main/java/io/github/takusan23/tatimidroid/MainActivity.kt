@@ -15,20 +15,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.Adapter.MainActivityFragmentStateViewAdapter
-import io.github.takusan23.tatimidroid.DevNicoVideo.DevNicoVideoSelectFragment
-import io.github.takusan23.tatimidroid.DevNicoVideo.NicoVideoActivity
-import io.github.takusan23.tatimidroid.DevNicoVideo.VideoList.DevNicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.BottomFragment.NicoHistoryBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.Fragment.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.DialogWatchModeBottomFragment
+import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import java.util.*
-import kotlin.concurrent.schedule
+import kotlinx.coroutines.*
 
 
 /**
@@ -80,9 +79,6 @@ class MainActivity : AppCompatActivity() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(1234)
 
-        // ViewPager2初期化
-        // initViewPager2()
-
         // 共有から起動した
         lunchShareIntent()
 
@@ -119,7 +115,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 R.id.menu_cache -> {
-                    setFragment(DevNicoVideoCacheFragment())
+                    setFragment(NicoVideoCacheFragment())
                     // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_CACHE)
                 }
             }
@@ -222,7 +218,7 @@ class MainActivity : AppCompatActivity() {
     private fun showVideoListFragment() {
         if (pref_setting.getString("mail", "")?.isNotEmpty() == true || isNotLoginMode(this)) {
             // ニコニコ動画
-            setFragment(DevNicoVideoSelectFragment())
+            setFragment(NicoVideoSelectFragment())
             // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_NICOVIDEO)
             //タイトル
             supportActionBar?.title = getString(R.string.nicovideo)
@@ -316,7 +312,7 @@ class MainActivity : AppCompatActivity() {
                     //ダイアログ
                     val bundle = Bundle()
                     bundle.putString("liveId", liveId)
-                    val dialog = BottomSheetDialogWatchMode()
+                    val dialog = DialogWatchModeBottomFragment()
                     dialog.arguments = bundle
                     dialog.show(supportFragmentManager, "watchmode")
                 }
@@ -327,13 +323,15 @@ class MainActivity : AppCompatActivity() {
                 if (hasMailPass(this)) {
                     // エラー時
                     val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-                        showToast("${getString(R.string.error)}\n${throwable.message}")
+                        showToast("${getString(R.string.error)}\n${throwable}")
                     }
-                    GlobalScope.launch(errorHandler) {
+                    lifecycleScope.launch(errorHandler) {
                         // コミュID->生放送ID
                         val nicoLiveHTML = NicoLiveHTML()
                         val response = nicoLiveHTML.getNicoLiveHTML(communityId, pref_setting.getString("user_session", ""), false)
-                        val responseString = response.body?.string()
+                        val responseString = withContext(Dispatchers.Default){
+                            response.body?.string()
+                        }
                         if (!response.isSuccessful) {
                             // 失敗時
                             showToast("${getString(R.string.error)}\n${response.code}")
@@ -344,7 +342,7 @@ class MainActivity : AppCompatActivity() {
                         //ダイアログ
                         val bundle = Bundle()
                         bundle.putString("liveId", nicoLiveHTML.liveId)
-                        val dialog = BottomSheetDialogWatchMode()
+                        val dialog = DialogWatchModeBottomFragment()
                         dialog.arguments = bundle
                         dialog.show(supportFragmentManager, "watchmode")
                     }

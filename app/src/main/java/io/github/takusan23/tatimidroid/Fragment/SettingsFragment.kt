@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
@@ -108,7 +109,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         firstTimeDay?.setOnPreferenceClickListener { preference ->
-            GlobalScope.launch(Dispatchers.Main) {
+            lifecycleScope.launch(Dispatchers.Main) {
                 // 最初に使った日特定
                 val list = withContext(Dispatchers.IO) {
                     NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().getAll()

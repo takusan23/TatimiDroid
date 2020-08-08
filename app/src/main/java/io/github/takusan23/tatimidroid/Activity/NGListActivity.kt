@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Adapter.NGListRecyclerView
@@ -57,7 +58,7 @@ class NGListActivity : AppCompatActivity() {
     //NGコメント読み込み
     fun loadNGComment() {
         recyclerViewList.clear()
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
                 // データ読み出し
                 NGDBInit(this@NGListActivity).ngDataBase.ngDBDAO().getNGCommentList().forEach {
@@ -72,7 +73,7 @@ class NGListActivity : AppCompatActivity() {
     //NGユーザー読み込み
     fun loadNGUser() {
         recyclerViewList.clear()
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
                 // データ読み出し
                 NGDBInit(this@NGListActivity).ngDataBase.ngDBDAO().getNGUserList().forEach {

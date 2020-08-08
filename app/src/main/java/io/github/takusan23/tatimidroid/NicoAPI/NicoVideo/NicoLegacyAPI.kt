@@ -75,19 +75,18 @@ class NicoLegacyAPI {
      * @param userSession ユーザーセッション
      * @param threadId getThreadId()の値
      * */
-    fun getWayBackKey(threadId: String, userSession: String): Deferred<String?> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("https://flapi.nicovideo.jp/api/getwaybackkey?thread=$threadId")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                header("Cookie", "user_session=$userSession")
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            val responseString = response.body?.string()
-            val wayBackKey = responseString?.replace("waybackkey=", "")
-            return@async wayBackKey
-        }
+    fun getWayBackKey(threadId: String, userSession: String): Deferred<String?> = GlobalScope.async {
+        val request = Request.Builder().apply {
+            url("https://flapi.nicovideo.jp/api/getwaybackkey?thread=$threadId")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$userSession")
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        val responseString = response.body?.string()
+        val wayBackKey = responseString?.replace("waybackkey=", "")
+        return@async wayBackKey
+    }
 
     /**
      * threadKeyを取得する関数。公式動画だと必須。コルーチンです。どうやらアクセスするたびに変わるっぽい？

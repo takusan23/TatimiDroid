@@ -3,9 +3,7 @@ package io.github.takusan23.tatimidroid
 import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
-import android.content.res.Configuration
 import android.graphics.Color
-import android.graphics.Point
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
@@ -26,8 +24,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import io.github.takusan23.tatimidroid.Adapter.NimadoListRecyclerViewAdapter
-import io.github.takusan23.tatimidroid.Fragment.CommentFragment
-import io.github.takusan23.tatimidroid.Fragment.NimadoLiveIDBottomFragment
+import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NimadoLiveIDBottomFragment
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.getThemeColor

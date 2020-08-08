@@ -1,19 +1,15 @@
 package io.github.takusan23.tatimidroid.NicoAPI
 
-import android.app.DownloadManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
-import io.github.takusan23.tatimidroid.DevNicoVideo.BottomFragment.DevNicoVideoCacheFilterBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.R
@@ -181,7 +177,7 @@ class NicoVideoCache(val context: Context?) {
         }
 
         // 並び替え
-        sort(filterList, DevNicoVideoCacheFilterBottomFragment.CACHE_FILTER_SORT_LIST.indexOf(filter.sort))
+        sort(filterList, NicoVideoCacheFilterBottomFragment.CACHE_FILTER_SORT_LIST.indexOf(filter.sort))
 
         return filterList
     }
@@ -432,9 +428,7 @@ class NicoVideoCache(val context: Context?) {
     fun getCacheComment(videoIdFolder: File, videoId: String, json: String, userSession: String) {
         GlobalScope.launch {
             // POSTするJSON作成
-            val response =
-                NicoVideoHTML()
-                    .getComment(videoId, userSession, JSONObject(json))
+            val response = NicoVideoHTML().getComment(videoId, userSession, JSONObject(json))
             if (response != null && response.isSuccessful) {
                 // 動画コメントJSON作成
                 val videoJSONFile = File("${videoIdFolder.path}/${videoId}_comment.json")
@@ -563,15 +557,13 @@ class NicoVideoCache(val context: Context?) {
      * */
     fun getReGetVideoInfoComment(videoId: String, userSession: String, context: Context?, completeFun: (() -> Unit)? = null) {
         GlobalScope.launch {
-            val nicoVideoHTML =
-                NicoVideoHTML()
+            val nicoVideoHTML = NicoVideoHTML()
             // 動画HTML取得
             val response = nicoVideoHTML.getHTML(videoId, userSession)
             if (response.isSuccessful) {
                 // 動画情報更新
                 val jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
-                val videoIdFolder =
-                    File("${getCacheFolderPath()}/${videoId}")
+                val videoIdFolder = File("${getCacheFolderPath()}/${videoId}")
                 saveVideoInfo(videoIdFolder, videoId, jsonObject.toString())
                 // コメント取得
                 val commentResponse = nicoVideoHTML.getComment(videoId, userSession, jsonObject)

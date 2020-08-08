@@ -4,8 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
-import androidx.fragment.app.FragmentStatePagerAdapter
-import io.github.takusan23.tatimidroid.Fragment.CommunityListFragment
+import io.github.takusan23.tatimidroid.NicoLive.CommunityListFragment
 import io.github.takusan23.tatimidroid.R
 
 class ProgramListViewPager(val activity: AppCompatActivity) :

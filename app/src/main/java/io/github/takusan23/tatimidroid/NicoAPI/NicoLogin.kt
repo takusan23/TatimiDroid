@@ -24,7 +24,7 @@ import kotlin.coroutines.suspendCoroutine
  *
  * ```kotlin
  * //ログイン
- * GlobalScope.launch(Dispatchers.Main) {
+ * lifecycleScope.launch(Dispatchers.Main) {
  *     // ログインAPIを叩く
  *     val userSession = withContext(Dispatchers.Default) {
  *         NicoLogin.nicoLoginCoroutine(mail, pass)

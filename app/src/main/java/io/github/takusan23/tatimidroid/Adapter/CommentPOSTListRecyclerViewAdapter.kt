@@ -7,7 +7,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.Activity.CommentCollectionListActivity
+import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentCollectionListActivity
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_comment_postlist.*
 import kotlinx.coroutines.Dispatchers
