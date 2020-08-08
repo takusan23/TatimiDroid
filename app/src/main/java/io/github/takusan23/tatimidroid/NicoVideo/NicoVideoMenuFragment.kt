@@ -58,7 +58,7 @@ class NicoVideoMenuFragment : Fragment() {
     lateinit var jsonObject: JSONObject
 
     /** [NicoVideoFragment]。このFragmentが置いてあるFragment。by lazy で使われるまで初期化しないように */
-    private val devNicoVideoFragment by lazy {
+    private val nicoVideoFragment by lazy {
         val videoId = arguments?.getString("id")
         parentFragmentManager.findFragmentByTag(videoId) as NicoVideoFragment
     }
@@ -147,7 +147,7 @@ class NicoVideoMenuFragment : Fragment() {
             // 設定保存
             prefSetting.edit { putBoolean("nicovideo_comment_canvas_hide", b) }
             // 消す
-            devNicoVideoFragment.fragment_nicovideo_comment_canvas.isVisible = !b
+            nicoVideoFragment.fragment_nicovideo_comment_canvas.isVisible = !b
         }
         // 設定読み出し
         fragment_nicovideo_menu_hide_comment_canvas.isChecked = prefSetting.getBoolean("nicovideo_comment_canvas_hide", false)
@@ -168,7 +168,7 @@ class NicoVideoMenuFragment : Fragment() {
             prefSetting.edit { putBoolean("nicovideo_comment_3ds_hidden", isChecked) }
             // コメント再適用
             lifecycleScope.launch {
-                devNicoVideoFragment.commentFilter()
+                nicoVideoFragment.commentFilter()
             }
         }
     }
@@ -208,13 +208,13 @@ class NicoVideoMenuFragment : Fragment() {
     private fun initVideoPlayServiceButton() {
         fragment_nicovideo_menu_popup.setOnClickListener {
             // ポップアップ再生
-            startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = devNicoVideoFragment.currentVideoQuality, audioQuality = devNicoVideoFragment.currentAudioQuality)
+            startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = nicoVideoFragment.currentVideoQuality, audioQuality = nicoVideoFragment.currentAudioQuality)
             // Activity落とす
             activity?.finish()
         }
         fragment_nicovideo_menu_background.setOnClickListener {
             // バッググラウンド再生
-            startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = devNicoVideoFragment.currentVideoQuality, audioQuality = devNicoVideoFragment.currentAudioQuality)
+            startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = nicoVideoFragment.currentVideoQuality, audioQuality = nicoVideoFragment.currentAudioQuality)
             // Activity落とす
             activity?.finish()
         }
@@ -248,7 +248,7 @@ class NicoVideoMenuFragment : Fragment() {
     // 動画再生ボタン
     private fun initPlayButton() {
         fragment_nicovideo_menu_video_play.setOnClickListener {
-            devNicoVideoFragment.apply {
+            nicoVideoFragment.apply {
                 if (fragment_nicovideo_framelayout.visibility == View.GONE) {
                     commentOnlyModeDisable()
                 } else {
@@ -321,14 +321,14 @@ class NicoVideoMenuFragment : Fragment() {
         fragment_nicovideo_menu_get_cache.setOnClickListener {
             if (!isCache) {
                 // キャッシュ取得サービス起動
-                startCacheService(context, devNicoVideoFragment.videoId)
+                startCacheService(context, nicoVideoFragment.videoId)
             }
         }
         // ログインするかはService側に書いてあるので。。。
         fragment_nicovideo_menu_get_cache_eco.setOnClickListener {
             if (!isCache) {
                 // キャッシュ取得サービス起動
-                startCacheService(context, devNicoVideoFragment.videoId)
+                startCacheService(context, nicoVideoFragment.videoId)
             }
         }
     }
@@ -359,9 +359,9 @@ class NicoVideoMenuFragment : Fragment() {
         } else {
             fragment_nicovideo_menu_quality.setOnClickListener {
                 // DevNicoVideoFragmentから持ってくる
-                val json = devNicoVideoFragment.jsonObject
+                val json = nicoVideoFragment.jsonObject
                 // DmcInfoかSmileサーバーか
-                val isDmcInfo = devNicoVideoFragment.nicoVideoHTML.isDMCServer(json)
+                val isDmcInfo = nicoVideoFragment.nicoVideoHTML.isDMCServer(json)
                 // 画質一覧取得
                 val qualityList = if (isDmcInfo) {
                     json.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality").toString()
@@ -374,7 +374,7 @@ class NicoVideoMenuFragment : Fragment() {
                     putString("video_id", videoId)
                     putBoolean("is_dmc", isDmcInfo)
                     putString("quality", qualityList)
-                    putString("select", devNicoVideoFragment.currentVideoQuality)
+                    putString("select", nicoVideoFragment.currentVideoQuality)
                 }
                 qualityBottomFragment.arguments = bundle
                 qualityBottomFragment.show(parentFragmentManager, "quality")
@@ -387,7 +387,7 @@ class NicoVideoMenuFragment : Fragment() {
     fun initShare() {
         // 写真付き共有
         fragment_nicovideo_menu_share_media_attach.setOnClickListener {
-            devNicoVideoFragment.apply {
+            nicoVideoFragment.apply {
                 // 再生時間も載せる
                 val currentTime = if (isInitExoPlayer()) {
                     val currentPos = exoPlayer.currentPosition
@@ -400,7 +400,7 @@ class NicoVideoMenuFragment : Fragment() {
         }
         // 共有
         fragment_nicovideo_menu_share.setOnClickListener {
-            devNicoVideoFragment.apply {
+            nicoVideoFragment.apply {
                 // 再生時間も載せる
                 val currentTime = if (isInitExoPlayer()) {
                     val currentPos = exoPlayer.currentPosition
@@ -419,8 +419,8 @@ class NicoVideoMenuFragment : Fragment() {
         fragment_nicovideo_menu_volume_seek.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (devNicoVideoFragment.isInitExoPlayer()) {
-                    devNicoVideoFragment.exoPlayer.volume = (progress.toFloat() / 10)
+                if (nicoVideoFragment.isInitExoPlayer()) {
+                    nicoVideoFragment.exoPlayer.volume = (progress.toFloat() / 10)
                 }
             }
 
@@ -432,8 +432,8 @@ class NicoVideoMenuFragment : Fragment() {
 
             }
         })
-        if (devNicoVideoFragment.isInitExoPlayer()) {
-            fragment_nicovideo_menu_volume_seek.progress = (devNicoVideoFragment.exoPlayer.volume * 10).toInt()
+        if (nicoVideoFragment.isInitExoPlayer()) {
+            fragment_nicovideo_menu_volume_seek.progress = (nicoVideoFragment.exoPlayer.volume * 10).toInt()
         }
     }
 

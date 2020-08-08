@@ -494,4 +494,5 @@
     <string name="mylist_added">すでに登録済みです</string>
     <string name="atodemiru_add">あとでみる（とりあえずマイリスト）へ追加</string>
     <string name="atodemiru_ok">あとで見るに追加しました</string>
+    <string name="zyuuhuku_hide">重複を表示しない</string>
 </resources>

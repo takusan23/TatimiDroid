@@ -1845,16 +1845,23 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         return result
     }
 
-    //アンケートへ応答。0が１番目？
+    /**
+     * アンケを押す
+     * @param pos アンケの位置。多分一番目が0（配列みたいに）
+     * ■■■■■■■■■■■
+     * ■ 1 /             ■
+     * ■ /               ■
+     * ■  とても良かった  ■
+     * ■                 ■
+     * ■■ [ 98.6 ％ ] ■■   宇宙よりも遠い場所 2020/08/09 一挙アンケ
+     * */
     fun enquatePOST(pos: Int) {
-        val jsonArray = JSONArray()
-        jsonArray.put(pos)
-        val bodyObject = JSONObject()
-        bodyObject.put("command", "answerenquete")
-        bodyObject.put("params", jsonArray)
-        val jsonObject = JSONObject()
-        jsonObject.put("type", "watch")
-        jsonObject.put("body", bodyObject)
+        val jsonObject = JSONObject().apply {
+            put("type", "answerEnquete")
+            put("data", JSONObject().apply {
+                put("answer", pos)
+            })
+        }
         nicoLiveHTML.nicoLiveWebSocketClient.send(jsonObject.toString())
     }
 

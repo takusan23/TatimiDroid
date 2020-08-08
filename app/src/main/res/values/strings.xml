@@ -494,4 +494,5 @@
     <string name="mylist_added">Already registered</string>
     <string name="atodemiru_add">See later (for now, add to my list)</string>
     <string name="atodemiru_ok">Added to see later</string>
+    <string name="zyuuhuku_hide">Do not show duplicates</string>
 </resources>

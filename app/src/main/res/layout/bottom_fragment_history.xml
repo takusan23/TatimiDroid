@@ -71,6 +71,18 @@
                     android:checked="false"
                     android:text="@string/today_only"
                     app:chipIcon="@drawable/ic_event_available_24px" />
+
+            <com.google.android.material.chip.Chip
+                    android:id="@+id/bottom_fragment_history_chip_distinct"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5sp"
+                    android:layout_weight="1"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:text="@string/zyuuhuku_hide"
+                    app:chipIcon="@drawable/ic_filter_alt_black_24dp" />
+
         </LinearLayout>
     </HorizontalScrollView>
 

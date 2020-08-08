@@ -59,6 +59,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_history_chip_live.setOnClickListener { loadHistory() }
         bottom_fragment_history_chip_video.setOnClickListener { loadHistory() }
         bottom_fragment_history_chip_today.setOnClickListener { loadHistory() }
+        bottom_fragment_history_chip_distinct.setOnClickListener { loadHistory() }
 
     }
 
@@ -127,6 +128,12 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
                     val to = System.currentTimeMillis() / 1000L
                     recyclerViewList = recyclerViewList.filter { history ->
                         history.unixTime in from..to // 範囲に入ってるか
+                    } as ArrayList<NicoHistoryDBEntity>
+                }
+                // 重複を表示しない
+                if (bottom_fragment_history_chip_distinct.isChecked) {
+                    recyclerViewList = recyclerViewList.distinctBy { history ->
+                        history.userId
                     } as ArrayList<NicoHistoryDBEntity>
                 }
             }
