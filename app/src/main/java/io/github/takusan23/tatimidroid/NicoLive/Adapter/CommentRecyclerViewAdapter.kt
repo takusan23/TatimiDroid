@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
@@ -19,8 +20,12 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.BottomFragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
+import io.github.takusan23.tatimidroid.Tool.CustomFont
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -31,9 +36,13 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
 
     //UserIDの配列。初コメを太字表示する
     val userList = arrayListOf<String>()
+    lateinit var font: CustomFont
     lateinit var pref_setting: SharedPreferences
 
     lateinit var appCompatActivity: AppCompatActivity
+
+    /** コテハン。[setKotehanDBChangeObserve]で自動更新してる */
+    val kotehanMap = mutableMapOf<String, String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_comment_layout, parent, false)
@@ -49,7 +58,11 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         val context = holder.cardView.context
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
-        //CommentFragment取得
+        // 一度だけ
+        if (!::font.isInitialized) {
+            font = CustomFont(context)
+            setKotehanDBChangeObserve(context)
+        }
 
         //ロックオンだけcontextからActivityが取れないので。。
         //共通化する
@@ -59,8 +72,6 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
 
         val commentFragment = this.appCompatActivity.supportFragmentManager.findFragmentByTag(commentJSONParse.videoOrLiveId) as CommentFragment
 
-        // コテハンMAP
-        val kotehanMap = commentFragment.kotehanMap
         // コテハン。なければユーザーIDで
         val userId = kotehanMap[commentJSONParse.userId] ?: commentJSONParse.userId
 
@@ -191,14 +202,11 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         }
 
         // ユーザーの設定したフォントサイズ
-        commentFragment.customFont.apply {
-            holder.commentTextView.textSize = commentFontSize
-            holder.roomNameTextView.textSize = userIdFontSize
-        }
-
+        holder.commentTextView.textSize = font.commentFontSize
+        holder.roomNameTextView.textSize = font.userIdFontSize
         // ユーザーの設定したフォント
-        commentFragment.customFont.setTextViewFont(holder.commentTextView)
-        commentFragment.customFont.setTextViewFont(holder.roomNameTextView)
+        font.setTextViewFont(holder.commentTextView)
+        font.setTextViewFont(holder.roomNameTextView)
 
     }
 
@@ -209,9 +217,27 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         var commentTextView: TextView = itemView.findViewById(R.id.adapter_comment_textview)
+
         var roomNameTextView: TextView = itemView.findViewById(R.id.adapter_room_name_textview)
         var cardView: CardView = itemView.findViewById(R.id.adapter_room_name_cardview)
+    }
 
+    /**
+     * コテハンデータベースを監視する
+     * */
+    private fun setKotehanDBChangeObserve(context: Context?) {
+        if (context is AppCompatActivity) {
+            context.lifecycleScope.launch {
+                val dao = KotehanDBInit.getInstance(context).kotehanDBDAO()
+                dao.flowGetKotehanAll().collect { kotehanList ->
+                    kotehanMap.clear()
+                    // 変更があった
+                    kotehanList.forEach { kotehan ->
+                        kotehanMap[kotehan.userId] = kotehan.kotehan
+                    }
+                }
+            }
+        }
     }
 
     /**

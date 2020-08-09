@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.Room.DAO
 
 import androidx.room.*
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
+import kotlinx.coroutines.flow.Flow
 
 /**
  * コテハンDBを操作する関数。
@@ -27,5 +28,9 @@ interface KotehanDBDAO {
     /** ユーザーIDからコテハンを取り出す */
     @Query("SELECT * FROM kotehan WHERE user_id = :userId")
     fun findKotehanByUserId(userId: String): KotehanDBEntity?
+
+    /** データベースをリアルタイムで監視するとき使う。これでDBへ追加/削除等の変更を検知できる。コルーチンで使ってね */
+    @Query("SELECT * FROM kotehan")
+    fun flowGetKotehanAll(): Flow<List<KotehanDBEntity>>
 
 }

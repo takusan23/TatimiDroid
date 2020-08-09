@@ -42,6 +42,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
@@ -50,6 +51,7 @@ import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -143,9 +145,6 @@ class NicoVideoFragment : Fragment() {
     // 画面回転復帰時
     lateinit var devNicoVideoFragmentData: DevNicoVideoFragmentData
 
-    /** NG機能とコテハン。コテハンを書き換えた時は、ここの配列も更新してね。[updateKotehanMapFromDB]関数で更新できます。 */
-    val kotehanMap = mutableMapOf<String, String>()
-
     /** 全画面再生時はtrue */
     var isFullScreenMode = false
 
@@ -172,8 +171,8 @@ class NicoVideoFragment : Fragment() {
         // ActionBar消す
         (activity as AppCompatActivity).supportActionBar?.hide()
 
-        // コテハンDB初期化
-        updateKotehanMapFromDB()
+        // NGベース監視。コテハンはNicoVideoAdapterの方へ
+        setNGDBChangeObserve()
 
         // View初期化
         showSwipeToRefresh()
@@ -256,6 +255,22 @@ class NicoVideoFragment : Fragment() {
     }
 
     /**
+     * NGデータベースを監視する関数
+     * RoomとFlowのおかげでDBに変更が入ると通知してくれるようになった。便利
+     * */
+    private fun setNGDBChangeObserve() {
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                val dao = NGDBInit.getInstance(requireContext()).ngDBDAO()
+                dao.flowGetNGAll().collect { ngList ->
+                    // NGコメント追加した
+                    commentFilter(ngList = ngList, showToast = false)
+                }
+            }
+        }
+    }
+
+    /**
      * 動画再生。これは画面回展示ではなく初回の再生時や、他の動画に切り替える際に使う。関数名えっっっっっち
      * 動画ID変更はとりあえずargment#putString("id","動画ID")でたのんだ。
      * @param isInitViewPager ViewPagerを初期化する際はtrue。初回実行時のみ。動画を切り替える際はfalseにしてくれ
@@ -288,18 +303,6 @@ class NicoVideoFragment : Fragment() {
             isEconomy || isPreferenceEconomyMode -> coroutine(true, "", "", true)
             // それ以外：インターネットで取得
             else -> coroutine()
-        }
-    }
-
-    /**
-     * コテハンデータベースから値を取り出す
-     * */
-    fun updateKotehanMapFromDB() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            kotehanMap.clear()
-            KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().getAll().forEach { kotehan ->
-                kotehanMap.put(kotehan.userId, kotehan.kotehan)
-            }
         }
     }
 
@@ -683,25 +686,34 @@ class NicoVideoFragment : Fragment() {
     }
 
     /**
-     * コメントをフィルターにかける。3DS消したり（ハニワでやるとほぼ消える）とかNGデータベースを適用する時に使う。
+     * コメントをフィルターにかける。3DSを消すときに使ってね
+     * NGコメント/ユーザー追加時は勝手に更新するので呼ばなくていいです（[setNGDBChangeObserve]参照）。
      * 重そうなのでコルーチン
      * 注意：ViewPagerが初期化済みである必要(applyUIを一回以上呼んである必要)があります。
      * 注意：NG操作が終わったときに呼ぶとうまく動く？。
      * 注意：この関数を呼ぶと勝手にコメント一覧のRecyclerViewも更新されます。（代わりにapplyUI関数からコメントRecyclerView関係を消します）
      * rawCommentListはそのままで、フィルターにかけた結果がcommentListになる
      * @param notify DevNicoVideoCommentFragmentに更新をかけたい時はtrue。コメント一覧Fragmentは別に画面回転処理を書いてるため、画面回転復帰時は使わない。
+     * @param showToast トーストを表示させる場合はtrue。DB更新時とかはいらんやろ
+     * @param ngList データベース監視でNGユーザー/NGコメントの配列が手に入る場合は入れてください([setNGDBChangeObserve]のときだけ使える)。なければデータベースから取り出します。
      * */
-    suspend fun commentFilter(notify: Boolean = true) = withContext(Dispatchers.Default) {
+    suspend fun commentFilter(notify: Boolean = true, showToast: Boolean = true, ngList: List<NGDBEntity>? = null) = withContext(Dispatchers.Default) {
         // Fragmentが無い時があるからその時は落とす
         if (!isAdded) return@withContext
         // 3DSけす？
         val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
-        // NG配列。mapでNGコメント/NGユーザーの配列に変換する
-        val ngList = NGDBInit(requireContext()).ngDataBase.ngDBDAO().getAll().map { ngdbEntity -> ngdbEntity.value }
-        // NG機能
+        // とりあえず
         commentList = rawCommentList
-            .filter { commentJSONParse -> !ngList.contains(commentJSONParse.comment) }
-            .filter { commentJSONParse -> !ngList.contains(commentJSONParse.userId) } as ArrayList<CommentJSONParse>
+        // NGコメント。ngList引数が省略時されてるときはDBから取り出す
+        val ngCommentList = (ngList ?: NGDBInit.getInstance(requireContext()).ngDBDAO().getNGCommentList())
+            .map { ngdbEntity -> ngdbEntity.value }
+        // NGユーザー。ngList引数が省略時されてるときはDBから取り出す
+        val ngUserList = (ngList ?: NGDBInit.getInstance(requireContext()).ngDBDAO().getNGUserList())
+            .map { ngdbEntity -> ngdbEntity.value }
+        // NG機能
+        commentList = commentList
+            .filter { commentJSONParse -> !ngCommentList.contains(commentJSONParse.comment) }
+            .filter { commentJSONParse -> !ngUserList.contains(commentJSONParse.userId) } as ArrayList<CommentJSONParse>
         if (is3DSCommentHidden) {
             // device:3DSが入ってるコメント削除。dropWhileでもいい気がする
             commentList = commentList.toList().filter { commentJSONParse -> !commentJSONParse.mail.contains("device:3DS") } as ArrayList<CommentJSONParse>
@@ -709,8 +721,10 @@ class NicoVideoFragment : Fragment() {
         if (notify) {
             withContext(Dispatchers.Main) {
                 (viewPager.fragmentList[1] as NicoVideoCommentFragment).initRecyclerView(commentList)
-                // 前回見た位置から再生が４ぬので消しとく
-                showToast("${getString(R.string.get_comment_count)}：${commentList.size}")
+                // コメント数表示するか
+                if (showToast) {
+                    showToast("${getString(R.string.get_comment_count)}：${commentList.size}")
+                }
             }
         }
     }

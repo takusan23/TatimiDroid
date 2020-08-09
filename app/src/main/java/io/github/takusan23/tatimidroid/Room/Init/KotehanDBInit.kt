@@ -5,8 +5,21 @@ import androidx.room.Room
 import io.github.takusan23.tatimidroid.Room.Database.KotehanDB
 
 /**
- * コテハンデータベース初期化（初期設定的な）クラス。
+ * コテハンデータベースを生成する。シングルトン
  * */
-class KotehanDBInit(context: Context) {
-    val kotehanDB = Room.databaseBuilder(context, KotehanDB::class.java, "KotehanDB").build()
+object KotehanDBInit {
+    private lateinit var kotehanDB: KotehanDB
+
+    /**
+     * データベースを返す。シングルトンだって
+     * @param context コンテキスト
+     * */
+    fun getInstance(context: Context): KotehanDB {
+        if (!::kotehanDB.isInitialized) {
+            // 一度だけ生成
+            kotehanDB = Room.databaseBuilder(context, KotehanDB::class.java, "KotehanDB").build()
+        }
+        return kotehanDB
+    }
+
 }

@@ -48,7 +48,7 @@ class NGListRecyclerView(private val arrayListArrayAdapter: ArrayList<NGDBEntity
                 GlobalScope.launch(Dispatchers.Main) {
                     //削除
                     withContext(Dispatchers.IO) {
-                        NGDBInit(context).ngDataBase.ngDBDAO().deleteByValue(value)
+                        NGDBInit.getInstance(context).ngDBDAO().deleteByValue(value)
                     }
                     //再読み込み
                     if (context is NGListActivity) {

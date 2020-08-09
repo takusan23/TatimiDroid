@@ -5,6 +5,8 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.random.Random
@@ -179,13 +181,17 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             // toList() を使って forEach すればエラー回避できます
             // 3秒経過したら配列から消す
             ueCommentList.toList().forEach {
-                if (nowUnixTime - it.unixTime > 3000) {
-                    ueCommentList.remove(it)
+                if (it != null) {
+                    if (nowUnixTime - it.unixTime > 3000) {
+                        ueCommentList.remove(it)
+                    }
                 }
             }
             sitaCommentList.toList().forEach {
-                if (nowUnixTime - it.unixTime > 3000) {
-                    sitaCommentList.remove(it)
+                if (it != null) {
+                    if (nowUnixTime - it.unixTime > 3000) {
+                        sitaCommentList.remove(it)
+                    }
                 }
             }
 
@@ -371,6 +377,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     /**
      * コメント投稿
      * @param asciiArt アスキーアートのときはtrueにすると速度が一定になり、画面外になった場合もできる限り再現します。
+     * もしかして：別スレッドにすれば軽くなる？
      * */
     fun postComment(comment: String, commentJSONParse: CommentJSONParse, asciiArt: Boolean = false) {
         when {
@@ -417,56 +424,6 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 .sortedBy { commentObject ->
                     return@sortedBy if (commentObject != null) commentObject.yPos else 0f
                 }
-
-/*
-            // 流れるコメント
-            var yPos = commandFontSize
-            for (i in 0 until commentLine.size) {
-                val obj = commentLine.toList().get(i).second
-                val space = width - obj.xPos
-                // println(space)
-                yPos = obj.yPos
-                if (space < -1) {
-                    // 画面外。負の値
-                    // println("画面外です")
-                    yPos += commandFontSize
-                } else if (space < measure) {
-                    // 空きスペースよりコメントの長さが大きいとき
-                    // println("コメントのほうが長いです")
-                    yPos += commandFontSize
-                } else {
-                    // 位置決定
-                    // println("位置が決定しました")
-                    break
-                }
-                if (yPos > finalHeight) {
-                    // 画面外に行く場合はランダムで決定
-                    if (finalHeight > 0 && fontsize.toInt() < finalHeight) {
-                        // Canvasの高さが取得できているとき
-                        yPos = Random.nextInt(fontsize.toInt(), finalHeight).toFloat()
-                    } else {
-                        // 取得できてないとき。ほんとに適当
-                        yPos = Random.nextInt(1, 10) * fontsize
-                    }
-                    // println("らんだむ")
-                }
-            }
-            val commentObj = CommentObject(
-                comment,
-                width.toFloat(),
-                yPos,
-                System.currentTimeMillis(),
-                measure,
-                command,
-                asciiArt,
-                Rect(width, (yPos - commandFontSize).toInt(), (width + measure).toInt(), yPos.toInt()),
-                commandFontSize
-            )
-            commentObjList.add(commentObj)
-            commentLine[yPos] = commentObj
-*/
-
-
             // 流れるコメント
             // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
             // 開始地点は画面の端
@@ -483,12 +440,6 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     val rect = Rect(obj.xPos.toInt(), (obj.yPos - fontsize).toInt(), (obj.xPos + obj.commentMeasure).toInt(), obj.yPos.toInt())
                     if (
                         Rect.intersects(rect, addRect)
-/*
-                        rect.left < addRect.right &&
-                        rect.right > addRect.left &&
-                        rect.top < addRect.bottom &&
-                        rect.bottom > addRect.top
-*/
                     ) {
                         // あたっているので下へ
                         addRect.top = obj.yPos.toInt()

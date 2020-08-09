@@ -1,21 +1,19 @@
 package io.github.takusan23.tatimidroid.Activity
 
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.Adapter.KotehanListAdapter
-import io.github.takusan23.tatimidroid.Adapter.NGListRecyclerView
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.android.synthetic.main.activity_kotehan_list.*
-import kotlinx.android.synthetic.main.activity_nglist.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -41,17 +39,21 @@ class KotehanListActivity : AppCompatActivity() {
     }
 
     /**
-     * データベースからコテハンを取り出す関数。非同期＾～
+     * データベースからコテハンを取り出す関数。監視機能付き
      * */
     fun loadDB() {
-        kotehanList.clear()
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
-                KotehanDBInit(this@KotehanListActivity).kotehanDB.kotehanDBDAO().getAll().forEach {
-                    kotehanList.add(0, it)
+                KotehanDBInit.getInstance(this@KotehanListActivity).kotehanDBDAO().flowGetKotehanAll().collect { kotehanDBList ->
+                    kotehanList.clear()
+                    kotehanDBList.forEach { kotehan ->
+                        kotehanList.add(0, kotehan)
+                    }
+                    withContext(Dispatchers.Main) {
+                        kotehanListAdapter.notifyDataSetChanged()
+                    }
                 }
             }
-            kotehanListAdapter.notifyDataSetChanged()
         }
     }
 

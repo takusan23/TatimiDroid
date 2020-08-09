@@ -20,11 +20,11 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.BottomFragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Tool.CustomFont
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,6 +39,9 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
     lateinit var font: CustomFont
 
     var textColor = Color.parseColor("#000000")
+
+    /** コテハン。DBに変更が入ると自動で更新されます（[setKotehanDBChangeObserve]参照）。ってかこれAdapterで持っとけば良くない？ */
+    val kotehanMap = mutableMapOf<String, String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_nicovideo, parent, false)
@@ -58,6 +61,8 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             font = CustomFont(context)
             prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
             textColor = TextView(context).textColors.defaultColor
+            // コテハンデータベース監視
+            setKotehanDBChangeObserve(context)
         }
 
         val item = arrayListArrayAdapter[position]
@@ -123,7 +128,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
 
         // 動画でコテハン。DevNicoVideoFragment（第二引数）がnullなら動きません。
-        val kotehanOrUserId = nicoVideoFragment?.kotehanMap?.get(item.userId) ?: item.userId
+        val kotehanOrUserId = kotehanMap.get(item.userId) ?: item.userId
 
         holder.userNameTextView.text = "${setTimeFormat(date.toLong())} | $formattedTime $mailText$nicoruCount$ngScore| ${kotehanOrUserId}"
         holder.nicoruButton.text = item.nicoru.toString()
@@ -164,6 +169,28 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             // プレ垢はニコるくんつける
             if (isPremium && isShowNicoruButton && !isOfflinePlay) {
                 holder.nicoruButton.isVisible = true
+            }
+        }
+    }
+
+    /**
+     * コテハンデータベースを監視する
+     * */
+    private fun setKotehanDBChangeObserve(context: Context?) {
+        // ContextがActivityじゃないと
+        if (context is AppCompatActivity) {
+            context.lifecycleScope.launch {
+                withContext(Dispatchers.Default) {
+                    val dao = KotehanDBInit.getInstance(context).kotehanDBDAO()
+                    dao.flowGetKotehanAll().collect { kotehanList ->
+                        // コテハンDBに変更があった
+                        kotehanMap.clear()
+                        kotehanList.forEach { kotehan ->
+                            // 令和最新版のコテハン配列を適用する
+                            kotehanMap[kotehan.userId] = kotehan.kotehan
+                        }
+                    }
+                }
             }
         }
     }

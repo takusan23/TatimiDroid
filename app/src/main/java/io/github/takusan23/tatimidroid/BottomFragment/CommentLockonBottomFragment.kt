@@ -141,7 +141,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             // コテハン登録
             bottom_fragment_comment_menu_kotehan_button.setOnClickListener {
                 if (fragment != null) {
-                    registerKotehan(fragment)
+                    registerKotehan()
                 }
             }
         }
@@ -279,8 +279,6 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     }
 
     private fun setNGClick() {
-        // Fragment取得
-        val fragment = activity?.supportFragmentManager?.findFragmentByTag(liveId)
         // コメントNG追加
         // 長押しで登録
         bottom_fragment_comment_menu_comment_ng_button.setOnClickListener {
@@ -289,23 +287,11 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_comment_menu_comment_ng_button.setOnLongClickListener {
             lifecycleScope.launch(Dispatchers.Main) {
                 withContext(Dispatchers.IO) {
-                    // NGコメント追加
-                    NGDBInit(requireContext()).ngDataBase.ngDBDAO().insert(NGDBEntity(value = comment, type = "comment", description = ""))
+                    // NGコメント追加。あとは生放送/動画Fragmentでデータベースを監視してるのでこれで終わり
+                    NGDBInit.getInstance(requireContext()).ngDBDAO().insert(NGDBEntity(value = comment, type = "comment", description = ""))
                 }
                 //とーすと
                 showToast(getString(R.string.add_ng_comment_message))
-                when {
-                    fragment is NicoVideoFragment -> {
-                        // 動画なら一覧更新する
-                        lifecycleScope.launch {
-                            fragment.commentFilter()
-                        }
-                    }
-                    fragment is CommentFragment -> {
-                        // 生放送ならNGリスト更新
-                        fragment.initNGDB()
-                    }
-                }
                 // 閉じる
                 dismiss()
             }
@@ -320,16 +306,10 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             lifecycleScope.launch(Dispatchers.Main) {
                 withContext(Dispatchers.IO) {
                     // NGユーザー追加
-                    NGDBInit(requireContext()).ngDataBase.ngDBDAO().insert(NGDBEntity(value = userId, type = "user", description = ""))
+                    NGDBInit.getInstance(requireContext()).ngDBDAO().insert(NGDBEntity(value = userId, type = "user", description = ""))
                 }
                 // とーすと
                 showToast(getString(R.string.add_ng_user_message))
-                // 動画なら一覧更新する
-                if (fragment is NicoVideoFragment) {
-                    lifecycleScope.launch {
-                        fragment.commentFilter()
-                    }
-                }
                 // 閉じる
                 dismiss()
             }
@@ -338,12 +318,12 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     }
 
     //コテハン登録。非同期
-    private fun registerKotehan(fragment: Fragment) {
+    private fun registerKotehan() {
         val kotehan = bottom_fragment_comment_menu_kotehan_edit_text.text.toString()
         if (kotehan.isNotEmpty()) {
             lifecycleScope.launch(Dispatchers.Main) {
-                // データベース用意
-                val kotehanDB = KotehanDBInit(requireContext()).kotehanDB
+                // データベース用意。ここでは追加のみすればいい。後は各Fragmentが変更を検知して最新のを適用してくれる(NicoVideoFragment.setKotehanDBChangeObserve()参照)
+                val kotehanDB = KotehanDBInit.getInstance(requireContext())
                 withContext(Dispatchers.IO) {
                     // すでに存在する場合・・・？
                     val kotehanData = kotehanDB.kotehanDBDAO().findKotehanByUserId(userId)
@@ -359,22 +339,15 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 }
                 //登録しました！
                 Toast.makeText(context, "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}", Toast.LENGTH_SHORT).show()
-                // コテハン配列更新
-                when {
-                    fragment is CommentFragment -> {
-                        fragment.updateKotehanMapFromDB()
-                    }
-                    fragment is NicoVideoFragment -> {
-                        fragment.updateKotehanMapFromDB()
-                    }
-                }
+                // 一覧更新など
+                bottom_fragment_comment_menu_recyclerview.adapter?.notifyDataSetChanged()
             }
         }
     }
 
     //コテハン読み込み
     private suspend fun loadKotehan() = withContext(Dispatchers.IO) {
-        KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().findKotehanByUserId(userId)
+        KotehanDBInit.getInstance(requireContext()).kotehanDBDAO().findKotehanByUserId(userId)
     }
 
     fun showToast(message: String) {

@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.Room.DAO
 
 import androidx.room.*
 import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
+import kotlinx.coroutines.flow.Flow
 
 /**
  * データベースへアクセスするときに使う関数を定義する
@@ -35,5 +36,9 @@ interface NGDBDAO {
     /** NGユーザー一覧を取得する */
     @Query("SELECT * FROM ng_list WHERE type = 'user'")
     fun getNGUserList(): List<NGDBEntity>
+
+    /** データベースに追加があった時に変更を検知できる。コルーチンで使ってね。Flowはデータベースをシングルトンにしないと動かない */
+    @Query("SELECT * FROM ng_list")
+    fun flowGetNGAll(): Flow<List<NGDBEntity>>
 
 }

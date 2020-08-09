@@ -8,7 +8,6 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -44,11 +43,9 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Adapter.CommentViewPager
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.QualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.FregmentData.NicoLiveFragmentData
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
@@ -56,6 +53,8 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.QualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
@@ -68,7 +67,11 @@ import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -102,9 +105,6 @@ class CommentFragment : Fragment() {
 
     //hls
     var hlsAddress = ""
-
-    /** NG機能とコテハン。コテハンを書き換えた時は、ここの配列も更新してね。[updateKotehanMapFromDB]関数で更新できます。 */
-    var kotehanMap = mutableMapOf<String, String>()
 
     //生放送を見る場合はtrue
     var watchLive = false
@@ -142,10 +142,6 @@ class CommentFragment : Fragment() {
 
     //下のコメント（広告貢献、ランクイン等）
     lateinit var infoTextView: TextView
-
-    //ミュート用
-    lateinit var audioManager: AudioManager
-    var volume = 0
 
     //運コメ・infoコメント非表示
     var hideInfoUnnkome = false
@@ -256,10 +252,6 @@ class CommentFragment : Fragment() {
             commentActivity.supportActionBar?.hide()
         }
 
-        //起動時の音量を保存しておく
-        audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-
         //ダークモード対応
         if (isDarkMode(context)) {
             commentActivity.supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(darkModeSupport.context)))
@@ -274,11 +266,8 @@ class CommentFragment : Fragment() {
             googleCast.init()
         }
 
-        // NGデータベース初期化
-        initNGDB()
-
-        // コテハンデータベース初期化
-        updateKotehanMapFromDB()
+        // データベースを監視する
+        setNGDBChangeObserve()
 
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
         isOfficial = arguments?.getBoolean("isOfficial") ?: false
@@ -494,6 +483,19 @@ class CommentFragment : Fragment() {
     }
 
     /**
+     * NGデータベースを監視する。これで変更をすぐに検知できる
+     * */
+    private fun setNGDBChangeObserve() {
+        lifecycleScope.launch {
+            val dao = NGDBInit.getInstance(requireContext()).ngDBDAO()
+            dao.flowGetNGAll().collect { ngList ->
+                // NGユーザー追加/削除を検知
+                ngCommentList = ngList.map { ngdbEntity -> ngdbEntity.value }
+            }
+        }
+    }
+
+    /**
      * 流量制限コメントサーバーに接続する関数。コルーチンで
      * 流量制限コメントサーバーってのはコメントが多すぎてコメントが溢れてしまう際、溢れてしまったコメントが流れてくるサーバーのことだと思います。
      * ただまぁ超がつくほどの大手じゃないとここのWebSocketに接続しても特に流れてこないと思う。
@@ -511,28 +513,6 @@ class CommentFragment : Fragment() {
         if (storeCommentServerData != null) {
             // Store鯖へ接続する。（超）大手でなければ別に接続する必要はない
             nicoLiveComment.connectionWebSocket(storeCommentServerData!!.webSocketUri, storeCommentServerData!!.threadId, storeCommentServerData!!.roomName, ::commentFun)
-        }
-    }
-
-    /**
-     * コテハンデータベース初期化
-     * */
-    fun updateKotehanMapFromDB() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            kotehanMap.clear()
-            KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().getAll().forEach { kotehan ->
-                kotehanMap[kotehan.userId] = kotehan.kotehan
-            }
-        }
-    }
-
-    /**
-     * NGデータベース初期化
-     * */
-    fun initNGDB() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            ngCommentList = NGDBInit(requireContext()).ngDataBase.ngDBDAO().getNGCommentList().map { ngdbEntity -> ngdbEntity.value }
-            ngUserList = NGDBInit(requireContext()).ngDataBase.ngDBDAO().getNGUserList().map { ngdbEntity -> ngdbEntity.value }
         }
     }
 
@@ -882,23 +862,21 @@ class CommentFragment : Fragment() {
             }
             if (index != -1) {
                 val kotehan = comment.substring(index)
-                // データベースにも入れる
+                // データベースにも入れる。コテハンデータベースの変更は自動でやってくれる
                 lifecycleScope.launch(Dispatchers.IO) {
-                    val kotehanDB = KotehanDBInit(requireContext()).kotehanDB
+                    val dao = KotehanDBInit.getInstance(requireContext()).kotehanDBDAO()
                     // すでに存在する場合・・・？
-                    val kotehanData = kotehanDB.kotehanDBDAO().findKotehanByUserId(commentJSONParse.userId)
+                    val kotehanData = dao.findKotehanByUserId(commentJSONParse.userId)
                     if (kotehanData != null) {
                         // 存在した
                         val kotehanDBEntity = kotehanData.copy(kotehan = kotehan, addTime = (System.currentTimeMillis() / 1000))
-                        KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().update(kotehanDBEntity)
+                        dao.update(kotehanDBEntity)
                     } else {
                         // 存在してない
                         val kotehanDBEntity = KotehanDBEntity(kotehan = kotehan, addTime = (System.currentTimeMillis() / 1000), userId = commentJSONParse.userId)
-                        KotehanDBInit(requireContext()).kotehanDB.kotehanDBDAO().insert(kotehanDBEntity)
+                        dao.insert(kotehanDBEntity)
                     }
                 }
-                // コテハンmap更新
-                updateKotehanMapFromDB()
             }
         }
     }

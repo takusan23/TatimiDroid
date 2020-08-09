@@ -40,10 +40,8 @@ class KotehanListAdapter(val kotehanList: ArrayList<KotehanDBEntity>) : Recycler
                     setAction(R.string.delete_ok) {
                         // 削除機能
                         GlobalScope.launch(Dispatchers.IO) {
-                            KotehanDBInit(context).kotehanDB.kotehanDBDAO().delete(kotehanData)
+                            KotehanDBInit.getInstance(context).kotehanDBDAO().delete(kotehanData)
                         }
-                        // リスト更新
-                        (context as KotehanListActivity).loadDB()
                     }
                     show()
                 }

@@ -61,7 +61,7 @@ class NGListActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
                 // データ読み出し
-                NGDBInit(this@NGListActivity).ngDataBase.ngDBDAO().getNGCommentList().forEach {
+                NGDBInit.getInstance(this@NGListActivity).ngDBDAO().getNGCommentList().forEach {
                     recyclerViewList.add(it)
                 }
             }
@@ -76,7 +76,7 @@ class NGListActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
                 // データ読み出し
-                NGDBInit(this@NGListActivity).ngDataBase.ngDBDAO().getNGUserList().forEach {
+                NGDBInit.getInstance(this@NGListActivity).ngDBDAO().getNGUserList().forEach {
                     recyclerViewList.add(it)
                 }
             }
