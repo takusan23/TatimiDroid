@@ -1097,14 +1097,16 @@ class CommentFragment : Fragment() {
     }
 
     // 画質変更BottomFragment初期化
-    private fun initQualityChangeBottomFragment(selectQuality: String?, qualityTypesJSONArray: Any) {
-        // 画質変更BottomFragmentに詰める
-        val bundle = Bundle()
-        bundle.putString("select_quality", selectQuality)
-        bundle.putString("quality_list", qualityTypesJSONArray.toString())
-        bundle.putString("liveId", liveId)
-        qualitySelectBottomSheet = QualitySelectBottomSheet()
-        qualitySelectBottomSheet.arguments = bundle
+    private fun initQualityChangeBottomFragment(selectQuality: String?, qualityTypesJSONArray: JSONArray) {
+        // 画質変更BottomFragmentに詰める。なんかUIスレッドにしないとだめっぽい？
+        activity?.runOnUiThread {
+            val bundle = Bundle()
+            bundle.putString("select_quality", selectQuality)
+            bundle.putString("quality_list", qualityTypesJSONArray.toString())
+            bundle.putString("liveId", liveId)
+            qualitySelectBottomSheet = QualitySelectBottomSheet()
+            qualitySelectBottomSheet.arguments = bundle
+        }
     }
 
     private fun initViewPager() {
@@ -1547,8 +1549,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         } else {
             if (comment != "\n") {
                 if (isWatchingMode) {
-                    // postKeyを視聴用セッションWebSocketに払い出してもらう
-                    // PC版ニコ生だとコメントを投稿のたびに取得してるので
+                    // 視聴セッションWebSocketにコメントを送信する
                     nicoLiveHTML.sendPOSTWebSocketComment(comment, color, size, position)
                 } else if (isNicocasMode) {
                     // コマンドをくっつける

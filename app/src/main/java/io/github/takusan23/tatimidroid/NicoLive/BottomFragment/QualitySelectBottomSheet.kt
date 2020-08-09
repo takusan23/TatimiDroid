@@ -29,8 +29,7 @@ class QualitySelectBottomSheet : BottomSheetDialogFragment() {
         val select_quality = arguments?.getString("select_quality") ?: "high"
 
         liveId = arguments?.getString("liveId") ?: ""
-        commentFragment =
-            activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment
+        commentFragment = activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment
 
 
         //TextView回す
