@@ -44,7 +44,6 @@ import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
-import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Tool.*
@@ -864,12 +863,30 @@ class NicoVideoFragment : Fragment() {
                             showToast(getString(R.string.use_cache))
                         }
                     }
-                    // コメント取得
-                    val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
-                    rawCommentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
                     // 動画情報
                     if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                         jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
+                    }
+                    // コメント取得。重いので async。この中の処理（今回はコメントJSON解析）は並列で実行される。loadCommentAsync.await()のところで合流する（止まる）
+                    val loadCommentAsync = async {
+                        val commentJSONFilePath = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
+                        nicoVideoHTML.parseCommentJSON(commentJSONFilePath, videoId)
+                    }
+                    // UIスレッドへ
+                    withContext(Dispatchers.Main) {
+                        // 再生
+                        applyUI()
+                        // タイトル
+                        videoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+                            JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video").getString("title")
+                        } else {
+                            // 動画ファイルの名前
+                            nicoVideoCache.getCacheFolderVideoFileName(videoId) ?: videoId
+                        }
+                        initTitleArea()
+                        // フィルターで3ds消したりする。が、コメントは並列で読み込んでるので、並列で作業してるコメント取得を待つ（合流する）
+                        rawCommentList = ArrayList(loadCommentAsync.await())
+                        commentFilter()
                     }
                 } else {
                     // 動画が見つからなかった
@@ -878,21 +895,6 @@ class NicoVideoFragment : Fragment() {
                         activity?.finish()
                     }
                     return@launch
-                }
-                // UIスレッドへ
-                withContext(Dispatchers.Main) {
-                    // 再生
-                    applyUI()
-                    // フィルターで3ds消したりする
-                    commentFilter()
-                    // タイトル
-                    videoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
-                        JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video").getString("title")
-                    } else {
-                        // 動画ファイルの名前
-                        nicoVideoCache.getCacheFolderVideoFileName(videoId) ?: videoId
-                    }
-                    initTitleArea()
                 }
             }
         }
@@ -1234,8 +1236,7 @@ class NicoVideoFragment : Fragment() {
     fun initSeekBar() {
         // シークできるようにする
         fragment_nicovideo_seek.max = (exoPlayer.duration / 1000L).toInt()
-        fragment_nicovideo_seek.setOnSeekBarChangeListener(object :
-            SeekBar.OnSeekBarChangeListener {
+        fragment_nicovideo_seek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 // シークいじったら時間反映されるように
                 val formattedTime = DateUtils.formatElapsedTime((seekBar?.progress ?: 0).toLong())

@@ -27,9 +27,6 @@ class NicoVideoCacheFragment : Fragment() {
     val recyclerViewList = arrayListOf<NicoVideoData>() // RecyclerViewにわたす配列
     lateinit var nicoVideoCache: NicoVideoCache
 
-    // 重いから非同期処理
-    lateinit var launch: Job
-
     // lateinit var cacheFilterBottomFragment: DevNicoVideoCacheFilterBottomFragment
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -83,15 +80,14 @@ class NicoVideoCacheFragment : Fragment() {
     // フィルター削除関数
     fun filterDeleteMessageShow() {
         // 本当に消していい？
-        Snackbar.make(fragment_cache_empty_message, getString(R.string.filter_clear_message), Snackbar.LENGTH_SHORT)
-            .apply {
-                setAction(getString(R.string.reset)) {
-                    CacheJSON().deleteFilterJSONFile(context)
-                    initRecyclerView()
-                }
-                anchorView = fragment_cache_fab
-                show()
+        Snackbar.make(fragment_cache_empty_message, getString(R.string.filter_clear_message), Snackbar.LENGTH_SHORT).apply {
+            setAction(getString(R.string.reset)) {
+                CacheJSON().deleteFilterJSONFile(context)
+                initRecyclerView()
             }
+            anchorView = fragment_cache_fab
+            show()
+        }
     }
 
     // FAB押したとき
@@ -106,7 +102,7 @@ class NicoVideoCacheFragment : Fragment() {
 
     // 読み込む
     fun load() {
-        launch = lifecycleScope.launch {
+        lifecycleScope.launch {
             recyclerViewList.clear()
             cacheVideoList.clear()
             nicoVideoCache.loadCache().forEach {
@@ -124,13 +120,6 @@ class NicoVideoCacheFragment : Fragment() {
                 // 合計サイズ
                 initStorageSpace()
             }
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (::launch.isInitialized) {
-            launch.cancel()
         }
     }
 
