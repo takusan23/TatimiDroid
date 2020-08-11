@@ -67,11 +67,9 @@ import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import okhttp3.internal.toLongOrDefault
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -410,16 +408,16 @@ class CommentFragment : Fragment() {
                         // 画面回転復帰時
                         val data = savedInstanceState.getSerializable("data") as NicoLiveFragmentData
                         nicoLiveJSON = JSONObject(data.nicoLiveJSON)
-                        // Storeコメント鯖へ接続する
-                        storeCommentServerData = data.storeCommentServerData
-                        if (storeCommentServerData != null) {
-                            nicoLiveComment.connectionWebSocket(storeCommentServerData!!.webSocketUri, storeCommentServerData!!.threadId, storeCommentServerData!!.roomName, ::commentFun)
-                        }
                         // 番組名取得など
                         nicoLiveHTML.initNicoLiveData(nicoLiveJSON)
                         programTitle = nicoLiveHTML.programTitle
                         communityID = nicoLiveHTML.communityId
                         thumbnailURL = nicoLiveHTML.thumb
+                        // Storeコメント鯖へ接続する
+                        storeCommentServerData = data.storeCommentServerData
+                        if (storeCommentServerData != null) {
+                            nicoLiveComment.connectionWebSocket(storeCommentServerData!!.webSocketUri, storeCommentServerData!!.threadId, storeCommentServerData!!.roomName, null, null, ::commentFun)
+                        }
                         // 全画面再生だったら全画面にする。ただし横画面のときのみ
                         if (data.isFullScreenMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                             setFullScreen()
@@ -512,7 +510,7 @@ class CommentFragment : Fragment() {
         storeCommentServerData = nicoLiveComment.parseStoreRoomServerData(allRoomResponse.body?.string(), getString(R.string.room_limit))
         if (storeCommentServerData != null) {
             // Store鯖へ接続する。（超）大手でなければ別に接続する必要はない
-            nicoLiveComment.connectionWebSocket(storeCommentServerData!!.webSocketUri, storeCommentServerData!!.threadId, storeCommentServerData!!.roomName, ::commentFun)
+            nicoLiveComment.connectionWebSocket(storeCommentServerData!!.webSocketUri, storeCommentServerData!!.threadId, storeCommentServerData!!.roomName, nicoLiveHTML.userId, null, ::commentFun)
         }
     }
 
@@ -694,11 +692,12 @@ class CommentFragment : Fragment() {
                         // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
                         val commentMessageServerUri = getCommentServerWebSocketAddress(message)
                         val commentThreadId = getCommentServerThreadId(message)
+                        val yourPostKey = getCommentYourPostKey(message)
                         val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
                         // コメントサーバーへ接続する
-                        commentServerData = NicoLiveComment.CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName)
+                        commentServerData = NicoLiveComment.CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey)
                         commentActivity.runOnUiThread {
-                            nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
+                            nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, nicoLiveHTML.userId, yourPostKey, ::commentFun)
                         }
                     }
                     command == "postCommentResult" -> {
@@ -808,43 +807,42 @@ class CommentFragment : Fragment() {
          * 多分originの値がC以外のときに元の部屋のコメントだと
          * */
         Handler(Looper.getMainLooper()).post {
-
             // UI Thread
-            if (commentJSONParse.origin != "C" || nicoLiveHTML.isOfficial) {
-                // コテハン追加など
-                registerKotehan(commentJSONParse)
-                // RecyclerViewに追加
-                commentJSONList.add(0, commentJSONParse)
-                // CommentFragment更新かける
-                (commentViewPager.instantiateItem(comment_viewpager, 1) as CommentViewFragment).apply {
-                    // Adapter初期化済みなら（ViewPager多分Fragment切り替えると破棄する？ので多分必要）
-                    if (isInitAdapter()) {
-                        commentRecyclerViewAdapter.notifyItemInserted(0)
-                        recyclerViewScrollPos()
-                    }
+
+            // コテハン追加など
+            registerKotehan(commentJSONParse)
+            // RecyclerViewに追加
+            commentJSONList.add(0, commentJSONParse)
+            // CommentFragment更新かける
+            (commentViewPager.instantiateItem(comment_viewpager, 1) as CommentViewFragment).apply {
+                // Adapter初期化済みなら（ViewPager多分Fragment切り替えると破棄する？ので多分必要）
+                if (isInitAdapter()) {
+                    commentRecyclerViewAdapter.notifyItemInserted(0)
+                    recyclerViewScrollPos()
                 }
-                // コメント非表示モードの場合はなさがない
-                if (!isCommentHide) {
-                    // 豆先輩とか
-                    if (!commentJSONParse.comment.contains("\n")) {
-                        commentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
+            }
+            // コメント非表示モードの場合はなさがない
+            if (!isCommentHide) {
+                // 豆先輩とか
+                if (!commentJSONParse.comment.contains("\n")) {
+                    commentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
+                } else {
+                    // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
+                    // 豆先輩！！！！！！！！！！！！！！！！！！
+                    // 下固定コメントで複数行だとAA（アスキーアートの略 / CA(コメントアート)とも言う）がうまく動かない。配列の中身を逆にする必要がある
+                    // Kotlinのこの書き方ほんと好き
+                    val asciiArtComment = if (commentJSONParse.mail.contains("shita")) {
+                        commentJSONParse.comment.split("\n").reversed() // 下コメントだけ逆順にする
                     } else {
-                        // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
-                        // 豆先輩！！！！！！！！！！！！！！！！！！
-                        // 下固定コメントで複数行だとAA（アスキーアートの略 / CA(コメントアート)とも言う）がうまく動かない。配列の中身を逆にする必要がある
-                        // Kotlinのこの書き方ほんと好き
-                        val asciiArtComment = if (commentJSONParse.mail.contains("shita")) {
-                            commentJSONParse.comment.split("\n").reversed() // 下コメントだけ逆順にする
-                        } else {
-                            commentJSONParse.comment.split("\n")
-                        }
-                        for (line in asciiArtComment) {
-                            commentCanvas.postComment(line, commentJSONParse, true)
-                        }
+                        commentJSONParse.comment.split("\n")
+                    }
+                    for (line in asciiArtComment) {
+                        commentCanvas.postComment(line, commentJSONParse, true)
                     }
                 }
             }
         }
+
     }
 
     /**
@@ -988,15 +986,29 @@ class CommentFragment : Fragment() {
      * @param message chat_resultが文字列に含まれている必要がある
      * */
     private fun showCommentPOSTResultSnackBar(message: String) {
-        val jsonObject = JSONObject(message)
-        // 成功してるか？
-        val restricted = jsonObject.getJSONObject("data").getJSONObject("chat").getBoolean("restricted")
-        commentActivity.runOnUiThread {
-            if (!restricted) {
-                // 制限されてない（つまり成功？）
+        lifecycleScope.launch {
+            val jsonObject = JSONObject(message)
+
+            /**
+             * 本当に送信できたかどうか。
+             * 実は流量制限にかかってしまったのではないか（公式番組以外では流量制限コメント鯖（store鯖）に接続できるけど公式は無理）
+             * 流量制限にかかると他のユーザーには見えない。ので本当に成功したか確かめる
+             * */
+            // 成功してるか？
+            val comment = jsonObject.getJSONObject("data").getJSONObject("chat").getString("content")
+            delay(500)
+            // 受信済みコメント配列から自分が投稿したコメント(yourpostが1)でかつ5秒前まで遡った配列を作る
+            val nowTime = System.currentTimeMillis() / 1000
+            val prevComment = commentJSONList.filter { commentJSONParse ->
+                val time = nowTime - (commentJSONParse.date.toLongOrDefault(0))
+                time <= 5 && commentJSONParse.yourPost // 5秒前でなお自分が投稿したものを
+            }.map { commentJSONParse -> commentJSONParse.comment }
+            if (prevComment.contains(comment)) {
+                // コメント一覧に自分のコメントが有る
                 Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
             } else {
-                Snackbar.make(fab, "${getString(R.string.comment_post_error)}：${message}", Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
+                // 無いので流量制限にかかった（他には見えない）
+                Snackbar.make(fab, "${getString(R.string.comment_post_error)}\n${getString(R.string.comment_post_limit)}", Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
             }
         }
     }

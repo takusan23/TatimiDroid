@@ -132,7 +132,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         super.onDraw(canvas)
 
         // 「ぬるぽ」「ガッ」なんて知らんわ
-        if (canvas == null ) return
+        if (canvas == null) return
 
         /**
          * 描画すべきコメント
@@ -188,7 +188,6 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             }
         }
 
-
     }
 
     /**
@@ -203,7 +202,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // コメントの長さを測る
         val measure = paint.measureText(comment)
         // フォントサイズ。コマンド等も考慮して
-        val fontSize = paint.textSize.toInt()
+        val fontSize = getCommandFontSize(command)
         // 分岐
         when {
             checkUeComment(command) -> postCommentUe(comment, command, drawStartTimeMs, measure, fontSize)
@@ -224,28 +223,28 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * [onDraw]でずらしていく
      *
      * */
-    private fun postCommentNaka(comment: String, command: String, drawStartTimeMs: Long, measure: Float, fontSize: Int) {
+    private fun postCommentNaka(comment: String, command: String, drawStartTimeMs: Long, measure: Float, fontSize: Float) {
         // コメントを流す時間（秒）
         val drawStartTimeSec = drawStartTimeMs / 1000
         // コメントの位置。画面の端っこからミリ秒分離した先に設置
         val left = finalWidth + drawStartTimeMs / commentMoveFix
         val right = left + measure
         // 当たり判定計算。Rectで四角形の当たり判定の判定（？）ができる
-        val addRect = Rect(left.toInt(), 0, right.toInt(), fontSize)
+        val addRect = Rect(left.toInt(), 0, right.toInt(), fontSize.toInt())
         // 当たっているか判定。全部のコメントから当たっていれば調整する。なお並び替えるとうまくいく模様
         for (drawCommentData in commentList.sortedBy { drawCommentData -> drawCommentData.rect.top }) {
             // Rect生成
             if (Rect.intersects(addRect, drawCommentData.rect)) {
                 // 当たっているなら下のスペースへ
                 addRect.top = drawCommentData.rect.bottom
-                addRect.bottom = addRect.top + fontSize
+                addRect.bottom = (addRect.top + fontSize).toInt()
             }
         }
         // なお画面外突入時はランダム
         if (addRect.top > finalHeight) {
-            val randomValue = randomValue(fontSize.toFloat())
+            val randomValue = randomValue(fontSize)
             addRect.top = randomValue
-            addRect.bottom = (addRect.top + fontSize)
+            addRect.bottom = (addRect.top + fontSize).toInt()
         }
         // 配列に入れる
         val data = DrawCommentData(
@@ -254,7 +253,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             drawStartTimeMs = drawStartTimeMs,
             drawStartTimeSec = drawStartTimeSec,
             measure = measure,
-            fontSize = fontSize.toFloat(),
+            fontSize = fontSize,
             rect = addRect
         )
         commentList.add(data)
@@ -263,9 +262,9 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /**
      * 上コメントを追加する
      * */
-    private fun postCommentUe(comment: String, command: String, drawStartTimeMs: Long, argMeasure: Float, argFontSize: Int) {
+    private fun postCommentUe(comment: String, command: String, drawStartTimeMs: Long, argMeasure: Float, argFontSize: Float) {
         // コメントの大きさ調整
-        val calcCommentSize = calcCommentFontSize(argMeasure, argFontSize.toFloat(), comment)
+        val calcCommentSize = calcCommentFontSize(argMeasure, argFontSize, comment)
         val measure = calcCommentSize.first
         val fontSize = calcCommentSize.second
         // コメントを流す時間（秒）
@@ -313,9 +312,9 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /**
      * 下付きコメントを登録する
      * */
-    private fun postCommentShita(comment: String, command: String, drawStartTimeMs: Long, argMeasure: Float, argFontSize: Int) {
+    private fun postCommentShita(comment: String, command: String, drawStartTimeMs: Long, argMeasure: Float, argFontSize: Float) {
         // コメントの大きさ調整
-        val calcCommentSize = calcCommentFontSize(argMeasure, argFontSize.toFloat(), comment)
+        val calcCommentSize = calcCommentFontSize(argMeasure, argFontSize, comment)
         val measure = calcCommentSize.first
         val fontSize = calcCommentSize.second
         // コメントの位置
@@ -363,7 +362,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     }
 
     /**
-     * 現在流れているコメントを取得する。多分今の時間から三秒前のコメントまでは取れる。
+     * 現在流れているコメントを取得する。多分今の時間から5秒前のコメントまでは取れる。
      * */
     fun getDrawingCommentList(sec: Long = -1) = commentList.toList().filter {
         val current = if (sec != -1L) sec else currentPosSec
@@ -390,7 +389,26 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     }
 
     /**
-     * 配列を消す
+     * コマンドに合った文字の大きさを返す
+     * @param command big/small など
+     * @return フォントサイズ
+     * */
+    fun getCommandFontSize(command: String): Float {
+        val defaultFontSize = 20 * resources.displayMetrics.scaledDensity
+        return when {
+            command.contains("big") -> {
+                (defaultFontSize * 1.3).toFloat()
+            }
+            command.contains("small") -> {
+                (defaultFontSize * 0.8).toFloat()
+            }
+            else -> defaultFontSize
+        }
+    }
+
+    /**
+     * コメント配列を消す
+     * それだけ
      * */
     fun clearList() {
         commentList.clear()
@@ -525,7 +543,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
  * @param fontSize 文字の大きさ
  * @param measure コメントの長さ。
  * @param position naka か ue か　shita。めんどいのでコメントの位置は[command]ではなく[position]で取るのでちゃんとしてね
- * @param rect 当たり判定計算やコメントの位置で使う。コメントと同じ大きさの四角
+ * @param rect 当たり判定計算やコメントの位置で使う。ただコメントの当たり判定処理が終われば使わなくなるので、あとはコメントずらすのに使ってる
  * */
 data class DrawCommentData(
     val comment: String,

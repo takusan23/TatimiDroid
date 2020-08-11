@@ -495,4 +495,6 @@
     <string name="atodemiru_add">See later (for now, add to my list)</string>
     <string name="atodemiru_ok">Added to see later</string>
     <string name="zyuuhuku_hide">Do not show duplicates</string>
+    <string name="yourpost">Is me!</string>
+    <string name="comment_post_limit">I couldn\'t find the posted rice even 5 seconds ago.</string>
 </resources>

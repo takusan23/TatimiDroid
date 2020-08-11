@@ -481,6 +481,17 @@ class NicoLiveHTML {
     }
 
     /**
+     * 今の部屋のコメントサーバーのyourPostKeyの取得関数
+     * 注意：typeがroomのとき。
+     * @param message ニコ生視聴セッションWebSocketから流れてきたJSON文字列。
+     * @return 何に使ってるのか知らんけどyourPostKeyを返します
+     * */
+    fun getCommentYourPostKey(message: String?): String {
+        val yourPostKey = JSONObject(message).getJSONObject("data").getString("yourPostKey")
+        return yourPostKey
+    }
+
+    /**
      * 視聴WebSocketからHLSアドレス取得
      * 注意：typeがstreamのとき。
      * @param message ニコ生視聴セッションWebSocketから流れてきたJSON文字列

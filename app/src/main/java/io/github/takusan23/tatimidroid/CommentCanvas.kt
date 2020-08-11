@@ -258,8 +258,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             // もじ
             canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command, fontSize))
             // 私が検証で使う。基本使わん
-            if (isShowDrawTextRect) {
-                val checkRect = Rect(obj.xPos.toInt(), (obj.yPos - obj.fontSize).toInt(), (obj.xPos + obj.commentMeasure).toInt(), (obj.yPos).toInt())
+            if (isShowDrawTextRect || obj.yourpost) {
+                val checkRect = Rect(obj.xPos.toInt() - 5, (obj.yPos - obj.fontSize).toInt() + 5, (obj.xPos + obj.commentMeasure).toInt() + 5, (obj.yPos).toInt() + 10)
                 obj.rect?.apply {
                     val strokePaint = Paint()
                     strokePaint.strokeWidth = 5f
@@ -476,7 +476,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 command,
                 asciiArt,
                 addRect,
-                commandFontSize
+                commandFontSize,
+                commentJSONParse.yourPost
             )
             commentObjList.add(commentObj)
             // commentLine[addRect.left.toFloat()] = commentObj
@@ -525,7 +526,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 command,
                 asciiArt,
                 addRect,
-                commandFontSize
+                commandFontSize,
+                commentJSONParse.yourPost
             )
             ueCommentList.add(commentObj)
         } else if (command.contains("shita")) {
@@ -574,7 +576,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 command,
                 asciiArt,
                 addRect,
-                commandFontSize
+                commandFontSize,
+                commentJSONParse.yourPost
             )
             sitaCommentList.add(commentObj)
         } else {
@@ -611,7 +614,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 command,
                 asciiArt,
                 addRect,
-                commandFontSize
+                commandFontSize,
+                commentJSONParse.yourPost
             )
             commentObjList.add(commentObj)
         }
@@ -824,7 +828,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         var command: String,
         var asciiArt: Boolean = false,
         var rect: Rect? = null,
-        var fontSize: Float
+        var fontSize: Float,
+        var yourpost: Boolean
     )
 
 }

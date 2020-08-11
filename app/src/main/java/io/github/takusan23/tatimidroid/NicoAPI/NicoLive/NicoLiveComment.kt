@@ -110,8 +110,10 @@ class NicoLiveComment {
      * @param threadId スレッドID
      * @param roomName 部屋の名前
      * @param onMessageFunc コメントが来たら呼ばれる高階関数。引数は第一がコメントの内容、第二は部屋の名前、第三が過去のコメントならtrue
+     * @param userId ユーザーID。なんで必要なのかは知らん。nullでも多分いい
+     * @param threadKey 視聴セッションのWebSocketのときは「yourPostKey」ってのがJSONで流れてくるので指定して欲しい。nullても動く。ただ自分が投稿できたかの結果「yourpost」が取れないのでアリーナには繋ぎたい
      * */
-    fun connectionWebSocket(webSocketUri: String, threadId: String, roomName: String, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
+    fun connectionWebSocket(webSocketUri: String, threadId: String, roomName: String, userId: String? = null, threadKey: String? = null, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
         // 接続済みの場合は繋がない
         if (connectedWebSocketAddressList.contains(webSocketUri)) {
             return
@@ -130,12 +132,17 @@ class NicoLiveComment {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 //スレッド番号、過去コメントなど必要なものを最初に送る
                 val sendJSONObject = JSONObject()
-                val jsonObject = JSONObject()
-                jsonObject.put("version", "20061206")
-                jsonObject.put("thread", threadId)
-                jsonObject.put("service", "LIVE")
-                jsonObject.put("score", 1)
-                jsonObject.put("res_from", historyComment)
+                val jsonObject = JSONObject().apply {
+                    put("version", "20061206")
+                    put("thread", threadId)
+                    put("service", "LIVE")
+                    put("scores", 1)
+                    put("res_from", historyComment)
+                    put("nicoru", 0)
+                    put("with_global", 1)
+                    put("user_id", userId)
+                    put("threadkey", threadKey)
+                }
                 sendJSONObject.put("thread", jsonObject)
                 this.send(sendJSONObject.toString())
             }
@@ -178,6 +185,6 @@ class NicoLiveComment {
     /**
      * コメントサーバーのデータクラス
      * */
-    data class CommentServerData(val webSocketUri: String, val threadId: String, val roomName: String) : Serializable
+    data class CommentServerData(val webSocketUri: String, val threadId: String, val roomName: String, val threadKey: String? = null) : Serializable
 
 }

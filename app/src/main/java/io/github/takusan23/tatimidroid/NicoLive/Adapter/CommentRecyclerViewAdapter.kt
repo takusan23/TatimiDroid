@@ -109,8 +109,8 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             }
         }
 
-        // 部屋名。部屋の名前はNicoLiveCommentで決定する
-        val roomName = commentJSONParse.roomName
+        // 部屋名。部屋の名前はNicoLiveCommentで決定する。でも自分のコメントのときは「私です」って表示する
+        val roomName = if (commentJSONParse.yourPost) context.getString(R.string.yourpost) else commentJSONParse.roomName
 
         var info = "$roomName | $time | $userId"
 
@@ -175,11 +175,17 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
 
         // 部屋の色
         if (pref_setting.getBoolean("setting_room_color", true)) {
-            holder.roomNameTextView.setTextColor(getRoomColor(commentJSONParse.roomName, context))
+            // 自分のコメントと部屋投稿と流量制限の色を変える
+            val roomColor = if (commentJSONParse.yourPost) {
+                Color.argb(255, 172, 209, 94) // 自分のコメント
+            } else {
+                getRoomColor(commentJSONParse.roomName, context) // 部屋別+流量制限
+            }
+            holder.roomNameTextView.setTextColor(roomColor)
             // OutlineなCardViewにして枠の色を部屋に合わせる設定が有効なら
             if (pref_setting.getBoolean("setting_nicolive_comment_outline", true)) {
                 (holder.cardView as MaterialCardView).apply {
-                    strokeColor = getRoomColor(commentJSONParse.roomName, context)
+                    strokeColor = roomColor
                     strokeWidth = 2
                     elevation = 0f
                     setBackgroundColor(getThemeColor(DarkModeSupport(context).context))

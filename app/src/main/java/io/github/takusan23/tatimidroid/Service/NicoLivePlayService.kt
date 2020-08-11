@@ -236,7 +236,7 @@ class NicoLivePlayService : Service() {
                                 val commentThreadId = getCommentServerThreadId(message)
                                 val commentRoomName = getCommentRoomName(message)
                                 // 部屋が統合したので
-                                nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, ::commentFun)
+                                nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, nicoLiveHTML.userId, null, ::commentFun)
                             }
                         }
                     }
@@ -271,7 +271,7 @@ class NicoLivePlayService : Service() {
         val storeCommentServerData = nicoLiveComment.parseStoreRoomServerData(allRoomResponse.body?.string(), getString(R.string.room_limit))
         if (storeCommentServerData != null) {
             // Store鯖へ接続する。（超）大手でなければ別に接続する必要はない
-            nicoLiveComment.connectionWebSocket(storeCommentServerData.webSocketUri, storeCommentServerData.threadId, storeCommentServerData.roomName, ::commentFun)
+            nicoLiveComment.connectionWebSocket(storeCommentServerData.webSocketUri, storeCommentServerData.threadId, storeCommentServerData.roomName, null, null, ::commentFun)
         }
     }
 

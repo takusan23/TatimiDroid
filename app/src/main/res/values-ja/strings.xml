@@ -495,4 +495,6 @@
     <string name="atodemiru_add">あとでみる（とりあえずマイリスト）へ追加</string>
     <string name="atodemiru_ok">あとで見るに追加しました</string>
     <string name="zyuuhuku_hide">重複を表示しない</string>
+    <string name="yourpost">私です！</string>
+    <string name="comment_post_limit">5秒前まで遡っても投稿したコメが見つかりませんでした。</string>
 </resources>

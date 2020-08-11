@@ -1,10 +1,12 @@
 package io.github.takusan23.tatimidroid.NicoVideo.BottomFragment
 
 import android.os.Bundle
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.text.HtmlCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
@@ -34,13 +36,17 @@ class NicoVideoLikeBottomFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // メッセージ
-        bottom_fragment_nicovideo_like_description.text = """
-            いいね機能 #とは
-            動画を応援できる機能。
-            ・いいねしたユーザーは投稿者のみ見ることができます。
-            ・いいね数はランキングに影響します。
-            ・一般会員でも使えるそうです。
-        """.trimIndent()
+        bottom_fragment_nicovideo_like_description.text = HtmlCompat.fromHtml(
+            """
+            いいね機能 #とは<br>
+            動画を応援できる機能。<br>
+            ・いいねしたユーザーは投稿者のみ見ることができます。<br>
+            ・いいね数はランキングに影響します。<br>
+            ・一般会員でも使えるそうです。<br>
+            <span style="color:#FFA500">いいねするとうｐ主からお礼のメッセージが見れます</span><br>
+            <small>（設定してある場合のみ）</small>
+        """.trimIndent(), HtmlCompat.FROM_HTML_MODE_COMPACT
+        )
 
         // Like押した
         bottom_fragment_nicovideo_like_button.setOnClickListener {
