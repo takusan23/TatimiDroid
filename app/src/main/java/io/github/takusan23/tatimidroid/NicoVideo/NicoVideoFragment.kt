@@ -161,7 +161,7 @@ class NicoVideoFragment : Fragment() {
         font = CustomFont(context)
         // CommentCanvasにも適用するかどうか
         if (font.isApplyFontFileToCommentCanvas) {
-            fragment_nicovideo_comment_canvas.typeface = font.typeface
+            fragment_nicovideo_comment_canvas.typeFace = font.typeface
         }
 
         // スリープにしない
@@ -250,6 +250,28 @@ class NicoVideoFragment : Fragment() {
 
             firstPlay()
 
+        }
+
+        // コメント描画初期化
+        initReCommentCanvas()
+
+    }
+
+    /**
+     * コメント描画を初期化する。これないとコメント動かない
+     * */
+    private fun initReCommentCanvas() {
+        lifecycleScope.launch {
+            while (true) {
+                if (::exoPlayer.isInitialized) {
+                    // 無限ループ
+                    fragment_nicovideo_comment_canvas.currentPosSec = exoPlayer.currentPosition / 1000
+                    fragment_nicovideo_comment_canvas.oldUpdateMs = fragment_nicovideo_comment_canvas.currentPosMillSec
+                    fragment_nicovideo_comment_canvas.currentPosMillSec = exoPlayer.currentPosition
+                    fragment_nicovideo_comment_canvas.invalidate()
+                }
+                delay(30)
+            }
         }
     }
 
@@ -724,6 +746,38 @@ class NicoVideoFragment : Fragment() {
                 if (showToast) {
                     showToast("${getString(R.string.get_comment_count)}：${commentList.size}")
                 }
+
+                // コメント描画Viewにも反映
+                var tmp = 0
+                var tmpFlag = false
+                fragment_nicovideo_comment_canvas.apply {
+                    viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                        override fun onGlobalLayout() {
+                            if (tmp != height) {
+                                // おなじになるまで待つ
+                                tmp = height
+                            } else {
+                                // 安定した
+                                fragment_nicovideo_comment_canvas.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                                // forEach
+                                if (!tmpFlag) {
+                                    // ここ直したい。
+                                    tmpFlag = true
+                                    fragment_nicovideo_comment_canvas?.apply {
+                                        lifecycleScope.launch(Dispatchers.Default) {
+                                            isLoading = true
+                                            clearList()
+                                            commentList.sortedBy { commentJSONParse -> commentJSONParse.vpos.toLong() }.forEach { commentData ->
+                                                postComment(commentData.comment, commentData.mail, commentData.vpos.toLong() * 10)
+                                            }
+                                            isLoading = false
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }
             }
         }
     }
@@ -994,7 +1048,6 @@ class NicoVideoFragment : Fragment() {
         fragment_nicovideo_play_button.setOnClickListener {
             // コメント流し制御
             exoPlayer.playWhenReady = !exoPlayer.playWhenReady
-            fragment_nicovideo_comment_canvas.isPause = !exoPlayer.playWhenReady
             // アイコン入れ替え
             setPlayIcon()
         }
@@ -1081,7 +1134,7 @@ class NicoVideoFragment : Fragment() {
             Handler(Looper.getMainLooper()).post {
                 if (exoPlayer.isPlaying) {
                     setProgress()
-                    drawComment()
+                    // drawComment()
                     val sec = exoPlayer.currentPosition / 1000
                     // コメント一覧スクロールする
                     if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
@@ -1181,6 +1234,7 @@ class NicoVideoFragment : Fragment() {
      * という複雑な方法をとっている（代わりに普通に動くようになった）
      * */
     fun drawComment() {
+/*
         lifecycleScope.launch(Dispatchers.Main) {
             val currentPosition = exoPlayer.contentPosition / 100L
             val currentPositionSec = exoPlayer.contentPosition / 1000
@@ -1227,6 +1281,7 @@ class NicoVideoFragment : Fragment() {
                 }
             }
         }
+*/
     }
 
 
