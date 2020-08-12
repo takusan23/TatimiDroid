@@ -498,4 +498,5 @@
     <string name="yourpost">Is me!</string>
     <string name="comment_post_limit">I couldn\'t find the posted rice even 5 seconds ago.</string>
     <string name="popup_fix_size">Fix size</string>
+    <string name="setting_live_only_title">This applies to live broadcasts only.</string>
 </resources>

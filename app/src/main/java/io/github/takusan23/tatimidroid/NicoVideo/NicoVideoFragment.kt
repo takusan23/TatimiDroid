@@ -261,6 +261,7 @@ class NicoVideoFragment : Fragment() {
      * コメント描画を初期化する。これないとコメント動かない
      * */
     private fun initReCommentCanvas() {
+        val updateMs = fragment_nicovideo_comment_canvas.getUpdateMs()
         lifecycleScope.launch {
             while (true) {
                 if (::exoPlayer.isInitialized) {
@@ -270,7 +271,7 @@ class NicoVideoFragment : Fragment() {
                     fragment_nicovideo_comment_canvas.currentPosMillSec = exoPlayer.currentPosition
                     fragment_nicovideo_comment_canvas.invalidate()
                 }
-                delay(30)
+                delay(updateMs)
             }
         }
     }
@@ -760,12 +761,10 @@ class NicoVideoFragment : Fragment() {
                                     tmpFlag = true
                                     fragment_nicovideo_comment_canvas?.apply {
                                         lifecycleScope.launch(Dispatchers.Default) {
-                                            isLoading = true
                                             clearList()
                                             commentList.sortedBy { commentJSONParse -> commentJSONParse.vpos.toLong() }.forEach { commentData ->
                                                 postComment(commentData.comment, commentData.mail, commentData.vpos.toLong() * 10)
                                             }
-                                            isLoading = false
                                         }
                                     }
                                 }

@@ -498,4 +498,5 @@
     <string name="yourpost">私です！</string>
     <string name="comment_post_limit">5秒前まで遡っても投稿したコメが見つかりませんでした。</string>
     <string name="popup_fix_size">大きさを直す</string>
+    <string name="setting_live_only_title">ここは生放送にのみ適用されます。</string>
 </resources>

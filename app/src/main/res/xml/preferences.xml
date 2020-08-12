@@ -298,7 +298,7 @@
         </Preference>
     </PreferenceCategory>
 
-
+    <!-- コメント描画系 -->
     <PreferenceCategory android:title="@string/setting_comment_canvas">
 
         <SwitchPreference
@@ -346,49 +346,22 @@
                 android:title="@string/setting_comment_canvas_fps_title" />
 
         <EditTextPreference
-                android:defaultValue="3"
-                android:icon="@drawable/ic_speed_24px"
-                android:key="setting_comment_speed"
-                android:summary="@string/setting_comment_speed_description"
-                android:title="@string/setting_comment_speed_title" />
-
-        <EditTextPreference
                 android:defaultValue="1.0"
                 android:icon="@drawable/ic_paint_black"
                 android:key="setting_comment_alpha"
                 android:summary="@string/setting_comment_canvas_alpha_descripton"
                 android:title="@string/setting_comment_canvas_alpha_title" />
+
+        <PreferenceCategory android:summary="@string/setting_live_only_title">
+            <EditTextPreference
+                    android:defaultValue="3"
+                    android:icon="@drawable/ic_speed_24px"
+                    android:key="setting_comment_speed"
+                    android:summary="@string/setting_comment_speed_description"
+                    android:title="@string/setting_comment_speed_title" />
+        </PreferenceCategory>
+
     </PreferenceCategory>
-
-    <!--
-        <PreferenceCategory
-                android:icon="@drawable/ic_font_download_24px"
-                android:key="setting_font_category"
-                android:title="@string/font">
-
-            <Preference
-                    android:key="setting_font_select"
-                    android:summary="@string/setting_font_description"
-                    android:title="@string/setting_select_font" />
-            <Preference
-                    android:key="setting_font_reset"
-                    android:title="@string/setting_reset_font" />
-
-        </PreferenceCategory>
-    -->
-
-    <!--
-        <PreferenceCategory android:title="実験的">
-
-            <SwitchPreference
-                    android:defaultValue="false"
-                    android:icon="@drawable/ic_sports_esports_24px"
-                    android:key="setting_nico_nama_game"
-                    android:summary="技術者向け：PC版ニコ生（全画面モード）をWebViewで表示することでゲームを遊べるようにします。"
-                    android:title="ニコ生ゲームを遊べるようにする" />
-
-        </PreferenceCategory>
-    -->
 
     <PreferenceCategory android:title="@string/leave_app">
 
@@ -398,17 +371,6 @@
                 android:key="setting_leave_background"
                 android:summary="@string/leave_background_description"
                 android:title="@string/background_play" />
-
-        <!--
-                <SwitchPreference
-                        android:defaultValue="false"
-                        android:dependency="setting_leave_background"
-                        android:icon="@drawable/ic_background_icon_black"
-                        android:key="setting_leave_background_v2"
-                        android:summary="@string/leave_background_v2_description"
-                        android:title="@string/leave_background_v2_title" />
-        -->
-
 
         <SwitchPreference
                 android:defaultValue="false"

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import androidx.preference.PreferenceManager
 import kotlin.random.Random
 
 /**
@@ -26,6 +27,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
 
     /** 描画するコメント一覧。描画中コメントは[getDrawingCommentList]を参照 */
     private val commentList = arrayListOf<DrawCommentData>()
+
+    private val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
 
     /**
      * 現在の動画の再生時間。
@@ -101,9 +104,6 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             blackPaint.typeface = value
             field = value
         }
-
-    var isLoading = false
-
 
     /**
      * なんかしらんけどViewの高さが取れないのでちょいまって
@@ -394,7 +394,17 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * @return フォントサイズ
      * */
     fun getCommandFontSize(command: String): Float {
-        val defaultFontSize = 20 * resources.displayMetrics.scaledDensity
+        // コメント行を自由に設定する設定
+        val isCustomCommentLine = prefSetting.getBoolean("setting_comment_canvas_custom_line_use", false)
+        val customCommentLine = prefSetting.getString("setting_comment_canvas_custom_line_value", "10")?.toInt() ?: 20
+        // 強制10行表示モード
+        val is10LineMode = prefSetting.getBoolean("setting_comment_canvas_10_line", false)
+        // フォントサイズ
+        val defaultFontSize = when {
+            is10LineMode -> (finalHeight / 10).toFloat() // 強制10行確保
+            isCustomCommentLine -> (finalHeight / customCommentLine).toFloat() // 自由に行設定
+            else -> 20 * resources.displayMetrics.scaledDensity // でふぉ
+        }
         return when {
             command.contains("big") -> {
                 (defaultFontSize * 1.3).toFloat()
@@ -455,6 +465,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         paint.textSize = fontSize
         blackPaint.textSize = fontSize
         paint.color = Color.parseColor(getColor(command))
+        paint.alpha = (getAlphaFloat() * 225).toInt()
+        blackPaint.alpha = (getAlphaFloat() * 225).toInt()
     }
 
     /**
@@ -527,6 +539,31 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             else -> false
         }
     }
+
+    /**
+     * コメントの更新頻度を取得する関数。
+     * */
+    fun getUpdateMs(): Long {
+        // コメントキャンバスの更新頻度
+        // コメントの更新頻度をfpsで設定するかどうか
+        val isSetSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
+        return if (isSetSpeedFPS) {
+            // fpsで設定
+            val fps = prefSetting.getString("setting_comment_canvas_speed_fps", "60")?.toIntOrNull() ?: 60
+            // 1000で割る （例：1000/60=16....）
+            (1000 / fps)
+        } else {
+            // ミリ秒で指定
+            prefSetting.getString("setting_comment_canvas_timer", "10")?.toIntOrNull() ?: 10
+        }.toLong()
+    }
+
+    /**
+     * 透明度を返す。[Paint.setAlpha]に入れるときは255掛けないといけません
+     *
+     * 半透明にするぐらいなら消したほうが良くねというお気持ちもある
+     * */
+    fun getAlphaFloat() = prefSetting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F
 
 }
 

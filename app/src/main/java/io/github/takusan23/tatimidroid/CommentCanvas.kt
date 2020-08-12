@@ -139,10 +139,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         // コメントの色を部屋の色にする設定が有効ならtrue
         isCommentColorRoom = pref_setting.getBoolean("setting_command_room_color", false)
         // コメント行を自由に設定する設定
-        isCustomCommentLine =
-            pref_setting.getBoolean("setting_comment_canvas_custom_line_use", false)
-        customCommentLine =
-            pref_setting.getString("setting_comment_canvas_custom_line_value", "10")?.toInt() ?: 20
+        isCustomCommentLine = pref_setting.getBoolean("setting_comment_canvas_custom_line_use", false)
+        customCommentLine = pref_setting.getString("setting_comment_canvas_custom_line_value", "10")?.toInt() ?: 20
         // 開発者用項目
         isShowDrawTextRect = pref_setting.getBoolean("dev_setting_comment_canvas_text_rect", false) ?: false
         // 定期実行
