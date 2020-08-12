@@ -15,7 +15,7 @@ internal val NICOVIDEO_MYLIST_ID_REGEX = "(mylist/)([0-9]+)"
  * @param text 文字列
  * @return ID。なければnullです。
  * */
-internal fun IDRegex(text: String): String? {
+fun IDRegex(text: String): String? {
     // 正規表現
     val nicoIDMatcher = Pattern.compile(NICOLIVE_ID_REGEX)
         .matcher(text)

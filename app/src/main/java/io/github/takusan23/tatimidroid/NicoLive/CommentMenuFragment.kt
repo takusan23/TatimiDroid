@@ -51,7 +51,7 @@ class CommentMenuFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        darkModeSupport = DarkModeSupport(context!!)
+        darkModeSupport = DarkModeSupport(requireContext())
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
         //CommentFragmentしゅとく～

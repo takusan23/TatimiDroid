@@ -70,7 +70,7 @@ class DarkModeSupport(val context: Context) {
  * @param context こんてきすと
  * @return ダークモードならtrue。そうじゃなければfalse。
  * */
-internal fun isDarkMode(context: Context?): Boolean {
+fun isDarkMode(context: Context?): Boolean {
     if (context == null) return false
     val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
     // ダークモードの設定を　「端末の設定に従う」「ダークモード」「ライトテーマ」　から選べるように。
@@ -93,7 +93,7 @@ internal fun isDarkMode(context: Context?): Boolean {
  * @param context こんてきすと
  * @return ダークモードなら黒、それ以外なら白です。
  * */
-internal fun getThemeColor(context: Context?): Int = if (isDarkMode(context)) {
+fun getThemeColor(context: Context?): Int = if (isDarkMode(context)) {
     Color.parseColor("#000000")
 } else {
     Color.parseColor("#ffffff")
@@ -105,7 +105,7 @@ internal fun getThemeColor(context: Context?): Int = if (isDarkMode(context)) {
  * @param context こんてきすと
  * @return ダークモードなら白
  * */
-internal fun getThemeTextColor(context: Context?): Int = if (isDarkMode(context)) {
+fun getThemeTextColor(context: Context?): Int = if (isDarkMode(context)) {
     Color.parseColor("#ffffff")
 } else {
     Color.parseColor("#000000")

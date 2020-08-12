@@ -536,7 +536,7 @@ class CommentFragment : Fragment() {
             setCloseFullScreen()
         }
         // 画面の大きさ取得
-        val displayHeight = DisplaySizeTool().getDisplayHeight(context)
+        val displayHeight = DisplaySizeTool.getDisplayHeight(context)
         // ExoPlayerのアスペクト比設定
         liveFrameLayout.updateLayoutParams {
             height = displayHeight
@@ -578,7 +578,7 @@ class CommentFragment : Fragment() {
         // 全画面終了ボタン
         activity_comment_fullscreen_close_button?.setOnClickListener(null)
         // 画面の幅取得
-        val displayWidth = DisplaySizeTool().getDisplayWidth(context)
+        val displayWidth = DisplaySizeTool.getDisplayWidth(context)
         // ExoPlayerのアスペクト比設定
         liveFrameLayout.updateLayoutParams {
             width = displayWidth / 2
@@ -988,7 +988,6 @@ class CommentFragment : Fragment() {
     private fun showCommentPOSTResultSnackBar(message: String) {
         lifecycleScope.launch {
             val jsonObject = JSONObject(message)
-
             /**
              * 本当に送信できたかどうか。
              * 実は流量制限にかかってしまったのではないか（公式番組以外では流量制限コメント鯖（store鯖）に接続できるけど公式は無理）
@@ -1426,7 +1425,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             // println("生放送再生：HLSアドレス : $hls_address")
 
             // 画面の幅取得。Android 11に対応した
-            val displayWidth = DisplaySizeTool().getDisplayWidth(context)
+            val displayWidth = DisplaySizeTool.getDisplayWidth(context)
 
             //ウィンドウの半分ぐらいの大きさに設定
             val frameLayoutParams = liveFrameLayout.layoutParams

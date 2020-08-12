@@ -13,11 +13,11 @@ import java.util.*
  * 以下例
  * ```kotlin
  * override fun attachBaseContext(newBase: Context?) {
- *     super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
+ *     super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
  * }
  * ```
  * */
-class LanguageTool {
+object LanguageTool {
 
     /**
      * アプリ内設定の言語から言語指定Contextをセットする

@@ -12,7 +12,7 @@ import androidx.annotation.RequiresApi
  * 画面の大きさを取得する関数。
  * Android 11から新しい方法で取得する用になって長くなるので関数にまとめた
  * */
-class DisplaySizeTool {
+object DisplaySizeTool {
 
     /**
      * 画面の幅を返す関数。

@@ -339,8 +339,6 @@ class NicoVideoInfoFragment : Fragment() {
                             setAction(R.string.close) {
                                 dismiss()
                             }
-                            // SnackBarの位置
-                            anchorView = devNicoVideoFragment?.getSnackBarAnchorView()
                             show()
                         }
                     }

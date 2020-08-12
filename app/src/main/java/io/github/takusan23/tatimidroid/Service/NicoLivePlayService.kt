@@ -29,12 +29,14 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
-import io.github.takusan23.tatimidroid.*
-import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.CommentCanvas
+import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
+import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
@@ -394,7 +396,7 @@ class NicoLivePlayService : Service() {
         }
 
         // 画面の半分を利用するように
-        val width = DisplaySizeTool().getDisplayWidth(this) / 2
+        val width = DisplaySizeTool.getDisplayWidth(this) / 2
         //アスペクト比16:9なので
         val height = (width / 16) * 9
         //レイアウト読み込み
@@ -528,8 +530,8 @@ class NicoLivePlayService : Service() {
                 MotionEvent.ACTION_MOVE -> {
 
                     // オーバーレイ表示領域の座標を移動させる
-                    params.x = x - (DisplaySizeTool().getDisplayWidth(this) / 2)
-                    params.y = y - (DisplaySizeTool().getDisplayHeight(this) / 2)
+                    params.x = x - (DisplaySizeTool.getDisplayWidth(this) / 2)
+                    params.y = y - (DisplaySizeTool.getDisplayHeight(this) / 2)
 
                     // 移動した分を更新する
                     windowManager.updateViewLayout(view, params)
@@ -546,9 +548,16 @@ class NicoLivePlayService : Service() {
         }
 
         //ボタン表示
+        var job: Job? = null
         popupView.setOnClickListener {
             // ktxで表示/非表示を短く書こう！
             popupView.overlay_button_layout.isVisible = !popupView.overlay_button_layout.isVisible
+            job?.cancel()
+            job = GlobalScope.launch(Dispatchers.Main) {
+                // 一定期間で消えるように
+                delay(3000)
+                popupView.overlay_button_layout.isVisible = false
+            }
         }
 
         popupView.overlay_send_comment_button.setOnClickListener {
@@ -759,7 +768,7 @@ class NicoLivePlayService : Service() {
      * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
      * */
     override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
+        super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
     }
 
 }
@@ -776,7 +785,7 @@ class NicoLivePlayService : Service() {
  * @param isJK 実況ならtrue。省略時false
  * @param startQuality 画質を指定する場合は入れてね。highとか。ない場合はそのままでいいです（省略時：high）。
  * */
-internal fun startLivePlayService(context: Context?, mode: String, liveId: String, isCommentPost: Boolean, isNicocasMode: Boolean, isJK: Boolean = false, isTokumei: Boolean = true, startQuality: String = "high") {
+fun startLivePlayService(context: Context?, mode: String, liveId: String, isCommentPost: Boolean, isNicocasMode: Boolean, isJK: Boolean = false, isTokumei: Boolean = true, startQuality: String = "high") {
     // ポップアップ再生の権限があるか
     if (mode == "popup") {
         if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

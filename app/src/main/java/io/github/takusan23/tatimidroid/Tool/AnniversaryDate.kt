@@ -6,7 +6,7 @@ import java.util.*
  * 一周年とかを計算するやつ。一周年とかじゃないなら「-1」を返す
  * @param postedUnixTime 比較する時間。UnixTime（ミリ秒）
  * */
-internal fun calcAnniversary(postedUnixTime: Long): Int {
+fun calcAnniversary(postedUnixTime: Long): Int {
     // 投稿日
     val postedCalendar = Calendar.getInstance()
     postedCalendar.timeInMillis = postedUnixTime

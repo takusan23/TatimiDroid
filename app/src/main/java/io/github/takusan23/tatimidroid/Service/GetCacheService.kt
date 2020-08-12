@@ -275,7 +275,7 @@ class GetCacheService : Service() {
      * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
      * */
     override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
+        super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
     }
 
 }
@@ -289,7 +289,7 @@ class GetCacheService : Service() {
  * @param overwrite すでに取得済みでも取得する場合はtrue。強制取得的な。デフォtrue
  * @return キャッシュ取得するならtrue。そうじゃなければfalse
  * */
-internal fun startCacheService(context: Context?, videoId: String, isEco: Boolean = false, overwrite: Boolean = true): Boolean {
+fun startCacheService(context: Context?, videoId: String, isEco: Boolean = false, overwrite: Boolean = true): Boolean {
     val nicoVideoCache = NicoVideoCache(context)
     // 強制取得 か まだキャッシュ未取得時 は取得する。
     if (overwrite || !nicoVideoCache.hasCacheVideoFile(videoId)) {

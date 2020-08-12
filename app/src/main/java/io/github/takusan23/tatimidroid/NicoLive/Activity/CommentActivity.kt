@@ -68,7 +68,7 @@ class CommentActivity : AppCompatActivity() {
      * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
      * */
     override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(LanguageTool().setLanguageContext(newBase))
+        super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
     }
 
     //ホームボタンおした

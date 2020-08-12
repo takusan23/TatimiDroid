@@ -60,8 +60,7 @@ class NicoVideoSkipCustomizeBottomFragment : BottomSheetDialogFragment() {
         val longSkipTime = prefSetting.getString("nicovideo_long_skip_sec", "10")
         val liveId = arguments?.getString("video_id")
         (parentFragmentManager.findFragmentByTag(liveId) as NicoVideoFragment).apply {
-            fragment_nicovideo_controller_replay.text = "${skipTime} | ${longSkipTime}"
-            fragment_nicovideo_controller_forward.text = "${skipTime} | ${longSkipTime}"
+            initController()
         }
     }
 

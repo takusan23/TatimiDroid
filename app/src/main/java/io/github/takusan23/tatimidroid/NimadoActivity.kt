@@ -151,7 +151,7 @@ class NimadoActivity : AppCompatActivity() {
             htmlList.add(html)
         }
         //動的にView作成
-        val screenWidth = DisplaySizeTool().getDisplayWidth(this)
+        val screenWidth = DisplaySizeTool.getDisplayWidth(this)
 
         //区切りがあれなのでCardViewの上にLinearLayoutを乗せる
         val cardView = CardView(this)
