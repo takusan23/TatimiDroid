@@ -497,4 +497,5 @@
     <string name="zyuuhuku_hide">重複を表示しない</string>
     <string name="yourpost">私です！</string>
     <string name="comment_post_limit">5秒前まで遡っても投稿したコメが見つかりませんでした。</string>
+    <string name="popup_fix_size">大きさを直す</string>
 </resources>

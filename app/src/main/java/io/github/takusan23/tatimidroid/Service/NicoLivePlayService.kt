@@ -624,6 +624,8 @@ class NicoLivePlayService : Service() {
     private fun showNotification(message: String) {
         // 停止Broadcast送信
         val stopPopupIntent = Intent("program_popup_close")
+        // サイズをもとに戻すボタン用Broadcast
+        val fixPopupSize = Intent("video_popup_fix_size")
         // 通知のタイトル設定
         val title = if (isPopupPlay()) {
             getString(R.string.popup_notification_title)
@@ -654,6 +656,7 @@ class NicoLivePlayService : Service() {
                         addAction(directReply())
                     }
                     addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoLivePlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                    addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.popup_fix_size), PendingIntent.getBroadcast(this@NicoLivePlayService, 34, fixPopupSize, PendingIntent.FLAG_UPDATE_CURRENT)))
                 }.build()
             startForeground(NOTIFICAION_ID, programNotification)
         } else {
@@ -665,6 +668,7 @@ class NicoLivePlayService : Service() {
                     addAction(directReply()) // Android ぬがあー以降でDirect Replyが使える
                 }
                 addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoLivePlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.popup_fix_size), PendingIntent.getBroadcast(this@NicoLivePlayService, 34, fixPopupSize, PendingIntent.FLAG_UPDATE_CURRENT)))
             }.build()
             startForeground(NOTIFICAION_ID, programNotification)
         }
@@ -683,11 +687,9 @@ class NicoLivePlayService : Service() {
         val remoteInput = androidx.core.app.RemoteInput.Builder("direct_reply_comment").apply {
             setLabel("コメントを投稿")
         }.build()
-        val action =
-            NotificationCompat.Action.Builder(R.drawable.ic_send_black, "コメントを投稿", replyPendingIntent)
-                .apply {
-                    addRemoteInput(remoteInput)
-                }.build()
+        val action = NotificationCompat.Action.Builder(R.drawable.ic_send_black, "コメントを投稿", replyPendingIntent).apply {
+            addRemoteInput(remoteInput)
+        }.build()
         return action
     }
 
@@ -699,6 +701,7 @@ class NicoLivePlayService : Service() {
         val intentFilter = IntentFilter()
         intentFilter.addAction("program_popup_close")
         intentFilter.addAction("direct_reply_comment")
+        intentFilter.addAction("video_popup_fix_size")
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 when (intent?.action) {
@@ -725,6 +728,19 @@ class NicoLivePlayService : Service() {
                                     showNotification(programTitle) // 通知再設置
                                 })
                             }
+                        }
+                    }
+                    "video_popup_fix_size" -> {
+                        // ポップアップの大きさを治す
+                        val params = popupView.layoutParams
+                        params.width = 800
+                        params.height = (params.width / 16) * 9
+                        // 更新
+                        windowManager.updateViewLayout(popupView, params)
+                        // 大きさを保持しておく
+                        prefSetting.edit {
+                            putInt("nicolive_popup_width", params.width)
+                            putInt("nicolive_popup_height", params.height)
                         }
                     }
                 }

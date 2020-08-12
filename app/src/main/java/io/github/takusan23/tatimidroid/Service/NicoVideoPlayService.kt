@@ -38,9 +38,7 @@ import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
-import kotlinx.android.synthetic.main.inflate_player_controller.*
 import kotlinx.android.synthetic.main.inflate_player_controller.view.*
-import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
@@ -337,6 +335,7 @@ class NicoVideoPlayService : Service() {
                 }
             }
         })
+
 
         // MediaSession。通知もう一階出せばなんか表示されるようになった。Androidむずかちい
         showNotification(videoTitle)
@@ -687,6 +686,8 @@ class NicoVideoPlayService : Service() {
     private fun showNotification(message: String) {
         // 停止Broadcast送信
         val stopPopupIntent = Intent("video_popup_close")
+        // サイズをもとに戻すボタン用Broadcast
+        val fixPopupSize = Intent("video_popup_fix_size")
         // 通知のタイトル設定
         val title = if (isPopupPlay()) {
             getString(R.string.popup_video_player)
@@ -701,19 +702,18 @@ class NicoVideoPlayService : Service() {
         // 通知作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannelId = "video_popup"
-            val notificationChannel =
-                NotificationChannel(notificationChannelId, getString(R.string.video_popup_background_play_service), NotificationManager.IMPORTANCE_HIGH)
+            val notificationChannel = NotificationChannel(notificationChannelId, getString(R.string.video_popup_background_play_service), NotificationManager.IMPORTANCE_HIGH)
             //通知チャンネル登録
             if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
-            val programNotification =
-                NotificationCompat.Builder(this, notificationChannelId).apply {
-                    setContentTitle(title)
-                    setContentText(message)
-                    setSmallIcon(icon)
-                    addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoVideoPlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                }.build()
+            val programNotification = NotificationCompat.Builder(this, notificationChannelId).apply {
+                setContentTitle(title)
+                setContentText(message)
+                setSmallIcon(icon)
+                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoVideoPlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.popup_fix_size), PendingIntent.getBroadcast(this@NicoVideoPlayService, 34, fixPopupSize, PendingIntent.FLAG_UPDATE_CURRENT)))
+            }.build()
             startForeground(NOTIFICAION_ID, programNotification)
         } else {
             val programNotification = NotificationCompat.Builder(this).apply {
@@ -721,6 +721,7 @@ class NicoVideoPlayService : Service() {
                 setContentText(message)
                 setSmallIcon(icon)
                 addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoVideoPlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.popup_fix_size), PendingIntent.getBroadcast(this@NicoVideoPlayService, 34, fixPopupSize, PendingIntent.FLAG_UPDATE_CURRENT)))
             }.build()
             startForeground(NOTIFICAION_ID, programNotification)
         }
@@ -733,12 +734,23 @@ class NicoVideoPlayService : Service() {
     private fun initBroadcast() {
         val intentFilter = IntentFilter()
         intentFilter.addAction("video_popup_close")
+        intentFilter.addAction("video_popup_fix_size")
         broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 when (intent?.action) {
                     "video_popup_close" -> {
                         // 終了
                         this@NicoVideoPlayService.stopSelf()
+                    }
+                    "video_popup_fix_size" -> {
+                        // ポップアップの大きさを治す
+                        popupLayoutParams = getParams(800) // 大きさを初期化
+                        windowManager.updateViewLayout(popupView, popupLayoutParams)
+                        // 大きさを保持しておく
+                        prefSetting.edit {
+                            putInt("nicovideo_popup_height", popupLayoutParams.height)
+                            putInt("nicovideo_popup_width", popupLayoutParams.width)
+                        }
                     }
                 }
             }
