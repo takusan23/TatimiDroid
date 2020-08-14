@@ -22,7 +22,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     private val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
 
     /** 鯖からもらったコメント一覧 */
-    val rawCommentList = arrayListOf<CommentJSONParse>()
+    var rawCommentList = arrayListOf<CommentJSONParse>()
 
     /** 流す or 流れた コメント一覧 */
     val drawNakaCommentList = arrayListOf<ReDrawCommentData>()
@@ -146,7 +146,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // コメントを追加する
         commentAddTimer.schedule(100, 100) {
             if (exoPlayer != null) {
-                GlobalScope.launch(coroutineJob) {
+                GlobalScope.launch(coroutineJob + Dispatchers.Main) {
                     val currentVPos = exoPlayer!!.contentPosition / 100L
                     val currentPositionSec = exoPlayer!!.contentPosition / 1000
                     if (tmpPosition != currentPositionSec) {
@@ -183,7 +183,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         super.onDetachedFromWindow()
         commentDrawTimer.cancel()
         commentAddTimer.cancel()
-        coroutineJob.cancel()
+        coroutineJob.cancelChildren()
     }
 
     /**
@@ -234,8 +234,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         for (reDrawCommentData in drawNakaCommentList.toList()) {
             if (reDrawCommentData != null) {
                 setCommandPaint(reDrawCommentData.command, reDrawCommentData.fontSize)
-                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), paint)
                 canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), blackPaint)
+                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), paint)
                 // 当たり判定検証ように枠をつける
                 if (watashiHaDeveloper) {
                     canvas.drawRect(reDrawCommentData.rect, strokePaint)
@@ -247,8 +247,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         for (reDrawCommentData in drawUeCommentList.toList()) {
             if (reDrawCommentData != null) {
                 setCommandPaint(reDrawCommentData.command, reDrawCommentData.fontSize)
-                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), paint)
                 canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), blackPaint)
+                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), paint)
                 // 当たり判定検証ように枠をつける
                 if (watashiHaDeveloper) {
                     canvas.drawRect(reDrawCommentData.rect, strokePaint)
@@ -260,8 +260,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         for (reDrawCommentData in drawShitaCommentList.toList()) {
             if (reDrawCommentData != null) {
                 setCommandPaint(reDrawCommentData.command, reDrawCommentData.fontSize)
-                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), paint)
                 canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), blackPaint)
+                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), paint)
                 // 当たり判定検証ように枠をつける
                 if (watashiHaDeveloper) {
                     canvas.drawRect(reDrawCommentData.rect, strokePaint)
@@ -304,7 +304,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             }
         }
         // なお画面外突入時はランダム
-        if (addRect.top > finalHeight) {
+        if (addRect.bottom > finalHeight) {
             val randomValue = randomValue(fontSize.toFloat())
             addRect.top = randomValue
             addRect.bottom = addRect.top + fontSize

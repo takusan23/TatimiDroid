@@ -7,12 +7,13 @@ import android.content.pm.ActivityInfo
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
-import android.os.*
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.format.DateUtils
 import android.view.*
-import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -33,8 +34,6 @@ import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoRecyclerPagerAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.FregmentData.DevNicoVideoFragmentData
 import io.github.takusan23.tatimidroid.FregmentData.TabLayoutData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
@@ -44,6 +43,8 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoRecyclerPagerAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
@@ -185,7 +186,7 @@ class NicoVideoFragment : Fragment() {
         initDarkmode()
 
         // コントローラー表示
-        initController()
+        // initController()
 
         exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
 
@@ -323,10 +324,6 @@ class NicoVideoFragment : Fragment() {
         setSystemBarVisibility(false)
         // 黒色へ。
         (fragment_nicovideo_video_title_linearlayout.parent as View).setBackgroundColor(Color.BLACK)
-        // 全画面終了ボタン
-        player_control_fullscreen.setOnClickListener {
-            setCloseFullScreen()
-        }
         // アスペクト比調整
         fragment_nicovideo_framelayout.updateLayoutParams {
             val displayWidth = DisplaySizeTool.getDisplayWidth(context)
@@ -352,10 +349,6 @@ class NicoVideoFragment : Fragment() {
         setSystemBarVisibility(true)
         // 色戻す
         (fragment_nicovideo_video_title_linearlayout.parent as View).setBackgroundColor(getThemeColor(context))
-        // 全画面ボタン
-        player_control_fullscreen.setOnClickListener {
-            setFullScreen()
-        }
         // 横画面のみ。下のタイトル表示
         fragment_nicovideo_video_title_linearlayout?.isVisible = true
         // アスペ（クト比）直す
@@ -418,52 +411,50 @@ class NicoVideoFragment : Fragment() {
         }
     }
 
-    // コントローラーのUI変更
+    /** コントローラー初期化。[exoPlayer]の再生ができる状態になったら呼んでください */
     fun initController() {
+        // コントローラーを消すためのコルーチン
+        val job = Job()
         // スキップ秒数
         val skipTime = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5)
         val longSkipTime = (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10)
         player_control_prev.text = "${skipTime} | ${longSkipTime}"
         player_control_next.text = "${skipTime} | ${longSkipTime}"
-        // 押したとき
-        player_control_prev.setOnClickListener {
-            // 5秒戻す
-            val skip = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+        // ダブルタップ版setOnClickListener。拡張関数です。DoubleClickListener
+        player_control_prev.setOnDoubleClickListener { motionEvent, isDoubleClick ->
+            val skip = if (isDoubleClick) {
+                // ダブルタップ時
+                (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+            } else {
+                // シングル
+                (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10) * 1000 // 秒→ミリ秒
+            }
             exoPlayer.seekTo(exoPlayer.currentPosition - skip)
-            // コメントシークに対応させる
             fragment_nicovideo_comment_canvas.seekComment()
+            updateHideController(job)
         }
-        player_control_prev.setOnLongClickListener {
-            // 長押し時
-            val skip = (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10) * 1000 // 秒→ミリ秒
-            exoPlayer.seekTo(exoPlayer.currentPosition - skip)
-            true
-        }
-        player_control_next.setOnClickListener {
-            // 5秒進める
-            val skip = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+        player_control_next.setOnDoubleClickListener { motionEvent, isDoubleClick ->
+            val skip = if (isDoubleClick) {
+                // ダブルタップ時
+                (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10) * 1000 // 秒→ミリ秒
+            } else {
+                // シングル
+                (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+            }
             exoPlayer.seekTo(exoPlayer.currentPosition + skip)
             // コメントシークに対応させる
             fragment_nicovideo_comment_canvas.seekComment()
-        }
-        player_control_next.setOnLongClickListener {
-            // 長押し時
-            val skip = (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10) * 1000 // 秒→ミリ秒
-            exoPlayer.seekTo(exoPlayer.currentPosition + skip)
-            true
+            updateHideController(job)
         }
         // 全画面ボタン
         player_control_fullscreen.setOnClickListener {
-            // なお全画面は横のみサポート
-            requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-            setFullScreen()
-        }
-        // Viewを数秒後に非表示するとか
-        var job = lifecycleScope.launch {
-            // Viewを数秒後に消す
-            delay(3000)
-            if (player_control_main.isVisible) {
-                player_control_main.isVisible = false
+            if (isFullScreenMode) {
+                // 全画面終了ボタン
+                setCloseFullScreen()
+            } else {
+                // なお全画面は横のみサポート
+                requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                setFullScreen()
             }
         }
         // コントローラー消せるように
@@ -471,14 +462,7 @@ class NicoVideoFragment : Fragment() {
             // 非表示切り替え
             player_control_main.isVisible = !player_control_main.isVisible
             // ３秒待ってもViewが表示されてる場合は消せるように。
-            job.cancel()
-            job = lifecycleScope.launch {
-                // Viewを数秒後に消す
-                delay(3000)
-                if (player_control_main.isVisible) {
-                    player_control_main.isVisible = false
-                }
-            }
+            updateHideController(job)
         }
         // ポップアップ/バッググラウンドなど
         player_control_popup.setOnClickListener {
@@ -492,6 +476,50 @@ class NicoVideoFragment : Fragment() {
             startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = currentVideoQuality, audioQuality = currentAudioQuality)
             // Activity落とす
             activity?.finish()
+        }
+        // シークバー用意
+        player_control_seek.max = (exoPlayer.duration / 1000L).toInt()
+        player_control_seek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                // シークいじったら時間反映されるように
+                val formattedTime = DateUtils.formatElapsedTime((seekBar?.progress ?: 0).toLong())
+                val videoLengthFormattedTime = DateUtils.formatElapsedTime(exoPlayer.duration / 1000L)
+                player_control_current.text = formattedTime
+                player_control_duration.text = videoLengthFormattedTime
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                // コントローラー非表示カウントダウン終了
+                job.cancel()
+                isTouchSeekBar = true
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                isTouchSeekBar = false
+                // コメントシークに対応させる
+                fragment_nicovideo_comment_canvas.seekComment()
+                // ExoPlayer再開
+                exoPlayer.seekTo((seekBar?.progress ?: 0) * 1000L)
+                // コントローラー非表示カウントダウン再開
+                updateHideController(job)
+            }
+        })
+        // Viewを数秒後に非表示するとか
+        updateHideController(job)
+    }
+
+    /**
+     * コントローラーを消すためのコルーチン。
+     * */
+    private fun updateHideController(job: Job) {
+        // Viewを数秒後に非表示するとか
+        job.cancelChildren()
+        lifecycleScope.launch(job) {
+            // Viewを数秒後に消す
+            delay(3000)
+            if (player_control_main?.isVisible == true) {
+                player_control_main?.isVisible = false
+            }
         }
     }
 
@@ -729,7 +757,7 @@ class NicoVideoFragment : Fragment() {
                 fragment_nicovideo_comment_canvas.apply {
                     rawCommentList.clear()
                     exoPlayer = this@NicoVideoFragment.exoPlayer
-                    rawCommentList.addAll(commentList)
+                    rawCommentList = commentList
                 }
             }
         }
@@ -766,7 +794,7 @@ class NicoVideoFragment : Fragment() {
             showToast(message)
         }
         // タイトル
-        videoTitle = jsonObject.getJSONObject("video").getString("title")
+        videoTitle = if (isInitJsonObject()) jsonObject.getJSONObject("video").getString("title") else ""
         initTitleArea()
         // タイトルなど
         player_control_title.text = videoTitle
@@ -1018,7 +1046,6 @@ class NicoVideoFragment : Fragment() {
         exoPlayer.addListener(object : Player.EventListener {
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                 super.onPlayerStateChanged(playWhenReady, playbackState)
-                initSeekBar()
                 setPlayIcon()
                 if (playbackState == Player.STATE_BUFFERING) {
                     // STATE_BUFFERING はシークした位置からすぐに再生できないとき。読込み中のこと。
@@ -1027,7 +1054,8 @@ class NicoVideoFragment : Fragment() {
                     hideSwipeToRefresh()
                 }
                 if (!isRotationProgressSuccessful) {
-                    // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
+                    // 一度だけ実行するように。画面回転前の時間を適用する
+                    initController()
                     exoPlayer.seekTo(rotationProgress)
                     isRotationProgressSuccessful = true
                     // 前回見た位置から再生
@@ -1164,37 +1192,6 @@ class NicoVideoFragment : Fragment() {
             context?.getDrawable(R.drawable.ic_play_arrow_24px)
         }
         player_control_pause.setImageDrawable(drawable)
-    }
-
-    /**
-     * シークバー初期化
-     * */
-    fun initSeekBar() {
-        // シークできるようにする
-        player_control_seek.max = (exoPlayer.duration / 1000L).toInt()
-        player_control_seek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                // シークいじったら時間反映されるように
-                val formattedTime = DateUtils.formatElapsedTime((seekBar?.progress ?: 0).toLong())
-                val videoLengthFormattedTime = DateUtils.formatElapsedTime(exoPlayer.duration / 1000L)
-                player_control_current.text = formattedTime
-                player_control_duration.text = videoLengthFormattedTime
-                // 操作中でもExoPlayerに反映させる
-                if (isTouchSeekBar) {
-                    exoPlayer.seekTo((seekBar?.progress ?: 0) * 1000L)
-                }
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                isTouchSeekBar = true
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                isTouchSeekBar = false
-                // コメントシークに対応させる
-                fragment_nicovideo_comment_canvas.seekComment()
-            }
-        })
     }
 
     /**
