@@ -28,5 +28,7 @@ data class DevNicoVideoFragmentData(
     /** 関連動画。キャッシュ再生時はからの配列だと思う */
     val recommendList: ArrayList<NicoVideoData>,
     /** フルスクリーンで再生していた場合はtrue */
-    val isFullScreenMode: Boolean = false
+    val isFullScreenMode: Boolean = false,
+    /** アスペクト比が16:9の場合はtrue */
+    val is169AspectLate: Boolean = true
 ) : Serializable

@@ -700,31 +700,27 @@ class NicoVideoPlayService : Service() {
             R.drawable.ic_background_icon
         }
         // 通知作成
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val programNotification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannelId = "video_popup"
             val notificationChannel = NotificationChannel(notificationChannelId, getString(R.string.video_popup_background_play_service), NotificationManager.IMPORTANCE_HIGH)
             //通知チャンネル登録
             if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
-            val programNotification = NotificationCompat.Builder(this, notificationChannelId).apply {
-                setContentTitle(title)
-                setContentText(message)
-                setSmallIcon(icon)
-                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoVideoPlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.popup_fix_size), PendingIntent.getBroadcast(this@NicoVideoPlayService, 34, fixPopupSize, PendingIntent.FLAG_UPDATE_CURRENT)))
-            }.build()
-            startForeground(NOTIFICAION_ID, programNotification)
+            NotificationCompat.Builder(this, notificationChannelId)
         } else {
-            val programNotification = NotificationCompat.Builder(this).apply {
-                setContentTitle(title)
-                setContentText(message)
-                setSmallIcon(icon)
-                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoVideoPlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.popup_fix_size), PendingIntent.getBroadcast(this@NicoVideoPlayService, 34, fixPopupSize, PendingIntent.FLAG_UPDATE_CURRENT)))
-            }.build()
-            startForeground(NOTIFICAION_ID, programNotification)
+            NotificationCompat.Builder(this)
         }
+        programNotification.apply {
+            setContentTitle(title)
+            setContentText(message)
+            setSmallIcon(icon)
+            addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoVideoPlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+            if (isPopupPlay()) {
+                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.popup_fix_size), PendingIntent.getBroadcast(this@NicoVideoPlayService, 34, fixPopupSize, PendingIntent.FLAG_UPDATE_CURRENT)))
+            }
+        }
+        startForeground(NOTIFICAION_ID, programNotification.build())
     }
 
     /**

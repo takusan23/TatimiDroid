@@ -352,15 +352,12 @@
                 android:summary="@string/setting_comment_canvas_alpha_descripton"
                 android:title="@string/setting_comment_canvas_alpha_title" />
 
-        <PreferenceCategory android:summary="@string/setting_live_only_title">
-            <EditTextPreference
-                    android:defaultValue="3"
-                    android:icon="@drawable/ic_speed_24px"
-                    android:key="setting_comment_speed"
-                    android:summary="@string/setting_comment_speed_description"
-                    android:title="@string/setting_comment_speed_title" />
-        </PreferenceCategory>
-
+        <EditTextPreference
+                android:defaultValue="3"
+                android:icon="@drawable/ic_speed_24px"
+                android:key="setting_comment_speed"
+                android:summary="@string/setting_comment_speed_description"
+                android:title="@string/setting_comment_speed_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/leave_app">

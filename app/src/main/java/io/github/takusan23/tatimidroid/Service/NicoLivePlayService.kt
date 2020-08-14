@@ -638,40 +638,31 @@ class NicoLivePlayService : Service() {
             R.drawable.ic_background_icon
         }
         // 通知作成
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val programNotification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Android 8の通知チャンネル対応版
             val notificationChannelId = "program_popup"
-            val notificationChannel =
-                NotificationChannel(notificationChannelId, getString(R.string.popup_notification_title), NotificationManager.IMPORTANCE_HIGH)
-
+            val notificationChannel = NotificationChannel(notificationChannelId, getString(R.string.popup_notification_title), NotificationManager.IMPORTANCE_HIGH)
             //通知チャンネル登録
             if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
-            val programNotification =
-                NotificationCompat.Builder(this, notificationChannelId).apply {
-                    setContentTitle(title)
-                    setContentText(message)
-                    setSmallIcon(icon)
-                    if (isPopupPlay()) {
-                        addAction(directReply())
-                    }
-                    addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoLivePlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                    addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.popup_fix_size), PendingIntent.getBroadcast(this@NicoLivePlayService, 34, fixPopupSize, PendingIntent.FLAG_UPDATE_CURRENT)))
-                }.build()
-            startForeground(NOTIFICAION_ID, programNotification)
+            NotificationCompat.Builder(this, notificationChannelId)
         } else {
-            val programNotification = NotificationCompat.Builder(this).apply {
-                setContentTitle(title)
-                setContentText(message)
-                setSmallIcon(icon)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isPopupPlay()) {
-                    addAction(directReply()) // Android ぬがあー以降でDirect Replyが使える
-                }
-                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoLivePlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.popup_fix_size), PendingIntent.getBroadcast(this@NicoLivePlayService, 34, fixPopupSize, PendingIntent.FLAG_UPDATE_CURRENT)))
-            }.build()
-            startForeground(NOTIFICAION_ID, programNotification)
+            NotificationCompat.Builder(this)
         }
+        programNotification.apply {
+            setContentTitle(title)
+            setContentText(message)
+            setSmallIcon(icon)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isPopupPlay()) {
+                addAction(directReply()) // Android ぬがあー以降でDirect Replyが使える
+            }
+            addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@NicoLivePlayService, 24, stopPopupIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+            if (isPopupPlay()) {
+                addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.popup_fix_size), PendingIntent.getBroadcast(this@NicoLivePlayService, 34, fixPopupSize, PendingIntent.FLAG_UPDATE_CURRENT)))
+            }
+        }
+        startForeground(NOTIFICAION_ID, programNotification.build())
     }
 
     /**

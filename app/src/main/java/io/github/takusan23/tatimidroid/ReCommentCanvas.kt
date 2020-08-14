@@ -5,69 +5,49 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
+import com.google.android.exoplayer2.SimpleExoPlayer
+import kotlinx.coroutines.*
+import java.util.*
+import kotlin.concurrent.schedule
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 /**
  * ニコ動のために作り直されたコメント描画。
  *
- * 今回はただ流すのではなく、動画の再生時間に合わせて動きます（多分。てかそうしたい）
- * ```kotlin
- * // コメント動かす
- * Timer().schedule(timerTask {
- *      runOnUiThread {
- *           re_comment_canvas.currentPosSec = exoPlayer.currentPosition / 1000
- *           re_comment_canvas.oldUpdateMs = re_comment_canvas.currentPosMillSec
- *           re_comment_canvas.currentPosMillSec = exoPlayer.currentPosition
- *           re_comment_canvas.invalidate()
- *      }
- * },30,30)
- * ```
+ * シークバーいじることができる。
  * */
 class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, attributeSet) {
 
-    /** 描画するコメント一覧。描画中コメントは[getDrawingCommentList]を参照 */
-    private val commentList = arrayListOf<DrawCommentData>()
-
     private val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
 
-    /**
-     * 現在の動画の再生時間。
-     *
-     * こっちは秒で入れてね。ExoPlayerなら[com.google.android.exoplayer2.SimpleExoPlayer.getCurrentPosition]を1000で割った値を入れればいいです。
-     *
-     * コメント流すので使うので新しい値を常に入れてくれ
-     *
-     * */
-    var currentPosSec = 0L
+    /** 鯖からもらったコメント一覧 */
+    val rawCommentList = arrayListOf<CommentJSONParse>()
 
-    /**
-     * 現在の動画の再生時間。
-     *
-     * こっちはミリ秒で入れてね。ExoPlayerなら[com.google.android.exoplayer2.SimpleExoPlayer.getCurrentPosition]の値をそのまま入れてください。
-     *
-     * コメント流すので使うので新しい値を常に入れてくれ
-     * */
-    var currentPosMillSec = 0L
+    /** 流す or 流れた コメント一覧 */
+    val drawNakaCommentList = arrayListOf<ReDrawCommentData>()
+
+    /** 上のコメント一覧 */
+    val drawUeCommentList = arrayListOf<ReDrawCommentData>()
+
+    /** 下のコメント一覧 */
+    val drawShitaCommentList = arrayListOf<ReDrawCommentData>()
 
     /** 黒枠 */
     private val blackPaint = Paint().apply {
         isAntiAlias = true
         strokeWidth = 2.0f
         style = Paint.Style.STROKE
-        textSize = 50f
-        color = Color.parseColor("#000000")
-        //文字サイズ計算。端末によって変わるので
         textSize = 20 * resources.displayMetrics.scaledDensity
+        color = Color.parseColor("#000000")
     }
 
     /** 白色 */
     private val paint = Paint().apply {
         isAntiAlias = true
-        textSize = 50f
+        textSize = 20 * resources.displayMetrics.scaledDensity
         style = Paint.Style.FILL
         color = Color.WHITE
-        //文字サイズ計算。端末によって変わるので
-        textSize = 20 * resources.displayMetrics.scaledDensity
     }
 
     /** 当たり判定検証用にコメントに枠をつける */
@@ -78,22 +58,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     }
 
     /** コメントの枠を表示する際はtrue。PC版とかで自分のコメントに枠が付くあれ。 */
-    var watashiHaDeveloper = false
-
-    /**
-     * 更新前の位置。シークする際に使う。
-     * 例：シーク前３秒、シーク後５秒で、コメントの位置を合わせるのにシーク前の時間が必要なため
-     * */
-    var oldUpdateMs = 0L
-
-    /**
-     * コメントの速度？
-     * 2ぐらいが良いと思った（要検証）
-     *
-     * 30ms で 2 ぐらいが良い？
-     *
-     * */
-    var commentMoveFix = 2
+    val watashiHaDeveloper by lazy { prefSetting.getBoolean("dev_setting_comment_canvas_text_rect", false) }
 
     /**
      * フォント変更
@@ -105,287 +70,337 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             field = value
         }
 
+    /** コメントを動かすTimer */
+    private var commentDrawTimer = Timer()
+
+    /** コメントを登録するTimer */
+    private var commentAddTimer = Timer()
+
+    /** 再生時間取るのに使う */
+    var exoPlayer: SimpleExoPlayer? = null
+
     /**
-     * なんかしらんけどViewの高さが取れないのでちょいまって
+     * この２つはコメントが重複しないようにするためのもの
      * */
-    var finalWidth = width
-    var finalHeight = height
+    private val drewedList = arrayListOf<Long>()
+    private var tmpPosition = 0L
+
+    /**
+     * コメントの移動する大きさ。
+     *
+     * でふぉは-5です。
+     * */
+    private val commentMoveMinus by lazy { prefSetting.getString("setting_comment_speed", "3")?.toInt() ?: 3 }
+
+    /**
+     * 16ミリ秒ごと[commentMoveMinus]分動かす。
+     *
+     * 1秒60回(60fps)になる(1000ms/60fps=16)
+     * */
+    private val commentUpdateMs by lazy { getCommentCanvasUpdateMs() }
+
+    /** コメントの透明度 */
+    val commentAlpha = prefSetting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F
+
+    /**
+     * 高さ、幅決定版。getWidthとかが0を返すので対策
+     * */
+    private var finalWidth = width
+    private var finalHeight = height
+
+    /** コルーチン */
+    private val coroutineJob = Job()
 
     init {
+        // コメントを動かす
+        commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
+            if (exoPlayer?.isPlaying == true) {
+                // 現在の再生位置
+                val currentPos = exoPlayer?.currentPosition ?: 0
+                // 画面外のコメントは描画しない
+                for (reDrawCommentData in drawNakaCommentList.toList()) {
+                    if (reDrawCommentData != null) {
+                        // 文字が長いときは早くする
+                        val speed = commentMoveMinus + (reDrawCommentData.comment.length / 8)
+                        reDrawCommentData.rect.left -= speed
+                        reDrawCommentData.rect.right -= speed
+                    }
+                }
+                // 上コメ、下コメは３秒間表示させる
+                drawUeCommentList.toList().forEach { reDrawCommentData ->
+                    // なんかマイナスになりそうだったので
+                    if (currentPos - reDrawCommentData.videoPos > 3000) {
+                        drawUeCommentList.remove(reDrawCommentData)
+                    }
+                }
+                drawShitaCommentList.toList().forEach { reDrawCommentData ->
+                    // なんかマイナスになりそうだったので
+                    if (currentPos - reDrawCommentData.videoPos > 3000) {
+                        drawShitaCommentList.remove(reDrawCommentData)
+                    }
+                }
+                // 再描画
+                invalidate()
+            }
+        }
+        // コメントを追加する
+        commentAddTimer.schedule(100, 100) {
+            if (exoPlayer != null) {
+                GlobalScope.launch(coroutineJob) {
+                    val currentVPos = exoPlayer!!.contentPosition / 100L
+                    val currentPositionSec = exoPlayer!!.contentPosition / 1000
+                    if (tmpPosition != currentPositionSec) {
+                        drewedList.clear()
+                        tmpPosition = currentPositionSec
+                    }
+                    val drawList = withContext(Dispatchers.IO) {
+                        rawCommentList.filter { commentJSONParse ->
+                            (commentJSONParse.vpos.toLong() / 10L) == (currentVPos)
+                        }
+                    }
+                    drawList.forEach {
+                        // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
+                        // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
+                        val isAddable = drewedList.toList().none { id -> it.vpos.toLong() == id } // 条件に合わなければtrue
+                        if (isAddable) {
+                            // コメントIDない場合はvposで代替する
+                            drewedList.add(it.vpos.toLong())
+                            drawComment(it, exoPlayer!!.contentPosition)
+                        }
+                    }
+                }
+            }
+        }
+        // Viewの大きさ決定版
         viewTreeObserver.addOnGlobalLayoutListener {
             finalHeight = height
             finalWidth = width
         }
     }
 
+    /** Viewがおわった時 */
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        commentDrawTimer.cancel()
+        commentAddTimer.cancel()
+        coroutineJob.cancel()
+    }
 
     /**
-     * あくまでもコメントを動かして描画するだけ。
-     *
-     * 当たり判定はコメント追加時に[postComment]で計算してたりする。
-     *
-     * というわけで[invalidate]を呼び、[currentPosMillSec]と[currentPosSec]の値はできる限り新しい値を入れておく必要があります。
-     *
-     *
+     * コメントシークした時に描画できるように
      * */
+    fun seekComment() {
+        GlobalScope.launch(coroutineJob) {
+            drawNakaCommentList.clear()
+            drawUeCommentList.clear()
+            drawShitaCommentList.clear()
+            // １秒でどれだけ移動させるか。1000ミリ秒に何回呼ばれるかを求めて後は移動分掛ける
+            val moveValue = (1000 / commentUpdateMs).toInt() * commentMoveMinus
+            // 画面のサイズ分取り出す？
+            repeat((finalWidth.toFloat() / moveValue).roundToInt()) { sec ->
+                val currentPos = exoPlayer!!.currentPosition
+                val currentPosSec = currentPos / 1000
+                val drawList = withContext(Dispatchers.IO) {
+                    rawCommentList.filter { commentJSONParse ->
+                        (commentJSONParse.vpos.toLong() / 100L) == (currentPosSec - sec)
+                    }
+                }
+                drawList.forEach {
+                    // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
+                    // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
+                    val isAddable = drewedList.toList().none { id -> it.vpos.toLong() == id } // 条件に合わなければtrue
+                    if (isAddable) {
+                        // コメントIDない場合はvposで代替する
+                        drewedList.add(it.vpos.toLong())
+                        // コメントが長いときは早く流す
+                        val speed = commentMoveMinus + (it.comment.length / 8)
+                        // コメント登録。
+                        drawComment(it, currentPos + (sec * 1000), (sec * moveValue) + speed)
+                    }
+                }
+            }
+            invalidate()
+        }
+    }
+
+    /** [invalidate]呼ぶとここに来る */
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         // 「ぬるぽ」「ガッ」なんて知らんわ
         if (canvas == null) return
 
-        /**
-         * 描画すべきコメント
-         * */
-        val currentPosCommentList = getDrawingCommentList()
-
-        /**
-         * コメントずらす
-         * */
-        for (i in currentPosCommentList.indices) {
-            val drawCommentData = currentPosCommentList[i]
-            val minus = currentPosMillSec - drawCommentData.drawStartTimeMs
-            val left = finalWidth - (minus / 2)
-            drawCommentData.rect.left = left.toInt()
-            drawCommentData.rect.right = (left + drawCommentData.measure).toInt()
-            // 文字色
-            setCommandPaint(drawCommentData.command, drawCommentData.fontSize)
-            // 文字を流す
-            canvas.drawText(drawCommentData.comment, drawCommentData.rect.left.toFloat(), drawCommentData.rect.bottom.toFloat(), paint)
-            canvas.drawText(drawCommentData.comment, drawCommentData.rect.left.toFloat(), drawCommentData.rect.bottom.toFloat(), blackPaint)
-            // 当たり判定検証ように枠をつける
-            if (watashiHaDeveloper) {
-                canvas.drawRect(drawCommentData.rect, strokePaint)
+        // 中コメ
+        for (reDrawCommentData in drawNakaCommentList.toList()) {
+            if (reDrawCommentData != null) {
+                setCommandPaint(reDrawCommentData.command, reDrawCommentData.fontSize)
+                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), paint)
+                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), blackPaint)
+                // 当たり判定検証ように枠をつける
+                if (watashiHaDeveloper) {
+                    canvas.drawRect(reDrawCommentData.rect, strokePaint)
+                }
             }
         }
 
-
-        // 上コメントを描画する。今から三秒前までに描画されるコメントを取得
-        getDrawingUeCommentList().toList().forEach { drawCommentData ->
-            // コメント描画すべきコメントがここに！
-            // 文字色
-            setCommandPaint(drawCommentData.command, drawCommentData.fontSize)
-            // 上コメントを描画する
-            canvas.drawText(drawCommentData.comment, drawCommentData.rect.left.toFloat(), drawCommentData.rect.bottom.toFloat(), paint)
-            canvas.drawText(drawCommentData.comment, drawCommentData.rect.left.toFloat(), drawCommentData.rect.bottom.toFloat(), blackPaint)
-            // 当たり判定検証ように枠をつける
-            if (watashiHaDeveloper) {
-                canvas.drawRect(drawCommentData.rect, strokePaint)
+        // 上コメ
+        for (reDrawCommentData in drawUeCommentList.toList()) {
+            if (reDrawCommentData != null) {
+                setCommandPaint(reDrawCommentData.command, reDrawCommentData.fontSize)
+                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), paint)
+                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), blackPaint)
+                // 当たり判定検証ように枠をつける
+                if (watashiHaDeveloper) {
+                    canvas.drawRect(reDrawCommentData.rect, strokePaint)
+                }
             }
         }
 
-        // 下コメントを描画する。今から三秒前まで
-        getDrawingShitaCommentList().toList().forEach { drawCommentData ->
-            // コメント描画すべきコメントがここに！
-            // 文字色
-            setCommandPaint(drawCommentData.command, drawCommentData.fontSize)
-            // 下コメントを描画する
-            canvas.drawText(drawCommentData.comment, drawCommentData.rect.left.toFloat(), drawCommentData.rect.bottom.toFloat(), paint)
-            canvas.drawText(drawCommentData.comment, drawCommentData.rect.left.toFloat(), drawCommentData.rect.bottom.toFloat(), blackPaint)
-            // 当たり判定検証ように枠をつける
-            if (watashiHaDeveloper) {
-                canvas.drawRect(drawCommentData.rect, strokePaint)
+        // 下コメ
+        for (reDrawCommentData in drawShitaCommentList.toList()) {
+            if (reDrawCommentData != null) {
+                setCommandPaint(reDrawCommentData.command, reDrawCommentData.fontSize)
+                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), paint)
+                canvas.drawText(reDrawCommentData.comment, reDrawCommentData.rect.left.toFloat(), reDrawCommentData.rect.bottom.toFloat(), blackPaint)
+                // 当たり判定検証ように枠をつける
+                if (watashiHaDeveloper) {
+                    canvas.drawRect(reDrawCommentData.rect, strokePaint)
+                }
             }
         }
 
     }
 
     /**
-     * コメントを登録する。
-     *
-     * 生放送と違い動画は再生時間が必要
-     *
-     * @param comment コメント。うｐ主って死語？
-     * @param drawStartTimeMs コメントを流す時間。vposをごにょごにょして
+     * コメントを登録する
      * */
-    fun postComment(comment: String, command: String, drawStartTimeMs: Long) {
-        // コメントの長さを測る
+    fun drawComment(commentJSONParse: CommentJSONParse, videoPos: Long, addPos: Int = 0) {
+        when {
+            checkUeComment(commentJSONParse.mail) -> drawUeComment(commentJSONParse, videoPos)
+            commentJSONParse.mail.contains("shita") -> drawShitaComment(commentJSONParse, videoPos)
+            else -> drawNakaComment(commentJSONParse, videoPos, addPos)
+        }
+    }
+
+    /**
+     * 中コメントを登録する
+     * */
+    private fun drawNakaComment(commentJSON: CommentJSONParse, videoPos: Long, addPos: Int = 0) {
+        val comment = commentJSON.comment
+        val command = commentJSON.mail
         val measure = paint.measureText(comment)
         // フォントサイズ。コマンド等も考慮して
-        val fontSize = getCommandFontSize(command)
-        // 分岐
-        when {
-            checkUeComment(command) -> postCommentUe(comment, command, drawStartTimeMs, measure, fontSize)
-            command.contains("shita") -> postCommentShita(comment, command, drawStartTimeMs, measure, fontSize)
-            else -> postCommentNaka(comment, command, drawStartTimeMs, measure, fontSize)
-        }
-    }
-
-    /**
-     * 流れるコメントを登録する。
-     *
-     *         画面外に登録する
-     *         ↓　こんな感じに
-     * |        | www うぽつ
-     * | 再生前 |   44444
-     * |        |
-     *
-     * [onDraw]でずらしていく
-     *
-     * */
-    private fun postCommentNaka(comment: String, command: String, drawStartTimeMs: Long, measure: Float, fontSize: Float) {
-        // コメントを流す時間（秒）
-        val drawStartTimeSec = drawStartTimeMs / 1000
-        // コメントの位置。画面の端っこからミリ秒分離した先に設置
-        val left = finalWidth + drawStartTimeMs / commentMoveFix
-        val right = left + measure
-        // 当たり判定計算。Rectで四角形の当たり判定の判定（？）ができる
-        val addRect = Rect(left.toInt(), 0, right.toInt(), fontSize.toInt())
-        // 当たっているか判定。全部のコメントから当たっていれば調整する。なお並び替えるとうまくいく模様
-        for (drawCommentData in commentList.sortedBy { drawCommentData -> drawCommentData.rect.top }) {
-            // Rect生成
-            if (Rect.intersects(addRect, drawCommentData.rect)) {
-                // 当たっているなら下のスペースへ
-                addRect.top = drawCommentData.rect.bottom
-                addRect.bottom = (addRect.top + fontSize).toInt()
+        val fontSize = getCommandFontSize(command).toInt()
+        val lect = finalWidth - addPos
+        // 当たり判定計算
+        val addRect = Rect(lect, 0, (lect + measure).toInt(), fontSize)
+        // 全パターん
+        val tmpList = drawNakaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.rect.top }
+        for (reDrawCommentData in tmpList) {
+            if (Rect.intersects(reDrawCommentData.rect, addRect)) {
+                // あたっているので下へ
+                addRect.top = reDrawCommentData.rect.bottom
+                addRect.bottom = (addRect.top + fontSize)
             }
         }
         // なお画面外突入時はランダム
         if (addRect.top > finalHeight) {
-            val randomValue = randomValue(fontSize)
+            val randomValue = randomValue(fontSize.toFloat())
             addRect.top = randomValue
-            addRect.bottom = (addRect.top + fontSize).toInt()
+            addRect.bottom = addRect.top + fontSize
         }
         // 配列に入れる
-        val data = DrawCommentData(
+        val data = ReDrawCommentData(
             comment = comment,
             command = command,
-            drawStartTimeMs = drawStartTimeMs,
-            drawStartTimeSec = drawStartTimeSec,
-            measure = measure,
-            fontSize = fontSize,
-            rect = addRect
-        )
-        commentList.add(data)
-    }
-
-    /**
-     * 上コメントを追加する
-     * */
-    private fun postCommentUe(comment: String, command: String, drawStartTimeMs: Long, argMeasure: Float, argFontSize: Float) {
-        // コメントの大きさ調整
-        val calcCommentSize = calcCommentFontSize(argMeasure, argFontSize, comment)
-        val measure = calcCommentSize.first
-        val fontSize = calcCommentSize.second
-        // コメントを流す時間（秒）
-        val drawStartTimeSec = drawStartTimeMs / 1000
-        // 当たり判定計算。Rectで四角形の当たり判定の判定（？）ができる
-        val addRect = Rect(
-            ((finalWidth - measure) / 2).toInt(),
-            0,
-            (((finalWidth - measure) / 2).toInt() + measure).toInt(),
-            fontSize.toInt()
-        ) // 真ん中にする
-        // 現在描画中のコメント。
-        val drawingUeCommentList = commentList.toList()
-            .filter { drawCommentData -> drawCommentData.drawStartTimeSec in (drawStartTimeSec - 3)..drawStartTimeSec && drawCommentData.position == "ue" }
-            .sortedBy { drawCommentData -> drawCommentData.rect.bottom }
-        // 当たっているか判定
-        for (drawCommentData in drawingUeCommentList) {
-            // Rect生成
-            if (Rect.intersects(addRect, drawCommentData.rect)) {
-                // 当たっているなら下のスペースへ
-                addRect.top = drawCommentData.rect.bottom
-                addRect.bottom = (addRect.top + fontSize).toInt()
-            }
-        }
-        // なお画面外突入時はランダム
-        if (addRect.top > finalHeight) {
-            val randomValue = randomValue(fontSize)
-            addRect.top = randomValue
-            addRect.bottom = (addRect.top + fontSize).toInt()
-        }
-        // 配列に入れる
-        val data = DrawCommentData(
-            comment = comment,
-            command = command,
-            drawStartTimeMs = drawStartTimeMs,
-            drawStartTimeSec = drawStartTimeSec,
-            measure = measure,
-            fontSize = fontSize,
+            videoPos = videoPos,
             rect = addRect,
-            position = "ue"
+            pos = "naka",
+            fontSize = fontSize.toFloat()
         )
-        commentList.add(data)
+        drawNakaCommentList.add(data)
     }
 
     /**
-     * 下付きコメントを登録する
+     * 上コメントを登録する
      * */
-    private fun postCommentShita(comment: String, command: String, drawStartTimeMs: Long, argMeasure: Float, argFontSize: Float) {
+    private fun drawUeComment(commentJSON: CommentJSONParse, videoPos: Long) {
+        val comment = commentJSON.comment
+        val command = commentJSON.mail
         // コメントの大きさ調整
-        val calcCommentSize = calcCommentFontSize(argMeasure, argFontSize, comment)
+        val calcCommentSize = calcCommentFontSize(paint.measureText(comment), paint.textSize, comment)
         val measure = calcCommentSize.first
-        val fontSize = calcCommentSize.second
-        // コメントの位置
-        val rectTop = finalHeight - fontSize
-        // コメントを流す時間（秒）
-        val drawStartTimeSec = drawStartTimeMs / 1000
-        // 当たり判定計算。Rectで四角形の当たり判定の判定（？）ができる
-        val addRect = Rect(
-            ((finalWidth - measure) / 2).toInt(),
-            rectTop.toInt(),
-            (((finalWidth - measure) / 2).toInt() + measure).toInt(),
-            finalHeight
+        // フォントサイズ。コマンド等も考慮して
+        val fontSize = calcCommentSize.second.toInt()
+        val lect = ((finalWidth - measure) / 2).toInt()
+        // 当たり判定計算
+        val addRect = Rect(lect, 0, (lect + measure).toInt(), fontSize)
+        // 全パターん
+        val tmpList = drawUeCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.rect.top }
+        for (reDrawCommentData in tmpList) {
+            if (Rect.intersects(reDrawCommentData.rect, addRect)) {
+                // あたっているので下へ
+                addRect.top = reDrawCommentData.rect.bottom
+                addRect.bottom = addRect.top + fontSize
+            }
+        }
+        // なお画面外突入時はランダム
+        if (addRect.top > finalHeight) {
+            val randomValue = randomValue(fontSize.toFloat())
+            addRect.top = randomValue
+            addRect.bottom = addRect.top + fontSize
+        }
+        // 配列に入れる
+        val data = ReDrawCommentData(
+            comment = comment,
+            command = command,
+            videoPos = videoPos,
+            rect = addRect,
+            pos = "ue",
+            fontSize = fontSize.toFloat()
         )
-        // 現在描画中のコメント。なんか大きい順に並び替えると当たり判定改善される
-        val drawingShitaCommentList = commentList.toList()
-            .filter { drawCommentData -> drawCommentData.drawStartTimeSec in (drawStartTimeSec - 3)..(drawStartTimeSec) && drawCommentData.position == "shita" }
-            .sortedByDescending { drawCommentData -> drawCommentData.rect.bottom }
-        // 当たっているか判定
-        for (drawCommentData in drawingShitaCommentList) {
-            // Rect生成
-            if (Rect.intersects(addRect, drawCommentData.rect)) {
-                // 当たっているなら下のスペースへ
-                addRect.bottom = drawCommentData.rect.top
-                addRect.top = (addRect.bottom - fontSize).toInt()
+        drawUeCommentList.add(data)
+    }
+
+    /**
+     * 下コメントを登録する
+     * */
+    private fun drawShitaComment(commentJSON: CommentJSONParse, videoPos: Long) {
+        val comment = commentJSON.comment
+        val command = commentJSON.mail
+        // コメントの大きさ調整
+        val calcCommentSize = calcCommentFontSize(paint.measureText(comment), paint.textSize, comment)
+        val measure = calcCommentSize.first
+        // フォントサイズ。コマンド等も考慮して
+        val fontSize = calcCommentSize.second.toInt()
+        val lect = ((finalWidth - measure) / 2).toInt()
+        // 当たり判定計算
+        val addRect = Rect(lect, height - fontSize, (lect + measure).toInt(), height)
+        // 全パターん
+        val tmpList = drawShitaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.videoPos }
+        for (reDrawCommentData in tmpList) {
+            if (Rect.intersects(reDrawCommentData.rect, addRect)) {
+                // あたっているので下へ
+                addRect.top = reDrawCommentData.rect.top - fontSize
+                addRect.bottom = reDrawCommentData.rect.bottom - fontSize
             }
         }
         // なお画面外突入時はランダム
         if (addRect.top < 0) {
-            val randomValue = randomValue(fontSize)
-            addRect.bottom = (randomValue + fontSize).toInt()
+            val randomValue = randomValue(fontSize.toFloat())
+            addRect.bottom = randomValue + fontSize
             addRect.top = randomValue
         }
         // 配列に入れる
-        val data = DrawCommentData(
+        val data = ReDrawCommentData(
             comment = comment,
             command = command,
-            drawStartTimeMs = drawStartTimeMs,
-            drawStartTimeSec = drawStartTimeSec,
-            measure = measure,
-            fontSize = fontSize,
+            videoPos = videoPos,
             rect = addRect,
-            position = "shita"
+            pos = "shita",
+            fontSize = fontSize.toFloat()
         )
-        commentList.add(data)
-    }
-
-    /**
-     * 現在流れているコメントを取得する。多分今の時間から5秒前のコメントまでは取れる。
-     * */
-    fun getDrawingCommentList(sec: Long = -1) = commentList.toList().filter {
-        val current = if (sec != -1L) sec else currentPosSec
-        val minus = current - it.drawStartTimeMs
-        val left = finalWidth - (minus / 2)
-        // ３秒のコメントを返す
-        (it.drawStartTimeSec in ((current - 5)..current)) && it.position == "naka"
-    }
-
-    /**
-     * 現在表示されてる上コメントを取得する。いまから三秒前までが対象
-     * */
-    fun getDrawingUeCommentList() = commentList.toList().filter {
-        // いまから三秒前のコメントまででかつ上コメントの場合
-        it.drawStartTimeSec in (currentPosSec - 3)..currentPosSec && it.position == "ue"
-    }
-
-    /**
-     * 現在表示されてる下コメントを取得する。いまから三秒前までが対象
-     * */
-    fun getDrawingShitaCommentList() = commentList.toList().filter {
-        // いまから三秒前のコメントまででかつ下コメントの場合
-        it.drawStartTimeSec in (currentPosSec - 3)..currentPosSec && it.position == "shita"
+        drawShitaCommentList.add(data)
     }
 
     /**
@@ -417,14 +432,6 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     }
 
     /**
-     * コメント配列を消す
-     * それだけ
-     * */
-    fun clearList() {
-        commentList.clear()
-    }
-
-    /**
      * 指定したフォントサイズのPaintを生成する関数
      * */
     private fun getBlackCommentTextPaint(fontSize: Float): Paint {
@@ -433,22 +440,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         return paint
     }
 
-    /** Heightが0のとき対策 */
-    @Deprecated("使えない。F2を押して置き換えよう", ReplaceWith("finalHeight"))
-    private fun getHeightOrDefault(default: Int = 893) = if (height == 0) {
-        default
-    } else {
-        height
-    }
-
-    /** Widthが0のとき対策 */
-    @Deprecated("使えない。F2を押して置き換えよう", ReplaceWith("finalWidth"))
-    fun getWidthOrDefault(default: Int = 1190) = if (width == 0) {
-        default
-    } else {
-        width
-    }
-
+    /** 高さをランダムで決める */
     private fun randomValue(fontSize: Float): Int {
         return if (height > fontSize) {
             Random.nextInt(1, (height - fontSize).toInt())
@@ -465,8 +457,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         paint.textSize = fontSize
         blackPaint.textSize = fontSize
         paint.color = Color.parseColor(getColor(command))
-        paint.alpha = (getAlphaFloat() * 225).toInt()
-        blackPaint.alpha = (getAlphaFloat() * 225).toInt()
+        paint.alpha = (commentAlpha * 225).toInt() // 0 ~ 225 の範囲で指定するため 225かける
+        blackPaint.alpha = (commentAlpha * 225).toInt() // 0 ~ 225 の範囲で指定するため 225かける
     }
 
     /**
@@ -541,13 +533,13 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     }
 
     /**
-     * コメントの更新頻度を取得する関数。
+     * コメントキャンバスの更新頻度を返す
      * */
-    fun getUpdateMs(): Long {
-        // コメントキャンバスの更新頻度
+    private fun getCommentCanvasUpdateMs(): Long {
         // コメントの更新頻度をfpsで設定するかどうか
-        val isSetSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
-        return if (isSetSpeedFPS) {
+        val enableCommentSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
+        // コメントキャンバスの更新頻度
+        return if (enableCommentSpeedFPS) {
             // fpsで設定
             val fps = prefSetting.getString("setting_comment_canvas_speed_fps", "60")?.toIntOrNull() ?: 60
             // 1000で割る （例：1000/60=16....）
@@ -558,37 +550,21 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }.toLong()
     }
 
-    /**
-     * 透明度を返す。[Paint.setAlpha]に入れるときは255掛けないといけません
-     *
-     * 半透明にするぐらいなら消したほうが良くねというお気持ちもある
-     * */
-    fun getAlphaFloat() = prefSetting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F
-
 }
 
-
 /**
- * [ReCommentCanvas]で使うコメント情報が詰まったデータクラス。
- *
- * 生放送と違い動画は再生時間に合わせないといけないので引数が多い
- *
- * @param drawStartTimeSec コメントを流す時間。秒
- * @param drawStartTimeMs コメントを流す時間。ミリ秒
- * @param command コマンド。色の指定など
+ * [io.github.takusan23.tatimidroid.ReCommentCanvas]で使うデータクラス。
+ * @param command コマンド
  * @param comment コメント本文
- * @param fontSize 文字の大きさ
- * @param measure コメントの長さ。
- * @param position naka か ue か　shita。めんどいのでコメントの位置は[command]ではなく[position]で取るのでちゃんとしてね
- * @param rect 当たり判定計算やコメントの位置で使う。ただコメントの当たり判定処理が終われば使わなくなるので、あとはコメントずらすのに使ってる
+ * @param pos ue naka shita のどれか
+ * @param rect 当たり判定やコメント移動で使う
+ * @param videoPos 再生位置。動画の時間
  * */
-data class DrawCommentData(
+class ReDrawCommentData(
     val comment: String,
     val command: String,
-    val fontSize: Float,
+    val videoPos: Long,
     val rect: Rect,
-    val measure: Float,
-    val drawStartTimeSec: Long,
-    val drawStartTimeMs: Long,
-    val position: String = "naka"
+    val pos: String,
+    val fontSize: Float
 )

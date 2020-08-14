@@ -499,4 +499,6 @@
     <string name="comment_post_limit">5秒前まで遡っても投稿したコメが見つかりませんでした。</string>
     <string name="popup_fix_size">大きさを直す</string>
     <string name="setting_live_only_title">ここは生放送にのみ適用されます。</string>
+    <string name="setting_recomment_comment_speed_description">こっちは動画のみに適用されます。おそらく早すぎるので調整してください（他力本願）。</string>
+    <string name="setting_video_only_title">ここは動画にのみ適用されます</string>
 </resources>

@@ -23,6 +23,27 @@
                 android:gravity="end"
                 android:orientation="horizontal">
 
+            <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+
+                <TextView
+                        android:id="@+id/player_control_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#ffffff" />
+
+                <TextView
+                        android:id="@+id/player_control_id"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#ffffff"
+                        android:textSize="12sp" />
+            </LinearLayout>
+
             <ImageView
                     android:id="@+id/player_control_video_network"
                     android:layout_width="wrap_content"
