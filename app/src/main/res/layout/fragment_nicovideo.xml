@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -30,10 +29,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent" />
 
+            <!-- コントローラーのレイアウトを読み込む -->
             <include layout="@layout/inflate_nicovideo_player_controller" />
 
-            <!-- コントローラーのレイアウトを読み込む -->
-
+            <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/fragment_nicovideo_tablayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:tabMode="scrollable" />
         </FrameLayout>
 
     </androidx.cardview.widget.CardView>
@@ -43,48 +46,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-
-        <LinearLayout
-                android:id="@+id/fragment_nicovideo_video_title_linearlayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10sp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-            <TextView
-                    android:id="@+id/fragment_nicovideo_comment_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="動画タイトル"
-                    android:textSize="18sp" />
-
-            <TextView
-                    android:id="@+id/fragment_nicovideo_comment_videoid"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="動画ID" />
-        </LinearLayout>
-
-        <LinearLayout
-                android:id="@+id/fragment_nicovideo_bar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-            <View
-                    android:layout_width="100sp"
-                    android:layout_height="10sp"
-                    android:layout_margin="5sp"
-                    android:background="@drawable/bottom_sheet_bar" />
-        </LinearLayout>
-
-        <com.google.android.material.tabs.TabLayout
-                android:id="@+id/fragment_nicovideo_tablayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:tabMode="scrollable" />
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/fragment_nicovideo_swipe"

@@ -389,11 +389,7 @@ class CommentFragment : Fragment() {
                         programTitle = nicoLiveHTML.programTitle
                         communityID = nicoLiveHTML.communityId
                         thumbnailURL = nicoLiveHTML.thumb
-                        // Storeコメント鯖へ接続する
                         storeCommentServerData = data.storeCommentServerData
-                        if (storeCommentServerData != null) {
-                            nicoLiveComment.connectionWebSocket(storeCommentServerData!!.webSocketUri, storeCommentServerData!!.threadId, storeCommentServerData!!.roomName, null, null, ::commentFun)
-                        }
                         // 全画面再生だったら全画面にする。ただし横画面のときのみ
                         if (data.isFullScreenMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                             setFullScreen()
@@ -409,10 +405,6 @@ class CommentFragment : Fragment() {
                         thumbnailURL = nicoLiveHTML.thumb
                         // 履歴に追加
                         insertDB()
-                        // 流量制限コメント鯖に接続する
-                        if (!nicoLiveHTML.isOfficial) {
-                            connectionStoreCommentServer()
-                        }
                     }
                     // IO -> Main Thread
                     withContext(Dispatchers.Main) {
@@ -534,19 +526,23 @@ class CommentFragment : Fragment() {
      * 流量制限コメントサーバーってのはコメントが多すぎてコメントが溢れてしまう際、溢れてしまったコメントが流れてくるサーバーのことだと思います。
      * ただまぁ超がつくほどの大手じゃないとここのWebSocketに接続しても特に流れてこないと思う。
      * 公式番組では利用できない。
+     * @param userId ユーザーIDが取れれば入れてね。無くてもなんか動く
+     * @param yourPostKey 視聴セッションから流れてくる。けど無くても動く（yourpostが無くなるけど）
      * */
-    private suspend fun connectionStoreCommentServer() = withContext(Dispatchers.Default) {
-        // コメントサーバー取得API叩く
-        val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, usersession)
-        if (!allRoomResponse.isSuccessful) {
-            showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
-            return@withContext
-        }
-        // Store鯖を取り出す
-        storeCommentServerData = nicoLiveComment.parseStoreRoomServerData(allRoomResponse.body?.string(), getString(R.string.room_limit))
-        if (storeCommentServerData != null) {
-            // Store鯖へ接続する。（超）大手でなければ別に接続する必要はない
-            nicoLiveComment.connectionWebSocket(storeCommentServerData!!.webSocketUri, storeCommentServerData!!.threadId, storeCommentServerData!!.roomName, nicoLiveHTML.userId, null, ::commentFun)
+    private fun connectionStoreCommentServer(userId: String? = null, yourPostKey: String? = null) {
+        lifecycleScope.launch {
+            // コメントサーバー取得API叩く
+            val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, usersession)
+            if (!allRoomResponse.isSuccessful) {
+                showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
+                return@launch
+            }
+            // Store鯖へつなぐ
+            storeCommentServerData = nicoLiveComment.parseStoreRoomServerData(allRoomResponse.body?.string(), getString(R.string.room_limit))
+            if (storeCommentServerData != null) {
+                // Store鯖へ接続する。（超）大手でなければ別に接続する必要はない
+                nicoLiveComment.connectionWebSocket(storeCommentServerData!!.webSocketUri, storeCommentServerData!!.threadId, storeCommentServerData!!.roomName, userId, yourPostKey, ::commentFun)
+            }
         }
     }
 
@@ -724,8 +720,10 @@ class CommentFragment : Fragment() {
                         val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
                         // コメントサーバーへ接続する
                         commentServerData = NicoLiveComment.CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey)
-                        commentActivity.runOnUiThread {
-                            nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, nicoLiveHTML.userId, yourPostKey, ::commentFun)
+                        nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, nicoLiveHTML.userId, yourPostKey, ::commentFun)
+                        // 流量制限コメント鯖へ接続する
+                        if (!isOfficial) {
+                            connectionStoreCommentServer(nicoLiveHTML.userId, yourPostKey)
                         }
                     }
                     command == "postCommentResult" -> {

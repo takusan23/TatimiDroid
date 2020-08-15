@@ -6,7 +6,6 @@ import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -139,10 +138,6 @@ class NicoVideoFragment : Fragment() {
 
     // シーク操作中かどうか
     var isTouchSeekBar = false
-
-    // コメント描画改善。drawComment()関数でのみ使う（0秒に投稿されたコメントが重複して表示される対策）
-    private var drewedList = arrayListOf<String>() // 描画したコメントのNoが入る配列。一秒ごとにクリアされる
-    private var tmpPosition = 0L // いま再生している位置から一秒引いた値が入ってる。
 
     // ニコれるように
     val nicoruAPI = NicoruAPI()
@@ -318,12 +313,8 @@ class NicoVideoFragment : Fragment() {
         player_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
         // コメント一覧非表示
         fragment_nicovideo_viewpager_linarlayout.visibility = View.GONE
-        // 下のタイトル非表示
-        fragment_nicovideo_video_title_linearlayout.visibility = View.GONE
         // システムバー消す
         setSystemBarVisibility(false)
-        // 黒色へ。
-        (fragment_nicovideo_video_title_linearlayout.parent as View).setBackgroundColor(Color.BLACK)
         // アスペクト比調整
         fragment_nicovideo_framelayout.updateLayoutParams {
             val displayWidth = DisplaySizeTool.getDisplayWidth(context)
@@ -347,10 +338,6 @@ class NicoVideoFragment : Fragment() {
         fragment_nicovideo_viewpager_linarlayout?.visibility = View.VISIBLE
         // システムバー表示
         setSystemBarVisibility(true)
-        // 色戻す
-        (fragment_nicovideo_video_title_linearlayout.parent as View).setBackgroundColor(getThemeColor(context))
-        // 横画面のみ。下のタイトル表示
-        fragment_nicovideo_video_title_linearlayout?.isVisible = true
         // アスペ（クト比）直す
         fragment_nicovideo_framelayout.updateLayoutParams {
             // 画面の幅取得。令和最新版（ビリビリワイヤレスイヤホン並感）
@@ -547,29 +534,6 @@ class NicoVideoFragment : Fragment() {
         darkModeSupport = DarkModeSupport(requireContext())
         fragment_nicovideo_tablayout.backgroundTintList = ColorStateList.valueOf(getThemeColor(darkModeSupport.context))
         fragment_nicovideo_framelayout_elevation_cardview.setCardBackgroundColor(getThemeColor(darkModeSupport.context))
-    }
-
-    /**
-     * 縦画面のみ。動画のタイトルなど表示・非表示やタイトル設定など
-     * @param jsonObject NicoVideoHTML#parseJSON()の戻り値
-     * */
-    private fun initTitleArea() {
-        // Fragmentがもう無い可能性が
-        if (!isAdded) return
-        if (fragment_nicovideo_bar != null && fragment_nicovideo_video_title_linearlayout != null) {
-            fragment_nicovideo_bar?.setOnClickListener {
-                // バー押したら動画のタイトルなど表示・非表示
-                fragment_nicovideo_video_title_linearlayout.apply {
-                    visibility = if (visibility == View.GONE) {
-                        View.VISIBLE
-                    } else {
-                        View.GONE
-                    }
-                }
-            }
-        }
-        fragment_nicovideo_comment_title.text = videoTitle
-        fragment_nicovideo_comment_videoid.text = videoId
     }
 
     /**
@@ -798,7 +762,6 @@ class NicoVideoFragment : Fragment() {
         }
         // タイトル
         videoTitle = if (isInitJsonObject()) jsonObject.getJSONObject("video").getString("title") else ""
-        initTitleArea()
         // タイトルなど
         player_control_title.text = videoTitle
         player_control_id.text = videoId
@@ -937,7 +900,6 @@ class NicoVideoFragment : Fragment() {
                             // 動画ファイルの名前
                             nicoVideoCache.getCacheFolderVideoFileName(videoId) ?: videoId
                         }
-                        initTitleArea()
                         // フィルターで3ds消したりする。が、コメントは並列で読み込んでるので、並列で作業してるコメント取得を待つ（合流する）
                         rawCommentList = ArrayList(loadCommentAsync.await())
                         commentFilter()

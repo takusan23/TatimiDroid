@@ -47,26 +47,6 @@
 
                 </FrameLayout>
 
-                <LinearLayout
-                        android:id="@+id/fragment_nicovideo_video_title_linearlayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="10sp"
-                        android:orientation="vertical">
-
-                    <TextView
-                            android:id="@+id/fragment_nicovideo_comment_title"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="動画タイトル"
-                            android:textSize="18sp" />
-
-                    <TextView
-                            android:id="@+id/fragment_nicovideo_comment_videoid"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="動画ID" />
-                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
