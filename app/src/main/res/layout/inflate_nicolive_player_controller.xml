@@ -60,6 +60,15 @@
                     android:tint="#ffffff" />
 
             <ImageView
+                    android:id="@+id/player_nicolive_control_send"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_send_black"
+                    android:tint="#ffffff"
+                    android:visibility="gone" />
+
+            <ImageView
                     android:id="@+id/player_nicolive_control_popup"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

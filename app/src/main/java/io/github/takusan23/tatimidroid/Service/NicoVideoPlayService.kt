@@ -1,6 +1,9 @@
 package io.github.takusan23.tatimidroid.Service
 
-import android.app.*
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
 import android.content.*
 import android.graphics.PixelFormat
 import android.net.Uri
@@ -29,10 +32,10 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
@@ -369,6 +372,12 @@ class NicoVideoPlayService : Service() {
             popupView.apply {
                 player_control_popup.isVisible = false
                 player_control_background.isVisible = false
+            }
+            // 番組名、ID設定
+            popupView.apply {
+                player_control_title.text = videoTitle
+                player_control_title.maxLines = 1
+                player_control_id.text = videoId
             }
 
             // 再生方法

@@ -40,6 +40,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
+import kotlinx.android.synthetic.main.inflate_nicolive_player_controller.view.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.*
 import java.util.*
@@ -319,30 +320,26 @@ class NicoLivePlayService : Service() {
      * ポップアップView初期化。ぽっぴっぽーみたい（？）
      * */
     private fun initPlayer() {
-
-
         // ポップアップ再生、バッググラウンド再生　共にExoPlayer、MediaSessionの初期化を行う。
-
         // ExoPlayer初期化
         popupExoPlayer = SimpleExoPlayer.Builder(this).build()
-        val sourceFactory =
-            DefaultDataSourceFactory(this, "TatimiDroid;@takusan_23", object : TransferListener {
-                override fun onTransferInitializing(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
+        val sourceFactory = DefaultDataSourceFactory(this, "TatimiDroid;@takusan_23", object : TransferListener {
+            override fun onTransferInitializing(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
 
-                }
+            }
 
-                override fun onTransferStart(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
+            override fun onTransferStart(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
 
-                }
+            }
 
-                override fun onTransferEnd(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
+            override fun onTransferEnd(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
 
-                }
+            }
 
-                override fun onBytesTransferred(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean, bytesTransferred: Int) {
+            override fun onBytesTransferred(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean, bytesTransferred: Int) {
 
-                }
-            })
+            }
+        })
 
         val hlsMediaSource = HlsMediaSource.Factory(sourceFactory).createMediaSource(hlsAddress.toUri())
 
@@ -436,7 +433,22 @@ class NicoLivePlayService : Service() {
             // 半透明
             (popupView.overlay_surfaceview.parent as FrameLayout).setBackgroundColor(Color.parseColor("#1A000000"))
             // ミュートボタン塞ぐ
-            popupView.overlay_sound_button.visibility = View.GONE
+            popupView.player_nicolive_control_mute.visibility = View.GONE
+        }
+
+        // 番組名、ID設定
+        popupView.apply {
+            player_nicolive_control_title.text = programTitle
+            player_nicolive_control_title.maxLines = 1
+            player_nicolive_control_id.text = liveId
+        }
+
+        // 使わないボタンを消す
+        popupView.apply {
+            player_nicolive_control_popup.isVisible = false
+            player_nicolive_control_background.isVisible = false
+            player_nicolive_control_video_network.isVisible = false
+            player_nicolive_control_statistics_show.isVisible = false
         }
 
         // SurfaceViewセット
@@ -445,17 +457,13 @@ class NicoLivePlayService : Service() {
         }
 
         //閉じる
-        popupView.overlay_close_button.setOnClickListener {
+        popupView.player_nicolive_control_close.isVisible = true
+        popupView.player_nicolive_control_close.setOnClickListener {
             stopSelf()
         }
 
-        // サイズ変更の仕様変更メッセージ
-        popupView.overlay_size_change_message_button.setOnClickListener {
-            Toast.makeText(this, getString(R.string.popup_size_change_message), Toast.LENGTH_SHORT).show()
-        }
-
         //アプリ起動
-        popupView.overlay_activity_launch.setOnClickListener {
+        popupView.player_nicolive_control_fullscreen.setOnClickListener {
             stopSelf()
             // モード選ぶ
             val mode = when {
@@ -474,16 +482,17 @@ class NicoLivePlayService : Service() {
         }
 
         //ミュート・ミュート解除
-        popupView.overlay_sound_button.setOnClickListener {
+        popupView.player_nicolive_control_mute.isVisible = true
+        popupView.player_nicolive_control_mute.setOnClickListener {
             if (::popupExoPlayer.isInitialized) {
                 popupExoPlayer.apply {
                     //音が０のとき
                     if (volume == 0f) {
                         volume = 1f
-                        popupView.overlay_sound_button.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
+                        popupView.player_nicolive_control_mute.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
                     } else {
                         volume = 0f
-                        popupView.overlay_sound_button.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
+                        popupView.player_nicolive_control_mute.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
                     }
                 }
             }
@@ -517,7 +526,6 @@ class NicoLivePlayService : Service() {
                 return true
             }
         })
-
         // 移動
         popupView.setOnTouchListener { view, motionEvent ->
             // タップした位置を取得する
@@ -528,14 +536,11 @@ class NicoLivePlayService : Service() {
             when (motionEvent.action) {
                 // Viewを移動させてるときに呼ばれる
                 MotionEvent.ACTION_MOVE -> {
-
                     // オーバーレイ表示領域の座標を移動させる
                     params.x = x - (DisplaySizeTool.getDisplayWidth(this) / 2)
                     params.y = y - (DisplaySizeTool.getDisplayHeight(this) / 2)
-
                     // 移動した分を更新する
                     windowManager.updateViewLayout(view, params)
-
                     // 位置保存
                     prefSetting.edit {
                         putInt("nicolive_popup_x_pos", params.x)
@@ -551,16 +556,17 @@ class NicoLivePlayService : Service() {
         var job: Job? = null
         popupView.setOnClickListener {
             // ktxで表示/非表示を短く書こう！
-            popupView.overlay_button_layout.isVisible = !popupView.overlay_button_layout.isVisible
+            popupView.player_nicolive_control_main.isVisible = !popupView.player_nicolive_control_main.isVisible
             job?.cancel()
             job = GlobalScope.launch(Dispatchers.Main) {
                 // 一定期間で消えるように
                 delay(3000)
-                popupView.overlay_button_layout.isVisible = false
+                popupView.player_nicolive_control_main.isVisible = false
             }
         }
 
-        popupView.overlay_send_comment_button.setOnClickListener {
+        popupView.player_nicolive_control_send.isVisible = true
+        popupView.player_nicolive_control_send.setOnClickListener {
             showNotification(programTitle)
         }
 
@@ -604,16 +610,6 @@ class NicoLivePlayService : Service() {
                 PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_PLAYING, 0L, 1F)
                     .build()
             )
-        }
-    }
-
-    // コメント投稿用のコメントサーバー接続
-    private fun commentPOSTWebSocketConnection(commentMessageServerUri: String, commentThreadId: String, userId: String) {
-        nicoLiveHTML.apply {
-            // コメントサーバー接続
-            connectionCommentPOSTWebSocket(commentMessageServerUri, commentThreadId, userId) { message ->
-                // アンケートとかはしないから。。。
-            }
         }
     }
 
