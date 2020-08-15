@@ -69,7 +69,6 @@ import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.android.synthetic.main.inflate_nicolive_player_controller.*
-import kotlinx.android.synthetic.main.inflate_nicovideo_player_controller.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import okhttp3.internal.toLongOrDefault
@@ -1364,14 +1363,14 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             val unixTime = System.currentTimeMillis() / 1000
             // 入れるデータ
             val nicoHistoryDBEntity = NicoHistoryDBEntity(
-                type = "video",
+                type = "live",
                 serviceId = liveId,
                 userId = communityID,
                 title = programTitle,
                 unixTime = unixTime,
                 description = ""
             )
-            NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().insert(nicoHistoryDBEntity)
+            NicoHistoryDBInit.getInstance(requireContext()).nicoHistoryDBDAO().insert(nicoHistoryDBEntity)
         }
     }
 

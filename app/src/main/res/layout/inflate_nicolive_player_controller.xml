@@ -41,12 +41,14 @@
                         android:id="@+id/player_nicolive_control_title"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:maxLines="1"
                         android:textColor="#ffffff" />
 
                 <TextView
                         android:id="@+id/player_nicolive_control_id"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:maxLines="1"
                         android:textColor="#ffffff"
                         android:textSize="12sp" />
             </LinearLayout>

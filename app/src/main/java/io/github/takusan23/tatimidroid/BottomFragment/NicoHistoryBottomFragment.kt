@@ -8,7 +8,6 @@ import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Adapter.NicoHistoryAdapter
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
@@ -22,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * 端末内履歴[NicoHistoryDB]を表示するボトムシート
@@ -72,7 +70,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
             lifecycleScope.launch(Dispatchers.Main) {
                 // 吹っ飛ばす（全削除）
                 withContext(Dispatchers.IO) {
-                    NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().deleteAll()
+                    NicoHistoryDBInit.getInstance(requireContext()).nicoHistoryDBDAO().deleteAll()
                 }
                 bottomSheetDialogFragment.dismiss()
                 dismiss()
@@ -93,7 +91,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
         lifecycleScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO) {
                 // DBから取り出す
-                NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().getAll().forEach { history ->
+                NicoHistoryDBInit.getInstance(requireContext()).nicoHistoryDBDAO().getAll().forEach { history ->
                     recyclerViewList.add(0, history)
                 }
                 // 動画、生放送フィルター
@@ -132,9 +130,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
                 }
                 // 重複を表示しない
                 if (bottom_fragment_history_chip_distinct.isChecked) {
-                    recyclerViewList = recyclerViewList.distinctBy { history ->
-                        history.userId
-                    } as ArrayList<NicoHistoryDBEntity>
+                    recyclerViewList = recyclerViewList.distinctBy { history -> history.userId } as ArrayList<NicoHistoryDBEntity>
                 }
             }
             // 結果表示
@@ -146,8 +142,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
     private fun initRecyclerView() {
         bottom_fragment_history_recyclerview.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
-        bottom_fragment_history_recyclerview.layoutManager =
-            mLayoutManager as RecyclerView.LayoutManager?
+        bottom_fragment_history_recyclerview.layoutManager = mLayoutManager
         nicoHistoryAdapter = NicoHistoryAdapter(recyclerViewList)
         bottom_fragment_history_recyclerview.adapter = nicoHistoryAdapter
 

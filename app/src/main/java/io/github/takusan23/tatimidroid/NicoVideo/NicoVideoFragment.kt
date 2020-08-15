@@ -876,7 +876,7 @@ class NicoVideoFragment : Fragment() {
                 description = ""
             )
             // 追加
-            NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().insert(nicoHistoryDBEntity)
+            NicoHistoryDBInit.getInstance(requireContext()).nicoHistoryDBDAO().insert(nicoHistoryDBEntity)
         }
     }
 

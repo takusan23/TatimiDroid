@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
@@ -14,11 +13,9 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.*
 
 
 class SettingsFragment : PreferenceFragmentCompat() {
@@ -112,7 +109,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             lifecycleScope.launch(Dispatchers.Main) {
                 // 最初に使った日特定
                 val list = withContext(Dispatchers.IO) {
-                    NicoHistoryDBInit(requireContext()).nicoHistoryDB.nicoHistoryDBDAO().getAll()
+                    NicoHistoryDBInit.getInstance(requireContext()).nicoHistoryDBDAO().getAll()
                 }
                 if (list.isEmpty()) return@launch // なければ落とす
                 // 取り出す

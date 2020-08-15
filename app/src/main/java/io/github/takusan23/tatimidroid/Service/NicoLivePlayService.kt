@@ -439,7 +439,6 @@ class NicoLivePlayService : Service() {
         // 番組名、ID設定
         popupView.apply {
             player_nicolive_control_title.text = programTitle
-            player_nicolive_control_title.maxLines = 1
             player_nicolive_control_id.text = liveId
         }
 

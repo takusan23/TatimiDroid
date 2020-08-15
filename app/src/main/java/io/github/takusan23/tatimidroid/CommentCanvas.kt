@@ -5,8 +5,6 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.random.Random
@@ -260,7 +258,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 val checkRect = Rect(obj.xPos.toInt() - 5, (obj.yPos - obj.fontSize).toInt() + 5, (obj.xPos + obj.commentMeasure).toInt() + 5, (obj.yPos).toInt() + 10)
                 obj.rect?.apply {
                     val strokePaint = Paint()
-                    strokePaint.strokeWidth = 5f
+                    strokePaint.strokeWidth = 1f
                     strokePaint.color = Color.YELLOW
                     strokePaint.style = Paint.Style.STROKE
                     canvas?.drawRect(checkRect, strokePaint)

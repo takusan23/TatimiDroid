@@ -376,7 +376,6 @@ class NicoVideoPlayService : Service() {
             // 番組名、ID設定
             popupView.apply {
                 player_control_title.text = videoTitle
-                player_control_title.maxLines = 1
                 player_control_id.text = videoId
             }
 
