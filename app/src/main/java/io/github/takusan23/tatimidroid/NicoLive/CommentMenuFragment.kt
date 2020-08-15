@@ -265,14 +265,6 @@ class CommentMenuFragment : Fragment() {
             }
         }
 
-        // 常に番組情報（放送時間、来場者数）を表示する
-        fragment_comment_fragment_menu_always_program_info_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            prefSetting.edit {
-                putBoolean("setting_always_program_info", isChecked)
-            }
-            commentFragment.setAlwaysShowProgramInfo()
-        }
-
         // ノッチ領域に侵略する
         fragment_comment_fragment_menu_display_cutout_info_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit {
@@ -281,14 +273,6 @@ class CommentMenuFragment : Fragment() {
             activity?.runOnUiThread {
                 commentFragment.hideStatusBarAndSetFullScreen()
             }
-        }
-
-        // 横画面で番組情報を消す
-        fragment_comment_fragment_menu_hide_program_info.setOnCheckedChangeListener { buttonView, isChecked ->
-            prefSetting.edit {
-                putBoolean("setting_landscape_hide_program_info", isChecked)
-            }
-            commentFragment.hideProgramInfo()
         }
 
         // ニコ生ゲーム
@@ -399,17 +383,9 @@ class CommentMenuFragment : Fragment() {
             }
         }
         //ニコ生ゲーム有効時
-        fragment_comment_fragment_nico_nama_game_switch.isChecked =
-            commentFragment.isAddedNicoNamaGame
-        // 常に番組情報表示
-        fragment_comment_fragment_menu_always_program_info_switch.isChecked =
-            prefSetting.getBoolean("setting_always_program_info", false)
+        fragment_comment_fragment_nico_nama_game_switch.isChecked = commentFragment.isAddedNicoNamaGame
         // ノッチ領域に侵略
-        fragment_comment_fragment_menu_display_cutout_info_switch.isChecked =
-            prefSetting.getBoolean("setting_display_cutout", false)
-        // 横画面UIで番組情報非表示
-        fragment_comment_fragment_menu_hide_program_info.isChecked =
-            prefSetting.getBoolean("setting_landscape_hide_program_info", false)
+        fragment_comment_fragment_menu_display_cutout_info_switch.isChecked = prefSetting.getBoolean("setting_display_cutout", false)
     }
 
     //CommentFragmentへ値を渡す

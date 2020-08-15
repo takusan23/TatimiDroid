@@ -30,7 +30,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent" />
 
-            <include layout="@layout/inflate_player_controller" />
+            <include layout="@layout/inflate_nicovideo_player_controller" />
 
             <!-- コントローラーのレイアウトを読み込む -->
 

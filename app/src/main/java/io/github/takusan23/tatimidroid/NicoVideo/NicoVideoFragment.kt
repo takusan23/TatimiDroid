@@ -54,7 +54,7 @@ import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
-import kotlinx.android.synthetic.main.inflate_player_controller.*
+import kotlinx.android.synthetic.main.inflate_nicovideo_player_controller.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import org.json.JSONObject
@@ -415,11 +415,14 @@ class NicoVideoFragment : Fragment() {
     fun initController() {
         // コントローラーを消すためのコルーチン
         val job = Job()
+        // 戻るボタン
+        player_control_back_button.isVisible = true
+        player_control_back_button.setOnClickListener {
+            requireActivity().onBackPressed()
+        }
         // スキップ秒数
         val skipTime = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5)
         val longSkipTime = (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10)
-        player_control_prev.text = "${skipTime} | ${longSkipTime}"
-        player_control_next.text = "${skipTime} | ${longSkipTime}"
         // ダブルタップ版setOnClickListener。拡張関数です。DoubleClickListener
         player_control_prev.setOnDoubleClickListener { motionEvent, isDoubleClick ->
             val skip = if (isDoubleClick) {
@@ -436,7 +439,7 @@ class NicoVideoFragment : Fragment() {
         player_control_next.setOnDoubleClickListener { motionEvent, isDoubleClick ->
             val skip = if (isDoubleClick) {
                 // ダブルタップ時
-                (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10) * 1000 // 秒→ミリ秒
+                (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
             } else {
                 // シングル
                 (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
@@ -490,7 +493,7 @@ class NicoVideoFragment : Fragment() {
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 // コントローラー非表示カウントダウン終了
-                job.cancel()
+                job.cancelChildren()
                 isTouchSeekBar = true
             }
 

@@ -38,7 +38,7 @@ import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
-import kotlinx.android.synthetic.main.inflate_player_controller.view.*
+import kotlinx.android.synthetic.main.inflate_nicovideo_player_controller.view.*
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
 import kotlinx.coroutines.*
 import org.json.JSONObject

@@ -27,6 +27,7 @@ import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.core.view.children
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -67,6 +68,8 @@ import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
+import kotlinx.android.synthetic.main.inflate_nicolive_player_controller.*
+import kotlinx.android.synthetic.main.inflate_nicovideo_player_controller.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import okhttp3.internal.toLongOrDefault
@@ -225,8 +228,7 @@ class CommentFragment : Fragment() {
     var isFullScreenMode = false
 
     // NG関係
-    private var ngUserList = listOf<String>()
-    private var ngCommentList = listOf<String>()
+    private var neList = listOf<String>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.activity_comment, container, false)
@@ -304,26 +306,6 @@ class CommentFragment : Fragment() {
             commentCanvas.typeface = customFont.typeface
         }
 
-        setAlwaysShowProgramInfo()
-
-        // 縦画面のときのみやる作業
-        fragment_comment_bar?.apply {
-            background = ColorDrawable(getThemeColor(darkModeSupport.context))
-            setOnClickListener {
-                // 表示、非表示
-                comment_fragment_program_info.visibility = if (comment_fragment_program_info.visibility == View.GONE) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
-            }
-        }
-
-        // 横画面番組情報非表示設定有効時
-        if (pref_setting.getBoolean("setting_landscape_hide_program_info", false)) {
-            hideProgramInfo()
-        }
-
         //とりあえずコメントViewFragmentへ
         val checkCommentViewFragment = childFragmentManager.findFragmentByTag("${liveId}_comment_view_fragment")
         //Fragmentは画面回転しても存在するのでremoveして終了させる。
@@ -388,11 +370,6 @@ class CommentFragment : Fragment() {
         // ステータスバー透明化＋タイトルバー非表示＋ノッチ領域にも侵略。関数名にAndがつくことはあんまりない
         hideStatusBarAndSetFullScreen()
 
-        // 全画面移行ボタン
-        activity_comment_fullscreen_button?.setOnClickListener {
-            setFullScreen()
-        }
-
         //ログイン情報がなければ戻す
         if (pref_setting.getString("mail", "")?.contains("") != false) {
             usersession = pref_setting.getString("user_session", "") ?: ""
@@ -442,6 +419,8 @@ class CommentFragment : Fragment() {
                     withContext(Dispatchers.Main) {
                         // 経過時間
                         setLiveTime()
+                        // UI反映
+                        initController()
                         // 番組情報FragmentにHTMLのJSON渡す
                         if (isOfficial) {
                             (commentViewPager.instantiateItem(comment_viewpager, 4) as ProgramInfoFragment).apply {
@@ -474,11 +453,69 @@ class CommentFragment : Fragment() {
         activeUserClear()
 
         /** 統計情報は押したときに計算するようにした。 */
-        activity_comment_comment_statistics.setOnClickListener {
+        player_nicolive_control_statistics.setOnClickListener {
             calcToukei(true)
         }
 
     }
+
+    /** コントローラーを初期化する。HTML取得後にやると良さそう */
+    fun initController() {
+        val job = Job()
+        // 戻るボタン
+        player_nicolive_control_back_button.isVisible = true
+        player_nicolive_control_back_button.setOnClickListener {
+            requireActivity().onBackPressed()
+        }
+        // 番組情報
+        player_nicolive_control_title.text = nicoLiveHTML.programTitle
+        player_nicolive_control_id.text = "${nicoLiveHTML.liveId} - $roomName - $chairNo"
+        // 全画面/ポップアップ/バッググラウンド
+        player_nicolive_control_popup.setOnClickListener { startPlayService("popup") }
+        player_nicolive_control_background.setOnClickListener { startPlayService("background") }
+        player_nicolive_control_fullscreen.setOnClickListener {
+            if (isFullScreenMode) {
+                // 全画面終了
+                setCloseFullScreen()
+            } else {
+                // 全画面移行
+                requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                setFullScreen()
+            }
+        }
+        // 統計情報表示
+        player_nicolive_control_statistics_show.setOnClickListener {
+            player_nicolive_control_info_main.isVisible = !player_nicolive_control_info_main.isVisible
+        }
+        // 押したら消せるように
+        player_nicolive_control_parent.setOnClickListener {
+            player_nicolive_control_main.isVisible = !player_nicolive_control_main.isVisible
+            // フルスクリーン時はFabも消す
+            if (isFullScreenMode) {
+                if (fab.isShown) fab.hide() else fab.show()
+            }
+            updateHideController(job)
+        }
+        updateHideController(job)
+    }
+
+    /** コントローラーを消すためのコルーチン。 */
+    private fun updateHideController(job: Job) {
+        job.cancelChildren()
+        // Viewを数秒後に非表示するとか
+        lifecycleScope.launch(job) {
+            // Viewを数秒後に消す
+            delay(3000)
+            if (player_nicolive_control_main?.isVisible == true) {
+                player_nicolive_control_main?.isVisible = false
+                // フルスクリーン時はFabも消す
+                if (isFullScreenMode) {
+                    if (fab.isShown) fab.hide() else fab.show()
+                }
+            }
+        }
+    }
+
 
     /**
      * NGデータベースを監視する。これで変更をすぐに検知できる
@@ -488,7 +525,7 @@ class CommentFragment : Fragment() {
             val dao = NGDBInit.getInstance(requireContext()).ngDBDAO()
             dao.flowGetNGAll().collect { ngList ->
                 // NGユーザー追加/削除を検知
-                ngCommentList = ngList.map { ngdbEntity -> ngdbEntity.value }
+                neList = ngList.map { ngdbEntity -> ngdbEntity.value }
             }
         }
     }
@@ -529,14 +566,10 @@ class CommentFragment : Fragment() {
         hideProgramInfo()
         // システムバー非表示
         setSystemBarVisibility(false)
-        // 全画面終了ボタン表示
-        activity_comment_fullscreen_button_linarlayout?.visibility = View.VISIBLE
-        // 全画面終了ボタン
-        activity_comment_fullscreen_close_button?.setOnClickListener {
-            setCloseFullScreen()
-        }
         // 画面の大きさ取得
         val displayHeight = DisplaySizeTool.getDisplayHeight(context)
+        // アイコン変更
+        player_nicolive_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
         // ExoPlayerのアスペクト比設定
         liveFrameLayout.updateLayoutParams {
             height = displayHeight
@@ -549,10 +582,8 @@ class CommentFragment : Fragment() {
             // FABの表示、非表示
             if (fab.isShown) {
                 fab.hide()
-                activity_comment_fullscreen_button_linarlayout?.visibility = View.GONE
             } else {
                 fab.show()
-                activity_comment_fullscreen_button_linarlayout?.visibility = View.VISIBLE
             }
         }
         // 高さ更新
@@ -573,10 +604,8 @@ class CommentFragment : Fragment() {
         hideProgramInfo()
         // システムバー表示
         setSystemBarVisibility(true)
-        // 全画面終了ボタン非表示
-        activity_comment_fullscreen_button_linarlayout?.visibility = View.GONE
-        // 全画面終了ボタン
-        activity_comment_fullscreen_close_button?.setOnClickListener(null)
+        // アイコン変更
+        player_nicolive_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
         // 画面の幅取得
         val displayWidth = DisplaySizeTool.getDisplayWidth(context)
         // ExoPlayerのアスペクト比設定
@@ -606,8 +635,8 @@ class CommentFragment : Fragment() {
                 nicoJK.parseGetFlv(getFlvResponse.body?.string())!!
             }
             // 番組情報入れる
-            comment_fragment_program_title.text = getFlvData.channelName
-            comment_fragment_program_id.text = liveId
+            player_nicolive_control_title.text = getFlvData.channelName
+            player_nicolive_control_id.text = liveId
             // 接続
             withContext(Dispatchers.Default) {
                 nicoJK.connectionCommentServer(getFlvData, ::commentFun)
@@ -617,9 +646,9 @@ class CommentFragment : Fragment() {
         comment_cardview_comment_command_edit_button.visibility = View.GONE
 
         // アクティブ計算以外使わないので消す
-        (activity_comment_comment_time.parent as View).visibility = View.GONE
-        activity_comment_watch_count.visibility = View.GONE
-        activity_comment_comment_count.visibility = View.GONE
+        (player_nicolive_control_time.parent as View).isVisible = false
+        player_nicolive_control_watch_count.isVisible = false
+        player_nicolive_control_comment_count.isVisible = false
 
     }
 
@@ -738,17 +767,11 @@ class CommentFragment : Fragment() {
             if (hasGetPlayerStatusTag && document.getElementsByTag("getplayerstatus ")[0].attr("status") == "ok") {
                 roomName = document.getElementsByTag("room_label")[0].text() // 部屋名
                 chairNo = document.getElementsByTag("room_seetno")[0].text() // 座席番号
-                withContext(Dispatchers.Main) {
-                    // 番組情報を表示させる
-                    commentActivity.runOnUiThread {
-                        comment_fragment_program_title?.text = "$programTitle - $liveId"
-                        comment_fragment_program_id?.text = "$roomName - $chairNo"
-                    }
-                }
+                player_nicolive_control_id.text = "${nicoLiveHTML.liveId} - $roomName - $chairNo"
             } else {
                 // getPlayerStatus取得失敗時
                 withContext(Dispatchers.Main) {
-                    Snackbar.make(comment_fragment_program_title, R.string.error_getplayserstatus, Snackbar.LENGTH_SHORT).apply {
+                    Snackbar.make(player_nicolive_control_id, R.string.error_getplayserstatus, Snackbar.LENGTH_SHORT).apply {
                         anchorView = getSnackbarAnchorView()
                         show()
                     }
@@ -795,8 +818,8 @@ class CommentFragment : Fragment() {
         }
         // NGユーザー/コメントの場合は「NGコメントです表記」からそもそも非表示に(配列に追加しない)するように。
         when {
-            ngCommentList.contains(commentJSONParse.userId) -> return
-            ngCommentList.contains(commentJSONParse.comment) -> return
+            neList.contains(commentJSONParse.userId) -> return
+            neList.contains(commentJSONParse.comment) -> return
         }
         /*
          * 重複しないように。
@@ -988,6 +1011,7 @@ class CommentFragment : Fragment() {
     private fun showCommentPOSTResultSnackBar(message: String) {
         lifecycleScope.launch {
             val jsonObject = JSONObject(message)
+
             /**
              * 本当に送信できたかどうか。
              * 実は流量制限にかかってしまったのではないか（公式番組以外では流量制限コメント鯖（store鯖）に接続できるけど公式は無理）
@@ -1072,7 +1096,7 @@ class CommentFragment : Fragment() {
             minuteString = "0$minuteString"
         }
         commentActivity.runOnUiThread {
-            activity_comment_comment_end_time?.text = "${hourString}:${minuteString}:00"
+            player_nicolive_control_end_time?.text = "${hourString}:${minuteString}:00"
         }
         // 番組終了時刻を入れる
         programEndUnixTime = scheduleData.endTime / 1000
@@ -1082,13 +1106,11 @@ class CommentFragment : Fragment() {
      * 総来場者数、コメント数を表示させる
      * @param message onMessageの内容。statisticsが含まれていることが必要。
      * */
-    fun initStatisticsInfo(message: String?) {
+    private fun initStatisticsInfo(message: String?) {
         val data = nicoLiveHTML.getStatistics(message)
         commentActivity.runOnUiThread {
-            if (activity_comment_watch_count != null && activity_comment_comment_count != null) {
-                activity_comment_watch_count.text = data.viewers.toString()
-                activity_comment_comment_count.text = data.comments.toString()
-            }
+            player_nicolive_control_watch_count?.text = data.viewers.toString()
+            player_nicolive_control_comment_count?.text = data.comments.toString()
         }
     }
 
@@ -1191,21 +1213,8 @@ class CommentFragment : Fragment() {
     }
 
     // 常に番組情報（放送時間、来場者数）を表示する関数
+    @Deprecated("UI変更に巻き込まれたため非推奨")
     fun setAlwaysShowProgramInfo() {
-        if (comment_activity_fragment_layout_motionlayout != null) {
-            val isAlwaysShowProgramInfo = pref_setting.getBoolean("setting_always_program_info", false)
-            if (isAlwaysShowProgramInfo) {
-                // Start->End
-                comment_fragment_program_info.visibility = View.VISIBLE
-                // バー消す
-                fragment_comment_bar?.visibility = View.GONE
-            } else {
-                // End->Start
-                comment_fragment_program_info.visibility = View.GONE
-                // バー表示
-                fragment_comment_bar?.visibility = View.VISIBLE
-            }
-        }
     }
 
     // ニコ生ゲーム有効
@@ -1284,9 +1293,9 @@ class CommentFragment : Fragment() {
             // 数えた結果
             withContext(Dispatchers.Main) {
                 // 数えた結果
-                activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
+                player_nicolive_control_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
                 // 統計ボタン押せるように
-                activity_comment_comment_statistics.visibility = View.VISIBLE
+                player_nicolive_control_statistics.visibility = View.VISIBLE
             }
 
             // SnackBarで統計を表示する場合
@@ -1320,14 +1329,14 @@ class CommentFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     if (!isAdded) return@withContext
                     // 数えた結果
-                    activity_comment_comment_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
+                    player_nicolive_control_active_text.text = "${idList.size}${getString(R.string.person)} / ${getString(R.string.one_minute)}"
                     // 統計情報表示
                     val toukei = """${getString(R.string.one_minute_statistics)}
 ${getString(R.string.comment_per_second)}(${getString(R.string.max_value)}/${calcLiveTime(commentPerSecondMap?.value?.first()?.date?.toLong() ?: 0L)})：${commentPerSecondMap?.value?.size}
 ${getString(R.string.one_minute_statistics_premium)}：$premiumCount
 ${getString(R.string.one_minute_statistics_user_id)}：$userIdCount
 ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAverage"""
-                    multiLineSnackbar(activity_comment_comment_statistics, toukei)
+                    multiLineSnackbar(player_nicolive_control_active_text, toukei)
                 }
             }
 
@@ -1375,7 +1384,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             val unixtime = System.currentTimeMillis() / 1000L
             // フォーマット！
             commentActivity.runOnUiThread {
-                activity_comment_comment_time?.text = calcLiveTime(unixtime)
+                player_nicolive_control_time?.text = calcLiveTime(unixtime)
             }
         }
     }
@@ -2162,16 +2171,8 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
     }
 
     // 番組情報部分を非表示。横画面のときのみ利用可能
+    @Deprecated("UI変更につき廃止")
     fun hideProgramInfo() {
-        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            comment_fragment_program_info.apply {
-                if (visibility == View.GONE) {
-                    visibility = View.VISIBLE
-                } else {
-                    visibility = View.GONE
-                }
-            }
-        }
     }
 
     // 画面回転時に値引き継ぐ
