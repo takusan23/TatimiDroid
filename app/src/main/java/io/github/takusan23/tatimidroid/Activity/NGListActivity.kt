@@ -1,20 +1,19 @@
 package io.github.takusan23.tatimidroid.Activity
 
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Adapter.NGListRecyclerView
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.android.synthetic.main.activity_nglist.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -41,6 +40,9 @@ class NGListActivity : AppCompatActivity() {
         activity_ng_recyclerview.layoutManager = mLayoutManager
         ngListRecyclerView = NGListRecyclerView(recyclerViewList)
         activity_ng_recyclerview.adapter = ngListRecyclerView
+        val itemDecoration = DividerItemDecoration(this, DividerItemDecoration.VERTICAL)
+        activity_ng_recyclerview.addItemDecoration(itemDecoration)
+
 
         // BottomNavigation
         activity_ng_bottom_nav.setOnNavigationItemSelectedListener {

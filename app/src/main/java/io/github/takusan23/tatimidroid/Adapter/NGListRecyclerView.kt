@@ -3,7 +3,7 @@ package io.github.takusan23.tatimidroid.Adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
@@ -16,7 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.ArrayList
+import java.util.*
 
 /**
  * NG一覧表示RecyclerView。削除とかできるよ
@@ -68,12 +68,8 @@ class NGListRecyclerView(private val arrayListArrayAdapter: ArrayList<NGDBEntity
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        var nameTextView: TextView
-        var deleteButton: Button
+        var nameTextView: TextView = itemView.findViewById(R.id.adapter_ng_list_text)
+        var deleteButton: ImageView = itemView.findViewById(R.id.adapter_ng_list_delete_button)
 
-        init {
-            deleteButton = itemView.findViewById(R.id.adapter_ng_list_delete_button)
-            nameTextView = itemView.findViewById(R.id.adapter_ng_list_text)
-        }
     }
 }

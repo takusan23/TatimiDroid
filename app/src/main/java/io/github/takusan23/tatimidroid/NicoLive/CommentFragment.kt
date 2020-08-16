@@ -70,6 +70,7 @@ import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.android.synthetic.main.inflate_nicolive_player_controller.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
 import okhttp3.internal.toLongOrDefault
 import org.json.JSONArray
@@ -227,7 +228,7 @@ class CommentFragment : Fragment() {
     var isFullScreenMode = false
 
     // NG関係
-    private var neList = listOf<String>()
+    private var ngList = listOf<String>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.activity_comment, container, false)
@@ -522,7 +523,19 @@ class CommentFragment : Fragment() {
             val dao = NGDBInit.getInstance(requireContext()).ngDBDAO()
             dao.flowGetNGAll().collect { ngList ->
                 // NGユーザー追加/削除を検知
-                neList = ngList.map { ngdbEntity -> ngdbEntity.value }
+                this@CommentFragment.ngList = ngList.map { ngdbEntity -> ngdbEntity.value }
+                // 取得済みコメントからも排除
+                commentJSONList.toList().forEach { commentJSONParse ->
+                    if (this@CommentFragment.ngList.contains(commentJSONParse.comment) || this@CommentFragment.ngList.contains(commentJSONParse.userId)) {
+                        commentJSONList.remove(commentJSONParse)
+                    }
+                }
+                // 一覧更新
+                (commentViewPager.instantiateItem(comment_viewpager, 1) as CommentViewFragment).apply {
+                    if (isInitAdapter()) {
+                        commentRecyclerViewAdapter.notifyDataSetChanged()
+                    }
+                }
             }
         }
     }
@@ -796,6 +809,8 @@ class CommentFragment : Fragment() {
         }
     }
 
+    val commentFlowChannel = Channel<CommentJSONParse>()
+
     // コメントが来たらこの関数が呼ばれる
     private fun commentFun(comment: String, roomName: String, isHistoryComment: Boolean) {
         val room = if (isJK) {
@@ -805,6 +820,7 @@ class CommentFragment : Fragment() {
         }
         // JSONぱーす
         val commentJSONParse = CommentJSONParse(comment, room, liveId)
+        lifecycleScope.launch { commentFlowChannel.send(commentJSONParse) }
         // アンケートや運コメを表示させる。
         if (roomName != getString(R.string.room_limit)) {
             when {
@@ -834,8 +850,8 @@ class CommentFragment : Fragment() {
         }
         // NGユーザー/コメントの場合は「NGコメントです表記」からそもそも非表示に(配列に追加しない)するように。
         when {
-            neList.contains(commentJSONParse.userId) -> return
-            neList.contains(commentJSONParse.comment) -> return
+            ngList.contains(commentJSONParse.userId) -> return
+            ngList.contains(commentJSONParse.comment) -> return
         }
         /*
          * 重複しないように。

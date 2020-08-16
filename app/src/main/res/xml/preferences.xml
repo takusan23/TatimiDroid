@@ -293,7 +293,7 @@
             <!--Activity起動-->
             <intent
                     android:action="android.intent.action.MAIN"
-                    android:targetClass="io.github.takusan23.tatimidroid.Activity.CommentCollectionListActivity"
+                    android:targetClass="io.github.takusan23.tatimidroid.NicoLive.Activity.CommentCollectionListActivity"
                     android:targetPackage="io.github.takusan23.tatimidroid" />
         </Preference>
     </PreferenceCategory>
