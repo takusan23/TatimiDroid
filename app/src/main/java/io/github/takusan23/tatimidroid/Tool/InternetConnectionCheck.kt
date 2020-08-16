@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.annotation.RequiresApi
+import io.github.takusan23.tatimidroid.R
 
 /**
  * インターネットに接続できるか。接続してればtrue
@@ -38,17 +39,12 @@ fun isConnectionMobileDataInternet(context: Context?): Boolean {
     //今の接続状態を取得
     val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     //ろりぽっぷとましゅまろ以上で分岐
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-        if (networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true) {
-            return true
-        }
+        networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true
     } else {
-        if (connectivityManager.activeNetworkInfo!!.type == ConnectivityManager.TYPE_MOBILE) {
-            return true
-        }
+        connectivityManager.activeNetworkInfo!!.type == ConnectivityManager.TYPE_MOBILE
     }
-    return false
 }
 
 /**
@@ -84,4 +80,40 @@ fun isConnectionNetworkTypeUnlimited(context: Context?): Boolean {
     val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork) ?: return false
     return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) || networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+}
+
+object InternetConnectionCheck {
+
+    /**
+     * [isConnectionWiFiInternet]ならWi-Fiに接続中ですみたいなメッセージを生成する
+     * @param context null絶対許さんから。[androidx.fragment.app.Fragment]のときは[androidx.fragment.app.Fragment.requireContext]で行ける
+     * */
+    fun createNetworkMessage(context: Context): String {
+        val isUnlimitedNetwork = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            when {
+                isConnectionNetworkTypeUnlimited(context) -> "\n現在のネットワーク：定額制（食べ放題）"
+                else -> "\n現在のネットワーク：従量制（パケ死）"
+            }
+        } else {
+            ""
+        }
+        return when {
+            isConnectionMobileDataInternet(context) -> "モバイルデータを利用して再生しています。$isUnlimitedNetwork"
+            isConnectionWiFiInternet(context) -> "Wi-Fiを利用して再生しています。$isUnlimitedNetwork"
+            else -> "ネットワーク接続方法がわかりませんでした。"
+        }
+    }
+
+    /**
+     * Wi-Fi接続時ならWi-Fiアイコンな[android.graphics.drawable.Drawable]を返します。
+     *
+     * モバイルデータ時はアンテナピクトな[android.graphics.drawable.Drawable]を返します。
+     *
+     * @param context [androidx.fragment.app.Fragment.requireContext]だとcontextがnull絶対無い状態でくれる
+     * */
+    fun getConnectionTypeDrawable(context: Context) = when {
+        isConnectionMobileDataInternet(context) -> context.getDrawable(R.drawable.ic_signal_cellular_alt_black_24dp)
+        else -> context.getDrawable(R.drawable.ic_wifi_black_24dp)
+    }
+
 }

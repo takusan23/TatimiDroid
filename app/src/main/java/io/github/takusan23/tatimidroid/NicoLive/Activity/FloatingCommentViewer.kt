@@ -3,15 +3,18 @@ package io.github.takusan23.tatimidroid.NicoLive.Activity
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.LocusId
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import androidx.appcompat.app.AppCompatActivity
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -21,6 +24,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.IOException
+import java.util.*
 
 /*
 * わざわざFloatingなコメントビューあーを作るためにクラスを作ったのかって？
@@ -55,6 +59,15 @@ class FloatingCommentViewer : AppCompatActivity() {
         trans.commit()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        // 追加したダイナミックショートカットを消す
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            val shortcutManager = getSystemService(Context.SHORTCUT_SERVICE) as ShortcutManager
+            shortcutManager.removeAllDynamicShortcuts()
+        }
+    }
+
     companion object {
 
         /**
@@ -73,17 +86,16 @@ class FloatingCommentViewer : AppCompatActivity() {
             // Android Q以降で利用可能
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 GlobalScope.launch(Dispatchers.Main) {
-
+                    // フローリングするActivity
                     val intent = Intent(context, FloatingCommentViewer::class.java)
+                    intent.action = Intent.ACTION_MAIN
                     intent.putExtra("liveId", liveId)
                     intent.putExtra("watch_mode", watchMode)
-
                     // アイコン取得など
                     val filePath = getThumb(context, thumbUrl, liveId)
                     // 一旦Bitmapに変換したあと、Iconに変換するとうまくいく。
                     val bitmap = BitmapFactory.decodeFile(filePath)
                     val icon = Icon.createWithAdaptiveBitmap(bitmap)
-
                     val bubbleIntent = PendingIntent.getActivity(context, 25, intent, PendingIntent.FLAG_UPDATE_CURRENT)
                     // 通知作成？
                     val bubbleData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -98,8 +110,7 @@ class FloatingCommentViewer : AppCompatActivity() {
                             .setIntent(bubbleIntent)
                             .build()
                     }
-                    val supplierPerson = Person.Builder().setName(context?.getString(R.string.floating_comment_viewer)).setIcon(icon).build()
-
+                    val supplierPerson = Person.Builder().setName(title).setIcon(icon).build()
                     // 通知送信
                     val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                     // 通知チャンネル作成
@@ -109,6 +120,18 @@ class FloatingCommentViewer : AppCompatActivity() {
                         val notificationChannel = NotificationChannel(notificationId, context?.getString(R.string.floating_comment_viewer), NotificationManager.IMPORTANCE_DEFAULT)
                         notificationManager.createNotificationChannel(notificationChannel)
                     }
+                    // Android 11 から Shortcutを作ってLocusIdってのを通知に付けないといけないらしい
+                    val shortcut = ShortcutInfo.Builder(context, liveId).apply {
+                        setShortLabel(liveId)
+                        setLongLabel(title)
+                        setIcon(icon)
+                        setIntent(intent)
+                        setLocusId(LocusId(liveId))
+                        setLongLived(true) // これ忘れんな
+                        setPerson(supplierPerson)
+                    }.build()
+                    val shortcutManager = context.getSystemService(Context.SHORTCUT_SERVICE) as ShortcutManager
+                    shortcutManager.addDynamicShortcuts(Collections.singletonList(shortcut))
                     // 通知作成
                     val notification = Notification.Builder(context, notificationId)
                         .setContentText(context?.getString(R.string.floating_comment_viewer_description))
@@ -116,6 +139,7 @@ class FloatingCommentViewer : AppCompatActivity() {
                         .setSmallIcon(R.drawable.ic_library_books_24px)
                         .setBubbleMetadata(bubbleData)
                         .addPerson(supplierPerson)
+                        .setShortcutId(shortcut.id)
                         .setStyle(Notification.MessagingStyle(supplierPerson).apply {
                             conversationTitle = title
                         })

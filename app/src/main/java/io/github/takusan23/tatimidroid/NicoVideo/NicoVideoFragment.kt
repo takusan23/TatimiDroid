@@ -592,10 +592,8 @@ class NicoVideoFragment : Fragment() {
                         if (prefSetting.getBoolean("setting_nicovideo_low_quality", false)) {
                             if (isConnectionMobileDataInternet(context)) {
                                 // モバイルデータ
-                                val videoQualityList =
-                                    nicoVideoHTML.parseVideoQualityDMC(jsonObject)
-                                val audioQualityList =
-                                    nicoVideoHTML.parseAudioQualityDMC(jsonObject)
+                                val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
+                                val audioQualityList = nicoVideoHTML.parseAudioQualityDMC(jsonObject)
                                 videoQuality = videoQualityList.getJSONObject(videoQualityList.length() - 1).getString("id")
                                 audioQuality = audioQualityList.getJSONObject(audioQualityList.length() - 1).getString("id")
                             }
@@ -735,24 +733,15 @@ class NicoVideoFragment : Fragment() {
         // プレイヤー右上のアイコンにWi-Fiアイコンがあるけどあれ、どの方法で再生してるかだから。キャッシュならフォルダーになる
         val playingTypeDrawable = when {
             isCache -> requireContext().getDrawable(R.drawable.ic_folder_open_black_24dp)
-            isConnectionMobileDataInternet(context) -> requireContext().getDrawable(R.drawable.ic_signal_cellular_alt_black_24dp)
-            else -> requireContext().getDrawable(R.drawable.ic_wifi_black_24dp)
+            else -> InternetConnectionCheck.getConnectionTypeDrawable(requireContext())
         }
         player_control_video_network.setImageDrawable(playingTypeDrawable)
         player_control_video_network.setOnClickListener {
-            val isUnlimitedNetwork = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                when {
-                    isConnectionNetworkTypeUnlimited(context) -> "現在のネットワーク：定額制（食べ放題）"
-                    else -> "現在のネットワーク：従量制（パケ死）"
-                }
+            // なんの方法（キャッシュ・モバイルデータ・Wi-Fi）で再生してるかを表示する
+            val message = if (isCache) {
+                getString(R.string.use_cache)
             } else {
-                ""
-            }
-            val message = when {
-                isCache -> "キャッシュで再生しています"
-                isConnectionMobileDataInternet(context) -> "モバイルデータを利用して再生しています。\n$isUnlimitedNetwork"
-                isConnectionWiFiInternet(context) -> "Wi-Fiを利用して再生しています。\n$isUnlimitedNetwork"
-                else -> "ネットワーク接続方法がわかりませんでした。"
+                InternetConnectionCheck.createNetworkMessage(requireContext())
             }
             showToast(message)
         }

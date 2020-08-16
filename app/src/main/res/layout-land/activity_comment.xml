@@ -58,11 +58,6 @@
 
                     <include layout="@layout/inflate_nicolive_player_controller" />
 
-                    <FrameLayout
-                            android:id="@+id/comment_fragment_enquate_framelayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
-
                 </FrameLayout>
 
                 <LinearLayout

@@ -486,6 +486,13 @@ class CommentFragment : Fragment() {
             }
             updateHideController(job)
         }
+        // 接続方法
+        player_nicolive_control_video_network.apply {
+            setImageDrawable(InternetConnectionCheck.getConnectionTypeDrawable(requireContext()))
+            setOnClickListener {
+                showToast(InternetConnectionCheck.createNetworkMessage(requireContext()))
+            }
+        }
         updateHideController(job)
     }
 
@@ -712,17 +719,30 @@ class CommentFragment : Fragment() {
                     }
                     command == "room" -> {
                         // threadId、WebSocketURL受信。コメント送信時に使うWebSocketに接続する
-                        // もし放送者の場合はWebSocketに部屋一覧が流れてくるので阻止。
-                        val commentMessageServerUri = getCommentServerWebSocketAddress(message)
-                        val commentThreadId = getCommentServerThreadId(message)
-                        val yourPostKey = getCommentYourPostKey(message)
-                        val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
-                        // コメントサーバーへ接続する
-                        commentServerData = NicoLiveComment.CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey)
-                        nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, nicoLiveHTML.userId, yourPostKey, ::commentFun)
-                        // 流量制限コメント鯖へ接続する
-                        if (!isOfficial) {
-                            connectionStoreCommentServer(nicoLiveHTML.userId, yourPostKey)
+                        if (isWatchingMode) {
+                            val commentMessageServerUri = getCommentServerWebSocketAddress(message)
+                            val commentThreadId = getCommentServerThreadId(message)
+                            val yourPostKey = getCommentYourPostKey(message)
+                            val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
+                            // コメントサーバーへ接続する
+                            commentServerData = NicoLiveComment.CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey)
+                            nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, nicoLiveHTML.userId, yourPostKey, ::commentFun)
+                            // 流量制限コメント鯖へ接続する
+                            if (!isOfficial) {
+                                connectionStoreCommentServer(nicoLiveHTML.userId, yourPostKey)
+                            }
+                        } else {
+                            // 視聴モード以外は非ログインなのでyourPostKeyが取れない
+                            val commentMessageServerUri = getCommentServerWebSocketAddress(message)
+                            val commentThreadId = getCommentServerThreadId(message)
+                            val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
+                            // コメントサーバーへ接続する
+                            commentServerData = NicoLiveComment.CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, null)
+                            nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, null, null, ::commentFun)
+                            // 流量制限コメント鯖へ接続する
+                            if (!isOfficial) {
+                                connectionStoreCommentServer(nicoLiveHTML.userId)
+                            }
                         }
                     }
                     command == "postCommentResult" -> {

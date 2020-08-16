@@ -38,8 +38,8 @@ import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
+import io.github.takusan23.tatimidroid.Tool.InternetConnectionCheck
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
-import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.android.synthetic.main.inflate_nicovideo_player_controller.view.*
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
@@ -382,8 +382,7 @@ class NicoVideoPlayService : Service() {
             // 再生方法
             val playingIconDrawable = when {
                 isCache -> getDrawable(R.drawable.ic_folder_open_black_24dp)
-                isConnectionMobileDataInternet(this) -> getDrawable(R.drawable.ic_signal_cellular_alt_black_24dp)
-                else -> getDrawable(R.drawable.ic_wifi_black_24dp)
+                else -> InternetConnectionCheck.getConnectionTypeDrawable(this)
             }
             popupView.player_control_video_network.setImageDrawable(playingIconDrawable)
 

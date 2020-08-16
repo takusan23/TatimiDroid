@@ -340,8 +340,7 @@ class CommentMenuFragment : Fragment() {
     private fun createPinnedShortcut() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Android 7.1 以降のみ対応
-            val shortcutManager =
-                context?.getSystemService(Context.SHORTCUT_SERVICE) as ShortcutManager
+            val shortcutManager = context?.getSystemService(Context.SHORTCUT_SERVICE) as ShortcutManager
             if (shortcutManager.isRequestPinShortcutSupported) {
                 // サポート済みのランチャーかどうか
                 val shortcut = ShortcutInfo.Builder(context, commentFragment.liveId).apply {
