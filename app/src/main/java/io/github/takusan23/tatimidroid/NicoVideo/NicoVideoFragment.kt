@@ -407,34 +407,30 @@ class NicoVideoFragment : Fragment() {
         player_control_back_button.setOnClickListener {
             requireActivity().onBackPressed()
         }
-        // スキップ秒数
-        val skipTime = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5)
-        val longSkipTime = (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10)
         // ダブルタップ版setOnClickListener。拡張関数です。DoubleClickListener
         player_control_prev.setOnDoubleClickListener { motionEvent, isDoubleClick ->
-            val skip = if (isDoubleClick) {
+            if (isDoubleClick) {
                 // ダブルタップ時
-                (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+                val skip = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+                exoPlayer.seekTo(exoPlayer.currentPosition - skip)
+                fragment_nicovideo_comment_canvas.seekComment()
+                updateHideController(job)
             } else {
                 // シングル
-                (prefSetting.getString("nicovideo_long_skip_sec", "10")?.toLongOrNull() ?: 10) * 1000 // 秒→ミリ秒
+
             }
-            exoPlayer.seekTo(exoPlayer.currentPosition - skip)
-            fragment_nicovideo_comment_canvas.seekComment()
-            updateHideController(job)
         }
         player_control_next.setOnDoubleClickListener { motionEvent, isDoubleClick ->
-            val skip = if (isDoubleClick) {
+            if (isDoubleClick) {
                 // ダブルタップ時
-                (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+                val skip = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+                exoPlayer.seekTo(exoPlayer.currentPosition + skip)
+                fragment_nicovideo_comment_canvas.seekComment()
+                updateHideController(job)
             } else {
                 // シングル
-                (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+
             }
-            exoPlayer.seekTo(exoPlayer.currentPosition + skip)
-            // コメントシークに対応させる
-            fragment_nicovideo_comment_canvas.seekComment()
-            updateHideController(job)
         }
         // 全画面ボタン
         player_control_fullscreen.setOnClickListener {

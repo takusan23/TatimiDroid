@@ -2,10 +2,11 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import android.os.Handler
 import android.os.Looper
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ScheduleDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody

@@ -110,7 +110,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     lateinit var typeface: Typeface
 
     /** アスキーアート（コメントアート・職人）のために使う。最後に追加しあ高さが入る */
-    private var oldHeight = 0;
+    private var oldHeight = 0
 
     init {
         //文字サイズ計算。端末によって変わるので
@@ -369,13 +369,27 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         return Color.parseColor("#ffffff")
     }
 
+    /**
+     * 複数行コメントを描画する。
+     * @param commentStringList コメントを改行コードで区切った時にできる配列[String.split]
+     * @param commentJSONParse コメントJSON。
+     * */
+    fun postCommentAsciiArt(commentStringList: List<String>, commentJSONParse: CommentJSONParse) {
+        // 高さ初期化
+        oldHeight = 0
+        // 入れる
+        commentStringList.forEach { comment ->
+            postComment(comment, commentJSONParse, true, commentStringList.size)
+        }
+    }
 
     /**
      * コメント投稿
      * @param asciiArt アスキーアートのときはtrueにすると速度が一定になり、画面外になった場合もできる限り再現します。
      * もしかして：別スレッドにすれば軽くなる？
+     * @param asciiArtLines [asciiArt]がtrueのときは画面に収まるように文字サイズを調整します。そのためにコメントアートが何行になるかの値が必要なので指定してください。
      * */
-    fun postComment(comment: String, commentJSONParse: CommentJSONParse, asciiArt: Boolean = false) {
+    fun postComment(comment: String, commentJSONParse: CommentJSONParse, asciiArt: Boolean = false, asciiArtLines: Int = -1) {
         when {
             // コメント行をカスタマイズしてるとき
             isCustomCommentLine -> {
@@ -391,6 +405,11 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 fontsize = 20 * resources.displayMetrics.scaledDensity
                 // blackPaint.textSize = fontsize
             }
+        }
+        // アスキーアートが画面に収まるように。ただし特に何もしなくても画面内に収まる場合は無視。改行多くて入らない場合のみ
+        val isAsciiArtUseHeightMax = asciiArt && finalHeight < asciiArtLines * fontsize
+        if (isAsciiArtUseHeightMax) {
+            fontsize = (finalHeight / asciiArtLines).toFloat()
         }
         // 生主/運営のコメントは無視する
         if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
@@ -409,17 +428,15 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             else -> fontsize
         }
         // コマンドで指定されたサイズで作成したPaintでコメントの幅計算
-        var measure =
-            getCommentTextPaint(commentJSONParse.comment, commandFontSize).measureText(comment)
+        var measure = getCommentTextPaint(commentJSONParse.comment, commandFontSize).measureText(comment)
         val command = commentJSONParse.mail
         val tmpCommand = command
         // 上でもなければ下でもないときは流す
         if (!command.contains("ue") && !command.contains("shita")) {
             // sortedByで検証
-            val tmpList = commentObjList.toList()
-                .sortedBy { commentObject ->
-                    return@sortedBy if (commentObject != null) commentObject.yPos else 0f
-                }
+            val tmpList = commentObjList.toList().sortedBy { commentObject ->
+                return@sortedBy if (commentObject != null) commentObject.yPos else 0f
+            }
             // 流れるコメント
             // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
             // 開始地点は画面の端
@@ -427,40 +444,36 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             // 幅はコメントの大きさ
             // 最後はフォントサイズ分下に伸ばしておk
             val addRect = Rect(width, 0, (width + measure).toInt(), commandFontSize.toInt())
-            for (i in 0 until tmpList.size) {
-                val obj = tmpList[i]
-                // nullの時がある
-                if (obj != null) {
-                    // Rectで当たり判定計算？
-                    //  val rect = obj.rect ?: return
-                    val rect = Rect(obj.xPos.toInt(), (obj.yPos - fontsize).toInt(), (obj.xPos + obj.commentMeasure).toInt(), obj.yPos.toInt())
-                    if (
-                        Rect.intersects(rect, addRect)
-                    ) {
-                        // あたっているので下へ
-                        addRect.top = obj.yPos.toInt()
-                        addRect.bottom = (addRect.top + commandFontSize).toInt()
-                    }
-
-                    // なお画面外の場合はランダム。
-                    if (addRect.bottom > height) {
-                        if (!asciiArt) {
+            // コメントアートのときは当たり判定なし
+            if (!isAsciiArtUseHeightMax) {
+                for (i in 0 until tmpList.size) {
+                    val obj = tmpList[i]
+                    // nullの時がある
+                    if (obj != null) {
+                        // Rectで当たり判定計算？
+                        //  val rect = obj.rect ?: return
+                        val rect = Rect(obj.xPos.toInt(), (obj.yPos - fontsize).toInt(), (obj.xPos + obj.commentMeasure).toInt(), obj.yPos.toInt())
+                        if (
+                            Rect.intersects(rect, addRect)
+                        ) {
+                            // あたっているので下へ
+                            addRect.top = obj.yPos.toInt()
+                            addRect.bottom = (addRect.top + commandFontSize).toInt()
+                        }
+                        // なお画面外の場合はランダム。
+                        if (addRect.bottom > height) {
                             // heightが0の時は適当に10にする
                             val until = if (height > 0) height else 10
                             val randomStart = Random.nextInt(1, until)
                             addRect.top = randomStart
                             addRect.bottom = (addRect.top + commandFontSize).toInt()
-                        } else {
-                            // 画面外対策。なおこれでもコメントアートが見切れるから別の策を取らねば
-                            if (oldHeight > height) {
-                                oldHeight = 0
-                            }
-                            addRect.top = oldHeight
-                            addRect.bottom = (addRect.top + commandFontSize).toInt()
-                            oldHeight = addRect.bottom
                         }
                     }
                 }
+            } else {
+                addRect.top = oldHeight
+                addRect.bottom = (addRect.top + commandFontSize).toInt()
+                oldHeight = addRect.bottom
             }
 
             val commentObj = CommentObject(

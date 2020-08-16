@@ -1,39 +1,41 @@
 package io.github.takusan23.tatimidroid.BottomFragment
 
+import android.content.*
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.text.SpannableString
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
-import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_fragment_comment_menu_layout.*
-import android.content.*
-import android.text.SpannableString
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.NicoAPI.User.User
+import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
+import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
-import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
-import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
-import io.github.takusan23.tatimidroid.NicoAPI.User.User
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.NICOLIVE_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.adapter_comment_layout.*
+import kotlinx.android.synthetic.main.adapter_comment_layout.view.*
+import kotlinx.android.synthetic.main.bottom_fragment_comment_menu_layout.*
+import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -90,6 +92,15 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         // コメント表示
         adapter_room_name_textview.text = arguments?.getString("label")
         adapter_comment_textview.text = comment
+
+        // 複数行格納
+        view.adapter_room_name_cardview.setOnClickListener {
+            if (adapter_comment_textview.maxLines == 1) {
+                adapter_comment_textview.maxLines = Int.MAX_VALUE
+            } else {
+                adapter_comment_textview.maxLines = 1
+            }
+        }
 
         /**
          * ロックオンできるようにする
@@ -153,7 +164,9 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         setNGClick()
 
         // コピー
-        setCopy()
+        bottom_fragment_comment_menu_comment_copy.setOnClickListener {
+            commentCopy()
+        }
 
         // URL取り出し
         regexURL()
@@ -227,6 +240,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             // こっから再生できるようにする
             if (fragment is NicoVideoFragment) {
                 fragment.exoPlayer.seekTo(currentPos * 10) // vposに*10すればミリ秒になる
+                fragment.fragment_nicovideo_comment_canvas.seekComment()
             }
         }
     }
@@ -268,14 +282,11 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private fun setCopy() {
-        bottom_fragment_comment_menu_comment_copy.setOnClickListener {
-            // コピーする
-            val clipboardManager =
-                context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            clipboardManager.setPrimaryClip(ClipData.newPlainText("", comment))
-            Toast.makeText(context, getString(R.string.copy_successful), Toast.LENGTH_SHORT).show()
-        }
+    private fun commentCopy() {
+        // コピーする
+        val clipboardManager = context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboardManager.setPrimaryClip(ClipData.newPlainText("", comment))
+        Toast.makeText(context, getString(R.string.copy_successful), Toast.LENGTH_SHORT).show()
     }
 
     private fun setNGClick() {

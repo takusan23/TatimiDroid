@@ -1,36 +1,21 @@
 package io.github.takusan23.tatimidroid.Activity
 
-import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.SpannableString
-import androidx.core.net.toUri
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.Adapter.MenuRecyclerAdapter
 import io.github.takusan23.tatimidroid.Adapter.MenuRecyclerAdapterDataClass
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Room.Entity.AutoAdmissionDBEntity
-import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import kotlinx.android.synthetic.main.activity_kono_app.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.*
-import java.util.regex.Pattern
 
 /**
  * このアプリについて。
@@ -143,19 +128,16 @@ class KonoApp : AppCompatActivity() {
 　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　 
 　　　　　███████████████████　　　　　　 
 　　　　　███████████████████　　　　　　 
-　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　 
+　　　　　　　　　　　　　　　　　
             """
 
         // 色ランダム
         val color = arrayListOf("pink", "blue", "cyan", "orange", "purple").random()
-        aa.split("\n").forEach {
-            val commentJSON = CommentJSONParse("{}", "arena", "sm157")
-            commentJSON.comment = it
-            commentJSON.mail = "small $color"
-            // コメント描画
-            konoapp_comment_canvas.postComment(it, commentJSON, true)
-        }
-
+        val size = arrayListOf("small","medium","big").random()
+        val commentJSON = CommentJSONParse("{}", "arena", "sm157")
+        commentJSON.comment = aa
+        commentJSON.mail = "$color $size"
+        konoapp_comment_canvas.postCommentAsciiArt(aa.split("\n"), commentJSON)
     }
 
     /**

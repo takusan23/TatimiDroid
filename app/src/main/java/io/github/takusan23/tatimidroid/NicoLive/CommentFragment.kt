@@ -363,7 +363,6 @@ class CommentFragment : Fragment() {
             fab.hide()
             //コメント投稿など
             commentCardView()
-            //旧式はサポート切ります！
         }
 
         // ステータスバー透明化＋タイトルバー非表示＋ノッチ領域にも侵略。関数名にAndがつくことはあんまりない
@@ -530,7 +529,7 @@ class CommentFragment : Fragment() {
      * @param yourPostKey 視聴セッションから流れてくる。けど無くても動く（yourpostが無くなるけど）
      * */
     private fun connectionStoreCommentServer(userId: String? = null, yourPostKey: String? = null) {
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.Default) {
             // コメントサーバー取得API叩く
             val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, usersession)
             if (!allRoomResponse.isSuccessful) {
@@ -801,7 +800,7 @@ class CommentFragment : Fragment() {
             if (!hideInfoUnnkome) {
                 //運営コメント
                 if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
-                    initUneiComment(commentJSONParse)
+                    setUneiComment(commentJSONParse)
                 }
                 //運営コメントけす
                 if (commentJSONParse.comment.contains("/clear")) {
@@ -856,9 +855,8 @@ class CommentFragment : Fragment() {
                     } else {
                         commentJSONParse.comment.split("\n")
                     }
-                    for (line in asciiArtComment) {
-                        commentCanvas.postComment(line, commentJSONParse, true)
-                    }
+                    // 複数行対応Var
+                    commentCanvas.postCommentAsciiArt(asciiArtComment, commentJSONParse)
                 }
             }
         }
@@ -902,7 +900,7 @@ class CommentFragment : Fragment() {
     /**
      * 運営コメント表示
      * */
-    fun initUneiComment(commentJSONParse: CommentJSONParse) {
+    fun setUneiComment(commentJSONParse: CommentJSONParse) {
         val isNicoad = commentJSONParse.comment.contains("/nicoad")
         val isInfo = commentJSONParse.comment.contains("/info")
         val isUadPoint = commentJSONParse.comment.contains("/uadpoint")
@@ -935,13 +933,11 @@ class CommentFragment : Fragment() {
                 // 投げ銭
                 if (isGift) {
                     // スペース区切り配列
-                    val list = commentJSONParse.comment.replace("/gift ", "")
-                        .split(" ")
+                    val list = commentJSONParse.comment.replace("/gift ", "").split(" ")
                     val userName = list[2]
                     val giftPoint = list[3]
                     val giftName = list[5]
-                    val message =
-                        "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
+                    val message = "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
                     showInfoComment(message)
                 }
             }
@@ -954,11 +950,7 @@ class CommentFragment : Fragment() {
     fun showProgramEndMessageSnackBar(message: String, commentJSONParse: CommentJSONParse) {
         if (commentJSONParse.premium.contains("運営")) {
             //終了メッセージ
-            Snackbar.make(
-                live_video_view,
-                context?.getString(R.string.program_disconnect) ?: "",
-                Snackbar.LENGTH_SHORT
-            ).setAction(context?.getString(R.string.end)) {
+            Snackbar.make(live_video_view, context?.getString(R.string.program_disconnect) ?: "", Snackbar.LENGTH_SHORT).setAction(context?.getString(R.string.end)) {
                 //終了
                 if (activity !is NimadoActivity) {
                     //二窓Activity以外では終了できるようにする。
@@ -1892,9 +1884,11 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             val size = comment_cardview_command_size_textinputlayout.text.toString()
             // コメ送信
             sendComment(comment, color, size, position)
-            // コメントリセットとコマンドリセットボタンを押す
             comment_cardview_comment_textinput_edittext.setText("")
-            comment_cardview_comment_command_edit_reset_button.callOnClick()
+            if (!pref_setting.getBoolean("setting_command_save", false)) {
+                // コマンドを保持しない設定ならクリアボタンを押す
+                comment_cardview_comment_command_edit_reset_button.callOnClick()
+            }
         }
         // Enterキー(紙飛行機ボタン)を押したら投稿する
         if (pref_setting.getBoolean("setting_enter_post", true)) {
@@ -1912,7 +1906,10 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                         sendComment(text, color, size, position)
                         // コメントリセットとコマンドリセットボタンを押す
                         comment_cardview_comment_textinput_edittext.setText("")
-                        comment_cardview_comment_command_edit_reset_button.callOnClick()
+                        if (!pref_setting.getBoolean("setting_command_save", false)) {
+                            // コマンドを保持しない設定ならクリアボタンを押す
+                            comment_cardview_comment_command_edit_reset_button.callOnClick()
+                        }
                     }
                     true
                 } else {
@@ -2106,9 +2103,10 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 AnimationUtils.loadAnimation(requireContext(), R.anim.unnei_comment_show_animation)
             //表示
             uncomeTextView.startAnimation(showAnimation)
-            Timer().schedule(timerTask {
+            lifecycleScope.launch {
+                delay(5000)
                 removeUnneiComment()
-            }, 5000)
+            }
         }
     }
 
@@ -2118,8 +2116,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         commentActivity.runOnUiThread {
             if (this@CommentFragment::uncomeTextView.isInitialized) {
                 //表示アニメーション
-                val hideAnimation =
-                    AnimationUtils.loadAnimation(requireContext(), R.anim.unnei_comment_close_animation)
+                val hideAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.unnei_comment_close_animation)
                 //表示
                 uncomeTextView.startAnimation(hideAnimation)
                 //初期化済みなら

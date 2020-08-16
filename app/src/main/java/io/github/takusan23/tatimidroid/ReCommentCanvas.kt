@@ -33,6 +33,9 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /** 下のコメント一覧 */
     val drawShitaCommentList = arrayListOf<ReDrawCommentData>()
 
+    /** アスキーアート（コメントアート・職人）のために使う。最後に追加しあ高さが入る */
+    private var oldHeight = 0
+
     /** 黒枠 */
     private val blackPaint = Paint().apply {
         isAntiAlias = true
@@ -118,10 +121,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                 // 現在の再生位置
                 val currentPos = exoPlayer?.currentPosition ?: 0
                 // 画面外のコメントは描画しない
-                for (reDrawCommentData in drawNakaCommentList.toList()) {
+                for (reDrawCommentData in drawNakaCommentList.toList().filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
                     if (reDrawCommentData != null) {
-                        // 文字が長いときは早くする
-                        val speed = commentMoveMinus + (reDrawCommentData.comment.length / 8)
+                        // 文字が長いときは早くする。アスキーアートのときは速度一定
+                        val speed = if (reDrawCommentData.asciiArt) commentMoveMinus else commentMoveMinus + (reDrawCommentData.comment.length / 8)
                         reDrawCommentData.rect.left -= speed
                         reDrawCommentData.rect.right -= speed
                     }
@@ -269,7 +272,6 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                 }
             }
         }
-
     }
 
     /**
@@ -277,38 +279,72 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * */
     fun drawComment(commentJSONParse: CommentJSONParse, videoPos: Long, addPos: Int = 0) {
         when {
+            // うえ
             checkUeComment(commentJSONParse.mail) -> drawUeComment(commentJSONParse, videoPos)
+            // した
             commentJSONParse.mail.contains("shita") -> drawShitaComment(commentJSONParse, videoPos)
+            // 複数行の中コメ
+            commentJSONParse.comment.contains("\n") -> drawAsciiArtNakaComment(commentJSONParse.comment.split("\n"), commentJSONParse, videoPos, addPos)
+            // 通常
             else -> drawNakaComment(commentJSONParse, videoPos, addPos)
         }
     }
 
     /**
-     * 中コメントを登録する
+     * 複数行コメントな中コメントを描画します。
+     * @param commentJSONList コメントを改行コードで分割した配列。[String.split]で\n区切りで分割してね
      * */
-    private fun drawNakaComment(commentJSON: CommentJSONParse, videoPos: Long, addPos: Int = 0) {
+    private fun drawAsciiArtNakaComment(commentList: List<String>, commentJSON: CommentJSONParse, videoPos: Long, addPos: Int = 0) {
+        // たかさ初期化
+        oldHeight = 0
+        commentList.forEach { comment ->
+            commentJSON.comment = comment
+            // アスキーアートで登録
+            drawNakaComment(commentJSON, videoPos, addPos, true, commentList.size)
+        }
+    }
+
+    /**
+     * 中コメントを登録する
+     * @param asciiArt アスキーアート（複数行コメント）の場合はtrue
+     * @param asciiArtLines コメントアートが何行になるのか
+     * */
+    private fun drawNakaComment(commentJSON: CommentJSONParse, videoPos: Long, addPos: Int = 0, asciiArt: Boolean = false, asciiArtLines: Int = -1) {
         val comment = commentJSON.comment
         val command = commentJSON.mail
-        val measure = paint.measureText(comment)
         // フォントサイズ。コマンド等も考慮して
-        val fontSize = getCommandFontSize(command).toInt()
+        var fontSize = getCommandFontSize(command).toInt()
+        val measure = getBlackCommentTextPaint(fontSize).measureText(comment)
         val lect = finalWidth - addPos
+        // アスキーアートが画面に収まるように。ただし特に何もしなくても画面内に収まる場合は無視。改行多くて入らない場合のみ
+        val isAsciiArtUseHeightMax = asciiArt && finalHeight < asciiArtLines * fontSize
+        if (isAsciiArtUseHeightMax) {
+            fontSize = finalHeight / asciiArtLines
+        }
         // 当たり判定計算
         val addRect = Rect(lect, 0, (lect + measure).toInt(), fontSize)
-        // 全パターん
-        val tmpList = drawNakaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.rect.top }
-        for (reDrawCommentData in tmpList) {
-            if (Rect.intersects(reDrawCommentData.rect, addRect)) {
-                // あたっているので下へ
-                addRect.top = reDrawCommentData.rect.bottom
-                addRect.bottom = (addRect.top + fontSize)
-            }
-        }
-        // なお画面外突入時はランダム
-        if (addRect.bottom > finalHeight) {
-            val randomValue = randomValue(fontSize.toFloat())
-            addRect.top = randomValue
+        if (isAsciiArtUseHeightMax) {
+            // 画面外に収まらないコメントの場合
+            // コメントアート、アスキーアート
+            addRect.top = oldHeight
             addRect.bottom = addRect.top + fontSize
+            oldHeight = addRect.bottom
+        } else {
+            // 全パターん
+            val tmpList = drawNakaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.rect.top }
+            for (reDrawCommentData in tmpList) {
+                if (Rect.intersects(reDrawCommentData.rect, addRect)) {
+                    // あたっているので下へ
+                    addRect.top = reDrawCommentData.rect.bottom
+                    addRect.bottom = (addRect.top + fontSize)
+                }
+            }
+            // なお画面外突入時はランダム
+            if (addRect.bottom > finalHeight) {
+                val randomValue = randomValue(fontSize.toFloat())
+                addRect.top = randomValue
+                addRect.bottom = addRect.top + fontSize
+            }
         }
         // 配列に入れる
         val data = ReDrawCommentData(
@@ -317,7 +353,9 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             videoPos = videoPos,
             rect = addRect,
             pos = "naka",
-            fontSize = fontSize.toFloat()
+            fontSize = fontSize.toFloat(),
+            measure = measure,
+            asciiArt = asciiArt
         )
         drawNakaCommentList.add(data)
     }
@@ -358,6 +396,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             videoPos = videoPos,
             rect = addRect,
             pos = "ue",
+            measure = measure,
             fontSize = fontSize.toFloat()
         )
         drawUeCommentList.add(data)
@@ -399,6 +438,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             videoPos = videoPos,
             rect = addRect,
             pos = "shita",
+            measure = measure,
             fontSize = fontSize.toFloat()
         )
         drawShitaCommentList.add(data)
@@ -435,9 +475,9 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /**
      * 指定したフォントサイズのPaintを生成する関数
      * */
-    private fun getBlackCommentTextPaint(fontSize: Float): Paint {
+    private fun getBlackCommentTextPaint(fontSize: Int): Paint {
         val paint = Paint()
-        paint.textSize = fontSize
+        paint.textSize = fontSize.toFloat()
         return paint
     }
 
@@ -511,7 +551,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             // 一文字のフォントサイズ計算。収めるにはどれだけ縮めれば良いのか
             commandFontSize = (finalWidth.toFloat() / comment.length)
             // コメントの幅再取得
-            measure = getBlackCommentTextPaint(commandFontSize).measureText(comment)
+            measure = getBlackCommentTextPaint(commandFontSize.toInt()).measureText(comment)
         } else {
             // 超えない。10年前から携帯で動画見れた気がするけど結局10年経ってもあんまり外で動画見る人いない気がする
         }
@@ -567,5 +607,7 @@ class ReDrawCommentData(
     val videoPos: Long,
     val rect: Rect,
     val pos: String,
-    val fontSize: Float
+    val fontSize: Float,
+    val measure: Float,
+    val asciiArt: Boolean = false
 )

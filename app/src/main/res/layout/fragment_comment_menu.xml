@@ -165,6 +165,13 @@
                             android:text="@string/low_latency" />
 
                     <Switch
+                            android:id="@+id/fragment_comment_fragment_menu_command_save_switch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="5sp"
+                            android:text="@string/setting_comment_send_command_save" />
+
+                    <Switch
                             android:id="@+id/fragment_comment_fragment_menu_display_cutout_info_switch"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

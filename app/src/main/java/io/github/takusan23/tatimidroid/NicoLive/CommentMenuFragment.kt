@@ -265,6 +265,13 @@ class CommentMenuFragment : Fragment() {
             }
         }
 
+        // コマンド保持モード
+        fragment_comment_fragment_menu_command_save_switch.setOnCheckedChangeListener { compoundButton, b ->
+            prefSetting.edit {
+                putBoolean("setting_command_save", b)
+            }
+        }
+
         // ノッチ領域に侵略する
         fragment_comment_fragment_menu_display_cutout_info_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit {
@@ -357,25 +364,21 @@ class CommentMenuFragment : Fragment() {
     //CommentFragmentの値を貰う
     private fun setValue() {
         //コメント非表示
-        fragment_comment_fragment_menu_comment_hidden_switch.isChecked =
-            commentFragment.isCommentHide
+        fragment_comment_fragment_menu_comment_hidden_switch.isChecked = commentFragment.isCommentHide
         //Infoコメント非表示
-        fragment_comment_fragment_menu_hide_info_perm_switch.isChecked =
-            commentFragment.hideInfoUnnkome
+        fragment_comment_fragment_menu_hide_info_perm_switch.isChecked = commentFragment.hideInfoUnnkome
         //匿名で投稿するか
-        fragment_comment_fragment_menu_iyayo_comment_switch.isChecked =
-            commentFragment.nicoLiveHTML.isTokumeiComment
+        fragment_comment_fragment_menu_iyayo_comment_switch.isChecked = commentFragment.nicoLiveHTML.isTokumeiComment
         //匿名コメントを非表示にするか
         fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = commentFragment.isTokumeiHide
         //低遅延モードの有効無効
-        fragment_comment_fragment_menu_low_latency_switch.isChecked =
-            prefSetting.getBoolean("nicolive_low_latency", true)
+        fragment_comment_fragment_menu_low_latency_switch.isChecked = prefSetting.getBoolean("nicolive_low_latency", true)
         // コメント一行もーど
-        fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.isChecked =
-            prefSetting.getBoolean("setting_id_hidden", false)
+        fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.isChecked = prefSetting.getBoolean("setting_id_hidden", false)
+        // コマンド保持モード
+        fragment_comment_fragment_menu_command_save_switch.isChecked = prefSetting.getBoolean("setting_command_save", false)
         // ユーザーID非表示モード
-        fragment_comment_fragment_menu_setting_one_line_switch.isChecked =
-            prefSetting.getBoolean("setting_one_line", false)
+        fragment_comment_fragment_menu_setting_one_line_switch.isChecked = prefSetting.getBoolean("setting_one_line", false)
         //音量
         commentFragment.apply {
             if (isExoPlayerInitialized()) {
