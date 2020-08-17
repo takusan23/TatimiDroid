@@ -502,4 +502,5 @@
     <string name="setting_recomment_comment_speed_description">This applies to videos only. Probably too early, please adjust.</string>
     <string name="setting_video_only_title">This applies only to videos</string>
     <string name="setting_comment_send_command_save">Command (position, color) is retained even after posting.</string>
+    <string name="delete_history_db_title">Delete in-device history</string>
 </resources>

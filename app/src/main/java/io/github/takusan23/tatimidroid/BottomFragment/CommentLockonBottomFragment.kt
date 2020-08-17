@@ -37,8 +37,8 @@ import kotlinx.android.synthetic.main.adapter_comment_layout.view.*
 import kotlinx.android.synthetic.main.bottom_fragment_comment_menu_layout.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -116,10 +116,11 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 recyclerViewList = fragment.commentJSONList.filter { commentJSONParse -> commentJSONParse.userId == userId } as ArrayList<CommentJSONParse>
                 lifecycleScope.launch {
                     // コメントが届いたら反映させる。コルーチンすごいね
-                    fragment.commentFlowChannel.receiveAsFlow().collect { commentJSONParse ->
+                    fragment.commentBroadCastChannel.asFlow().collect { commentJSONParse ->
                         if (commentJSONParse.userId == userId && !recyclerViewList.contains(commentJSONParse)) {
                             recyclerViewList.add(0, commentJSONParse)
                             bottom_fragment_comment_menu_recyclerview.adapter?.notifyDataSetChanged()
+                            showInfo()
                         }
                     }
                 }

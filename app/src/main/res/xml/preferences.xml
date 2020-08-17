@@ -435,6 +435,10 @@
             android:summary="フリとかじゃなくて"
             android:title="開発者用実験項目" />
 
+    <Preference
+            android:icon="@drawable/ic_outline_delete_24px"
+            android:key="delete_history"
+            android:title="@string/delete_history_db_title" />
 
     <!--
         <SwitchPreference

@@ -502,4 +502,5 @@
     <string name="setting_recomment_comment_speed_description">こっちは動画のみに適用されます。おそらく早すぎるので調整してください（他力本願）。</string>
     <string name="setting_video_only_title">ここは動画にのみ適用されます</string>
     <string name="setting_comment_send_command_save">コマンド（位置、色）を投稿後も保持する。</string>
+    <string name="delete_history_db_title">端末内履歴を削除する</string>
 </resources>

@@ -70,6 +70,7 @@ import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.android.synthetic.main.inflate_nicolive_player_controller.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
 import okhttp3.internal.toLongOrDefault
@@ -229,6 +230,18 @@ class CommentFragment : Fragment() {
 
     // NG関係
     private var ngList = listOf<String>()
+
+    /**
+     * コルーチンのChannelって機能でコルーチン間で値のやり取りができます。
+     * このように書くとコメント内容が流れてきます。
+     * ```
+     * lifecycleScope.launch {
+     *  commentBroadCastChannel.asFlow().collect { println(it.comment) }
+     * }
+     * ```
+     * これで[io.github.takusan23.tatimidroid.BottomFragment.CommentLockonBottomFragment]とリアルタイムでコメントやり取りに成功した。
+     * */
+    val commentBroadCastChannel = BroadcastChannel<CommentJSONParse>(Channel.BUFFERED)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.activity_comment, container, false)
@@ -809,8 +822,6 @@ class CommentFragment : Fragment() {
         }
     }
 
-    val commentFlowChannel = Channel<CommentJSONParse>()
-
     // コメントが来たらこの関数が呼ばれる
     private fun commentFun(comment: String, roomName: String, isHistoryComment: Boolean) {
         val room = if (isJK) {
@@ -820,7 +831,6 @@ class CommentFragment : Fragment() {
         }
         // JSONぱーす
         val commentJSONParse = CommentJSONParse(comment, room, liveId)
-        lifecycleScope.launch { commentFlowChannel.send(commentJSONParse) }
         // アンケートや運コメを表示させる。
         if (roomName != getString(R.string.room_limit)) {
             when {
@@ -863,6 +873,11 @@ class CommentFragment : Fragment() {
          * */
         Handler(Looper.getMainLooper()).post {
             // UI Thread
+
+            // コルーチンのChannelに送信する。ロックオンBottomFragmentで利用する。なんかUIスレッドじゃないとだめっぽ？
+            lifecycleScope.launch {
+                commentBroadCastChannel.send(commentJSONParse)
+            }
 
             // コテハン追加など
             registerKotehan(commentJSONParse)
@@ -1710,6 +1725,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         nicoLiveHTML.destroy()
         nicoLiveComment.destroy()
         nicoJK.destroy()
+        commentBroadCastChannel.cancel()
         // println("とじます")
     }
 

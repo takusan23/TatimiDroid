@@ -10,7 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Adapter.NicoHistoryAdapter
-import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.LiveIDFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
@@ -48,34 +47,12 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
         // 件数表示
         showDBCount()
 
-        // 削除
-        bottom_fragment_history_delete_button.setOnClickListener {
-            showDeleteDialog()
-        }
-
         // chip押したとき
         bottom_fragment_history_chip_live.setOnClickListener { loadHistory() }
         bottom_fragment_history_chip_video.setOnClickListener { loadHistory() }
         bottom_fragment_history_chip_today.setOnClickListener { loadHistory() }
         bottom_fragment_history_chip_distinct.setOnClickListener { loadHistory() }
 
-    }
-
-    private fun showDeleteDialog() {
-        val buttons = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
-            add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.delete)))
-            add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel)))
-        }
-        DialogBottomSheet(getString(R.string.delete_message), buttons) { i, bottomSheetDialogFragment ->
-            lifecycleScope.launch(Dispatchers.Main) {
-                // 吹っ飛ばす（全削除）
-                withContext(Dispatchers.IO) {
-                    NicoHistoryDBInit.getInstance(requireContext()).nicoHistoryDBDAO().deleteAll()
-                }
-                bottomSheetDialogFragment.dismiss()
-                dismiss()
-            }
-        }.show(getParentFragmentManager(), "delete")
     }
 
     // 件数表示

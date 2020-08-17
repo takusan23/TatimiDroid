@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
@@ -41,6 +42,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val aboutCache = findPreference<Preference>("about_cache")
         // 一番最初に使った日
         val firstTimeDay = findPreference<Preference>("first_time_preference")
+        // 端末内履歴消す
+        val nicoHistoryDBClear = findPreference<Preference>("delete_history")
         // DarkModeSwitch
         val darkmode_switch_preference = findPreference<SwitchPreference>("setting_darkmode")
 
@@ -63,6 +66,23 @@ class SettingsFragment : PreferenceFragmentCompat() {
         konoapp_privacy?.setOnPreferenceClickListener {
             //プライバシーポリシー
             startBrowser(PRIVACY_POLICY_URL)
+            true
+        }
+        nicoHistoryDBClear?.setOnPreferenceClickListener {
+            // 端末内履歴を消すか
+            val buttons = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
+                add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.delete), R.drawable.ic_outline_delete_24px))
+                add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel), R.drawable.ic_arrow_back_black_24dp, Color.RED))
+            }
+            DialogBottomSheet(getString(R.string.delete_message), buttons) { i, bottomSheetDialogFragment ->
+                lifecycleScope.launch(Dispatchers.Main) {
+                    // 吹っ飛ばす（全削除）
+                    withContext(Dispatchers.IO) {
+                        NicoHistoryDBInit.getInstance(requireContext()).nicoHistoryDBDAO().deleteAll()
+                    }
+                    bottomSheetDialogFragment.dismiss()
+                }
+            }.show(getParentFragmentManager(), "delete")
             true
         }
 
