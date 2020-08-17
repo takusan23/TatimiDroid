@@ -2,7 +2,9 @@ package io.github.takusan23.tatimidroid.NicoVideo
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -75,13 +77,13 @@ class NicoVideoCommentFragment : Fragment() {
 
 
     /**
-     * RecyclerView初期化とか
-     * @param recyclerViewList RecyclerViewに表示させる中身の配列。省略時はDevNicoVideoCommentFragment.recyclerViewListを使います。
-     * @param snackbarShow Toastに取得コメント数を表示させる場合はtrue、省略時はfalse
+     * RecyclerView初期化とか。でもよく動かなくなるので表示できなかった場合は[onResume]でも初期化してる
+     * @param commentList RecyclerViewに表示させる中身の配列
      * */
     fun initRecyclerView(commentList: ArrayList<CommentJSONParse>) {
         recyclerViewList = commentList
         if (!isAdded) {
+            // Fragmentが表示されてなければここでreturn、てかここでReturnされすぎやろ
             return
         }
         recyclerView.setHasFixedSize(true)
@@ -101,6 +103,13 @@ class NicoVideoCommentFragment : Fragment() {
                 }
             }
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (recyclerView.adapter == null) {
+            initRecyclerView(recyclerViewList)
+        }
     }
 
     /**

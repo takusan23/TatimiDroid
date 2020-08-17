@@ -17,11 +17,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
@@ -29,7 +29,7 @@ import io.github.takusan23.tatimidroid.Tool.AnniversaryDate
 import io.github.takusan23.tatimidroid.Tool.calcAnniversary
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import java.text.SimpleDateFormat
-import java.util.ArrayList
+import java.util.*
 
 /**
  * ニコ動の動画を一覧で表示するときに使うAdapter。
@@ -50,9 +50,7 @@ class NicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideoDat
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NicoVideoListAdapter.ViewHolder {
-        val view =
-            LayoutInflater.from(parent.context)
-                .inflate(R.layout.adapter_nicovideo_list, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_nicovideo_list, parent, false)
         return ViewHolder(view)
     }
 

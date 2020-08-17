@@ -17,6 +17,7 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             android:usesCleartextTraffic="true">
+        <activity android:name=".NicoVideo.Activity.NicoVideoPlayListActivity"></activity>
 
         <meta-data
                 android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
@@ -51,8 +52,7 @@
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
-        </service>
-        <!-- これ書かないと通知から操作一生こない -->
+        </service> <!-- これ書かないと通知から操作一生こない -->
         <receiver android:name="androidx.media.session.MediaButtonReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />

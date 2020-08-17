@@ -12,6 +12,8 @@ import androidx.core.view.GestureDetectorCompat
  *
  * でもこれつけると[View.setOnClickListener]がおかしくなるのでisDoubleClickで判断してください。
  *
+ * 多分 [View.setClickable] [View.setFocusable] を [true] にしないとうまく行かないかも
+ *
  * @param click ダブルタップかタップした時に呼ばれる高階関数。isDoubleClickがtrueならダブルタップです。falseならクリック
  * */
 fun View.setOnDoubleClickListener(click: (MotionEvent?, isDoubleClick: Boolean) -> Unit) {

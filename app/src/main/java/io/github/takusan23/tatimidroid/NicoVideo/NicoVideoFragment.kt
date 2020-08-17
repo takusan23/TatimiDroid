@@ -42,6 +42,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
+import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoRecyclerPagerAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.R
@@ -407,29 +408,32 @@ class NicoVideoFragment : Fragment() {
         player_control_back_button.setOnClickListener {
             requireActivity().onBackPressed()
         }
-        // ダブルタップ版setOnClickListener。拡張関数です。DoubleClickListener
-        player_control_prev.setOnDoubleClickListener { motionEvent, isDoubleClick ->
-            if (isDoubleClick) {
-                // ダブルタップ時
-                val skip = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
-                exoPlayer.seekTo(exoPlayer.currentPosition - skip)
-                fragment_nicovideo_comment_canvas.seekComment()
-                updateHideController(job)
-            } else {
-                // シングル
-
-            }
+        // 連続再生とそれ以外でアイコン変更
+        val playListModePrevIcon = if (requireIsPlayListPlaying()) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
+        val playListModeNextIcon = if (requireIsPlayListPlaying()) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
+        player_control_prev.setImageDrawable(playListModePrevIcon)
+        player_control_next.setImageDrawable(playListModeNextIcon)
+        player_control_prev.setOnClickListener {
+            // 動画の最初へ
+            exoPlayer.seekTo(0)
         }
-        player_control_next.setOnDoubleClickListener { motionEvent, isDoubleClick ->
-            if (isDoubleClick) {
-                // ダブルタップ時
-                val skip = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+        player_control_next.setOnClickListener {
+            // 次の動画へ
+            requireNicoVideoPlayListFragment()?.nextVideo()
+        }
+        // ダブルタップ版setOnClickListener。拡張関数です。DoubleClickListener
+        player_control_center_parent.setOnDoubleClickListener { motionEvent, isDoubleClick ->
+            if (isDoubleClick && motionEvent != null) {
+                val skip = if (motionEvent.x > player_control_center_parent.width / 2) {
+                    // 半分より右
+                    (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+                } else {
+                    // 半分より左
+                    -(prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+                }
                 exoPlayer.seekTo(exoPlayer.currentPosition + skip)
                 fragment_nicovideo_comment_canvas.seekComment()
                 updateHideController(job)
-            } else {
-                // シングル
-
             }
         }
         // 全画面ボタン
@@ -678,8 +682,6 @@ class NicoVideoFragment : Fragment() {
      * コメントをフィルターにかける。3DSを消すときに使ってね
      * NGコメント/ユーザー追加時は勝手に更新するので呼ばなくていいです（[setNGDBChangeObserve]参照）。
      * 重そうなのでコルーチン
-     * 注意：ViewPagerが初期化済みである必要(applyUIを一回以上呼んである必要)があります。
-     * 注意：NG操作が終わったときに呼ぶとうまく動く？。
      * 注意：この関数を呼ぶと勝手にコメント一覧のRecyclerViewも更新されます。（代わりにapplyUI関数からコメントRecyclerView関係を消します）
      * rawCommentListはそのままで、フィルターにかけた結果がcommentListになる
      * @param notify DevNicoVideoCommentFragmentに更新をかけたい時はtrue。コメント一覧Fragmentは別に画面回転処理を書いてるため、画面回転復帰時は使わない。
@@ -750,7 +752,6 @@ class NicoVideoFragment : Fragment() {
         // タイトルなど
         player_control_title.text = videoTitle
         player_control_id.text = videoId
-        // ViewPager初期化
         if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
             // 動画を再生しない場合
             commentOnlyModeEnable()
@@ -783,11 +784,13 @@ class NicoVideoFragment : Fragment() {
                     // リピート無効時
                     exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
                     player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
+                    prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
                 }
                 Player.REPEAT_MODE_ONE -> {
                     // リピート有効時
                     exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
                     player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
+                    prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
                 }
             }
         }
@@ -1003,6 +1006,10 @@ class NicoVideoFragment : Fragment() {
                 } else {
                     hideSwipeToRefresh()
                 }
+                if (playbackState == Player.STATE_ENDED && playWhenReady) {
+                    // 動画おわった。連続再生時なら次の曲へ
+                    requireNicoVideoPlayListFragment()?.nextVideo()
+                }
                 if (!isRotationProgressSuccessful) {
                     // 一度だけ実行するように。画面回転前の時間を適用する
                     initController()
@@ -1127,14 +1134,16 @@ class NicoVideoFragment : Fragment() {
         }
     }
 
-    /**
-     * コメント一覧Fragmentを取得する。無い可能性も有る？
-     * */
-    fun requireCommentFragment() = (viewPager.fragmentList[1] as? NicoVideoCommentFragment)
+    /** コメント一覧Fragmentを取得する。無い可能性も有る？ */
+    private fun requireCommentFragment() = (viewPager.fragmentList[1] as? NicoVideoCommentFragment)
 
-    /**
-     * アイコン入れ替え
-     * */
+    /** ニコ動連続再生Fragmentを取得する。連続再生じゃない場合はnull。 */
+    private fun requireNicoVideoPlayListFragment() = parentFragmentManager.findFragmentByTag(NicoVideoPlayListActivity.FRAGMENT_TAG) as? NicoVideoPlayListFragment
+
+    /** 連続再生時かどうかを返す。連続再生時はtrue */
+    private fun requireIsPlayListPlaying() = requireNicoVideoPlayListFragment() != null
+
+    /** アイコン入れ替え */
     private fun setPlayIcon() {
         val drawable = if (exoPlayer.playWhenReady) {
             context?.getDrawable(R.drawable.ic_pause_black_24dp)
@@ -1211,8 +1220,10 @@ class NicoVideoFragment : Fragment() {
         TabLayoutMediator(fragment_nicovideo_tablayout, fragment_nicovideo_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
             tab.text = viewPager.fragmentTabName[position]
         }).attach()
-        // コメントを指定しておく
-        fragment_nicovideo_viewpager.currentItem = 1
+        // コメントを指定しておく。View#post{}で確実にcurrentItemが仕事するようになった。ViewPager2頼むよ～
+        fragment_nicovideo_viewpager.post {
+            fragment_nicovideo_viewpager?.currentItem = 1
+        }
     }
 
     /**

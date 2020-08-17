@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_recommend.*
 
@@ -39,7 +39,7 @@ class NicoVideoRecommendFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        initRecyclerView()
+        // initRecyclerView()
     }
 
     fun initRecyclerView() {

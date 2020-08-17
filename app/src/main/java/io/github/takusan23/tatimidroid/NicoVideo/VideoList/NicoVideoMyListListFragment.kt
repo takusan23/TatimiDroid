@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoVideo.VideoList
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,13 +11,17 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist_list.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * マイリスト一覧表示Fragment。
@@ -64,6 +69,19 @@ class NicoVideoMyListListFragment : Fragment() {
             getMyListItems()
         }
 
+        // 連続再生
+        fragment_nicovideo_mylist_list_playlist.setOnClickListener {
+            startPlayListActivity()
+        }
+
+    }
+
+    /** 連続再生Fragmentへ、、 */
+    private fun startPlayListActivity() {
+        val intent = Intent(requireContext(), NicoVideoPlayListActivity::class.java)
+        // 中身を入れる
+        intent.putExtra("video_list",recyclerViewList)
+        startActivity(intent)
     }
 
     // マイリストの中身取得

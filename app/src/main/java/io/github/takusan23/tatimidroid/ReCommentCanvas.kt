@@ -483,7 +483,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
 
     /** 高さをランダムで決める */
     private fun randomValue(fontSize: Float): Int {
-        return if (height > fontSize) {
+        return if (finalHeight > fontSize) {
             Random.nextInt(1, (height - fontSize).toInt())
         } else {
             Random.nextInt(1, finalHeight)
