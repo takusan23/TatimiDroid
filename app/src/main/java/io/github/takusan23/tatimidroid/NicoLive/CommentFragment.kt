@@ -488,8 +488,12 @@ class CommentFragment : Fragment() {
             }
         }
         // 統計情報表示
-        player_nicolive_control_statistics_show.setOnClickListener {
+        comment_fragment_statistics_show?.setOnClickListener {
             player_nicolive_control_info_main.isVisible = !player_nicolive_control_info_main.isVisible
+        }
+        // 横画面なら常に表示
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            player_nicolive_control_info_main.isVisible = true
         }
         // 押したら消せるように
         player_nicolive_control_parent.setOnClickListener {
@@ -589,8 +593,6 @@ class CommentFragment : Fragment() {
         comment_activity_fragment_layout?.visibility = View.GONE
         // 背景黒にする
         comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(ColorStateList.valueOf(Color.BLACK))
-        // 番組情報非表示
-        hideProgramInfo()
         // システムバー非表示
         setSystemBarVisibility(false)
         // 画面の大きさ取得
@@ -627,8 +629,6 @@ class CommentFragment : Fragment() {
         comment_activity_fragment_layout?.visibility = View.VISIBLE
         // 背景黒戻す
         comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(ColorStateList.valueOf(getThemeColor(context)))
-        // 番組情報表示
-        hideProgramInfo()
         // システムバー表示
         setSystemBarVisibility(true)
         // アイコン変更
@@ -1250,11 +1250,6 @@ class CommentFragment : Fragment() {
         } else {
             WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
-    }
-
-    // 常に番組情報（放送時間、来場者数）を表示する関数
-    @Deprecated("UI変更に巻き込まれたため非推奨")
-    fun setAlwaysShowProgramInfo() {
     }
 
     // ニコ生ゲーム有効
@@ -2214,11 +2209,6 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 infoTextView.visibility = View.GONE
             }
         }
-    }
-
-    // 番組情報部分を非表示。横画面のときのみ利用可能
-    @Deprecated("UI変更につき廃止")
-    fun hideProgramInfo() {
     }
 
     // 画面回転時に値引き継ぐ

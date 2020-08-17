@@ -93,14 +93,6 @@
                     android:tint="#ffffff" />
 
             <ImageView
-                    android:id="@+id/player_nicolive_control_statistics_show"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_outline_info_24px"
-                    android:tint="#ffffff" />
-
-            <ImageView
                     android:id="@+id/player_nicolive_control_fullscreen"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

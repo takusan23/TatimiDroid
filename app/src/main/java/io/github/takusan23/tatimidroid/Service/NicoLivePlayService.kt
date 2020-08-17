@@ -447,7 +447,6 @@ class NicoLivePlayService : Service() {
             player_nicolive_control_popup.isVisible = false
             player_nicolive_control_background.isVisible = false
             player_nicolive_control_video_network.isVisible = false
-            player_nicolive_control_statistics_show.isVisible = false
         }
 
         // SurfaceViewセット

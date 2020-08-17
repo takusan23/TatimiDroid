@@ -167,6 +167,20 @@
 
                 </LinearLayout>
 
+                <LinearLayout
+                        android:id="@+id/comment_fragment_statistics_show"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                    <View
+                            android:layout_width="100sp"
+                            android:layout_height="10sp"
+                            android:layout_margin="5sp"
+                            android:background="@drawable/bottom_sheet_bar" />
+                </LinearLayout>
+
                 <com.google.android.material.tabs.TabLayout
                         android:id="@+id/activity_comment_tab_layout"
                         android:layout_width="match_parent"
