@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -16,8 +17,10 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist_list.*
+import kotlinx.android.synthetic.main.include_playlist_button.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -70,7 +73,7 @@ class NicoVideoMyListListFragment : Fragment() {
         }
 
         // 連続再生
-        fragment_nicovideo_mylist_list_playlist.setOnClickListener {
+        include_playlist_button.setOnClickListener {
             startPlayListActivity()
         }
 
@@ -80,8 +83,12 @@ class NicoVideoMyListListFragment : Fragment() {
     private fun startPlayListActivity() {
         val intent = Intent(requireContext(), NicoVideoPlayListActivity::class.java)
         // 中身を入れる
-        intent.putExtra("video_list",recyclerViewList)
+        intent.putExtra("video_list", recyclerViewList)
+        intent.putExtra("name", arguments?.getString("mylist_name"))
         startActivity(intent)
+        if (activity is NicoVideoActivity) {
+            activity?.finish()
+        }
     }
 
     // マイリストの中身取得
@@ -122,25 +129,26 @@ class NicoVideoMyListListFragment : Fragment() {
             nicoVideoListAdapter.notifyDataSetChanged()
             fragment_nicovideo_mylist_list_swipe.isRefreshing = false
             sort()
+            // 連続再生ボタン
+            include_playlist_button.isVisible = true
         }
     }
 
     private fun initSortMenu() {
-        val sortList =
-            arrayListOf(
-                "登録が新しい順",
-                "登録が古い順",
-                "再生の多い順",
-                "再生の少ない順",
-                "投稿日時が新しい順",
-                "投稿日時が古い順",
-                "再生時間の長い順",
-                "再生時間の短い順",
-                "コメントの多い順",
-                "コメントの少ない順",
-                "マイリスト数の多い順",
-                "マイリスト数の少ない順"
-            )
+        val sortList = arrayListOf(
+            "登録が新しい順",
+            "登録が古い順",
+            "再生の多い順",
+            "再生の少ない順",
+            "投稿日時が新しい順",
+            "投稿日時が古い順",
+            "再生時間の長い順",
+            "再生時間の短い順",
+            "コメントの多い順",
+            "コメントの少ない順",
+            "マイリスト数の多い順",
+            "マイリスト数の少ない順"
+        )
         val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, sortList)
         fragment_nicovideo_mylist_list_sort.apply {
             setAdapter(adapter)

@@ -18,16 +18,21 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.BottomFragment.NicoHistoryBottomFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
-import io.github.takusan23.tatimidroid.Fragment.*
+import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
+import io.github.takusan23.tatimidroid.Fragment.LoginFragment
+import io.github.takusan23.tatimidroid.Fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.DialogWatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 /**
@@ -329,7 +334,7 @@ class MainActivity : AppCompatActivity() {
                         // コミュID->生放送ID
                         val nicoLiveHTML = NicoLiveHTML()
                         val response = nicoLiveHTML.getNicoLiveHTML(communityId, pref_setting.getString("user_session", ""), false)
-                        val responseString = withContext(Dispatchers.Default){
+                        val responseString = withContext(Dispatchers.Default) {
                             response.body?.string()
                         }
                         if (!response.isSuccessful) {

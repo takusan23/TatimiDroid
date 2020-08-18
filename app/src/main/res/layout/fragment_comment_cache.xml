@@ -73,4 +73,6 @@
                 android:textSize="18sp" />
     </LinearLayout>
 
+    <include layout="@layout/include_playlist_button"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

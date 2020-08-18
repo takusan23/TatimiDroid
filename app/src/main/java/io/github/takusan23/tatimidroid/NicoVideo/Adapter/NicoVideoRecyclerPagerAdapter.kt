@@ -4,12 +4,16 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.*
+import io.github.takusan23.tatimidroid.FregmentData.TabLayoutData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoInfoFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoMenuFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoRecommendFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
-import io.github.takusan23.tatimidroid.FregmentData.TabLayoutData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.R
 
 /**
@@ -24,6 +28,7 @@ class NicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId
         const val TAB_LAYOUT_DATA_SEARCH = "search"
         const val TAB_LAYOUT_DATA_MYLIST = "mylist"
         const val TAB_LAYOUT_DATA_POST = "post"
+        const val TAB_LAYOUT_DATA_SERIES = "series"
     }
 
     /** Fragment一覧 */
@@ -101,6 +106,7 @@ class NicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId
                 TAB_LAYOUT_DATA_SEARCH -> NicoVideoSearchFragment()
                 TAB_LAYOUT_DATA_POST -> NicoVideoPOSTFragment()
                 TAB_LAYOUT_DATA_MYLIST -> NicoVideoMyListFragment()
+                TAB_LAYOUT_DATA_SERIES -> NicoVideoSeriesFragment()
                 else -> null
             }?.let { fragment ->
                 // Bundle詰める
@@ -147,6 +153,7 @@ class NicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId
             fragment is NicoVideoPOSTFragment -> TAB_LAYOUT_DATA_POST
             fragment is NicoVideoMyListFragment -> TAB_LAYOUT_DATA_MYLIST
             fragment is NicoVideoSearchFragment -> TAB_LAYOUT_DATA_SEARCH
+            fragment is NicoVideoSeriesFragment -> TAB_LAYOUT_DATA_SERIES
             else -> "" // ありえない
         }
     }

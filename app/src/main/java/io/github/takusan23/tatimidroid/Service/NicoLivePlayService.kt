@@ -40,7 +40,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
-import kotlinx.android.synthetic.main.inflate_nicolive_player_controller.view.*
+import kotlinx.android.synthetic.main.include_nicolive_player_controller.view.*
 import kotlinx.android.synthetic.main.overlay_player_layout.view.*
 import kotlinx.coroutines.*
 import java.util.*

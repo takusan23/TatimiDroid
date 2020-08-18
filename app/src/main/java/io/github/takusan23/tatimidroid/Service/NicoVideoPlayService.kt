@@ -41,7 +41,7 @@ import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.InternetConnectionCheck
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
-import kotlinx.android.synthetic.main.inflate_nicovideo_player_controller.view.*
+import kotlinx.android.synthetic.main.include_nicovideo_player_controller.view.*
 import kotlinx.android.synthetic.main.overlay_video_player_layout.view.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
@@ -800,7 +800,7 @@ class NicoVideoPlayService : Service() {
  * @param videoQuality 画質を指定する場合は入れてね。無くてもいいよ。キャッシュ再生の時は使わない。例：「archive_h264_4000kbps_1080p」
  * @param audioQuality 音質を指定する場合は入れてね。無くてもいいよ。キャッシュ再生の時は使わない。例：「archive_aac_192kbps」
  * */
-fun startVideoPlayService(context: Context?, mode: String, videoId: String, isCache: Boolean, seek: Long = 0L, videoQuality: String = "", audioQuality: String = "") {
+fun startVideoPlayService(context: Context?, mode: String, videoId: String, isCache: Boolean, seek: Long = 0L, videoQuality: String? = null, audioQuality: String? = null) {
     // ポップアップ再生の権限あるか
     if (mode == "popup") {
         if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -822,7 +822,7 @@ fun startVideoPlayService(context: Context?, mode: String, videoId: String, isCa
         putExtra("is_cache", isCache)
         putExtra("seek", seek)
         // 画質入れる。
-        if (videoQuality.isNotEmpty() && audioQuality.isNotEmpty()) {
+        if (videoQuality != null && audioQuality != null) {
             putExtra("video_quality", videoQuality)
             putExtra("audio_quality", audioQuality)
         }

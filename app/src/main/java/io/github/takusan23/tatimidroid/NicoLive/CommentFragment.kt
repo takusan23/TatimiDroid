@@ -68,7 +68,7 @@ import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
-import kotlinx.android.synthetic.main.inflate_nicolive_player_controller.*
+import kotlinx.android.synthetic.main.include_nicolive_player_controller.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel

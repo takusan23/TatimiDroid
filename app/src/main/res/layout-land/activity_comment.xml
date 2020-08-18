@@ -56,7 +56,7 @@
                             android:layout_height="wrap_content"
                             android:background="@android:color/transparent" />
 
-                    <include layout="@layout/inflate_nicolive_player_controller" />
+                    <include layout="@layout/include_nicolive_player_controller" />
 
                 </FrameLayout>
 

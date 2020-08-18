@@ -41,16 +41,6 @@
 
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
-            android:layout_width="wrap_content"
-            android:id="@+id/fragment_nicovideo_mylist_list_playlist"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center|bottom"
-            android:layout_margin="16dp"
-            android:padding="10dp"
-            android:text="連続再生（ベータ）"
-            app:cornerRadius="20dp"
-            app:icon="@drawable/ic_tatimidroid_list_icon"
-            app:iconSize="20dp" />
+    <include layout="@layout/include_playlist_button"/>
 
 </FrameLayout>

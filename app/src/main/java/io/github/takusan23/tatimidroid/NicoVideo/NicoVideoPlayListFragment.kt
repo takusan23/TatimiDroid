@@ -17,11 +17,28 @@ import kotlinx.android.synthetic.main.fragment_nicovideo_playlist.*
  *
  * なおこのFragmentは[io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity.FRAGMENT_TAG]のタグを付けてます。
  * Fragmentを探すときに使って。
+ *
+ * いれるもの
+ *
+ * video_list       | [NicoVideoData]の配列         | 連続再生リスト
+ * video_id_list    | [NicoVideoData.videoId]の配列 | シャッフルした時に戻せるように、IDだけの配列をください。
+ * name             | String                        | タイトル
+ *
+ * あと多分[Activity]のテーマ設定が必要だと思われ
+ *
+ * ```
+ *  val darkModeSupport = DarkModeSupport(this)
+ *  darkModeSupport.setActivityTheme(this)
+ * ```
+ *
  * */
 class NicoVideoPlayListFragment : Fragment() {
 
     /** 動画リスト */
     val videoList by lazy { arguments?.getSerializable("video_list") as ArrayList<NicoVideoData> }
+
+    /** シャッフルとかしてない生の状態のリスト */
+    val videoIdList by lazy { arguments?.getStringArrayList("video_id_list") }
 
     /** 今再生中の動画 */
     var currentVideoId = ""
@@ -37,11 +54,10 @@ class NicoVideoPlayListFragment : Fragment() {
         if (savedInstanceState != null) {
             val data = savedInstanceState.getSerializable("data") as NicoVideoPlayListFragmentData
             currentVideoId = data.currentVideoId
+        } else {
+            // Fragment設置
+            setVideo(videoList[0].videoId, videoList[0].isCache)
         }
-
-        // Fragment設置
-        setVideo(videoList[0].videoId)
-
         // 動画一覧表示など
         fragment_nicovideo_playlist.setOnClickListener {
             val bottomFragment = NicoVideoPlayListBottomFragment()
@@ -54,32 +70,34 @@ class NicoVideoPlayListFragment : Fragment() {
      * 動画再生Fragmentをセットする
      * @param videoId 動画ID
      * */
-    fun setVideo(videoId: String) {
+    fun setVideo(videoId: String, isCache: Boolean = false) {
         val nicoVideoFragment = NicoVideoFragment()
         // 動画ID詰めて
         val bundle = Bundle().apply {
             putString("id", videoId)
+            putBoolean("cache", isCache)
         }
         nicoVideoFragment.arguments = bundle
         parentFragmentManager.beginTransaction().replace(R.id.fragment_nicovideo_playlist_main, nicoVideoFragment, videoId).commit()
         currentVideoId = videoId
     }
 
-    /**
-     * 次の動画へ切り替える
-     * */
+    /** 次の動画へ切り替える */
     fun nextVideo() {
         // 今の位置
-        val pos = videoList.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == currentVideoId }
+        val pos = getCurrentItemPos()
         val nextPos = pos + 1
         if (nextPos < videoList.size) {
             // 動画がある
-            setVideo(videoList[nextPos].videoId)
+            setVideo(videoList[nextPos].videoId, videoList[nextPos].isCache)
         } else {
             // 終点。最初から？
-            setVideo(videoList[0].videoId)
+            setVideo(videoList[0].videoId, videoList[0].isCache)
         }
     }
+
+    /** 現在再生中の位置を返す */
+    fun getCurrentItemPos() = videoList.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == currentVideoId }
 
     /** 画面回転後もデータを保持しておく。動画一覧はFragmentの[setArguments]を使っていれば勝手に復元してくれる */
     override fun onSaveInstanceState(outState: Bundle) {

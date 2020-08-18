@@ -4,8 +4,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
 
 /**
  * マイリスト切り替えViewPagerAdapter。
@@ -23,6 +23,7 @@ class NicoVideoMyListViewPagerAdapter(val activity: AppCompatActivity, val myLis
             val fragment = NicoVideoMyListListFragment()
             val bundle = Bundle().apply {
                 putString("mylist_id", it.id)
+                putString("mylist_name", it.title)
             }
             fragment.arguments = bundle
             add(fragment)

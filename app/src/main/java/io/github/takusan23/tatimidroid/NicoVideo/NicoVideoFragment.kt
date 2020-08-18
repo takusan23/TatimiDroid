@@ -45,6 +45,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoRecyclerPagerAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoPOSTFragment
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
@@ -54,7 +55,7 @@ import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
-import kotlinx.android.synthetic.main.inflate_nicovideo_player_controller.*
+import kotlinx.android.synthetic.main.include_nicovideo_player_controller.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import org.json.JSONObject
@@ -640,7 +641,8 @@ class NicoVideoFragment : Fragment() {
                 // フィルターで3ds消したりする
                 commentFilter()
             }
-
+            // 関連動画
+            launch { getRecommend() }
             // ニコるくん
             isPremium = nicoVideoHTML.isPremium(jsonObject)
             threadId = nicoVideoHTML.getThreadId(jsonObject)
@@ -656,21 +658,28 @@ class NicoVideoFragment : Fragment() {
                     nicoruAPI.parseNicoruKey(nicoruResponse.body?.string())
                 }
             }
-            // 関連動画取得。
-            val watchRecommendationRecipe = jsonObject.getString("watchRecommendationRecipe")
-            val nicoVideoRecommendAPI = NicoVideoRecommendAPI()
-            val recommendAPIResponse = nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe)
-            if (!recommendAPIResponse.isSuccessful) {
-                // 失敗時
-                showToast("${getString(R.string.error)}\n${response.code}")
-                return@launch
+        }
+    }
+
+
+    /** 関連動画取得 */
+    private suspend fun getRecommend() = withContext(Dispatchers.Default) {
+        // 関連動画取得。
+        val watchRecommendationRecipe = jsonObject.getString("watchRecommendationRecipe")
+        val nicoVideoRecommendAPI = NicoVideoRecommendAPI()
+        val recommendAPIResponse = nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe)
+        if (!recommendAPIResponse.isSuccessful) {
+            // 失敗時
+            showToast("${getString(R.string.error)}\n${recommendAPIResponse.code}")
+            return@withContext
+        }
+        // パース
+        withContext(Dispatchers.Default) {
+            nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string()).forEach {
+                recommendList.add(it)
             }
-            // パース
-            withContext(Dispatchers.Default) {
-                nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string()).forEach {
-                    recommendList.add(it)
-                }
-            }
+        }
+        withContext(Dispatchers.Main) {
             // DevNicoVideoRecommendFragmentに配列渡す
             (viewPager.fragmentList[3] as NicoVideoRecommendFragment).apply {
                 initRecyclerView()
@@ -774,7 +783,7 @@ class NicoVideoFragment : Fragment() {
         share = ProgramShare((activity as AppCompatActivity), fragment_nicovideo_surfaceview, videoTitle, videoId)
         if (!isCache) {
             // キャッシュ再生時以外
-            // 投稿動画をViewPagerに追加
+            // 投稿動画とシリーズ一覧をViewPagerに追加
             viewPagerAddAccountFragment(jsonObject)
         }
         // リピートボタン
@@ -1243,6 +1252,22 @@ class NicoVideoFragment : Fragment() {
             // すでにあれば追加しない
             if (!viewPager.fragmentTabName.contains(nickname)) {
                 viewPager.addFragment(postFragment, nickname) // Fragment追加関数
+            }
+            // シリーズ一覧Fragment追加
+            val seriesId = nicoVideoHTML.getSeriesId(jsonObject)
+            val seriesTitle = nicoVideoHTML.getSeriesTitle(jsonObject)
+            if (seriesId != null && seriesTitle != null) {
+                // シリーズ設定してある。ViewPager2にFragment追加
+                val seriesFragment = NicoVideoSeriesFragment().apply {
+                    arguments = Bundle().apply {
+                        putString("series_id", seriesId)
+                        putString("series_title", seriesTitle)
+                    }
+                }
+                // 登録済みなら追加しない
+                if (!viewPager.fragmentTabName.contains(seriesTitle)) {
+                    viewPager.addFragment(seriesFragment, seriesTitle) // Fragment追加関数
+                }
             }
         }
     }

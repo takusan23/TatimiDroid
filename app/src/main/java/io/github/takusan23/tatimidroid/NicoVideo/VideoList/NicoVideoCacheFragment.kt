@@ -1,23 +1,27 @@
 package io.github.takusan23.tatimidroid.NicoVideo.VideoList
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_comment_cache.*
-import kotlinx.coroutines.*
+import kotlinx.android.synthetic.main.include_playlist_button.*
+import kotlinx.coroutines.launch
 import okhttp3.internal.format
 
 class NicoVideoCacheFragment : Fragment() {
@@ -51,7 +55,19 @@ class NicoVideoCacheFragment : Fragment() {
             }
             fragment_cache_storage_info.text = savedInstanceState.getString("storage")
             nicoVideoListAdapter.notifyDataSetChanged()
+            // 連続再生ボタン表示
+            include_playlist_button.isVisible = true
         }
+
+        // 連続再生
+        include_playlist_button.setOnClickListener {
+            val intent = Intent(requireContext(), NicoVideoPlayListActivity::class.java)
+            // 中身を入れる
+            intent.putExtra("video_list", recyclerViewList)
+            intent.putExtra("name", getString(R.string.cache))
+            startActivity(intent)
+        }
+
     }
 
     // ストレージの空き確認
@@ -119,6 +135,8 @@ class NicoVideoCacheFragment : Fragment() {
                 }
                 // 合計サイズ
                 initStorageSpace()
+                // 連続再生ボタン表示
+                include_playlist_button.isVisible = true
             }
         }
     }

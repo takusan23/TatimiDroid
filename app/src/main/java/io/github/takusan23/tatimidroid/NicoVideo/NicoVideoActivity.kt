@@ -35,11 +35,8 @@ class NicoVideoActivity : AppCompatActivity() {
         val isCache = intent?.getBooleanExtra("cache", false) ?: false
         val isEconomy = intent?.getBooleanExtra("eco", false) ?: false
 
-        // Fragment再生成するかどうか。
-        val checkCommentViewFragment = supportFragmentManager.findFragmentByTag(id)
-        val fragment = if (checkCommentViewFragment != null) {
-            checkCommentViewFragment as NicoVideoFragment // 画面回転してもFragmentは生き残る
-        } else {
+        // 画面回転復帰時はFragmentを置かない（savedInstanceStateがnullのときだけ生成する）
+        if (savedInstanceState == null) {
             // 初回
             val nicoVideoFragment = NicoVideoFragment()
             val bundle = Bundle()
@@ -47,13 +44,11 @@ class NicoVideoActivity : AppCompatActivity() {
             bundle.putBoolean("cache", isCache)
             bundle.putBoolean("eco", isEconomy)
             nicoVideoFragment.arguments = bundle
-            nicoVideoFragment
+            //あとから探せるように第三引数にID入れる
+            supportFragmentManager.beginTransaction()
+                .replace(activity_nicovideo_parent_linearlayout.id, nicoVideoFragment, id)
+                .commit()
         }
-        //あとから探せるように第三引数にID入れる
-        supportFragmentManager.beginTransaction()
-            .replace(activity_nicovideo_parent_linearlayout.id, fragment, id)
-            .commit()
-
     }
 
     /**

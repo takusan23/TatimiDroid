@@ -117,39 +117,41 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     init {
         // コメントを動かす
         commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
-            if (exoPlayer?.isPlaying == true) {
-                // 現在の再生位置
-                val currentPos = exoPlayer?.currentPosition ?: 0
-                // 画面外のコメントは描画しない
-                for (reDrawCommentData in drawNakaCommentList.toList().filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
-                    if (reDrawCommentData != null) {
-                        // 文字が長いときは早くする。アスキーアートのときは速度一定
-                        val speed = if (reDrawCommentData.asciiArt) commentMoveMinus else commentMoveMinus + (reDrawCommentData.comment.length / 8)
-                        reDrawCommentData.rect.left -= speed
-                        reDrawCommentData.rect.right -= speed
+            GlobalScope.launch(coroutineJob + Dispatchers.Main) {
+                if (exoPlayer?.isPlaying == true) {
+                    // 現在の再生位置
+                    val currentPos = exoPlayer?.currentPosition ?: 0
+                    // 画面外のコメントは描画しない
+                    for (reDrawCommentData in drawNakaCommentList.toList().filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
+                        if (reDrawCommentData != null) {
+                            // 文字が長いときは早くする。アスキーアートのときは速度一定
+                            val speed = if (reDrawCommentData.asciiArt) commentMoveMinus else commentMoveMinus + (reDrawCommentData.comment.length / 8)
+                            reDrawCommentData.rect.left -= speed
+                            reDrawCommentData.rect.right -= speed
+                        }
                     }
-                }
-                // 上コメ、下コメは３秒間表示させる
-                drawUeCommentList.toList().forEach { reDrawCommentData ->
-                    // なんかマイナスになりそうだったので
-                    if (currentPos - reDrawCommentData.videoPos > 3000) {
-                        drawUeCommentList.remove(reDrawCommentData)
+                    // 上コメ、下コメは３秒間表示させる
+                    drawUeCommentList.toList().forEach { reDrawCommentData ->
+                        // なんかマイナスになりそうだったので
+                        if (currentPos - reDrawCommentData.videoPos > 3000) {
+                            drawUeCommentList.remove(reDrawCommentData)
+                        }
                     }
-                }
-                drawShitaCommentList.toList().forEach { reDrawCommentData ->
-                    // なんかマイナスになりそうだったので
-                    if (currentPos - reDrawCommentData.videoPos > 3000) {
-                        drawShitaCommentList.remove(reDrawCommentData)
+                    drawShitaCommentList.toList().forEach { reDrawCommentData ->
+                        // なんかマイナスになりそうだったので
+                        if (currentPos - reDrawCommentData.videoPos > 3000) {
+                            drawShitaCommentList.remove(reDrawCommentData)
+                        }
                     }
+                    // 再描画
+                    invalidate()
                 }
-                // 再描画
-                invalidate()
             }
         }
         // コメントを追加する
         commentAddTimer.schedule(100, 100) {
-            if (exoPlayer != null) {
-                GlobalScope.launch(coroutineJob + Dispatchers.Main) {
+            GlobalScope.launch(coroutineJob + Dispatchers.Main) {
+                if (exoPlayer != null) {
                     val currentVPos = exoPlayer!!.contentPosition / 100L
                     val currentPositionSec = exoPlayer!!.contentPosition / 1000
                     if (tmpPosition != currentPositionSec) {
@@ -367,7 +369,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         val comment = commentJSON.comment
         val command = commentJSON.mail
         // コメントの大きさ調整
-        val calcCommentSize = calcCommentFontSize(paint.measureText(comment), paint.textSize, comment)
+        val calcCommentSize = calcCommentFontSize(paint.measureText(comment), getCommandFontSize(command), comment)
         val measure = calcCommentSize.first
         // フォントサイズ。コマンド等も考慮して
         val fontSize = calcCommentSize.second.toInt()
@@ -409,7 +411,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         val comment = commentJSON.comment
         val command = commentJSON.mail
         // コメントの大きさ調整
-        val calcCommentSize = calcCommentFontSize(paint.measureText(comment), paint.textSize, comment)
+        val calcCommentSize = calcCommentFontSize(paint.measureText(comment), getCommandFontSize(command), comment)
         val measure = calcCommentSize.first
         // フォントサイズ。コマンド等も考慮して
         val fontSize = calcCommentSize.second.toInt()

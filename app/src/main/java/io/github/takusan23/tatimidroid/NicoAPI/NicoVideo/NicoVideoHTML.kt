@@ -14,7 +14,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.concurrent.timerTask
 
 /**
@@ -776,6 +775,32 @@ class NicoVideoHTML {
     fun setLiked(jsonObject: JSONObject, isLiked: Boolean) {
         jsonObject.getJSONObject("context").remove("isLiked")
         jsonObject.getJSONObject("context").put("isLiked", isLiked)
+    }
+
+    /**
+     * シリーズが設定されている場合はシリーズIDを返す。なければnull
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * */
+    fun getSeriesId(jsonObject: JSONObject): String? {
+        return if (!jsonObject.isNull("series")) {
+            // nullじゃない時
+            jsonObject.getJSONObject("series").getString("id")
+        } else {
+            // Series設定してない
+            null
+        }
+    }
+
+    /**
+     * シリーズが設定されている場合はシリーズ名を返す。なければnull
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * */
+    fun getSeriesTitle(jsonObject: JSONObject): String? {
+        return if (!jsonObject.isNull("series")) {
+            jsonObject.getJSONObject("series").getString("title")
+        } else {
+            null
+        }
     }
 
     /**
