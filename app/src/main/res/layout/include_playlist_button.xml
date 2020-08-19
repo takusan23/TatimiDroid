@@ -8,7 +8,7 @@
         android:layout_gravity="center|bottom"
         android:layout_margin="16dp"
         android:padding="10dp"
-        android:text="連続再生（ベータ）"
+        android:text="@string/playlist_button"
         android:visibility="gone"
         app:cornerRadius="20dp"
         app:icon="@drawable/ic_tatimidroid_list_icon"

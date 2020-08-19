@@ -503,4 +503,9 @@
     <string name="setting_video_only_title">ここは動画にのみ適用されます</string>
     <string name="setting_comment_send_command_save">コマンド（位置、色）を投稿後も保持する。</string>
     <string name="delete_history_db_title">端末内履歴を削除する</string>
+    <string name="playlist_total_time">総再生時間</string>
+    <string name="video_count">作品数</string>
+    <string name="reverse">逆順</string>
+    <string name="shuffle">シャッフル</string>
+    <string name="playlist_button">連続再生（ベータ）</string>
 </resources>

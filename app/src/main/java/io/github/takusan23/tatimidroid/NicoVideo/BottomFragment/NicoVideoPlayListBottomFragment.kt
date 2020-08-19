@@ -50,10 +50,10 @@ class NicoVideoPlayListBottomFragment : BottomSheetDialogFragment() {
 
         // トータル何分
         val totalDuration = nicoVideoPlayListFragment.videoList.sumBy { nicoVideoData -> nicoVideoData.duration?.toInt() ?: 0 }
-        nicovideo_playlist_bottom_fragment_duration.text = "総再生時間：${DateUtils.formatElapsedTime(totalDuration.toLong())}"
+        nicovideo_playlist_bottom_fragment_duration.text = "${getString(R.string.playlist_total_time)}：${DateUtils.formatElapsedTime(totalDuration.toLong())}"
 
         // 件数
-        nicovideo_playlist_bottom_fragment_count.text = "作品数：${nicoVideoPlayListFragment.videoList.size}"
+        nicovideo_playlist_bottom_fragment_count.text = "${getString(R.string.video_count)}：${nicoVideoPlayListFragment.videoList.size}"
 
         // 逆にする
         nicovideo_playlist_bottom_fragment_reverse.setOnClickListener {

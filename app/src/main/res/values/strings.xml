@@ -503,4 +503,9 @@
     <string name="setting_video_only_title">This applies only to videos</string>
     <string name="setting_comment_send_command_save">Command (position, color) is retained even after posting.</string>
     <string name="delete_history_db_title">Delete in-device history</string>
+    <string name="playlist_total_time">Total playback time</string>
+    <string name="video_count">Number of videos</string>
+    <string name="reverse">Reverse order</string>
+    <string name="shuffle">shuffle</string>
+    <string name="playlist_button">Continuous playback</string>
 </resources>
