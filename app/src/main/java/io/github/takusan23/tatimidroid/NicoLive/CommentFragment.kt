@@ -809,7 +809,9 @@ class CommentFragment : Fragment() {
             if (hasGetPlayerStatusTag && document.getElementsByTag("getplayerstatus ")[0].attr("status") == "ok") {
                 roomName = document.getElementsByTag("room_label")[0].text() // 部屋名
                 chairNo = document.getElementsByTag("room_seetno")[0].text() // 座席番号
-                player_nicolive_control_id.text = "${nicoLiveHTML.liveId} - $roomName - $chairNo"
+                withContext(Dispatchers.Main) {
+                    player_nicolive_control_id.text = "${nicoLiveHTML.liveId} - $roomName - $chairNo"
+                }
             } else {
                 // getPlayerStatus取得失敗時
                 withContext(Dispatchers.Main) {
