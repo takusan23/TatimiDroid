@@ -1,7 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -111,8 +111,7 @@ class NicoVideoHTML {
     fun isEncryption(json: String): Boolean {
         return when {
             JSONObject(json).getJSONObject("video").isNull("dmcInfo") -> false
-            JSONObject(json).getJSONObject("video").getJSONObject("dmcInfo")
-                .has("encryption") -> true
+            JSONObject(json).getJSONObject("video").getJSONObject("dmcInfo").has("encryption") -> true
             else -> false
         }
     }
@@ -711,16 +710,14 @@ class NicoVideoHTML {
      * @return video.dmcInfo.quality.videos の値（配列）
      * */
     fun parseVideoQualityDMC(jsonObject: JSONObject): JSONArray {
-        return jsonObject.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality")
-            .getJSONArray("videos")
+        return jsonObject.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality").getJSONArray("videos")
     }
 
     /**
      * 音質一覧を返す
      * */
     fun parseAudioQualityDMC(jsonObject: JSONObject): JSONArray {
-        return jsonObject.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality")
-            .getJSONArray("audios")
+        return jsonObject.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality").getJSONArray("audios")
     }
 
     /**

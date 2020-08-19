@@ -1,8 +1,7 @@
 package io.github.takusan23.tatimidroid.FregmentData
 
-import io.github.takusan23.tatimidroid.Adapter.NicoHistoryAdapter
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import java.io.Serializable
 
 /**

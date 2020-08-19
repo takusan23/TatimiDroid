@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoVideo.Adapter
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import io.github.takusan23.tatimidroid.FregmentData.TabLayoutData
@@ -10,7 +9,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoInfoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoMenuFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoRecommendFragment
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListFragment
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
@@ -21,7 +20,7 @@ import io.github.takusan23.tatimidroid.R
  * Fragmentをフリックで切り替えられるやつ。２にしたおかげか動的追加できるようになった
  * @param dynamicAddFragmentList 動的に追加したFragmentがある場合は入れてね。ない場合は省略していいよ（そこにないなら無いですね）。主に画面回転復帰時に使う。
  * */
-class NicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId: String, val isCache: Boolean, val dynamicAddFragmentList: ArrayList<TabLayoutData> = arrayListOf()) : FragmentStateAdapter(activity) {
+class NicoVideoRecyclerPagerAdapter(val fragment: Fragment, val videoId: String, val isCache: Boolean, val dynamicAddFragmentList: ArrayList<TabLayoutData> = arrayListOf()) : FragmentStateAdapter(fragment) {
 
     // 画面回転時に回転前に動的にFragmentを追加場合復元するからその時使う
     companion object {
@@ -44,7 +43,7 @@ class NicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId
         bundle.putString("id", videoId)
         bundle.putBoolean("cache", isCache)
         // 動画情報JSONがあるかどうか。なければ動画情報Fragmentを非表示にするため
-        val nicoVideoCache = NicoVideoCache(activity)
+        val nicoVideoCache = NicoVideoCache(fragment.requireContext())
         val exists = nicoVideoCache.existsCacheVideoInfoJSON(videoId)
         // インターネット接続とキャッシュ再生で分岐
         if (isCache) {
@@ -59,8 +58,8 @@ class NicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId
                 add(devNicoVideoCommentFragment)
             }
             fragmentTabName.apply {
-                add(activity.getString(R.string.menu))
-                add(activity.getString(R.string.comment))
+                add(fragment.getString(R.string.menu))
+                add(fragment.getString(R.string.comment))
             }
             if (exists) {
                 // 動画情報JSONがあれば動画情報Fragmentを表示させる
@@ -68,7 +67,7 @@ class NicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId
                     arguments = bundle
                 }
                 fragmentList.add(nicoVideoInfoFragment)
-                fragmentTabName.add(activity.getString(R.string.nicovideo_info))
+                fragmentTabName.add(fragment.getString(R.string.nicovideo_info))
             }
         } else {
             val commentMenuFragment = NicoVideoMenuFragment().apply {
@@ -91,10 +90,10 @@ class NicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId
                 // add(nicoContentTree)
             }
             fragmentTabName.apply {
-                add(activity.getString(R.string.menu))
-                add(activity.getString(R.string.comment))
-                add(activity.getString(R.string.nicovideo_info))
-                add(activity.getString(R.string.recommend_video))
+                add(fragment.getString(R.string.menu))
+                add(fragment.getString(R.string.comment))
+                add(fragment.getString(R.string.nicovideo_info))
+                add(fragment.getString(R.string.recommend_video))
                 // add(activity.getString(R.string.parent_contents))
             }
         }
@@ -105,7 +104,7 @@ class NicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId
             when (data.type) {
                 TAB_LAYOUT_DATA_SEARCH -> NicoVideoSearchFragment()
                 TAB_LAYOUT_DATA_POST -> NicoVideoPOSTFragment()
-                TAB_LAYOUT_DATA_MYLIST -> NicoVideoMyListFragment()
+                TAB_LAYOUT_DATA_MYLIST -> NicoVideoMyListListFragment()
                 TAB_LAYOUT_DATA_SERIES -> NicoVideoSeriesFragment()
                 else -> null
             }?.let { fragment ->
@@ -149,11 +148,11 @@ class NicoVideoRecyclerPagerAdapter(val activity: AppCompatActivity, val videoId
      * @param fragment addFragment()で追加可能なFragment
      * */
     private fun getType(fragment: Fragment): String {
-        return when {
-            fragment is NicoVideoPOSTFragment -> TAB_LAYOUT_DATA_POST
-            fragment is NicoVideoMyListFragment -> TAB_LAYOUT_DATA_MYLIST
-            fragment is NicoVideoSearchFragment -> TAB_LAYOUT_DATA_SEARCH
-            fragment is NicoVideoSeriesFragment -> TAB_LAYOUT_DATA_SERIES
+        return when (fragment) {
+            is NicoVideoPOSTFragment -> TAB_LAYOUT_DATA_POST
+            is NicoVideoMyListListFragment -> TAB_LAYOUT_DATA_MYLIST
+            is NicoVideoSearchFragment -> TAB_LAYOUT_DATA_SEARCH
+            is NicoVideoSeriesFragment -> TAB_LAYOUT_DATA_SERIES
             else -> "" // ありえない
         }
     }

@@ -1,16 +1,17 @@
 package io.github.takusan23.tatimidroid.NicoVideo
 
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
 
@@ -20,14 +21,10 @@ import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
  * */
 class NicoVideoCommentFragment : Fragment() {
 
+    val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
+
     var recyclerViewList = arrayListOf<CommentJSONParse>()
     private lateinit var nicoVideoAdapter: NicoVideoAdapter
-    private lateinit var prefSetting: SharedPreferences
-
-    private var usersession = ""
-    private var id = "sm157"
-
-    lateinit var recyclerView: RecyclerView
 
     /**
      * 自動追従（自動でコメント一覧スクロール機能）を利用するか。
@@ -49,16 +46,11 @@ class NicoVideoCommentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-        //動画ID受け取る（sm9とかsm157とか）
-        id = arguments?.getString("id") ?: "sm157"
-        usersession = prefSetting.getString("user_session", "") ?: ""
-        recyclerView = view.findViewById(R.id.activity_nicovideo_recyclerview)
+        // コメント監視
+        val viewModel: NicoVideoViewModel by viewModels({ requireParentFragment() })
 
-        // 画面回転復帰時
-        if (savedInstanceState?.getSerializable("comment") != null) {
-            recyclerViewList = savedInstanceState.getSerializable("comment") as ArrayList<CommentJSONParse>
-            initRecyclerView(recyclerViewList)
+        viewModel.commentList.observe(viewLifecycleOwner) { list ->
+            initRecyclerView(list)
         }
 
         // スクロールボタン。追従するぞい
@@ -75,40 +67,30 @@ class NicoVideoCommentFragment : Fragment() {
         }
     }
 
-
     /**
      * RecyclerView初期化とか。でもよく動かなくなるので表示できなかった場合は[onResume]でも初期化してる
      * @param commentList RecyclerViewに表示させる中身の配列
      * */
     fun initRecyclerView(commentList: ArrayList<CommentJSONParse>) {
-        recyclerViewList = commentList
-        if (!isAdded) {
-            // Fragmentが表示されてなければここでreturn、てかここでReturnされすぎやろ
-            return
-        }
-        recyclerView.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(context)
-        recyclerView.layoutManager = mLayoutManager
-        // Adapter用意。実は第二引数渡さなくても動いたりする（ニコるできなくなるけど）
-        nicoVideoAdapter = NicoVideoAdapter(commentList, devNicoVideoFragment)
-        recyclerView.adapter = nicoVideoAdapter
-        // スクロールイベント。上方向へスクロールをしたら自動追従を解除する設定にした。
-        // これで自動スクロール止めたい場合は上方向へスクロールしてください。代わりに追いかけるボタンが表示されます。
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                // 自動スクロールが有効になってるときのみ監視する。自動スクロールOFFの状態でも動くようにすると勝手にスクロールされる問題があった。
-                if (isAutoScroll) {
-                    isAutoScroll = dy >= 0
+        activity_nicovideo_recyclerview.apply {
+            recyclerViewList = commentList
+            setHasFixedSize(true)
+            val mLayoutManager = LinearLayoutManager(context)
+            layoutManager = mLayoutManager
+            // Adapter用意。実は第二引数渡さなくても動いたりする（ニコるできなくなるけど）
+            nicoVideoAdapter = NicoVideoAdapter(commentList, devNicoVideoFragment)
+            adapter = nicoVideoAdapter
+            // スクロールイベント。上方向へスクロールをしたら自動追従を解除する設定にした。
+            // これで自動スクロール止めたい場合は上方向へスクロールしてください。代わりに追いかけるボタンが表示されます。
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    // 自動スクロールが有効になってるときのみ監視する。自動スクロールOFFの状態でも動くようにすると勝手にスクロールされる問題があった。
+                    if (isAutoScroll) {
+                        isAutoScroll = dy >= 0
+                    }
                 }
-            }
-        })
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (recyclerView.adapter == null) {
-            initRecyclerView(recyclerViewList)
+            })
         }
     }
 
@@ -164,8 +146,7 @@ class NicoVideoCommentFragment : Fragment() {
      * */
     fun getCommentListVisibleLastItemComment(): CommentJSONParse? {
         // RecyclerView初期化してない時はnull
-        if (!isInitRecyclerView()) return null
-        return recyclerViewList[(recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()]
+        return recyclerViewList[(activity_nicovideo_recyclerview.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()]
     }
 
     /**
@@ -193,12 +174,9 @@ class NicoVideoCommentFragment : Fragment() {
 
     /** LayoutManager取得。書くのめんどくさくなったので */
     private fun getRecyclerViewLayoutManager(): LinearLayoutManager? {
-        if (!isInitRecyclerView() || recyclerView.layoutManager !is LinearLayoutManager) return null
-        return recyclerView.layoutManager as LinearLayoutManager
+        if (activity_nicovideo_recyclerview.layoutManager !is LinearLayoutManager) return null
+        return activity_nicovideo_recyclerview.layoutManager as LinearLayoutManager
     }
-
-    /** RecyclerViewが初期化済みかどうかを返す関数 */
-    private fun isInitRecyclerView() = ::recyclerView.isInitialized
 
     /**
      * 現在コメントが表示中かどうか。

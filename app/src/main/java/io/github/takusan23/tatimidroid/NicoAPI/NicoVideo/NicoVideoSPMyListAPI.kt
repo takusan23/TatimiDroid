@@ -1,11 +1,11 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
-import kotlinx.coroutines.*
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.Response
 import org.json.JSONObject
 import java.io.Serializable
 import java.text.SimpleDateFormat
@@ -111,6 +111,14 @@ class NicoVideoSPMyListAPI {
     }
 
     /**
+     * マイリスト名を返す
+     * @param json [getOtherUserMyListItems]の戻り値
+     * */
+    suspend fun parseMyListName(responseString: String?): String = withContext(Dispatchers.Default) {
+        JSONObject(responseString).getJSONObject("data").getJSONObject("mylist").getString("name")
+    }
+
+    /**
      * マイリストの中身APIをパースする関数
      * @param responseString getMyListItems()のレスポンス
      * @param myListId マイリストのID。削除する時に使う。空文字の場合はとりあえずマイリストとして扱います。
@@ -168,14 +176,13 @@ class NicoVideoSPMyListAPI {
 
     /**
      * 他の人のマイリストのJSONをパースする。
-     * @param json getOtherUserMylistItems()の戻り値
+     * @param json [getOtherUserMyListItems]の戻り値
      * @return NicoVideoData配列
      * */
     suspend fun parseOtherUserMyListJSON(json: String?) = withContext(Dispatchers.Default) {
         val myListList = arrayListOf<NicoVideoData>()
         val jsonObject = JSONObject(json)
-        val myListItem =
-            jsonObject.getJSONObject("data").getJSONObject("mylist").getJSONArray("items")
+        val myListItem = jsonObject.getJSONObject("data").getJSONObject("mylist").getJSONArray("items")
         for (i in 0 until myListItem.length()) {
             val video = myListItem.getJSONObject(i)
             val itemId = video.getString("itemId")

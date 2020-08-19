@@ -1,11 +1,10 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import kotlinx.coroutines.*
 import okhttp3.*
 import org.json.JSONObject
 import java.text.SimpleDateFormat
-import java.util.*
 
 
 /**

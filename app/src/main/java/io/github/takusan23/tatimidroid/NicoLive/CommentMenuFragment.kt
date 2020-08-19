@@ -56,8 +56,7 @@ class CommentMenuFragment : Fragment() {
 
         //CommentFragmentしゅとく～
         liveId = arguments?.getString("liveId") ?: ""
-        commentFragment =
-            activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment
+        commentFragment = activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment
 
         //値設定
         setValue()

@@ -196,7 +196,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * コメントシークした時に描画できるように
      * */
     fun seekComment() {
-        GlobalScope.launch(coroutineJob) {
+        GlobalScope.launch(coroutineJob + Dispatchers.Main) {
             drawNakaCommentList.clear()
             drawUeCommentList.clear()
             drawShitaCommentList.clear()

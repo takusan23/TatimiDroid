@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoVideo
 
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
@@ -20,21 +19,27 @@ import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoLikeAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoLikeAPI
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
@@ -44,15 +49,16 @@ import java.util.*
  * */
 class NicoVideoInfoFragment : Fragment() {
 
-    lateinit var prefSetting: SharedPreferences
-    var videoId = ""
-    var usersession = ""
-    var jsonObjectString = ""
+    val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
+    val userSession by lazy { prefSetting.getString("user_session", "") ?: "" }
+    val videoId by lazy { arguments?.getString("id") ?: "sm157" }
 
-    /** [NicoVideoFragment]。このFragmentが置いてあるFragment。by lazy で使われるまで初期化しないように */
-    private val devNicoVideoFragment by lazy {
-        val videoId = arguments?.getString("id")
-        parentFragmentManager.findFragmentByTag(videoId) as? NicoVideoFragment
+    // NicoVideoFragmentのViewModelを取得する
+    val viewModel: NicoVideoViewModel by viewModels({ requireParentFragment() })
+
+    /** NicoVideoFragmentを取得する */
+    private fun requireDevNicoVideoFragment(): NicoVideoFragment {
+        return requireParentFragment() as NicoVideoFragment
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -62,37 +68,19 @@ class NicoVideoInfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-        usersession = prefSetting.getString("user_session", "") ?: ""
-
-        //動画ID受け取る（sm9とかsm157とか）
-        videoId = arguments?.getString("id") ?: "sm157"
-        // キャッシュ再生なら
-        val isCache = arguments?.getBoolean("cache") ?: false
-
-        if (jsonObjectString.isNotEmpty()) {
-            parseJSONApplyUI(jsonObjectString)
+        // 動画説明欄
+        viewModel.nicoVideoJSON.observe(viewLifecycleOwner) { json ->
+            parseJSONApplyUI(json.toString())
         }
 
         fragment_nicovideo_info_description_textview.movementMethod = LinkMovementMethod.getInstance()
-
-    }
-
-    override fun onStart() {
-        super.onStart()
-        // DevNicoVideoFragment取得できたら
-        devNicoVideoFragment?.apply {
-            if (isInitJsonObject() && jsonObject.toString().isNotEmpty()) {
-                parseJSONApplyUI(jsonObject.toString())
-            }
-        }
     }
 
     /**
      * JSONをパースしてUIに反映させる
      * @param jsonString js-initial-watch-data.data-api-dataの値
      * */
-    fun parseJSONApplyUI(jsonString: String) {
+    private fun parseJSONApplyUI(jsonString: String) {
 
         // Fragment無いなら落とす
         if (!isAdded) return
@@ -211,7 +199,7 @@ class NicoVideoInfoFragment : Fragment() {
                     // タグ検索FragmentをViewPagerに追加する
                     button.setOnClickListener {
                         // オフライン時は動かさない
-                        if (isConnectionInternet(context) && devNicoVideoFragment != null) {
+                        if (isConnectionInternet(context)) {
                             val searchFragment = NicoVideoSearchFragment().apply {
                                 arguments = Bundle().apply {
                                     putString("search", name)
@@ -220,11 +208,11 @@ class NicoVideoInfoFragment : Fragment() {
                                 }
                             }
                             // 追加位置
-                            val addPos = devNicoVideoFragment!!.viewPager.fragmentList.size
+                            val addPos = requireDevNicoVideoFragment().viewPager.fragmentList.size
                             // ViewPager追加
-                            devNicoVideoFragment!!.viewPager.addFragment(searchFragment, "${getString(R.string.tag)}：$name")
+                            requireDevNicoVideoFragment().viewPager.addFragment(searchFragment, "${getString(R.string.tag)}：$name")
                             // ViewPager移動
-                            devNicoVideoFragment!!.fragment_nicovideo_viewpager.currentItem = addPos
+                            requireDevNicoVideoFragment().fragment_nicovideo_viewpager.currentItem = addPos
                         }
                         // 動画IDのとき。例：「後編→sm」とか
                         val id = IDRegex(name)
@@ -241,7 +229,6 @@ class NicoVideoInfoFragment : Fragment() {
                         }
                     }
                 }
-
                 //ユーザーページ
                 fragment_nicovideo_info_owner_textview.setOnClickListener {
                     if (!userId.contains("co")) {
@@ -251,45 +238,42 @@ class NicoVideoInfoFragment : Fragment() {
                         openBrowser("https://ch.nicovideo.jp/$userId")
                     }
                 }
-
                 // いいね機能
                 setLike()
-
             }
         }
     }
 
     private fun setLike() {
         // いいね！機能。キャッシュのときは使わない
-        devNicoVideoFragment?.apply {
-            if (!isCache && isLoginMode(context)) {
-                // キャッシュじゃない　かつ　ログイン必須モード
-                this@NicoVideoInfoFragment.fragment_nicovideo_info_like_chip.isVisible = true
-                // いいね♡済みかもしれないので
-                // いいねボタンのテキスト、アイコン変更
-                setLikeChipStatus(nicoVideoHTML.isLiked(jsonObject))
-                // 押したとき
-                this@NicoVideoInfoFragment.fragment_nicovideo_info_like_chip.setOnClickListener {
-                    if (nicoVideoHTML.isLiked(jsonObject)) {
-                        // いいね済み。取り消しSnackBar
-                        showSnackbar(getString(R.string.unlike), getString(R.string.torikesu)) {
-                            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-                                showToast("${getString(R.string.error)}\n${throwable}") // エラーのときはToast出すなど
-                            }
-                            // いいね解除API叩く
-                            lifecycleScope.launch(errorHandler) {
-                                sendLike(false)
-                            }
+        val jsonObject = viewModel.nicoVideoJSON.value ?: return
+        if (!viewModel.isCache && isLoginMode(context)) {
+            // キャッシュじゃない　かつ　ログイン必須モード
+            this@NicoVideoInfoFragment.fragment_nicovideo_info_like_chip.isVisible = true
+            // いいね♡済みかもしれないので
+            // いいねボタンのテキスト、アイコン変更
+            setLikeChipStatus(NicoVideoHTML().isLiked(jsonObject))
+            // 押したとき
+            this@NicoVideoInfoFragment.fragment_nicovideo_info_like_chip.setOnClickListener {
+                if (NicoVideoHTML().isLiked(jsonObject)) {
+                    // いいね済み。取り消しSnackBar
+                    requireDevNicoVideoFragment().showSnackbar(getString(R.string.unlike), getString(R.string.torikesu)) {
+                        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                            showToast("${getString(R.string.error)}\n${throwable}") // エラーのときはToast出すなど
                         }
-                    } else {
-                        // いいね開く
-                        val nicoVideoLikeBottomFragment = NicoVideoLikeBottomFragment()
-                        val bundle = Bundle().apply {
-                            putString("video_id", videoId)
+                        // いいね解除API叩く
+                        lifecycleScope.launch(errorHandler) {
+                            sendLike(false)
                         }
-                        nicoVideoLikeBottomFragment.arguments = bundle
-                        nicoVideoLikeBottomFragment.show(parentFragmentManager, "like")
                     }
+                } else {
+                    // いいね開く
+                    val nicoVideoLikeBottomFragment = NicoVideoLikeBottomFragment()
+                    val bundle = Bundle().apply {
+                        putString("video_id", videoId)
+                    }
+                    nicoVideoLikeBottomFragment.arguments = bundle
+                    nicoVideoLikeBottomFragment.show(parentFragmentManager, "like")
                 }
             }
         }
@@ -301,9 +285,7 @@ class NicoVideoInfoFragment : Fragment() {
      * */
     suspend fun sendLike(like: Boolean = true) = withContext(Dispatchers.Main) {
         // nullチェック
-        if (devNicoVideoFragment == null) {
-            return@withContext
-        }
+        val jsonObject = viewModel.nicoVideoJSON.value ?: return@withContext
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             showToast("${getString(R.string.error)}\n${throwable}") // エラーのときはToast出すなど
         }
@@ -311,9 +293,9 @@ class NicoVideoInfoFragment : Fragment() {
         lifecycleScope.launch(errorHandler) {
             val nicoLikeAPI = NicoLikeAPI()
             val likeResponse = if (like) {
-                nicoLikeAPI.postLike(usersession, videoId)
+                nicoLikeAPI.postLike(userSession, videoId)
             } else {
-                nicoLikeAPI.deleteLike(usersession, videoId)
+                nicoLikeAPI.deleteLike(userSession, videoId)
             }
             if (!likeResponse.isSuccessful) {
                 // 失敗時
@@ -326,7 +308,7 @@ class NicoVideoInfoFragment : Fragment() {
             // いいね登録なのか解除なのか
             if (likeResponse.code == 201) {
                 // 登録
-                devNicoVideoFragment!!.nicoVideoHTML.setLiked(devNicoVideoFragment!!.jsonObject, true)
+                NicoVideoHTML().setLiked(jsonObject, true)
                 setLikeChipStatus(true)
                 // お礼メッセージ表示
                 val thanksMessage = nicoLikeAPI.parseLike(responseString)
@@ -345,7 +327,7 @@ class NicoVideoInfoFragment : Fragment() {
                 }
             } else {
                 // 解除
-                devNicoVideoFragment!!.nicoVideoHTML.setLiked(devNicoVideoFragment!!.jsonObject, false)
+                NicoVideoHTML().setLiked(jsonObject, false)
                 setLikeChipStatus(false)
             }
         }
@@ -456,7 +438,7 @@ class NicoVideoInfoFragment : Fragment() {
                             putBoolean("is_other", true)
                         }
                     }
-                    devNicoVideoFragment?.apply {
+                    requireDevNicoVideoFragment().apply {
                         // ViewPager追加
                         viewPager.addFragment(mylistFragment, "${getString(R.string.mylist)}：$mylist")
                         // ViewPager移動
@@ -486,13 +468,11 @@ class NicoVideoInfoFragment : Fragment() {
             span.setSpan(object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     // 再生時間操作
-                    devNicoVideoFragment?.apply {
-                        if (isInitExoPlayer()) {
-                            // 分：秒　を ミリ秒へ
-                            val minute = time.split(":")[0].toLong() * 60
-                            val second = time.split(":")[1].toLong()
-                            exoPlayer.seekTo(((minute + second) * 1000))
-                        }
+                    requireDevNicoVideoFragment().apply {
+                        // 分：秒　を ミリ秒へ
+                        val minute = time.split(":")[0].toLong() * 60
+                        val second = time.split(":")[1].toLong()
+                        exoPlayer.seekTo((minute + second) * 1000)
                     }
                 }
             }, seekTimeMatcher.start(), seekTimeMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)

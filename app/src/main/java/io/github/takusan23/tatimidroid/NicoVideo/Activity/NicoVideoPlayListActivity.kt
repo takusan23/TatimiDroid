@@ -3,7 +3,7 @@ package io.github.takusan23.tatimidroid.NicoVideo.Activity
 import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoPlayListFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
@@ -36,7 +36,7 @@ class NicoVideoPlayListActivity : AppCompatActivity() {
             val bundle = Bundle().apply {
                 putSerializable("video_list", videoList)
                 putStringArrayList("video_id_list", ArrayList(videoList.map { nicoVideoData -> nicoVideoData.videoId }))
-                putSerializable("name", intent.getStringExtra("name"))
+                putString("name", intent.getStringExtra("name"))
             }
             nicoVideoFragment.arguments = bundle
             supportFragmentManager.beginTransaction().replace(R.id.nicovideo_playlist_activity_main, nicoVideoFragment, FRAGMENT_TAG).commit()

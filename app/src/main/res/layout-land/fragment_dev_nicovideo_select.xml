@@ -17,26 +17,21 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-        <ScrollView
+        <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content"
+                android:layout_margin="10sp"
+                android:orientation="vertical">
 
-            <LinearLayout
+            <!-- Buttonを並べるより良さそう。 -->
+            <com.google.android.material.navigation.NavigationView
+                    android:id="@+id/fragment_nicovideo_select_menu"
+                    style="@style/NavigationViewSelectColor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="10sp"
-                    android:orientation="vertical">
-
-                <!-- Buttonを並べるより良さそう。 -->
-                <com.google.android.material.navigation.NavigationView
-                        android:id="@+id/fragment_nicovideo_select_menu"
-                        style="@style/NavigationViewSelectColor"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:elevation="0dp"
-                        app:menu="@menu/nicovideo_select_menu" />
-            </LinearLayout>
-        </ScrollView>
+                    app:elevation="0dp"
+                    app:menu="@menu/nicovideo_select_menu" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout

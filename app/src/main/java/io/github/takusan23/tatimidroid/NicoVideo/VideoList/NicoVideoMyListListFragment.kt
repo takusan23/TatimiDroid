@@ -12,8 +12,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
@@ -43,6 +43,7 @@ class NicoVideoMyListListFragment : Fragment() {
     private var myListId = ""
     private var isOther = false
     private var sortMenuPos = 0
+    private var myListName = ""
 
     private val nicoVideoSPMyListAPI = NicoVideoSPMyListAPI()
 
@@ -84,7 +85,7 @@ class NicoVideoMyListListFragment : Fragment() {
         val intent = Intent(requireContext(), NicoVideoPlayListActivity::class.java)
         // 中身を入れる
         intent.putExtra("video_list", recyclerViewList)
-        intent.putExtra("name", arguments?.getString("mylist_name"))
+        intent.putExtra("name", myListName)
         startActivity(intent)
         if (activity is NicoVideoActivity) {
             activity?.finish()
@@ -114,13 +115,23 @@ class NicoVideoMyListListFragment : Fragment() {
                 showToast("${getString(R.string.error)}\n${myListItemsReponse.code}")
                 return@launch
             }
+            // レスポンス
+            val responseString = withContext(Dispatchers.Default) {
+                myListItemsReponse.body?.string()
+            }
             // パース
             val videoItems = withContext(Dispatchers.Default) {
                 if (isOther) {
-                    nicoVideoSPMyListAPI.parseOtherUserMyListJSON(myListItemsReponse.body?.string())
+                    nicoVideoSPMyListAPI.parseOtherUserMyListJSON(responseString)
                 } else {
-                    nicoVideoSPMyListAPI.parseMyListItems(myListId, myListItemsReponse.body?.string())
+                    nicoVideoSPMyListAPI.parseMyListItems(myListId, responseString)
                 }.sortedByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate } // ソート
+            }
+            // マイリス名
+            myListName = if (isOther) {
+                nicoVideoSPMyListAPI.parseMyListName(responseString)
+            } else {
+                arguments?.getString("mylist_name") ?: ""
             }
             // RecyclerViewへ追加
             videoItems.forEach {

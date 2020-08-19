@@ -127,7 +127,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             }
             // 動画
             fragment is NicoVideoFragment -> {
-                recyclerViewList = fragment.commentList.filter { commentJSONParse -> commentJSONParse.userId == userId } as ArrayList<CommentJSONParse>
+                recyclerViewList = fragment.viewModel.rawCommentList.filter { commentJSONParse -> commentJSONParse.userId == userId } as ArrayList<CommentJSONParse>
                 isNicoVideoFragment = true
             }
         }

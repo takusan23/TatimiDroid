@@ -18,6 +18,7 @@ import org.json.JSONObject
 
 class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
 
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_nicovideo_quality, container, false)
     }
@@ -28,8 +29,7 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
         // 動画ID
         val videoId = arguments?.getString("video_id")
 
-        val devNicoVideoFragment =
-            fragmentManager?.findFragmentByTag(videoId) as NicoVideoFragment
+        val devNicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as NicoVideoFragment
 
         // データ受け取り
         // dmcInfo(DMCサーバー)かsmileInfo（Smileサーバー）か
@@ -63,8 +63,7 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                         // 画質変更して再リクエスト
                         // 今の再生時間控える
                         devNicoVideoFragment.apply {
-                            rotationProgress = exoPlayer.currentPosition
-                            coroutine(false, id, audioId)
+                            viewModel.coroutine(false, id, audioId)
                         }
                         this@NicoVideoQualityBottomFragment.dismiss()
                     }
@@ -95,8 +94,7 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                         // 画質変更して再リクエスト
                         // 今の再生時間控える
                         devNicoVideoFragment.apply {
-                            rotationProgress = exoPlayer.currentPosition
-                            coroutine(false, "", "", name == "low")
+                            viewModel.coroutine(false, "", "", name == "low")
                         }
                         this@NicoVideoQualityBottomFragment.dismiss()
                     }

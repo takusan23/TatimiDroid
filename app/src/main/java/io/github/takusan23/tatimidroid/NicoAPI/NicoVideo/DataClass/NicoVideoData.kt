@@ -1,7 +1,6 @@
-package io.github.takusan23.tatimidroid.NicoAPI
+package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass
 
 import java.io.Serializable
-import java.time.Duration
 
 /**
  * 動画タイトル、動画ID、サムネとか

@@ -16,9 +16,10 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
-import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.BottomFragment.CommentLockonBottomFragment
+import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Tool.CustomFont
@@ -151,12 +152,15 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         // DevNicoVideoFragmentに依存してる系。なにかに依存させるとかFragmentの意味ないやんけ！
         if (nicoVideoFragment != null) {
 
+            // JSON
+            val jsonObject = nicoVideoFragment.viewModel.nicoVideoJSON.value ?: return
+
             // オフライン再生かどうか
             val isOfflinePlay = nicoVideoFragment.isCache
 
             // プレ垢
             val isPremium = if (!nicoVideoFragment.isCache) {
-                nicoVideoFragment.nicoVideoHTML.isPremium(nicoVideoFragment.jsonObject)
+                NicoVideoHTML().isPremium(jsonObject)
             } else {
                 false
             }
@@ -202,9 +206,12 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
         GlobalScope.launch(errorHandler) {
             nicoVideoFragment?.apply {
-                if (nicoVideoHTML.isPremium(jsonObject)) {
+                // JSON
+                val jsonObject = viewModel.nicoVideoJSON.value ?: return@apply
+                val userSession = prefSetting.getString("user_session", "") ?: return@apply
+                if (NicoVideoHTML().isPremium(jsonObject)) {
                     val nicoruKey = nicoruAPI.nicoruKey
-                    val responseNicoru = nicoruAPI.postNicoru(userSession, threadId, userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey)
+                    val responseNicoru = nicoruAPI.postNicoru(userSession, viewModel.threadId, viewModel.userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey)
                     if (!responseNicoru.isSuccessful) {
                         // 失敗時
                         showToast(context, "${context?.getString(R.string.error)}\n${responseNicoru.code}")
@@ -239,7 +246,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
                             // nicoruKey失効。
                             lifecycleScope.launch {
                                 // 再取得
-                                nicoVideoFragment.nicoruAPI.getNicoruKey(userSession, threadId)
+                                nicoVideoFragment.nicoruAPI.getNicoruKey(userSession, viewModel.threadId)
                                 postNicoru(context, holder, item)
                             }
                         }

@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import io.github.takusan23.tatimidroid.FregmentData.NicoVideoPlayListFragmentData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoPlayListBottomFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_playlist.*
@@ -78,7 +78,9 @@ class NicoVideoPlayListFragment : Fragment() {
             putBoolean("cache", isCache)
         }
         nicoVideoFragment.arguments = bundle
-        parentFragmentManager.beginTransaction().replace(R.id.fragment_nicovideo_playlist_main, nicoVideoFragment, videoId).commit()
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_nicovideo_playlist_main, nicoVideoFragment, videoId)
+            .commit()
         currentVideoId = videoId
     }
 
