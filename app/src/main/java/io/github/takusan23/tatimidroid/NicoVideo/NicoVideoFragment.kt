@@ -187,7 +187,9 @@ class NicoVideoFragment : Fragment() {
 
         // ViewPager追加など
         viewModel.nicoVideoJSON.observe(viewLifecycleOwner) { json ->
-            viewPagerAddAccountFragment(json)
+            if (!viewModel.isOfflinePlay) {
+                viewPagerAddAccountFragment(json)
+            }
         }
 
     }
@@ -236,7 +238,7 @@ class NicoVideoFragment : Fragment() {
         // キャッシュ再生と分ける
         when {
             // キャッシュを優先的に利用する　もしくは　キャッシュ再生時
-            isCache -> {
+            viewModel.isOfflinePlay -> {
                 // キャッシュ再生
                 val dataSourceFactory = DefaultDataSourceFactory(context, "TatimiDroid;@takusan_23")
                 val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(contentUrl.toUri())
@@ -749,7 +751,7 @@ class NicoVideoFragment : Fragment() {
      * */
     private fun initViewPager(dynamicAddFragmentList: ArrayList<TabLayoutData> = arrayListOf()) {
         // このFragmentを置いたときに付けたTag
-        viewPager = NicoVideoRecyclerPagerAdapter(this, videoId, isCache, dynamicAddFragmentList)
+        viewPager = NicoVideoRecyclerPagerAdapter(this, videoId, viewModel.isOfflinePlay, dynamicAddFragmentList)
         fragment_nicovideo_viewpager.adapter = viewPager
         TabLayoutMediator(fragment_nicovideo_tablayout, fragment_nicovideo_viewpager) { tab, position ->
             tab.text = viewPager.fragmentTabName[position]

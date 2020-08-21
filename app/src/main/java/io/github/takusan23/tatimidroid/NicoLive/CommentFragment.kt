@@ -878,7 +878,9 @@ class CommentFragment : Fragment() {
 
             // コルーチンのChannelに送信する。ロックオンBottomFragmentで利用する。なんかUIスレッドじゃないとだめっぽ？
             lifecycleScope.launch {
-                commentBroadCastChannel.send(commentJSONParse)
+                if (!commentBroadCastChannel.isClosedForSend) {
+                    commentBroadCastChannel.send(commentJSONParse)
+                }
             }
 
             // コテハン追加など

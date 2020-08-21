@@ -33,6 +33,10 @@ import org.json.JSONObject
  * いままでは画面回転前にデータ詰めてたんだけどViewModelを使えばFragmentのライフサイクルに関係なく生存する。
  *
  * でも何をおいておけば良いのかよくわからんので散らばってる。
+ *
+ * @param videoId 動画ID
+ * @param isCache キャッシュで再生するか。ただし最終的には[isOfflinePlay]がtrueの時キャッシュ利用再生になります
+ * @param isEco エコノミー
  * */
 class NicoVideoViewModel(application: Application, val videoId: String, val isCache: Boolean, val isEco: Boolean) : AndroidViewModel(application) {
 
@@ -167,8 +171,9 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
                     contentUrl.postValue("${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName")
                     // 動画情報
                     if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
-                        nicoVideoJSON.postValue(JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)))
-                        nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(nicoVideoJSON.value!!))
+                        val jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
+                        nicoVideoJSON.postValue(jsonObject)
+                        nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject,isOfflinePlay))
                     }
                     // コメント取得
                     launch {
@@ -260,7 +265,7 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
                 contentUrl.postValue(nicoVideoHTML.getContentURI(nicoVideoJSON.value!!, null))
             }
             // データクラスへ詰める
-            nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(nicoVideoJSON.value!!, isCache))
+            nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(nicoVideoJSON.value!!, isOfflinePlay))
             // データベースへ書き込む
             insertDB()
             // コメント取得など

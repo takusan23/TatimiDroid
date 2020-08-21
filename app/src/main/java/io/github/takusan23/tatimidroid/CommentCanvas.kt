@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
 import java.util.*
+import java.util.regex.Pattern
 import kotlin.concurrent.schedule
 import kotlin.random.Random
 
@@ -304,6 +305,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     // 色
     // 大百科参照：https://dic.nicovideo.jp/a/%E3%82%B3%E3%83%A1%E3%83%B3%E3%83%88
     fun getColor(command: String): String {
+        val colorCodeRegex = Pattern.compile("^#(?:[0-9a-fA-F]{3}){1,2}\$")
         return when {
             // プレ垢限定色。
             command.contains("white2") -> "#CCCC99"
@@ -326,6 +328,12 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             command.contains("blue") -> "#0000FF"
             command.contains("purple") -> "#C000FF"
             command.contains("black") -> "#000000"
+            // カラーコード？職人は色指定にカラーコード使ってるっぽい
+            command.contains("#") -> {
+                // 分割して。なんか正規表現で抜き出そうと思ったんだけどできなかったわ
+                val colorCode = command.split(" ").find { s -> colorCodeRegex.matcher(s).find() }
+                return colorCode ?: "#ffffff" // なければ白
+            }
             // その他
             else -> "#ffffff"
         }
@@ -431,202 +439,181 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         var measure = getCommentTextPaint(commentJSONParse.comment, commandFontSize).measureText(comment)
         val command = commentJSONParse.mail
         val tmpCommand = command
-        // 上でもなければ下でもないときは流す
-        if (!command.contains("ue") && !command.contains("shita")) {
-            // sortedByで検証
-            val tmpList = commentObjList.toList().sortedBy { commentObject ->
-                return@sortedBy if (commentObject != null) commentObject.yPos else 0f
-            }
-            // 流れるコメント
-            // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
-            // 開始地点は画面の端
-            // 高さはこれから図るのでまだ0f
-            // 幅はコメントの大きさ
-            // 最後はフォントサイズ分下に伸ばしておk
-            val addRect = Rect(width, 0, (width + measure).toInt(), commandFontSize.toInt())
-            // コメントアートのときは当たり判定なし
-            if (!isAsciiArtUseHeightMax) {
+        when {
+            checkUeComment(command) -> {
+                // 上コメ
+                // なんだけどコメントがコメントキャンバスを超えるときの対応をしないといけない。
+                if (width < measure) {
+                    // 超えるとき。私の時代はもう携帯代青天井とかは無いですね。
+                    // 一文字のフォントサイズ計算。収めるにはどれだけ縮めれば良いのか
+                    commandFontSize = (width.toFloat() / comment.length)
+                    // コメントの幅再取得
+                    measure = getBlackCommentTextPaint(commandFontSize).measureText(comment)
+                } else {
+                    // 超えない。10年前から携帯で動画見れた気がするけど結局10年経ってもあんまり外で動画見る人いない気がする
+                }
+                // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
+                // 開始地点は真ん中になるように幅を文字の長さ分引いてそっから割る
+                // 高さはこれから図るのでまだ0f
+                // 幅は第一引数+コメントの長さ
+                // 最後はフォントサイズ分下に伸ばしておk
+                val addRect =
+                    Rect((((width - measure) / 2).toInt()), 0, (((width - measure) / 2) + measure).toInt(), commandFontSize.toInt())
+                val tmpList = ueCommentList.toList()
                 for (i in 0 until tmpList.size) {
+                    // みていく
                     val obj = tmpList[i]
-                    // nullの時がある
-                    if (obj != null) {
-                        // Rectで当たり判定計算？
-                        //  val rect = obj.rect ?: return
-                        val rect = Rect(obj.xPos.toInt(), (obj.yPos - fontsize).toInt(), (obj.xPos + obj.commentMeasure).toInt(), obj.yPos.toInt())
-                        if (
-                            Rect.intersects(rect, addRect)
-                        ) {
-                            // あたっているので下へ
-                            addRect.top = obj.yPos.toInt()
-                            addRect.bottom = (addRect.top + commandFontSize).toInt()
-                        }
-                        // なお画面外の場合はランダム。
-                        if (addRect.bottom > height) {
-                            // heightが0の時は適当に10にする
-                            val until = if (height > 0) height else 10
-                            val randomStart = Random.nextInt(1, until)
-                            addRect.top = randomStart
-                            addRect.bottom = (addRect.top + commandFontSize).toInt()
-                        }
+                    val rect = obj?.rect ?: return
+                    if (Rect.intersects(rect, addRect)) {
+                        // かぶったー
+                        addRect.top += (obj.rect!!.bottom - obj.rect!!.top)
+                        addRect.bottom += (obj.rect!!.bottom - obj.rect!!.top)
                     }
                 }
-            } else {
-                addRect.top = oldHeight
-                addRect.bottom = (addRect.top + commandFontSize).toInt()
-                oldHeight = addRect.bottom
-            }
-
-            val commentObj = CommentObject(
-                comment,
-                addRect.left.toFloat(),
-                addRect.bottom.toFloat(),
-                System.currentTimeMillis(),
-                measure,
-                command,
-                asciiArt,
-                addRect,
-                commandFontSize,
-                commentJSONParse.yourPost
-            )
-            commentObjList.add(commentObj)
-            // commentLine[addRect.left.toFloat()] = commentObj
-        } else if (command.contains("ue") && tmpCommand.replace("blue|blue([0-9])".toRegex(), "").contains("ue")) {
-            // 上コメ
-            // なんだけどコメントがコメントキャンバスを超えるときの対応をしないといけない。
-            if (width < measure) {
-                // 超えるとき。私の時代はもう携帯代青天井とかは無いですね。
-                // 一文字のフォントサイズ計算。収めるにはどれだけ縮めれば良いのか
-                commandFontSize = (width.toFloat() / comment.length)
-                // コメントの幅再取得
-                measure = getBlackCommentTextPaint(commandFontSize).measureText(comment)
-            } else {
-                // 超えない。10年前から携帯で動画見れた気がするけど結局10年経ってもあんまり外で動画見る人いない気がする
-            }
-            // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
-            // 開始地点は真ん中になるように幅を文字の長さ分引いてそっから割る
-            // 高さはこれから図るのでまだ0f
-            // 幅は第一引数+コメントの長さ
-            // 最後はフォントサイズ分下に伸ばしておk
-            val addRect =
-                Rect((((width - measure) / 2).toInt()), 0, (((width - measure) / 2) + measure).toInt(), commandFontSize.toInt())
-            val tmpList = ueCommentList.toList()
-            for (i in 0 until tmpList.size) {
-                // みていく
-                val obj = tmpList[i]
-                val rect = obj?.rect ?: return
-                if (Rect.intersects(rect, addRect)) {
-                    // かぶったー
-                    addRect.top += (obj.rect!!.bottom - obj.rect!!.top)
-                    addRect.bottom += (obj.rect!!.bottom - obj.rect!!.top)
-                }
-            }
-            // 画面外はランダム
-            if (addRect.top > height) {
-                val range = height / commandFontSize
-                addRect.top = (Random.nextInt(1, range.toInt()) * commandFontSize).toInt()
-                addRect.bottom = (addRect.top + commandFontSize).toInt()
-            }
-            val commentObj = CommentObject(
-                comment,
-                addRect.left.toFloat(),
-                addRect.bottom.toFloat(),
-                System.currentTimeMillis(),
-                measure,
-                command,
-                asciiArt,
-                addRect,
-                commandFontSize,
-                commentJSONParse.yourPost
-            )
-            ueCommentList.add(commentObj)
-        } else if (command.contains("shita")) {
-            // 下こめ
-            // なんだけどコメントがコメントキャンバスを超えるときの対応をしないといけない。
-            if (width < measure) {
-                // 超えるとき。私の時代はもう携帯代青天井とかは無いですね。
-                // 一文字のフォントサイズ計算。収めるにはどれだけ縮めれば良いのか
-                commandFontSize = (width.toFloat() / comment.length)
-                // コメントの幅再取得
-                measure = getBlackCommentTextPaint(commandFontSize).measureText(comment)
-            } else {
-                // 超えない。10年前から携帯で動画見れた気がするけど結局10年経ってもあんまり外で動画見る人いない気がする
-            }
-            // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
-            // 開始地点は真ん中になるように幅を文字の長さ分引いてそっから割る
-            // 高さはこれから図るのでまだ0f
-            // 幅は第一引数+コメントの長さ
-            // 最後はフォントサイズ分下に伸ばしておk
-            val addRect =
-                Rect((((width - measure) / 2).toInt()), 0, (((width - measure) / 2) + measure).toInt(), (commandFontSize).toInt())
-            val tmpList = sitaCommentList.toList()
-            for (i in 0 until tmpList.size) {
-                // みていく
-                val obj = tmpList[i]
-                val rect = obj?.rect ?: return
-                if (Rect.intersects(rect, addRect)) {
-                    // かぶったー
-                    addRect.top += (obj.rect!!.bottom - obj.rect!!.top)
-                    addRect.bottom += (obj.rect!!.bottom - obj.rect!!.top)
-                }
-            }
-            // 画面外はランダム
-            if (addRect.bottom > height) {
-                val range = (height / commandFontSize)
-                addRect.top = (Random.nextInt(1, range.toInt()) * commandFontSize).toInt()
-                addRect.bottom = (addRect.top + commandFontSize).toInt()
-                // println("$comment ${addRect.top} $range")
-            }
-            val commentObj = CommentObject(
-                comment,
-                addRect.left.toFloat(),
-                addRect.top.toFloat(),
-                System.currentTimeMillis(),
-                measure,
-                command,
-                asciiArt,
-                addRect,
-                commandFontSize,
-                commentJSONParse.yourPost
-            )
-            sitaCommentList.add(commentObj)
-        } else {
-            // 流れるコメント
-            // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
-            // 開始地点は画面の端
-            // 高さはこれから図るのでまだ0f
-            // 幅はコメントの大きさ
-            // 最後はフォントサイズ分下に伸ばしておk
-            val addRect = Rect(width, 0, (width + measure).toInt(), commandFontSize.toInt())
-            val tmpList = commentObjList.toList()
-            for (i in 0 until commentObjList.size) {
-                val obj = tmpList[i]
-                val rect = obj.rect ?: return
-                if (Rect.intersects(rect, addRect)) {
-                    // あたっているので下へ
-                    addRect.top += (obj.rect!!.bottom - obj.rect!!.top)
+                // 画面外はランダム
+                if (addRect.top > height) {
+                    val range = height / commandFontSize
+                    addRect.top = (Random.nextInt(1, range.toInt()) * commandFontSize).toInt()
                     addRect.bottom = (addRect.top + commandFontSize).toInt()
                 }
-                // なお画面外の場合はランダム。
+                val commentObj = CommentObject(
+                    comment,
+                    addRect.left.toFloat(),
+                    addRect.bottom.toFloat(),
+                    System.currentTimeMillis(),
+                    measure,
+                    command,
+                    asciiArt,
+                    addRect,
+                    commandFontSize,
+                    commentJSONParse.yourPost
+                )
+                ueCommentList.add(commentObj)
+            }
+            command.contains("shita") -> {
+                // 下こめ
+                // なんだけどコメントがコメントキャンバスを超えるときの対応をしないといけない。
+                if (width < measure) {
+                    // 超えるとき。私の時代はもう携帯代青天井とかは無いですね。
+                    // 一文字のフォントサイズ計算。収めるにはどれだけ縮めれば良いのか
+                    commandFontSize = (width.toFloat() / comment.length)
+                    // コメントの幅再取得
+                    measure = getBlackCommentTextPaint(commandFontSize).measureText(comment)
+                } else {
+                    // 超えない。10年前から携帯で動画見れた気がするけど結局10年経ってもあんまり外で動画見る人いない気がする
+                }
+                // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
+                // 開始地点は真ん中になるように幅を文字の長さ分引いてそっから割る
+                // 高さはこれから図るのでまだ0f
+                // 幅は第一引数+コメントの長さ
+                // 最後はフォントサイズ分下に伸ばしておk
+                val addRect =
+                    Rect((((width - measure) / 2).toInt()), 0, (((width - measure) / 2) + measure).toInt(), (commandFontSize).toInt())
+                val tmpList = sitaCommentList.toList()
+                for (i in 0 until tmpList.size) {
+                    // みていく
+                    val obj = tmpList[i]
+                    val rect = obj?.rect ?: return
+                    if (Rect.intersects(rect, addRect)) {
+                        // かぶったー
+                        addRect.top += (obj.rect!!.bottom - obj.rect!!.top)
+                        addRect.bottom += (obj.rect!!.bottom - obj.rect!!.top)
+                    }
+                }
+                // 画面外はランダム
                 if (addRect.bottom > height) {
-                    val randomStart = Random.nextInt(1, height)
-                    addRect.top = randomStart
+                    val range = (height / commandFontSize)
+                    addRect.top = (Random.nextInt(1, range.toInt()) * commandFontSize).toInt()
                     addRect.bottom = (addRect.top + commandFontSize).toInt()
-                    return
+                    // println("$comment ${addRect.top} $range")
                 }
+                val commentObj = CommentObject(
+                    comment,
+                    addRect.left.toFloat(),
+                    addRect.top.toFloat(),
+                    System.currentTimeMillis(),
+                    measure,
+                    command,
+                    asciiArt,
+                    addRect,
+                    commandFontSize,
+                    commentJSONParse.yourPost
+                )
+                sitaCommentList.add(commentObj)
             }
-            val commentObj = CommentObject(
-                comment,
-                addRect.left.toFloat(),
-                addRect.bottom.toFloat(),
-                System.currentTimeMillis(),
-                measure,
-                command,
-                asciiArt,
-                addRect,
-                commandFontSize,
-                commentJSONParse.yourPost
-            )
-            commentObjList.add(commentObj)
+            else -> {
+                // sortedByで検証
+                val tmpList = commentObjList.toList().sortedBy { commentObject ->
+                    return@sortedBy if (commentObject != null) commentObject.yPos else 0f
+                }
+                // 流れるコメント
+                // 開始位置（横）、高さ、どこまで引き伸ばすか（横）、どこまで引き伸ばすか（高さ）
+                // 開始地点は画面の端
+                // 高さはこれから図るのでまだ0f
+                // 幅はコメントの大きさ
+                // 最後はフォントサイズ分下に伸ばしておk
+                val addRect = Rect(width, 0, (width + measure).toInt(), commandFontSize.toInt())
+                // コメントアートのときは当たり判定なし
+                if (!isAsciiArtUseHeightMax) {
+                    for (i in 0 until tmpList.size) {
+                        val obj = tmpList[i]
+                        // nullの時がある
+                        if (obj != null) {
+                            // Rectで当たり判定計算？
+                            //  val rect = obj.rect ?: return
+                            val rect = Rect(obj.xPos.toInt(), (obj.yPos - fontsize).toInt(), (obj.xPos + obj.commentMeasure).toInt(), obj.yPos.toInt())
+                            if (
+                                Rect.intersects(rect, addRect)
+                            ) {
+                                // あたっているので下へ
+                                addRect.top = obj.yPos.toInt()
+                                addRect.bottom = (addRect.top + commandFontSize).toInt()
+                            }
+                            // なお画面外の場合はランダム。
+                            if (addRect.bottom > height) {
+                                // heightが0の時は適当に10にする
+                                val until = if (height > 0) height else 10
+                                val randomStart = Random.nextInt(1, until)
+                                addRect.top = randomStart
+                                addRect.bottom = (addRect.top + commandFontSize).toInt()
+                            }
+                        }
+                    }
+                } else {
+                    addRect.top = oldHeight
+                    addRect.bottom = (addRect.top + commandFontSize).toInt()
+                    oldHeight = addRect.bottom
+                }
+
+                val commentObj = CommentObject(
+                    comment,
+                    addRect.left.toFloat(),
+                    addRect.bottom.toFloat(),
+                    System.currentTimeMillis(),
+                    measure,
+                    command,
+                    asciiArt,
+                    addRect,
+                    commandFontSize,
+                    commentJSONParse.yourPost
+                )
+                commentObjList.add(commentObj)
+            }
+        }
+    }
+
+    /**
+     * 上コメントかどうかを検証する
+     * 部分一致で「ue」で上か判定するともれなく「blue」が引っかかるので
+     * */
+    private fun checkUeComment(command: String): Boolean {
+        return when {
+            // blueでなおblueの文字を消してもueが残る場合は上コメント
+            command.replace("blue2", "").contains("ue") && command.replace("blue", "").contains("ue") -> true
+            // まあ上こめ
+            command.contains("ue") -> true
+            // ちがう！！！
+            else -> false
         }
     }
 

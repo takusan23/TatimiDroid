@@ -156,10 +156,10 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             val jsonObject = nicoVideoFragment.viewModel.nicoVideoJSON.value ?: return
 
             // オフライン再生かどうか
-            val isOfflinePlay = nicoVideoFragment.isCache
+            val isOfflinePlay = nicoVideoFragment.viewModel.isOfflinePlay
 
             // プレ垢
-            val isPremium = if (!nicoVideoFragment.isCache) {
+            val isPremium = if (!isOfflinePlay) {
                 NicoVideoHTML().isPremium(jsonObject)
             } else {
                 false

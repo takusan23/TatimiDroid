@@ -33,10 +33,9 @@ class NicoVideoCommentFragment : Fragment() {
      * */
     var isAutoScroll = true
 
-    /** [NicoVideoFragment]。このFragmentが置いてあるFragment。by lazy で使われるまで初期化しないように */
+    /** [NicoVideoFragment]。このFragmentが置いてあるFragment。ViewPager2の引数Fragmentにしたら[requireParentFragment]使えるようになった。*/
     private val devNicoVideoFragment by lazy {
-        val videoId = arguments?.getString("id")
-        parentFragmentManager.findFragmentByTag(videoId) as? NicoVideoFragment
+        requireParentFragment() as NicoVideoFragment
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
