@@ -677,6 +677,8 @@ class CommentFragment : Fragment() {
         player_nicolive_control_watch_count.isVisible = false
         player_nicolive_control_comment_count.isVisible = false
 
+        initController()
+
     }
 
     /**
@@ -1061,21 +1063,26 @@ class CommentFragment : Fragment() {
              * 実は流量制限にかかってしまったのではないか（公式番組以外では流量制限コメント鯖（store鯖）に接続できるけど公式は無理）
              * 流量制限にかかると他のユーザーには見えない。ので本当に成功したか確かめる
              * */
-            // 成功してるか？
-            val comment = jsonObject.getJSONObject("data").getJSONObject("chat").getString("content")
-            delay(500)
-            // 受信済みコメント配列から自分が投稿したコメント(yourpostが1)でかつ5秒前まで遡った配列を作る
-            val nowTime = System.currentTimeMillis() / 1000
-            val prevComment = commentJSONList.filter { commentJSONParse ->
-                val time = nowTime - (commentJSONParse.date.toLongOrDefault(0))
-                time <= 5 && commentJSONParse.yourPost // 5秒前でなお自分が投稿したものを
-            }.map { commentJSONParse -> commentJSONParse.comment }
-            if (prevComment.contains(comment)) {
-                // コメント一覧に自分のコメントが有る
+            // この機能は公式番組でのみ使う
+            if(isOfficial){
+                val comment = jsonObject.getJSONObject("data").getJSONObject("chat").getString("content")
+                delay(500)
+                // 受信済みコメント配列から自分が投稿したコメント(yourpostが1)でかつ5秒前まで遡った配列を作る
+                val nowTime = System.currentTimeMillis() / 1000
+                val prevComment = commentJSONList.filter { commentJSONParse ->
+                    val time = nowTime - (commentJSONParse.date.toLongOrDefault(0))
+                    time <= 5 && commentJSONParse.yourPost // 5秒前でなお自分が投稿したものを
+                }.map { commentJSONParse -> commentJSONParse.comment }
+                if (prevComment.contains(comment)) {
+                    // コメント一覧に自分のコメントが有る
+                    Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
+                } else {
+                    // 無いので流量制限にかかった（他には見えない）
+                    Snackbar.make(fab, "${getString(R.string.comment_post_error)}\n${getString(R.string.comment_post_limit)}", Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
+                }
+            }else{
+                // ユーザー番組では多分取れる
                 Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
-            } else {
-                // 無いので流量制限にかかった（他には見えない）
-                Snackbar.make(fab, "${getString(R.string.comment_post_error)}\n${getString(R.string.comment_post_limit)}", Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
             }
         }
     }

@@ -438,7 +438,6 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         // コマンドで指定されたサイズで作成したPaintでコメントの幅計算
         var measure = getCommentTextPaint(commentJSONParse.comment, commandFontSize).measureText(comment)
         val command = commentJSONParse.mail
-        val tmpCommand = command
         when {
             checkUeComment(command) -> {
                 // 上コメ
@@ -604,14 +603,12 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     /**
      * 上コメントかどうかを検証する
-     * 部分一致で「ue」で上か判定するともれなく「blue」が引っかかるので
+     * 部分一致で「ue」で上か判定するともれなく「blue」「guest」が引っかかるので
      * */
     private fun checkUeComment(command: String): Boolean {
         return when {
             // blueでなおblueの文字を消してもueが残る場合は上コメント
-            command.replace("blue2", "").contains("ue") && command.replace("blue", "").contains("ue") -> true
-            // まあ上こめ
-            command.contains("ue") -> true
+            command.replace(Regex("blue2|blue|guest"), "").contains("ue") -> true
             // ちがう！！！
             else -> false
         }
