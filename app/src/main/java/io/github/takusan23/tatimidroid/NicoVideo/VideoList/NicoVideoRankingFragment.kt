@@ -5,17 +5,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.Toast
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRSS
+import com.google.android.material.chip.Chip
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRSS
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRankingHTML
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_dev_nicovideo_ranking.*
 import kotlinx.coroutines.*
@@ -92,8 +93,8 @@ class NicoVideoRankingFragment : Fragment() {
             rankingGenrePos = RANKING_GENRE.indexOf(lastOpenGenre)
             rankingTimePos = RANKING_TIME.indexOf(lastOpenTime)
             // AutoCompleteTextViewにも入れる
-            fragment_nicovideo_ranking_menu.setText(lastOpenGenre)
-            fragment_nicovideo_ranking_time_menu.setText(lastOpenTime)
+            fragment_nicovideo_ranking_genre.text = lastOpenGenre
+            fragment_nicovideo_ranking_time.text = lastOpenTime
             // データ取得
             getRanking()
         } else {
@@ -117,10 +118,10 @@ class NicoVideoRankingFragment : Fragment() {
         nicoVideoListAdapter.notifyDataSetChanged()
         fragment_video_ranking_swipe.isRefreshing = true
 
-        // 次表示するときのために今選んでいるジャンル・集権時間を記録しておく
+        // 次表示するときのために今選んでいるジャンル・集計時間を記録しておく
         prefSetting.edit {
-            putString("nicovideo_ranking_genre", fragment_nicovideo_ranking_menu.text.toString())
-            putString("nicovideo_ranking_time", fragment_nicovideo_ranking_time_menu.text.toString())
+            putString("nicovideo_ranking_genre", fragment_nicovideo_ranking_genre.text.toString())
+            putString("nicovideo_ranking_time", fragment_nicovideo_ranking_time.text.toString())
         }
 
         // すでにあるならキャンセル
@@ -141,47 +142,69 @@ class NicoVideoRankingFragment : Fragment() {
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             showToast("${getString(R.string.error)}\n${throwable}")
         }
+        fragment_nicovideo_ranking_tag.removeAllViews()
         // RSS取得
-        launch = lifecycleScope.launch(errorHandler) {
-            val response = nicoRSS.getRanking(genre, time)
-            if (response.isSuccessful) {
-                nicoRSS.parseHTML(response).forEach {
-                    recyclerViewList.add(it)
+        lifecycleScope.launch(errorHandler) {
+            launch {
+                val response = nicoRSS.getRanking(genre, time)
+                if (response.isSuccessful) {
+                    nicoRSS.parseHTML(response).forEach {
+                        recyclerViewList.add(it)
+                    }
+                    withContext(Dispatchers.Main) {
+                        if (isAdded) {
+                            nicoVideoListAdapter.notifyDataSetChanged()
+                            fragment_video_ranking_swipe.isRefreshing = false
+                        }
+                    }
+                } else {
+                    showToast("${getString(R.string.error)}\n${response.code}")
                 }
-                withContext(Dispatchers.Main) {
-                    if (isAdded) {
-                        nicoVideoListAdapter.notifyDataSetChanged()
-                        fragment_video_ranking_swipe.isRefreshing = false
+            }
+            launch(Dispatchers.Default) {
+                // タグ取得
+                val tagHtml = NicoVideoRankingHTML()
+                val tagResponse = tagHtml.getRankingGenreTag(genre, time)
+                tagHtml.parseRankingGenreTag(tagResponse.body?.string()).forEach { genreTag ->
+                    withContext(Dispatchers.Main) {
+                        // Chip。第三引数はfalseにしてね
+                        val chip = (layoutInflater.inflate(R.layout.include_chip, fragment_nicovideo_ranking_tag, false) as Chip).apply {
+                            text = genreTag
+                        }
+                        fragment_nicovideo_ranking_tag.addView(chip)
                     }
                 }
-            } else {
-                showToast("${getString(R.string.error)}\n${response.code}")
             }
         }
     }
 
     private fun initDropDownMenu() {
-        // Adapterセット
-        // ランキング
-        val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, RANKING_GENRE)
-        fragment_nicovideo_ranking_menu.apply {
-            setAdapter(adapter)
-            // 押したとき
-            onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-                rankingGenrePos = position
-                getRanking()
-            }
-            setText(RANKING_GENRE[0], false)
+        // ジャンル選択
+        val genrePopupMenu = PopupMenu(requireContext(), fragment_nicovideo_ranking_genre)
+        RANKING_GENRE.forEach { genre -> genrePopupMenu.menu.add(genre) }
+        fragment_nicovideo_ranking_genre.setOnClickListener {
+            genrePopupMenu.show()
         }
-        // 集計時間
-        val timeAdapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, RANKING_TIME)
-        fragment_nicovideo_ranking_time_menu.apply {
-            setAdapter(timeAdapter)
-            onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-                rankingTimePos = position
-                getRanking()
-            }
-            setText(RANKING_TIME[0], false)
+        // クリックイベント
+        genrePopupMenu.setOnMenuItemClickListener { item ->
+            fragment_nicovideo_ranking_genre.text = item.title
+            rankingGenrePos = RANKING_GENRE.indexOf(item.title)
+            // データ再取得
+            getRanking()
+            true
+        }
+        // 集計時間選択
+        val timePopupMenu = PopupMenu(requireContext(), fragment_nicovideo_ranking_time)
+        RANKING_TIME.forEach { time -> timePopupMenu.menu.add(time) }
+        fragment_nicovideo_ranking_time.setOnClickListener {
+            timePopupMenu.show()
+        }
+        timePopupMenu.setOnMenuItemClickListener { item ->
+            fragment_nicovideo_ranking_time.text = item.title
+            rankingTimePos = RANKING_TIME.indexOf(item.title)
+            // データ再取得
+            getRanking()
+            true
         }
     }
 

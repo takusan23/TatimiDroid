@@ -1,7 +1,8 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -9,8 +10,9 @@ import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import java.text.SimpleDateFormat
 
+
 /**
- * ニコ動のRSS。
+ * ニコ動のランキングRSS。
  * */
 class NicoVideoRSS {
 
@@ -85,7 +87,7 @@ class NicoVideoRSS {
         // ぱーす
         for (i in 0 until 100) {
             val title = titleTag[i].text()
-            val videoId = linkTag[i].text().replace("https://www.nicovideo.jp/watch/", "").replace("?ref=rss_specified_ranking_rss2","") // いらない部分を消す
+            val videoId = linkTag[i].text().replace("https://www.nicovideo.jp/watch/", "").replace("?ref=rss_specified_ranking_rss2", "") // いらない部分を消す
             // これ特殊
             val descriptionJsoup = Jsoup.parse(description[i].text())
             val thum = descriptionJsoup.getElementsByTag("img")[0].attr("src")

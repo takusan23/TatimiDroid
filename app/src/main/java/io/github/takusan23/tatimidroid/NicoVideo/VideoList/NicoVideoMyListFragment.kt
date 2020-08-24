@@ -11,12 +11,15 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.tabs.TabLayoutMediator
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoMyListViewPagerAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoMyListViewPagerAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * マイリストFragment。RecyclerViewが乗ってるFragmentはDevNicoVideoMyListListFragmentです。
@@ -59,11 +62,11 @@ class NicoVideoMyListFragment : Fragment() {
         fragment_nicovideo_mylist_tablayout.setBackgroundColor(getThemeColor(context))
         fragment_nicovideo_mylist_viewpager.adapter = adapter
         // TabLayout
-        TabLayoutMediator(fragment_nicovideo_mylist_tablayout, fragment_nicovideo_mylist_viewpager, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
+        TabLayoutMediator(fragment_nicovideo_mylist_tablayout, fragment_nicovideo_mylist_viewpager) { tab, position ->
             // マイリストに登録してる動画数。あとで見るは何件かわからんので（API叩くのもめんどい）
             val itemCount = if (myListItems[position].title != getString(R.string.atodemiru)) ":${myListItems[position].itemsCount}" else ""
             tab.text = "${myListItems[position].title}$itemCount"
-        }).attach()
+        }.attach()
     }
 
     // マイリスト一覧取得

@@ -9,11 +9,11 @@ import androidx.core.view.children
 import androidx.core.widget.addTextChangedListener
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_cache_filter.*
 
@@ -118,8 +118,7 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
 
     // 並び替え初期化。Spinnerって言うらしいよ。SpiCaではない。
     private fun initSortSpinner() {
-        val adapter =
-            AllShowDropDownMenuAdapter(context!!, android.R.layout.simple_list_item_1, CACHE_FILTER_SORT_LIST)
+        val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_list_item_1, CACHE_FILTER_SORT_LIST)
         bottom_fragment_cache_filter_dropdown.setAdapter(adapter)
         bottom_fragment_cache_filter_dropdown.setText(CACHE_FILTER_SORT_LIST[0], false)
         // 文字変更イベント

@@ -567,9 +567,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     private fun checkUeComment(command: String): Boolean {
         return when {
             // blueでなおblueの文字を消してもueが残る場合は上コメント
-            command.replace("blue2", "").contains("ue") && command.replace("blue", "").contains("ue") -> true
-            // まあ上こめ
-            command.contains("ue") -> true
+            command.replace(Regex("blue2|blue|guest"), "").contains("ue") -> true
             // ちがう！！！
             else -> false
         }

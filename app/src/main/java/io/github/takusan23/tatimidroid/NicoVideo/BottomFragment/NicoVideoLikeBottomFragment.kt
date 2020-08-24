@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoVideo.BottomFragment
 
 import android.os.Bundle
-import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +12,10 @@ import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoInfoFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_like.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * いいね♡するBottomFragment。初見わからんから説明文付き。
@@ -23,10 +25,9 @@ import kotlinx.coroutines.*
  * */
 class NicoVideoLikeBottomFragment : BottomSheetDialogFragment() {
 
-    // Fragment
-    private val videoId by lazy { arguments?.getString("video_id")!! }
-    private val devNicoVideoFragment by lazy { parentFragmentManager.findFragmentByTag(videoId) as NicoVideoFragment }
-    private val nicoVideoInfoFragment by lazy { (devNicoVideoFragment.viewPager.fragmentList[2] as NicoVideoInfoFragment) }
+    // requireParentFragment() が普通に動いたわ。parentFragmentManagerのときはNicoVideoFragment。childFragmentManagerのときはNicoVideoInfoFragmentになる
+    private val nicoVideoFragment by lazy { requireParentFragment() as NicoVideoFragment }
+    private val nicoVideoInfoFragment by lazy { (nicoVideoFragment.viewPager.fragmentList[2] as NicoVideoInfoFragment) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_nicovideo_like, container, false)

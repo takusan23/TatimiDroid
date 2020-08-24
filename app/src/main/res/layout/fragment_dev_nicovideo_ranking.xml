@@ -1,51 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-    <LinearLayout
+    <HorizontalScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content">
 
-        <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="2dp"
-                android:layout_weight="2">
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
 
-            <AutoCompleteTextView
-                    android:id="@+id/fragment_nicovideo_ranking_menu"
-                    android:layout_width="match_parent"
+            <com.google.android.material.chip.Chip
+                    android:id="@+id/fragment_nicovideo_ranking_genre"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:padding="5dp"
+                    android:text="全ジャンル"
+                    app:chipCornerRadius="5dp"
+                    app:chipIcon="@drawable/ic_expand_more_24px" />
+
+            <com.google.android.material.chip.Chip
+                    android:id="@+id/fragment_nicovideo_ranking_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:padding="5dp"
+                    android:text="毎時"
+                    app:chipCornerRadius="5dp"
+                    app:chipIcon="@drawable/ic_history_24px" />
+
+            <LinearLayout
+                    android:id="@+id/fragment_nicovideo_ranking_tag"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:clickable="false"
-                    android:cursorVisible="false"
-                    android:focusable="false"
-                    android:inputType="none"
-                    android:maxLines="1" />
-        </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="horizontal" />
 
-        <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="2dp"
-                android:layout_weight="2">
-
-            <AutoCompleteTextView
-                    android:id="@+id/fragment_nicovideo_ranking_time_menu"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clickable="false"
-                    android:cursorVisible="false"
-                    android:focusable="false"
-                    android:inputType="none"
-                    android:maxLines="1" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-    </LinearLayout>
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/fragment_video_ranking_swipe"

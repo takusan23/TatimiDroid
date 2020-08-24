@@ -9,16 +9,20 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
-import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.R
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.*
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
+import java.util.*
 
 /**
  * キャッシュ取得など。
@@ -153,9 +157,9 @@ class NicoVideoCache(val context: Context?) {
      * */
     fun getCacheFilterList(cacheNicoVideoDataList: ArrayList<NicoVideoData>, filter: CacheFilterDataClass): ArrayList<NicoVideoData> {
 
-        // 部分一致検索
+        // 部分一致検索。大文字小文字を無視するので強制大文字
         var filterList = cacheNicoVideoDataList.filter { nicoVideoData ->
-            nicoVideoData.title.contains(filter.titleContains)
+            nicoVideoData.title.toUpperCase(Locale.getDefault()).contains(filter.titleContains.toUpperCase(Locale.getDefault()))
         } as ArrayList<NicoVideoData>
 
         // 指定中のタグソート
