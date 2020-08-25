@@ -111,8 +111,11 @@ class NicoVideoRankingFragment : Fragment() {
         }
     }
 
-    // RSS取得
-    private fun getRanking() {
+    /**
+     * [loadRanking]関数を呼ぶための関数
+     * @param tag 音楽ジャンルならVOCALOIDなど
+     * */
+    private fun getRanking(tag: String? = null) {
         // 消す
         recyclerViewList.clear()
         nicoVideoListAdapter.notifyDataSetChanged()
@@ -129,11 +132,11 @@ class NicoVideoRankingFragment : Fragment() {
             launch.cancel()
         }
 
-        loadRanking()
+        loadRanking(tag)
 
     }
 
-    private fun loadRanking() {
+    private fun loadRanking(tag: String? = null) {
         // ジャンル
         val genre = nicoRSS.rankingGenreUrlList[rankingGenrePos]
         // 集計期間
@@ -143,36 +146,37 @@ class NicoVideoRankingFragment : Fragment() {
             showToast("${getString(R.string.error)}\n${throwable}")
         }
         fragment_nicovideo_ranking_tag.removeAllViews()
-        // RSS取得
-        lifecycleScope.launch(errorHandler) {
-            launch {
-                val response = nicoRSS.getRanking(genre, time)
-                if (response.isSuccessful) {
-                    nicoRSS.parseHTML(response).forEach {
-                        recyclerViewList.add(it)
-                    }
-                    withContext(Dispatchers.Main) {
-                        if (isAdded) {
-                            nicoVideoListAdapter.notifyDataSetChanged()
-                            fragment_video_ranking_swipe.isRefreshing = false
+        // ランキングスクレイピング
+        lifecycleScope.launch(errorHandler + Dispatchers.Default) {
+            val rankingHTML = NicoVideoRankingHTML()
+            val response = rankingHTML.getRankingGenreHTML(genre, time, tag)
+            if (!response.isSuccessful) {
+                showToast("${getString(R.string.error)}\n${response.code}")
+            }
+            // 動画一覧
+            val responseString = response.body?.string()
+            rankingHTML.parseRankingVideo(responseString).forEach { video ->
+                recyclerViewList.add(video)
+            }
+            // タグ
+            rankingHTML.parseRankingGenreTag(responseString).forEach { genreTag ->
+                withContext(Dispatchers.Main) {
+                    // Chip。第三引数はfalseにしてね
+                    val chip = (layoutInflater.inflate(R.layout.include_chip, fragment_nicovideo_ranking_tag, false) as Chip).apply {
+                        text = genreTag
+                        // 押したら読み込み
+                        setOnClickListener {
+                            getRanking(genreTag)
                         }
                     }
-                } else {
-                    showToast("${getString(R.string.error)}\n${response.code}")
+                    fragment_nicovideo_ranking_tag.addView(chip)
                 }
             }
-            launch(Dispatchers.Default) {
-                // タグ取得
-                val tagHtml = NicoVideoRankingHTML()
-                val tagResponse = tagHtml.getRankingGenreTag(genre, time)
-                tagHtml.parseRankingGenreTag(tagResponse.body?.string()).forEach { genreTag ->
-                    withContext(Dispatchers.Main) {
-                        // Chip。第三引数はfalseにしてね
-                        val chip = (layoutInflater.inflate(R.layout.include_chip, fragment_nicovideo_ranking_tag, false) as Chip).apply {
-                            text = genreTag
-                        }
-                        fragment_nicovideo_ranking_tag.addView(chip)
-                    }
+            // UIへ
+            withContext(Dispatchers.Main) {
+                if (isAdded) {
+                    nicoVideoListAdapter.notifyDataSetChanged()
+                    fragment_video_ranking_swipe.isRefreshing = false
                 }
             }
         }
