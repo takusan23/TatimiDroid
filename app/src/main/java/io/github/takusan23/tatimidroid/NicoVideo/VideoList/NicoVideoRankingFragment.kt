@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.edit
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -102,6 +103,22 @@ class NicoVideoRankingFragment : Fragment() {
             (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).forEach {
                 recyclerViewList.add(it)
             }
+            (savedInstanceState.getStringArrayList("tag"))?.forEach { genreTag ->
+                // Chip。第三引数はfalseにしてね
+                val chip = (layoutInflater.inflate(R.layout.include_chip, fragment_nicovideo_ranking_tag, false) as Chip).apply {
+                    text = genreTag
+                    // 押したら読み込み
+                    setOnClickListener {
+                        // 全てのときはnullを指定する
+                        if (genreTag == "すべて") {
+                            getRanking(null)
+                        } else {
+                            getRanking(genreTag)
+                        }
+                    }
+                }
+                fragment_nicovideo_ranking_tag.addView(chip)
+            }
             nicoVideoListAdapter.notifyDataSetChanged()
         }
 
@@ -166,7 +183,12 @@ class NicoVideoRankingFragment : Fragment() {
                         text = genreTag
                         // 押したら読み込み
                         setOnClickListener {
-                            getRanking(genreTag)
+                            // 全てのときはnullを指定する
+                            if (genreTag == "すべて") {
+                                getRanking(null)
+                            } else {
+                                getRanking(genreTag)
+                            }
                         }
                     }
                     fragment_nicovideo_ranking_tag.addView(chip)
@@ -230,7 +252,9 @@ class NicoVideoRankingFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        // ViewModelにしたい
         outState.putSerializable("list", recyclerViewList)
+        outState.putStringArrayList("tag", fragment_nicovideo_ranking_tag.children.toList().map { view -> (view as Chip).text.toString() } as java.util.ArrayList<String>)
     }
 
 }

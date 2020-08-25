@@ -83,7 +83,7 @@
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10sp"
-                    android:text="連続バッググラウンド再生"
+                    android:text="@string/cache_background_play"
                     android:visibility="gone" />
 
             <TextView

@@ -85,7 +85,6 @@ class NicoVideoRankingHTML {
         // スクレイピング
         val html = Jsoup.parse(responseString)
         return@withContext html.getElementsByClass("ranking-SubHeader_ListItem")
-            .filter { element -> !element.hasAttr("aria-selected") } // aria-selected なければ
             .map { element -> element.text() }
     }
 

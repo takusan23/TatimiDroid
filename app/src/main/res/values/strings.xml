@@ -508,4 +508,5 @@
     <string name="reverse">Reverse order</string>
     <string name="shuffle">shuffle</string>
     <string name="playlist_button">Continuous playback</string>
+    <string name="cache_background_play">Continuous background playback</string>
 </resources>

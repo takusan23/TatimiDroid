@@ -48,11 +48,15 @@
         <service android:name=".Service.GetCacheService" /> <!-- キャッシュ連続再生用サービス -->
         <service
                 android:name=".Service.BackgroundPlaylistCachePlayService"
-                android:exported="false">
+                android:enabled="true"
+                android:exported="true"
+                android:label="@string/cache_background_play"
+                tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
-        </service> <!-- これ書かないと通知から操作一生こない -->
+        </service>
+        <!-- これ書かないと通知から操作一生こない -->
         <receiver android:name="androidx.media.session.MediaButtonReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
