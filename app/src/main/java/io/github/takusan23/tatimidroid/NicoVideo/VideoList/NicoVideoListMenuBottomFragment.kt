@@ -396,8 +396,8 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             bottom_fragment_nicovideo_list_menu_playlist_background.visibility = View.VISIBLE
         }
         bottom_fragment_nicovideo_list_menu_playlist_background.setOnClickListener {
-            // ボタン押した時
-            mediaControllerCompat.transportControls.play()
+            // ボタン押した時は動画IDを指定して再生
+            mediaControllerCompat.transportControls.playFromMediaId(videoId, null)
         }
     }
 
