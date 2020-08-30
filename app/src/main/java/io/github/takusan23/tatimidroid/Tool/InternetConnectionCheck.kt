@@ -92,7 +92,7 @@ object InternetConnectionCheck {
         val isUnlimitedNetwork = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             when {
                 isConnectionNetworkTypeUnlimited(context) -> "\n現在のネットワーク：定額制（食べ放題）"
-                else -> "\n現在のネットワーク：従量制（パケ死）"
+                else -> "\n現在のネットワーク：従量制"
             }
         } else {
             ""

@@ -2,10 +2,8 @@ package io.github.takusan23.tatimidroid.Service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.*
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
@@ -14,525 +12,154 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
-import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Tool.LanguageTool
-import kotlinx.coroutines.*
-import org.json.JSONObject
-import java.util.*
+import kotlinx.coroutines.Job
 
 
 /**
- * キャッシュ連続再生用Service。
+ * キャッシュ連続再生用Service。MediaBrowserServiceだけど普通にサービス起動でもどうぞ
  * 入れてほしいもの↓
  * start_id     | String | 動画の再生開始のIDを指定するときに入れる。任意です。
  * */
 class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
 
-    lateinit var notificationManager: NotificationManager
-    lateinit var prefSessing: SharedPreferences
-    lateinit var broadcastReceiver: BroadcastReceiver
+    /** [onLoadChildren]でparentIdに入ってくる。Android 11のメディアの再開の場合はこの値 */
+    private val ROOT_RECENT = "root_recent"
+
+    /** [onLoadChildren]でparentIdに入ってくる。[ROOT_RECENT]以外の場合 */
+    private val ROOT = "root"
+
+    /** 音楽再生のExoPlayer */
     lateinit var exoPlayer: SimpleExoPlayer
+
+    /** MediaSession */
     lateinit var mediaSessionCompat: MediaSessionCompat
-    lateinit var nicoVideoCache: NicoVideoCache
 
-    // 通知ID
-    val NOTIFICAION_ID = 1919
-
-    // 開始位置
-    var startVideoId = ""
-
-    /** [RECENT_ROOT_ID]以外のとき */
-    private val ROOT_ID = "background_playlist_service"
-
-    /** システムが最後に再生した曲が欲しいって[onGetRoot]で言われたとき。[onLoadChildren]のparentMediaIdに入ってくる値 */
-    private val RECENT_ROOT_ID = "background_playlist_service_recent"
+    /** 通知出すのに使う */
+    lateinit var notificationManager: NotificationManager
 
     /** コルーチンキャンセル用 */
     private val cachePlayServiceCoroutineJob = Job()
 
-    // 動画一覧
-    var videoList = arrayListOf<NicoVideoData>()
+    /** 設定保存 */
+    private val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
 
+    /** キャッシュ関連 */
+    private val nicoVideoCache by lazy { NicoVideoCache(this) }
+
+    /** MediaSession初期化など */
     override fun onCreate() {
         super.onCreate()
 
+        // 通知出すのに使う
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nicoVideoCache = NicoVideoCache(this)
-        prefSessing = PreferenceManager.getDefaultSharedPreferences(this)
-
-        // リピート/シャッフル 切り替え受け取り用ブロードキャスト
-        initBroadcast()
-
-        // MediaSessionCompat生成
-        initMediaSessionCompat()
-
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
-        // 開始位置を取得
-        startVideoId = intent?.getStringExtra("start_id") ?: ""
 
         // ExoPlayer用意
-        initExoPlayer()
-
-        // 再生
-        mediaSessionCompat.controller.transportControls.apply {
-            // 再生
-            playFromMediaId(startVideoId, null)
-            // 前回リピートモード有効にしてたか
-            val repeatMode = prefSessing.getInt("cache_repeat_mode", 0)
-            setRepeatMode(repeatMode)
-            // 前回シャッフルモードを有効にしていたか
-            val isShuffleMode = prefSessing.getBoolean("cache_shuffle_mode", false)
-            val shuffleMode = if (isShuffleMode) {
-                PlaybackStateCompat.SHUFFLE_MODE_ALL
-            } else {
-                PlaybackStateCompat.REPEAT_MODE_NONE
-            }
-            setShuffleMode(shuffleMode)
-        }
-        return START_NOT_STICKY
-    }
-
-    /**
-     * ExoPlayer初期化
-     * */
-    private fun initExoPlayer() {
         exoPlayer = SimpleExoPlayer.Builder(this).build()
 
-        // ExoPlayerのイベント
-        exoPlayer.addListener(object : Player.EventListener {
-            // 再生状態変わったら
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                super.onPlayerStateChanged(playWhenReady, playbackState)
-                // 通知/状態 更新
-                updateState()
-                createNotification()
-            }
-
-            // 次の曲いったら
-            override fun onPositionDiscontinuity(reason: Int) {
-                super.onPositionDiscontinuity(reason)
-                // 通知/状態 更新
-                updateState()
-                createNotification()
-            }
-
-            // リピート条件変わったら
-            override fun onRepeatModeChanged(repeatMode: Int) {
-                super.onRepeatModeChanged(repeatMode)
-                // 通知/状態 更新
-                updateState()
-                createNotification()
-                // リピート再生かどうかを保持するように。保存する値はBooleanじゃなくて数値です（Player.REPEAT_MODE_OFFなど）
-                prefSessing.edit { putInt("cache_repeat_mode", repeatMode) }
-            }
-
-            // シャッフル有効・無効切り替わったら
-            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                super.onShuffleModeEnabledChanged(shuffleModeEnabled)
-                // 通知/状態 更新
-                updateState()
-                createNotification()
-                // シャッフル再生かどうかを保持するように。こっちはtrue/falseです。
-                prefSessing.edit { putBoolean("cache_shuffle_mode", shuffleModeEnabled) }
-            }
-        })
-
-    }
-
-    /**
-     * MediaSessionCompat用意。
-     * */
-    private fun initMediaSessionCompat() {
         // MediaSession用意
-        mediaSessionCompat = MediaSessionCompat(this, "background_playlist_play_session").apply {
-            /**
-             * コールバックの設定
-             * もしなんか動かない時は、updateState()関数の setActions() に追加済みかどうかを確認してね。
-             * */
+        mediaSessionCompat = MediaSessionCompat(this, "media_session").apply {
+
+            // MediaButtons と TransportControls の操作を受け付ける
+            setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
+
+            // MediaSessionの操作のコールバック
             setCallback(object : MediaSessionCompat.Callback() {
-                /** 再生前 */
-                override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
-                    super.onPlayFromMediaId(mediaId, extras)
-                    // nullなら落とす
-                    mediaId ?: return
-                    println("バックグラウンド再生：$mediaId")
-                    // 動画一覧読み込む
-                    GlobalScope.launch(cachePlayServiceCoroutineJob) {
-                        videoList = getVideoList()
-                        // MediaSource作る
-                        val playList = ConcatenatingMediaSource()
-                        videoList.forEach { cacheData ->
-                            // 動画IDからUri生成からExoPlayerで再生
-                            val videoFilePathUri = nicoVideoCache.getCacheFolderVideoFilePath(cacheData.videoId)
-                            // MediaSource
-                            val dataSourceFactory = DefaultDataSourceFactory(this@BackgroundPlaylistCachePlayService, "TatimiDroid;@takusan_23")
-                            val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-                                .setTag(cacheData.videoId)
-                                .createMediaSource(videoFilePathUri.toUri())
-                            playList.addMediaSource(mediaSource)
-                        }
-                        // 開始位置から再生
-                        val index = videoList.indexOfFirst { cacheData -> cacheData.videoId == mediaId }
-                        withContext(Dispatchers.Main) {
-                            exoPlayer.apply {
-                                // プレイリストセットする
-                                prepare(playList)
-                                // seekToで移動
-                                seekTo(index, 0L)
-                                // 通知/状態 更新
-                                updateState()
-                                createNotification()
-                                // 再生
-                                onPlay()
-                            }
-                        }
-                    }
+
+                /** 再生準備 */
+                override fun onPrepare() {
+                    super.onPrepare()
+                    val dataSourceFactory = DefaultDataSourceFactory(this@BackgroundPlaylistCachePlayService, "TatimiDroid;@takusan_23")
+                    val videoId = prefSetting.getString("cache_last_play_video_id", "") ?: return
+                    val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
+                        .createMediaSource(nicoVideoCache.getCacheFolderVideoFilePath(videoId).toUri()) // 動画の場所
+                    exoPlayer.prepare(mediaSource)
                 }
 
                 /** 再生 */
                 override fun onPlay() {
                     super.onPlay()
-                    // Android 11 の メディアの再開から来た場合
-                    if (!::exoPlayer.isInitialized) {
-                        initExoPlayer()
-                        // 動画一覧読み込む
-                        GlobalScope.launch(cachePlayServiceCoroutineJob) {
-                            videoList = getVideoList()
-                            // MediaSource作る
-                            val playList = ConcatenatingMediaSource()
-                            videoList.forEach { cacheData ->
-                                // 動画IDからUri生成からExoPlayerで再生
-                                val videoFilePathUri = nicoVideoCache.getCacheFolderVideoFilePath(cacheData.videoId)
-                                // MediaSource
-                                val dataSourceFactory = DefaultDataSourceFactory(this@BackgroundPlaylistCachePlayService, "TatimiDroid;@takusan_23")
-                                val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-                                    .setTag(cacheData.videoId)
-                                    .createMediaSource(videoFilePathUri.toUri())
-                                playList.addMediaSource(mediaSource)
-                            }
-                            // 開始位置から再生
-                            val index = videoList.indexOfFirst { cacheData -> cacheData.videoId == prefSessing.getString("cache_last_play_video_id", "") }
-                            withContext(Dispatchers.Main) {
-                                exoPlayer.apply {
-                                    // プレイリストセットする
-                                    prepare(playList)
-                                    // seekToで移動
-                                    seekTo(index, 0L)
-                                    // 通知/状態 更新
-                                    updateState()
-                                    createNotification()
-                                    // 再生
-                                    onPlay()
-                                }
-                            }
-                        }
-                    }
+                    startThisService()
                     exoPlayer.playWhenReady = true
-                    mediaSessionCompat.isActive = true
-                    // 通知/状態 更新
-                    updateState()
-                    createNotification()
                 }
 
                 /** 一時停止 */
                 override fun onPause() {
                     super.onPause()
                     exoPlayer.playWhenReady = false
-                    mediaSessionCompat.isActive = false
-                    // 通知/状態 更新
-                    updateState()
-                    createNotification()
                 }
 
-                /** シーク */
+                /** 通知のシーク動かした時 */
                 override fun onSeekTo(pos: Long) {
                     super.onSeekTo(pos)
                     exoPlayer.seekTo(pos)
-                    // 通知/状態 更新
-                    updateState()
-                    createNotification()
                 }
 
-                /** 次の曲 */
-                override fun onSkipToNext() {
-                    super.onSkipToNext()
-                    // いま再生中の場所取る
-                    exoPlayer.next()
-                }
-
-                /** 前の曲 */
-                override fun onSkipToPrevious() {
-                    super.onSkipToPrevious()
-                    exoPlayer.previous()
-                }
-
-                /** リピートモード切り替え */
-                override fun onSetRepeatMode(repeatMode: Int) {
-                    super.onSetRepeatMode(repeatMode)
-                    when (repeatMode) {
-                        PlaybackStateCompat.REPEAT_MODE_NONE -> {
-                            // 一周したら終わり
-                            exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                        }
-                        PlaybackStateCompat.REPEAT_MODE_ALL -> {
-                            // 無限ループループする
-                            exoPlayer.repeatMode = Player.REPEAT_MODE_ALL
-                        }
-                        PlaybackStateCompat.REPEAT_MODE_ONE -> {
-                            // 同じ曲を何回も聞く。
-                            exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-                        }
-                    }
-                }
-
-                /** シャッフルモード切り替え */
-                override fun onSetShuffleMode(shuffleMode: Int) {
-                    super.onSetShuffleMode(shuffleMode)
-                    val isShuffleMode = shuffleMode == PlaybackStateCompat.SHUFFLE_MODE_ALL
-                    exoPlayer.shuffleModeEnabled = isShuffleMode
-                }
-
-                /** 再生終了 */
+                /** 止めた時 */
                 override fun onStop() {
                     super.onStop()
-                    if (::exoPlayer.isInitialized) {
-                        exoPlayer.release()
-                    }
-                    mediaSessionCompat.isActive = false
-                    release()
+                    isActive = false
                     stopSelf()
                 }
+
             })
 
-            // ？
+            // 忘れずに
             setSessionToken(sessionToken)
-
         }
 
-        updateState()
-
-    }
-
-    /**
-     * 曲を返す。
-     * Wear OS（死にそう）とかで曲一覧を表示するときはここで返す中身が表示されるんだと思う。持ってないから要検証
-     *
-     * Android 11 の **メディアの再開** って機能で最後に再生した曲を表示する機能があるんだけど、その曲情報はここで取る。[onGetRoot]では重い処理はできない
-     * 逆にここは非同期で値を返せるのでここでやる。
-     * */
-    override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
-        /**
-         * 本来はここで曲（いや動画だけど）一覧を返すんだけど、
-         * 返した後にシャッフル再生有効にすると順番ぐちゃぐちゃになると思うから返しても意味が無さそうな気がする。
-         * なので今はAndroid 11のメディアの再開に備えて、最後に再生した曲を返す
-         * */
-        if (parentId == RECENT_ROOT_ID) {
-            println("メディアの再開")
-            result.detach()
-            // 最後に再生した曲を返す
-            GlobalScope.launch(cachePlayServiceCoroutineJob) {
-                val recentVideoId = prefSessing.getString("cache_last_play_video_id", null) ?: return@launch // nullなら何もしない
-                // 動画情報いれる
-                val recentVideoMetaData = createMetaData(recentVideoId)
-                val recentVideoMediaItem = createMediaItem(recentVideoId, recentVideoMetaData)
-                withContext(Dispatchers.Main) {
-                    result.sendResult(arrayListOf(recentVideoMediaItem))
-                }
+        // ExoPlayerの再生状態が更新されたときも通知を更新する
+        exoPlayer.addListener(object : Player.EventListener {
+            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                super.onPlayerStateChanged(playWhenReady, playbackState)
+                updateState()
+                showNotification()
             }
-        } else {
-            // どーすっかなー
-            result.detach()
-        }
+        })
+
     }
 
     /**
-     * クライアント接続の制御（さあ？）
-     * */
-    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
-        // Android 11 の 再生の再開をサポートする
-        // なので、システムが最後に再生した曲をリクエストしているかを判断する
-        val isRequireRecentVideo = rootHints?.getBoolean(BrowserRoot.EXTRA_RECENT) ?: false
-        // BrowserRootの第一引数に、最後に再生した曲がほしいって書く。ここでは最後に再生した曲は読み込まない（UAMP並感）
-        val rootPath = if (isRequireRecentVideo) RECENT_ROOT_ID else ROOT_ID
-        println(prefSessing.getString("cache_last_play_video_id", null))
-        println("onGetRoot きた $isRequireRecentVideo $clientPackageName")
-        return BrowserRoot(rootPath, null)
-    }
-
-    /**
-     * [onLoadChildren]で返すやつ。[createMetaData]をせっかく作ったのでそっから持ってくるようにしました。
-     * */
-    private fun createMediaItem(videoId: String, metadataCompat: MediaMetadataCompat): MediaBrowserCompat.MediaItem {
-        val thumbPath = nicoVideoCache.getCacheFolderVideoThumFilePath(videoId)
-        val mediaDescriptionCompat = MediaDescriptionCompat.Builder().apply {
-            setTitle(metadataCompat.getString(MediaMetadataCompat.METADATA_KEY_TITLE))
-            setSubtitle(metadataCompat.getString(MediaMetadataCompat.METADATA_KEY_ARTIST))
-            setIconUri(thumbPath.toUri())
-            setMediaId(videoId)
-        }.build()
-        return MediaBrowserCompat.MediaItem(mediaDescriptionCompat, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
-    }
-
-    /**
-     * 再生する動画一覧を返す。コルーチンで使ってね。
-     * @return NicoVideoDataの配列
-     * */
-    private suspend fun getVideoList(): ArrayList<NicoVideoData> = withContext(Dispatchers.IO) {
-        // 取得
-        var videoList = nicoVideoCache.loadCache()
-        val filter = CacheJSON().readJSON(this@BackgroundPlaylistCachePlayService)
-        // フィルター
-        videoList = if (filter != null) {
-            nicoVideoCache.getCacheFilterList(videoList, filter)
-        } else {
-            videoList
-        }
-        videoList
-    }
-
-    /**
-     * 動画IDからメタデータを生成する関数。
-     * @param videoId 動画ID
-     * @param duration 動画の長さ。ミリ秒
-     * @return メタデータ。
-     * */
-    private fun createMetaData(videoId: String): MediaMetadataCompat {
-        // 動画パス
-        val videoFilePath = nicoVideoCache.getCacheFolderVideoFilePath(videoId)
-        // 動画情報JSONが存在するか
-        if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
-            // 動画情報JSON取得
-            val videoJSON = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
-            val jsonObject = JSONObject(videoJSON)
-            val currentTitle = jsonObject.getJSONObject("video").getString("title")
-            // 投稿者
-            val uploaderName = NicoVideoHTML().getUploaderName(jsonObject)
-            val thumbPath = nicoVideoCache.getCacheFolderVideoThumFilePath(videoId)
-            val thumbBitmap = BitmapFactory.decodeFile(thumbPath)
-            // サムネ（縦長）をきれいに正方形にする一行。Android 11からMediaSession通知は専用領域が確保されるようになった
-            // なおStackOverflow先生：https://stackoverflow.com/questions/6908604/android-crop-center-of-bitmap
-            val thumbCropBitmap = Bitmap.createBitmap(thumbBitmap, thumbBitmap.width / 2 - thumbBitmap.height / 2, 0, thumbBitmap.height, thumbBitmap.height)
-            // 再生時間
-            val duration = jsonObject.getJSONObject("video").getLong("duration")
-            // メタデータ
-            val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
-                // Android 11 の MediaSession で使われるやつ
-                putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, thumbPath)
-                putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentTitle)
-                putString(MediaMetadataCompat.METADATA_KEY_ARTIST, uploaderName)
-                putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration * 1000) // これあるとAndroid 10でシーク使えます
-                // ？
-                putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, videoFilePath)
-                putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, videoId)
-                putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentTitle)
-                putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, uploaderName)
-                putBitmap(MediaMetadataCompat.METADATA_KEY_ART, thumbCropBitmap)
-            }.build()
-            return mediaMetadataCompat
-        } else {
-            // 動画情報JSONなかった
-            // メタデータ
-            val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
-                putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, videoFilePath)
-                putString(MediaMetadataCompat.METADATA_KEY_TITLE, nicoVideoCache.getCacheFolderVideoFileName(videoId)) // ファイル名
-                putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, videoId)
-                putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, videoId)
-                putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, nicoVideoCache.getCacheFolderVideoFileName(videoId))
-                putString(MediaMetadataCompat.METADATA_KEY_ARTIST, videoId)
-                putLong(MediaMetadataCompat.METADATA_KEY_DURATION, nicoVideoCache.getVideoDurationSec(videoId) * 1000) // これあるとAndroid 10でシーク使えます
-            }.build()
-            return mediaMetadataCompat
-        }
-    }
-
-    /**
-     * 通知と再生状態（MediaSessionの再生状態）とメタデータを更新する
-     * 受け付ける操作（例：一時停止「PlaybackStateCompat.ACTION_PLAY」など）もここで定義します。
+     * 再生状態とメタデータを設定する。今回はメタデータはハードコートする
+     *
+     * MediaSessionのsetCallBackで扱う操作([MediaSessionCompat.Callback.onPlay]など)も[PlaybackStateCompat.Builder.setState]に書かないと何も起きない
      * */
     private fun updateState() {
-        // ExoPlayer初期化済みか
-        val isInitExoPlayer = ::exoPlayer.isInitialized
-        // MediaSession再生状態変更
-        val state = if (isInitExoPlayer && exoPlayer.isPlaying) {
-            PlaybackStateCompat.STATE_PLAYING
-        } else {
-            PlaybackStateCompat.STATE_PAUSED
-        }
-        // 現在の位置
-        val currentPos = if (isInitExoPlayer) {
-            exoPlayer.currentPosition
-        } else {
-            1000
-        }
-        // 再生中の状態変更に対応する。
         val stateBuilder = PlaybackStateCompat.Builder().apply {
-            // 重要：受け付ける操作。CallBack書いたのに動かない時は見てみて（とゆうか最初から全部いれとけよぼけ）
-            setActions(
-                PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_SEEK_TO or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
-                        PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH or PlaybackStateCompat.ACTION_PLAY_FROM_URI or
-                        PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or PlaybackStateCompat.ACTION_PREPARE_FROM_URI or PlaybackStateCompat.ACTION_PREPARE
-            )
-            // 再生状態
-            setState(state, currentPos, 1f)
-        }
-        mediaSessionCompat.setPlaybackState(stateBuilder.build())
-
-        // メタデータ更新など
-        if (isInitExoPlayer && exoPlayer.currentTag is String) {
-            // 再生中の動画IDはタグに入ってるので
-            val videoId = exoPlayer.currentTag as String
-            // メタデータセット
-            mediaSessionCompat.setMetadata(createMetaData(videoId))
-
-            // 最後に再生した曲を保存しておく。Android 11 の メディアの再開 で使う
-            prefSessing.edit { putString("cache_last_play_video_id", exoPlayer.currentTag as String) }
-        }
-
+            // 取り扱う操作。とりあえず 再生準備 再生 一時停止 シーク を扱うようにする。書き忘れると何も起きない
+            setActions(PlaybackStateCompat.ACTION_PREPARE or PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_SEEK_TO or PlaybackStateCompat.ACTION_STOP)
+            // 再生してるか。ExoPlayerを参照
+            val state = if (exoPlayer.isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
+            // 位置
+            val position = exoPlayer.currentPosition
+            // 再生状態を更新
+            setState(state, position, 1.0f) // 最後は再生速度
+        }.build()
+        mediaSessionCompat.setPlaybackState(stateBuilder)
+        // メタデータの設定
+        val duration = 288L // 再生時間
+        val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
+            // Android 11 の MediaSession で使われるやつ
+            putString(MediaMetadataCompat.METADATA_KEY_TITLE, "音楽のタイトル")
+            putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "音楽のアーティスト")
+            putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration * 1000) // これあるとAndroid 10でシーク使えます
+        }.build()
+        mediaSessionCompat.setMetadata(mediaMetadataCompat)
     }
 
-    /**
-     * 通知を作成する。
-     * */
-    private fun createNotification() {
-        this@BackgroundPlaylistCachePlayService.mediaSessionCompat.apply {
-            // 通知更新
-            if (controller.metadata != null) {
-                // MediaMetadataCompat#METADATA_KEY_MEDIA_ID に 動画IDを詰めている。
-                val videoId = controller.metadata.description.mediaId ?: return
-                val title = controller.metadata.description.title
-                val artist = controller.metadata.description.subtitle
-                val bitmap = controller.metadata.description.iconBitmap
-                showNotification(title as String, artist as String, bitmap)
-            } else {
-                showNotification("まだ再生していません", "準備中です")
-            }
-        }
-    }
-
-    /**
-     * 通知作成。基本はcreateNotification()を使うのでこれを直接呼ぶことはない。
-     * */
-    private fun showNotification(title: String = "", uploaderName: String = "", thumb: Bitmap? = null) {
-        // 通知作成
-        val notificationBuilder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    /** 通知を表示する */
+    private fun showNotification() {
+        // 通知を作成。通知チャンネルのせいで長い
+        val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // 通知チャンネル
             val channelId = "playlist_play"
             val notificationChannel = NotificationChannel(channelId, getString(R.string.background_playlist_play_channel), NotificationManager.IMPORTANCE_LOW)
@@ -540,136 +167,76 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                 // 登録
                 notificationManager.createNotificationChannel(notificationChannel)
             }
-            NotificationCompat.Builder(this, channelId).apply {
-                setContentTitle(title)
-                setContentText(uploaderName)
-                setSmallIcon(R.drawable.ic_tatimidroid_playlist_play_black)
-            }
+            NotificationCompat.Builder(this, channelId)
         } else {
-            NotificationCompat.Builder(this).apply {
-                setContentTitle(title)
-                setContentText(uploaderName)
-                setSmallIcon(R.drawable.ic_tatimidroid_playlist_play_black)
-            }
+            NotificationCompat.Builder(this)
         }
-
-
-        val notification = notificationBuilder.apply {
-            // 通知押したときのIntent。MainActivityでキャッシュFragmentを開く。別に書くのめんどくさいので キャッシュ起動AppShortcut を装ってIntentを飛ばすことでキャッシュ一覧を開くことにする
-            val cacheIntent = Intent(this@BackgroundPlaylistCachePlayService, MainActivity::class.java)
-            cacheIntent.putExtra("app_shortcut", "cache")
-            val pendingIntent = PendingIntent.getActivity(this@BackgroundPlaylistCachePlayService, 123, cacheIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-            setContentIntent(pendingIntent)
-            // アルバムアート
-            setLargeIcon(thumb)
-            // 停止ボタン
-            addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_STOP)))
-            if (::exoPlayer.isInitialized && exoPlayer.playWhenReady) {
-                // 一時停止
-                addAction(NotificationCompat.Action(R.drawable.ic_pause_black_24dp, "play", MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_PAUSE)))
+        notification.apply {
+            setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken).setShowActionsInCompactView(0))
+            setSmallIcon(R.drawable.ic_background_icon)
+            // 通知領域に置くボタン
+            if (exoPlayer.isPlaying) {
+                addAction(NotificationCompat.Action(R.drawable.ic_pause_black_24dp, "一時停止", MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_PAUSE)))
             } else {
-                // 再生
-                addAction(NotificationCompat.Action(R.drawable.ic_play_arrow_24px, "pause", MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_PLAY)))
+                addAction(NotificationCompat.Action(R.drawable.ic_play_arrow_24px, "再生", MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_PLAY)))
             }
-            // 次の曲（設定で前の曲にできる）
-            if (prefSessing.getBoolean("setting_cache_background_play_prev_button", false)) {
-                // 前の曲ボタン
-                addAction(NotificationCompat.Action(R.drawable.ic_skip_previous_black_24dp, "prev", MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)))
-            } else {
-                // 次の曲ボタン
-                addAction(NotificationCompat.Action(R.drawable.ic_skip_next_black_24dp, "next", MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_SKIP_TO_NEXT)))
-            }
+            addAction(NotificationCompat.Action(R.drawable.ic_clear_black, "停止", MediaButtonReceiver.buildMediaButtonPendingIntent(this@BackgroundPlaylistCachePlayService, PlaybackStateCompat.ACTION_STOP)))
+        }
+        // 通知表示
+        startForeground(84, notification.build())
+    }
 
-
-            setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(sessionToken).run {
-                setShowActionsInCompactView(0, 1, 3) // 複数個アイコンを表示（３個までだが）する際は区切りで指定
-            })
-
-            /**
-             * リピート・シャッフル 用ボタン。こいつら多分 MediaButtonReceiver.buildMediaButtonPendingIntent に用意されてないので、自前でブロードキャストもらう。
-             * */
-            val repeatOneIntent = Intent("repeat_one")
-            val repeatAllIntent = Intent("repeat_all")
-            val repeatOffIntent = Intent("repeat_off")
-            val shuffleOn = Intent("shuffle_on")
-            val shuffleOff = Intent("shuffle_off")
-            if (::exoPlayer.isInitialized) {
-                // 初期化済みなら
-                when (exoPlayer.repeatMode) {
-                    Player.REPEAT_MODE_OFF -> {
-                        // Off -> All Repeat
-                        addAction(NotificationCompat.Action(R.drawable.ic_arrow_downward_black_24dp, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 25, repeatAllIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                    }
-                    Player.REPEAT_MODE_ALL -> {
-                        // All Repeat -> Repeat One
-                        addAction(NotificationCompat.Action(R.drawable.ic_repeat_black_24dp, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 26, repeatOneIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                    }
-                    Player.REPEAT_MODE_ONE -> {
-                        // Repeat One -> Off
-                        addAction(NotificationCompat.Action(R.drawable.ic_repeat_one_24px, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 27, repeatOffIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                    }
-                }
-            } else {
-                // 今再生中の曲を無限大なああああああ->プレイリストループ
-                addAction(NotificationCompat.Action(R.drawable.ic_repeat_black_24dp, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 25, repeatOneIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-            }
-
-            // シャッフル
-            if (::exoPlayer.isInitialized && exoPlayer.shuffleModeEnabled) {
-                addAction(NotificationCompat.Action(R.drawable.ic_shuffle_black_24dp, "shuffle", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 26, shuffleOff, PendingIntent.FLAG_UPDATE_CURRENT)))
-            } else {
-                addAction(NotificationCompat.Action(R.drawable.ic_trending_flat_black_24dp, "shuffle", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 27, shuffleOn, PendingIntent.FLAG_UPDATE_CURRENT)))
-            }
-
-        }.build()
-        startForeground(NOTIFICAION_ID, notification)
+    /** フォアグラウンドサービスを起動する */
+    private fun startThisService() {
+        val playlistPlayServiceIntent = Intent(this, BackgroundPlaylistCachePlayService::class.java)
+        // 起動
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(playlistPlayServiceIntent)
+        } else {
+            startService(playlistPlayServiceIntent)
+        }
     }
 
     /**
-     * リピートモード切り替え、シャッフルON/OFFは多分無理。しゃーないのでブロードキャストをもらう。
+     * [MediaBrowserServiceCompat]へ接続しようとした時に呼ばれる
+     * Android 11 のメディアの再開では重要になっている
      * */
-    private fun initBroadcast() {
-        val intentFilter = IntentFilter().apply {
-            addAction("repeat_one")
-            addAction("repeat_all")
-            addAction("repeat_off")
-            addAction("shuffle_on")
-            addAction("shuffle_off")
-        }
-        broadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                when (intent?.action) {
-                    "repeat_one" -> mediaSessionCompat.controller.transportControls.setRepeatMode(PlaybackStateCompat.REPEAT_MODE_ONE)
-                    "repeat_all" -> mediaSessionCompat.controller.transportControls.setRepeatMode(PlaybackStateCompat.REPEAT_MODE_ALL)
-                    "repeat_off" -> mediaSessionCompat.controller.transportControls.setRepeatMode(PlaybackStateCompat.REPEAT_MODE_NONE)
-                    "shuffle_on" -> mediaSessionCompat.controller.transportControls.setShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_ALL)
-                    "shuffle_off" -> mediaSessionCompat.controller.transportControls.setShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_NONE)
-                }
-            }
-        }
-        registerReceiver(broadcastReceiver, intentFilter)
+    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
+        // 最後の曲をリクエストしている場合はtrue
+        val isRequestRecentMusic = rootHints?.getBoolean(BrowserRoot.EXTRA_RECENT) ?: false
+        // BrowserRootに入れる値を変える
+        val rootPath = if (isRequestRecentMusic) ROOT_RECENT else ROOT
+        return BrowserRoot(rootPath, null)
     }
 
-    /** あとしまつ。帰りの会 / HR */
+    /**
+     * Activityとかのクライアントへ曲一覧を返す
+     * */
+    override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
+        // 保険。遅くなると怒られるぽい？
+        result.detach()
+        if (parentId == ROOT_RECENT) {
+            // 動画情報いれる
+            result.sendResult(arrayListOf(createMediaItem("sm157", "てすとです", "さぶたいとる")))
+        }
+    }
+
+    /**
+     * [onLoadChildren]で返すアイテムを作成する
+     * */
+    private fun createMediaItem(videoId: String, title: String, subTitle: String): MediaBrowserCompat.MediaItem {
+        val mediaDescriptionCompat = MediaDescriptionCompat.Builder().apply {
+            setTitle(title)
+            setSubtitle(subTitle)
+            setMediaId(videoId)
+        }.build()
+        return MediaBrowserCompat.MediaItem(mediaDescriptionCompat, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(broadcastReceiver)
-        if (::exoPlayer.isInitialized) {
-            exoPlayer.release()
-        }
-        mediaSessionCompat.apply {
-            isActive = false
-            release()
-        }
-        cachePlayServiceCoroutineJob.cancel()
-    }
-
-    /**
-     * 言語変更機能をつける
-     * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
-     * */
-    override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
+        mediaSessionCompat.release()
+        exoPlayer.release()
     }
 
 }

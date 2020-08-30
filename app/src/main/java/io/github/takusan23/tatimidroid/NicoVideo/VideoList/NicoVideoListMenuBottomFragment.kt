@@ -5,6 +5,8 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaControllerCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,22 +17,25 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
-import io.github.takusan23.tatimidroid.NicoAPI.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
+import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Service.startBackgroundPlaylistPlayService
+import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * マイリスト、キャッシュ取得ボタンがあるBottomSheet。動画IDとキャッシュかどうかを入れてください。
@@ -52,6 +57,9 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     val videoId by lazy { arguments?.getString("video_id")!! }
     val isCache by lazy { arguments?.getBoolean("is_cache") ?: false }
 
+    lateinit var mediaBrowserCompat: MediaBrowserCompat
+    lateinit var mediaControllerCompat: MediaControllerCompat
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_nicovideo_list_menu, container, false)
     }
@@ -62,6 +70,12 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
         nicoVideoHTML = NicoVideoHTML()
+
+        // MediaBrowserと接続
+        initMediaBrowserConnect()
+
+        // キャッシュ用連続再生
+        initCachePlaylistPlay()
 
         // データ取得するかどうか。
         lifecycleScope.launch(Dispatchers.Main) {
@@ -93,9 +107,6 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             // 再生、ポップアップ再生、バッググラウンド再生ボタン初期化
             playServiceButton()
 
-            // キャッシュ用連続再生
-            initCachePlaylistPlay()
-
             // ブラウザで開くボタン
             initOpenBrowser()
         }
@@ -114,16 +125,6 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private fun initCachePlaylistPlay() {
-        if (isCache) {
-            bottom_fragment_nicovideo_list_menu_playlist_background.visibility = View.VISIBLE
-        }
-        bottom_fragment_nicovideo_list_menu_playlist_background.setOnClickListener {
-            // 第二引数で再生開始動画指定
-            startBackgroundPlaylistPlayService(context, nicoVideoData.videoId)
-            dismiss()
-        }
-    }
 
     // ポップアップ再生、バッググラウンド再生ボタン初期化
     private fun playServiceButton() {
@@ -390,9 +391,35 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         }
     }
 
+    private fun initCachePlaylistPlay() {
+        if (isCache) {
+            bottom_fragment_nicovideo_list_menu_playlist_background.visibility = View.VISIBLE
+        }
+        bottom_fragment_nicovideo_list_menu_playlist_background.setOnClickListener {
+            // ボタン押した時
+            mediaControllerCompat.transportControls.play()
+        }
+    }
+
+    /** [BackgroundPlaylistCachePlayService]と接続する関数 */
+    private fun initMediaBrowserConnect() {
+        // MediaBrowser
+        mediaBrowserCompat = MediaBrowserCompat(requireContext(), ComponentName(requireContext(), BackgroundPlaylistCachePlayService::class.java), object : MediaBrowserCompat.ConnectionCallback() {
+            override fun onConnected() {
+                super.onConnected()
+                mediaControllerCompat = MediaControllerCompat(requireContext(), mediaBrowserCompat.sessionToken)
+                // とりあえずprepareを呼ぶ
+                mediaControllerCompat.transportControls.prepare()
+            }
+        }, null)
+        // 接続
+        mediaBrowserCompat.connect()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         nicoVideoHTML.destory()
+        mediaBrowserCompat.disconnect()
     }
 
 }

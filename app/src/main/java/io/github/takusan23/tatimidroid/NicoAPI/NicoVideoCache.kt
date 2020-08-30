@@ -21,6 +21,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.*
 import org.json.JSONObject
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.*
 
@@ -74,7 +75,13 @@ class NicoVideoCache(val context: Context?) {
                 // 動画情報JSONパース
                 val jsonString = File("${videoFolder.path}/${videoId}.json")
                 if (jsonString.exists()) {
-                    val jsonObject = JSONObject(jsonString.readText())
+                    // まれによく落ちるので。ファイルあるって言ってんのに何で無いっていうの？
+                    val jsonObject = try {
+                        JSONObject(jsonString.readText())
+                    } catch (e: FileNotFoundException) {
+                        e.printStackTrace()
+                        return@forEach
+                    }
                     // NicoVideo
                     val video = jsonObject.getJSONObject("video")
                     val isCache = true
