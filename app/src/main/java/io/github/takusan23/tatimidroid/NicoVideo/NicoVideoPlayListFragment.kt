@@ -5,9 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import io.github.takusan23.tatimidroid.FregmentData.NicoVideoPlayListFragmentData
+import androidx.lifecycle.ViewModelProvider
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoPlayListBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoPlayListViewModel
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_playlist.*
 
@@ -34,14 +35,8 @@ import kotlinx.android.synthetic.main.fragment_nicovideo_playlist.*
  * */
 class NicoVideoPlayListFragment : Fragment() {
 
-    /** 動画リスト */
-    val videoList by lazy { arguments?.getSerializable("video_list") as ArrayList<NicoVideoData> }
-
-    /** シャッフルとかしてない生の状態のリスト */
-    val videoIdList by lazy { arguments?.getStringArrayList("video_id_list") }
-
-    /** 今再生中の動画 */
-    var currentVideoId = ""
+    /** データ置き場。他Fragmentと連携取る時はViewModel使おうね */
+    private lateinit var viewModel: NicoVideoPlayListViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_playlist, container, false)
@@ -50,15 +45,28 @@ class NicoVideoPlayListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 画面回転復帰後
-        if (savedInstanceState != null) {
-            val data = savedInstanceState.getSerializable("data") as NicoVideoPlayListFragmentData
-            currentVideoId = data.currentVideoId
-        } else {
+        // ViewModel初期化
+        viewModel = ViewModelProvider(this).get(NicoVideoPlayListViewModel::class.java)
+
+
+        // 画面回転復帰後はFragment置かない（誰も教えてくれないAndroid）。つまりここの条件分岐は初回のみ動く
+        if (savedInstanceState == null) {
+            // データ入れる
+            viewModel.playListVideoList.value = arguments?.getSerializable("video_list") as ArrayList<NicoVideoData>
+            viewModel.playListVideoIdList.value = arguments?.getStringArrayList("video_id_list")
+            viewModel.playListName.value = arguments?.getString("name")
+
+            // JavaBinder: !!! FAILED BINDER TRANSACTION !!!  (parcel size = 1060608) 対策で値をViewModelに移動させたら消す。
+            arguments?.clear()
+
             // Fragment設置
-            setVideo(videoList[0].videoId, videoList[0].isCache)
+            (viewModel.playListVideoList.value)?.apply {
+                setVideo(this[0].videoId, this[0].isCache)
+            }
+
         }
-        // 動画一覧表示など
+
+        // 連続再生動画一覧表示など
         fragment_nicovideo_playlist.setOnClickListener {
             val bottomFragment = NicoVideoPlayListBottomFragment()
             bottomFragment.show(parentFragmentManager, "list")
@@ -81,13 +89,14 @@ class NicoVideoPlayListFragment : Fragment() {
         parentFragmentManager.beginTransaction()
             .replace(R.id.fragment_nicovideo_playlist_main, nicoVideoFragment, videoId)
             .commit()
-        currentVideoId = videoId
+        viewModel.playingVideoId.value = videoId
     }
 
     /** 次の動画へ切り替える */
     fun nextVideo() {
+        val videoList = viewModel.playListVideoList.value ?: return
         // 今の位置
-        val pos = getCurrentItemPos()
+        val pos = getCurrentItemPos() ?: 0
         val nextPos = pos + 1
         if (nextPos < videoList.size) {
             // 動画がある
@@ -99,13 +108,6 @@ class NicoVideoPlayListFragment : Fragment() {
     }
 
     /** 現在再生中の位置を返す */
-    fun getCurrentItemPos() = videoList.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == currentVideoId }
-
-    /** 画面回転後もデータを保持しておく。動画一覧はFragmentの[setArguments]を使っていれば勝手に復元してくれる */
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        val data = NicoVideoPlayListFragmentData(currentVideoId)
-        outState.putSerializable("data", data)
-    }
+    fun getCurrentItemPos() = viewModel.playListVideoList.value?.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == viewModel.playingVideoId.value }
 
 }

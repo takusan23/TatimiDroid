@@ -15,12 +15,13 @@ import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoPlayListBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoPlayListFragment
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoPlayListViewModel
 import io.github.takusan23.tatimidroid.R
 
 /**
  * ニコ動連続再生で一覧表示する用のAdapter
  * */
-class NicoVideoPlayListAdapter(val list: ArrayList<NicoVideoData>) : RecyclerView.Adapter<NicoVideoPlayListAdapter.ViewHolder>() {
+class NicoVideoPlayListAdapter(val list: ArrayList<NicoVideoData>, val viewModel: NicoVideoPlayListViewModel) : RecyclerView.Adapter<NicoVideoPlayListAdapter.ViewHolder>() {
 
     /** 動画切り替えるのに使う */
     var nicoVideoPlayListFragment: NicoVideoPlayListFragment? = null
@@ -68,7 +69,7 @@ class NicoVideoPlayListAdapter(val list: ArrayList<NicoVideoData>) : RecyclerVie
     /** 再生中の動画の背景を変えるなど */
     private fun setPlayingItemBackgroundColor(videoId: String, view: View) {
         // 現在再生中は色変える
-        if (videoId == nicoVideoPlayListFragment?.currentVideoId) {
+        if (videoId == viewModel.playingVideoId.value) {
             view.background = ColorDrawable(Color.parseColor("#494949"))
         } else {
             view.background = ColorDrawable(Color.BLACK)
