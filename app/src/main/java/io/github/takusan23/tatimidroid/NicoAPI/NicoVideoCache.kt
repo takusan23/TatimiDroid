@@ -539,7 +539,7 @@ class NicoVideoCache(val context: Context?) {
      * */
     fun getCacheFolderVideoFileName(videoId: String): String? {
         // 見つける
-        val videoFolder = File("${getCacheFolderPath()}/$videoId").listFiles()
+        val videoFolder = File("${getCacheFolderPath()}/$videoId").listFiles() ?: return null
         for (i in videoFolder.indices) {
             if (videoFolder[i].extension == "mp4") {
                 return videoFolder[i].name

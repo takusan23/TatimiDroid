@@ -1,7 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.Cache
 
 /**
- * キャッスのフィルターの条件を保存しているデータクラス
+ * キャッシュのフィルターの条件を保存しているデータクラス
  * @param titleContains タイトルの部分一致検索の値
  * @param uploaderName 投稿者ソートの値
  * @param tagItems タグの配列（文字列）

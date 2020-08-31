@@ -74,9 +74,6 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // MediaBrowserと接続
         initMediaBrowserConnect()
 
-        // キャッシュ用連続再生
-        initCachePlaylistPlay()
-
         // データ取得するかどうか。
         lifecycleScope.launch(Dispatchers.Main) {
             // NicoVideoDataある時
@@ -391,6 +388,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         }
     }
 
+    /** 連続再生開始ボタン設定 */
     private fun initCachePlaylistPlay() {
         if (isCache) {
             bottom_fragment_nicovideo_list_menu_playlist_background.visibility = View.VISIBLE
@@ -408,8 +406,8 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             override fun onConnected() {
                 super.onConnected()
                 mediaControllerCompat = MediaControllerCompat(requireContext(), mediaBrowserCompat.sessionToken)
-                // とりあえずprepareを呼ぶ
-                mediaControllerCompat.transportControls.prepare()
+                // 連続再生ボタン押せるように
+                initCachePlaylistPlay()
             }
         }, null)
         // 接続
