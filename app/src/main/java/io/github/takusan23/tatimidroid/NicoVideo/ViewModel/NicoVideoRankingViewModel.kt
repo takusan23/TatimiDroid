@@ -1,15 +1,24 @@
 package io.github.takusan23.tatimidroid.NicoVideo.ViewModel
 
 import android.app.Application
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.lifecycle.viewModelScope
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRankingHTML
+import io.github.takusan23.tatimidroid.R
+import kotlinx.coroutines.*
 
 /**
  * [io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoRankingFragment]のデータを保持するViewModel
  * */
-class NicoVideoRankingViewModel(application: Application) :AndroidViewModel(application){
+class NicoVideoRankingViewModel(application: Application) : AndroidViewModel(application) {
+
+    /** Context */
+    private val context = getApplication<Application>().applicationContext
 
     /** ランキングの配列 */
     val rankingVideoList = MutableLiveData<ArrayList<NicoVideoData>>()
@@ -17,11 +26,41 @@ class NicoVideoRankingViewModel(application: Application) :AndroidViewModel(appl
     /** ランキングのタグ配列 */
     val rankingTagList = MutableLiveData<ArrayList<String>>()
 
-    /**
-     * ランキングのHTMLをスクレイピングする
-     * */
-    fun loadRanking(genre:String,time:String,tag:String?=null){
+    /** コルーチンキャンセル用 */
+    private val coroutineJob = Job()
 
+    /**
+     * ランキングのHTMLをスクレイピングして配列に入れる
+     * @param genre genre/all など。[io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRankingHTML.NICOVIDEO_RANKING_GENRE]から選んで
+     * @param time hour など。[io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRankingHTML.NICOVIDEO_RANKING_TIME]から選んで
+     * @param tag VOCALOID など。無くても良い
+     * @return [rankingVideoList]等に入れます
+     * */
+    fun loadRanking(genre: String, time: String, tag: String? = null) {
+        // 読み込み中ならキャンセル
+        coroutineJob.cancelChildren()
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${context.getString(R.string.error)}\n${throwable}")
+        }
+        viewModelScope.launch(errorHandler + coroutineJob + Dispatchers.Default) {
+            val nicoVideoRankingHTML = NicoVideoRankingHTML()
+            val response = nicoVideoRankingHTML.getRankingGenreHTML(genre, time, tag)
+            if (!response.isSuccessful) {
+                showToast("${context.getString(R.string.error)}\n${response.code}")
+                return@launch
+            }
+            // パース
+            val responseString = response.body?.string() ?: return@launch
+            rankingVideoList.postValue(nicoVideoRankingHTML.parseRankingVideo(responseString))
+            rankingTagList.postValue(ArrayList(nicoVideoRankingHTML.parseRankingGenreTag(responseString)))
+        }
+    }
+
+    private fun showToast(message: String) {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
 }

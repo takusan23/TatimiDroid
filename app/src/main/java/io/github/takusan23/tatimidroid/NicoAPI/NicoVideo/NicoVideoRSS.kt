@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat
 /**
  * ニコ動のランキングRSS。
  * */
+@Deprecated("NicoVideoRankingHTMLが代替します。")
 class NicoVideoRSS {
 
     // ランキングURL

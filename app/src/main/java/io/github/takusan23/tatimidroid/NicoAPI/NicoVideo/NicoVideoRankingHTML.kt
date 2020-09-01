@@ -18,18 +18,52 @@ import java.time.temporal.ChronoUnit
  * */
 class NicoVideoRankingHTML {
 
+    /** URLたち */
+    companion object {
+        /** ランキングURL。ジャンルの並びは本家と同じだと */
+        val NICOVIDEO_RANKING_GENRE = arrayListOf(
+            "genre/all",
+            "hot-topic",
+            "genre/entertainment",
+            "genre/radio",
+            "genre/music_sound",
+            "genre/dance",
+            "genre/animal",
+            "genre/nature",
+            "genre/cooking",
+            "genre/traveling_outdoor",
+            "genre/vehicle",
+            "genre/sports",
+            "genre/society_politics_news",
+            "genre/technology_craft",
+            "genre/commentary_lecture",
+            "genre/anime",
+            "genre/game",
+            "genre/other"
+        )
+
+        /** ランキング集計期間 */
+        val NICOVIDEO_RANKING_TIME = arrayListOf(
+            "hour",
+            "24h",
+            "week",
+            "month",
+            "total"
+        )
+    }
+
     /**
      * ランキングのジャンルを選んだ時に出てくるタグを取得する
      * 例：その他を選んだ時は {オークション男,BB先輩劇場} など
-     * @param genre ジャンル。[NicoVideoRSS.rankingGenreUrlList]から選んで
-     * @param time 集計時間。[NicoVideoRSS.rankingTimeList]から選んで
+     * @param genre ジャンル。[NICOVIDEO_RANKING_GENRE]から選んで
+     * @param time 集計時間。[NICOVIDEO_RANKING_TIME]から選んで
      * @param tag タグ。音楽だとVOCALOIDなど。無くてもいい
      * */
-    suspend fun getRankingGenreHTML(genre: String, time: String,tag:String?=null) = withContext(Dispatchers.IO) {
+    suspend fun getRankingGenreHTML(genre: String, time: String, tag: String? = null) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
-            if(tag!=null){
+            if (tag != null) {
                 url("https://sp.nicovideo.jp/ranking/$genre?term=$time&tag=$tag")
-            }else{
+            } else {
                 url("https://sp.nicovideo.jp/ranking/$genre?term=$time")
             }
             addHeader("User-Agent", "TatimiDroid;@takusan_23")
