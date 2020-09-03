@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
@@ -24,7 +23,10 @@ import io.github.takusan23.tatimidroid.NicoAPI.User.User
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveTagBottomFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_info.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -62,9 +64,7 @@ class ProgramInfoFragment : Fragment() {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         usersession = pref_setting.getString("user_session", "") ?: ""
 
-        val fragment =
-            (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId)
-        val commentFragment = fragment as CommentFragment
+        val commentFragment = requireParentFragment() as CommentFragment
 
         // 番組情報反映
         if (::jsonObject.isInitialized) {
@@ -150,8 +150,7 @@ class ProgramInfoFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        val fragment =
-            (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
+        val fragment = requireParentFragment() as CommentFragment
         // 番組情報反映
         if (fragment.isInitNicoLiveJSONObject()) {
             jsonApplyUI(fragment.nicoLiveJSON)

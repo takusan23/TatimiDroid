@@ -45,8 +45,8 @@ class NicoVideoSkipCustomizeBottomFragment : BottomSheetDialogFragment() {
 
     // ボタンのスキップ秒数設定反映
     private fun applyUI() {
-        val liveId = arguments?.getString("video_id")
-        (parentFragmentManager.findFragmentByTag(liveId) as NicoVideoFragment).apply {
+        val videoId = arguments?.getString("video_id")
+        (parentFragmentManager.findFragmentByTag(videoId) as NicoVideoFragment).apply {
             initController()
         }
     }

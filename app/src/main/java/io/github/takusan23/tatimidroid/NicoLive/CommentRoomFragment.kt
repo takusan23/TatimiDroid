@@ -19,8 +19,6 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_comment_room_layout.*
-import org.java_websocket.client.WebSocketClient
-import java.util.*
 
 /**
  * 部屋別表示
@@ -37,12 +35,6 @@ class CommentRoomFragment : Fragment() {
     var recyclerViewList = arrayListOf<CommentJSONParse>()
     lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
-
-    //定期的に立ち見席が出てないかチェック
-    val timer = Timer()
-
-    //コメントWebSocket
-    lateinit var webSocketClient: WebSocketClient
 
     // ニコ生コメントサーバー接続など
     val nicoLiveComment = NicoLiveComment()
@@ -62,8 +54,7 @@ class CommentRoomFragment : Fragment() {
         initRecyclerView()
 
         //CommentFragment取得
-        val fragment = fragmentManager?.findFragmentByTag(liveId)
-        commentFragment = fragment as CommentFragment
+        commentFragment = requireParentFragment() as CommentFragment
 
     }
 
@@ -172,9 +163,6 @@ class CommentRoomFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::webSocketClient.isInitialized) {
-            webSocketClient.close()
-        }
     }
 
 }

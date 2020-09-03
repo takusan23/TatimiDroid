@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.Adapter
+package io.github.takusan23.tatimidroid.NicoLive.Adapter
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

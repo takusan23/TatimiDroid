@@ -56,7 +56,7 @@ class CommentMenuFragment : Fragment() {
 
         //CommentFragmentしゅとく～
         liveId = arguments?.getString("liveId") ?: ""
-        commentFragment = activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment
+        commentFragment = requireParentFragment() as CommentFragment
 
         //値設定
         setValue()
@@ -174,7 +174,7 @@ class CommentMenuFragment : Fragment() {
         }
         //生放送を再生ボタン
         fragment_comment_fragment_menu_view_live_button.setOnClickListener {
-            (activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment).apply {
+            (requireParentFragment() as CommentFragment).apply {
                 if (live_framelayout.visibility == View.VISIBLE) {
                     live_framelayout.visibility = View.GONE
                     if (!isNicoJK()) {
@@ -378,10 +378,8 @@ class CommentMenuFragment : Fragment() {
         // ユーザーID非表示モード
         fragment_comment_fragment_menu_setting_one_line_switch.isChecked = prefSetting.getBoolean("setting_one_line", false)
         //音量
-        commentFragment.apply {
-            if (isExoPlayerInitialized()) {
-                fragment_comment_fragment_volume_seek.progress = (exoPlayer.volume * 10).toInt()
-            }
+        if (commentFragment.isExoPlayerInitialized()) {
+            fragment_comment_fragment_volume_seek.progress = (commentFragment.exoPlayer.volume * 10).toInt()
         }
         //ニコ生ゲーム有効時
         fragment_comment_fragment_nico_nama_game_switch.isChecked = commentFragment.isAddedNicoNamaGame

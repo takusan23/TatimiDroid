@@ -44,7 +44,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.Adapter.CommentViewPager
+import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.FregmentData.NicoLiveFragmentData
@@ -55,6 +55,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
+import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoLivePagerAdapter
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.QualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
@@ -204,7 +205,8 @@ class CommentFragment : Fragment() {
     lateinit var surfaceViewLayoutParams: FrameLayout.LayoutParams
 
     // スワイプで画面切り替えるやつ
-    lateinit var commentViewPager: CommentViewPager
+    lateinit var nicoLivePagerAdapter: NicoLivePagerAdapter
+    // lateinit var commentViewPager: CommentViewPager
 
     // ニコ生視聴セッション接続とかコメント投稿まで
     val nicoLiveHTML = NicoLiveHTML()
@@ -426,16 +428,9 @@ class CommentFragment : Fragment() {
                         // UI反映
                         initController()
                         // 番組情報FragmentにHTMLのJSON渡す
-                        if (isOfficial) {
-                            (commentViewPager.instantiateItem(comment_viewpager, 4) as ProgramInfoFragment).apply {
-                                jsonObject = nicoLiveJSON
-                                jsonApplyUI(nicoLiveJSON)
-                            }
-                        } else {
-                            (commentViewPager.instantiateItem(comment_viewpager, 5) as ProgramInfoFragment).apply {
-                                jsonObject = nicoLiveJSON
-                                jsonApplyUI(nicoLiveJSON)
-                            }
+                        nicoLivePagerAdapter.getProgramInfoFragment()?.apply {
+                            jsonObject = nicoLiveJSON
+                            jsonApplyUI(nicoLiveJSON)
                         }
                     }
                     // Main Thread -> IO
@@ -548,7 +543,7 @@ class CommentFragment : Fragment() {
                     }
                 }
                 // 一覧更新
-                (commentViewPager.instantiateItem(comment_viewpager, 1) as CommentViewFragment).apply {
+                nicoLivePagerAdapter.getCommentViewFragment()?.apply {
                     if (isInitAdapter()) {
                         commentRecyclerViewAdapter.notifyDataSetChanged()
                     }
@@ -890,7 +885,7 @@ class CommentFragment : Fragment() {
             // RecyclerViewに追加
             commentJSONList.add(0, commentJSONParse)
             // CommentFragment更新かける
-            (commentViewPager.instantiateItem(comment_viewpager, 1) as CommentViewFragment).apply {
+            nicoLivePagerAdapter.getCommentViewFragment()?.apply {
                 // Adapter初期化済みなら（ViewPager多分Fragment切り替えると破棄する？ので多分必要）
                 if (isInitAdapter()) {
                     commentRecyclerViewAdapter.notifyItemInserted(0)
@@ -1064,7 +1059,7 @@ class CommentFragment : Fragment() {
              * 流量制限にかかると他のユーザーには見えない。ので本当に成功したか確かめる
              * */
             // この機能は公式番組でのみ使う
-            if(isOfficial){
+            if (isOfficial) {
                 val comment = jsonObject.getJSONObject("data").getJSONObject("chat").getString("content")
                 delay(500)
                 // 受信済みコメント配列から自分が投稿したコメント(yourpostが1)でかつ5秒前まで遡った配列を作る
@@ -1080,7 +1075,7 @@ class CommentFragment : Fragment() {
                     // 無いので流量制限にかかった（他には見えない）
                     Snackbar.make(fab, "${getString(R.string.comment_post_error)}\n${getString(R.string.comment_post_limit)}", Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
                 }
-            }else{
+            } else {
                 // ユーザー番組では多分取れる
                 Snackbar.make(fab, getString(R.string.comment_post_success), Snackbar.LENGTH_SHORT).setAnchorView(getSnackbarAnchorView()).show()
             }
@@ -1193,13 +1188,19 @@ class CommentFragment : Fragment() {
         }
     }
 
+    /** ViewPager2初期化 */
     private fun initViewPager() {
         comment_viewpager.id = View.generateViewId()
-        commentViewPager = CommentViewPager(activity as AppCompatActivity, liveId, isOfficial, isJK)
-        comment_viewpager.adapter = commentViewPager
-        activity_comment_tab_layout.setupWithViewPager(comment_viewpager)
-        // コメントを指定しておく
-        comment_viewpager.currentItem = 1
+        nicoLivePagerAdapter = NicoLivePagerAdapter(this, liveId, isOfficial, isJK)
+        comment_viewpager.adapter = nicoLivePagerAdapter
+        // Tabに入れる名前
+        TabLayoutMediator(activity_comment_tab_layout, comment_viewpager) { tab, position ->
+            tab.text = nicoLivePagerAdapter.fragmentTabNameList[position]
+        }.attach()
+        // コメントを指定しておく。View#post{}で確実にcurrentItemが仕事するようになった。ViewPager2頼むよ～
+        comment_viewpager.post {
+            comment_viewpager?.currentItem = 1
+        }
     }
 
     /**

@@ -12,8 +12,8 @@ android {
         applicationId "io.github.takusan23.tatimidroid"
         minSdkVersion 22
         targetSdkVersion 30
-        versionCode 64
-        versionName "10.1.5"
+        versionCode 65
+        versionName "11.0.0 Beta 1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -58,7 +58,7 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-hls:2.11.3'
     implementation 'com.google.android.exoplayer:extension-mediasession:2.11.3'
     // WebSocket
-    implementation "org.java-websocket:Java-WebSocket:1.4.0"
+    implementation "org.java-websocket:Java-WebSocket:1.5.1"
     // HTML Parser
     implementation 'org.jsoup:jsoup:1.12.1'
     // Coroutines
