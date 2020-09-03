@@ -11,19 +11,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.card.MaterialCardView
+import io.github.takusan23.tatimidroid.BottomFragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
-import io.github.takusan23.tatimidroid.BottomFragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Tool.CustomFont
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
-import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -55,7 +51,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val commentJSONParse = commentList[position]
-        val context = holder.cardView.context
+        val context = holder.parentView.context
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
 
         // 一度だけ
@@ -160,7 +156,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         holder.roomNameTextView.text = info
 
         // 詳細画面出す
-        holder.cardView.setOnClickListener {
+        holder.parentView.setOnClickListener {
             val bundle = Bundle()
             bundle.putString("comment", commentJSONParse.comment)
             bundle.putString("user_id", commentJSONParse.userId)
@@ -182,15 +178,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
                 getRoomColor(commentJSONParse.roomName, context) // 部屋別+流量制限
             }
             holder.roomNameTextView.setTextColor(roomColor)
-            // OutlineなCardViewにして枠の色を部屋に合わせる設定が有効なら
-            if (pref_setting.getBoolean("setting_nicolive_comment_outline", true)) {
-                (holder.cardView as MaterialCardView).apply {
-                    strokeColor = roomColor
-                    strokeWidth = 2
-                    elevation = 0f
-                    setBackgroundColor(getThemeColor(DarkModeSupport(context).context))
-                }
-            }
+            holder.commentRoomColorView.setBackgroundColor(roomColor)
         }
 
         //ID非表示
@@ -220,12 +208,11 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         return commentList.size
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
-        var commentTextView: TextView = itemView.findViewById(R.id.adapter_comment_textview)
-
-        var roomNameTextView: TextView = itemView.findViewById(R.id.adapter_room_name_textview)
-        var cardView: CardView = itemView.findViewById(R.id.adapter_room_name_cardview)
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val commentTextView: TextView = itemView.findViewById(R.id.adapter_comment_textview)
+        val roomNameTextView: TextView = itemView.findViewById(R.id.adapter_room_name_textview)
+        val commentRoomColorView: View = itemView.findViewById(R.id.adapter_comment_room_color)
+        val parentView: View = itemView.findViewById(R.id.adapter_comment_parent)
     }
 
     /**

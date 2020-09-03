@@ -120,11 +120,14 @@ class NicoLiveComment {
         // 過去コメントだとtrue
         var isHistoryComment = true
         val uri = URI(webSocketUri)
+        // ユーザーエージェントとプロトコル
         val protocol = Draft_6455(
             Collections.emptyList(),
             Collections.singletonList(Protocol("msg.nicovideo.jp#json")) as List<IProtocol>?
         )
-        val webSocketClient = object : WebSocketClient(uri, protocol) {
+        val headerMap = mutableMapOf<String, String>()
+        headerMap["User-Agent"] = "TatimiDroid;@takusan_23"
+        val webSocketClient = object : WebSocketClient(uri, protocol, headerMap) {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 //スレッド番号、過去コメントなど必要なものを最初に送る
                 val sendJSONObject = JSONObject()

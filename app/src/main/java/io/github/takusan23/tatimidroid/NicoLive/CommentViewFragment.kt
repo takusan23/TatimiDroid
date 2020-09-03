@@ -9,13 +9,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_commentview.*
 import org.java_websocket.client.WebSocketClient
-import kotlin.collections.ArrayList
 
 /**
  * ニコ生コメント表示Fragment
@@ -63,6 +63,9 @@ class CommentViewFragment : Fragment() {
             commentRecyclerViewAdapter = CommentRecyclerViewAdapter(commentFragment.commentJSONList)
             recyclerView.adapter = commentRecyclerViewAdapter
             recyclerView.itemAnimator = null
+            //区切り線いれる
+            val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+            recyclerView.addItemDecoration(itemDecoration)
         }
 
         // スクロールボタン。追従するぞい

@@ -105,12 +105,6 @@
 
         <SwitchPreference
                 android:defaultValue="false"
-                android:icon="@drawable/ic_insert_chart_outlined_black_24dp"
-                android:key="setting_nicovideo_danmakuview_hide"
-                android:title="@string/setting_nicovideo_danmakuview_hide" />
-
-        <SwitchPreference
-                android:defaultValue="false"
                 android:icon="@drawable/ic_skip_previous_black_24dp"
                 android:key="setting_cache_background_play_prev_button"
                 android:summary="@string/setting_cache_background_play_prev_button_description"
@@ -147,13 +141,6 @@
                 android:key="font_preference"
                 android:summary="@string/setting_font_description"
                 android:title="@string/font_setting" />
-
-        <SwitchPreference
-                android:defaultValue="true"
-                android:icon="@drawable/ic_view_day_black_24dp"
-                android:key="setting_nicolive_comment_outline"
-                android:summary="@string/setting_nicolive_comment_outline_description"
-                android:title="@string/setting_nicolive_comment_outline_title" />
 
         <SwitchPreference
                 android:defaultValue="true"

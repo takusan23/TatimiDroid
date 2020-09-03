@@ -13,6 +13,7 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.CommentJSONParse
@@ -96,7 +97,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         adapter_comment_textview.text = comment
 
         // 複数行格納
-        view.adapter_room_name_cardview.setOnClickListener {
+        view.adapter_comment_parent.setOnClickListener {
             if (adapter_comment_textview.maxLines == 1) {
                 adapter_comment_textview.maxLines = Int.MAX_VALUE
             } else {
@@ -141,6 +142,9 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 val commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
                 bottom_fragment_comment_menu_recyclerview.adapter = commentRecyclerViewAdapter
                 commentRecyclerViewAdapter.setActivity((activity as AppCompatActivity?)!!)
+                //区切り線いれる
+                val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+                bottom_fragment_comment_menu_recyclerview.addItemDecoration(itemDecoration)
             }
             fragment is NicoVideoFragment -> {
                 // 動画

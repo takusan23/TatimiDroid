@@ -1,36 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/adapter_comment_parent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:orientation="horizontal">
 
-    <com.google.android.material.card.MaterialCardView
-            android:id="@+id/adapter_room_name_cardview"
+    <View
+            android:id="@+id/adapter_comment_room_color"
+            android:layout_width="5dp"
+            android:layout_height="match_parent" />
+
+    <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="2dp"
-            app:cardCornerRadius="5dp">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp">
 
-        <LinearLayout
+        <TextView
+                android:id="@+id/adapter_room_name_textview"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="10dp">
+                android:layout_height="wrap_content"
+                android:text="読み込み中"
+                android:textSize="14sp" />
 
-            <TextView
-                    android:id="@+id/adapter_room_name_textview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="読み込み中"
-                    android:textSize="14sp" />
+        <TextView
+                android:id="@+id/adapter_comment_textview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="読み込み中"
+                android:textSize="18sp" />
+    </LinearLayout>
 
-            <TextView
-                    android:id="@+id/adapter_comment_textview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="読み込み中"
-                    android:textSize="18sp" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
 </LinearLayout>

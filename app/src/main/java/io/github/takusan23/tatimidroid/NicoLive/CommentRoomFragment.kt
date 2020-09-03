@@ -10,12 +10,13 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
+import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_comment_room_layout.*
 import org.java_websocket.client.WebSocketClient
@@ -158,6 +159,9 @@ class CommentRoomFragment : Fragment() {
         comment_room_recycler_view.adapter = commentRecyclerViewAdapter
         recyclerViewLayoutManager = comment_room_recycler_view.layoutManager!!
         comment_room_recycler_view.itemAnimator = null
+        //区切り線いれる
+        val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+        comment_room_recycler_view.addItemDecoration(itemDecoration)
     }
 
     fun showToast(message: String) {
