@@ -11,10 +11,7 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.java_websocket.client.WebSocketClient
-import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
-import org.java_websocket.protocols.IProtocol
-import org.java_websocket.protocols.Protocol
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -206,7 +203,10 @@ class NicoLiveHTML {
      * @param onMessageFun 第一引数はcommand（messageServerUriとか）。第二引数はJSONそのもの。なにもない時がある（なんだろうね？）
      * */
     private fun connectionNicoLiveWebSocket(webSocketUrl: String, onMessageFun: (String, String) -> Unit) {
-        nicoLiveWebSocketClient = object : WebSocketClient(URI(webSocketUrl)) {
+        // 2020/09/03？あたりからユーザーエージェント未指定の場合は{"type":"error","body":{"code":"CONNECT_ERROR"}}が送られてくるように
+        val headerMap = mutableMapOf<String, String>()
+        headerMap["User-Agent"] = "TatimiDroid;@takusan_23"
+        nicoLiveWebSocketClient = object : WebSocketClient(URI(webSocketUrl), headerMap) {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 // 視聴セッションWebSocketに接続したら最初に送らないといけないJSONがあるので送りつける。2020/06/02から送るJSONの中身が変わっているぞおい勝手に変更するな
                 val jsonObject = JSONObject().apply {
@@ -272,59 +272,6 @@ class NicoLiveHTML {
         }
         //接続
         nicoLiveWebSocketClient.connect()
-    }
-
-    /**
-     * コメントサーバーWebSocketに接続する関数。
-     * @param url getCommentServerWebSocketAddress()
-     * @param threadId getCommentServerThreadId()
-     * @param userId ニコニコのユーザーID
-     * */
-    fun connectionCommentPOSTWebSocket(url: String, threadId: String, userId: String, onMessageFun: (String) -> Unit) {
-        //これはプロトコルの設定が必要
-        val protocol = Draft_6455(
-            Collections.emptyList(),
-            Collections.singletonList(Protocol("msg.nicovideo.jp#json")) as List<IProtocol>?
-        )
-        commentPOSTWebSocketClient = object : WebSocketClient(URI(url), protocol) {
-            override fun onOpen(handshakedata: ServerHandshake?) {
-                // スレッド番号、過去コメントなど必要なものを最初に送る
-                val sendJSONObject = JSONObject()
-                val jsonObject = JSONObject()
-                jsonObject.put("version", "20061206")
-                jsonObject.put("thread", threadId)
-                jsonObject.put("score", 1)
-                jsonObject.put("nicoru", 0)
-                jsonObject.put("with_global", 1)
-                jsonObject.put("fork", 0)
-                jsonObject.put("user_id", userId)
-                jsonObject.put("res_from", 0)
-                sendJSONObject.put("thread", jsonObject)
-                commentPOSTWebSocketClient.send(sendJSONObject.toString())
-            }
-
-            override fun onClose(code: Int, reason: String?, remote: Boolean) {
-
-            }
-
-            override fun onMessage(message: String?) {
-                if (message != null) {
-                    onMessageFun(message)
-                    if (message.contains("ticket")) {
-                        // コメント投稿に使うticketを取得する
-                        val jsonObject = JSONObject(message)
-                        val thread = jsonObject.getJSONObject("thread")
-                        commentTicket = thread.getString("ticket")
-                    }
-                }
-            }
-
-            override fun onError(ex: Exception?) {
-
-            }
-        }
-        //忘れがちな接続
-        commentPOSTWebSocketClient.connect()
     }
 
     /**

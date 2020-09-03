@@ -18,10 +18,6 @@ import java.util.*
  * 全部屋コメントサーバーに接続する関数。
  * 全部屋の中にstoreってのが混じる様になったけどこれ部屋の統合（全部アリーナ）で入り切らなかったコメントが流れてくる場所らしい。
  * 公式番組では今の部屋のみ接続している。
- *
- * @param liveId 生放送ID
- * @param userSession ユーザーセッション
- *
  * */
 class NicoLiveComment {
 
