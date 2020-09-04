@@ -5,7 +5,7 @@ import java.io.Serializable
 /**
  * 番組一覧で表示するRecyclerViewに渡すデータクラス
  * */
-data class ProgramData(
+data class NicoLiveProgramData(
     val title: String,
     val communityName: String,
     val beginAt: String,

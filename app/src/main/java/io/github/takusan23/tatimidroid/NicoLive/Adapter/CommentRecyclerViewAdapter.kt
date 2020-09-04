@@ -86,7 +86,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             } else {
                 if (commentJSONParse.date.isNotEmpty()) {
                     //相対時刻（25:25）など
-                    val programStartTime = commentFragment.nicoLiveHTML.programStartTime
+                    val programStartTime = commentFragment.viewModel.nicoLiveHTML.programStartTime
                     val commentUnixTime = commentJSONParse.date.toLong()
                     val calc = (commentUnixTime - programStartTime)
                     time = DateUtils.formatElapsedTime(calc) // 時：分：秒　っていい感じにしてくれる

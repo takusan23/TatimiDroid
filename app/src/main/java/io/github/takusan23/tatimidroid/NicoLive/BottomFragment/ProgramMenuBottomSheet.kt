@@ -19,7 +19,7 @@ import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.Tool.ProgramShare
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Database.AutoAdmissionDB
@@ -40,7 +40,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
     private lateinit var prefSetting: SharedPreferences
     private lateinit var autoAdmissionDB: AutoAdmissionDB
-    lateinit var programData: ProgramData
+    lateinit var nicoLiveProgramData: NicoLiveProgramData
 
     // データ取得
     private val nicoLiveHTML = NicoLiveHTML()
@@ -155,7 +155,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
             if (!isAddedDB()) {
                 // 未登録なら登録
                 withContext(Dispatchers.IO) {
-                    val autoAdmissionData = AutoAdmissionDBEntity(name = programData.title, liveId = programData.programId, startTime = programData.beginAt, lanchApp = type, description = "")
+                    val autoAdmissionData = AutoAdmissionDBEntity(name = nicoLiveProgramData.title, liveId = nicoLiveProgramData.programId, startTime = nicoLiveProgramData.beginAt, lanchApp = type, description = "")
                     autoAdmissionDB.autoAdmissionDBDAO().insert(autoAdmissionData)
                 }
                 // Service再起動
@@ -167,7 +167,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
                     AutoAdmissionDBEntity.LAUNCH_BACKGROUND -> getString(R.string.background_play)
                     else -> getString(R.string.app_name)
                 }
-                Toast.makeText(context, "${context?.getString(R.string.added)}\n${programData.title} ${nicoLiveHTML.iso8601ToFormat(programData.beginAt.toLong())} (${appName})", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "${context?.getString(R.string.added)}\n${nicoLiveProgramData.title} ${nicoLiveHTML.iso8601ToFormat(nicoLiveProgramData.beginAt.toLong())} (${appName})", Toast.LENGTH_SHORT).show()
                 //Service再起動
                 val intent = Intent(context, AutoAdmissionService::class.java)
                 context?.stopService(intent)
@@ -291,7 +291,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
         }
         nicoLiveJSONObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(response.body?.string())
         nicoLiveHTML.initNicoLiveData(nicoLiveJSONObject)
-        programData = nicoLiveHTML.getProgramData(nicoLiveJSONObject)
+        nicoLiveProgramData = nicoLiveHTML.getProgramData(nicoLiveJSONObject)
     }
 
     /** データ取得し終わったらUI更新 */

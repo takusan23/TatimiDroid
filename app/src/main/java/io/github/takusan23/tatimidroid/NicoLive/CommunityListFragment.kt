@@ -19,7 +19,7 @@ import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.AutoAdmissionAdapter
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommunityRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.*
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
 import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
@@ -35,7 +35,7 @@ import kotlin.collections.ArrayList
 class CommunityListFragment : Fragment() {
     var userSession = ""
     lateinit var pref_setting: SharedPreferences
-    var recyclerViewList: ArrayList<ProgramData> = arrayListOf()
+    var recyclerViewList: ArrayList<NicoLiveProgramData> = arrayListOf()
     var autoAdmissionRecyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
     lateinit var communityRecyclerViewAdapter: CommunityRecyclerViewAdapter
     lateinit var autoAdmissionAdapter: AutoAdmissionAdapter
@@ -74,7 +74,7 @@ class CommunityListFragment : Fragment() {
                 autoAdmissionAdapter.notifyDataSetChanged()
             } else {
                 // それいがい
-                (savedInstanceState.getSerializable("list") as ArrayList<ProgramData>).forEach {
+                (savedInstanceState.getSerializable("list") as ArrayList<NicoLiveProgramData>).forEach {
                     recyclerViewList.add(it)
                 }
                 communityRecyclerViewAdapter.notifyDataSetChanged()

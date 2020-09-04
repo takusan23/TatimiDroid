@@ -9,9 +9,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoJKProgramAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKData
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
+import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoJKProgramAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_jk_program_list.*
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +71,7 @@ class NicoJKProgramListFragment : Fragment() {
         nicoJKProgramAdapter.notifyDataSetChanged()
         fragment_jk_program_list_swipe.isRefreshing = true
         lifecycleScope.launch {
-            val listResponse = nicoJKHTML.getChannelListHTML(type, userSession).await()
+            val listResponse = nicoJKHTML.getChannelListHTML(type, userSession)
             // 取得できんときは落とす
             if (!listResponse.isSuccessful) {
                 return@launch

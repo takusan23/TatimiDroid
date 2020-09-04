@@ -2,21 +2,19 @@ package io.github.takusan23.tatimidroid.NicoLive
 
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.preference.PreferenceManager
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_comment_room_layout.*
 
@@ -25,19 +23,17 @@ import kotlinx.android.synthetic.main.fragment_comment_room_layout.*
  * */
 class CommentRoomFragment : Fragment() {
 
-    lateinit var commentFragment: CommentFragment
+    // CommentFragmentとそれのViewModel
+    val commentFragment by lazy { requireParentFragment() as CommentFragment }
+    val viewModel by viewModels<NicoLiveViewModel>({ commentFragment })
 
     lateinit var pref_setting: SharedPreferences
 
     var liveId = ""
 
-    //接続中の部屋名
     var recyclerViewList = arrayListOf<CommentJSONParse>()
     lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
-
-    // ニコ生コメントサーバー接続など
-    val nicoLiveComment = NicoLiveComment()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
@@ -46,15 +42,18 @@ class CommentRoomFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-
         liveId = arguments?.getString("liveId") ?: ""
 
         //ここから下三行必須
         initRecyclerView()
 
-        //CommentFragment取得
-        commentFragment = requireParentFragment() as CommentFragment
+        // LiveDataで新規コメント監視
+        viewModel.commentReceiveLiveData.observe(viewLifecycleOwner) { comment ->
+            if (comment.roomName == comment_room_tablayout.getTabAt(comment_room_tablayout.selectedTabPosition)?.text) {
+                recyclerViewList.add(0, comment)
+                recyclerViewScrollPos()
+            }
+        }
 
     }
 
@@ -64,8 +63,8 @@ class CommentRoomFragment : Fragment() {
         // 今つながってる部屋分TabItem生成する
         comment_room_tablayout.removeAllTabs()
         // 部屋統合+Store
-        comment_room_tablayout.addTab(comment_room_tablayout.newTab().setText(getString(R.string.room_integration)).setTag(commentFragment.commentServerData))
-        comment_room_tablayout.addTab(comment_room_tablayout.newTab().setText(getString(R.string.room_limit)).setTag(commentFragment.storeCommentServerData))
+        comment_room_tablayout.addTab(comment_room_tablayout.newTab().setText(getString(R.string.room_integration)))
+        comment_room_tablayout.addTab(comment_room_tablayout.newTab().setText(getString(R.string.room_limit)))
         //TabLayout選択
         comment_room_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
@@ -78,42 +77,27 @@ class CommentRoomFragment : Fragment() {
 
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 // 接続
-                val tag = tab?.tag
-                if (tag is NicoLiveComment.CommentServerData) {
-                    connectionWebSocket(tag)
+                if (tab?.text == getString(R.string.room_integration)) {
+                    setCommentList(true)
+                } else {
+                    setCommentList(false)
                 }
             }
         })
-
-        if (commentFragment.commentServerData != null) {
-            connectionWebSocket(commentFragment.commentServerData!!)
-        }
+        setCommentList(true)
     }
 
-    // Fragmentから離れたら
-    override fun onPause() {
-        super.onPause()
-        nicoLiveComment.destroy()
-    }
-
-    private fun connectionWebSocket(data: NicoLiveComment.CommentServerData) {
-        // List消す+WebSocket切断
+    /**
+     * コメント一覧を作成する。コメント内容はViewModelとLiveDataからもらうので、WebSocket接続はしない
+     * @param isAllRoom 部屋統合のコメントを表示する場合はtrue
+     * */
+    private fun setCommentList(isAllRoom: Boolean = true) {
+        val roomName = if (isAllRoom) getString(R.string.room_integration) else getString(R.string.room_limit)
+        val list = viewModel.commentList.filter { commentJSONParse -> commentJSONParse.roomName == roomName }
         recyclerViewList.clear()
-        commentRecyclerViewAdapter.notifyDataSetChanged()
-        nicoLiveComment.destroy()
-        // 接続
-        nicoLiveComment.connectionWebSocket(data.webSocketUri, data.threadId, data.roomName) { commentText, roomMane, isHistory ->
-            val commentJSONParse = CommentJSONParse(commentText, roomMane, liveId)
-            Handler(Looper.getMainLooper()).post {
-                // UI Thread
-                if (commentJSONParse.origin != "C" || commentFragment.nicoLiveHTML.isOfficial) {
-                    recyclerViewList.add(0, commentJSONParse)
-                    commentRecyclerViewAdapter.notifyItemInserted(0)
-                    recyclerViewScrollPos()
-                }
-            }
-        }
+        recyclerViewList.addAll(list)
     }
+
 
     /**
      * スクロール位置をゴニョゴニョする関数。追加時に呼んでね

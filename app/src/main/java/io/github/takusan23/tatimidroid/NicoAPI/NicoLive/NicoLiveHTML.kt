@@ -2,7 +2,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import android.os.Handler
 import android.os.Looper
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ScheduleDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
 import kotlinx.coroutines.Dispatchers
@@ -169,9 +169,9 @@ class NicoLiveHTML {
      * 内部でinitNicoLiveData()を呼んでパースしてます。
      * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
      * */
-    fun getProgramData(nicoLiveJSON: JSONObject): ProgramData {
+    fun getProgramData(nicoLiveJSON: JSONObject): NicoLiveProgramData {
         initNicoLiveData(nicoLiveJSON)
-        return ProgramData(programTitle, communityName, programOpenTime.toString(), programEndTime.toString(), liveId, supplierName, status, thumb, isOfficial)
+        return NicoLiveProgramData(programTitle, communityName, programOpenTime.toString(), programEndTime.toString(), liveId, supplierName, status, thumb, isOfficial)
     }
 
     /**
@@ -188,7 +188,7 @@ class NicoLiveHTML {
      * @param jsonObject nicoLiveHTMLtoJSONObject()の戻り値
      * @param onMessageFun 第一引数はcommand（messageServerUriとか）。第二引数はJSONそのもの
      * */
-    fun connectionWebSocket(jsonObject: JSONObject, onMessageFun: (String, String) -> Unit) {
+    fun connectWebSocket(jsonObject: JSONObject, onMessageFun: (String, String) -> Unit) {
         val site = jsonObject.getJSONObject("site")
         val relive = site.getJSONObject("relive")
         // WebSocketアドレス

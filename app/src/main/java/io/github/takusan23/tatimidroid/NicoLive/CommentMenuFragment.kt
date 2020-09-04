@@ -19,10 +19,12 @@ import android.widget.SeekBar
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.ProgramShare
@@ -39,11 +41,15 @@ import kotlinx.android.synthetic.main.fragment_comment_menu.*
  * */
 class CommentMenuFragment : Fragment() {
 
-    lateinit var commentFragment: CommentFragment
     lateinit var darkModeSupport: DarkModeSupport
     lateinit var prefSetting: SharedPreferences
 
     var liveId = ""
+
+    // CommentFragmentとそれのViewModel
+    val commentFragment by lazy { requireParentFragment() as CommentFragment }
+    val viewModel by viewModels<NicoLiveViewModel>({ commentFragment })
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_comment_menu, container, false)
     }
@@ -56,7 +62,6 @@ class CommentMenuFragment : Fragment() {
 
         //CommentFragmentしゅとく～
         liveId = arguments?.getString("liveId") ?: ""
-        commentFragment = requireParentFragment() as CommentFragment
 
         //値設定
         setValue()
@@ -157,19 +162,17 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_menu_share_button.setOnClickListener {
             //Kotlinのapply便利だと思った。
             commentFragment.apply {
-                programShare = ProgramShare(commentActivity, this.live_surface_view, programTitle, liveId)
+                programShare = ProgramShare(commentActivity, this.live_surface_view, viewModel.programTitle, liveId)
                 // 今いる部屋の名前入れる
-                val heyawari = "${roomName} - ${chairNo}"
-                programShare.showShareScreen(heyawari)
+                programShare.showShareScreen(viewModel.roomNameAndChairIdLiveData.value ?: "")
             }
         }
         //画像つき共有
         fragment_comment_fragment_menu_share_image_attach_button.setOnClickListener {
             commentFragment.apply {
-                programShare = ProgramShare(commentActivity, this.live_surface_view, programTitle, liveId)
+                programShare = ProgramShare(commentActivity, this.live_surface_view, viewModel.programTitle, liveId)
                 // 今いる部屋の名前入れる
-                val heyawari = "${roomName} - ${chairNo}"
-                programShare.shareAttachImage(heyawari)
+                programShare.shareAttachImage(viewModel.roomNameAndChairIdLiveData.value ?: "")
             }
         }
         //生放送を再生ボタン
@@ -187,14 +190,12 @@ class CommentMenuFragment : Fragment() {
                 }
             }
         }
-        //バッググラウンド再生。調子悪いのでServiceなんかで実装し直したほうがいいと思ってるけどまず使ってないので直さないと思います。
+        // バッググラウンド再生。
         fragment_comment_fragment_menu_background_button.setOnClickListener {
             commentFragment.apply {
                 setBackgroundProgramPlay()
-                if (isExoPlayerInitialized()) {
-                    exoPlayer.stop()
-                    live_framelayout.visibility = View.GONE
-                }
+                exoPlayer.stop()
+                live_framelayout.visibility = View.GONE
             }
         }
 
@@ -213,10 +214,8 @@ class CommentMenuFragment : Fragment() {
                 } else {
                     //ポップアップ再生。コメント付き
                     startOverlayPlayer()
-                    if (isExoPlayerInitialized()) {
-                        exoPlayer.stop()
-                        live_framelayout.visibility = View.GONE
-                    }
+                    exoPlayer.stop()
+                    live_framelayout.visibility = View.GONE
                 }
             }
         }
@@ -239,13 +238,13 @@ class CommentMenuFragment : Fragment() {
 
         //匿名非表示
         fragment_comment_fragment_menu_iyayo_hidden_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            commentFragment.isTokumeiHide = isChecked
+            viewModel.isTokumeiHide = isChecked
         }
 
         // 低遅延
         fragment_comment_fragment_menu_low_latency_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit { putBoolean("nicolive_low_latency", isChecked) }
-            commentFragment.nicoLiveHTML.sendLowLatency(isChecked)
+            viewModel.nicoLiveHTML.sendLowLatency(isChecked)
         }
 
         // コメント一行モード on/off
@@ -296,10 +295,10 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_nico_nama_game_webview_player_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             commentFragment.apply {
                 if (isChecked) {
-                    if (isExoPlayerInitialized()) exoPlayer.volume = 0F
+                    exoPlayer.volume = 0F
                     setNicoNamaGame(isChecked)
                 } else {
-                    if (isExoPlayerInitialized()) exoPlayer.volume = 1F
+                    exoPlayer.volume = 1F
                     removeNicoNamaGame()
                 }
             }
@@ -309,9 +308,7 @@ class CommentMenuFragment : Fragment() {
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 commentFragment.apply {
-                    if (isExoPlayerInitialized()) {
-                        exoPlayer.volume = progress / 10F
-                    }
+                    exoPlayer.volume = progress / 10F
                 }
             }
 
@@ -341,20 +338,22 @@ class CommentMenuFragment : Fragment() {
             // Android 7.1 以降のみ対応
             val shortcutManager = context?.getSystemService(Context.SHORTCUT_SERVICE) as ShortcutManager
             if (shortcutManager.isRequestPinShortcutSupported) {
-                // サポート済みのランチャーかどうか
-                val shortcut = ShortcutInfo.Builder(context, commentFragment.liveId).apply {
-                    setShortLabel(commentFragment.getFlvData.channelName)
-                    setLongLabel(commentFragment.getFlvData.channelName)
-                    setIcon(Icon.createWithResource(context, R.drawable.ic_flash_on_24px))
-                    val intent = Intent(context, CommentActivity::class.java).apply {
-                        action = Intent.ACTION_MAIN
-                        putExtra("liveId", commentFragment.liveId)
-                        putExtra("is_jk", commentFragment.isJK)
-                        putExtra("watch_mode", "comment_post")
-                    }
-                    setIntent(intent)
-                }.build()
-                shortcutManager.requestPinShortcut(shortcut, null)
+                // サポート済みのランチャーだった
+                viewModel.nicoJKGetFlv.value?.apply {
+                    val shortcut = ShortcutInfo.Builder(context, commentFragment.liveId).apply {
+                        setShortLabel(channelName)
+                        setLongLabel(channelName)
+                        setIcon(Icon.createWithResource(context, R.drawable.ic_flash_on_24px))
+                        val intent = Intent(context, CommentActivity::class.java).apply {
+                            action = Intent.ACTION_MAIN
+                            putExtra("liveId", commentFragment.liveId)
+                            putExtra("is_jk", commentFragment.isJK)
+                            putExtra("watch_mode", "comment_post")
+                        }
+                        setIntent(intent)
+                    }.build()
+                    shortcutManager.requestPinShortcut(shortcut, null)
+                }
             }
         }
     }
@@ -366,9 +365,9 @@ class CommentMenuFragment : Fragment() {
         //Infoコメント非表示
         fragment_comment_fragment_menu_hide_info_perm_switch.isChecked = commentFragment.hideInfoUnnkome
         //匿名で投稿するか
-        fragment_comment_fragment_menu_iyayo_comment_switch.isChecked = commentFragment.nicoLiveHTML.isTokumeiComment
+        fragment_comment_fragment_menu_iyayo_comment_switch.isChecked = viewModel.isPostTokumei
         //匿名コメントを非表示にするか
-        fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = commentFragment.isTokumeiHide
+        fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = viewModel.isTokumeiHide
         //低遅延モードの有効無効
         fragment_comment_fragment_menu_low_latency_switch.isChecked = prefSetting.getBoolean("nicolive_low_latency", true)
         // コメント一行もーど
@@ -378,9 +377,7 @@ class CommentMenuFragment : Fragment() {
         // ユーザーID非表示モード
         fragment_comment_fragment_menu_setting_one_line_switch.isChecked = prefSetting.getBoolean("setting_one_line", false)
         //音量
-        if (commentFragment.isExoPlayerInitialized()) {
-            fragment_comment_fragment_volume_seek.progress = (commentFragment.exoPlayer.volume * 10).toInt()
-        }
+        fragment_comment_fragment_volume_seek.progress = (commentFragment.exoPlayer.volume * 10).toInt()
         //ニコ生ゲーム有効時
         fragment_comment_fragment_nico_nama_game_switch.isChecked = commentFragment.isAddedNicoNamaGame
         // ノッチ領域に侵略
@@ -400,15 +397,7 @@ class CommentMenuFragment : Fragment() {
         }
         fragment_comment_fragment_menu_iyayo_comment_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             //匿名かどうか。
-            commentFragment.nicoLiveHTML.isTokumeiComment = isChecked
-            /*when (isChecked) {
-                true -> {
-                    commentFragment.commentCommand = "184"
-                }
-                false -> {
-                    commentFragment.commentCommand = ""
-                }
-            }*/
+            viewModel.isPostTokumei = isChecked
         }
     }
 

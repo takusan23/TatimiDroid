@@ -21,14 +21,14 @@ import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.DialogWatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import java.text.SimpleDateFormat
 import java.util.*
 
 // 番組RecyclerViewAdapter
-class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ProgramData>) : RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
+class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<NicoLiveProgramData>) : RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
 
     lateinit var prefSetting: SharedPreferences
 
@@ -148,34 +148,34 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
     }
 
     // 視聴モード選択ボタン初期化
-    fun initWatchModeButton(itemHolder: ViewHolder, programData: ProgramData) {
+    fun initWatchModeButton(itemHolder: ViewHolder, nicoLiveProgramData: NicoLiveProgramData) {
         itemHolder.apply {
             val context = itemHolder.watchModeComeCas.context
             watchModeComeView.setOnClickListener {
                 val intent = Intent(context, CommentActivity::class.java)
-                intent.putExtra("liveId", programData.programId)
+                intent.putExtra("liveId", nicoLiveProgramData.programId)
                 intent.putExtra("watch_mode", "comment_viewer")
-                intent.putExtra("isOfficial", programData.isOfficial)
+                intent.putExtra("isOfficial", nicoLiveProgramData.isOfficial)
                 context?.startActivity(intent)
             }
             watchModeComePost.setOnClickListener {
                 val intent = Intent(context, CommentActivity::class.java)
-                intent.putExtra("liveId", programData.programId)
+                intent.putExtra("liveId", nicoLiveProgramData.programId)
                 intent.putExtra("watch_mode", "comment_post")
-                intent.putExtra("isOfficial", programData.isOfficial)
+                intent.putExtra("isOfficial", nicoLiveProgramData.isOfficial)
                 context?.startActivity(intent)
             }
             watchModeComeCas.setOnClickListener {
                 val intent = Intent(context, CommentActivity::class.java)
-                intent.putExtra("liveId", programData.programId)
+                intent.putExtra("liveId", nicoLiveProgramData.programId)
                 intent.putExtra("watch_mode", "nicocas")
-                intent.putExtra("isOfficial", programData.isOfficial)
+                intent.putExtra("isOfficial", nicoLiveProgramData.isOfficial)
                 context?.startActivity(intent)
             }
             watchModeDesc.setOnClickListener {
                 //ダイアログ
                 val bundle = Bundle()
-                bundle.putString("liveId", programData.programId)
+                bundle.putString("liveId", nicoLiveProgramData.programId)
                 val dialog = DialogWatchModeBottomFragment()
                 dialog.arguments = bundle
                 dialog.show((context as AppCompatActivity).supportFragmentManager, "watchmode")

@@ -1,13 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.JK
 
-import androidx.annotation.WorkerThread
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.Response
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.io.BufferedReader
@@ -38,17 +34,16 @@ class NicoJKHTML {
      * @param type "tv"か"radio"か"bs"のどれか。基本"tv"で良いと思う。
      * @param userSession ユーザーセッション。多分なくても良い。
      * */
-    fun getChannelListHTML(type: String, userSession: String): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("http://jk.nicovideo.jp/$type")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                header("Cookie", "user_session=$userSession")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            return@async okHttpClient.newCall(request).execute()
-        }
+    suspend fun getChannelListHTML(type: String, userSession: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("http://jk.nicovideo.jp/$type")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$userSession")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        return@withContext okHttpClient.newCall(request).execute()
+    }
 
     /**
      * getChannelListHTML()で取得したHTMLをスクレイピングする関数。
@@ -91,7 +86,7 @@ class NicoJKHTML {
      * @param id jk1とか
      * @param userSession ユーザーセッション
      * */
-    fun getFlv(id: String, userSession: String): Deferred<Response> = GlobalScope.async {
+    suspend fun getFlv(id: String, userSession: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             url("http://jk.nicovideo.jp/api/getflv?v=$id")
             header("User-Agent", "TatimiDroid;@takusan_23")
@@ -99,7 +94,7 @@ class NicoJKHTML {
             get()
         }.build()
         val okHttpClient = OkHttpClient()
-        return@async okHttpClient.newCall(request).execute()
+        return@withContext okHttpClient.newCall(request).execute()
     }
 
     /**
@@ -107,7 +102,7 @@ class NicoJKHTML {
      * @param getFlv()のレスポンス
      * @return getFlvData。コメントサーバーに接続する情報が入っている。getFlvResponseStringがnullの場合はnullが帰ってきます。
      * */
-    fun parseGetFlv(getFlvResponseString: String?): getFlvData? {
+    fun parseGetFlv(getFlvResponseString: String?): NicoJKFlvData? {
         if (getFlvResponseString == null) {
             return null
         }
@@ -120,10 +115,10 @@ class NicoJKHTML {
         val userId = list[17].split("=")[1]
         val channelName = URLDecoder.decode(list[6].split("=")[1], "UTF-8") // パーセントエンコーディングうざい
         val isPremium = list[18].split("=")[1].toInt()
-        return getFlvData(threadId, ms, port, baseTime, userId, channelName, isPremium)
+        return NicoJKFlvData(threadId, ms, port, baseTime, userId, channelName, isPremium)
     }
 
-    lateinit var bufferedReader: BufferedReader
+    private lateinit var bufferedReader: BufferedReader
 
     /**
      * コメントサーバーに接続する。Socket通信だって。
@@ -132,7 +127,7 @@ class NicoJKHTML {
      * @param flvData parseGetFlv()の戻り値
      * @param onMessageFunc コメントが来たときに来る高階関数。コメントの中身（JSON形式に変換された文字列が来ます。）
      * */
-    fun connectionCommentServer(flvData: getFlvData, onMessageFunc: (String, String, Boolean) -> Unit) {
+    fun connectionCommentServer(flvData: NicoJKFlvData, onMessageFunc: (String, String, Boolean) -> Unit) {
         // TCP？Socket通信
         socket = Socket()
         socket.connect(InetSocketAddress(flvData.messageServer, flvData.messageServerPort.toInt()))
@@ -235,44 +230,38 @@ class NicoJKHTML {
      * @param threadId getFlvで取得できる値。
      * @param userSession ユーザーセッション
      * */
-    private fun getPostKey(threadId: String, userSession: String): Deferred<Response> =
-        GlobalScope.async {
-            val request = Request.Builder().apply {
-                url("http://jk.nicovideo.jp/api/v2/getpostkey?thread=$threadId")
-                header("User-Agent", "TatimiDroid;@takusan_23")
-                header("Cookie", "user_session=$userSession")
-                get()
-            }.build()
-            val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-            return@async response
-        }
+    private suspend fun getPostKey(threadId: String, userSession: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("http://jk.nicovideo.jp/api/v2/getpostkey?thread=$threadId")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$userSession")
+            get()
+        }.build()
+        val okHttpClient = OkHttpClient()
+        val response = okHttpClient.newCall(request).execute()
+        return@withContext response
+    }
 
     /**
      * コメントを投稿する関数。
+     * 引数は[NicoJKFlvData]あたりを参照して？
      * */
-    fun postCommnet(comment: String, userId: String, baseTime: Long, threadId: String, userSession: String) {
-        GlobalScope.launch {
-            val postKeyResponse = getPostKey(threadId, userSession).await()
-            if (!postKeyResponse.isSuccessful) {
-                return@launch
-            }
-            // postKey
-            val postKey = postKeyResponse.body?.string()?.replace("postkey=", "")
-            //  100=1秒らしい。 例：300->3秒
-            val unixTime = System.currentTimeMillis() / 1000L
-            val vpos = (unixTime - baseTime) * 100
-            val post =
-                "<chat thread=\"${threadId}\" ticket=\"${ticket}\"  vpos=\"${vpos}\" postkey=\"${postKey}\" mail=\"  184\" user_id=\"${userId}\" premium=\"1\">${comment}</chat>\u0000"
-            // XML送信
-            val outputStream = socket.getOutputStream()
-            outputStream.write(post.toByteArray())
-            outputStream.flush()
+    suspend fun postCommnet(comment: String, userId: String, baseTime: Long, threadId: String, userSession: String) = withContext(Dispatchers.IO) {
+        val postKeyResponse = getPostKey(threadId, userSession)
+        if (!postKeyResponse.isSuccessful) {
+            return@withContext
         }
+        // postKey
+        val postKey = postKeyResponse.body?.string()?.replace("postkey=", "")
+        //  100=1秒らしい。 例：300->3秒
+        val unixTime = System.currentTimeMillis() / 1000L
+        val vpos = (unixTime - baseTime) * 100
+        val post =
+            "<chat thread=\"${threadId}\" ticket=\"${ticket}\"  vpos=\"${vpos}\" postkey=\"${postKey}\" mail=\"  184\" user_id=\"${userId}\" premium=\"1\">${comment}</chat>\u0000"
+        // XML送信
+        val outputStream = socket.getOutputStream()
+        outputStream.write(post.toByteArray())
+        outputStream.flush()
     }
-
-    // getFlvからコメントサーバーに接続するのに必要な値だけ
-    // channelNameはパーセントエンコーディングされてます
-    data class getFlvData(val threadId: String, val messageServer: String, val messageServerPort: String, val baseTime: String, val userId: String, val channelName: String, val isPremium: Int)
 
 }

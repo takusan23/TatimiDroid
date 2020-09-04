@@ -1,6 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -37,7 +37,7 @@ class NicoLiveRanking {
      * */
     suspend fun parseJSON(html: String?) = withContext(Dispatchers.Default) {
         // ProgramDataの配列
-        val dataList = arrayListOf<ProgramData>()
+        val dataList = arrayListOf<NicoLiveProgramData>()
         val document = Jsoup.parse(html)
         // JSONっぽいのがあるので取り出す
         val json = document.getElementsByTag("script")[5]
@@ -63,7 +63,7 @@ class NicoLiveRanking {
             val thum = jsonObject.getString("thumbnailUrl")
             // データクラス
             val data =
-                ProgramData(title, communityName, beginAt, beginAt, programId, "", liveNow, thum)
+                NicoLiveProgramData(title, communityName, beginAt, beginAt, programId, "", liveNow, thum)
             dataList.add(data)
         }
         dataList

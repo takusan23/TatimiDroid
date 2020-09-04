@@ -11,6 +11,7 @@ import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.bumptech.glide.Glide
@@ -21,6 +22,7 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
 import io.github.takusan23.tatimidroid.NicoAPI.User.User
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveTagBottomFragment
+import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_program_info.*
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -52,6 +54,10 @@ class ProgramInfoFragment : Fragment() {
     // htmlの中にあるJSON
     lateinit var jsonObject: JSONObject
 
+    // CommentFragmentとそれのViewModel
+    val commentFragment by lazy { requireParentFragment() as CommentFragment }
+    val viewModel by viewModels<NicoLiveViewModel>({ commentFragment })
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_program_info, container, false)
@@ -64,11 +70,8 @@ class ProgramInfoFragment : Fragment() {
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         usersession = pref_setting.getString("user_session", "") ?: ""
 
-        val commentFragment = requireParentFragment() as CommentFragment
-
-        // 番組情報反映
-        if (::jsonObject.isInitialized) {
-            jsonApplyUI(jsonObject)
+        viewModel.nicoLiveJSON.observe(viewLifecycleOwner) { json ->
+            setUIFromJSON(json)
         }
 
         // ユーザーフォロー
@@ -124,19 +127,18 @@ class ProgramInfoFragment : Fragment() {
                 } else if (it.code == 500) {
                     // 予約済みの可能性。
                     // なお本家も多分一度登録APIを叩いて500エラーのとき登録済みって判断するっぽい？
-                    Snackbar.make(fragment_program_info_timeshift_button, R.string.timeshift_reserved, Snackbar.LENGTH_LONG)
-                        .setAction(R.string.timeshift_delete_reservation_button) {
-                            deleteTimeShift {
-                                println(it.body?.string())
-                                activity?.runOnUiThread {
-                                    Toast.makeText(
-                                        context,
-                                        R.string.timeshift_delete_reservation_successful,
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
+                    Snackbar.make(fragment_program_info_timeshift_button, R.string.timeshift_reserved, Snackbar.LENGTH_LONG).setAction(R.string.timeshift_delete_reservation_button) {
+                        deleteTimeShift {
+                            println(it.body?.string())
+                            activity?.runOnUiThread {
+                                Toast.makeText(
+                                    context,
+                                    R.string.timeshift_delete_reservation_successful,
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
-                        }.setAnchorView(commentFragment.getSnackbarAnchorView()).show()
+                        }
+                    }.setAnchorView(commentFragment.getSnackbarAnchorView()).show()
                 }
             }
         }
@@ -148,17 +150,8 @@ class ProgramInfoFragment : Fragment() {
 
     }
 
-    override fun onStart() {
-        super.onStart()
-        val fragment = requireParentFragment() as CommentFragment
-        // 番組情報反映
-        if (fragment.isInitNicoLiveJSONObject()) {
-            jsonApplyUI(fragment.nicoLiveJSON)
-        }
-    }
-
     // nicoLiveHTMLtoJSONObject()のJSONの中身をUIに反映させる
-    fun jsonApplyUI(jsonObject: JSONObject) {
+    fun setUIFromJSON(jsonObject: JSONObject) {
         if (!isAdded) return
         lifecycleScope.launch(Dispatchers.Main) {
             // 番組情報取得

@@ -1,6 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -74,7 +74,7 @@ class NicoLiveProgram {
         // JSON解析
         val programs = jsonObject.getJSONObject("view").getJSONObject(jsonObjectName).getJSONArray("programList")
         // 番組取得
-        val dataList = arrayListOf<ProgramData>()
+        val dataList = arrayListOf<NicoLiveProgramData>()
         for (i in 0 until programs.length()) {
             val programJSONObject = programs.getJSONObject(i)
             val programId = programJSONObject.getString("id")
@@ -92,7 +92,7 @@ class NicoLiveProgram {
                 else -> programJSONObject.getString("thumbnailUrl")
             }
             // データクラス
-            val data = ProgramData(title, communityName, beginAt, endAt, programId, "", liveNow, thumb, official)
+            val data = NicoLiveProgramData(title, communityName, beginAt, endAt, programId, "", liveNow, thumb, official)
             dataList.add(data)
         }
         dataList

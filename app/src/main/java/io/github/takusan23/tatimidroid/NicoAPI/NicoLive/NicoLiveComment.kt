@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommentServerData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -10,7 +11,6 @@ import org.java_websocket.handshake.ServerHandshake
 import org.java_websocket.protocols.IProtocol
 import org.java_websocket.protocols.Protocol
 import org.json.JSONObject
-import java.io.Serializable
 import java.net.URI
 import java.util.*
 
@@ -180,10 +180,5 @@ class NicoLiveComment {
         }
         connectedWebSocketAddressList.clear()
     }
-
-    /**
-     * コメントサーバーのデータクラス
-     * */
-    data class CommentServerData(val webSocketUri: String, val threadId: String, val roomName: String, val threadKey: String? = null) : Serializable
 
 }

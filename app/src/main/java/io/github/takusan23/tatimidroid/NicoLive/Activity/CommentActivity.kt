@@ -79,11 +79,11 @@ class CommentActivity : AppCompatActivity() {
         val commentFragment = supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
         commentFragment.apply {
             //別アプリを開いた時の処理
-            if (pref_setting.getBoolean("setting_leave_background", false)) {
+            if (prefSetting.getBoolean("setting_leave_background", false)) {
                 //バックグラウンド再生
                 setBackgroundProgramPlay()
             }
-            if (pref_setting.getBoolean("setting_leave_popup", false)) {
+            if (prefSetting.getBoolean("setting_leave_popup", false)) {
                 //ポップアップ再生
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (!Settings.canDrawOverlays(context)) {

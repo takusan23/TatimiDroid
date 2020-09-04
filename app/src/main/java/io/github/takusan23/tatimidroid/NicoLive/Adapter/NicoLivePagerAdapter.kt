@@ -108,12 +108,12 @@ class NicoLivePagerAdapter(val parentFragment: Fragment, val liveId: String, val
     }
 
     /** 番組情報Fragmentを返す */
-    fun getProgramInfoFragment(): ProgramInfoFragment? {
+    fun requireProgramInfoFragment(): ProgramInfoFragment? {
         return fragmentList.find { fragment -> fragment is ProgramInfoFragment } as? ProgramInfoFragment
     }
 
     /** コメントFragmentを返す */
-    fun getCommentViewFragment(): CommentViewFragment? {
+    fun requireCommentViewFragment(): CommentViewFragment? {
         return fragmentList.find { fragment -> fragment is CommentViewFragment } as? CommentViewFragment
     }
 

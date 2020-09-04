@@ -61,7 +61,7 @@ class QualitySelectBottomSheet : BottomSheetDialogFragment() {
             //押したとき
             textView.setOnClickListener {
                 //送信
-                commentFragment.nicoLiveHTML.sendQualityMessage(text)
+                commentFragment.viewModel.nicoLiveHTML.sendQualityMessage(text)
                 dismiss()
             }
             quality_parent_linearlayout.addView(textView)

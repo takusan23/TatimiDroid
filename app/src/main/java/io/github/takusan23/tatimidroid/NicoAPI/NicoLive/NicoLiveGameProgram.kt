@@ -1,6 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -47,7 +47,7 @@ class NicoLiveGameProgram {
      * @return ProgramDataの配列
      * */
     suspend fun parseJSON(html: String?) = withContext(Dispatchers.Default) {
-        val dataList = arrayListOf<ProgramData>()
+        val dataList = arrayListOf<NicoLiveProgramData>()
         // JSONパース
         val jsonObject = JSONObject(html)
         val data = jsonObject.getJSONArray("data")
@@ -66,7 +66,7 @@ class NicoLiveGameProgram {
             calender.time = date_calender
             // データクラス
             val data =
-                ProgramData("$contentTitle\n\uD83C\uDFAE：$productName", providerName, calender.time.time.toString(), calender.time.time.toString(), contentId, providerName, "ON_AIR", contentThumbnailUrl)
+                NicoLiveProgramData("$contentTitle\n\uD83C\uDFAE：$productName", providerName, calender.time.time.toString(), calender.time.time.toString(), contentId, providerName, "ON_AIR", contentThumbnailUrl)
             dataList.add(data)
         }
         dataList

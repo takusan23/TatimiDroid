@@ -31,6 +31,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKFlvData
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
@@ -75,7 +76,7 @@ class NicoLivePlayService : Service() {
     // ニコ生視聴
     private val nicoLiveHTML = NicoLiveHTML()
     private val nicoJK = NicoJKHTML()
-    lateinit var getFlvData: NicoJKHTML.getFlvData
+    lateinit var NicoJKFlvData: NicoJKFlvData
 
     /** コメントサーバー接続など */
     val nicoLiveComment = NicoLiveComment()
@@ -159,7 +160,7 @@ class NicoLivePlayService : Service() {
     private fun jkCoroutine() {
         GlobalScope.launch {
             // getflv叩く。
-            val getFlvResponse = nicoJK.getFlv(liveId, userSession).await()
+            val getFlvResponse = nicoJK.getFlv(liveId, userSession)
             if (!getFlvResponse.isSuccessful) {
                 // 失敗のときは落とす
                 stopSelf()
@@ -167,14 +168,14 @@ class NicoLivePlayService : Service() {
                 return@launch
             }
             // getflvパースする
-            getFlvData = nicoJK.parseGetFlv(getFlvResponse.body?.string())!!
+            NicoJKFlvData = nicoJK.parseGetFlv(getFlvResponse.body?.string())!!
             Handler(Looper.getMainLooper()).post {
                 // 通知の内容更新
-                showNotification(getFlvData.channelName)
+                showNotification(NicoJKFlvData.channelName)
                 initPopUpView()
             }
             // 接続。最後に呼べ。
-            nicoJK.connectionCommentServer(getFlvData, ::commentFun)
+            nicoJK.connectionCommentServer(NicoJKFlvData, ::commentFun)
         }
     }
 
@@ -218,7 +219,7 @@ class NicoLivePlayService : Service() {
 
             // データ流してくれるWebSocketへ接続！
             nicoLiveHTML.apply {
-                connectionWebSocket(nicoLiveJSON) { command, message ->
+                connectWebSocket(nicoLiveJSON) { command, message ->
                     // 使うやつだけ
                     when {
                         command == "stream" -> {
@@ -701,7 +702,9 @@ class NicoLivePlayService : Service() {
                         val comment = remoteInput.getCharSequence("direct_reply_comment")
                         when {
                             isJK -> {
-                                nicoJK.postCommnet(comment as String, getFlvData.userId, getFlvData.baseTime.toLong(), getFlvData.threadId, userSession)
+                                GlobalScope.launch {
+                                    nicoJK.postCommnet(comment as String, NicoJKFlvData.userId, NicoJKFlvData.baseTime.toLong(), NicoJKFlvData.threadId, userSession)
+                                }
                             }
                             isCommentPOSTMode -> {
                                 nicoLiveHTML.sendPOSTWebSocketComment(comment as String) // コメント投稿
