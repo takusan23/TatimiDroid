@@ -51,6 +51,7 @@ class CommentRoomFragment : Fragment() {
         viewModel.commentReceiveLiveData.observe(viewLifecycleOwner) { comment ->
             if (comment.roomName == comment_room_tablayout.getTabAt(comment_room_tablayout.selectedTabPosition)?.text) {
                 recyclerViewList.add(0, comment)
+                commentRecyclerViewAdapter.notifyItemInserted(0)
                 recyclerViewScrollPos()
             }
         }
@@ -96,6 +97,7 @@ class CommentRoomFragment : Fragment() {
         val list = viewModel.commentList.filter { commentJSONParse -> commentJSONParse.roomName == roomName }
         recyclerViewList.clear()
         recyclerViewList.addAll(list)
+        commentRecyclerViewAdapter.notifyDataSetChanged()
     }
 
 

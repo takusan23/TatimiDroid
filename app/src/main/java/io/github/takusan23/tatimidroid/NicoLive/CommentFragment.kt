@@ -360,6 +360,7 @@ class CommentFragment : Fragment() {
         // アクティブユーザー？
         viewModel.activeCommentPostUserLiveData.observe(viewLifecycleOwner) { active ->
             player_nicolive_control_active_text.text = active
+            player_nicolive_control_statistics.isVisible = true
         }
 
         // 経過時間
@@ -490,6 +491,8 @@ class CommentFragment : Fragment() {
         comment_activity_fragment_layout?.visibility = View.GONE
         // 背景黒にする
         comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(ColorStateList.valueOf(Color.BLACK))
+        // 経過時間消す
+        player_nicolive_control_info_main.isVisible = false
         // システムバー非表示
         setSystemBarVisibility(false)
         // 画面の大きさ取得
@@ -526,6 +529,8 @@ class CommentFragment : Fragment() {
         comment_activity_fragment_layout?.visibility = View.VISIBLE
         // 背景黒戻す
         comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(ColorStateList.valueOf(getThemeColor(context)))
+        // 経過時間出す
+        player_nicolive_control_info_main.isVisible = true
         // システムバー表示
         setSystemBarVisibility(true)
         // アイコン変更
@@ -911,7 +916,12 @@ class CommentFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        exoPlayer.release()
+        exoPlayer.stop()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setPlayVideoView()
     }
 
     override fun onPause() {

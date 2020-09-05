@@ -358,7 +358,7 @@ class CommentMenuFragment : Fragment() {
         }
     }
 
-    //CommentFragmentの値を貰う
+    // CommentFragmentのViewModelから値をもらう
     private fun setValue() {
         //コメント非表示
         fragment_comment_fragment_menu_comment_hidden_switch.isChecked = commentFragment.isCommentHide
@@ -396,8 +396,9 @@ class CommentMenuFragment : Fragment() {
             commentFragment.hideInfoUnnkome = isChecked
         }
         fragment_comment_fragment_menu_iyayo_comment_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            //匿名かどうか。
+            // 匿名で投稿するかどうか。
             viewModel.isPostTokumei = isChecked
+            prefSetting.edit { putBoolean("nicolive_post_tokumei", isChecked) }
         }
     }
 

@@ -1,19 +1,18 @@
 package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.res.ColorStateList
-import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.TextView
-import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.bottom_fragment_dialog.*
-import kotlinx.android.synthetic.main.textview_ripple.view.*
 
 /** 引数なしのコンストラクタを用意しないとまれに落ちるらしい。本来引数じゃなくてargumentsで渡すもんだからな */
 class DialogBottomSheet() : BottomSheetDialogFragment() {
@@ -43,6 +42,9 @@ class DialogBottomSheet() : BottomSheetDialogFragment() {
         if (!::clickEvent.isInitialized) {
             return
         }
+        // ダークモード
+        val darkModeSupport = DarkModeSupport(requireContext())
+        bottom_fragment_dialog_parent.background = ColorDrawable(getThemeColor(darkModeSupport.context))
         // 説明文
         bottom_fragment_dialog_description.text = description
         // ボタン作成

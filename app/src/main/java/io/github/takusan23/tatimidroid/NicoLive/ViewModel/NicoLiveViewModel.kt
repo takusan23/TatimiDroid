@@ -144,7 +144,7 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
     var isTokumeiHide = false
 
     /** 匿名コメントで投稿する場合はtrue */
-    var isPostTokumei = false
+    var isPostTokumei = prefSetting.getBoolean("nicolive_post_tokumei", true)
 
     /** NGコメント配列。Room+Flowで監視する */
     var ngCommentList = listOf<String>()
@@ -356,7 +356,7 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
             val nowUnixTime = System.currentTimeMillis() / 1000L
             // 範囲内のコメントを取得する
             val timeList = commentList.toList().filter { comment ->
-                if (comment.date.toFloatOrNull() != null) {
+                if (comment.date != null && comment.date.toFloatOrNull() != null) {
                     comment.date.toLong() in unixTime..nowUnixTime
                 } else {
                     false
@@ -556,7 +556,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
              * 実は流量制限にかかってしまったのではないか（公式番組以外では流量制限コメント鯖（store鯖）に接続できるけど公式は無理）
              * 流量制限にかかると他のユーザーには見えない。ので本当に成功したか確かめる
              * */
-            if (nicoLiveHTML.isOfficial) {
+            if (nicoLiveProgramData.value?.isOfficial == true) {
                 val comment = jsonObject.getJSONObject("data").getJSONObject("chat").getString("content")
                 delay(500)
                 // 受信済みコメント配列から自分が投稿したコメント(yourpostが1)でかつ5秒前まで遡った配列を作る
@@ -574,7 +574,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 }
             } else {
                 // ユーザー番組ではコメント多いときもStore鯖に入るので検証はしない
-                snackbarLiveData.postValue("${getString(R.string.comment_post_success)}\n${getString(R.string.comment_post_limit)}")
+                snackbarLiveData.postValue(getString(R.string.comment_post_success))
             }
         }
     }
