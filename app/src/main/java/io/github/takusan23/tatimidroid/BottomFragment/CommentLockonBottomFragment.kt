@@ -150,6 +150,9 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 bottom_fragment_comment_menu_recyclerview.layoutManager = LinearLayoutManager(context)
                 val nicoVideoAdapter = NicoVideoAdapter(recyclerViewList, fragment)
                 bottom_fragment_comment_menu_recyclerview.adapter = nicoVideoAdapter
+                //区切り線いれる
+                val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+                bottom_fragment_comment_menu_recyclerview.addItemDecoration(itemDecoration)
             }
         }
 

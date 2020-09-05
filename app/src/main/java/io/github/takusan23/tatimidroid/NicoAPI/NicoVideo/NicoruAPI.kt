@@ -1,13 +1,13 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.Response
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import okhttp3.RequestBody.Companion.toRequestBody
 
 /**
  * ニコるくんAPI。金稼ぎに走ってしまったニコるくんなんて言ってはいけない。

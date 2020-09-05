@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
@@ -79,6 +80,9 @@ class NicoVideoCommentFragment : Fragment() {
             // Adapter用意。実は第二引数渡さなくても動いたりする（ニコるできなくなるけど）
             nicoVideoAdapter = NicoVideoAdapter(commentList, devNicoVideoFragment)
             adapter = nicoVideoAdapter
+            //区切り線いれる
+            val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+            addItemDecoration(itemDecoration)
             // スクロールイベント。上方向へスクロールをしたら自動追従を解除する設定にした。
             // これで自動スクロール止めたい場合は上方向へスクロールしてください。代わりに追いかけるボタンが表示されます。
             addOnScrollListener(object : RecyclerView.OnScrollListener() {

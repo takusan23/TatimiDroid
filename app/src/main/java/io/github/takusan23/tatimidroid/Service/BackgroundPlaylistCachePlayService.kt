@@ -187,6 +187,19 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
 
             // 忘れずに
             setSessionToken(sessionToken)
+
+            // 前回リピートモード有効にしてたか
+            val repeatMode = prefSetting.getInt("cache_repeat_mode", 0)
+            controller.transportControls.setRepeatMode(repeatMode)
+            // 前回シャッフルモードを有効にしていたか
+            val isShuffleMode = prefSetting.getBoolean("cache_shuffle_mode", false)
+            val shuffleMode = if (isShuffleMode) {
+                PlaybackStateCompat.SHUFFLE_MODE_ALL
+            } else {
+                PlaybackStateCompat.REPEAT_MODE_NONE
+            }
+            controller.transportControls.setShuffleMode(shuffleMode)
+
         }
 
         // ExoPlayerの再生状態が更新されたときも通知を更新する
@@ -371,7 +384,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         }
         notification.apply {
             setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken).setShowActionsInCompactView(0, 1, 3))
-            setSmallIcon(R.drawable.ic_background_icon)
+            setSmallIcon(R.drawable.ic_tatimidroid_playlist_play_black)
             /**
              * ボタン。本来はMediaButtonReceiverを使うんだけど、なんかメディアの再開だとうまく動かないのでBroadcastで代替
              * */

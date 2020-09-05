@@ -37,7 +37,6 @@ import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.FregmentData.TabLayoutData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
 import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoRecyclerPagerAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoPOSTFragment
@@ -86,9 +85,6 @@ class NicoVideoFragment : Fragment() {
 
     // シーク操作中かどうか
     var isTouchSeekBar = false
-
-    // ニコれるように
-    val nicoruAPI = NicoruAPI()
 
     /**
      * MVVM ｲｸｿﾞｵｵｵｵｵ！

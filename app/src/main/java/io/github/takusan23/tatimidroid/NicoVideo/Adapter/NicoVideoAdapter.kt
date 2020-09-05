@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -15,7 +16,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
 import io.github.takusan23.tatimidroid.BottomFragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
@@ -23,7 +23,6 @@ import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Tool.CustomFont
-import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import org.json.JSONArray
@@ -110,14 +109,14 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             setTextViewFont(holder.userNameTextView)
         }
 
-        // ニコるカウントに合わせて色つける
+        // かんたんコメント（あらし機能）、通常コメ、投稿者コメ、ニコるカウントに合わせて色つける
         if (prefSetting.getBoolean("setting_nicovideo_nicoru_color", false)) {
-            holder.cardView.apply {
-                strokeColor = getNicoruLevelColor(item.nicoru, context)
-                strokeWidth = 2
-                elevation = 0f
-                setBackgroundColor(getThemeColor(context))
+            val color = when {
+                item.fork == 1 -> Color.argb(255, 172, 209, 94)// 投稿者コメント
+                item.fork == 2 -> Color.argb(255, 234, 90, 61) // かんたんコメント
+                else -> Color.argb(255, 0, 153, 229) // それ以外（通常）
             }
+            holder.nicoruColor.setBackgroundColor(getNicoruLevelColor(item.nicoru, color))
         }
 
         // 一般会員にはニコる提供されてないのでニコる数だけ表示
@@ -135,7 +134,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         holder.nicoruButton.text = item.nicoru.toString()
 
         // ロックオン芸（詳細画面表示）
-        holder.cardView.setOnClickListener {
+        holder.parentLinearLayout.setOnClickListener {
             val bundle = Bundle()
             bundle.putString("comment", item.comment)
             bundle.putString("user_id", item.userId)
@@ -149,7 +148,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             }
         }
 
-        // DevNicoVideoFragmentに依存してる系。なにかに依存させるとかFragmentの意味ないやんけ！
+        // ニコれるように
         if (nicoVideoFragment != null) {
 
             // JSON
@@ -206,10 +205,10 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
         GlobalScope.launch(errorHandler) {
             nicoVideoFragment?.apply {
+                val nicoruAPI = nicoVideoFragment.viewModel.nicoruAPI
                 // JSON
-                val jsonObject = viewModel.nicoVideoJSON.value ?: return@apply
                 val userSession = prefSetting.getString("user_session", "") ?: return@apply
-                if (NicoVideoHTML().isPremium(jsonObject)) {
+                if (viewModel.isPremium) {
                     val nicoruKey = nicoruAPI.nicoruKey
                     val responseNicoru = nicoruAPI.postNicoru(userSession, viewModel.threadId, viewModel.userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey)
                     if (!responseNicoru.isSuccessful) {
@@ -246,7 +245,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
                             // nicoruKey失効。
                             lifecycleScope.launch {
                                 // 再取得
-                                nicoVideoFragment.nicoruAPI.getNicoruKey(userSession, viewModel.threadId)
+                                nicoruAPI.getNicoruKey(userSession, viewModel.threadId)
                                 postNicoru(context, holder, item)
                             }
                         }
@@ -271,11 +270,12 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         return "${hour}:${simpleDateFormat.format(time * 1000)}"
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var commentTextView: TextView = itemView.findViewById(R.id.adapter_nicovideo_comment_textview)
         var userNameTextView: TextView = itemView.findViewById(R.id.adapter_nicovideo_user_textview)
         var nicoruButton: MaterialButton = itemView.findViewById(R.id.adapter_nicovideo_comment_nicoru)
-        var cardView: MaterialCardView = itemView.findViewById(R.id.adapter_nicovideo_comment_cardview)
+        val nicoruColor: View = itemView.findViewById(R.id.adapter_nicovideo_nicoru_color)
+        val parentLinearLayout: LinearLayout = itemView.findViewById(R.id.adapter_nicovideo_nicoru_parent)
     }
 
     fun setTimeFormat(date: Long): String? {
@@ -289,12 +289,17 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
     }
 
-    // ニコる色。
-    private fun getNicoruLevelColor(nicoruCount: Int, context: Context) = when {
+    /**
+     * ニコるの数に応じた色。
+     * @param nicoruCount ニコるの数
+     * @param elseColor 3未満の場合に返す色
+     * @return いろ
+     * */
+    private fun getNicoruLevelColor(nicoruCount: Int, elseColor: Int) = when {
         nicoruCount >= 9 -> Color.rgb(252, 216, 66)
         nicoruCount >= 6 -> Color.rgb(253, 235, 160)
         nicoruCount >= 3 -> Color.rgb(254, 245, 207)
-        else -> textColor
+        else -> elseColor
     }
 
 }
