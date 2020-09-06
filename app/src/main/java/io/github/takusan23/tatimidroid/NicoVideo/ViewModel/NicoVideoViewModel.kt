@@ -181,7 +181,7 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
                         val loadCommentAsync = nicoVideoHTML.parseCommentJSON(commentJSONFilePath, videoId)
                         // フィルターで3ds消したりする。が、コメントは並列で読み込んでるので、並列で作業してるコメント取得を待つ（合流する）
                         rawCommentList = ArrayList(loadCommentAsync)
-                        commentFilter()
+                        commentFilter(true)
                     }
                 } else {
                     // 動画が見つからなかった
@@ -279,7 +279,7 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
                     ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.await()?.body?.string()!!, videoId))
                 }
                 // フィルターで3ds消したりする
-                commentFilter()
+                commentFilter(true)
             }
             // 関連動画
             launch { getRecommend() }
@@ -326,7 +326,7 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
     }
 
     /** コメントNGを適用したりする */
-    fun commentFilter() {
+    fun commentFilter(isShowToast: Boolean = false) {
         // 3DSけす？
         val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
         // NGコメント。ngList引数が省略時されてるときはDBから取り出す
@@ -334,10 +334,14 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
         // NGユーザー。ngList引数が省略時されてるときはDBから取り出す
         val ngUserList = ngList.map { ngdbEntity -> ngdbEntity.value }
         // はい、NGでーす
-        commentList.postValue(rawCommentList
+        val filteredList = rawCommentList
             .filter { commentJSONParse -> if (is3DSCommentHidden) !commentJSONParse.mail.contains("device:3DS") else true }
             .filter { commentJSONParse -> !ngCommentList.contains(commentJSONParse.comment) }
-            .filter { commentJSONParse -> !ngUserList.contains(commentJSONParse.userId) } as ArrayList<CommentJSONParse>)
+            .filter { commentJSONParse -> !ngUserList.contains(commentJSONParse.userId) } as ArrayList<CommentJSONParse>
+        commentList.postValue(filteredList)
+        if (isShowToast) {
+            showToast("${getString(R.string.get_comment_count)}：${filteredList.size}")
+        }
     }
 
     /** 履歴データベースへ書き込む */

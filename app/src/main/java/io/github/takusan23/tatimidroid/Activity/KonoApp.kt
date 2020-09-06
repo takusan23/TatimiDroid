@@ -22,18 +22,18 @@ import kotlinx.android.synthetic.main.activity_kono_app.*
  * */
 class KonoApp : AppCompatActivity() {
 
-    /*
-    * 作者のTwitter、Mastodonリンク
-    * */
+    /**
+     * 作者のTwitter、Mastodonリンク
+     * */
     val twitterLink = "https://twitter.com/takusan__23"
     val mastodonLink = "https://best-friends.chat/@takusan_23"
     val source = "https://github.com/takusan23/TatimiDroid"
     val privacy_policy = "https://github.com/takusan23/TatimiDroid/blob/master/privacy_policy.md"
 
-    /*
-    * バージョンとか
-    * */
-    val version = "2020/09/04"
+    /**
+     * バージョンとか
+     * */
+    val version = "2020/09/07"
     val codeName1 = "（原宿）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,7 +133,7 @@ class KonoApp : AppCompatActivity() {
 
         // 色ランダム
         val color = arrayListOf("pink", "blue", "cyan", "orange", "purple").random()
-        val size = arrayListOf("small","medium","big").random()
+        val size = arrayListOf("small", "medium", "big").random()
         val commentJSON = CommentJSONParse("{}", "arena", "sm157")
         commentJSON.comment = aa
         commentJSON.mail = "$color $size"

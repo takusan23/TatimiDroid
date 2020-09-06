@@ -633,7 +633,7 @@ class CommentFragment : Fragment() {
             // アンケ終了
             if (content.contains("/vote stop")) {
                 commentActivity.runOnUiThread {
-                    comment_fragment_enquate_framelayout.removeAllViews()
+                    comment_fragment_enquate_framelayout?.removeAllViews()
                 }
             }
         }

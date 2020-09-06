@@ -94,6 +94,17 @@
                     android:name="android.app.shortcuts"
                     android:resource="@xml/app_shortcut" />
         </activity>
+
+        <!-- おまけ -->
+        <service
+                android:name=".Service.NicoVersionHistoryDeviceControl"
+                android:label="@string/nico_version_history"
+                android:permission="android.permission.BIND_CONTROLS">
+            <intent-filter>
+                <action android:name="android.service.controls.ControlsProviderService" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

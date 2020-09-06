@@ -197,10 +197,6 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
         viewTreeObserver.addOnGlobalLayoutListener {
             finalHeight = height
-            val lineCount = height / fontsize
-            for (i in 0 until lineCount.toInt()) {
-                commentLines.add(0L)
-            }
         }
 
     }

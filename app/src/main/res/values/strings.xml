@@ -509,4 +509,5 @@
     <string name="shuffle">shuffle</string>
     <string name="playlist_button">Continuous playback</string>
     <string name="cache_background_play">Continuous background playback</string>
+    <string name="nico_version_history">Transition of Nico Nico Douga</string>
 </resources>

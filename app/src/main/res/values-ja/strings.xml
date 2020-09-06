@@ -509,4 +509,5 @@
     <string name="shuffle">シャッフル</string>
     <string name="playlist_button">連続再生（ベータ）</string>
     <string name="cache_background_play">連続バッググラウンド再生</string>
+    <string name="nico_version_history">ニコニコ動画の変遷</string>
 </resources>

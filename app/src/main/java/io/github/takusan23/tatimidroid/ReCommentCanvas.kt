@@ -128,6 +128,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                             val speed = if (reDrawCommentData.asciiArt) commentMoveMinus else commentMoveMinus + (reDrawCommentData.comment.length / 8)
                             reDrawCommentData.rect.left -= speed
                             reDrawCommentData.rect.right -= speed
+                            // なお画面外は消す
+                            if (reDrawCommentData.rect.right < 0) {
+                                drawNakaCommentList.remove(reDrawCommentData)
+                            }
                         }
                     }
                     // 上コメ、下コメは３秒間表示させる
