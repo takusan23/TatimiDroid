@@ -22,7 +22,7 @@ import java.util.function.Consumer
 class NicoVersionHistoryDeviceControl : ControlsProviderService() {
 
     // 追加するデバイスのID
-    val NICO_VERSION_HISTORY_CONTROL_ID = "nico_vision_history_control_id"
+    val NICO_VERSION_HISTORY_CONTROL_ID = "nico_version_history_control_id"
 
     // ニコニコ動画の変遷
     val NICO_HISTORY_NAME = arrayListOf(
