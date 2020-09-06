@@ -572,7 +572,7 @@ class NicoVideoFragment : Fragment() {
         if (viewModel.isFullScreenMode) {
             // 連続再生Fragmentがある場合
             (parentFragmentManager.findFragmentByTag(NicoVideoPlayListActivity.FRAGMENT_TAG) as? NicoVideoPlayListFragment)?.apply {
-                setFabVisibility(isVisibility)
+                setFabVisibility(!isVisibility) // 反転する
             }
         }
     }

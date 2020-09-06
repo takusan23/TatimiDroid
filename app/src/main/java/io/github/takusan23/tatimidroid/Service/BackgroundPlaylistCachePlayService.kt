@@ -308,22 +308,21 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             setState(state, position, 1.0f) // 最後は再生速度
         }.build()
         mediaSessionCompat.setPlaybackState(stateBuilder)
-
-        // なんかここらへんがおかしいと通知が二重で発行される。のでとりあえず仮のメタデータを送って
-        val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
-            // Android 11 の MediaSession で使われるやつ
-            putString(MediaMetadataCompat.METADATA_KEY_TITLE, getString(R.string.loading))
-            putString(MediaMetadataCompat.METADATA_KEY_ARTIST, getString(R.string.loading))
-            putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 0 * 1000) // これあるとAndroid 10でシーク使えます
-        }.build()
-        mediaSessionCompat.setMetadata(mediaMetadataCompat)
         // 取れそうなら本番のメタデータを送る。なぜか上の setMetadata を省略すると動かない。
         if (exoPlayer.currentTag is String) {
             mediaSessionCompat.setMetadata(createMetaData(exoPlayer.currentTag as String))
             // 最後に再生した曲を保存しておく。Android 11 の メディアの再開 で使う
             prefSetting.edit { putString("cache_last_play_video_id", exoPlayer.currentTag as String) }
+        } else {
+            // 仮のデータ。なんかここらへんがおかしいと通知が二重で発行される
+            val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
+                // Android 11 の MediaSession で使われるやつ
+                putString(MediaMetadataCompat.METADATA_KEY_TITLE, getString(R.string.loading))
+                putString(MediaMetadataCompat.METADATA_KEY_ARTIST, getString(R.string.loading))
+                putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 0 * 1000) // これあるとAndroid 10でシーク使えます
+            }.build()
+            mediaSessionCompat.setMetadata(mediaMetadataCompat)
         }
-
     }
 
     /**
@@ -385,6 +384,14 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         notification.apply {
             setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken).setShowActionsInCompactView(0, 1, 3))
             setSmallIcon(R.drawable.ic_tatimidroid_playlist_play_black)
+            // Android 11 からは MediaSession から値をもらってsetContentTextしてくれるけど10以前はしてくれないので
+            mediaSessionCompat.controller.metadata?.apply {
+                getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART).apply {
+                    setLargeIcon(this)
+                }
+                setContentTitle(getText(MediaMetadataCompat.METADATA_KEY_TITLE))
+                setContentText(getText(MediaMetadataCompat.METADATA_KEY_ARTIST))
+            }
             /**
              * ボタン。本来はMediaButtonReceiverを使うんだけど、なんかメディアの再開だとうまく動かないのでBroadcastで代替
              * */

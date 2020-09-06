@@ -110,14 +110,12 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         }
 
         // かんたんコメント（あらし機能）、通常コメ、投稿者コメ、ニコるカウントに合わせて色つける
-        if (prefSetting.getBoolean("setting_nicovideo_nicoru_color", false)) {
-            val color = when {
-                item.fork == 1 -> Color.argb(255, 172, 209, 94)// 投稿者コメント
-                item.fork == 2 -> Color.argb(255, 234, 90, 61) // かんたんコメント
-                else -> Color.argb(255, 0, 153, 229) // それ以外（通常）
-            }
-            holder.nicoruColor.setBackgroundColor(getNicoruLevelColor(item.nicoru, color))
+        val color = when {
+            item.fork == 1 -> Color.argb(255, 172, 209, 94)// 投稿者コメント
+            item.fork == 2 -> Color.argb(255, 234, 90, 61) // かんたんコメント
+            else -> Color.argb(255, 0, 153, 229) // それ以外（通常）
         }
+        holder.nicoruColor.setBackgroundColor(getNicoruLevelColor(item.nicoru, color))
 
         // 一般会員にはニコる提供されてないのでニコる数だけ表示
         // あとDevNicoVideoFragmentはがめんスワイプしてたらなんか落ちたので
