@@ -385,7 +385,7 @@ class NicoVideoFragment : Fragment() {
         // システムバー表示
         setSystemBarVisibility(true)
         // 背景もどす
-        fragment_nicovideo_framelayout.setBackgroundColor(Color.WHITE)
+        (fragment_nicovideo_framelayout.parent as View).setBackgroundColor(getThemeColor(context))
         // アスペ（クト比）直す
         fragment_nicovideo_framelayout.updateLayoutParams {
             // 画面の幅取得。令和最新版（ビリビリワイヤレスイヤホン並感）
@@ -469,7 +469,8 @@ class NicoVideoFragment : Fragment() {
             requireNicoVideoPlayListFragment()?.nextVideo()
         }
         // ダブルタップ版setOnClickListener。拡張関数です。DoubleClickListener
-        player_control_center_parent.setOnDoubleClickListener { motionEvent, isDoubleClick ->
+        player_control_parent.setOnDoubleClickListener { motionEvent, isDoubleClick ->
+            // player_control_parentでコントローラーのUIが表示されてなくてもスキップできるように
             if (isDoubleClick && motionEvent != null) {
                 val skip = if (motionEvent.x > player_control_center_parent.width / 2) {
                     // 半分より右
@@ -498,6 +499,7 @@ class NicoVideoFragment : Fragment() {
         player_control_parent.setOnClickListener {
             // 非表示切り替え
             player_control_main.isVisible = !player_control_main.isVisible
+            setVisibilityPlaylistFab(player_control_main.isVisible)
             // ３秒待ってもViewが表示されてる場合は消せるように。
             updateHideController(job)
         }
@@ -556,6 +558,21 @@ class NicoVideoFragment : Fragment() {
             delay(3000)
             if (player_control_main?.isVisible == true) {
                 player_control_main?.isVisible = false
+                setVisibilityPlaylistFab(false)
+            }
+        }
+    }
+
+    /**
+     * 連続再生FragmentのFabを消す関数。なお全画面再生時のみこの関数が動く
+     * 連続再生Fragment[NicoVideoPlayListFragment]の上にこのFragmentときのみ
+     * @param isVisibility 表示する際はtrue
+     * */
+    private fun setVisibilityPlaylistFab(isVisibility: Boolean) {
+        if (viewModel.isFullScreenMode) {
+            // 連続再生Fragmentがある場合
+            (parentFragmentManager.findFragmentByTag(NicoVideoPlayListActivity.FRAGMENT_TAG) as? NicoVideoPlayListFragment)?.apply {
+                setFabVisibility(isVisibility)
             }
         }
     }
@@ -754,7 +771,7 @@ class NicoVideoFragment : Fragment() {
         }.attach()
         // コメントを指定しておく。View#post{}で確実にcurrentItemが仕事するようになった。ViewPager2頼むよ～
         fragment_nicovideo_viewpager.post {
-            fragment_nicovideo_viewpager?.currentItem = 1
+            fragment_nicovideo_viewpager?.setCurrentItem(1, false)
         }
     }
 

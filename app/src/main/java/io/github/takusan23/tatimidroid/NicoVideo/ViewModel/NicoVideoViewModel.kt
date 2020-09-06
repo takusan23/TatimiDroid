@@ -173,7 +173,7 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
                     if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                         val jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
                         nicoVideoJSON.postValue(jsonObject)
-                        nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject,isOfflinePlay))
+                        nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay))
                     }
                     // コメント取得
                     launch {
@@ -244,7 +244,9 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
                                 videoQuality = videoQualityList.getJSONObject(videoQualityList.length() - 1).getString("id")
                                 audioQuality = audioQualityList.getJSONObject(audioQualityList.length() - 1).getString("id")
                             }
-                            showSnackBar("${getString(R.string.quality)}：$videoQuality")
+                            if (videoQuality.isNotEmpty()) {
+                                showSnackBar("${getString(R.string.quality)}：$videoQuality")
+                            }
                         }
                     }
                     // https://api.dmc.nico/api/sessions のレスポンス

@@ -312,8 +312,8 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         // なんかここらへんがおかしいと通知が二重で発行される。のでとりあえず仮のメタデータを送って
         val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
             // Android 11 の MediaSession で使われるやつ
-            putString(MediaMetadataCompat.METADATA_KEY_TITLE, "タイトル")
-            putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "アーティスト")
+            putString(MediaMetadataCompat.METADATA_KEY_TITLE, getString(R.string.loading))
+            putString(MediaMetadataCompat.METADATA_KEY_ARTIST, getString(R.string.loading))
             putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 0 * 1000) // これあるとAndroid 10でシーク使えます
         }.build()
         mediaSessionCompat.setMetadata(mediaMetadataCompat)

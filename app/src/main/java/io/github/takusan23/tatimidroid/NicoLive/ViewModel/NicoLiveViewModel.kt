@@ -356,7 +356,7 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
             val nowUnixTime = System.currentTimeMillis() / 1000L
             // 範囲内のコメントを取得する
             val timeList = commentList.toList().filter { comment ->
-                if (comment.date != null && comment.date.toFloatOrNull() != null) {
+                if (comment != null && comment.date.toFloatOrNull() != null) {
                     comment.date.toLong() in unixTime..nowUnixTime
                 } else {
                     false

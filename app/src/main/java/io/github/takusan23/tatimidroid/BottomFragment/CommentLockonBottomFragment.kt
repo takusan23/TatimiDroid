@@ -112,7 +112,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         when {
             // 生放送
             fragment is CommentFragment -> {
-                recyclerViewList = fragment.viewModel.commentList.filter { commentJSONParse -> commentJSONParse.userId == userId } as ArrayList<CommentJSONParse>
+                recyclerViewList = fragment.viewModel.commentList.filter { commentJSONParse -> if (commentJSONParse != null) commentJSONParse.userId == userId else false } as ArrayList<CommentJSONParse>
                 lifecycleScope.launch {
                     // コメントが届いたら反映させる。コルーチンすごいね
                     fragment.viewModel.commentReceiveLiveData.observe(viewLifecycleOwner) { comment ->

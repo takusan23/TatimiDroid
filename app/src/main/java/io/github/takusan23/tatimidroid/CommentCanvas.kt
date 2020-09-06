@@ -154,21 +154,20 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             commentObjList.toList().forEach { obj ->
                 if (obj.asciiArt) {
                     // AAの場合は速度を固定する
-                    if ((obj.rect?.right) ?: 0 > 0) {
-                        obj.xPos -= speed
-                    }
+                    obj.xPos -= speed
+                    obj.rect?.left = obj.rect?.left?.minus(speed)
+                    obj.rect?.right = obj.rect?.right?.minus(speed)
                 } else {
-                    if ((obj.rect?.right) ?: 0 > 0) {
-                        obj.xPos -= speed + (obj.comment.length / 8)
-                        obj.rect?.left = obj.rect?.left?.minus(speed + (obj.comment.length / 8))
-                        obj.rect?.right = obj.rect?.right?.minus(speed + (obj.comment.length / 8))
-                    }
+                    obj.xPos -= speed + (obj.comment.length / 8)
+                    obj.rect?.left = obj.rect?.left?.minus(speed + (obj.comment.length / 8))
+                    obj.rect?.right = obj.rect?.right?.minus(speed + (obj.comment.length / 8))
                 }
             }
 
             // 画面の端っこまで行ってないコメントを選別する。画面外は消す。filter{}はよく落ちるので辞めた
             commentObjList.toList().forEach {
-                if (it.rect?.right ?: 0 < 0) {
+                // 暗黒放送だと100前後くらいになる。
+                if (it.rect?.right ?: -10 < 0) {
                     commentObjList.remove(it)
                 }
             }

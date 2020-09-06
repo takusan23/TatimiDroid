@@ -441,7 +441,7 @@ class CommentFragment : Fragment() {
             player_nicolive_control_info_main.isVisible = !player_nicolive_control_info_main.isVisible
         }
         // 横画面なら常に表示
-        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        if (!viewModel.isFullScreenMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             player_nicolive_control_info_main.isVisible = true
         }
         // 押したら消せるように
@@ -449,7 +449,7 @@ class CommentFragment : Fragment() {
             player_nicolive_control_main.isVisible = !player_nicolive_control_main.isVisible
             // フルスクリーン時はFabも消す
             if (viewModel.isFullScreenMode) {
-                if (fab.isShown) fab.hide() else fab.show()
+                if (player_nicolive_control_main.isVisible) fab.show() else fab.hide()
             }
             updateHideController(job)
         }
@@ -672,7 +672,7 @@ class CommentFragment : Fragment() {
         }.attach()
         // コメントを指定しておく。View#post{}で確実にcurrentItemが仕事するようになった。ViewPager2頼むよ～
         comment_viewpager.post {
-            comment_viewpager?.currentItem = 1
+            comment_viewpager?.setCurrentItem(1, false)
         }
     }
 

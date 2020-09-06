@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
@@ -109,5 +110,20 @@ class NicoVideoPlayListFragment : Fragment() {
 
     /** 現在再生中の位置を返す */
     fun getCurrentItemPos() = viewModel.playListVideoList.value?.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == viewModel.playingVideoId.value }
+
+    /**
+     * Fabを消す関数
+     * @param isShow 表示する際はtrue
+     * */
+    fun setFabVisibility(isShow: Boolean) {
+        if (isShow) {
+            fragment_nicovideo_playlist?.hide()
+        } else {
+            fragment_nicovideo_playlist?.show()
+        }
+    }
+
+    /** Fabが表示されているか */
+    fun isShowFab() = fragment_nicovideo_playlist?.isVisible ?: false
 
 }
