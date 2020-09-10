@@ -29,6 +29,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
+import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
@@ -150,6 +151,20 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                 putExtra("eco", true)
             }
             startActivity(nicoVideoActivity)
+        }
+        // インターネットを利用して再生。キャッシュ以外でなお動画IDじゃないときは表示しない
+        if (isCache && NICOVIDEO_ID_REGEX.toRegex().matches(videoId)) {
+            bottom_fragment_nicovideo_list_menu_internet_play.apply {
+                isVisible = true
+                setOnClickListener {
+                    // エコノミーで再生
+                    val nicoVideoActivity = Intent(context, NicoVideoActivity::class.java).apply {
+                        putExtra("id", nicoVideoData.videoId)
+                        putExtra("internet", true)
+                    }
+                    startActivity(nicoVideoActivity)
+                }
+            }
         }
     }
 
@@ -324,7 +339,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         }
 
         // 動画ID以外は非表示にする処理
-        if (nicoVideoData.videoId.contains("sm") || nicoVideoData.videoId.contains("so")) {
+        if (NICOVIDEO_ID_REGEX.toRegex().matches(videoId)) {
             bottom_fragment_nicovideo_list_menu_re_get_cache.visibility = View.VISIBLE
         } else {
             bottom_fragment_nicovideo_list_menu_re_get_cache.visibility = View.GONE

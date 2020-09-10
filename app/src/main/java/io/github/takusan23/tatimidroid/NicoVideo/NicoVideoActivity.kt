@@ -14,8 +14,10 @@ import kotlinx.android.synthetic.main.activity_nicovideo.*
  * ニコ動再生Activity
  * 入れて欲しいもの↓
  * id       |   動画ID
+ * --- にんい ---
  * cache    |   キャッシュ再生ならtrue
  * eco      |   エコノミー再生するなら（?eco=1）true
+ * internet |   キャッシュ有っても強制的にインターネットから取得する場合はtrue
  * */
 class NicoVideoActivity : AppCompatActivity() {
 
@@ -34,6 +36,7 @@ class NicoVideoActivity : AppCompatActivity() {
         val id = intent.getStringExtra("id")
         val isCache = intent?.getBooleanExtra("cache", false) ?: false
         val isEconomy = intent?.getBooleanExtra("eco", false) ?: false
+        val useInternet = intent?.getBooleanExtra("internet", false) ?: false
 
         // 画面回転復帰時はFragmentを置かない（savedInstanceStateがnullのときだけ生成する）
         if (savedInstanceState == null) {
@@ -43,6 +46,7 @@ class NicoVideoActivity : AppCompatActivity() {
             bundle.putString("id", id)
             bundle.putBoolean("cache", isCache)
             bundle.putBoolean("eco", isEconomy)
+            bundle.putBoolean("internet", useInternet)
             nicoVideoFragment.arguments = bundle
             //あとから探せるように第三引数にID入れる
             supportFragmentManager.beginTransaction()

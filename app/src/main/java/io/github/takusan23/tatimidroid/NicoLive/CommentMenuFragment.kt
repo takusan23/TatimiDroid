@@ -365,7 +365,7 @@ class CommentMenuFragment : Fragment() {
         //Infoコメント非表示
         fragment_comment_fragment_menu_hide_info_perm_switch.isChecked = commentFragment.hideInfoUnnkome
         //匿名で投稿するか
-        fragment_comment_fragment_menu_iyayo_comment_switch.isChecked = viewModel.isPostTokumei
+        fragment_comment_fragment_menu_iyayo_comment_switch.isChecked = viewModel.nicoLiveHTML.isPostTokumeiComment
         //匿名コメントを非表示にするか
         fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = viewModel.isTokumeiHide
         //低遅延モードの有効無効
@@ -397,7 +397,7 @@ class CommentMenuFragment : Fragment() {
         }
         fragment_comment_fragment_menu_iyayo_comment_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             // 匿名で投稿するかどうか。
-            viewModel.isPostTokumei = isChecked
+            viewModel.nicoLiveHTML.isPostTokumeiComment = isChecked
             prefSetting.edit { putBoolean("nicolive_post_tokumei", isChecked) }
         }
     }

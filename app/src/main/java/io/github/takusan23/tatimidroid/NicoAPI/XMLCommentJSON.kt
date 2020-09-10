@@ -5,11 +5,8 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.plus
 import org.json.JSONArray
 import org.json.JSONObject
-import org.jsoup.Jsoup
-import org.jsoup.parser.Parser
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.File
@@ -73,23 +70,26 @@ class XMLCommentJSON(val context: Context?) {
                 val origin = parser.getAttributeValue(null, "origin")
                 val premium = parser.getAttributeValue(null, "premium")
                 val content = parser.nextText()
-                // JSONのchatオブジェクト作成
-                val chatObject = JSONObject().apply {
-                    put("thread", thread)
-                    put("no", no)
-                    put("vpos", vpos)
-                    put("leaf", 1)
-                    put("date", date)
-                    put("date_usec", date_usec)
-                    put("anonymcommenty", anonymcommenty)
-                    put("user_id", userId)
-                    put("mail", mail)
-                    put("origin", origin)
-                    put("score", score)
-                    put("content", content)
-                    put("premium", premium)
+                // NGコメントの場合はvposが0になる
+                if (vpos.isNotEmpty()) {
+                    // JSONのchatオブジェクト作成
+                    val chatObject = JSONObject().apply {
+                        put("thread", thread)
+                        put("no", no)
+                        put("vpos", vpos)
+                        put("leaf", 1)
+                        put("date", date)
+                        put("date_usec", date_usec)
+                        put("anonymcommenty", anonymcommenty)
+                        put("user_id", userId)
+                        put("mail", mail)
+                        put("origin", origin)
+                        put("score", score)
+                        put("content", content)
+                        put("premium", premium)
+                    }
+                    jsonArray.put(JSONObject().put("chat", chatObject))
                 }
-                jsonArray.put(JSONObject().put("chat", chatObject))
             }
             eventType = parser.next()
         }

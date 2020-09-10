@@ -98,6 +98,18 @@
                     android:text="@string/play_video" />
 
             <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_internet_play"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_play_arrow_24px"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="@string/internet_play"
+                    android:visibility="gone" />
+
+            <TextView
                     android:id="@+id/bottom_fragment_nicovideo_list_menu_economy_play"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

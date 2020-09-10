@@ -63,8 +63,10 @@ import kotlin.concurrent.timerTask
  * 開発中のニコ動クライアント（？）
  *
  * id           |   動画ID。必須
+ * --- 任意 ---
  * cache        |   キャッシュ再生ならtrue。なければfalse
  * eco          |   エコノミー再生するなら（?eco=1）true
+ * internet     |   キャッシュ有っても強制的にインターネットを利用する場合はtrue
  * */
 class NicoVideoFragment : Fragment() {
 
@@ -133,9 +135,11 @@ class NicoVideoFragment : Fragment() {
         val isCache = arguments?.getBoolean("cache") ?: false
         // エコノミー再生
         val isEconomy = arguments?.getBoolean("eco") ?: false
+        // 強制的にインターネットを利用して取得
+        val useInternet = arguments?.getBoolean("internet") ?: false
 
         // ViewModel初期化
-        viewModel = ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy)).get(NicoVideoViewModel::class.java)
+        viewModel = ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet)).get(NicoVideoViewModel::class.java)
 
         // ViewPager
         initViewPager(viewModel.dynamicAddFragmentList)

@@ -63,8 +63,8 @@ class NicoLiveHTML {
     var programStartTime = 0L    // 番組開場時間
     var programEndTime = 0L     // 番組終了時間
 
-    // 匿名コメントならtrue
-    var isTokumeiComment = true
+    /** 匿名でコメントを投稿する場合はtrue */
+    var isPostTokumeiComment = true
 
     // コメント投稿で使うチケット
     private var commentTicket = ""
@@ -301,7 +301,7 @@ class NicoLiveHTML {
             put("data", JSONObject().apply {
                 put("text", comment)
                 put("vpos", vpos)
-                put("isAnonymous", isTokumeiComment)
+                put("isAnonymous", isPostTokumeiComment)
                 put("color", commentColor)
                 put("size", commentSize)
                 put("position", commentPosition)
@@ -329,7 +329,7 @@ class NicoLiveHTML {
         val jsonObject = JSONObject()
         jsonObject.put("message", comment)
         var commandText = command
-        if (isTokumeiComment) {
+        if (isPostTokumeiComment) {
             commandText = "184 $command"
         }
         jsonObject.put("command", commandText)

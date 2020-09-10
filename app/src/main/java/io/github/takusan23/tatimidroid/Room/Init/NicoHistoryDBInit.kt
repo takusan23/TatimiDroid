@@ -56,6 +56,13 @@ object NicoHistoryDBInit {
                         database.execSQL("UPDATE history SET type = 'live' WHERE service_id LIKE '%lv%'")
                     }
                 })
+                .addMigrations(object : Migration(3, 4) {
+                    // また同じ間違いをしたのでまーた修正
+                    override fun migrate(database: SupportSQLiteDatabase) {
+                        // service_id に lv が含まれている場合は データの type の部分を live に変更する
+                        database.execSQL("UPDATE history SET type = 'live' WHERE service_id LIKE '%lv%'")
+                    }
+                })
                 .build()
         }
         return nicoHistoryDB

@@ -55,9 +55,9 @@
 
     <!-- モバイルデータ通信時。表示される値 -->
     <string-array name="setting_nicolive_mobile_data_type">
-        <item>通常再生</item>
-        <item>最低画質で再生</item>
-        <item>音声のみで再生</item>
+        <item>@string/setting_nicolive_mobile_data_quality_default</item>
+        <item>@string/setting_nicolive_mobile_data_quality_low_quality</item>
+        <item>@string/setting_nicolive_mobile_data_quality_audio_only</item>
     </string-array>
     <!-- モバイルデータ通信時。保存される値 -->
     <string-array name="setting_nicolive_mobile_data_value">

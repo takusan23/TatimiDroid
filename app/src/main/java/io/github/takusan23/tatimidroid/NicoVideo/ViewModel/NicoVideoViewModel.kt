@@ -36,9 +36,10 @@ import org.json.JSONObject
  *
  * @param videoId 動画ID
  * @param isCache キャッシュで再生するか。ただし最終的には[isOfflinePlay]がtrueの時キャッシュ利用再生になります
- * @param isEco エコノミー
+ * @param isEco エコノミー再生ならtrue
+ * @param useInternet キャッシュが有っても強制的にインターネットを経由して取得する場合はtrue
  * */
-class NicoVideoViewModel(application: Application, val videoId: String, val isCache: Boolean, val isEco: Boolean) : AndroidViewModel(application) {
+class NicoVideoViewModel(application: Application, val videoId: String, val isCache: Boolean, val isEco: Boolean, useInternet: Boolean) : AndroidViewModel(application) {
 
     /** Context */
     private val context = getApplication<Application>().applicationContext
@@ -127,6 +128,7 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
         val isPriorityCache = prefSetting.getBoolean("setting_nicovideo_cache_priority", false)
         // キャッシュ再生が有効ならtrue
         isOfflinePlay = when {
+            useInternet -> false // オンライン
             isCache -> true // キャッシュ再生
             NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache -> true // キャッシュ優先再生が可能
             else -> false // オンライン

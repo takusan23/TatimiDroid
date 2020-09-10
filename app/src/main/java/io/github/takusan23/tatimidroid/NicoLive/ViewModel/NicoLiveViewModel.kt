@@ -107,7 +107,7 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
     /** 番組終了時刻。フォーマット済み、HH:mm:ss */
     val formattedProgramEndTime = MutableLiveData<String>()
 
-    /** 画質が切り替わったら飛ばすLiveData */
+    /** 画質が切り替わったら飛ばすLiveData。多分JSON配列 */
     val changeQualityLiveData = MutableLiveData<String>()
 
     /** [changeQualityLiveData]で二回目から使うので制御用 */
@@ -143,9 +143,6 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
     /** 匿名コメントを表示しない場合はtrue */
     var isTokumeiHide = false
 
-    /** 匿名コメントで投稿する場合はtrue */
-    var isPostTokumei = prefSetting.getBoolean("nicolive_post_tokumei", true)
-
     /** NGコメント配列。Room+Flowで監視する */
     var ngCommentList = listOf<String>()
 
@@ -156,6 +153,8 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
     var isFullScreenMode = false
 
     init {
+        // 匿名でコメントを投稿する場合
+        nicoLiveHTML.isPostTokumeiComment = prefSetting.getBoolean("nicolive_post_tokumei", true)
         // エラーのとき（タイムアウトなど）はここでToastを出すなど
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             showToast("${getString(R.string.error)}\n${throwable}")

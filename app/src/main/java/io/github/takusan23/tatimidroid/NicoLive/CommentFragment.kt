@@ -816,9 +816,18 @@ class CommentFragment : Fragment() {
     //視聴モード
     fun setPlayVideoView() {
         val hlsAddress = viewModel.hlsAddress.value ?: return
+        exoPlayer.stop()
         //設定で読み込むかどうか
         Handler(Looper.getMainLooper()).post {
-            live_surface_view.visibility = View.VISIBLE
+            // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
+            if (viewModel.currentQuality == "audio_high") {
+                live_audio_only_textview.isVisible = true
+                live_surface_view.background = ColorDrawable(Color.BLACK)
+            } else {
+                live_audio_only_textview.isVisible = false
+                live_surface_view.background = null
+            }
+            live_surface_view.isVisible = true
             // 画面の幅取得。Android 11に対応した
             val displayWidth = DisplaySizeTool.getDisplayWidth(context)
             //ウィンドウの半分ぐらいの大きさに設定
@@ -1043,7 +1052,7 @@ class CommentFragment : Fragment() {
             isCommentPost = isWatchingMode,
             isNicocasMode = isNicocasMode,
             isJK = isJK,
-            isTokumei = viewModel.isPostTokumei,
+            isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
             startQuality = viewModel.currentQuality
         )
         // Activity落とす
@@ -1196,7 +1205,7 @@ class CommentFragment : Fragment() {
             comment_cardview_command_edit_color_premium_linearlayout.visibility = View.VISIBLE
         }
         // 184が有効になっているときはコメントInputEditTextのHintに追記する
-        if (viewModel.isPostTokumei) {
+        if (viewModel.nicoLiveHTML.isPostTokumeiComment) {
             comment_cardview_comment_textinput_layout.hint = getString(R.string.comment)
         } else {
             comment_cardview_comment_textinput_layout.hint = "${getString(R.string.comment)}（${getString(R.string.disabled_tokumei_comment)}）"

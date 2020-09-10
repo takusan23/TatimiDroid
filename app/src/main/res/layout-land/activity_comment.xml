@@ -50,6 +50,18 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent" />
 
+                    <TextView
+                            android:id="@+id/live_audio_only_textview"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:drawableTop="@drawable/ic_tatimidroid_playlist_play_black"
+                            android:drawableTint="#ffffff"
+                            android:gravity="center"
+                            android:text="@string/audio_only_play"
+                            android:textColor="#ffffff"
+                            android:visibility="gone" />
+
                     <io.github.takusan23.tatimidroid.CommentCanvas
                             android:id="@+id/comment_canvas"
                             android:layout_width="match_parent"

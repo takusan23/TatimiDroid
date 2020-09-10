@@ -510,4 +510,9 @@
     <string name="playlist_button">Continuous playback</string>
     <string name="cache_background_play">Continuous background playback</string>
     <string name="nico_version_history">Transition of Nico Nico Douga</string>
+    <string name="setting_nicolive_mobile_data_quality_default">Normal playback</string>
+    <string name="setting_nicolive_mobile_data_quality_low_quality">Play with the lowest image quality</string>
+    <string name="setting_nicolive_mobile_data_quality_audio_only">Play audio only</string>
+    <string name="audio_only_play">Playback of audio only</string>
+    <string name="internet_play">Play using the internet</string>
 </resources>

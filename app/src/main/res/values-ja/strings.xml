@@ -510,4 +510,9 @@
     <string name="playlist_button">連続再生（ベータ）</string>
     <string name="cache_background_play">連続バッググラウンド再生</string>
     <string name="nico_version_history">ニコニコ動画の変遷</string>
+    <string name="setting_nicolive_mobile_data_quality_default">通常再生</string>
+    <string name="setting_nicolive_mobile_data_quality_low_quality">最低画質で再生</string>
+    <string name="setting_nicolive_mobile_data_quality_audio_only">音声のみで再生</string>
+    <string name="audio_only_play">音声のみで再生してます</string>
+    <string name="internet_play">インターネットを利用して再生</string>
 </resources>
