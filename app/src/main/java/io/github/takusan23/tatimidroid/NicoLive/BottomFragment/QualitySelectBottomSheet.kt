@@ -68,7 +68,6 @@ class QualitySelectBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    //シングルトンとは
     companion object {
         fun getQualityText(text: String, context: Context?): String {
             when (text) {
@@ -91,7 +90,7 @@ class QualitySelectBottomSheet : BottomSheetDialogFragment() {
                     return "192kbps"
                 }
                 "audio_high" -> {
-                    return context?.getString(R.string.quality_audio) + "(利用できない模様)"
+                    return context?.getString(R.string.quality_audio) ?: "音声のみ"
                 }
             }
             return ""

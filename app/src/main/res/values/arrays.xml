@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <!-- 起動時の設定 表示される値  -->
     <string-array name="launch_fragment">
         <item>@string/nicolive</item>
@@ -12,6 +13,7 @@
         <item>video</item>
         <item>cache</item>
     </string-array>
+
     <!-- デフォルトの再生方法 表示される値  -->
     <string-array name="play_type">
         <item>@string/default_play</item>
@@ -24,6 +26,7 @@
         <item>popup</item>
         <item>background</item>
     </string-array>
+
     <!-- ダークモード選択肢。表示される値 -->
     <string-array name="darkmode_setting_type">
         <item>@string/setting_darkmode_device</item>
@@ -36,6 +39,7 @@
         <item>dark</item>
         <item>light</item>
     </string-array>
+
     <!-- アプリの言語を変更 -->
     <string-array name="setting_language_type">
         <item>@string/setting_language_default</item>
@@ -47,6 +51,19 @@
         <item>default</item>
         <item>ja</item>
         <item>en</item>
+    </string-array>
+
+    <!-- モバイルデータ通信時。表示される値 -->
+    <string-array name="setting_nicolive_mobile_data_type">
+        <item>通常再生</item>
+        <item>最低画質で再生</item>
+        <item>音声のみで再生</item>
+    </string-array>
+    <!-- モバイルデータ通信時。保存される値 -->
+    <string-array name="setting_nicolive_mobile_data_value">
+        <item>default</item>
+        <item>super_low_quality</item>
+        <item>audio_only</item>
     </string-array>
 
 </resources>

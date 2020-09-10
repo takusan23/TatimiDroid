@@ -163,11 +163,17 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
         if (!isJK) {
             // 低遅延設定
             nicoLiveHTML.isLowLatency = prefSetting.getBoolean("nicolive_low_latency", false)
-            // 初回の画質を低画質にする設定（モバイル回線とか強制低画質モードとか）
-            val isMobileDataLowQuality = prefSetting.getBoolean("setting_mobiledata_quality_low", false) == isConnectionMobileDataInternet(context) // 有効時 でなお モバイルデータ接続時
+            // 初回の画質を低画質にする設定（モバイル回線で最低画質にする設定とか強制低画質モードとか）
+            val mobileDataQualitySetting = prefSetting.getString("setting_nicolive_mobile_data_quality", "default")
+            val isMobileDataLowQuality = (mobileDataQualitySetting == "super_low_quality") && isConnectionMobileDataInternet(context) // 有効時 でなお モバイルデータ接続時
             val isPreferenceLowQuality = prefSetting.getBoolean("setting_nicolive_quality_low", false)
-            if (isMobileDataLowQuality || isPreferenceLowQuality) {
+            // モバイルデータ通信時に音声のみで再生する設定
+            val isMobileDataAudioOnly = mobileDataQualitySetting == "audio_only" && isConnectionMobileDataInternet(context)
+            if ((isMobileDataLowQuality || isPreferenceLowQuality) && !isMobileDataAudioOnly) {
                 nicoLiveHTML.startQuality = "super_low"
+            } else if (isMobileDataAudioOnly) {
+                // モバイルデータ通信時に音声のみで再生する場合
+                nicoLiveHTML.startQuality = "audio_high"
             }
             // ニコ生
             viewModelScope.launch(errorHandler + Dispatchers.Default) {
@@ -686,7 +692,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         val unixTime = System.currentTimeMillis() / 1000
         // 入れるデータ
         val nicoHistoryDBEntity = NicoHistoryDBEntity(
-            type = "video",
+            type = "live",
             serviceId = liveId,
             userId = communityId,
             title = programTitle,
