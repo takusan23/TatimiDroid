@@ -56,7 +56,7 @@ class NicoVideoCommentFragment : Fragment() {
         // スクロールボタン。追従するぞい
         dev_nicovideo_comment_fragment_following_button.setOnClickListener {
             // Fragmentはクソ！
-            devNicoVideoFragment?.apply {
+            devNicoVideoFragment.apply {
                 // スクロール
                 val currentPos = exoPlayer.currentPosition
                 scroll(currentPos)
@@ -221,13 +221,4 @@ class NicoVideoCommentFragment : Fragment() {
         return rangeItem.none { commentJSONParse -> commentJSONParse.vpos.toInt() / 100 != firstTime }
     }
 
-    /**
-     * コメント一覧を保存しておく
-     * */
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putSerializable("comment", recyclerViewList)
-    }
-
 }
-
