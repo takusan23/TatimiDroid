@@ -57,7 +57,7 @@ class NicoLogin {
          * @param context SharedPreferenceを使うため
          * @return ユーザーセッションを返します。失敗時は空文字（どうにかしたい）
          * */
-        @Deprecated("二段階認証に対応した secureNicoLogin() を使ってください。", ReplaceWith("secureNicoLogin", "context"))
+        @Deprecated("二段階認証に対応した secureNicoLogin() を使ってください。", ReplaceWith("NicoLogin.secureNicoLogin(context)"))
         suspend fun reNicoLogin(context: Context?): String = withContext(Dispatchers.Default) {
             // メアドを取り出す
             val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
@@ -97,6 +97,8 @@ class NicoLogin {
             val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
             val mail = prefSetting.getString("mail", "")
             val pass = prefSetting.getString("password", "")
+            // 二段階認証時以外ならnull。二段階認証時でもデバイスを信頼してない場合はnull。それ以外なら信頼されてるとして、二段階認証時をパスできる。
+            val trustDeviceToken = prefSetting.getString("trust_device_token", null)
             if (mail == null && pass == null) {
                 withContext(Dispatchers.Main) {
                     // メアド設定してね
@@ -105,7 +107,7 @@ class NicoLogin {
                 return@withContext null
             }
             // ログインAPIを叩く
-            val nicoLoginResult = nicoLoginCoroutine(mail!!, pass!!)
+            val nicoLoginResult = nicoLoginCoroutine(mail!!, pass!!, trustDeviceToken)
             if (nicoLoginResult != null) {
                 if (!nicoLoginResult.isNeedTwoFactorAuth) {
                     // 二段階認証 が　未　設　定
@@ -142,16 +144,20 @@ class NicoLogin {
          * OkHttpで書き直した。リダイレクト禁止すればできます。Set-Cookieが複数あるので注意
          * @param mail メアド
          * @param pass パスワード
+         * @param trustDeviceToken 二段階認証時で、このデバイスが信頼されている場合は、mfa_trusted_device_tokenの値を入れてください。（二段階認証時に信頼するにチェックを入れるとSet-Cookieにmfa_trusted_device_tokenのあたいが入る）
          * @return [NicoLoginDataClass]を返します。
          *          二段階認証が必要な場合は[NicoLoginDataClass.isTwoFactor]がtrueになってます。
          *          [NicoLoginDataClass.isTwoFactor]がfalseの場合は[NicoLoginDataClass.userSession]にユーザーセッションが入っています。
          * */
-        suspend fun nicoLoginCoroutine(mail: String, pass: String): NicoLoginDataClass? = withContext(Dispatchers.Default) {
+        suspend fun nicoLoginCoroutine(mail: String, pass: String, trustDeviceToken: String? = null): NicoLoginDataClass? = withContext(Dispatchers.Default) {
             val url = "https://secure.nicovideo.jp/secure/login?site=niconico"
             val postData = "mail_tel=$mail&password=$pass"
             val request = Request.Builder().apply {
                 url(url)
                 addHeader("User-Agent", "TatimiDroid;@takusan_23")
+                if (trustDeviceToken != null) {
+                    addHeader("Cookie", trustDeviceToken)
+                }
                 post(postData.toRequestBody("application/x-www-form-urlencoded".toMediaTypeOrNull())) // 送信するデータ。
             }.build()
             // リダイレクト禁止（そうしないとステータスコードが302にならない）
@@ -160,48 +166,32 @@ class NicoLogin {
                 followSslRedirects(false)
             }.build()
             val response = okHttpClient.newCall(request).execute()
+            println(response.headers)
             // 成功時
             if (response.code == 302) {
                 // 二段階認証がかかっているかどうか
-                val twoFactorURL = getTwoFactorLoginAPIURL(response.headers)
-                if (twoFactorURL == null) {
-                    // 二段階認証未設定時
-                    // Set-Cookieを探す。
-                    // なんか複雑なことしてるけどおそらくヘッダーSet-Cookieが複数あるせいで最後のSet-Cookieの値しか取れないのでめんどい
-                    response.headers.filter { pair ->
-                        pair.second.contains("user_session") && !pair.second.contains("secure") && !pair.second.contains("deleted")
-                    }.forEach { header ->
-                        // user_session
-                        val user_session = header.second.split(";")[0].replace("user_session=", "")
-                        return@withContext NicoLoginDataClass(false, userSession = user_session)
-                    }
-                } else {
+                var userSession = ""
+                // Set-Cookieを探す。
+                // なんか複雑なことしてるけどおそらくヘッダーSet-Cookieが複数あるせいで最後のSet-Cookieの値しか取れないのでめんどい
+                response.headers.filter { pair ->
+                    pair.second.contains("user_session") && !pair.second.contains("secure") && !pair.second.contains("deleted")
+                }.forEach { header ->
+                    // user_session
+                    userSession = header.second.split(";")[0].replace("user_session=", "")
+                    return@withContext NicoLoginDataClass(false, userSession = userSession)
+                }
+                if (userSession.isEmpty()) {
+                    // user_sessionなかったので、二段階認証が必要と判断
                     // 設定されてる。二段階認証のためにCookieも取得する
                     val loginCookie = getLoginCookie(response.headers)
-                    return@withContext NicoLoginDataClass(true, twoFactorURL = twoFactorURL, twoFactorCookie = loginCookie)
+                    return@withContext NicoLoginDataClass(true, twoFactorURL = response.headers["Location"], twoFactorCookie = loginCookie)
+                } else {
+                    // なかった
+                    return@withContext null
                 }
-                // なかった
-                return@withContext null
             } else {
                 // そもそも失敗
                 return@withContext null
-            }
-        }
-
-        /**
-         * [nicoLoginCoroutine]のレスポンスを解析して、二段階認証が必要かどうかを返す。nullのときは二段階認証が設定されていません。
-         * @param responseHeaders [nicoLoginCoroutine]の内部で使ってるので。ログインのレスポンスヘッダー
-         * @return null のときは二段階認証が不必要です。
-         * */
-        private fun getTwoFactorLoginAPIURL(responseHeaders: Headers?): String? {
-            return if (responseHeaders == null) {
-                null // nullのとき
-            } else {
-                if (responseHeaders["Location"] == "https://secure.nicovideo.jp/secure/") {
-                    null // 二段階認証未設定時
-                } else {
-                    responseHeaders["Location"] // 二段階認証へのURL
-                }
             }
         }
 

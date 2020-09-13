@@ -43,8 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
-            android:text="このデバイスを信頼する。チェックすると次回から二段階認証をスキップできます。"
-            android:visibility="gone" />
+            android:text="このデバイスを信頼する。チェックすると次回から二段階認証をスキップできます。" />
 
     <Button
             android:id="@+id/two_factor_auth_activity_login_button"

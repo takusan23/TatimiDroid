@@ -13,6 +13,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.activity_two_factor_auth.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -36,17 +37,27 @@ class TwoFactorAuthLoginActivity : AppCompatActivity() {
         two_factor_auth_activity_login_button.setOnClickListener {
 
             // 認証コード
-            val key_visualarts = two_factor_auth_activity_key_input.text.toString()
+            val keyVisualArts = two_factor_auth_activity_key_input.text.toString()
             // このデバイスを信用する場合
             val isTrustDevice = two_factor_auth_activity_trust_check.isChecked
 
+            // 例外
+            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                runOnUiThread {
+                    Toast.makeText(this, "${getString(R.string.error)}\n${throwable}", Toast.LENGTH_SHORT).show()
+                }
+                finish()
+            }
             // 二段階認証開始
-            lifecycleScope.launch(Dispatchers.Main) {
+            lifecycleScope.launch(Dispatchers.Main + errorHandler) {
                 val nicoLoginTwoFactorAuth = NicoLoginTwoFactorAuth(loginData)
-                val userSession = nicoLoginTwoFactorAuth.twoFactorAuth(key_visualarts, isTrustDevice)
+                val (userSession, trustDeviceToken) = nicoLoginTwoFactorAuth.twoFactorAuth(keyVisualArts, isTrustDevice)
+
                 // 保存
                 PreferenceManager.getDefaultSharedPreferences(this@TwoFactorAuthLoginActivity).edit {
                     putString("user_session", userSession)
+                    // デバイスを信頼している場合は次回からスキップできる値を保存
+                    putString("trust_device_token", trustDeviceToken)
                     // もしログイン無しで利用するが有効の場合は無効にする
                     putBoolean("setting_no_login", false)
                 }

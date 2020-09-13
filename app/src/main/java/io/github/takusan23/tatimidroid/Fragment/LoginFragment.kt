@@ -36,7 +36,7 @@ class LoginFragment : Fragment() {
 
         //おしたとき
         fragment_login_button.setOnClickListener {
-            // 通常ログイン
+            // ログインAPI叩く
             lifecycleScope.launch(Dispatchers.Main) {
                 val mail = fragment_login_mail_inputedittext.text.toString()
                 val pass = fragment_login_password_inputedittext.text.toString()

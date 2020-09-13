@@ -39,15 +39,18 @@ class NicoLoginTwoFactorAuth(val nicoLoginDataClass: NicoLoginDataClass) {
      *
      * これを一つの関数にまとめた。
      * @param otp ワンタイムパスワード。メールで送られてくる。ドコモ口座の被害を回避できたのはこの仕組を導入していた銀行（それ以外にもあるけど）
+     * @return Pair<String,String>を返します。
+     * 一個目はユーザーセッションです。大切にしてね
+     * 二個目は[isTrustDevice]がtrueの場合は次回から二段階認証をスキップできる値が入っています。この値をログイン時のCookieに詰めることで省略ができます。
      * */
     suspend fun twoFactorAuth(otp: String, isTrustDevice: Boolean) = withContext(Dispatchers.Default) {
         // 二段階認証のAPIを取得しに行く
         val twoFactorAuthAPIURL = getTwoFactorAPIURL()
         // 認証コードを入れてAPIを叩く
-        val finalAPIURL = postOneTimePassword(twoFactorAuthAPIURL, otp, isTrustDevice)
+        val (finalAPIURL, trustDeviceToken) = postOneTimePassword(twoFactorAuthAPIURL, otp, isTrustDevice)
         // ラスト、ユーザーセッションを取得する
         val userSession = getUserSession(finalAPIURL!!)
-        return@withContext userSession
+        return@withContext Pair(userSession, trustDeviceToken)
     }
 
     /**
@@ -76,8 +79,10 @@ class NicoLoginTwoFactorAuth(val nicoLoginDataClass: NicoLoginDataClass) {
      * 成功するとステータスコードが302になる。
      * @param otp 認証コード。メールで届いてるはず
      * @param twoFactorAuthAPIURL [getTwoFactorAPIURL]の戻り値
-     * @param isTrustDevice このデバイスを信頼する場合はtrue。信頼すると次回から二段階認証をスキップできる。せーのでほっぴんジャンプ♪
-     * @return 最後に叩くAPIのURL。叩くと、ユーザーセッションが手に入る。
+     * @param isTrustDevice このデバイスを信頼する場合はtrue。信頼すると次回から二段階認証をスキップできる（クライアント側で対応必須）。せーのでほっぴんジャンプ♪
+     * @return Pair<String,String>を返します。
+     * 一個目は最後に叩くAPIのURLです。
+     * 二個目は[isTrustDevice]がtrue(このデバイスを信頼する場合)なら、mfa_trusted_device_tokenの値を入れてます。無いならnullです
      * */
     private suspend fun postOneTimePassword(twoFactorAuthAPIURL: String, otp: String, isTrustDevice: Boolean) = withContext(Dispatchers.Default) {
         val formData = FormBody.Builder().apply {
@@ -93,7 +98,14 @@ class NicoLoginTwoFactorAuth(val nicoLoginDataClass: NicoLoginDataClass) {
             post(formData)
         }.build()
         val response = okHttpClient.newCall(request).execute()
-        response.headers["Location"]
+        // デバイスを信頼している場合
+        val trustDeviceToken = if (isTrustDevice) {
+            response.headers.filter { pair -> pair.second.contains("mfa_trusted_device_token") }[0].second.split(";")[0]
+        } else {
+            null
+        }
+        val finalAPIURL = response.headers["Location"]
+        Pair(finalAPIURL, trustDeviceToken)
     }
 
     /**
