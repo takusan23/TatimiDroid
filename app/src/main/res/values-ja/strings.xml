@@ -515,4 +515,5 @@
     <string name="setting_nicolive_mobile_data_quality_audio_only">音声のみで再生</string>
     <string name="audio_only_play">音声のみで再生してます</string>
     <string name="internet_play">インターネットを利用して再生</string>
+    <string name="two_factor_auth">二段階認証</string>
 </resources>

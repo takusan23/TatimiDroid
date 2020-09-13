@@ -515,4 +515,5 @@
     <string name="setting_nicolive_mobile_data_quality_audio_only">Play audio only</string>
     <string name="audio_only_play">Playback of audio only</string>
     <string name="internet_play">Play using the internet</string>
+    <string name="two_factor_auth">Two factor auth</string>
 </resources>

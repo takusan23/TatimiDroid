@@ -20,7 +20,7 @@ import io.github.takusan23.tatimidroid.NicoLive.Adapter.AutoAdmissionAdapter
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommunityRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
+import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import kotlinx.android.synthetic.main.activity_main.*

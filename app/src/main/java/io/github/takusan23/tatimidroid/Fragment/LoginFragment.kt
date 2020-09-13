@@ -10,18 +10,14 @@ import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLogin
+import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
-import java.nio.charset.StandardCharsets
 
+/** ログイン画面Fragment */
 class LoginFragment : Fragment() {
     lateinit var prefSetting: SharedPreferences
 
@@ -40,15 +36,17 @@ class LoginFragment : Fragment() {
 
         //おしたとき
         fragment_login_button.setOnClickListener {
-            //ログイン
+            // 通常ログイン
             lifecycleScope.launch(Dispatchers.Main) {
                 val mail = fragment_login_mail_inputedittext.text.toString()
                 val pass = fragment_login_password_inputedittext.text.toString()
+                // メアドを保存する
+                NicoLogin.saveMailPassPreference(requireContext(), mail, pass)
                 // ログインAPIを叩く
                 val userSession = withContext(Dispatchers.Default) {
-                    NicoLogin.nicoLoginCoroutine(mail, pass)
+                    NicoLogin.secureNicoLogin(requireContext())
                 }
-                if (userSession != null) {
+                if (userSession != null && userSession != NicoLogin.LOGIN_TWO_FACTOR_AUTH) {
                     // 成功時
                     Toast.makeText(activity, getString(R.string.successful), Toast.LENGTH_SHORT).show()
                     //めあど、ぱすわーども保存する
@@ -59,6 +57,9 @@ class LoginFragment : Fragment() {
                         // もしログイン無しで利用するが有効の場合は無効にする
                         putBoolean("setting_no_login", false)
                     }
+                } else if (userSession == NicoLogin.LOGIN_TWO_FACTOR_AUTH) {
+                    // 二段階認証開始
+                    Toast.makeText(context, "二段階認証が必要です。", Toast.LENGTH_SHORT).show()
                 } else {
                     // 失敗時
                     Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()

@@ -45,6 +45,12 @@ import kotlinx.coroutines.withContext
  *         - ニコ動
  *     - cache
  *         - キャッシュ一覧
+ *     - login
+ *         - 二段階認証が必要な際にどうぞ
+ *
+ * - login / [io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLoginDataClass]（Serialize）
+ *     - 二段階認証に必要なデータを渡してね
+ *
  * ```kotlin
  * // キャッシュ一覧を直接開く例
  * val intent = Intent(context, MainActivity::class.java)
@@ -102,7 +108,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.menu_login -> {
                     if (isConnectionInternet(this)) {
                         setFragment(LoginFragment())
-                        // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_LOGIN)
                     }
                 }
                 R.id.menu_community -> {
@@ -112,7 +117,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.menu_setting -> {
                     setFragment(SettingsFragment())
-                    // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_SETTING)
                 }
                 R.id.menu_nicovideo -> {
                     if (isConnectionInternet(this)) {
@@ -121,7 +125,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.menu_cache -> {
                     setFragment(NicoVideoCacheFragment())
-                    // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_CACHE)
                 }
             }
             true
