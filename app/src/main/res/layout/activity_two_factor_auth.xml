@@ -8,20 +8,19 @@
         android:orientation="vertical">
 
     <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:drawableStart="@drawable/ic_security"
             android:gravity="center"
-            android:text="@string/two_factor_auth"
-            android:textSize="18sp" />
+            android:text="ログインに二段階認証が必要です。" />
 
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:gravity="center"
-            android:text="登録済みのメールアドレス宛に認証コードが送信されているはずです。受信トレイを確認してください。" />
+            android:text="メールで認証コードを受け取る設定なら、受信トレイを見に行ってください。\nスマートフォンのアプリで認証コードを取得する場合はアプリを開いてコードを取得してください。" />
 
     <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"

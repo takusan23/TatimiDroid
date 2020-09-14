@@ -1,5 +1,7 @@
 package io.github.takusan23.tatimidroid.Activity
 
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.widget.Toast
@@ -66,6 +68,23 @@ class TwoFactorAuthLoginActivity : AppCompatActivity() {
                 finish()
             }
 
+        }
+    }
+
+    /**
+     * クリップボードに認証コードがある場合は貼り付ける
+     * Android 11から画面内の文字をコピーできるように（選択可能）なったけどもしかしてワンタイムパスワードのために付いた機能か！？
+     * */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipdata = clipboard.primaryClip
+        if (clipdata?.getItemAt(0)?.text != null) {
+            val clipboardText = clipdata.getItemAt(0).text
+            if (clipboardText.matches(Regex("[0-9]+"))) {
+                // 正規表現で数字だったときは貼り付ける
+                two_factor_auth_activity_key_input.setText(clipboardText)
+            }
         }
     }
 

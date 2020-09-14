@@ -150,7 +150,7 @@ class NicoLogin {
          *          [NicoLoginDataClass.isTwoFactor]がfalseの場合は[NicoLoginDataClass.userSession]にユーザーセッションが入っています。
          * */
         suspend fun nicoLoginCoroutine(mail: String, pass: String, trustDeviceToken: String? = null): NicoLoginDataClass? = withContext(Dispatchers.Default) {
-            val url = "https://secure.nicovideo.jp/secure/login?site=niconico"
+            val url = "https://account.nicovideo.jp/login/redirector"
             val postData = "mail_tel=$mail&password=$pass"
             val request = Request.Builder().apply {
                 url(url)

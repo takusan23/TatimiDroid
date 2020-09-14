@@ -13,10 +13,12 @@ import org.jsoup.Jsoup
  *
  * リダイレクトを禁止しないとうまく動きません。
  *
+ * 二段階認証に対応した話はここ：https://takusan.negitoro.dev/posts/nicovideo_two_factor
+ *
  * @param nicoLoginDataClass [NicoLogin.nicoLoginCoroutine]の戻り値。
  * [NicoLoginDataClass.isNeedTwoFactorAuth]がtrueである必要があります。([NicoLoginDataClass.userSession]以外がnull以外になっている必要がある)
  * */
-class NicoLoginTwoFactorAuth(val nicoLoginDataClass: NicoLoginDataClass) {
+class NicoLoginTwoFactorAuth(private val nicoLoginDataClass: NicoLoginDataClass) {
 
     /** ログインで使うAPI全てに設定するCookie。 */
     private val loginCookie = nicoLoginDataClass.twoFactorCookie!!
