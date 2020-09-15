@@ -11,15 +11,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHistoryAPI
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_nicovideo_history.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class NicoVideoHistoryFragment : Fragment() {
 
@@ -91,7 +94,7 @@ class NicoVideoHistoryFragment : Fragment() {
                         setAction(R.string.login) {
                             // ログインする
                             lifecycleScope.launch {
-                                userSession = NicoLogin.reNicoLogin(context)
+                                userSession = NicoLogin.secureNicoLogin(context) ?: return@launch
                                 getHistory()
                             }
                         }

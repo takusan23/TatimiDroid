@@ -1,55 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/two_factor_auth_activity_parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center_horizontal"
         android:orientation="vertical">
 
-    <TextView
+    <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:drawableStart="@drawable/ic_security"
-            android:gravity="center"
-            android:text="ログインに二段階認証が必要です。" />
+            android:layout_height="match_parent">
 
-    <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:gravity="center"
-            android:text="メールで認証コードを受け取る設定なら、受信トレイを見に行ってください。\nスマートフォンのアプリで認証コードを取得する場合はアプリを開いてコードを取得してください。" />
-
-    <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/two_factor_auth_activity_key_input"
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="認証コード"
-                android:inputType="number" />
-    </com.google.android.material.textfield.TextInputLayout>
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
 
-    <Switch
-            android:id="@+id/two_factor_auth_activity_trust_check"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            android:text="このデバイスを信頼する。チェックすると次回から二段階認証をスキップできます。" />
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:drawableTop="@drawable/ic_security"
+                    android:gravity="center"
+                    android:text="@string/need_two_factor_auth" />
 
-    <Button
-            android:id="@+id/two_factor_auth_activity_login_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="認証開始" />
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:gravity="center"
+                    android:text="@string/how_to_get_two_factor_auth_code" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/two_factor_auth_activity_key_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/two_factor_auth_code"
+                        android:inputType="number" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Switch
+                    android:id="@+id/two_factor_auth_activity_trust_check"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:text="@string/two_factor_auth_trust_device" />
+
+            <Button
+                    android:id="@+id/two_factor_auth_activity_login_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:text="@string/two_factor_auth_start" />
+
+        </LinearLayout>
+    </ScrollView>
 
 
 </LinearLayout>

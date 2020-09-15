@@ -50,7 +50,8 @@ class NicoVideoSeriesFragment : Fragment() {
 
         // 画面回転復帰時
         if (savedInstanceState != null) {
-            (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).forEach {
+            // ViewModelにしたい
+            (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).toList().forEach {
                 nicoVideoList.add(it)
             }
             nicoVideoListAdapter.notifyDataSetChanged()

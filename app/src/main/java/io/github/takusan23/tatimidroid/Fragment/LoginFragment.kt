@@ -46,7 +46,7 @@ class LoginFragment : Fragment() {
                 val userSession = withContext(Dispatchers.Default) {
                     NicoLogin.secureNicoLogin(requireContext())
                 }
-                if (userSession != null && userSession != NicoLogin.LOGIN_TWO_FACTOR_AUTH) {
+                if (userSession != null) {
                     // 成功時
                     Toast.makeText(activity, getString(R.string.successful), Toast.LENGTH_SHORT).show()
                     //めあど、ぱすわーども保存する
@@ -57,12 +57,9 @@ class LoginFragment : Fragment() {
                         // もしログイン無しで利用するが有効の場合は無効にする
                         putBoolean("setting_no_login", false)
                     }
-                } else if (userSession == NicoLogin.LOGIN_TWO_FACTOR_AUTH) {
-                    // 二段階認証開始
-                    Toast.makeText(context, "二段階認証が必要です。", Toast.LENGTH_SHORT).show()
-                } else {
+                }else {
                     // 失敗時
-                    Toast.makeText(context, getString(R.string.error), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.login_error), Toast.LENGTH_SHORT).show()
                 }
             }
         }

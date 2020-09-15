@@ -516,4 +516,10 @@
     <string name="audio_only_play">音声のみで再生してます</string>
     <string name="internet_play">インターネットを利用して再生</string>
     <string name="two_factor_auth">二段階認証</string>
+    <string name="need_two_factor_auth">ログインに二段階認証が必要です。</string>
+    <string name="how_to_get_two_factor_auth_code">メールで認証コードを受け取る設定なら、受信トレイを確認してください。スマートフォンのアプリで認証コードを取得する場合はアプリを開いてコードを取得してください。</string>
+    <string name="two_factor_auth_code">認証コード</string>
+    <string name="two_factor_auth_trust_device">このデバイスを信頼する。チェックすると次回から二段階認証をスキップできます。</string>
+    <string name="two_factor_auth_start">認証開始</string>
+    <string name="login_error">二段階認証が必要、もしくは問題が発生しました。</string>
 </resources>

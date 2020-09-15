@@ -516,4 +516,10 @@
     <string name="audio_only_play">Playback of audio only</string>
     <string name="internet_play">Play using the internet</string>
     <string name="two_factor_auth">Two factor auth</string>
+    <string name="need_two_factor_auth">Two-step verification is required to log in.</string>
+    <string name="how_to_get_two_factor_auth_code">If you are set to receive the verification code by email, please check your inbox. To get the verification code with the smartphone app, open the app and get the code.</string>
+    <string name="two_factor_auth_code">authentication code</string>
+    <string name="two_factor_auth_trust_device">Trust this device. If you check it, you can skip two-step verification from the next time.</string>
+    <string name="two_factor_auth_start">Authentication started</string>
+    <string name="login_error">Two-step verification is required or a problem has occurred.</string>
 </resources>

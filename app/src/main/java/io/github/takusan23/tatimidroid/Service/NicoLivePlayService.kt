@@ -33,9 +33,9 @@ import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKFlvData
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
+import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
-import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
@@ -196,7 +196,7 @@ class NicoLivePlayService : Service() {
             }
             if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
                 // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
-                NicoLogin.reNicoLogin(this@NicoLivePlayService)
+                NicoLogin.secureNicoLogin(this@NicoLivePlayService)
                 // 視聴モードなら再度視聴ページリクエスト
                 if (isCommentPOSTMode) {
                     coroutine()

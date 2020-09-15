@@ -714,7 +714,13 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         }
         if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
             // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
-            userSession = NicoLogin.reNicoLogin(context)
+            val tmp = NicoLogin.secureNicoLogin(context)
+            if (tmp != null) {
+                userSession = tmp
+            } else {
+                // ログイン失敗（二段階認証とか普通に失敗したとか）
+                messageLiveData.postValue("finish")
+            }
             // 視聴モードなら再度視聴ページリクエスト
             if (isLoginMode) {
                 getNicoLiveHTML()

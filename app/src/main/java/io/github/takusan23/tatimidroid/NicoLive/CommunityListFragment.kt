@@ -15,17 +15,21 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.*
-import io.github.takusan23.tatimidroid.NicoLive.Adapter.AutoAdmissionAdapter
-import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommunityRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
+import io.github.takusan23.tatimidroid.NicoLive.Adapter.AutoAdmissionAdapter
+import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommunityRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_community_list_layout.community_recyclerview
-import kotlinx.coroutines.*
+import kotlinx.android.synthetic.main.fragment_community_list_layout.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -57,6 +61,7 @@ class CommunityListFragment : Fragment() {
         swipeRefreshLayout = view.findViewById(R.id.community_swipe)
 
         swipeRefreshLayout.setOnRefreshListener {
+            userSession = pref_setting.getString("user_session", "") ?: ""
             setNicoLoad()
         }
 
@@ -209,7 +214,7 @@ class CommunityListFragment : Fragment() {
                     showSnackBar(message = getString(R.string.login_disable_message), showTime = Snackbar.LENGTH_INDEFINITE, buttonText = getString(R.string.login)) {
                         lifecycleScope.launch {
                             // 再ログイン+再取得
-                            userSession = NicoLogin.reNicoLogin(context)
+                            userSession = NicoLogin.secureNicoLogin(context) ?: return@launch
                             getProgramDataFromNicoLiveTopPage(jsonObjectName)
                         }
                         return@showSnackBar
@@ -264,7 +269,7 @@ class CommunityListFragment : Fragment() {
                     showSnackBar(message = getString(R.string.login_disable_message), showTime = Snackbar.LENGTH_INDEFINITE, buttonText = getString(R.string.login)) {
                         lifecycleScope.launch {
                             // 再ログイン+再取得
-                            userSession = NicoLogin.reNicoLogin(context)
+                            userSession = NicoLogin.secureNicoLogin(context) ?: return@launch
                             getProgramDataFromNicorepo()
                         }
                         return@showSnackBar

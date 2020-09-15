@@ -95,7 +95,7 @@ class DialogWatchModeBottomFragment : BottomSheetDialogFragment() {
             if (niconicoId == null) {
                 Toast.makeText(context, R.string.re_login, Toast.LENGTH_SHORT).show()
                 // 再ログインする
-                NicoLogin.reNicoLogin(context)
+                NicoLogin.secureNicoLogin(context)
                 Toast.makeText(context, R.string.re_login_successful, Toast.LENGTH_SHORT).show()
             }
             //現在放送中か？

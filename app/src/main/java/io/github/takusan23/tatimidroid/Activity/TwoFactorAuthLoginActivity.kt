@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.Activity
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +31,7 @@ class TwoFactorAuthLoginActivity : AppCompatActivity() {
         // ダークモード
         DarkModeSupport(this).setActivityTheme(this)
         setContentView(R.layout.activity_two_factor_auth)
+        supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(this)))
         two_factor_auth_activity_parent.backgroundTintList = ColorStateList.valueOf(getThemeColor(this))
 
         // データを受け取る
