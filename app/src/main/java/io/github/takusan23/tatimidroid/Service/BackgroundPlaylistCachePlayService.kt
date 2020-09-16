@@ -96,7 +96,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                 /** Android 11 のメディアの再開の時使う。 */
                 override fun onPrepare() {
                     super.onPrepare()
-                    GlobalScope.launch {
+                    GlobalScope.launch(cachePlayServiceCoroutineJob) {
                         // 最後に聞いた曲
                         val videoId = prefSetting.getString("cache_last_play_video_id", "")
                         loadCacheVideo(videoId)
@@ -308,20 +308,28 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             setState(state, position, 1.0f) // 最後は再生速度
         }.build()
         mediaSessionCompat.setPlaybackState(stateBuilder)
-        if (exoPlayer.currentTag is String) {
-            // 正式なデータ
-            mediaSessionCompat.setMetadata(createMetaData(exoPlayer.currentTag as String))
-            // 最後に再生した曲を保存しておく。Android 11 の メディアの再開 で使う
-            prefSetting.edit { putString("cache_last_play_video_id", exoPlayer.currentTag as String) }
-        } else {
-            // 仮のデータ。なんかここらへんがおかしいと通知が二重で発行される
-            val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
-                // Android 11 の MediaSession で使われるやつ
-                putString(MediaMetadataCompat.METADATA_KEY_TITLE, getString(R.string.loading))
-                putString(MediaMetadataCompat.METADATA_KEY_ARTIST, getString(R.string.loading))
-            }.build()
-            mediaSessionCompat.setMetadata(mediaMetadataCompat)
+        val metadata = when {
+            exoPlayer.currentTag is String -> {
+                // 再生中
+                // 最後に再生した曲を保存しておく。Android 11 の メディアの再開 で使う
+                prefSetting.edit { putString("cache_last_play_video_id", exoPlayer.currentTag as String) }
+                createMetaData(exoPlayer.currentTag as String)
+            }
+            exoPlayer.playbackState == Player.STATE_IDLE -> {
+                // 再生していないときは最後に再生してた曲を
+                val recentVideoId = prefSetting.getString("cache_last_play_video_id", null) ?: return // nullなら何もしない
+                createMetaData(recentVideoId)
+            }
+            else -> {
+                // 仮のデータ。なんかここらへんがおかしいと通知が二重で発行される
+                MediaMetadataCompat.Builder().apply {
+                    // Android 11 の MediaSession で使われるやつ
+                    putString(MediaMetadataCompat.METADATA_KEY_TITLE, getString(R.string.loading))
+                    putString(MediaMetadataCompat.METADATA_KEY_ARTIST, getString(R.string.loading))
+                }.build()
+            }
         }
+        mediaSessionCompat.setMetadata(metadata)
     }
 
     /**

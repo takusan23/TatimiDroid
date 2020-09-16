@@ -16,7 +16,6 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -60,8 +59,8 @@ class NicoVideoMenuFragment : Fragment() {
     // JSON
     lateinit var jsonObject: JSONObject
 
-    /** ニコ動Fragment取得。画面回転復帰直後はnullになる？。ボタンを押すたびに取得したほうがいいかも */
-    private fun requireNicoVideoFragment() = parentFragmentManager.findFragmentByTag(videoId) as? NicoVideoFragment
+    /** ニコ動Fragment取得*/
+    private fun requireNicoVideoFragment() = requireParentFragment() as NicoVideoFragment
 
     // NicoVideoFragmentのViewModelを取得する
     val viewModel: NicoVideoViewModel by viewModels({ requireParentFragment() })

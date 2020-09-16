@@ -12,14 +12,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.R
@@ -47,6 +48,7 @@ class NicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideoDat
         val cardView = itemView.findViewById<CardView>(R.id.adapter_nicovideo_list_cardview)
         val thumImageView = itemView.findViewById<ImageView>(R.id.adapter_nicovideo_list_thum)
         val menuImageView = itemView.findViewById<ImageView>(R.id.adapter_nicovideo_list_menu)
+        val durationTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_duration)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NicoVideoListAdapter.ViewHolder {
@@ -93,6 +95,14 @@ class NicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideoDat
                 infoTextView.text = "${context.getString(R.string.view_count)}：${data.viewCount} | ${context.getString(R.string.comment_count)}：${data.commentCount} | ${context.getString(R.string.mylist_count)}：${data.mylistCount}"
             } else {
                 infoTextView.text = ""
+            }
+            // 再生時間。ない場合がある
+            if (data.duration != null && data.duration > 0) {
+                val formatTime = SimpleDateFormat("mm:ss").format(data.duration * 1000)
+                durationTextView.isVisible = true
+                durationTextView.text = formatTime
+            } else {
+                durationTextView.isVisible = false
             }
             // 再生画面表示
             cardView.setOnClickListener {
