@@ -522,4 +522,5 @@
     <string name="two_factor_auth_trust_device">このデバイスを信頼する。チェックすると次回から二段階認証をスキップできます。</string>
     <string name="two_factor_auth_start">認証開始</string>
     <string name="login_error">二段階認証が必要、もしくは問題が発生しました。</string>
+    <string name="cache_filter">フィルター / 並び替え</string>
 </resources>

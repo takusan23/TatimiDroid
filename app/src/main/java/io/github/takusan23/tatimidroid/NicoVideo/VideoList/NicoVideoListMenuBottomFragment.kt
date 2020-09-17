@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -25,6 +26,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
 import io.github.takusan23.tatimidroid.Service.startCacheService
@@ -328,10 +330,9 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                 DialogBottomSheet(getString(R.string.cache_delete_message), buttonItems) { i, bottomSheetDialogFragment ->
                     if (i == 0) {
                         nicoVideoCache.deleteCache(nicoVideoData.videoId)
-                        val fragment =
-                            fragmentManager?.findFragmentById(R.id.main_activity_linearlayout) as NicoVideoCacheFragment
+                        val viewModel by viewModels<NicoVideoCacheFragmentViewModel>({ requireParentFragment() })
                         // 再読み込み
-                        fragment.load()
+                        viewModel.init()
                         dismiss()
                     }
                 }

@@ -1,37 +1,41 @@
 package io.github.takusan23.tatimidroid.NicoVideo.VideoList
 
+import android.content.ComponentName
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Parcelable
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaControllerCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheFilterBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
 import kotlinx.android.synthetic.main.fragment_comment_cache.*
-import kotlinx.android.synthetic.main.include_playlist_button.*
-import kotlinx.coroutines.launch
-import okhttp3.internal.format
 
 class NicoVideoCacheFragment : Fragment() {
-    // 必要なやつ
-    lateinit var nicoVideoListAdapter: NicoVideoListAdapter
-    val cacheVideoList = arrayListOf<NicoVideoData>() // キャッシュ一覧
-    val recyclerViewList = arrayListOf<NicoVideoData>() // RecyclerViewにわたす配列
-    lateinit var nicoVideoCache: NicoVideoCache
 
-    // lateinit var cacheFilterBottomFragment: DevNicoVideoCacheFilterBottomFragment
+    // 必要なやつ
+    lateinit var prefSetting: SharedPreferences
+    lateinit var nicoVideoListAdapter: NicoVideoListAdapter
+
+    /** バックグラウンド連続再生のMediaSessionへ接続する */
+    private lateinit var mediaBrowser: MediaBrowserCompat
+
+    /** ViewModel。画面回転時に再読み込みされるのつらい */
+    private val viewModel by viewModels<NicoVideoCacheFragmentViewModel>({ this })
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_comment_cache, container, false)
@@ -40,57 +44,74 @@ class NicoVideoCacheFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        nicoVideoCache = NicoVideoCache(context)
-        initRecyclerView()
-        initFabClick()
-        // 画面回転復帰時か
-        if (savedInstanceState == null) {
-            load()
-        } else {
-            (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).forEach {
-                cacheVideoList.add(it)
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(requireContext())
+
+        // RecyclerView
+        viewModel.recyclerViewList.observe(viewLifecycleOwner) { list ->
+            println(list)
+            initRecyclerView(list)
+            // 中身0だった場合
+            if (list.isEmpty()) {
+                fragment_cache_empty_message.visibility = View.VISIBLE
             }
-            (savedInstanceState.getSerializable("recycler") as ArrayList<NicoVideoData>).forEach {
-                recyclerViewList.add(it)
-            }
-            fragment_cache_storage_info.text = savedInstanceState.getString("storage")
-            nicoVideoListAdapter.notifyDataSetChanged()
-            // 連続再生ボタン表示
-            include_playlist_button.isVisible = true
+        }
+
+        // 合計容量
+        viewModel.totalUsedStorageGB.observe(viewLifecycleOwner) { gb ->
+            fragment_cache_storage_info.text = "${getString(R.string.cache_usage)}：$gb GB"
+        }
+
+        connectMediaSession()
+
+        // フィルター / 並び替え BottomFragment
+        fragment_cache_menu_filter_textview.setOnClickListener {
+            val cacheFilterBottomFragment = NicoVideoCacheFilterBottomFragment()
+            cacheFilterBottomFragment.show(childFragmentManager, "filter")
         }
 
         // 連続再生
-        include_playlist_button.setOnClickListener {
+        fragment_cache_menu_playlist_textview.setOnClickListener {
             val intent = Intent(requireContext(), NicoVideoPlayListActivity::class.java)
-            // 中身を入れる
-            intent.putExtra("video_list", recyclerViewList)
-            intent.putExtra("name", getString(R.string.cache))
-            startActivity(intent)
+            if (viewModel.recyclerViewList.value != null) {
+                // 中身を入れる
+                intent.putExtra("video_list", viewModel.recyclerViewList.value)
+                intent.putExtra("name", getString(R.string.cache))
+                startActivity(intent)
+            }
+        }
+
+        // バックグラウンド連続再生
+        fragment_cache_menu_background_textview.setOnClickListener {
+            // このActivityに関連付けられたMediaSessionControllerを取得
+            val controller = MediaControllerCompat.getMediaController(requireActivity())
+            // 最後に再生した曲を
+            val videoId = prefSetting.getString("cache_last_play_video_id", "")
+            controller.transportControls.playFromMediaId(videoId, null)
         }
 
     }
 
-    // ストレージの空き確認
-    private fun initStorageSpace() {
-        val byte = nicoVideoCache.cacheTotalSize.toFloat()
-        val gbyte = byte / 1024 / 1024 / 1024 // Byte -> KB -> MB -> GB
-        fragment_cache_storage_info.text = "${getString(R.string.cache_usage)}：${format("%.1f", gbyte)} GB" // 小数点以下一桁
+    /**
+     * バックグラウンド連続再生のMediaBrowserService（音楽再生サービス）（[BackgroundPlaylistCachePlayService]）へ接続する関数
+     * */
+    private fun connectMediaSession() {
+        val callback = object : MediaBrowserCompat.ConnectionCallback() {
+            override fun onConnected() {
+                super.onConnected()
+                // MediaSession経由で操作するやつ
+                val mediaControllerCompat = MediaControllerCompat(requireContext(), mediaBrowser.sessionToken)
+                // Activityと関連付けることで、同じActivityなら操作ができる？（要検証）
+                MediaControllerCompat.setMediaController(requireActivity(), mediaControllerCompat)
+            }
+        }
+        mediaBrowser = MediaBrowserCompat(requireContext(), ComponentName(requireContext(), BackgroundPlaylistCachePlayService::class.java), callback, null)
+        // 忘れてた
+        mediaBrowser.connect()
     }
 
-    // フィルター読み込む
-    private fun loadFilter() {
-        val filter = CacheJSON().readJSON(context)
-        if (filter != null) {
-            applyFilter(filter)
-        }
-    }
-
-    // Filterを適用する
-    fun applyFilter(filterDataClass: CacheFilterDataClass) {
-        val list = nicoVideoCache.getCacheFilterList(cacheVideoList, filterDataClass)
-        activity?.runOnUiThread {
-            initRecyclerView(list, fragment_cache_recyclerview.layoutManager?.onSaveInstanceState())
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaBrowser.disconnect()
     }
 
     // フィルター削除関数
@@ -99,45 +120,9 @@ class NicoVideoCacheFragment : Fragment() {
         Snackbar.make(fragment_cache_empty_message, getString(R.string.filter_clear_message), Snackbar.LENGTH_SHORT).apply {
             setAction(getString(R.string.reset)) {
                 CacheJSON().deleteFilterJSONFile(context)
-                initRecyclerView()
             }
             anchorView = fragment_cache_fab
             show()
-        }
-    }
-
-    // FAB押したとき
-    private fun initFabClick() {
-        fragment_cache_fab.setOnClickListener {
-            val cacheFilterBottomFragment = NicoVideoCacheFilterBottomFragment().apply {
-                cacheFragment = this@NicoVideoCacheFragment
-            }
-            cacheFilterBottomFragment.show(parentFragmentManager, "filter")
-        }
-    }
-
-    // 読み込む
-    fun load() {
-        lifecycleScope.launch {
-            recyclerViewList.clear()
-            cacheVideoList.clear()
-            nicoVideoCache.loadCache().forEach {
-                recyclerViewList.add(it)
-                cacheVideoList.add(it)
-            }
-            // フィルター読み込む
-            loadFilter()
-            activity?.runOnUiThread {
-                nicoVideoListAdapter.notifyDataSetChanged()
-                // 中身0だった場合
-                if (recyclerViewList.isEmpty()) {
-                    fragment_cache_empty_message.visibility = View.VISIBLE
-                }
-                // 合計サイズ
-                initStorageSpace()
-                // 連続再生ボタン表示
-                include_playlist_button.isVisible = true
-            }
         }
     }
 
@@ -147,7 +132,7 @@ class NicoVideoCacheFragment : Fragment() {
      * @param layoutManagerParcelable RecyclerViewのスクロール位置を復元できるらしい。RecyclerView#layoutManager#onSaveInstanceState()で取れる
      * https://stackoverflow.com/questions/27816217/how-to-save-recyclerviews-scroll-position-using-recyclerview-state
      * */
-    fun initRecyclerView(list: ArrayList<NicoVideoData> = recyclerViewList, layoutManagerParcelable: Parcelable? = null) {
+    fun initRecyclerView(list: ArrayList<NicoVideoData>, layoutManagerParcelable: Parcelable? = null) {
         fragment_cache_recyclerview.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
@@ -157,19 +142,6 @@ class NicoVideoCacheFragment : Fragment() {
             nicoVideoListAdapter = NicoVideoListAdapter(list)
             adapter = nicoVideoListAdapter
         }
-    }
-
-    /**
-     * 値を画面回転時に引き継ぐ
-     * */
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.apply {
-            putString("storage", fragment_cache_storage_info.text.toString())
-            putSerializable("recycler", recyclerViewList)
-            putSerializable("list", cacheVideoList)
-        }
-
     }
 
 }

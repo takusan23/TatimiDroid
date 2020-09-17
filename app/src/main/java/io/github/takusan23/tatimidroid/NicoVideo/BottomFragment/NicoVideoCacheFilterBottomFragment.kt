@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.core.view.children
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
@@ -14,6 +15,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_cache_filter.*
 
@@ -29,7 +31,11 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
             arrayListOf("取得日時が新しい順", "取得日時が古い順", "再生の多い順", "再生の少ない順", "投稿日時が新しい順", "投稿日時が古い順", "再生時間の長い順", "再生時間の短い順", "コメントの多い順", "コメントの少ない順", "マイリスト数の多い順", "マイリスト数の少ない順")
     }
 
-    lateinit var cacheFragment: NicoVideoCacheFragment
+    /** [NicoVideoCacheFragment] */
+    private val nicoVideoCacheFragment by lazy { requireParentFragment() as NicoVideoCacheFragment }
+
+    /** [NicoVideoCacheFragmentViewModel]のViewModel */
+    private val viewModel by viewModels<NicoVideoCacheFragmentViewModel>({ requireParentFragment() })
 
     private var uploaderNameList = arrayListOf<String>()
 
@@ -40,29 +46,31 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 部分一致検索
-        initContainsSearch()
-        // 投稿者ソート
-        initUploaderSort()
-        // 新しい順とかソート機能
-        initSortSpinner()
-        // タグSpinner
-        initTagSpinner()
-        // スイッチ
-        initSwitch()
-        // リセット
-        initResetButton()
+        viewModel.cacheVideoList.observe(viewLifecycleOwner) {
+            // 部分一致検索
+            initContainsSearch()
+            // 投稿者ソート
+            initUploaderSort(it)
+            // 新しい順とかソート機能
+            initSortSpinner()
+            // タグSpinner
+            initTagSpinner(it)
+            // スイッチ
+            initSwitch()
+            // リセット
+            initResetButton()
 
-        // JSONファイル（filter.json）読み込む
-        readJSON()
-        filter()
+            // JSONファイル（filter.json）読み込む
+            readJSON()
+            filter()
+        }
 
     }
 
     // 投稿者ソート
-    private fun initUploaderSort() {
+    private fun initUploaderSort(cacheList: ArrayList<NicoVideoData>) {
         // RecyclerViewのNicoVideoDataの中から投稿者の配列を取る
-        val nameList = cacheFragment.recyclerViewList.map { nicoVideoData ->
+        val nameList = cacheList.map { nicoVideoData ->
             nicoVideoData.uploaderName
         }.toList().distinct()
         nameList.forEach {
@@ -71,8 +79,7 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
             }
         }
         // Adapter作成
-        val adapter =
-            AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_list_item_1, uploaderNameList)
+        val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_list_item_1, uploaderNameList)
         bottom_fragment_cache_filter_uploader_textview.setAdapter(adapter)
         bottom_fragment_cache_filter_uploader_textview.addTextChangedListener {
             filter()
@@ -84,9 +91,9 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     }
 
     // タグのSpinner
-    private fun initTagSpinner() {
+    private fun initTagSpinner(cacheList: ArrayList<NicoVideoData>) {
         // RecyclerViewのNicoVideoDataの中からまずタグの配列を取り出す
-        val tagVideoList = cacheFragment.recyclerViewList.map { nicoVideoData ->
+        val tagVideoList = cacheList.map { nicoVideoData ->
             nicoVideoData.videoTag ?: arrayListOf()
         }
         // 全ての動画のタグを一つの配列にしてまとめる。そして被りを消してアルファベット順？
@@ -138,7 +145,7 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     private fun initResetButton() {
         bottom_fragment_cache_filter_reset.setOnClickListener {
             dismiss()
-            cacheFragment.filterDeleteMessageShow() // 本当に消していい？
+            nicoVideoCacheFragment.filterDeleteMessageShow() // 本当に消していい？
         }
     }
 
@@ -159,12 +166,11 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
             bottom_fragment_cache_filter_dropdown.text.toString(),
             bottom_fragment_cache_filter_has_video_json.isChecked
         )
-
-        // リスト操作
-        cacheFragment.applyFilter(cacheFilter)
-
         // 保存
         cacheJson.saveJSON(context, cacheJson.createJSON(cacheFilter))
+
+        // リスト操作
+        viewModel.applyFilter()
     }
 
     // JSON取得

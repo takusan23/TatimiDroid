@@ -311,7 +311,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         val metadata = when {
             exoPlayer.currentTag is String -> {
                 // 再生中
-                // 最後に再生した曲を保存しておく。Android 11 の メディアの再開 で使う
+                // 最後に再生した曲を保存しておく。Android 11 の メディアの再開 や 連続再生の開始（無指定の時） で使う
                 prefSetting.edit { putString("cache_last_play_video_id", exoPlayer.currentTag as String) }
                 createMetaData(exoPlayer.currentTag as String)
             }

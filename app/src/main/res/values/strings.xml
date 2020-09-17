@@ -522,4 +522,5 @@
     <string name="two_factor_auth_trust_device">Trust this device. If you check it, you can skip two-step verification from the next time.</string>
     <string name="two_factor_auth_start">Authentication started</string>
     <string name="login_error">Two-step verification is required or a problem has occurred.</string>
+    <string name="cache_filter">Filter / Sort</string>
 </resources>

@@ -11,16 +11,6 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-        <TextView
-                android:id="@+id/fragment_cache_storage_info"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10sp"
-                android:drawableStart="@drawable/ic_data_usage_black_24dp"
-                android:paddingStart="10sp"
-                android:paddingEnd="10sp"
-                android:text="" />
-
         <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/fragment_cache_recyclerview"
                 android:layout_width="match_parent"
@@ -28,18 +18,82 @@
                 android:scrollbars="vertical">
 
         </androidx.recyclerview.widget.RecyclerView>
+
     </LinearLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fragment_cache_fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:backgroundTint="@color/colorAccent"
-            app:srcCompat="@drawable/ic_sort_black_24dp" />
+    <androidx.constraintlayout.motion.widget.MotionLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutDescription="@xml/fragment_comment_cache_scene">
+
+        <androidx.cardview.widget.CardView
+                android:id="@+id/fragment_cache_menu_cardview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:orientation="vertical">
+
+                <TextView
+                        android:id="@+id/fragment_cache_storage_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_data_usage_black_24dp"
+                        android:padding="15dp"
+                        android:text="" />
+
+                <TextView
+                        android:id="@+id/fragment_cache_menu_filter_textview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_filter_alt_black_24dp"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="15dp"
+                        android:text="@string/cache_filter" />
+
+                <TextView
+                        android:id="@+id/fragment_cache_menu_background_textview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_tatimidroid_playlist_play_black"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="15dp"
+                        android:text="@string/cache_background_play" />
+
+                <TextView
+                        android:id="@+id/fragment_cache_menu_playlist_textview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_tatimidroid_list_icon_black"
+                        android:focusable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:padding="15dp"
+                        android:text="@string/playlist_button" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fragment_cache_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:backgroundTint="@color/colorAccent"
+                app:srcCompat="@drawable/ic_expand_less_black_24dp" />
+
+    </androidx.constraintlayout.motion.widget.MotionLayout>
+
 
     <LinearLayout
             android:id="@+id/fragment_cache_empty_message"
@@ -56,7 +110,7 @@
                 android:layout_height="100sp"
                 android:gravity="center"
                 android:src="@drawable/ic_cache_icon"
-                android:tint="@color/colorPrimaryDark" />
+                app:tint="@color/colorPrimaryDark" />
 
         <TextView
                 android:layout_width="match_parent"
@@ -72,7 +126,5 @@
                 android:text="@string/cache_is_empty_message"
                 android:textSize="18sp" />
     </LinearLayout>
-
-    <include layout="@layout/include_playlist_button"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
