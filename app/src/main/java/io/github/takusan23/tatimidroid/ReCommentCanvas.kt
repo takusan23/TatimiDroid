@@ -373,7 +373,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         val comment = commentJSON.comment
         val command = commentJSON.mail
         // コメントの大きさ調整
-        val calcCommentSize = calcCommentFontSize(paint.measureText(comment), getCommandFontSize(command), comment)
+        val calcCommentSize = calcCommentFontSize(getBlackCommentTextPaint(getCommandFontSize(command).toInt()).measureText(comment), getCommandFontSize(command), comment)
         val measure = calcCommentSize.first
         // フォントサイズ。コマンド等も考慮して
         val fontSize = calcCommentSize.second.toInt()
@@ -386,7 +386,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             if (Rect.intersects(reDrawCommentData.rect, addRect)) {
                 // あたっているので下へ
                 addRect.top = reDrawCommentData.rect.bottom
-                addRect.bottom = addRect.top + fontSize
+                addRect.bottom = (addRect.top + reDrawCommentData.fontSize).roundToInt()
             }
         }
         // なお画面外突入時はランダム
@@ -415,20 +415,20 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         val comment = commentJSON.comment
         val command = commentJSON.mail
         // コメントの大きさ調整
-        val calcCommentSize = calcCommentFontSize(paint.measureText(comment), getCommandFontSize(command), comment)
+        val calcCommentSize = calcCommentFontSize(getBlackCommentTextPaint(getCommandFontSize(command).toInt()).measureText(comment), getCommandFontSize(command), comment)
         val measure = calcCommentSize.first
         // フォントサイズ。コマンド等も考慮して
         val fontSize = calcCommentSize.second.toInt()
         val lect = ((finalWidth - measure) / 2).toInt()
         // 当たり判定計算
-        val addRect = Rect(lect, height - fontSize, (lect + measure).toInt(), height)
+        val addRect = Rect(lect, finalHeight - fontSize, (lect + measure).toInt(), finalHeight)
         // 全パターん
         val tmpList = drawShitaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.videoPos }
         for (reDrawCommentData in tmpList) {
             if (Rect.intersects(reDrawCommentData.rect, addRect)) {
                 // あたっているので下へ
-                addRect.top = reDrawCommentData.rect.top - fontSize
-                addRect.bottom = reDrawCommentData.rect.bottom - fontSize
+                addRect.top = (reDrawCommentData.rect.top - reDrawCommentData.fontSize).roundToInt()
+                addRect.bottom = (reDrawCommentData.rect.bottom - reDrawCommentData.fontSize).roundToInt()
             }
         }
         // なお画面外突入時はランダム

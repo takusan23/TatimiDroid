@@ -26,10 +26,7 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 動画ID
-        val videoId = arguments?.getString("video_id")
-
-        val devNicoVideoFragment = fragmentManager?.findFragmentByTag(videoId) as NicoVideoFragment
+        val devNicoVideoFragment = requireParentFragment() as NicoVideoFragment
 
         // データ受け取り
         // dmcInfo(DMCサーバー)かsmileInfo（Smileサーバー）か
@@ -67,7 +64,9 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                         }
                         this@NicoVideoQualityBottomFragment.dismiss()
                     }
-                    // プレ垢限定
+                    /**
+                     * プレ垢限定 か 強制エコノミー ?eco=1 のときは availableがtrueにはならない
+                     * */
                     if (!available) {
                         isEnabled = false
                         text = "$label (プレ垢限定画質だから入って；；)"

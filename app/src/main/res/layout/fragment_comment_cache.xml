@@ -22,6 +22,7 @@
     </LinearLayout>
 
     <androidx.constraintlayout.motion.widget.MotionLayout
+            android:id="@+id/fragment_cache_card_motionlayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layoutDescription="@xml/fragment_comment_cache_scene">

@@ -1,9 +1,8 @@
-package io.github.takusan23.tatimidroid.FregmentData
+package io.github.takusan23.tatimidroid.Adapter.Parcelable
 
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
-import java.io.Serializable
 
 /**
  * ViewPagerに動的に追加した際に、画面回転してもFragmentを再生成するための値を置いておくデータクラス。

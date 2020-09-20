@@ -6,28 +6,28 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.time.temporal.ChronoUnit
+import java.util.*
 
 /**
- * ニコ動のシリーズ取得
- * https://sp.nicovideo.jp/series/　へアクセスしてスクレイピングしてJSONを取り出す
- * スマホ版じゃないとコメント数が取れない？
+ * ニコ動のシリーズ取得。PC版をスクレイピング
+ *
+ * スマホ版は規制がかかった動画を非表示にするのでPC版をスクレイピングすることに。
  * */
-class NicoVideoSeriesAPI() {
+class NicoVideoSeriesAPI {
 
     /**
-     * シリーズの動画一覧へアクセスしてHTMLを取りに行く
-     * @param seriesId シリーズのID。https://sp.nicovideo.jp/series/{ここの文字}
+     * シリーズの動画一覧へアクセスしてHTMLを取りに行く。スマホ版は申し訳ないが規制が入ってるのでNG。
+     * @param seriesId シリーズのID。https://nicovideo.jp/series/{ここの文字}
      * @param userSession ユーザーセッション
      * @return OkHttpのレスポンス
      * */
     suspend fun getSeriesVideoList(userSession: String, seriesId: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
-            url("https://sp.nicovideo.jp/series/$seriesId")
+            url("https://nicovideo.jp/series/$seriesId")
             addHeader("Cookie", "user_session=$userSession")
             addHeader("User-Agent", "TatimiDroid;@takusan_23")
             get()
@@ -37,46 +37,51 @@ class NicoVideoSeriesAPI() {
     }
 
     /**
-     * [getSeriesVideoList]のHTMLをパースして配列に変換する
-     * @param responseHTML HTML
+     * [getSeriesVideoList]のHTMLをスクレイピングして配列に変換する
+     * @param responseHTML [getSeriesVideoList]
      * @return [NicoVideoData]の配列
      * */
     suspend fun parseSeriesVideoList(responseHTML: String?) = withContext(Dispatchers.Default) {
         val list = arrayListOf<NicoVideoData>()
         // HTMLスクレイピング
-        val jsonElement = Jsoup.parse(responseHTML).getElementsByTag("script")
-        val seriesJSONElement = jsonElement[5]
-/*
-        jsonElement.forEachIndexed { index, element ->
-            println(index)
-            println(element.html())
+        val document = Jsoup.parse(responseHTML)
+        // mapって便利やな
+        val titleList = document.getElementsByClass("VideoMediaObject-title").map {
+            it.getElementsByTag("a")[0].text()
         }
-*/
-        // JSONパース
-        val jsonObject = JSONObject(seriesJSONElement.html())
-        val itemListElement = jsonObject.getJSONArray("itemListElement")
-        for (i in 0 until itemListElement.length()) {
-            val videoObject = itemListElement.getJSONObject(i)
-            val title = videoObject.getString("name")
-            val videoId = videoObject.getString("@id").replace("https://sp.nicovideo.jp/watch/", "")
-            val thumbUrl = videoObject.getJSONArray("thumbnail").getJSONObject(0).getString("contentUrl")
-            val date = toUnixTime(videoObject.getString("uploadDate"))
-            val countObject = videoObject.getJSONArray("interactionStatistic")
-            val viewCount = countObject.getJSONObject(0).getString("userInteractionCount")
-            val mylistCount = countObject.getJSONObject(1).getString("userInteractionCount")
-            val commentCount = countObject.getJSONObject(2).getString("userInteractionCount")
-            val duration = formatISO8601ToSecond(videoObject.getString("duration"))
+        val videoIdList = document.getElementsByClass("VideoMediaObject-title").map {
+            it.getElementsByTag("a")[0].attr("href").replace("/watch/", "")
+        }
+        val thumbUrlList = document.getElementsByClass("Thumbnail-image").map {
+            it.getElementsByClass("Thumbnail-image").attr("data-background-image")
+        }
+        val dateList = document.getElementsByClass("SeriesVideoListContainer-videoRegisteredAt").map {
+            val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm 投稿")
+            simpleDateFormat.parse(it.text()).time
+        }
+        val viewCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-view").map { it.text() }
+        val mylistCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-mylist").map { it.text() }
+        val commentCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-comment").map { it.text() }
+        val durationList = document.getElementsByClass("VideoLength").map {
+            // SimpleDataFormatで(mm:ss)をパースしたい場合はタイムゾーンをUTCにすればいけます。これで動画時間を秒に変換できる
+            val simpleDateFormat = SimpleDateFormat("mm:ss").apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            simpleDateFormat.parse(it.text()).time / 1000 // 1:00 なら　60 へ
+        }
+
+        for (i in titleList.indices) {
             val data = NicoVideoData(
                 isCache = false,
                 isMylist = false,
-                title = title,
-                videoId = videoId,
-                thum = thumbUrl,
-                date = date,
-                viewCount = viewCount,
-                commentCount = commentCount,
-                mylistCount = mylistCount,
-                duration = duration
+                title = titleList[i],
+                videoId = videoIdList[i],
+                thum = thumbUrlList[i + 1], // 余分なのが先頭に入ってる
+                date = dateList[i],
+                viewCount = viewCountList[i],
+                commentCount = commentCountList[i],
+                mylistCount = mylistCountList[i],
+                duration = durationList[i]
             )
             list.add(data)
         }

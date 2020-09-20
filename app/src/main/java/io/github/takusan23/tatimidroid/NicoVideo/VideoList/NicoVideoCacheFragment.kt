@@ -10,6 +10,7 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
@@ -48,12 +49,9 @@ class NicoVideoCacheFragment : Fragment() {
 
         // RecyclerView
         viewModel.recyclerViewList.observe(viewLifecycleOwner) { list ->
-            println(list)
             initRecyclerView(list)
             // 中身0だった場合
-            if (list.isEmpty()) {
-                fragment_cache_empty_message.visibility = View.VISIBLE
-            }
+            fragment_cache_empty_message.isVisible = list.isEmpty()
         }
 
         // 合計容量
@@ -67,6 +65,7 @@ class NicoVideoCacheFragment : Fragment() {
         fragment_cache_menu_filter_textview.setOnClickListener {
             val cacheFilterBottomFragment = NicoVideoCacheFilterBottomFragment()
             cacheFilterBottomFragment.show(childFragmentManager, "filter")
+            fragment_cache_card_motionlayout.transitionToStart()
         }
 
         // 連続再生
@@ -78,6 +77,7 @@ class NicoVideoCacheFragment : Fragment() {
                 intent.putExtra("name", getString(R.string.cache))
                 startActivity(intent)
             }
+            fragment_cache_card_motionlayout.transitionToStart()
         }
 
         // バックグラウンド連続再生
@@ -87,6 +87,7 @@ class NicoVideoCacheFragment : Fragment() {
             // 最後に再生した曲を
             val videoId = prefSetting.getString("cache_last_play_video_id", "")
             controller.transportControls.playFromMediaId(videoId, null)
+            fragment_cache_card_motionlayout.transitionToStart()
         }
 
     }
@@ -102,6 +103,8 @@ class NicoVideoCacheFragment : Fragment() {
                 val mediaControllerCompat = MediaControllerCompat(requireContext(), mediaBrowser.sessionToken)
                 // Activityと関連付けることで、同じActivityなら操作ができる？（要検証）
                 MediaControllerCompat.setMediaController(requireActivity(), mediaControllerCompat)
+                // とりあえずprepare呼んで（通知領域から）再生可能な状態へ。再生ボタン押すまではServiceが起動しないので多分大丈夫
+                mediaControllerCompat.transportControls.prepare()
             }
         }
         mediaBrowser = MediaBrowserCompat(requireContext(), ComponentName(requireContext(), BackgroundPlaylistCachePlayService::class.java), callback, null)

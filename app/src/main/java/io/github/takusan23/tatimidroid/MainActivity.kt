@@ -48,9 +48,6 @@ import kotlinx.coroutines.withContext
  *     - login
  *         - 二段階認証が必要な際にどうぞ
  *
- * - login / [io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLoginDataClass]（Serialize）
- *     - 二段階認証に必要なデータを渡してね
- *
  * ```kotlin
  * // キャッシュ一覧を直接開く例
  * val intent = Intent(context, MainActivity::class.java)

@@ -1,8 +1,10 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import kotlinx.coroutines.*
-import okhttp3.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 
@@ -14,7 +16,6 @@ class NicoVideoHistoryAPI {
 
     /**
      * 履歴を取得する。
-     * 注意：Android 9の端末でSSLProtocolExceptionが発生するらしい。二回目以降で取れなくなる。
      * @param userSession ユーザーセッション
      * @return Response
      * */
@@ -22,7 +23,7 @@ class NicoVideoHistoryAPI {
         val request = Request.Builder().apply {
             url("https://nvapi.nicovideo.jp/v1/users/me/watch/history?page=1&pageSize=200") // 最大200件？
             header("Cookie", "user_session=${userSession}")
-            header("x-frontend-id", "3") //3でスマホ、6でPC　なんとなくPCを指定しておく。 指定しないと成功しない
+            header("x-frontend-id", "3")
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
@@ -53,7 +54,22 @@ class NicoVideoHistoryAPI {
             val viewCount = count.getInt("view").toString()
             val commentCount = count.getInt("comment").toString()
             val mylistCount = count.getInt("mylist").toString()
-            val data = NicoVideoData(isCache = false, isMylist = false, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = null, cacheAddedDate = null)
+            val duration = video.getLong("duration")
+            val data = NicoVideoData(
+                isCache = false,
+                isMylist = false,
+                title = title,
+                videoId = videoId,
+                thum = thum,
+                date = date,
+                viewCount = viewCount,
+                commentCount = commentCount,
+                mylistCount = mylistCount,
+                mylistItemId = "",
+                mylistAddedDate = null,
+                duration = duration,
+                cacheAddedDate = null
+            )
             list.add(data)
         }
         list

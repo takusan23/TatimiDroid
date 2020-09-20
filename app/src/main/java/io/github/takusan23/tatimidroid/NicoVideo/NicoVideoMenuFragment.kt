@@ -408,7 +408,7 @@ class NicoVideoMenuFragment : Fragment() {
     }
 
     // 音量コントロール
-    fun initVolumeControl() {
+    private fun initVolumeControl() {
         // 音量
         fragment_nicovideo_menu_volume_seek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -423,9 +423,7 @@ class NicoVideoMenuFragment : Fragment() {
 
             }
         })
-        if (requireNicoVideoFragment()?.initExoPlayer() == true) {
-            fragment_nicovideo_menu_volume_seek.progress = ((requireNicoVideoFragment()?.exoPlayer?.volume ?: 1F) * 10).toInt()
-        }
+        fragment_nicovideo_menu_volume_seek.progress = (requireNicoVideoFragment().exoPlayer.volume * 10).toInt()
     }
 
     private fun showToast(message: String?) {

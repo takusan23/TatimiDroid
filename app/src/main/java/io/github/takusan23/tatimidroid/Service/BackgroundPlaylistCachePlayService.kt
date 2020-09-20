@@ -121,9 +121,9 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                 /** 再生 */
                 override fun onPlay() {
                     super.onPlay()
-                    startThisService()
                     exoPlayer.playWhenReady = true
                     isActive = true
+                    startThisService()
                 }
 
                 /** 一時停止 */
@@ -274,7 +274,10 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         }
         withContext(Dispatchers.Main) {
             exoPlayer.prepare(concatenatedSource)
-            exoPlayer.seekTo(index, 0) // 開始位置
+            if (index >= 0) {
+                // これはフィルター条件変更すると、配列から聞いてた動画がなくなり-1が返ってくる可能性があるため
+                exoPlayer.seekTo(index, 0) // 開始位置
+            }
         }
     }
 
@@ -314,11 +317,6 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                 // 最後に再生した曲を保存しておく。Android 11 の メディアの再開 や 連続再生の開始（無指定の時） で使う
                 prefSetting.edit { putString("cache_last_play_video_id", exoPlayer.currentTag as String) }
                 createMetaData(exoPlayer.currentTag as String)
-            }
-            exoPlayer.playbackState == Player.STATE_IDLE -> {
-                // 再生していないときは最後に再生してた曲を
-                val recentVideoId = prefSetting.getString("cache_last_play_video_id", null) ?: return // nullなら何もしない
-                createMetaData(recentVideoId)
             }
             else -> {
                 // 仮のデータ。なんかここらへんがおかしいと通知が二重で発行される

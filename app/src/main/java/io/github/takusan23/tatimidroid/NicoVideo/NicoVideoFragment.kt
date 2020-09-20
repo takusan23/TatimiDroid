@@ -34,7 +34,7 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
-import io.github.takusan23.tatimidroid.FregmentData.TabLayoutData
+import io.github.takusan23.tatimidroid.Adapter.Parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
@@ -100,7 +100,7 @@ class NicoVideoFragment : Fragment() {
 
     var seekTimer = Timer()
 
-    lateinit var exoPlayer: SimpleExoPlayer
+    val exoPlayer by lazy { SimpleExoPlayer.Builder(requireContext()).build() }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo, container, false)
@@ -167,8 +167,12 @@ class NicoVideoFragment : Fragment() {
         } else {
             // 動画再生
             viewModel.contentUrl.observe(viewLifecycleOwner) { contentUrl ->
-                exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
+                val oldPosition = exoPlayer.currentPosition
                 initExoPlayer(contentUrl)
+                // 画質変更時は途中から再生
+                if (oldPosition > 0) {
+                    exoPlayer.seekTo(oldPosition)
+                }
                 exoPlayer.setVideoSurfaceView(fragment_nicovideo_surfaceview)
                 // コメントキャンバスにも入れる
                 fragment_nicovideo_comment_canvas.exoPlayer = this@NicoVideoFragment.exoPlayer
@@ -715,7 +719,6 @@ class NicoVideoFragment : Fragment() {
         }
         viewModel.currentPosition = exoPlayer.currentPosition
         // 再生時間TextView
-        // val simpleDateFormat = SimpleDateFormat("hh:mm:ss", Locale("UTC"))
         val formattedTime = DateUtils.formatElapsedTime(exoPlayer.currentPosition / 1000L)
         player_control_current.text = formattedTime
     }
@@ -818,17 +821,13 @@ class NicoVideoFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (::exoPlayer.isInitialized) {
-            exoPlayer.playWhenReady = true
-        }
+        exoPlayer.playWhenReady = true
         comment_canvas?.isPause = false
     }
 
     override fun onPause() {
         super.onPause()
-        if (::exoPlayer.isInitialized) {
-            exoPlayer.playWhenReady = false
-        }
+        exoPlayer.playWhenReady = false
         // キャッシュ再生の場合は位置を保存する
         if (isCache) {
             prefSetting.edit {
@@ -840,9 +839,7 @@ class NicoVideoFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         seekTimer.cancel()
-        if (::exoPlayer.isInitialized) {
-            exoPlayer.release()
-        }
+        exoPlayer.release()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -866,9 +863,6 @@ class NicoVideoFragment : Fragment() {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
-
-    /** ExoPlayerが初期化済みかどうか */
-    fun initExoPlayer() = ::exoPlayer.isInitialized
 
     /** 画面が横かどうかを返す。横ならtrue */
     fun isLandscape() = requireActivity().resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
