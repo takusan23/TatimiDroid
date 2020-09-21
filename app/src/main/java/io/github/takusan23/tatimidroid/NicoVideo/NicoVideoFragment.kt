@@ -32,6 +32,7 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.Adapter.Parcelable.TabLayoutData
@@ -123,7 +124,7 @@ class NicoVideoFragment : Fragment() {
         // ActionBar消す
         (activity as AppCompatActivity).supportActionBar?.hide()
 
-        // View初期化
+        // くーるくるー
         showSwipeToRefresh()
 
         // ダークモード
@@ -364,7 +365,7 @@ class NicoVideoFragment : Fragment() {
         viewModel.isFullScreenMode = true
         player_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
         // コメント一覧非表示
-        fragment_nicovideo_viewpager_linarlayout.visibility = View.GONE
+        fragment_nicovideo_viewpager_parent.isVisible = false
         // システムバー消す
         setSystemBarVisibility(false)
         // 背景黒に
@@ -389,7 +390,7 @@ class NicoVideoFragment : Fragment() {
         viewModel.isFullScreenMode = false
         player_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
         // コメント一覧表示
-        fragment_nicovideo_viewpager_linarlayout?.visibility = View.VISIBLE
+        fragment_nicovideo_viewpager_parent.isVisible = true
         // システムバー表示
         setSystemBarVisibility(true)
         // 背景もどす
@@ -779,6 +780,13 @@ class NicoVideoFragment : Fragment() {
         // コメントを指定しておく。View#post{}で確実にcurrentItemが仕事するようになった。ViewPager2頼むよ～
         fragment_nicovideo_viewpager.post {
             fragment_nicovideo_viewpager?.setCurrentItem(1, false)
+        }
+        // もしTabLayoutを常時表示する場合は
+        if (prefSetting.getBoolean("setting_scroll_tab_hide", false)) {
+            fragment_nicovideo_tablayout.updateLayoutParams<AppBarLayout.LayoutParams> {
+                // KTX有能
+                scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
+            }
         }
     }
 

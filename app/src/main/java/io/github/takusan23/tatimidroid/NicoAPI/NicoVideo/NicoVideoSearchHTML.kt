@@ -1,11 +1,13 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * ニコ動の検索結果をスクレイピングする
@@ -74,8 +76,13 @@ class NicoVideoSearchHTML {
                     it.getElementsByClass("count comment")[0].getElementsByClass("value")[0].text()
                 val mylistCount =
                     it.getElementsByClass("count mylist")[0].getElementsByClass("value")[0].text()
-                val isCache = false
-                val data = NicoVideoData(isCache = isCache, isMylist = false, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = null, cacheAddedDate = null)
+                val videoLength = it.getElementsByClass("videoLength")[0].text()
+                // SimpleDataFormatで(mm:ss)をパースしたい場合はタイムゾーンをUTCにすればいけます。これで動画時間を秒に変換できる
+                val simpleDateFormat = SimpleDateFormat("mm:ss").apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                val duration = simpleDateFormat.parse(videoLength).time / 1000
+                val data = NicoVideoData(isCache = false, isMylist = false, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = duration, cacheAddedDate = null)
                 list.add(data)
             }
         }

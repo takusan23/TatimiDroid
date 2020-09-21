@@ -94,7 +94,7 @@ class CommentRoomFragment : Fragment() {
      * */
     private fun setCommentList(isAllRoom: Boolean = true) {
         val roomName = if (isAllRoom) getString(R.string.room_integration) else getString(R.string.room_limit)
-        val list = viewModel.commentList.filter { commentJSONParse -> commentJSONParse.roomName == roomName }
+        val list = viewModel.commentList.filter { commentJSONParse: CommentJSONParse? -> commentJSONParse?.roomName == roomName }
         recyclerViewList.clear()
         recyclerViewList.addAll(list)
         commentRecyclerViewAdapter.notifyDataSetChanged()

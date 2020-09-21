@@ -187,27 +187,25 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1">
 
-
-            <LinearLayout
-                    android:id="@+id/activity_comment_linearlayout"
+            <com.google.android.material.appbar.AppBarLayout
+                    android:id="@+id/comment_fragment_app_bar"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_height="wrap_content">
 
                 <com.google.android.material.tabs.TabLayout
                         android:id="@+id/activity_comment_tab_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:layout_scrollFlags="scroll|enterAlways"
                         app:tabMode="scrollable" />
+            </com.google.android.material.appbar.AppBarLayout>
 
-                <androidx.viewpager2.widget.ViewPager2
-                        android:id="@+id/comment_viewpager"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1" />
-
-            </LinearLayout>
-
+            <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/comment_viewpager"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
     </LinearLayout>

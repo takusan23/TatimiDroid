@@ -2,13 +2,20 @@ package io.github.takusan23.tatimidroid.Tool
 
 import java.util.regex.Pattern
 
-/**
- * 正規表現リスト。他でも使うときに
- * */
-internal val NICOVIDEO_ID_REGEX = "(sm|so)([0-9]+)"
-internal val NICOCOMMUNITY_ID_REGEX = "(co|ch)([0-9]+)"
-internal val NICOLIVE_ID_REGEX = "(lv)([0-9]+)"
-internal val NICOVIDEO_MYLIST_ID_REGEX = "(mylist/)([0-9]+)"
+/** ニコ動の動画IDの正規表現。smとso */
+val NICOVIDEO_ID_REGEX = "(sm|so)([0-9]+)"
+
+/** ニコニコのコミュIDの正規表現。coとch */
+val NICOCOMMUNITY_ID_REGEX = "(co|ch)([0-9]+)"
+
+/** ニコ生の番組IDの正規表現 */
+val NICOLIVE_ID_REGEX = "(lv)([0-9]+)"
+
+/** ニコ動のマイリストのIDの正規表現 */
+val NICOVIDEO_MYLIST_ID_REGEX = "(mylist/)([0-9]+)"
+
+/** ニコ動のシリーズのIDの正規表現 */
+val NICOVIDEO_SERIES_ID_REGEX = "(series/)([0-9]+)"
 
 /**
  * 文字列の中からニコニコのID(sm/so/lv/co/ch)を見つける。

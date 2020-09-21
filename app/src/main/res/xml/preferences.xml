@@ -44,6 +44,13 @@
                 android:key="setting_oikakeru_hide"
                 android:summary="@string/setting_oikakeru_button_description"
                 android:title="@string/setting_oikakeru_button_title" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_vertical_align_top_black_24dp"
+                android:key="setting_scroll_tab_hide"
+                android:summary="@string/setting_scroll_tab_hide_description"
+                android:title="@string/setting_scroll_tab_hide_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/video">
@@ -163,14 +170,14 @@
                 android:summary="@string/setting_watch_view_description"
                 android:title="@string/setting_watch_view_title" />
 
-<!--
-        <SwitchPreference
-                android:defaultValue="false"
-                android:icon="@drawable/ic_signal_cellular_null_24px"
-                android:key="setting_mobiledata_quality_low"
-                android:summary="@string/setting_mobiledata_quality_description"
-                android:title="@string/setting_mobiledata_quality" />
--->
+        <!--
+                <SwitchPreference
+                        android:defaultValue="false"
+                        android:icon="@drawable/ic_signal_cellular_null_24px"
+                        android:key="setting_mobiledata_quality_low"
+                        android:summary="@string/setting_mobiledata_quality_description"
+                        android:title="@string/setting_mobiledata_quality" />
+        -->
 
         <ListPreference
                 android:defaultValue="default"

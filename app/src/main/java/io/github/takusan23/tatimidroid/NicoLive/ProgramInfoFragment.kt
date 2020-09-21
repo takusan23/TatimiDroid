@@ -129,7 +129,6 @@ class ProgramInfoFragment : Fragment() {
                     // なお本家も多分一度登録APIを叩いて500エラーのとき登録済みって判断するっぽい？
                     Snackbar.make(fragment_program_info_timeshift_button, R.string.timeshift_reserved, Snackbar.LENGTH_LONG).setAction(R.string.timeshift_delete_reservation_button) {
                         deleteTimeShift {
-                            println(it.body?.string())
                             activity?.runOnUiThread {
                                 Toast.makeText(
                                     context,

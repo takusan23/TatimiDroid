@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoVideo.VideoList
 
 import android.content.SharedPreferences
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSearchHTML
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.fragment_nicovideo_search.*
 import kotlinx.coroutines.*
 
@@ -39,7 +41,7 @@ class NicoVideoSearchFragment : Fragment() {
     var userSession = ""
 
     // 検索結果スクレイピング
-    val nicoVideoSearchHTML = NicoVideoSearchHTML()
+    private val nicoVideoSearchHTML = NicoVideoSearchHTML()
 
     // ページ数
     var page = 1
@@ -63,6 +65,9 @@ class NicoVideoSearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // ダークモード
+        fragment_nicovideo_search_app_bar.background = ColorDrawable(getThemeColor(requireContext()))
 
         // ドロップダウンメニュー初期化
         initDropDownMenu()

@@ -31,6 +31,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.*
@@ -176,10 +177,7 @@ class NicoVideoInfoFragment : Fragment() {
                     //ボタン
                     val button = Button(context)
                     //大きさとか
-                    val linearLayoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
+                    val linearLayoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                     linearLayoutParams.weight = 1F
                     button.layoutParams = linearLayoutParams
                     button.text = name
@@ -409,7 +407,7 @@ class NicoVideoInfoFragment : Fragment() {
     fun setLinkText(text: Spanned, textView: TextView) {
         // リンクを付ける。
         val span = Spannable.Factory.getInstance().newSpannable(text.toString())
-        // 動画ID押せるように。ちなみに↓の変数は
+        // 動画ID押せるように。ちなみに↓の変数はニコ動の動画ID正規表現
         val mather = NICOVIDEO_ID_REGEX.toPattern().matcher(text)
         while (mather.find()) {
             // 動画ID取得
@@ -446,6 +444,28 @@ class NicoVideoInfoFragment : Fragment() {
                     }
                 }
             }, mylistMatcher.start(), mylistMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        // シリーズ押せるように
+        val seriesMatcher = NICOVIDEO_SERIES_ID_REGEX.toPattern().matcher(text)
+        while (seriesMatcher.find()) {
+            val series = seriesMatcher.group()
+            span.setSpan(object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    // マイリスト表示FragmentをViewPagerに追加する
+                    val seriesFragment = NicoVideoSeriesFragment().apply {
+                        arguments = Bundle().apply {
+                            putString("series_id", series.replace("series/", "")) // IDだけくれ
+                            putString("series_title", series) // シリーズのタイトル知らないのでIDでごめんね
+                        }
+                    }
+                    requireDevNicoVideoFragment().apply {
+                        // ViewPager追加
+                        viewPager.addFragment(seriesFragment, "${getString(R.string.series)}：$series")
+                        // ViewPager移動
+                        fragment_nicovideo_viewpager.currentItem = viewPager.fragmentTabName.size
+                    }
+                }
+            }, seriesMatcher.start(), seriesMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         // URL押せるように
         val URL_REGEX = "https?://[\\w!?/\\+\\-_~=;\\.,*&@#\$%\\(\\)\\'\\[\\]]+"

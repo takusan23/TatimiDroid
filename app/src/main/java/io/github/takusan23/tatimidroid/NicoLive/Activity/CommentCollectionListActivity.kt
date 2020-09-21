@@ -112,7 +112,6 @@ class CommentCollectionListActivity : AppCompatActivity() {
                     commentCollectionYomiList.add(data.yomi)
                 }
             }
-            println(recyclerViewList)
             // 更新
             commentPOSTListRecyclerViewAdapter.notifyDataSetChanged()
         }

@@ -41,6 +41,7 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
@@ -179,11 +180,7 @@ class CommentFragment : Fragment() {
         }
 
         //ダークモード対応
-        if (isDarkMode(context)) {
-            commentActivity.supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(darkModeSupport.context)))
-            activity_comment_tab_layout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
-            comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(getThemeColor(darkModeSupport.context))
-        }
+        applyViewThemeColor()
 
         // GoogleCast？
         googleCast = GoogleCast(requireContext())
@@ -413,6 +410,14 @@ class CommentFragment : Fragment() {
 
     }
 
+    /** ダークモード等テーマに合わせた色を設定する */
+    private fun applyViewThemeColor() {
+        commentActivity.supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(requireContext())))
+        activity_comment_tab_layout.background = ColorDrawable(getThemeColor(requireContext()))
+        comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(getThemeColor(requireContext()))
+        comment_fragment_app_bar.background = ColorDrawable(getThemeColor(requireContext()))
+    }
+
     /** コントローラーを初期化する。HTML取得後にやると良さそう */
     fun initController(programTitle: String) {
         val job = Job()
@@ -534,6 +539,7 @@ class CommentFragment : Fragment() {
         // システムバー表示
         setSystemBarVisibility(true)
         // アイコン変更
+
         player_nicolive_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
         // 画面の幅取得
         val displayWidth = DisplaySizeTool.getDisplayWidth(context)
@@ -673,6 +679,14 @@ class CommentFragment : Fragment() {
         // コメントを指定しておく。View#post{}で確実にcurrentItemが仕事するようになった。ViewPager2頼むよ～
         comment_viewpager.post {
             comment_viewpager?.setCurrentItem(1, false)
+        }
+        // もしTabLayoutを常時表示する場合は
+        if (prefSetting.getBoolean("setting_scroll_tab_hide", false)) {
+            // 多分AppBarLayoutは一人っ子(AppBarLayoutの子のViewは一個)
+            comment_fragment_app_bar.getChildAt(0).updateLayoutParams<AppBarLayout.LayoutParams> {
+                // KTX有能
+                scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
+            }
         }
     }
 

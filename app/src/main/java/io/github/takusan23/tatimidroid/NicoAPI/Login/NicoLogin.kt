@@ -131,7 +131,6 @@ object NicoLogin {
             followSslRedirects(false)
         }.build()
         val response = okHttpClient.newCall(request).execute()
-        println(response.headers)
         // 成功時
         if (response.code == 302) {
             // 二段階認証がかかっているかどうか

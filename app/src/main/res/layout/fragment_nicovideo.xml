@@ -39,26 +39,33 @@
 
             </FrameLayout>
 
-            <com.google.android.material.tabs.TabLayout
-                    android:id="@+id/fragment_nicovideo_tablayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:tabMode="scrollable" />
-
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
-    <LinearLayout
-            android:id="@+id/fragment_nicovideo_viewpager_linarlayout"
+    <!-- TabLayoutをRecyclerViewのスクロールに合わせて表示したりしなかったりすつ -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/fragment_nicovideo_viewpager_parent"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/fragment_nicovideo_tablayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_scrollFlags="scroll|enterAlways"
+                    app:tabMode="scrollable" />
+        </com.google.android.material.appbar.AppBarLayout>
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/fragment_nicovideo_swipe"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <androidx.coordinatorlayout.widget.CoordinatorLayout
                     android:layout_width="match_parent"
@@ -67,11 +74,12 @@
                 <androidx.viewpager2.widget.ViewPager2
                         android:id="@+id/fragment_nicovideo_viewpager"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"></androidx.viewpager2.widget.ViewPager2>
+                        android:layout_height="match_parent" />
 
             </androidx.coordinatorlayout.widget.CoordinatorLayout>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-    </LinearLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 
 </LinearLayout>

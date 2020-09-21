@@ -103,8 +103,6 @@ class NicoVideoCacheFragment : Fragment() {
                 val mediaControllerCompat = MediaControllerCompat(requireContext(), mediaBrowser.sessionToken)
                 // Activityと関連付けることで、同じActivityなら操作ができる？（要検証）
                 MediaControllerCompat.setMediaController(requireActivity(), mediaControllerCompat)
-                // とりあえずprepare呼んで（通知領域から）再生可能な状態へ。再生ボタン押すまではServiceが起動しないので多分大丈夫
-                mediaControllerCompat.transportControls.prepare()
             }
         }
         mediaBrowser = MediaBrowserCompat(requireContext(), ComponentName(requireContext(), BackgroundPlaylistCachePlayService::class.java), callback, null)
