@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
@@ -25,6 +26,9 @@ import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmen
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
 import kotlinx.android.synthetic.main.fragment_comment_cache.*
+import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class NicoVideoCacheFragment : Fragment() {
 
@@ -33,7 +37,7 @@ class NicoVideoCacheFragment : Fragment() {
     lateinit var nicoVideoListAdapter: NicoVideoListAdapter
 
     /** バックグラウンド連続再生のMediaSessionへ接続する */
-    private lateinit var mediaBrowser: MediaBrowserCompat
+    var mediaBrowser: MediaBrowserCompat? = null
 
     /** ViewModel。画面回転時に再読み込みされるのつらい */
     private val viewModel by viewModels<NicoVideoCacheFragmentViewModel>({ this })
@@ -59,7 +63,6 @@ class NicoVideoCacheFragment : Fragment() {
             fragment_cache_storage_info.text = "${getString(R.string.cache_usage)}：$gb GB"
         }
 
-        connectMediaSession()
 
         // フィルター / 並び替え BottomFragment
         fragment_cache_menu_filter_textview.setOnClickListener {
@@ -82,37 +85,44 @@ class NicoVideoCacheFragment : Fragment() {
 
         // バックグラウンド連続再生
         fragment_cache_menu_background_textview.setOnClickListener {
-            // このActivityに関連付けられたMediaSessionControllerを取得
-            val controller = MediaControllerCompat.getMediaController(requireActivity())
-            // 最後に再生した曲を
-            val videoId = prefSetting.getString("cache_last_play_video_id", "")
-            controller.transportControls.playFromMediaId(videoId, null)
-            fragment_cache_card_motionlayout.transitionToStart()
+            lifecycleScope.launch {
+                connectMediaSession()
+                // このActivityに関連付けられたMediaSessionControllerを取得
+                val controller = MediaControllerCompat.getMediaController(requireActivity())
+                // 最後に再生した曲を
+                val videoId = prefSetting.getString("cache_last_play_video_id", "")
+                controller.transportControls.playFromMediaId(videoId, null)
+                fragment_cache_card_motionlayout.transitionToStart()
+            }
         }
 
     }
 
     /**
      * バックグラウンド連続再生のMediaBrowserService（音楽再生サービス）（[BackgroundPlaylistCachePlayService]）へ接続する関数
+     * コルーチンで使えるようにした。
      * */
-    private fun connectMediaSession() {
+    private suspend fun connectMediaSession() = suspendCoroutine<Unit> {
         val callback = object : MediaBrowserCompat.ConnectionCallback() {
             override fun onConnected() {
                 super.onConnected()
-                // MediaSession経由で操作するやつ
-                val mediaControllerCompat = MediaControllerCompat(requireContext(), mediaBrowser.sessionToken)
-                // Activityと関連付けることで、同じActivityなら操作ができる？（要検証）
-                MediaControllerCompat.setMediaController(requireActivity(), mediaControllerCompat)
+                if (mediaBrowser != null) {
+                    // MediaSession経由で操作するやつ
+                    val mediaControllerCompat = MediaControllerCompat(requireContext(), mediaBrowser!!.sessionToken)
+                    // Activityと関連付けることで、同じActivityなら操作ができる？（要検証）
+                    MediaControllerCompat.setMediaController(requireActivity(), mediaControllerCompat)
+                    it.resume(Unit)
+                }
             }
         }
         mediaBrowser = MediaBrowserCompat(requireContext(), ComponentName(requireContext(), BackgroundPlaylistCachePlayService::class.java), callback, null)
         // 忘れてた
-        mediaBrowser.connect()
+        mediaBrowser?.connect()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaBrowser.disconnect()
+        mediaBrowser?.disconnect()
     }
 
     // フィルター削除関数
