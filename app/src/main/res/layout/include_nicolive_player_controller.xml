@@ -29,7 +29,7 @@
                     android:padding="10dp"
                     android:src="@drawable/ic_arrow_back_black_24dp"
                     android:visibility="gone"
-                    app:tint="#ffffff" />
+                    android:tint="#ffffff" />
 
             <LinearLayout
                     android:layout_width="wrap_content"
@@ -61,7 +61,7 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:src="@drawable/ic_wifi_black_24dp"
-                    app:tint="#ffffff" />
+                    android:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_nicolive_control_send"
@@ -70,7 +70,7 @@
                     android:padding="10dp"
                     android:src="@drawable/ic_send_black"
                     android:visibility="gone"
-                    app:tint="#ffffff" />
+                    android:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_nicolive_control_popup"
@@ -81,7 +81,7 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_popup_icon_black"
-                    app:tint="#ffffff" />
+                    android:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_nicolive_control_background"
@@ -92,7 +92,7 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_background_icon_black"
-                    app:tint="#ffffff" />
+                    android:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_nicolive_control_fullscreen"
@@ -103,7 +103,7 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_fullscreen_black_24dp"
-                    app:tint="#ffffff" />
+                    android:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_nicolive_control_mute"
@@ -115,7 +115,7 @@
                     android:padding="10dp"
                     android:src="@drawable/ic_volume_up_24px"
                     android:visibility="gone"
-                    app:tint="#ffffff" />
+                    android:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_nicolive_control_close"
@@ -127,7 +127,7 @@
                     android:padding="10dp"
                     android:src="@drawable/ic_clear_black"
                     android:visibility="gone"
-                    app:tint="#ffffff" />
+                    android:tint="#ffffff" />
         </LinearLayout>
 
         <LinearLayout

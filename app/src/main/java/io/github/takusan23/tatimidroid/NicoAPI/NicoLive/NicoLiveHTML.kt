@@ -48,7 +48,7 @@ class NicoLiveHTML {
     // コメント投稿で使う。isPremiumとかはinitNicoLiveData()を呼ばないとこの値は入りません！！！
     var premium = 0     // プレ垢なら1
     var isPremium = false   // 550円課金してるならtrue
-    var userId = ""     // ユーザーID
+    var userId: String? = ""     // ユーザーID
     var isOfficial = false // 公式番組ならtrue
     var liveId = ""
 
@@ -146,7 +146,7 @@ class NicoLiveHTML {
         } else {
             0
         }
-        userId = getNiconicoID(nicoLiveJSON) ?: ""
+        userId = getNiconicoID(nicoLiveJSON)
         programOpenTime = nicoLiveJSON.getJSONObject("program").getLong("openTime")
         programStartTime = nicoLiveJSON.getJSONObject("program").getLong("beginTime")
         programEndTime = nicoLiveJSON.getJSONObject("program").getLong("endTime")

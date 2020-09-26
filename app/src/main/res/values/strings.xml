@@ -279,7 +279,7 @@
     <string name="nicoad_total">Ad total points</string>
     <string name="nicoad_active">Points during the advertising period</string>
     <string name="setting_display_cutout_title">Notch invades cutout area</string>
-    <string name="setting_display_cutoutdesciprion">Hide the status bar and navigation bar to expand the display area. Some devices have backlit names. (E.g. terminals with large notches)</string>
+    <string name="setting_display_cutoutdesciprion">Hide the status bar and navigation bar to increase the display area. It will be counterproductive on some devices. (Terminals with large notches, etc.)</string>
     <string name="relogin">Re-login to Nico Nico</string>
     <string name="mode_comeview">View</string>
     <string name="mode_post">Post</string>
@@ -525,4 +525,6 @@
     <string name="cache_filter">Filter / Sort</string>
     <string name="setting_scroll_tab_hide_title">Don\'t hide tabs</string>
     <string name="setting_scroll_tab_hide_description">If you scroll the comment list etc., the tab will be hidden automatically, but if you do not like this, you can enable it to always display it.</string>
+    <string name="setting_nicolive_mobiledata_quality_title">Image quality during mobile data communication</string>
+    <string name="setting_nicolive_mobiledata_quality_description">During mobile data communication, you will be able to select normal playback, voice only, and minimum image quality.</string>
 </resources>

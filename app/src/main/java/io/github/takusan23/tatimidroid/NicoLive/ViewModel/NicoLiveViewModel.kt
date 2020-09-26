@@ -12,6 +12,7 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKFlvData
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommentServerData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
@@ -451,32 +452,22 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 }
                 "room" -> {
                     // コメントサーバーの情報
-                    if (isLoginMode) {
+                    val commentMessageServerUri = nicoLiveHTML.getCommentServerWebSocketAddress(message)
+                    val commentThreadId = nicoLiveHTML.getCommentServerThreadId(message)
+                    val yourPostKey = if (isLoginMode) {
                         // ログイン時のみyourPostKeyが取れる
-                        val commentMessageServerUri = nicoLiveHTML.getCommentServerWebSocketAddress(message)
-                        val commentThreadId = nicoLiveHTML.getCommentServerThreadId(message)
-                        val yourPostKey = nicoLiveHTML.getCommentYourPostKey(message)
-                        val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
-                        // コメントサーバーへ接続する
-                        nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, nicoLiveHTML.userId, yourPostKey, ::receiveCommentFun)
-                        // 流量制限コメント鯖へ接続する
-                        if (!nicoLiveHTML.isOfficial) {
-                            viewModelScope.launch(Dispatchers.Default) {
-                                connectionStoreCommentServer(nicoLiveHTML.userId, yourPostKey)
-                            }
-                        }
+                        nicoLiveHTML.getCommentYourPostKey(message)
                     } else {
-                        // 視聴モード以外は非ログインなのでyourPostKeyが取れない
-                        val commentMessageServerUri = nicoLiveHTML.getCommentServerWebSocketAddress(message)
-                        val commentThreadId = nicoLiveHTML.getCommentServerThreadId(message)
-                        val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
-                        // コメントサーバーへ接続する
-                        nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, null, null, ::receiveCommentFun)
-                        // 流量制限コメント鯖へ接続する
-                        if (!nicoLiveHTML.isOfficial) {
-                            viewModelScope.launch(Dispatchers.Default) {
-                                connectionStoreCommentServer(nicoLiveHTML.userId)
-                            }
+                        null
+                    }
+                    val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
+                    // コメントサーバーへ接続する
+                    val commentServerData = CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey, nicoLiveHTML.userId)
+                    nicoLiveComment.connectCommentServerWebSocket(commentServerData, -100, null, ::receiveCommentFun)
+                    // 流量制限コメント鯖へ接続する
+                    if (!nicoLiveHTML.isOfficial) {
+                        viewModelScope.launch(Dispatchers.Default) {
+                            connectionStoreCommentServer(nicoLiveHTML.userId, yourPostKey)
                         }
                     }
                 }
@@ -682,7 +673,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         val storeCommentServerData = nicoLiveComment.parseStoreRoomServerData(allRoomResponse.body?.string(), getString(R.string.room_limit))
         if (storeCommentServerData != null) {
             // Store鯖へ接続する。（超）大手でなければ別に接続する必要はない
-            nicoLiveComment.connectionWebSocket(storeCommentServerData.webSocketUri, storeCommentServerData.threadId, storeCommentServerData.roomName, userId, yourPostKey, ::receiveCommentFun)
+            nicoLiveComment.connectCommentServerWebSocket(commentServerData = storeCommentServerData, onMessageFunc = ::receiveCommentFun)
         }
     }
 

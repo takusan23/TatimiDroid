@@ -56,6 +56,7 @@ class NicoVideoCacheFragment : Fragment() {
             initRecyclerView(list)
             // 中身0だった場合
             fragment_cache_empty_message.isVisible = list.isEmpty()
+            if (fragment_cache_empty_message.isVisible) fragment_cache_fab.hide() else fragment_cache_fab.show()
         }
 
         // 合計容量
@@ -89,12 +90,10 @@ class NicoVideoCacheFragment : Fragment() {
                 connectMediaSession()
                 // このActivityに関連付けられたMediaSessionControllerを取得
                 val controller = MediaControllerCompat.getMediaController(requireActivity())
-                // 最後に再生した曲を
-                val videoId = prefSetting.getString("cache_last_play_video_id", null)
+                // 最後に再生した曲を なければ配列の最初。それもなければ再生しない
+                val videoId = prefSetting.getString("cache_last_play_video_id", null) ?: viewModel.recyclerViewList.value?.first()?.videoId
                 if (videoId != null) {
                     controller.transportControls.playFromMediaId(videoId, null)
-                } else {
-                    controller.transportControls.prepare()
                 }
                 fragment_cache_card_motionlayout.transitionToStart()
             }

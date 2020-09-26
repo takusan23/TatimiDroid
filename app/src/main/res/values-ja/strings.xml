@@ -279,7 +279,7 @@
     <string name="nicoad_total">広告累計ポイント</string>
     <string name="nicoad_active">広告期間中ポイント</string>
     <string name="setting_display_cutout_title">ノッチ、切り欠き領域に侵略する</string>
-    <string name="setting_display_cutoutdesciprion">ステータスバーやナビゲーションバーを非表示にして表示領域を広げます。一部の端末では逆光名になります。（ノッチが大きい端末など）</string>
+    <string name="setting_display_cutoutdesciprion">ステータスバーやナビゲーションバーを非表示にして表示領域を広げます。一部の端末では逆効果になります。（ノッチが大きい端末など）</string>
     <string name="relogin">ニコニコに再ログインしました</string>
     <string name="mode_comeview">コメビュ</string>
     <string name="mode_post">コメ投稿</string>
@@ -525,4 +525,6 @@
     <string name="cache_filter">フィルター / 並び替え</string>
     <string name="setting_scroll_tab_hide_title">タブを隠さない</string>
     <string name="setting_scroll_tab_hide_description">コメント一覧等をスクロールすると自動でタブを隠しますが、これが嫌な場合は有効にすることで常時表示させることが出来ます。</string>
+    <string name="setting_nicolive_mobiledata_quality_title">モバイルデータ通信時の画質</string>
+    <string name="setting_nicolive_mobiledata_quality_description">モバイルデータ通信時に通常再生、音声のみ、最低画質が選択できるようになります。</string>
 </resources>

@@ -372,11 +372,13 @@ class CommentFragment : Fragment() {
 
         // HLSアドレス取得
         viewModel.hlsAddress.observe(viewLifecycleOwner) { address ->
-            setPlayVideoView()
-            initQualityChangeBottomFragment(viewModel.currentQuality, viewModel.qualityListJSONArray)
-            googleCast.apply {
-                hlsAddress = address
-                resume()
+            if (watchLive) {
+                setPlayVideoView()
+                initQualityChangeBottomFragment(viewModel.currentQuality, viewModel.qualityListJSONArray)
+                googleCast.apply {
+                    hlsAddress = address
+                    resume()
+                }
             }
         }
 

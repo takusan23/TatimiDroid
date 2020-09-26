@@ -51,6 +51,12 @@
                 android:key="setting_scroll_tab_hide"
                 android:summary="@string/setting_scroll_tab_hide_description"
                 android:title="@string/setting_scroll_tab_hide_title" />
+
+        <Preference
+                android:icon="@drawable/ic_font_download_24px"
+                android:key="font_preference"
+                android:summary="@string/setting_font_description"
+                android:title="@string/font_setting" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/video">
@@ -104,13 +110,6 @@
                 android:title="@string/setting_show_nicoru_button_title" />
 
         <SwitchPreference
-                android:defaultValue="true"
-                android:icon="@drawable/ic_sentiment_satisfied_black_24dp"
-                android:key="setting_nicovideo_nicoru_color"
-                android:summary="@string/setting_nicovideo_nicoru_count_color_description"
-                android:title="@string/setting_nicovideo_nicoru_count_color_title" />
-
-        <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_skip_previous_black_24dp"
                 android:key="setting_cache_background_play_prev_button"
@@ -143,12 +142,6 @@
                 android:key="setting_one_line"
                 android:title="@string/setting_one_line" />
 
-        <Preference
-                android:icon="@drawable/ic_font_download_24px"
-                android:key="font_preference"
-                android:summary="@string/setting_font_description"
-                android:title="@string/font_setting" />
-
         <SwitchPreference
                 android:defaultValue="true"
                 android:icon="@drawable/ic_keyboard_return_24px"
@@ -170,24 +163,15 @@
                 android:summary="@string/setting_watch_view_description"
                 android:title="@string/setting_watch_view_title" />
 
-        <!--
-                <SwitchPreference
-                        android:defaultValue="false"
-                        android:icon="@drawable/ic_signal_cellular_null_24px"
-                        android:key="setting_mobiledata_quality_low"
-                        android:summary="@string/setting_mobiledata_quality_description"
-                        android:title="@string/setting_mobiledata_quality" />
-        -->
-
         <ListPreference
                 android:defaultValue="default"
-                android:dialogTitle="モバイルデータ通信時の画質"
+                android:dialogTitle="@string/setting_nicolive_mobiledata_quality_title"
                 android:entries="@array/setting_nicolive_mobile_data_type"
                 android:entryValues="@array/setting_nicolive_mobile_data_value"
                 android:icon="@drawable/ic_signal_cellular_null_24px"
                 android:key="setting_nicolive_mobile_data_quality"
-                android:summary="モバイルデータ通信時に通常再生、音声のみ、最低画質が選択できるようになります。"
-                android:title="モバイルデータ通信時の画質" />
+                android:summary="@string/setting_nicolive_mobiledata_quality_description"
+                android:title="@string/setting_nicolive_mobiledata_quality_title" />
 
         <SwitchPreference
                 android:defaultValue="false"
@@ -195,13 +179,6 @@
                 android:key="setting_nicolive_quality_low"
                 android:summary="@string/setting_nicolive_quality_low_description"
                 android:title="@string/setting_nicolive_quality_low_title" />
-
-        <SwitchPreference
-                android:defaultValue="true"
-                android:icon="@drawable/ic_outline_pan_tool_24px"
-                android:key="setting_hidden_oidashi_comment"
-                android:summary="@string/setting_oidashi_comment_description"
-                android:title="@string/setting_oidashi_comment_title" />
 
         <SwitchPreference
                 android:defaultValue="true"

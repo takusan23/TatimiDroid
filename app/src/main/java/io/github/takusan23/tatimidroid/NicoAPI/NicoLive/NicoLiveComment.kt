@@ -24,6 +24,9 @@ class NicoLiveComment {
     // 接続済みWebSocketアドレスが入る
     val connectedWebSocketAddressList = arrayListOf<String>()
 
+    /** 接続中の[CommentServerData]が入る配列。なお重複は消してます */
+    val connectionCommentServerDataList = arrayListOf<CommentServerData>()
+
     // 接続済みWebSocketClientが入る
     val connectionWebSocketClientList = arrayListOf<WebSocketClient>()
 
@@ -79,7 +82,7 @@ class NicoLiveComment {
      * 注意：公式番組（アニメ一挙放送など。ハナヤマタよかった）では利用できません。
      * @param responseString [getProgramInfo]のレスポンスボディー
      * @param storeRoomName 流量制限って文字列を入れて
-     * @return [connectionWebSocket]で使う値の入ったデータクラス
+     * @return [connectCommentServerWebSocket]で使う値の入ったデータクラス
      * */
     suspend fun parseStoreRoomServerData(responseString: String?, storeRoomName: String) = withContext(Dispatchers.Default) {
         val jsonObject = JSONObject(responseString)
@@ -100,31 +103,21 @@ class NicoLiveComment {
     }
 
     /**
-     * コメント鯖（WebSocket）に接続する関数
-     * 注意：すでに接続済みの場合は接続しません
-     * @param webSocketUri WebSocketアドレス
-     * @param threadId スレッドID
-     * @param roomName 部屋の名前
-     * @param onMessageFunc コメントが来たら呼ばれる高階関数。引数は第一がコメントの内容、第二は部屋の名前、第三が過去のコメントならtrue
-     * @param userId ユーザーID。なんで必要なのかは知らん。nullでも多分いい
-     * @param threadKey 視聴セッションのWebSocketのときは「yourPostKey」ってのがJSONで流れてくるので指定して欲しい。nullても動く。ただ自分が投稿できたかの結果「yourpost」が取れないのでアリーナには繋ぎたい
+     * コメント鯖へ接続する関数。
+     * なおこの関数ではすでに接続済みかどうかの判定はしてません。というか多分いらないはず（部屋割り時代は定期的に部屋があるか確認してたので必要だった）
+     * @param commentServerData コメントサーバーの情報が入ったデータクラス。threadId,部屋の名前,threadKeyがあれば作成可能です
+     * @param requestHistoryCommentCount コメントの取得する量。負の値で
+     * @param whenValue 指定した時間のコメントが欲しい場合は指定してください。一番古いコメントのdateとdate_usecを取って{date}.{date_usec}すれば取れると思う
+     * @param onMessageFunc コメントが来た時に呼ばれる高階関数
      * */
-    fun connectionWebSocket(webSocketUri: String, threadId: String, roomName: String, userId: String? = null, threadKey: String? = null, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
-        // 接続済みの場合は繋がない
-        if (connectedWebSocketAddressList.contains(webSocketUri)) {
-            return
-        }
-        connectedWebSocketAddressList.add(webSocketUri)
+    fun connectCommentServerWebSocket(commentServerData: CommentServerData, requestHistoryCommentCount: Int = -100, whenValue: Double? = null, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
         // 過去コメントか流れてきたコメントか
-        var historyComment = -100
+        var historyComment = requestHistoryCommentCount
         // 過去コメントだとtrue
         var isHistoryComment = true
-        val uri = URI(webSocketUri)
+        val uri = URI(commentServerData.webSocketUri)
         // ユーザーエージェントとプロトコル
-        val protocol = Draft_6455(
-            Collections.emptyList(),
-            Collections.singletonList(Protocol("msg.nicovideo.jp#json")) as List<IProtocol>?
-        )
+        val protocol = Draft_6455(Collections.emptyList(), Collections.singletonList(Protocol("msg.nicovideo.jp#json")) as List<IProtocol>?)
         val headerMap = mutableMapOf<String, String>()
         headerMap["User-Agent"] = "TatimiDroid;@takusan_23"
         val webSocketClient = object : WebSocketClient(uri, protocol, headerMap) {
@@ -133,16 +126,22 @@ class NicoLiveComment {
                 val sendJSONObject = JSONObject()
                 val jsonObject = JSONObject().apply {
                     put("version", "20061206")
-                    put("thread", threadId)
                     put("service", "LIVE")
+                    put("thread", commentServerData.threadId)
                     put("scores", 1)
                     put("res_from", historyComment)
                     put("nicoru", 0)
                     put("with_global", 1)
-                    put("user_id", userId)
-                    put("threadkey", threadKey)
+                    put("user_id", commentServerData.userId)
+                    put("threadkey", commentServerData.threadKey)
+                    put("waybackkey", "")
+                    if (whenValue != null) {
+                        // 過去コメント
+                        put("when", whenValue)
+                    }
                 }
                 sendJSONObject.put("thread", jsonObject)
+                println(sendJSONObject.toString())
                 this.send(sendJSONObject.toString())
             }
 
@@ -159,7 +158,7 @@ class NicoLiveComment {
                         isHistoryComment = false
                     }
                     // 高階関数呼ぶ
-                    onMessageFunc(message, roomName, isHistoryComment)
+                    onMessageFunc(message, commentServerData.roomName, isHistoryComment)
                 }
             }
 
@@ -167,8 +166,12 @@ class NicoLiveComment {
 
             }
         }
+        // 忘れるな
         webSocketClient.connect()
         connectionWebSocketClientList.add(webSocketClient)
+        connectionCommentServerDataList.add(commentServerData)
+        // 重複は消す
+        connectionCommentServerDataList.distinctBy { commentServerData -> commentServerData.webSocketUri }
     }
 
     /**

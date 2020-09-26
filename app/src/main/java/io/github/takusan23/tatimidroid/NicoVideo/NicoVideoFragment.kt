@@ -628,7 +628,7 @@ class NicoVideoFragment : Fragment() {
      * コメントのみの表示に切り替える
      * */
     fun commentOnlyModeEnable() {
-        exoPlayer.release()
+        exoPlayer.stop()
         fragment_nicovideo_framelayout.visibility = View.GONE
         hideSwipeToRefresh()
     }
@@ -637,7 +637,8 @@ class NicoVideoFragment : Fragment() {
      * コメントのみの表示を無効にする。動画を再生する
      * */
     fun commentOnlyModeDisable() {
-        exoPlayer.release()
+        exoPlayer.stop()
+        viewModel.contentUrl.value?.let { initExoPlayer(it) }
         fragment_nicovideo_framelayout.visibility = View.VISIBLE
         showSwipeToRefresh()
     }

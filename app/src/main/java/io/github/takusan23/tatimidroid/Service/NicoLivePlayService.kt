@@ -34,6 +34,7 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKFlvData
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommentServerData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
@@ -240,7 +241,8 @@ class NicoLivePlayService : Service() {
                                 val commentThreadId = getCommentServerThreadId(message)
                                 val commentRoomName = getCommentRoomName(message)
                                 // 部屋が統合したので
-                                nicoLiveComment.connectionWebSocket(commentMessageServerUri, commentThreadId, commentRoomName, nicoLiveHTML.userId, null, ::commentFun)
+                                val commentServerData = CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName)
+                                nicoLiveComment.connectCommentServerWebSocket(commentServerData = commentServerData, onMessageFunc = ::commentFun)
                             }
                         }
                     }
@@ -275,7 +277,7 @@ class NicoLivePlayService : Service() {
         val storeCommentServerData = nicoLiveComment.parseStoreRoomServerData(allRoomResponse.body?.string(), getString(R.string.room_limit))
         if (storeCommentServerData != null) {
             // Store鯖へ接続する。（超）大手でなければ別に接続する必要はない
-            nicoLiveComment.connectionWebSocket(storeCommentServerData.webSocketUri, storeCommentServerData.threadId, storeCommentServerData.roomName, null, null, ::commentFun)
+            nicoLiveComment.connectCommentServerWebSocket(commentServerData = storeCommentServerData, onMessageFunc = ::commentFun)
         }
     }
 
