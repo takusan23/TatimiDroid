@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/player_control_parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -28,8 +29,8 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:src="@drawable/ic_arrow_back_black_24dp"
-                    android:tint="#ffffff"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="#ffffff" />
 
             <LinearLayout
                     android:layout_width="wrap_content"
@@ -42,7 +43,9 @@
                         android:id="@+id/player_control_title"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:maxLines="1"
+                        android:ellipsize="marquee"
+                        android:marqueeRepeatLimit="marquee_forever"
+                        android:singleLine="true"
                         android:textColor="#ffffff" />
 
                 <TextView
@@ -60,7 +63,7 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:src="@drawable/ic_wifi_black_24dp"
-                    android:tint="#ffffff" />
+                    app:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_control_popup"
@@ -71,7 +74,7 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_popup_icon_black"
-                    android:tint="#ffffff" />
+                    app:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_control_background"
@@ -82,7 +85,7 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_background_icon_black"
-                    android:tint="#ffffff" />
+                    app:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_control_repeat"
@@ -93,7 +96,7 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_repeat_black_24dp"
-                    android:tint="#ffffff" />
+                    app:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_control_fullscreen"
@@ -104,7 +107,7 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_fullscreen_black_24dp"
-                    android:tint="#ffffff" />
+                    app:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_control_mute"
@@ -115,8 +118,8 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_volume_up_24px"
-                    android:tint="#ffffff"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_control_close"
@@ -127,8 +130,8 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_clear_black"
-                    android:tint="#ffffff"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="#ffffff" />
         </LinearLayout>
 
         <LinearLayout
@@ -153,7 +156,7 @@
                     android:gravity="center"
                     android:padding="10dp"
                     android:src="@drawable/ic_undo_black_24dp"
-                    android:tint="#ffffff" />
+                    app:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_control_pause"
@@ -164,7 +167,7 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_pause_black_24dp"
-                    android:tint="#ffffff" />
+                    app:tint="#ffffff" />
 
             <ImageView
                     android:id="@+id/player_control_next"
@@ -178,7 +181,7 @@
                     android:gravity="center"
                     android:padding="10dp"
                     android:src="@drawable/ic_redo_black_24dp"
-                    android:tint="#ffffff" />
+                    app:tint="#ffffff" />
         </LinearLayout>
 
         <LinearLayout

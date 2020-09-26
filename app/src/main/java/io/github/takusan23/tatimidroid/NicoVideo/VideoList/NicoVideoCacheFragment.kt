@@ -90,8 +90,12 @@ class NicoVideoCacheFragment : Fragment() {
                 // このActivityに関連付けられたMediaSessionControllerを取得
                 val controller = MediaControllerCompat.getMediaController(requireActivity())
                 // 最後に再生した曲を
-                val videoId = prefSetting.getString("cache_last_play_video_id", "")
-                controller.transportControls.playFromMediaId(videoId, null)
+                val videoId = prefSetting.getString("cache_last_play_video_id", null)
+                if (videoId != null) {
+                    controller.transportControls.playFromMediaId(videoId, null)
+                } else {
+                    controller.transportControls.prepare()
+                }
                 fragment_cache_card_motionlayout.transitionToStart()
             }
         }

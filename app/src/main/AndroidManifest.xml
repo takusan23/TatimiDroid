@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" /> <!-- インターネット -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- 予約枠自動入場のServiceよう -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /> <!-- 他のアプリに重ねて表示 -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- ネットワーク状態取得 -->
 
     <application
             android:allowBackup="true"
@@ -58,7 +58,8 @@
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
-        </service> <!-- これ書かないと通知から操作一生こない -->
+        </service>
+        <!-- これ書かないと通知から操作一生こない -->
         <receiver android:name="androidx.media.session.MediaButtonReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
@@ -93,7 +94,9 @@
             <meta-data
                     android:name="android.app.shortcuts"
                     android:resource="@xml/app_shortcut" />
-        </activity> <!-- おまけ -->
+        </activity>
+
+        <!-- おまけ -->
         <service
                 android:name=".Service.NicoVersionHistoryDeviceControl"
                 android:label="@string/nico_version_history"

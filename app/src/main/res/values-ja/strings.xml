@@ -25,7 +25,7 @@
     <string name="open_browser">ブラウザで開く</string>
     <string name="watching_mode_title">視聴モードを利用する</string>
     <string name="watching_mode_description">有効にすると、コメントの投稿が可能になります。\nですが他の端末で同じ放送を再生することができなくなります。</string>
-    <string name="regix_error">IDがURLから見つかりませんでした。</string>
+    <string name="regix_error">IDを見つけることができませんでした。</string>
     <string name="liveid_fragment">生放送/動画ID入力</string>
     <string name="follow_program">フォロー中番組</string>
     <string name="timeshift_wait">開始時刻までお待ちください。</string>

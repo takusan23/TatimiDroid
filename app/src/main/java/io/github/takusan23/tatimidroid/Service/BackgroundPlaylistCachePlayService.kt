@@ -98,7 +98,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
                     super.onPrepare()
                     GlobalScope.launch(cachePlayServiceCoroutineJob) {
                         // 最後に聞いた曲
-                        val videoId = prefSetting.getString("cache_last_play_video_id", "")
+                        val videoId = prefSetting.getString("cache_last_play_video_id", null)
                         loadCacheVideo(videoId)
                     }
                 }

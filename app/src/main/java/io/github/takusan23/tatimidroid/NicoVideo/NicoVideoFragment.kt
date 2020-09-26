@@ -217,6 +217,8 @@ class NicoVideoFragment : Fragment() {
             showToast(message)
         }
         player_control_title.text = nicoVideoData.title
+        // Marqueeを有効にするにはフォーカスをあてないといけない？。<marquee>とかWeb黎明期感ある（その時代の人じゃないけど）
+        player_control_title.isSelected = true
         player_control_id.text = nicoVideoData.videoId
         // 共有
         share = ProgramShare((requireActivity() as AppCompatActivity), fragment_nicovideo_surfaceview, nicoVideoData.title, nicoVideoData.videoId)

@@ -1,12 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- 連続再生ボタン。デフォは非表示なので読み込みが終わったら表示してね -->
+<?xml version="1.0" encoding="utf-8"?><!-- 連続再生ボタン。デフォは非表示なので読み込みが終わったら表示してね -->
 <com.google.android.material.button.MaterialButton xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/include_playlist_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center|bottom"
-        android:layout_margin="16dp"
         android:padding="10dp"
         android:text="@string/playlist_button"
         android:visibility="gone"

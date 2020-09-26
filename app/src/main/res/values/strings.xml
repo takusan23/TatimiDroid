@@ -25,7 +25,7 @@
     <string name="open_browser">Open in browser</string>
     <string name="watching_mode_title">Use viewing mode</string>
     <string name="watching_mode_description">If enabled, comments can be posted.\nHowever, you will not be able to play the same broadcast on other devices.</string>
-    <string name="regix_error">The ID was not found from the URL.</string>
+    <string name="regix_error">The ID could not be found.</string>
     <string name="liveid_fragment">Live broadcast / video ID input</string>
     <string name="follow_program">Followed programs</string>
     <string name="timeshift_wait">Please wait until the start time.</string>

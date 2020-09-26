@@ -419,7 +419,7 @@ class CommentFragment : Fragment() {
     }
 
     /** コントローラーを初期化する。HTML取得後にやると良さそう */
-    fun initController(programTitle: String) {
+    private fun initController(programTitle: String) {
         val job = Job()
         // 戻るボタン
         player_nicolive_control_back_button.isVisible = true
@@ -428,6 +428,8 @@ class CommentFragment : Fragment() {
         }
         // 番組情報
         player_nicolive_control_title.text = programTitle
+        // Marqueeを有効にするにはフォーカスをあてないといけない？。<marquee>とかWeb黎明期感ある（その時代の人じゃないけど）
+        player_nicolive_control_title.isSelected = true
         // 全画面/ポップアップ/バッググラウンド
         player_nicolive_control_popup.setOnClickListener { startPlayService("popup") }
         player_nicolive_control_background.setOnClickListener { startPlayService("background") }

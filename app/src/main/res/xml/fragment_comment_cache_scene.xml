@@ -11,8 +11,7 @@
                 android:layout_marginBottom="16dp"
                 android:rotation="0"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-        </Constraint>
+                app:layout_constraintEnd_toEndOf="parent" />
         <Constraint
                 android:id="@+id/fragment_cache_menu_cardview"
                 android:layout_width="wrap_content"
@@ -46,7 +45,8 @@
 
     <Transition
             app:constraintSetEnd="@id/end"
-            app:constraintSetStart="@+id/start">
+            app:constraintSetStart="@+id/start"
+            app:duration="300">
         <OnClick app:targetId="@id/fragment_cache_fab" />
     </Transition>
 </MotionScene>
