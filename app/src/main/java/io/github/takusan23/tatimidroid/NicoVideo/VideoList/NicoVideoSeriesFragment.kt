@@ -1,23 +1,18 @@
 package io.github.takusan23.tatimidroid.NicoVideo.VideoList
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSeriesAPI
-import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_series.*
-import kotlinx.android.synthetic.main.include_playlist_button.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -55,7 +50,6 @@ class NicoVideoSeriesFragment : Fragment() {
                 nicoVideoList.add(it)
             }
             nicoVideoListAdapter.notifyDataSetChanged()
-            include_playlist_button.isVisible = true
         } else {
             // シリーズ取得
             val seriesId = arguments?.getString("series_id") ?: return
@@ -69,23 +63,9 @@ class NicoVideoSeriesFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     // 反映
                     nicoVideoListAdapter.notifyDataSetChanged()
-                    include_playlist_button.isVisible = true
                 }
             }
         }
-
-        // 連続再生
-        include_playlist_button.setOnClickListener {
-            val intent = Intent(requireContext(), NicoVideoPlayListActivity::class.java)
-            // 中身を入れる
-            intent.putExtra("video_list", nicoVideoList)
-            intent.putExtra("name", seriesTitle)
-            startActivity(intent)
-            if (activity is NicoVideoActivity) {
-                activity?.finish()
-            }
-        }
-
     }
 
     /** RecyclerView初期化 */

@@ -16,6 +16,7 @@ import io.github.takusan23.tatimidroid.Tool.LanguageTool
  * video_list    | NicoVideoDataの配列 | 動画リストです
  * 任意
  * name          | String              |一覧名。無くてもいい
+ * start_id      | String              | 再生開始位置
  * */
 class NicoVideoPlayListActivity : AppCompatActivity() {
 
@@ -37,6 +38,7 @@ class NicoVideoPlayListActivity : AppCompatActivity() {
                 putSerializable("video_list", videoList)
                 putStringArrayList("video_id_list", ArrayList(videoList.map { nicoVideoData -> nicoVideoData.videoId }))
                 putString("name", intent.getStringExtra("name"))
+                putString("start_id", intent.getStringExtra("start_id"))
             }
             nicoVideoFragment.arguments = bundle
             supportFragmentManager.beginTransaction().replace(R.id.nicovideo_playlist_activity_main, nicoVideoFragment, FRAGMENT_TAG).commit()

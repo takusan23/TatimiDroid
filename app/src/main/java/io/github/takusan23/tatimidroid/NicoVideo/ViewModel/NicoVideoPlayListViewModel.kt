@@ -31,4 +31,7 @@ class NicoVideoPlayListViewModel(application: Application) : AndroidViewModel(ap
     /** 逆順が有効の場合 */
     val isReverseMode = MutableLiveData<Boolean>()
 
+    /** 動画再生開始位置。動画IDで */
+    val startVideoId = MutableLiveData<String>()
+
 }

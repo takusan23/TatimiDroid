@@ -216,6 +216,8 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
                 nicoJKGetFlv.postValue(getFlv)
                 // 番組情報入れる
                 programTitle = getFlv.channelName
+                // コメント人数を定期的に数える
+                activeUserClear()
                 // 接続
                 withContext(Dispatchers.Default) {
                     nicoJK.connectionCommentServer(getFlv, ::receiveCommentFun)

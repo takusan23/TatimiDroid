@@ -57,6 +57,13 @@
                 android:key="font_preference"
                 android:summary="@string/setting_font_description"
                 android:title="@string/font_setting" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_screen_rotation_24px"
+                android:key="setting_rotation_sensor"
+                android:summary="@string/setting_rotation_sensor_description"
+                android:title="@string/setting_rotation_sensor_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/video">
@@ -226,13 +233,6 @@
                 android:summary="@string/setting_comment_collection_assist_description"
                 android:title="@string/setting_comment_collection_assist" />
 
-
-        <SwitchPreference
-                android:defaultValue="false"
-                android:icon="@drawable/ic_screen_rotation_24px"
-                android:key="setting_rotation_sensor"
-                android:summary="@string/setting_rotation_sensor_description"
-                android:title="@string/setting_rotation_sensor_title" />
 
         <SwitchPreference
                 android:defaultValue="false"

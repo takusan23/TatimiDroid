@@ -93,7 +93,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
-                        app:layout_scrollFlags="scroll|enterAlways">
+                        app:layout_scrollFlags="scroll|enterAlways|snap">
 
                     <LinearLayout
                             android:id="@+id/player_nicolive_control_info_main"

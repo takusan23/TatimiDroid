@@ -87,6 +87,17 @@
                     android:visibility="gone" />
 
             <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_playlist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_tatimidroid_list_icon_black"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10sp"
+                    android:text="@string/playlist_button" />
+
+            <TextView
                     android:id="@+id/bottom_fragment_nicovideo_list_menu_play"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

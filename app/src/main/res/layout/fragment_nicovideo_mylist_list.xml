@@ -41,6 +41,4 @@
 
     </LinearLayout>
 
-    <include layout="@layout/include_playlist_button"/>
-
 </FrameLayout>

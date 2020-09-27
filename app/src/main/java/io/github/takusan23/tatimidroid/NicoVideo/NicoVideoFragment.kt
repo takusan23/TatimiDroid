@@ -130,6 +130,11 @@ class NicoVideoFragment : Fragment() {
         // ダークモード
         initDarkmode()
 
+        // センサーによる画面回転
+        if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
+            RotationSensor(requireActivity(), lifecycle)
+        }
+
         // 動画ID
         val videoId = arguments?.getString("id") ?: ""
         // キャッシュ再生

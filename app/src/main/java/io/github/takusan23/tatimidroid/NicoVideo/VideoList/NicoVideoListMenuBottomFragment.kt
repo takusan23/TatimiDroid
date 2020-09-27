@@ -24,6 +24,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
+import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
@@ -77,8 +78,14 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // MediaBrowserと接続
         initMediaBrowserConnect()
 
+        // コルーチン内のエラーを捕まえる
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            requireActivity().runOnUiThread {
+                Toast.makeText(context, "${getString(R.string.error)}\n${throwable}", Toast.LENGTH_SHORT).show()
+            }
+        }
         // データ取得するかどうか。
-        lifecycleScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch(Dispatchers.Main + errorHandler) {
             // NicoVideoDataある時
             val serializeData = arguments?.getSerializable("data")
             if (serializeData != null) {
@@ -109,8 +116,23 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
             // ブラウザで開くボタン
             initOpenBrowser()
+
+            // 連続再生
+            initPlayListPlayButton()
         }
 
+    }
+
+    private fun initPlayListPlayButton() {
+        val videoList = arguments?.getSerializable("video_list") as ArrayList<NicoVideoData>
+        bottom_fragment_nicovideo_list_menu_playlist.setOnClickListener {
+            val intent = Intent(context, NicoVideoPlayListActivity::class.java)
+            // 中身を入れる
+            intent.putExtra("video_list", videoList) // BundleでNicoVideoListAdapterから渡してもらった
+            intent.putExtra("name", "")
+            intent.putExtra("start_id", nicoVideoData.videoId)
+            context?.startActivity(intent)
+        }
     }
 
     private fun initOpenBrowser() {

@@ -127,9 +127,6 @@ class CommentFragment : Fragment() {
     // 二窓モードになっている場合
     var isNimadoMode = false
 
-    // 画面回転
-    lateinit var rotationSensor: RotationSensor
-
     //ExoPlayer
     val exoPlayer by lazy { SimpleExoPlayer.Builder(requireContext()).build() }
 
@@ -179,6 +176,11 @@ class CommentFragment : Fragment() {
             commentActivity.supportActionBar?.hide()
         }
 
+        // センサーによる画面回転
+        if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
+            RotationSensor(commentActivity, lifecycle)
+        }
+
         //ダークモード対応
         applyViewThemeColor()
 
@@ -204,11 +206,6 @@ class CommentFragment : Fragment() {
 
         // ViewPager
         initViewPager()
-
-        //センサーによる画面回転
-        if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
-            rotationSensor = RotationSensor(commentActivity)
-        }
 
         // ユーザーの設定したフォント読み込み
         customFont = CustomFont(context)
@@ -331,6 +328,8 @@ class CommentFragment : Fragment() {
             (player_nicolive_control_time.parent as View).isVisible = false
             player_nicolive_control_watch_count.isVisible = false
             player_nicolive_control_comment_count.isVisible = false
+            // バックグラウンド再生無いので非表示
+            player_nicolive_control_background.isVisible = false
             initController(getFlv.channelName)
         }
 
@@ -1034,10 +1033,6 @@ class CommentFragment : Fragment() {
     }
 
     private fun destroyCode() {
-        // センサーによる画面回転が有効になってる場合は最後に
-        if (this@CommentFragment::rotationSensor.isInitialized) {
-            rotationSensor.destroy()
-        }
         // 止める
         exoPlayer.release()
     }

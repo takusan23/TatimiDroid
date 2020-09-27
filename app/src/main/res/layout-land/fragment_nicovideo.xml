@@ -65,7 +65,7 @@
                         android:id="@+id/fragment_nicovideo_tablayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:layout_scrollFlags="scroll|enterAlways"
+                        app:layout_scrollFlags="scroll|enterAlways|snap"
                         app:tabMode="scrollable" />
             </com.google.android.material.appbar.AppBarLayout>
 

@@ -25,6 +25,7 @@ import kotlinx.android.synthetic.main.fragment_nicovideo_playlist.*
  * video_list       | [NicoVideoData]の配列         | 連続再生リスト
  * video_id_list    | [NicoVideoData.videoId]の配列 | シャッフルした時に戻せるように、IDだけの配列をください。
  * name             | String                        | タイトル
+ * start_id         | String                        | 再生開始位置
  *
  * あと多分[Activity]のテーマ設定が必要だと思われ
  *
@@ -56,13 +57,20 @@ class NicoVideoPlayListFragment : Fragment() {
             viewModel.playListVideoList.value = arguments?.getSerializable("video_list") as ArrayList<NicoVideoData>
             viewModel.playListVideoIdList.value = arguments?.getStringArrayList("video_id_list")
             viewModel.playListName.value = arguments?.getString("name")
+            viewModel.startVideoId.value = arguments?.getString("start_id")
 
             // JavaBinder: !!! FAILED BINDER TRANSACTION !!!  (parcel size = 1060608) 対策で値をViewModelに移動させたら消す。
             arguments?.clear()
 
             // Fragment設置
             (viewModel.playListVideoList.value)?.apply {
-                setVideo(this[0].videoId, this[0].isCache)
+                val pos = if (viewModel.startVideoId.value != null) {
+                    this.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == viewModel.startVideoId.value }
+                } else {
+                    // 開始位置無指定
+                    0
+                }
+                setVideo(this[pos].videoId, this[pos].isCache)
             }
 
         }

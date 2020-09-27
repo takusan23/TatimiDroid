@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -20,7 +19,6 @@ import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist_list.*
-import kotlinx.android.synthetic.main.include_playlist_button.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -71,11 +69,6 @@ class NicoVideoMyListListFragment : Fragment() {
 
         fragment_nicovideo_mylist_list_swipe.setOnRefreshListener {
             getMyListItems()
-        }
-
-        // 連続再生
-        include_playlist_button.setOnClickListener {
-            startPlayListActivity()
         }
 
     }
@@ -141,7 +134,6 @@ class NicoVideoMyListListFragment : Fragment() {
             fragment_nicovideo_mylist_list_swipe.isRefreshing = false
             sort()
             // 連続再生ボタン
-            include_playlist_button.isVisible = true
         }
     }
 
