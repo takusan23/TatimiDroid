@@ -176,11 +176,6 @@ class CommentFragment : Fragment() {
             commentActivity.supportActionBar?.hide()
         }
 
-        // センサーによる画面回転
-        if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
-            RotationSensor(commentActivity, lifecycle)
-        }
-
         //ダークモード対応
         applyViewThemeColor()
 
@@ -206,6 +201,11 @@ class CommentFragment : Fragment() {
 
         // ViewPager
         initViewPager()
+
+        // センサーによる画面回転
+        if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
+            RotationSensor(commentActivity, lifecycle)
+        }
 
         // ユーザーの設定したフォント読み込み
         customFont = CustomFont(context)
