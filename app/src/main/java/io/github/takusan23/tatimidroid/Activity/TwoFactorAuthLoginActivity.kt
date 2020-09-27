@@ -16,6 +16,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
+import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import kotlinx.android.synthetic.main.activity_two_factor_auth.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,9 @@ class TwoFactorAuthLoginActivity : AppCompatActivity() {
         // ダークモード
         DarkModeSupport(this).setActivityTheme(this)
         setContentView(R.layout.activity_two_factor_auth)
-        supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(this)))
+        if (isDarkMode(this)) {
+            supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(this)))
+        }
         two_factor_auth_activity_parent.backgroundTintList = ColorStateList.valueOf(getThemeColor(this))
 
         // データを受け取る

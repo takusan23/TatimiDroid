@@ -703,7 +703,8 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             showToast("${getString(R.string.error)}\n${livePageResponse.code}")
             null
         }
-        if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
+        // ログインモードで かつ ニコニコにログインできない場合は再ログインさせる
+        if (!nicoLiveHTML.hasNiconicoID(livePageResponse) && isLoginMode) {
             // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
             val tmp = NicoLogin.secureNicoLogin(context)
             if (tmp != null) {
