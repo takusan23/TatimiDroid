@@ -26,6 +26,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -252,19 +253,20 @@ class NicoVideoFragment : Fragment() {
             // キャッシュを優先的に利用する　もしくは　キャッシュ再生時
             viewModel.isOfflinePlay -> {
                 // キャッシュ再生
-                val dataSourceFactory = DefaultDataSourceFactory(context, "TatimiDroid;@takusan_23")
-                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(contentUrl.toUri())
-                exoPlayer.prepare(videoSource)
+                val dataSourceFactory = DefaultDataSourceFactory(requireContext(), "TatimiDroid;@takusan_23")
+                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(contentUrl.toUri()))
+                exoPlayer.setMediaSource(videoSource)
             }
             // それ以外：インターネットで取得
             else -> {
                 // SmileサーバーはCookieつけないと見れないため
                 val dataSourceFactory = DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
                 dataSourceFactory.defaultRequestProperties.set("Cookie", viewModel.nicoHistory)
-                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(contentUrl.toUri())
-                exoPlayer.prepare(videoSource)
+                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(contentUrl.toUri()))
+                exoPlayer.setMediaSource(videoSource)
             }
         }
+        exoPlayer.prepare()
         exoPlayer.playWhenReady = true
         // リピートするか
         if (prefSetting.getBoolean("nicovideo_repeat_on", true)) {

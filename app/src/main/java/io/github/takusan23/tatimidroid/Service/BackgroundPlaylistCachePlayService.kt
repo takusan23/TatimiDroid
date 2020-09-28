@@ -20,11 +20,9 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.media.MediaBrowserServiceCompat
 import androidx.preference.PreferenceManager
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.source.ConcatenatingMediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
@@ -89,6 +87,18 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
 
         // MediaSession用意
         mediaSessionCompat = MediaSessionCompat(this, "media_session").apply {
+
+            // 前回リピートモード有効にしてたか
+            val repeatMode = prefSetting.getInt("cache_repeat_mode", 0)
+            controller.transportControls.setRepeatMode(repeatMode)
+            // 前回シャッフルモードを有効にしていたか
+            val isShuffleMode = prefSetting.getBoolean("cache_shuffle_mode", false)
+            val shuffleMode = if (isShuffleMode) {
+                PlaybackStateCompat.SHUFFLE_MODE_ALL
+            } else {
+                PlaybackStateCompat.REPEAT_MODE_NONE
+            }
+            controller.transportControls.setShuffleMode(shuffleMode)
 
             // MediaSessionの操作のコールバック
             setCallback(object : MediaSessionCompat.Callback() {
@@ -188,25 +198,24 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             // 忘れずに
             setSessionToken(sessionToken)
 
-            // 前回リピートモード有効にしてたか
-            val repeatMode = prefSetting.getInt("cache_repeat_mode", 0)
-            controller.transportControls.setRepeatMode(repeatMode)
-            // 前回シャッフルモードを有効にしていたか
-            val isShuffleMode = prefSetting.getBoolean("cache_shuffle_mode", false)
-            val shuffleMode = if (isShuffleMode) {
-                PlaybackStateCompat.SHUFFLE_MODE_ALL
-            } else {
-                PlaybackStateCompat.REPEAT_MODE_NONE
-            }
-            controller.transportControls.setShuffleMode(shuffleMode)
-
         }
 
         // ExoPlayerの再生状態が更新されたときも通知を更新する
         exoPlayer.addListener(object : Player.EventListener {
-            // 再生状態変わったら
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                super.onPlayerStateChanged(playWhenReady, playbackState)
+
+            // playWhenReadyが切り替わったら呼ばれる
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                super.onPlayWhenReadyChanged(playWhenReady, reason)
+                println("onPlayWhenReadyChanged $playWhenReady")
+                // 通知/状態 更新
+                updateState()
+                showNotification()
+            }
+
+            // playbackStateが変わったら呼ばれる
+            override fun onPlaybackStateChanged(state: Int) {
+                super.onPlaybackStateChanged(state)
+                println("onPlaybackStateChanged $state")
                 // 通知/状態 更新
                 updateState()
                 showNotification()
@@ -215,6 +224,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             // 次の曲いったら
             override fun onPositionDiscontinuity(reason: Int) {
                 super.onPositionDiscontinuity(reason)
+                println("onPositionDiscontinuity")
                 // 通知/状態 更新
                 updateState()
                 showNotification()
@@ -223,6 +233,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             // リピート条件変わったら
             override fun onRepeatModeChanged(repeatMode: Int) {
                 super.onRepeatModeChanged(repeatMode)
+                println("onRepeatModeChanged")
                 // 通知/状態 更新
                 updateState()
                 showNotification()
@@ -233,6 +244,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             // シャッフル有効・無効切り替わったら
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
                 super.onShuffleModeEnabledChanged(shuffleModeEnabled)
+                println("onShuffleModeEnabledChanged")
                 // 通知/状態 更新
                 updateState()
                 showNotification()
@@ -257,14 +269,8 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             nicoVideoCache.loadCache()
         }
         // ExoPlayerのプレイリスト機能
-        val concatenatedSource = ConcatenatingMediaSource()
-        val dataSourceFactory = DefaultDataSourceFactory(this@BackgroundPlaylistCachePlayService, "TatimiDroid;@takusan_23")
-        videoList.forEach { video ->
-            // プレイリストに追加
-            val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory)
-                .setTag(video.videoId)
-                .createMediaSource(nicoVideoCache.getCacheFolderVideoFilePath(video.videoId).toUri()) // 動画の場所
-            concatenatedSource.addMediaSource(mediaSource)
+        val mediaItems = videoList.map { nicoVideoData ->
+            MediaItem.Builder().setMediaId(nicoVideoData.videoId).setUri(nicoVideoCache.getCacheFolderVideoFilePath(nicoVideoData.videoId).toUri()).build()
         }
         // 再生位置を出す
         val index = if (seekVideoId != null) {
@@ -273,7 +279,8 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             0
         }
         withContext(Dispatchers.Main) {
-            exoPlayer.prepare(concatenatedSource)
+            exoPlayer.setMediaItems(mediaItems)
+            exoPlayer.prepare()
             if (index >= 0) {
                 // これはフィルター条件変更すると、配列から聞いてた動画がなくなり-1が返ってくる可能性があるため
                 exoPlayer.seekTo(index, 0) // 開始位置
@@ -311,23 +318,21 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             setState(state, position, 1.0f) // 最後は再生速度
         }.build()
         mediaSessionCompat.setPlaybackState(stateBuilder)
-        val metadata = when {
-            exoPlayer.currentTag is String -> {
-                // 再生中
-                // 最後に再生した曲を保存しておく。Android 11 の メディアの再開 や 連続再生の開始（無指定の時） で使う
-                prefSetting.edit { putString("cache_last_play_video_id", exoPlayer.currentTag as String) }
-                createMetaData(exoPlayer.currentTag as String)
-            }
-            else -> {
-                // 仮のデータ。なんかここらへんがおかしいと通知が二重で発行される
-                MediaMetadataCompat.Builder().apply {
-                    // Android 11 の MediaSession で使われるやつ
-                    putString(MediaMetadataCompat.METADATA_KEY_TITLE, getString(R.string.loading))
-                    putString(MediaMetadataCompat.METADATA_KEY_ARTIST, getString(R.string.loading))
-                }.build()
-            }
+        if (exoPlayer.currentMediaItem != null) {
+            // 再生中
+            // 最後に再生した曲を保存しておく。Android 11 の メディアの再開 や 連続再生の開始（無指定の時） で使う
+            prefSetting.edit { putString("cache_last_play_video_id", exoPlayer.currentMediaItem!!.mediaId) }
+            val metadata = createMetaData(exoPlayer.currentMediaItem!!.mediaId)
+            mediaSessionCompat.setMetadata(metadata)
+        } else {
+            // 読込中はその旨を表示する
+            val metadata = MediaMetadataCompat.Builder().apply {
+                // Android 11 の MediaSession で使われるやつ
+                putString(MediaMetadataCompat.METADATA_KEY_TITLE, getString(R.string.loading))
+                putString(MediaMetadataCompat.METADATA_KEY_ARTIST, getString(R.string.loading))
+            }.build()
+            mediaSessionCompat.setMetadata(metadata)
         }
-        mediaSessionCompat.setMetadata(metadata)
     }
 
     /**

@@ -22,6 +22,7 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
@@ -327,27 +328,27 @@ class NicoLivePlayService : Service() {
         // ExoPlayer初期化
         popupExoPlayer = SimpleExoPlayer.Builder(this).build()
         val sourceFactory = DefaultDataSourceFactory(this, "TatimiDroid;@takusan_23", object : TransferListener {
-            override fun onTransferInitializing(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
+            override fun onTransferInitializing(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) {
 
             }
 
-            override fun onTransferStart(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
+            override fun onTransferStart(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) {
 
             }
 
-            override fun onTransferEnd(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
+            override fun onBytesTransferred(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean, bytesTransferred: Int) {
 
             }
 
-            override fun onBytesTransferred(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean, bytesTransferred: Int) {
+            override fun onTransferEnd(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) {
 
             }
         })
 
-        val hlsMediaSource = HlsMediaSource.Factory(sourceFactory).createMediaSource(hlsAddress.toUri())
-
+        val hlsMediaSource = HlsMediaSource.Factory(sourceFactory).createMediaSource(MediaItem.fromUri(hlsAddress.toUri()))
         //再生準備
-        popupExoPlayer.prepare(hlsMediaSource)
+        popupExoPlayer.setMediaSource(hlsMediaSource)
+        popupExoPlayer.prepare()
         //再生
         popupExoPlayer.playWhenReady = true
         // エラーのとき

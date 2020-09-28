@@ -34,6 +34,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
@@ -876,26 +877,27 @@ class CommentFragment : Fragment() {
             }
             // 高さ更新
             comment_canvas.finalHeight = comment_canvas.height
-            val sourceFactory = DefaultDataSourceFactory(context, "TatimiDroid;@takusan_23", object : TransferListener {
-                override fun onTransferInitializing(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
+            val sourceFactory = DefaultDataSourceFactory(requireContext(), "TatimiDroid;@takusan_23", object : TransferListener {
+                override fun onTransferInitializing(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) {
 
                 }
 
-                override fun onTransferStart(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
+                override fun onTransferStart(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) {
 
                 }
 
-                override fun onTransferEnd(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean) {
+                override fun onBytesTransferred(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean, bytesTransferred: Int) {
 
                 }
 
-                override fun onBytesTransferred(source: DataSource?, dataSpec: DataSpec?, isNetwork: Boolean, bytesTransferred: Int) {
+                override fun onTransferEnd(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) {
 
                 }
             })
-            val hlsMediaSource = HlsMediaSource.Factory(sourceFactory).createMediaSource(hlsAddress.toUri())
+            val hlsMediaSource = HlsMediaSource.Factory(sourceFactory).createMediaSource(MediaItem.fromUri(hlsAddress.toUri()))
             //再生準備
-            exoPlayer.prepare(hlsMediaSource)
+            exoPlayer.setMediaSource(hlsMediaSource)
+            exoPlayer.prepare()
             //SurfaceViewセット
             exoPlayer.setVideoSurfaceView(live_surface_view)
             //再生

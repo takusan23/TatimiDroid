@@ -24,6 +24,7 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -264,15 +265,16 @@ class NicoVideoPlayService : Service() {
         if (isCache) {
             // キャッシュ再生
             val dataSourceFactory = DefaultDataSourceFactory(this, "TatimiDroid;@takusan_23")
-            val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(contentUrl.toUri())
-            exoPlayer.prepare(videoSource)
+            val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(contentUrl.toUri()))
+            exoPlayer.setMediaSource(videoSource)
         } else {
             // SmileサーバーはCookieつけないと見れないため
             val dataSourceFactory = DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
             dataSourceFactory.defaultRequestProperties.set("Cookie", nicoHistory)
-            val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(contentUrl.toUri())
-            exoPlayer.prepare(videoSource)
+            val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(contentUrl.toUri()))
+            exoPlayer.setMediaSource(videoSource)
         }
+        exoPlayer.prepare()
         // 自動再生
         exoPlayer.playWhenReady = true
         exoPlayer.addListener(object : Player.EventListener {
