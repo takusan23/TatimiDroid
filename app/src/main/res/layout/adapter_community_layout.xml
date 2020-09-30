@@ -37,8 +37,8 @@
 
                     <ImageView
                             android:id="@+id/adapter_community_program_thumb"
-                            android:layout_width="80dp"
-                            android:layout_height="match_parent"
+                            android:layout_width="100dp"
+                            android:layout_height="70dp"
                             android:layout_margin="5dp" />
 
                     <LinearLayout

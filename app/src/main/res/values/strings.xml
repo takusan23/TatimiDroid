@@ -521,7 +521,7 @@
     <string name="two_factor_auth_code">authentication code</string>
     <string name="two_factor_auth_trust_device">Trust this device. If you check it, you can skip two-step verification from the next time.</string>
     <string name="two_factor_auth_start">Authentication started</string>
-    <string name="login_error">Two-step verification is required or a problem has occurred.</string>
+    <string name="login_error">Could not log in</string>
     <string name="cache_filter">Filter / Sort</string>
     <string name="setting_scroll_tab_hide_title">Don\'t hide tabs</string>
     <string name="setting_scroll_tab_hide_description">If you scroll the comment list etc., the tab will be hidden automatically, but if you do not like this, you can enable it to always display it.</string>

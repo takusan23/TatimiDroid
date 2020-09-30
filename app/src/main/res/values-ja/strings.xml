@@ -521,7 +521,7 @@
     <string name="two_factor_auth_code">認証コード</string>
     <string name="two_factor_auth_trust_device">このデバイスを信頼する。チェックすると次回から二段階認証をスキップできます。</string>
     <string name="two_factor_auth_start">認証開始</string>
-    <string name="login_error">二段階認証が必要、もしくは問題が発生しました。</string>
+    <string name="login_error">ログインできませんでした</string>
     <string name="cache_filter">フィルター / 並び替え</string>
     <string name="setting_scroll_tab_hide_title">タブを隠さない</string>
     <string name="setting_scroll_tab_hide_description">コメント一覧等をスクロールすると自動でタブを隠しますが、これが嫌な場合は有効にすることで常時表示させることが出来ます。</string>

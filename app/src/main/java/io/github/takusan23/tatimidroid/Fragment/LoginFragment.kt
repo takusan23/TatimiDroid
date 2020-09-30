@@ -57,9 +57,6 @@ class LoginFragment : Fragment() {
                         // もしログイン無しで利用するが有効の場合は無効にする
                         putBoolean("setting_no_login", false)
                     }
-                }else {
-                    // 失敗時
-                    Toast.makeText(context, getString(R.string.login_error), Toast.LENGTH_SHORT).show()
                 }
             }
         }

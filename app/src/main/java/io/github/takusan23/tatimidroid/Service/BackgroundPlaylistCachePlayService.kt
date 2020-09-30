@@ -90,7 +90,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
 
             // 前回リピートモード有効にしてたか
             val repeatMode = prefSetting.getInt("cache_repeat_mode", 0)
-            controller.transportControls.setRepeatMode(repeatMode)
+            exoPlayer.repeatMode = repeatMode
             // 前回シャッフルモードを有効にしていたか
             val isShuffleMode = prefSetting.getBoolean("cache_shuffle_mode", false)
             val shuffleMode = if (isShuffleMode) {
@@ -98,7 +98,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             } else {
                 PlaybackStateCompat.REPEAT_MODE_NONE
             }
-            controller.transportControls.setShuffleMode(shuffleMode)
+            exoPlayer.shuffleModeEnabled = shuffleMode == PlaybackStateCompat.SHUFFLE_MODE_ALL
 
             // MediaSessionの操作のコールバック
             setCallback(object : MediaSessionCompat.Callback() {

@@ -90,6 +90,11 @@ object NicoLogin {
                 }
                 return@withContext null
             }
+        } else {
+            withContext(Dispatchers.Main) {
+                // しっぱい
+                Toast.makeText(context, R.string.login_error, Toast.LENGTH_SHORT).show()
+            }
         }
         null
     }
@@ -144,8 +149,8 @@ object NicoLogin {
                 userSession = header.second.split(";")[0].replace("user_session=", "")
                 return@withContext NicoLoginDataClass(false, userSession = userSession)
             }
-            if (userSession.isEmpty()) {
-                // user_sessionなかったので、二段階認証が必要と判断
+            // mfa_sessionがあったので二段階認証が必須
+            if (response.headers.any { pair -> pair.second.contains("mfa_session") }) {
                 // 設定されてる。二段階認証のためにCookieも取得する
                 val loginCookie = getLoginCookie(response.headers)
                 return@withContext NicoLoginDataClass(true, twoFactorURL = response.headers["Location"], twoFactorCookie = loginCookie)

@@ -16,12 +16,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.DialogWatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
-import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import java.text.SimpleDateFormat
@@ -43,16 +41,12 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val content = holder.timeTextView.context
-        val activity = (content as MainActivity)
-        val darkModeSupport = DarkModeSupport(content)
         prefSetting = PreferenceManager.getDefaultSharedPreferences(content)
 
         val item = arrayListArrayAdapter[position]
         val title = item.title
         val name = item.communityName
-        // val live = item.get(3)
         val live_time = item.beginAt
-        // val timeshift = item.get(5)
         val liveId = item.programId
         val datetime = item.beginAt
         val liveNow = item.lifeCycle
