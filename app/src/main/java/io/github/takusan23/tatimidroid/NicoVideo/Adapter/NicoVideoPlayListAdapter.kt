@@ -56,7 +56,8 @@ class NicoVideoPlayListAdapter(val list: ArrayList<NicoVideoData>, val viewModel
             // 再生
             parentLinearLayout.setOnClickListener {
                 // Fragment取得
-                nicoVideoPlayListFragment?.setVideo(data.videoId, data.isCache)
+                val isFullScreenPlaying = nicoVideoPlayListFragment?.isNicoVideoFragmentFullScreenPlaying() ?: false
+                nicoVideoPlayListFragment?.setVideo(data.videoId, data.isCache, isFullScreenPlaying)
                 setPlayingItemBackgroundColor(data.videoId, parentLinearLayout)
                 notifyDataSetChanged() // 一覧更新
             }

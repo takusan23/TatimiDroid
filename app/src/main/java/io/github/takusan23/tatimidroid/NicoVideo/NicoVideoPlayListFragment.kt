@@ -86,13 +86,16 @@ class NicoVideoPlayListFragment : Fragment() {
     /**
      * 動画再生Fragmentをセットする
      * @param videoId 動画ID
+     * @param isCache キャッシュ再生を有効にするなら
+     * @param fullscreen 最初から全画面で再生する場合はtrue
      * */
-    fun setVideo(videoId: String, isCache: Boolean = false) {
+    fun setVideo(videoId: String, isCache: Boolean = false, fullscreen: Boolean = false) {
         val nicoVideoFragment = NicoVideoFragment()
         // 動画ID詰めて
         val bundle = Bundle().apply {
             putString("id", videoId)
             putBoolean("cache", isCache)
+            putBoolean("fullscreen", fullscreen)
         }
         nicoVideoFragment.arguments = bundle
         parentFragmentManager.beginTransaction()
@@ -101,23 +104,29 @@ class NicoVideoPlayListFragment : Fragment() {
         viewModel.playingVideoId.value = videoId
     }
 
-    /** 次の動画へ切り替える */
-    fun nextVideo() {
+    /**
+     * 次の動画へ切り替える
+     * @param fullscreen 全画面再生で次の動画を再生する場合はtrue
+     * */
+    fun nextVideo(fullscreen: Boolean = false) {
         val videoList = viewModel.playListVideoList.value ?: return
         // 今の位置
         val pos = getCurrentItemPos() ?: 0
         val nextPos = pos + 1
         if (nextPos < videoList.size) {
             // 動画がある
-            setVideo(videoList[nextPos].videoId, videoList[nextPos].isCache)
+            setVideo(videoList[nextPos].videoId, videoList[nextPos].isCache, fullscreen)
         } else {
             // 終点。最初から？
-            setVideo(videoList[0].videoId, videoList[0].isCache)
+            setVideo(videoList[0].videoId, videoList[0].isCache, fullscreen)
         }
     }
 
     /** 現在再生中の位置を返す */
     fun getCurrentItemPos() = viewModel.playListVideoList.value?.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == viewModel.playingVideoId.value }
+
+    /** 今全画面で再生しているか */
+    fun isNicoVideoFragmentFullScreenPlaying() = (parentFragmentManager.findFragmentByTag(viewModel.playingVideoId.value) as? NicoVideoFragment)?.viewModel?.isFullScreenMode
 
     /**
      * Fabを消す関数

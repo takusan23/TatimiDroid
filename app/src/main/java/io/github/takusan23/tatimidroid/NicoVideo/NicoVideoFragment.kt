@@ -69,6 +69,7 @@ import kotlin.concurrent.timerTask
  * cache        |   キャッシュ再生ならtrue。なければfalse
  * eco          |   エコノミー再生するなら（?eco=1）true
  * internet     |   キャッシュ有っても強制的にインターネットを利用する場合はtrue
+ * fullscreen   |   最初から全画面で再生する場合は true。
  * */
 class NicoVideoFragment : Fragment() {
 
@@ -100,7 +101,7 @@ class NicoVideoFragment : Fragment() {
 
     val isCache by lazy { viewModel.isCache }
 
-    var seekTimer = Timer()
+    private var seekTimer = Timer()
 
     val exoPlayer by lazy { SimpleExoPlayer.Builder(requireContext()).build() }
 
@@ -144,16 +145,18 @@ class NicoVideoFragment : Fragment() {
         val isEconomy = arguments?.getBoolean("eco") ?: false
         // 強制的にインターネットを利用して取得
         val useInternet = arguments?.getBoolean("internet") ?: false
+        // 全画面で開始
+        val isStartFullScreen = arguments?.getBoolean("fullscreen") ?: false
 
         // ViewModel初期化
-        viewModel = ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet)).get(NicoVideoViewModel::class.java)
+        viewModel = ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen)).get(NicoVideoViewModel::class.java)
 
         // ViewPager
         initViewPager(viewModel.dynamicAddFragmentList)
 
         // 全画面モードなら
         if (viewModel.isFullScreenMode) {
-            requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+            requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
             setFullScreen()
         }
 
@@ -292,7 +295,7 @@ class NicoVideoFragment : Fragment() {
                 }
                 if (playbackState == Player.STATE_ENDED && playWhenReady) {
                     // 動画おわった。連続再生時なら次の曲へ
-                    requireNicoVideoPlayListFragment()?.nextVideo()
+                    requireNicoVideoPlayListFragment()?.nextVideo(viewModel.isFullScreenMode)
                 }
                 if (!isRotationProgressSuccessful) {
                     // 一度だけ実行するように。画面回転前の時間を適用する
@@ -396,6 +399,7 @@ class NicoVideoFragment : Fragment() {
     }
 
     private fun setCloseFullScreen() {
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         viewModel.isFullScreenMode = false
         player_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
         // コメント一覧表示
@@ -484,7 +488,7 @@ class NicoVideoFragment : Fragment() {
         }
         player_control_next.setOnClickListener {
             // 次の動画へ
-            requireNicoVideoPlayListFragment()?.nextVideo()
+            requireNicoVideoPlayListFragment()?.nextVideo(viewModel.isFullScreenMode)
         }
         // ダブルタップ版setOnClickListener。拡張関数です。DoubleClickListener
         player_control_parent.setOnDoubleClickListener { motionEvent, isDoubleClick ->
@@ -508,8 +512,8 @@ class NicoVideoFragment : Fragment() {
                 // 全画面終了ボタン
                 setCloseFullScreen()
             } else {
-                // なお全画面は横のみサポート
-                requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                // なお全画面は横のみサポート。SCREEN_ORIENTATION_USER_LANDSCAPEを使うと逆向き横画面を回避できる（横画面でも二通りあるけど自動で解決してくれる）
+                requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
                 setFullScreen()
             }
         }

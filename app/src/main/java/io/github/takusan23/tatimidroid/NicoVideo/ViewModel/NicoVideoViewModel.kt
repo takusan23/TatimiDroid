@@ -8,8 +8,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.Adapter.Parcelable.TabLayoutData
+import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
@@ -39,7 +39,7 @@ import org.json.JSONObject
  * @param isEco エコノミー再生ならtrue
  * @param useInternet キャッシュが有っても強制的にインターネットを経由して取得する場合はtrue
  * */
-class NicoVideoViewModel(application: Application, val videoId: String, val isCache: Boolean, val isEco: Boolean, useInternet: Boolean) : AndroidViewModel(application) {
+class NicoVideoViewModel(application: Application, val videoId: String, val isCache: Boolean, val isEco: Boolean, useInternet: Boolean, startFullScreen: Boolean) : AndroidViewModel(application) {
 
     /** Context */
     private val context = getApplication<Application>().applicationContext
@@ -116,7 +116,7 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
     var currentPosition = 0L
 
     /** 全画面再生 */
-    var isFullScreenMode = false
+    var isFullScreenMode = startFullScreen
 
     /** 16:9の動画の際はtrue */
     var is169AspectLate = true
