@@ -38,19 +38,20 @@
                     <ImageView
                             android:id="@+id/adapter_community_program_thumb"
                             android:layout_width="100dp"
-                            android:layout_height="70dp"
+                            android:layout_height="60dp"
+                            android:layout_gravity="center"
                             android:layout_margin="5dp" />
 
                     <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:orientation="vertical"
-                            android:padding="10dp">
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
 
                         <TextView
                                 android:id="@+id/adapter_community_time_textview"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_margin="2dp"
                                 android:text="読み込み中"
                                 android:textSize="12sp" />
 
@@ -58,9 +59,20 @@
                                 android:id="@+id/adapter_community_title_textview"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="読み込み中"
+                                android:layout_margin="2dp"
+                                android:maxLines="2"
+                                android:text="タイトル"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
+
+                        <TextView
+                                android:id="@+id/adapter_community_community_name_textview"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="2dp"
+                                android:maxLines="1"
+                                android:text="[コミュ名]"
+                                android:textSize="14sp" />
                     </LinearLayout>
 
                 </LinearLayout>

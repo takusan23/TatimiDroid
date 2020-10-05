@@ -22,13 +22,15 @@
 
             <FrameLayout
                     android:layout_width="100dp"
-                    android:layout_height="match_parent">
+                    android:layout_height="60dp"
+                    android:layout_gravity="center">
 
                 <ImageView
                         android:id="@+id/adapter_nicovideo_list_thum"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_gravity="center"
+                        android:scaleType="centerCrop"
                         app:srcCompat="@drawable/ic_local_movies_24px" />
 
                 <TextView
@@ -41,6 +43,7 @@
                         android:padding="2dp"
                         android:text="00:00"
                         android:textColor="#ffffff"
+                        android:textSize="12sp"
                         android:visibility="gone" />
             </FrameLayout>
 

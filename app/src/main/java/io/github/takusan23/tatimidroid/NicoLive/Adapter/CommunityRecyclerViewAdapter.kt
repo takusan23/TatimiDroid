@@ -58,7 +58,8 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         val simpleDateFormat = SimpleDateFormat("MM/dd HH:mm:ss")
         val time = simpleDateFormat.format(live_time.toLong())
 
-        holder.titleTextView.text = "${title}\n[${name}]"
+        holder.titleTextView.text = title
+        holder.communityNameTextView.text = "[${name}]"
 
         if (isOnAir) {
             //放送中
@@ -125,20 +126,14 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         var communityCard: CardView = itemView.findViewById(R.id.adapter_community_card)
 
         // 視聴モード
-        val watchModeLinearLayout: LinearLayout =
-            itemView.findViewById(R.id.adapter_community_watchmode_linearlayout)
-        val watchModeComeView: Button =
-            itemView.findViewById(R.id.adapter_community_watchmode_comeview)
-        val watchModeComePost: Button =
-            itemView.findViewById(R.id.adapter_community_watchmode_comepost)
-        val watchModeComeCas: Button =
-            itemView.findViewById(R.id.adapter_community_watchmode_nicocas)
-        val watchModeDesc: Button =
-            itemView.findViewById(R.id.adapter_community_watchmode_description)
-        val thumbImageView: ImageView =
-            itemView.findViewById(R.id.adapter_community_program_thumb)
-        val liveMenuIconImageView: ImageView =
-            itemView.findViewById(R.id.adapter_community_menu_icon)
+        val watchModeLinearLayout: LinearLayout = itemView.findViewById(R.id.adapter_community_watchmode_linearlayout)
+        val watchModeComeView: Button = itemView.findViewById(R.id.adapter_community_watchmode_comeview)
+        val watchModeComePost: Button = itemView.findViewById(R.id.adapter_community_watchmode_comepost)
+        val watchModeComeCas: Button = itemView.findViewById(R.id.adapter_community_watchmode_nicocas)
+        val watchModeDesc: Button = itemView.findViewById(R.id.adapter_community_watchmode_description)
+        val thumbImageView: ImageView = itemView.findViewById(R.id.adapter_community_program_thumb)
+        val liveMenuIconImageView: ImageView = itemView.findViewById(R.id.adapter_community_menu_icon)
+        val communityNameTextView: TextView = itemView.findViewById(R.id.adapter_community_community_name_textview)
     }
 
     // 視聴モード選択ボタン初期化

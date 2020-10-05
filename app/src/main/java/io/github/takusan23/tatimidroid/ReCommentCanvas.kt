@@ -170,7 +170,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                     drawList.forEach {
                         // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
                         // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
-                        val isAddable = drewedList.toList().none { id -> it.vpos.toLong() == id || it.commentNo.toLong() == id } // 条件に合わなければtrue
+                        val isAddable = drewedList.toList().none { id -> if (it.commentNo.isEmpty()) it.vpos.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
                         if (isAddable) {
                             // コメントIDない場合はvposで代替する
                             drewedList.add(if (it.commentNo.isEmpty()) it.vpos.toLong() else it.commentNo.toLong())
@@ -218,7 +218,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                 drawList.forEach {
                     // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
                     // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
-                    val isAddable = drewedList.toList().none { id -> it.vpos.toLong() == id || it.commentNo.toLong() == id } // 条件に合わなければtrue
+                    val isAddable = drewedList.toList().none { id -> if (it.commentNo.isEmpty()) it.vpos.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
                     if (isAddable) {
                         // コメントIDない場合はvposで代替する
                         drewedList.add(if (it.commentNo.isEmpty()) it.vpos.toLong() else it.commentNo.toLong())

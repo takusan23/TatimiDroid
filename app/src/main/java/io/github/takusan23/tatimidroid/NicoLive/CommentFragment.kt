@@ -274,7 +274,6 @@ class CommentFragment : Fragment() {
             usersession = prefSetting.getString("user_session", "") ?: ""
             // ViewModel初期化
             viewModel = ViewModelProvider(this, NicoLiveViewModelFactory(requireActivity().application, liveId, isWatchingMode, isJK)).get(NicoLiveViewModel::class.java)
-
         } else {
             showToast(getString(R.string.mail_pass_error))
             commentActivity.finish()
@@ -282,7 +281,7 @@ class CommentFragment : Fragment() {
 
         // 全画面再生時なら
         if (viewModel.isFullScreenMode) {
-            requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
             setFullScreen()
         }
 
@@ -441,7 +440,7 @@ class CommentFragment : Fragment() {
                 setCloseFullScreen()
             } else {
                 // 全画面移行
-                requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
                 setFullScreen()
             }
         }
@@ -532,6 +531,7 @@ class CommentFragment : Fragment() {
      * 全画面解除
      * */
     private fun setCloseFullScreen() {
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         // 全画面ではない
         viewModel.isFullScreenMode = false
         // コメビュ表示
@@ -982,11 +982,11 @@ class CommentFragment : Fragment() {
         when (conf.orientation) {
             Configuration.ORIENTATION_PORTRAIT -> {
                 //縦画面
-                commentActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                commentActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
             }
             Configuration.ORIENTATION_LANDSCAPE -> {
                 //横画面
-                commentActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                commentActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
             }
         }
     }

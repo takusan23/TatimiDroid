@@ -731,11 +731,11 @@ class NicoVideoFragment : Fragment() {
         // シークバー操作中でなければ
         if (player_control_seek != null && !isTouchSeekBar) {
             player_control_seek.progress = (exoPlayer.currentPosition / 1000L).toInt()
+            viewModel.currentPosition = exoPlayer.currentPosition
+            // 再生時間TextView
+            val formattedTime = DateUtils.formatElapsedTime(exoPlayer.currentPosition / 1000L)
+            player_control_current.text = formattedTime
         }
-        viewModel.currentPosition = exoPlayer.currentPosition
-        // 再生時間TextView
-        val formattedTime = DateUtils.formatElapsedTime(exoPlayer.currentPosition / 1000L)
-        player_control_current.text = formattedTime
     }
 
     /**
