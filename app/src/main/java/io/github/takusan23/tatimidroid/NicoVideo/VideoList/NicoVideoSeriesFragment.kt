@@ -57,7 +57,7 @@ class NicoVideoSeriesFragment : Fragment() {
             lifecycleScope.launch(Dispatchers.Default) {
                 val seriesAPI = NicoVideoSeriesAPI()
                 val response = seriesAPI.getSeriesVideoList(userSession, seriesId)
-                seriesAPI.parseSeriesVideoList(response.body?.string()).forEach {
+                seriesAPI.parseSeriesVideoList(response.body?.string())?.forEach {
                     nicoVideoList.add(it)
                 }
                 withContext(Dispatchers.Main) {

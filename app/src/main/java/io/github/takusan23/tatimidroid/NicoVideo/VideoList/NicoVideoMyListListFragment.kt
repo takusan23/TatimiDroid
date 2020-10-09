@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.NicoVideo.VideoList
 
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,6 +19,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdap
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist_list.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +56,9 @@ class NicoVideoMyListListFragment : Fragment() {
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
+
+        // ダークモード
+        fragment_nicovideo_mylist_list_app_bar.background = ColorDrawable(getThemeColor(requireContext()))
 
         // RecyclerView初期化
         initRecyclerView()

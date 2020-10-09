@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/fragment_nicovideo_mylist_list_app_bar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="2dp">
+                android:layout_margin="2dp"
+                app:layout_scrollFlags="scroll|enterAlways">
 
             <AutoCompleteTextView
                     android:id="@+id/fragment_nicovideo_mylist_list_sort"
@@ -25,20 +26,20 @@
                     android:inputType="none"
                     android:maxLines="1" />
         </com.google.android.material.textfield.TextInputLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                android:id="@+id/fragment_nicovideo_mylist_list_swipe"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/fragment_nicovideo_mylist_list_swipe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/fragment_nicovideo_mylist_list_recyclerview"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
+                android:layout_height="match_parent"
+                android:scrollbars="vertical" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/fragment_nicovideo_mylist_list_recyclerview"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scrollbars="vertical" />
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    </LinearLayout>
-
-</FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

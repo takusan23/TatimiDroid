@@ -425,7 +425,7 @@
     <string name="nicoru_delete_ok">Canceled Nicoru</string>
     <string name="nicoru_delete">cancel</string>
     <string name="skip_setting">Change skip seconds</string>
-    <string name="skip_input_hint">Change skip time (seconds)</string>
+    <string name="skip_input_hint">Change skip time (seconds).(By the way, skip can be used by double tapping the left and right of the playback screen.)</string>
     <string name="skip_input_hint_long">Change skip time when pressing and holding (second)</string>
     <string name="skip_setting_message">You can change the skip seconds.</string>
     <string name="setting_nicovideo_danmakuview_hide">Hide the comment visualization (graph above the seek bar)</string>

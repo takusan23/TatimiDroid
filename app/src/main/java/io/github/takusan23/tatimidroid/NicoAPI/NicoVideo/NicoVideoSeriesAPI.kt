@@ -56,8 +56,24 @@ class NicoVideoSeriesAPI {
             it.getElementsByClass("Thumbnail-image").attr("data-background-image")
         }
         val dateList = document.getElementsByClass("SeriesVideoListContainer-videoRegisteredAt").map {
-            val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm 投稿")
-            simpleDateFormat.parse(it.text()).time
+            val calendar = Calendar.getInstance()
+            when {
+                it.text().contains("分前 投稿") -> {
+                    // 時間操作だるすぎ
+                    calendar.add(Calendar.MINUTE, -it.text().replace("分前 投稿", "").toInt())
+                    calendar.timeInMillis
+                }
+                it.text().contains("時間前 投稿") -> {
+                    // 大体の値。スクレイピングだとこの処理がきついがJSONだとなんか取れない
+                    calendar.add(Calendar.HOUR_OF_DAY, -it.text().replace("時間前 投稿", "").toInt())
+                    calendar.timeInMillis
+                }
+                else -> {
+                    // こっちが良いのにね
+                    val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm 投稿")
+                    simpleDateFormat.parse(it.text()).time
+                }
+            }
         }
         val viewCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-view").map { it.text() }
         val mylistCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-mylist").map { it.text() }

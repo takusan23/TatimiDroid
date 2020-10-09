@@ -156,6 +156,7 @@ class NicoVideoSearchFragment : Fragment() {
             // 例外処理。コルーチン内で例外出るとここに来るようになるらしい。あたまいい
             val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
                 showToast("${getString(R.string.error)}${throwable}")
+                fragment_nicovideo_search_swipe_refresh.isRefreshing = false
             }
             coroutine = lifecycleScope.launch(errorHandler) {
                 val response = withContext(Dispatchers.Main) {
