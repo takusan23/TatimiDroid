@@ -45,7 +45,7 @@ class NicoVideoRankingViewModel(application: Application) : AndroidViewModel(app
         }
         viewModelScope.launch(errorHandler + coroutineJob + Dispatchers.Default) {
             val nicoVideoRankingHTML = NicoVideoRankingHTML()
-            val response = nicoVideoRankingHTML.getRankingGenreHTML(genre, time, tag)
+            val response = nicoVideoRankingHTML.getRankingHTML(genre, time, tag)
             if (!response.isSuccessful) {
                 showToast("${context.getString(R.string.error)}\n${response.code}")
                 return@launch

@@ -141,7 +141,6 @@ class NicoLiveComment {
                     }
                 }
                 sendJSONObject.put("thread", jsonObject)
-                println(sendJSONObject.toString())
                 this.send(sendJSONObject.toString())
             }
 

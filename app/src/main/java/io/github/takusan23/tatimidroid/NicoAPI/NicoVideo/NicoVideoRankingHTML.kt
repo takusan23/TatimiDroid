@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONException
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
@@ -53,13 +54,12 @@ class NicoVideoRankingHTML {
     }
 
     /**
-     * ランキングのジャンルを選んだ時に出てくるタグを取得する
-     * 例：その他を選んだ時は {オークション男,BB先輩劇場} など
+     * ランキングのHTMLを取得する
      * @param genre ジャンル。[NICOVIDEO_RANKING_GENRE]から選んで
      * @param time 集計時間。[NICOVIDEO_RANKING_TIME]から選んで
      * @param tag タグ。音楽だとVOCALOIDなど。無くてもいい
      * */
-    suspend fun getRankingGenreHTML(genre: String, time: String, tag: String? = null) = withContext(Dispatchers.IO) {
+    suspend fun getRankingHTML(genre: String, time: String, tag: String? = null) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             if (tag != null) {
                 url("https://sp.nicovideo.jp/ranking/$genre?term=$time&tag=$tag")
@@ -74,14 +74,23 @@ class NicoVideoRankingHTML {
     }
 
     /**
-     * [getRankingGenreHTML]から動画一覧をスクレイピングする関数
-     * @param responseString [getRankingGenreHTML]のレスポンス。Response#body#string()は一度しか呼べないのでいったん変数に入れないと
+     * [getRankingHTML]から動画一覧をスクレイピングする関数
+     * @param responseString [getRankingHTML]のレスポンス。Response#body#string()は一度しか呼べないのでいったん変数に入れないと
+     * @return JSONを見つけられなかったらnullになる。
      * */
     suspend fun parseRankingVideo(responseString: String?) = withContext(Dispatchers.Default) {
         val videoList = arrayListOf<NicoVideoData>()
         val html = Jsoup.parse(responseString)
-        // JSON
-        val jsonObject = JSONObject(html.getElementsByTag("script")[11].html())
+        // JSONを探す。今回はJSONに変換可能な文字列を探す
+        val jsonElement = html.getElementsByTag("script").find { element ->
+            try {
+                JSONObject(element.html())
+                true
+            } catch (e: JSONException) {
+                false
+            }
+        } ?: return@withContext null
+        val jsonObject = JSONObject(jsonElement.html())
         val jsonVideoList = jsonObject.getJSONArray("itemListElement")
         for (i in 0 until jsonVideoList.length()) {
             val videoObject = jsonVideoList.getJSONObject(i)
@@ -112,8 +121,9 @@ class NicoVideoRankingHTML {
     }
 
     /**
-     * [getRankingGenreHTML]をパースする関数
-     * @param responseString [getRankingGenreHTML]のレスポンス
+     * [getRankingHTML]をパースする関数
+     * 例：その他を選んだ時は {オークション男,BB先輩劇場} など
+     * @param responseString [getRankingHTML]のレスポンス
      * */
     suspend fun parseRankingGenreTag(responseString: String?) = withContext(Dispatchers.Default) {
         // スクレイピング
