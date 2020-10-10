@@ -16,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -24,10 +25,11 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.ContentShare
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
-import io.github.takusan23.tatimidroid.Tool.ProgramShare
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_comment_menu.*
@@ -130,10 +132,7 @@ class CommentMenuFragment : Fragment() {
 
         // 画質変更
         fragment_comment_fragment_menu_quality_button.setOnClickListener {
-            // 画質変更（視聴セッションWebSocket前だと見れない）
-            if (commentFragment.isInitQualityChangeBottomSheet()) {
-                commentFragment.qualitySelectBottomSheet.show(activity?.supportFragmentManager!!, "quality_bottom")
-            }
+            NicoLiveQualitySelectBottomSheet().show(commentFragment.childFragmentManager, "quality_change")
         }
         //強制画面回転
         fragment_comment_fragment_menu_rotation_button.setOnClickListener {
@@ -160,20 +159,14 @@ class CommentMenuFragment : Fragment() {
         }
         //（画像添付しない）共有
         fragment_comment_fragment_menu_share_button.setOnClickListener {
-            //Kotlinのapply便利だと思った。
-            commentFragment.apply {
-                programShare = ProgramShare(commentActivity, this.live_surface_view, viewModel.programTitle, liveId)
-                // 今いる部屋の名前入れる
-                programShare.showShareScreen(viewModel.roomNameAndChairIdLiveData.value ?: "")
-            }
+            val contentShare = ContentShare(requireActivity() as AppCompatActivity, viewModel.programTitle, liveId)
+            contentShare.shareContent()
         }
         //画像つき共有
         fragment_comment_fragment_menu_share_image_attach_button.setOnClickListener {
-            commentFragment.apply {
-                programShare = ProgramShare(commentActivity, this.live_surface_view, viewModel.programTitle, liveId)
-                // 今いる部屋の名前入れる
-                programShare.shareAttachImage(viewModel.roomNameAndChairIdLiveData.value ?: "")
-            }
+            val contentShare = ContentShare(requireActivity() as AppCompatActivity, viewModel.programTitle, liveId)
+            // 今いる部屋の名前入れる
+            contentShare.shareContentAttachPicture(commentFragment.live_surface_view, commentFragment.comment_canvas)
         }
         //生放送を再生ボタン
         fragment_comment_fragment_menu_view_live_button.setOnClickListener {

@@ -11,12 +11,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.BottomFragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Tool.CustomFont
@@ -27,32 +29,31 @@ import java.util.*
 
 /**
  * CommentJSONParse配列を使う
+ * @param commentList 表示するコメント
+ * @param commentFragment ViewModel取得したりBottomFragment表示させる時に使う
  * */
-class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) : RecyclerView.Adapter<CommentRecyclerViewAdapter.ViewHolder>() {
+class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>, private val commentFragment: CommentFragment) : RecyclerView.Adapter<CommentRecyclerViewAdapter.ViewHolder>() {
 
     //UserIDの配列。初コメを太字表示する
-    val userList = arrayListOf<String>()
-    lateinit var font: CustomFont
-    lateinit var pref_setting: SharedPreferences
-
-    lateinit var appCompatActivity: AppCompatActivity
+    private val userList = arrayListOf<String>()
+    private lateinit var font: CustomFont
+    private lateinit var prefSetting: SharedPreferences
 
     /** コテハン。[setKotehanDBChangeObserve]で自動更新してる */
-    val kotehanMap = mutableMapOf<String, String>()
+    private val kotehanMap = mutableMapOf<String, String>()
+
+    /** [CommentFragment]のViewModel */
+    private val commentFragmentViewModel by commentFragment.viewModels<NicoLiveViewModel>({ commentFragment })
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_comment_layout, parent, false)
         return ViewHolder(view)
     }
 
-    fun setActivity(appCompatActivity: AppCompatActivity) {
-        this.appCompatActivity = appCompatActivity
-    }
-
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val commentJSONParse = commentList[position]
         val context = holder.parentView.context
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
         // 一度だけ
         if (!::font.isInitialized) {
@@ -60,21 +61,13 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             setKotehanDBChangeObserve(context)
         }
 
-        //ロックオンだけcontextからActivityが取れないので。。
-        //共通化する
-        if (context is AppCompatActivity) {
-            this.appCompatActivity = context
-        }
-
-        val commentFragment = this.appCompatActivity.supportFragmentManager.findFragmentByTag(commentJSONParse.videoOrLiveId) as CommentFragment
-
         // コテハン。なければユーザーIDで
         val userId = kotehanMap[commentJSONParse.userId] ?: commentJSONParse.userId
 
         // 絶対時刻か相対時刻か
         var time = ""
-        if (pref_setting.getBoolean("setting_zettai_zikoku_hyouzi", true)) {
-            if (commentFragment.isJK) {
+        if (prefSetting.getBoolean("setting_zettai_zikoku_hyouzi", true)) {
+            if (commentFragmentViewModel.isJK) {
                 // 絶対時刻（12:13:00）など
                 // UnixTime -> Minute
                 if (commentJSONParse.date.isNotEmpty()) {
@@ -86,7 +79,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             } else {
                 if (commentJSONParse.date.isNotEmpty()) {
                     //相対時刻（25:25）など
-                    val programStartTime = commentFragment.viewModel.nicoLiveHTML.programStartTime
+                    val programStartTime = commentFragmentViewModel.nicoLiveHTML.programStartTime
                     val commentUnixTime = commentJSONParse.date.toLong()
                     val calc = (commentUnixTime - programStartTime)
                     time = DateUtils.formatElapsedTime(calc) // 時：分：秒　っていい感じにしてくれる
@@ -126,7 +119,7 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         }
 
         //NGスコア表示するか
-        if (pref_setting.getBoolean("setting_show_ng", false)) {
+        if (prefSetting.getBoolean("setting_show_ng", false)) {
             if (commentJSONParse.score.isNotEmpty()) {
                 info = "$info | ${commentJSONParse.score}"
             } else {
@@ -164,13 +157,11 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
             bundle.putString("label", info)
             val commentLockonBottomFragment = CommentLockonBottomFragment()
             commentLockonBottomFragment.arguments = bundle
-            if (context is AppCompatActivity) {
-                commentLockonBottomFragment.show(context.supportFragmentManager, "comment_menu")
-            }
+            commentLockonBottomFragment.show(commentFragment.childFragmentManager, "comment_menu")
         }
 
         // 部屋の色
-        if (pref_setting.getBoolean("setting_room_color", true)) {
+        if (prefSetting.getBoolean("setting_room_color", true)) {
             // 自分のコメントと部屋投稿と流量制限の色を変える
             val roomColor = if (commentJSONParse.yourPost) {
                 Color.argb(255, 172, 209, 94) // 自分のコメント
@@ -182,16 +173,16 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>) :
         }
 
         //ID非表示
-        if (pref_setting.getBoolean("setting_id_hidden", false)) {
+        if (prefSetting.getBoolean("setting_id_hidden", false)) {
             //非表示
             holder.roomNameTextView.visibility = View.GONE
             //部屋の色をつける設定有効時はコメントのTextViewに色を付ける
-            if (pref_setting.getBoolean("setting_room_color", true)) {
+            if (prefSetting.getBoolean("setting_room_color", true)) {
                 holder.commentTextView.setTextColor(getRoomColor(commentJSONParse.roomName, context))
             }
         }
         //一行表示とか
-        if (pref_setting.getBoolean("setting_one_line", false)) {
+        if (prefSetting.getBoolean("setting_one_line", false)) {
             holder.commentTextView.maxLines = 1
         }
 

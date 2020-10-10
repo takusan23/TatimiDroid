@@ -1,13 +1,10 @@
 package io.github.takusan23.tatimidroid.NicoVideo
 
-import android.app.Activity
-import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -81,9 +78,6 @@ class NicoVideoFragment : Fragment() {
 
     // 再生時間を適用したらtrue。一度だけ動くように
     var isRotationProgressSuccessful = false
-
-    // 共有
-    lateinit var share: ProgramShare
 
     // フォント
     lateinit var font: CustomFont
@@ -229,8 +223,6 @@ class NicoVideoFragment : Fragment() {
         // Marqueeを有効にするにはフォーカスをあてないといけない？。<marquee>とかWeb黎明期感ある（その時代の人じゃないけど）
         player_control_title.isSelected = true
         player_control_id.text = nicoVideoData.videoId
-        // 共有
-        share = ProgramShare((requireActivity() as AppCompatActivity), fragment_nicovideo_surfaceview, nicoVideoData.title, nicoVideoData.videoId)
         // リピートボタン
         player_control_repeat.setOnClickListener {
             when (exoPlayer.repeatMode) {
@@ -862,22 +854,6 @@ class NicoVideoFragment : Fragment() {
         super.onDestroy()
         seekTimer.cancel()
         exoPlayer.release()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            ProgramShare.requestCode -> {
-                //画像共有
-                if (resultCode == Activity.RESULT_OK) {
-                    if (data?.data != null) {
-                        val uri: Uri = data.data!!
-                        //保存＆共有画面表示
-                        share.saveActivityResult(uri)
-                    }
-                }
-            }
-        }
     }
 
     private fun showToast(message: String?) {

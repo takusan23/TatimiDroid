@@ -15,19 +15,22 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
-import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.Tool.ProgramShare
+import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Database.AutoAdmissionDB
 import io.github.takusan23.tatimidroid.Room.Entity.AutoAdmissionDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
+import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
+import io.github.takusan23.tatimidroid.Tool.ContentShare
 import kotlinx.android.synthetic.main.bottom_fragment_program_menu.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
 /**
@@ -263,9 +266,8 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
     private fun initShareButton() {
         bottom_fragment_program_info_share.setOnClickListener {
-            val programShare =
-                ProgramShare(activity as AppCompatActivity, bottom_fragment_program_info_share, nicoLiveHTML.programTitle, liveId)
-            programShare.showShareScreen()
+            val contentShare = ContentShare(requireActivity() as AppCompatActivity, nicoLiveHTML.programTitle, liveId)
+            contentShare.shareContent()
         }
     }
 

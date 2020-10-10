@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
@@ -31,7 +32,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
-import io.github.takusan23.tatimidroid.Tool.ProgramShare
+import io.github.takusan23.tatimidroid.Tool.ContentShare
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
@@ -52,9 +53,6 @@ class NicoVideoMenuFragment : Fragment() {
 
     /** キャッシュ再生ならtrue */
     var isCache = false
-
-    // 共有
-    lateinit var share: ProgramShare
 
     // JSON
     lateinit var jsonObject: JSONObject
@@ -389,20 +387,24 @@ class NicoVideoMenuFragment : Fragment() {
     fun initShare() {
         // 写真付き共有
         fragment_nicovideo_menu_share_media_attach.setOnClickListener {
-            requireNicoVideoFragment()?.apply {
+            requireNicoVideoFragment().apply {
                 // 再生時間も載せる
-                val currentPos = requireNicoVideoFragment()?.exoPlayer?.currentPosition
-                val currentTime = DateUtils.formatElapsedTime(currentPos ?: 0 / 1000)
-                share.shareAttachImage(currentTime)
+                val currentPos = exoPlayer.currentPosition
+                val currentTime = DateUtils.formatElapsedTime(currentPos)
+                // 共有
+                val share = ContentShare(requireActivity() as AppCompatActivity, videoId, this.viewModel.nicoVideoData.value?.title ?: "")
+                share.shareContentAttachPicture(fragment_nicovideo_surfaceview, fragment_nicovideo_comment_canvas, currentTime)
             }
         }
         // 共有
         fragment_nicovideo_menu_share.setOnClickListener {
-            requireNicoVideoFragment()?.apply {
+            requireNicoVideoFragment().apply {
                 // 再生時間も載せる
-                val currentPos = requireNicoVideoFragment()?.exoPlayer?.currentPosition
-                val currentTime = DateUtils.formatElapsedTime(currentPos ?: 0 / 1000)
-                share.showShareScreen(currentTime)
+                val currentPos = exoPlayer.currentPosition
+                val currentTime = DateUtils.formatElapsedTime(currentPos)
+                // 共有
+                val share = ContentShare(requireActivity() as AppCompatActivity, videoId, this.viewModel.nicoVideoData.value?.title ?: "")
+                share.shareContent(null, currentTime)
             }
         }
     }

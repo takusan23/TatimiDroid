@@ -8,44 +8,34 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_qulity_fragment_layout.*
-import org.json.JSONArray
 
-class QualitySelectBottomSheet : BottomSheetDialogFragment() {
-
-    var liveId = ""
-    lateinit var commentFragment: CommentFragment
+/**
+ * ニコ生画質変更BottomFragment。
+ * Bundleには何も入れなくていいから、[NicoLiveViewModel.qualityListJSONArray]と[NicoLiveViewModel.currentQuality]の値を入れておいてね
+ * */
+class NicoLiveQualitySelectBottomSheet : BottomSheetDialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_qulity_fragment_layout, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val quality_list = arguments?.getString("quality_list")
-            ?: "[\"abr\",\"high\",\"normal\",\"low\",\"super_low\",\"audio_high\"]"
-        val select_quality = arguments?.getString("select_quality") ?: "high"
 
-        liveId = arguments?.getString("liveId") ?: ""
-        commentFragment = activity?.supportFragmentManager?.findFragmentByTag(liveId) as CommentFragment
-
+        // CommentFragmentのViewModel取得する
+        val commentFragmentViewModel by viewModels<NicoLiveViewModel>({ requireParentFragment() })
 
         //TextView回す
-        val jsonArray = JSONArray(quality_list)
+        val jsonArray = commentFragmentViewModel.qualityListJSONArray
         for (i in 0 until jsonArray.length()) {
-            val layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            val layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             //押したときのやつ
             val typedValue = TypedValue()
-            context?.theme?.resolveAttribute(
-                android.R.attr.selectableItemBackground,
-                typedValue,
-                true
-            )
+            context?.theme?.resolveAttribute(android.R.attr.selectableItemBackground, typedValue, true)
             val textView = TextView(context)
             val text = jsonArray.getString(i)
             //いろいろ
@@ -55,13 +45,13 @@ class QualitySelectBottomSheet : BottomSheetDialogFragment() {
             textView.setPadding(10, 10, 10, 10)
             textView.setBackgroundResource(typedValue.resourceId)
             //今の画質
-            if (text == select_quality) {
+            if (text == commentFragmentViewModel.currentQuality) {
                 textView.setTextColor(Color.parseColor("#0d46a0"))
             }
             //押したとき
             textView.setOnClickListener {
                 //送信
-                commentFragment.viewModel.nicoLiveHTML.sendQualityMessage(text)
+                commentFragmentViewModel.nicoLiveHTML.sendQualityMessage(text)
                 dismiss()
             }
             quality_parent_linearlayout.addView(textView)

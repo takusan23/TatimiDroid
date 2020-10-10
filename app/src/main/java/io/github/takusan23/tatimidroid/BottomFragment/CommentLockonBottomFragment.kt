@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -83,9 +82,6 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         val darkModeSupport = DarkModeSupport(requireContext())
         bottom_fragment_comment_menu_parent_linearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
 
-        // Fragment取得。コテハン登録/コメント取得等で使ってる。
-        val fragment = parentFragmentManager.findFragmentByTag(liveId)
-
         // argmentから取り出す
         comment = arguments?.getString("comment") ?: ""
         userId = arguments?.getString("user_id") ?: ""
@@ -109,9 +105,10 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
          * 生主が効いたときによくある
          * 動画にも対応する・・・？
          * */
-        when {
-            // 生放送
-            fragment is CommentFragment -> {
+        val fragment = requireParentFragment()
+        when (fragment) {
+            is CommentFragment -> {
+                // 生放送
                 recyclerViewList = fragment.viewModel.commentList.filter { commentJSONParse -> if (commentJSONParse != null) commentJSONParse.userId == userId else false } as ArrayList<CommentJSONParse>
                 lifecycleScope.launch {
                     // コメントが届いたら反映させる。コルーチンすごいね
@@ -125,7 +122,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 }
             }
             // 動画
-            fragment is NicoVideoFragment -> {
+            is NicoVideoFragment -> {
                 recyclerViewList = fragment.viewModel.rawCommentList.filter { commentJSONParse -> commentJSONParse.userId == userId } as ArrayList<CommentJSONParse>
                 isNicoVideoFragment = true
             }
@@ -137,9 +134,8 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 // 生放送
                 bottom_fragment_comment_menu_recyclerview.setHasFixedSize(true)
                 bottom_fragment_comment_menu_recyclerview.layoutManager = LinearLayoutManager(context)
-                val commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
+                val commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList, fragment)
                 bottom_fragment_comment_menu_recyclerview.adapter = commentRecyclerViewAdapter
-                commentRecyclerViewAdapter.setActivity((activity as AppCompatActivity?)!!)
                 //区切り線いれる
                 val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
                 bottom_fragment_comment_menu_recyclerview.addItemDecoration(itemDecoration)

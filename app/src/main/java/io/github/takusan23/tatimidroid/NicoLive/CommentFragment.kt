@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.NicoLive
 
-import android.app.Activity
 import android.content.*
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -8,7 +7,6 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -52,7 +50,7 @@ import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
 import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoLivePagerAdapter
-import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.QualitySelectBottomSheet
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFactory
 import io.github.takusan23.tatimidroid.NimadoActivity
@@ -72,6 +70,10 @@ import kotlin.concurrent.timerTask
 /**
  * 生放送再生Fragment。
  * NicoLiveFragmentじゃなくてCommentFragmentになってるのはもともと全部屋見れるコメビュを作りたかったから
+ * このFragmentを探す際はTagじゃなくてIDで頼む。
+ *
+ * BottomFragmentとかViewPager2の中のFragmentは[requireParentFragment]が使えるかもしれないから伝えておく。
+ * BottomFragmentで[requireParentFragment]を使うときは、このFragmentの[getChildFragmentManager]を使って開く必要がある
  * */
 class CommentFragment : Fragment() {
 
@@ -118,12 +120,6 @@ class CommentFragment : Fragment() {
 
     // 運コメ・infoコメント非表示
     var hideInfoUnnkome = false
-
-    // 共有
-    lateinit var programShare: ProgramShare
-
-    // 画質変更BottomSheetFragment
-    lateinit var qualitySelectBottomSheet: QualitySelectBottomSheet
 
     // 二窓モードになっている場合
     var isNimadoMode = false
@@ -173,8 +169,8 @@ class CommentFragment : Fragment() {
         darkModeSupport.setActivityTheme(activity as AppCompatActivity)
 
         // ActionBarが邪魔という意見があった（私も思う）ので消す
-        if (activity !is NimadoActivity) {
-            commentActivity.supportActionBar?.hide()
+        if (requireActivity() !is NimadoActivity) {
+            (requireActivity() as AppCompatActivity).supportActionBar?.hide()
         }
 
         //ダークモード対応
@@ -666,8 +662,8 @@ class CommentFragment : Fragment() {
             bundle.putString("select_quality", selectQuality)
             bundle.putString("quality_list", qualityTypesJSONArray.toString())
             bundle.putString("liveId", liveId)
-            qualitySelectBottomSheet = QualitySelectBottomSheet()
-            qualitySelectBottomSheet.arguments = bundle
+            val nicoLiveQualitySelectBottomSheet = NicoLiveQualitySelectBottomSheet()
+            nicoLiveQualitySelectBottomSheet.arguments = bundle
         }
     }
 
@@ -1019,16 +1015,6 @@ class CommentFragment : Fragment() {
                 } else {
                     //何もできない。
                     Toast.makeText(context, "権限取得に失敗しました。", Toast.LENGTH_SHORT).show()
-                }
-            }
-            ProgramShare.requestCode -> {
-                //画像共有
-                if (resultCode == Activity.RESULT_OK) {
-                    if (data?.data != null) {
-                        val uri: Uri = data.data!!
-                        //保存＆共有画面表示
-                        programShare.saveActivityResult(uri)
-                    }
                 }
             }
         }
@@ -1515,7 +1501,5 @@ class CommentFragment : Fragment() {
     }
 
     fun isInitGoogleCast(): Boolean = ::googleCast.isInitialized
-
-    fun isInitQualityChangeBottomSheet(): Boolean = ::qualitySelectBottomSheet.isInitialized
 
 }

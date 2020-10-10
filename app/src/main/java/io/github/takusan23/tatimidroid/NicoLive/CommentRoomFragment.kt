@@ -132,7 +132,7 @@ class CommentRoomFragment : Fragment() {
         comment_room_recycler_view.setHasFixedSize(true)
         val mLayoutManager = LinearLayoutManager(context)
         comment_room_recycler_view.layoutManager = mLayoutManager
-        commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList)
+        commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList, commentFragment)
         comment_room_recycler_view.adapter = commentRecyclerViewAdapter
         recyclerViewLayoutManager = comment_room_recycler_view.layoutManager!!
         comment_room_recycler_view.itemAnimator = null

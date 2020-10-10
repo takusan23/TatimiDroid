@@ -1,15 +1,17 @@
 package io.github.takusan23.tatimidroid.NicoLive.Activity
 
-import android.content.*
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
-import io.github.takusan23.tatimidroid.*
-import io.github.takusan23.tatimidroid.Fragment.*
+import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 
@@ -71,12 +73,11 @@ class CommentActivity : AppCompatActivity() {
         super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
     }
 
-    //ホームボタンおした
-    //これはActivityじゃないと使えないと思う
+    // ホームボタンおした
+    // これはActivityじゃないと使えないと思う
     override fun onUserLeaveHint() {
-        val liveId = intent?.getStringExtra("liveId") ?: ""
         //CommentFragment取得
-        val commentFragment = supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
+        val commentFragment = supportFragmentManager.findFragmentById(R.id.activity_comment_new_linearlayout) as CommentFragment
         commentFragment.apply {
             //別アプリを開いた時の処理
             if (prefSetting.getBoolean("setting_leave_background", false)) {
@@ -105,9 +106,6 @@ class CommentActivity : AppCompatActivity() {
 
     //戻るキーを押した時に本当に終わるか聞く
     override fun onBackPressed() {
-        val liveId = intent?.getStringExtra("liveId") ?: ""
-        //CommentFragment取得
-        val commentFragment = supportFragmentManager.findFragmentByTag(liveId) as CommentFragment
         // そうじゃないなら終了ダイアログを出す
         val message = "${getString(R.string.back_dialog)}\n${getString(R.string.back_dialog_description)}"
         val buttonList = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {

@@ -16,26 +16,21 @@ import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapt
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_commentview.*
-import org.java_websocket.client.WebSocketClient
 
 /**
  * ニコ生コメント表示Fragment
  * */
 class CommentViewFragment : Fragment() {
 
-    // 接続中の部屋名
-    var recyclerViewList: ArrayList<ArrayList<String>> = arrayListOf()
-    lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
-
-    var websocketList: ArrayList<WebSocketClient> = arrayListOf()
+    private lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
     lateinit var prefSetting: SharedPreferences
 
     // getString(R.string.arena)
-    lateinit var stringArena: String
+    private lateinit var stringArena: String
 
     var liveId = ""
 
-    lateinit var recyclerView: RecyclerView
+    private lateinit var recyclerView: RecyclerView
 
     // CommentFragmentとそれのViewModel
     val commentFragment by lazy { requireParentFragment() as CommentFragment }
@@ -61,7 +56,7 @@ class CommentViewFragment : Fragment() {
             recyclerView.setHasFixedSize(true)
             val mLayoutManager = LinearLayoutManager(context)
             recyclerView.layoutManager = mLayoutManager
-            commentRecyclerViewAdapter = CommentRecyclerViewAdapter(viewModel.commentList)
+            commentRecyclerViewAdapter = CommentRecyclerViewAdapter(viewModel.commentList, commentFragment)
             recyclerView.adapter = commentRecyclerViewAdapter
             recyclerView.itemAnimator = null
             //区切り線いれる
@@ -92,19 +87,6 @@ class CommentViewFragment : Fragment() {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        //WebSocket切断
-        websocketList.forEach {
-            it.close()
-        }
-    }
-
-    // Adapter初期化済みかどうか
-    fun isInitAdapter(): Boolean {
-        return ::commentRecyclerViewAdapter.isInitialized
     }
 
     /**
