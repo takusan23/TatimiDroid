@@ -1,53 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/fragment_nicovideo_motionlayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        app:layoutDescription="@xml/fragment_nicovideo_scene">
 
-    <!--  影をつけるためだけにCardView追加  -->
-    <androidx.cardview.widget.CardView
-            android:id="@+id/fragment_nicovideo_framelayout_elevation_cardview"
+    <!-- プレイヤー -->
+    <FrameLayout
+            android:id="@+id/fragment_nicovideo_framelayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="0dp"
-            app:cardElevation="5dp">
+            android:layout_height="300dp"
+            android:layout_gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
+        <SurfaceView
+                android:id="@+id/fragment_nicovideo_surfaceview"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:layout_height="match_parent" />
 
-            <FrameLayout
-                    android:id="@+id/fragment_nicovideo_framelayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="300dp"
-                    android:layout_gravity="center">
+        <io.github.takusan23.tatimidroid.ReCommentCanvas
+                android:id="@+id/fragment_nicovideo_comment_canvas"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
 
-                <SurfaceView
-                        android:id="@+id/fragment_nicovideo_surfaceview"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
+        <!-- コントローラーのレイアウトを読み込む -->
+        <include layout="@layout/include_nicovideo_player_controller" />
 
-                <io.github.takusan23.tatimidroid.ReCommentCanvas
-                        android:id="@+id/fragment_nicovideo_comment_canvas"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent" />
-
-                <!-- コントローラーのレイアウトを読み込む -->
-                <include layout="@layout/include_nicovideo_player_controller" />
-
-            </FrameLayout>
-
-        </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
+    </FrameLayout>
 
     <!-- TabLayoutをRecyclerViewのスクロールに合わせて表示したりしなかったりすつ -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:id="@+id/fragment_nicovideo_viewpager_parent"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/fragment_nicovideo_framelayout">
 
         <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
@@ -82,4 +75,4 @@
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 
-</LinearLayout>
+</androidx.constraintlayout.motion.widget.MotionLayout>

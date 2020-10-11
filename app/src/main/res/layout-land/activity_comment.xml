@@ -5,7 +5,7 @@
         android:id="@+id/comment_fragment_motionlayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layoutDescription="@xml/fragment_land_comment_scene">
+        app:layoutDescription="@xml/fragment_comment_land_scene">
 
     <FrameLayout
             android:id="@+id/comment_fragment_land_space"

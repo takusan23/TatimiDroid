@@ -378,12 +378,10 @@ class MainActivity : AppCompatActivity() {
     /** 戻る押した時、MainActivityにおいたFragmentへ通知を飛ばす */
     override fun onBackPressed() {
         val fragment = supportFragmentManager.findFragmentById(R.id.main_activity_fragment_layout)
+        // もしFragmentが見つからなかった場合はActivityを終了させる
+        if (fragment == null) super.onBackPressed()
         (fragment as MainActivityPlayerFragmentInterface).apply {
-            if (isMiniPlayerMode()) {
-                super.onBackPressed() // Activity終了
-            } else {
-                onBackButtonPress() // 戻るキー押した関数を呼ぶ
-            }
+            onBackButtonPress() // 戻るキー押した関数を呼ぶ
         }
     }
 

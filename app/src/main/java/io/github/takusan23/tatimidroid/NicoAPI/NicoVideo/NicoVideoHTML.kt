@@ -800,6 +800,39 @@ class NicoVideoHTML {
         }
     }
 
+    /** 動画の幅に合わせた幅を返す関数 */
+    fun calcVideoWidthDisplaySize() {
+
+    }
+
+    /**
+     * 動画の高さに合わせた画面の高さを返す関数。アスペクト比を考える
+     * 1280 : 720 = 2180 : x  ←この式を解く
+     * 720 * 2180 = 1280x   そとそとなかなかだっけ
+     *
+     * @param videoHeight 動画の縦の長さ。
+     * @param videoWidth 動画の幅の長さ。
+     * @param displayWidth 画面の幅。
+     * @return 画面の幅とアスペクト比を考えて出した結果。
+     * */
+    fun calcVideoHeightDisplaySize(videoWidth: Int, videoHeight: Int, displayWidth: Int): Float {
+        // どれだけ差があるか出す
+        return videoHeight.toFloat() / videoWidth * displayWidth
+    }
+
+
+
+    /**
+     * 動画情報JSONの中から動画の幅、高さを取得する関数。
+     * dmcInfoがない場合はnullになります。
+     * @return firstが幅、secondが高さになります。
+     * */
+    fun getVideoSize(jsonObject: JSONObject): Pair<Int, Int>? {
+        if (!isDMCServer(jsonObject)) return null
+        val video = jsonObject.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality").getJSONArray("videos").getJSONObject(0).getJSONObject("resolution")
+        return Pair(video.getInt("width"), video.getInt("height"))
+    }
+
     /**
      * 終了時に呼んで
      * */

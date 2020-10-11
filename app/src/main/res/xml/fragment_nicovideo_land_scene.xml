@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- 通常時のConstraintLayout -->
+    <ConstraintSet android:id="@+id/fragment_nicovideo_transition_start">
+        <Constraint
+                android:id="@+id/fragment_nicovideo_framelayout"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/fragment_nicovideo_viewpager_parent"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+                android:id="@+id/fragment_nicovideo_viewpager_parent"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_framelayout"
+                app:layout_constraintTop_toTopOf="parent" />
+    </ConstraintSet>
+
+    <!-- ミニプレイヤー時のConstraintLayout -->
+    <ConstraintSet android:id="@+id/fragment_nicovideo_transition_end">
+        <Constraint
+                android:id="@+id/fragment_nicovideo_framelayout"
+                android:layout_width="320dp"
+                android:layout_height="180dp"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+        <Constraint
+                android:id="@+id/fragment_nicovideo_viewpager_parent"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_framelayout"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_framelayout"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_framelayout" />
+    </ConstraintSet>
+
+    <!-- フルスクリーン時のConstraintLayout -->
+    <ConstraintSet android:id="@+id/fragment_nicovideo_transition_fullscreen">
+        <Constraint
+                android:id="@+id/fragment_nicovideo_viewpager_parent"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_framelayout"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_framelayout" />
+        <Constraint
+                android:id="@+id/fragment_nicovideo_framelayout"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+    </ConstraintSet>
+
+    <Transition
+            app:constraintSetEnd="@id/fragment_nicovideo_transition_end"
+            app:constraintSetStart="@+id/fragment_nicovideo_transition_start" />
+
+    <Transition
+            app:constraintSetEnd="@+id/fragment_nicovideo_transition_fullscreen"
+            app:constraintSetStart="@+id/fragment_nicovideo_transition_start" />
+</MotionScene>

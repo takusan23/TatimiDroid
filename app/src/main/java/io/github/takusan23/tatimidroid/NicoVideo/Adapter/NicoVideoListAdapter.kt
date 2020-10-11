@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.NicoVideo.Adapter
 
-import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
@@ -19,9 +18,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startCacheService
@@ -134,10 +135,12 @@ class NicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideoDat
                     when (playType) {
                         "default" -> {
                             // 画面遷移
-                            val intent = Intent(context, NicoVideoActivity::class.java)
-                            intent.putExtra("id", data.videoId)
-                            intent.putExtra("cache", data.isCache)
-                            context.startActivity(intent)
+                            val nicoVideoFragment = NicoVideoFragment()
+                            val bundle = Bundle()
+                            bundle.putString("id", data.videoId)
+                            bundle.putBoolean("cache", data.isCache)
+                            nicoVideoFragment.arguments = bundle
+                            (context as MainActivity).setPlayer(nicoVideoFragment, data.videoId)
                         }
                         "popup" -> {
                             startVideoPlayService(context = context, mode = "popup", videoId = data.videoId, isCache = data.isCache)
