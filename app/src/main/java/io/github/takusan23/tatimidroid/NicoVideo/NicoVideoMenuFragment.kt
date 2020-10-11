@@ -249,7 +249,7 @@ class NicoVideoMenuFragment : Fragment() {
     private fun initPlayButton() {
         fragment_nicovideo_menu_video_play.setOnClickListener {
             requireNicoVideoFragment()?.apply {
-                if (fragment_nicovideo_framelayout.visibility == View.GONE) {
+                if (fragment_nicovideo_background.visibility == View.GONE) {
                     commentOnlyModeDisable()
                 } else {
                     commentOnlyModeEnable()

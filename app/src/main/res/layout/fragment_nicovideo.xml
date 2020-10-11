@@ -7,15 +7,28 @@
         android:orientation="vertical"
         app:layoutDescription="@xml/fragment_nicovideo_scene">
 
-    <!-- プレイヤー -->
+    <!-- 背景。アスペクト比を合わせるとどうしても空間ができるので埋める。プレイヤーはこのFrameLayoutと同じ大きさになるように制約を書いたので、こいつのサイズ変更だけでいい -->
     <FrameLayout
-            android:id="@+id/fragment_nicovideo_framelayout"
+            android:id="@+id/fragment_nicovideo_background"
             android:layout_width="match_parent"
             android:layout_height="300dp"
             android:layout_gravity="center"
+            android:clickable="true"
+            android:elevation="5dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- プレイヤー -->
+    <FrameLayout
+            android:id="@+id/fragment_nicovideo_player_framelayout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:elevation="5dp"
+            app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_background"
+            app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
+            app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
+            app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background">
 
         <SurfaceView
                 android:id="@+id/fragment_nicovideo_surfaceview"
@@ -40,7 +53,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fragment_nicovideo_framelayout">
+            app:layout_constraintTop_toBottomOf="@+id/fragment_nicovideo_background">
 
         <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"

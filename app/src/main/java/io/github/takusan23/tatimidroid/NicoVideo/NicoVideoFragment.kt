@@ -169,7 +169,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
 
         if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
-            fragment_nicovideo_framelayout.visibility = View.GONE
+            fragment_nicovideo_background.visibility = View.GONE
         } else {
             // 動画再生
             viewModel.contentUrl.observe(viewLifecycleOwner) { contentUrl ->
@@ -363,10 +363,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 playerWidth /= 2
                 playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, playerWidth).roundToInt()
             }
-            // レイアウト調整
+            // レイアウト調整。横んときはちょっと別
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_start).apply {
-                constrainHeight(R.id.fragment_nicovideo_framelayout, playerHeight)
-                constrainWidth(R.id.fragment_nicovideo_framelayout, playerWidth)
+                constrainHeight(R.id.fragment_nicovideo_player_framelayout, playerHeight)
+                constrainWidth(R.id.fragment_nicovideo_player_framelayout, playerWidth)
             }
         } else {
             // 縦画面
@@ -379,9 +379,17 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
             // レイアウト調整
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_start).apply {
-                constrainHeight(R.id.fragment_nicovideo_framelayout, playerHeight)
-                constrainWidth(R.id.fragment_nicovideo_framelayout, playerWidth)
+                constrainHeight(R.id.fragment_nicovideo_background, playerHeight)
+                constrainWidth(R.id.fragment_nicovideo_background, playerWidth)
             }
+
+/*
+            // ついでにミニプレイヤーのときも
+            fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
+                constrainHeight(R.id.fragment_nicovideo_background, (playerHeight / 2))
+                constrainWidth(R.id.fragment_nicovideo_background, (playerWidth / 2))
+            }
+*/
         }
     }
 
@@ -399,7 +407,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // システムバー消す
         setSystemBarVisibility(false)
         // アスペクト比調整
-        fragment_nicovideo_framelayout.updateLayoutParams {
+        fragment_nicovideo_background.updateLayoutParams {
             val displayWidth = DisplaySizeTool.getDisplayWidth(context)
             val displayHeight = DisplaySizeTool.getDisplayHeight(context)
             if (isLandscape()) {
@@ -423,7 +431,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // システムバー表示
         setSystemBarVisibility(true)
         // アスペ（クト比）直す
-        fragment_nicovideo_framelayout.updateLayoutParams {
+        fragment_nicovideo_background.updateLayoutParams {
             // 画面の幅取得。令和最新版（ビリビリワイヤレスイヤホン並感）
             val displayWidth = DisplaySizeTool.getDisplayWidth(context)
             val displayHeight = DisplaySizeTool.getDisplayHeight(context)
@@ -673,6 +681,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         darkModeSupport = DarkModeSupport(requireContext())
         fragment_nicovideo_tablayout.backgroundTintList = ColorStateList.valueOf(getThemeColor(requireContext()))
         fragment_nicovideo_viewpager_parent.background = ColorDrawable(getThemeColor(requireContext()))
+        fragment_nicovideo_background.background = ColorDrawable(getThemeColor(requireContext()))
     }
 
     /**
@@ -693,7 +702,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     fun commentOnlyModeEnable() {
         exoPlayer.stop()
-        fragment_nicovideo_framelayout.visibility = View.GONE
+        fragment_nicovideo_background.visibility = View.GONE
         hideSwipeToRefresh()
     }
 
@@ -703,7 +712,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
     fun commentOnlyModeDisable() {
         exoPlayer.stop()
         viewModel.contentUrl.value?.let { initExoPlayer(it) }
-        fragment_nicovideo_framelayout.visibility = View.VISIBLE
+        fragment_nicovideo_background.visibility = View.VISIBLE
         showSwipeToRefresh()
     }
 
@@ -716,7 +725,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         when (round) {
             1.0 -> {
                 // 縦も横も同じ
-                fragment_nicovideo_framelayout.updateLayoutParams {
+                fragment_nicovideo_background.updateLayoutParams {
                     width = if (isPortLait) {
                         // 縦
                         (displayWidth / 1.5).toInt()
@@ -730,7 +739,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             1.3 -> {
                 // 4:3動画
                 // 4:3をそのまま出すと大きすぎるので調整（代わりに黒帯出るけど仕方ない）
-                fragment_nicovideo_framelayout.updateLayoutParams {
+                fragment_nicovideo_background.updateLayoutParams {
                     width = if (isPortLait) {
                         // 縦
                         (displayWidth / 1.2).toInt()
@@ -744,7 +753,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             1.7 -> {
                 // 16:9動画
                 // 横の長さから縦の高さ計算
-                fragment_nicovideo_framelayout.updateLayoutParams {
+                fragment_nicovideo_background.updateLayoutParams {
                     width = if (isPortLait) {
                         // 縦
                         displayWidth
