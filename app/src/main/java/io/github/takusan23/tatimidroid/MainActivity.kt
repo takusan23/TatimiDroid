@@ -57,7 +57,7 @@ import kotlinx.coroutines.withContext
  * */
 class MainActivity : AppCompatActivity() {
 
-    lateinit var pref_setting: SharedPreferences
+    private lateinit var prefSetting: SharedPreferences
 
     /**
      * 言語変更機能をつける
@@ -67,10 +67,9 @@ class MainActivity : AppCompatActivity() {
         super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
     }
 
-    //val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(this)
 
         val darkModeSupport = DarkModeSupport(this)
         darkModeSupport.setMainActivityTheme(this)
@@ -131,13 +130,13 @@ class MainActivity : AppCompatActivity() {
         // 画面回転時・・・はsavedInstanceStateがnull以外になる。これないと画面回転時にFragmentを再生成（2個目作成）するはめになりますよ！
         if (savedInstanceState == null) {
             // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効かどうか
-            val isMobileDataShowCacheList = pref_setting.getBoolean("setting_mobile_data_show_cache", false)
+            val isMobileDataShowCacheList = prefSetting.getBoolean("setting_mobile_data_show_cache", false)
             if (isMobileDataShowCacheList && isConnectionMobileDataInternet(this)) {
                 // キャッシュ表示
                 main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
             } else {
                 // 起動時の画面
-                val launchFragmentName = pref_setting.getString("setting_launch_fragment", "live") ?: "live"
+                val launchFragmentName = prefSetting.getString("setting_launch_fragment", "live") ?: "live"
                 // selectedItemIdでsetOnNavigationItemSelectedListener{}呼ばれるって。はよいえ
                 when (launchFragmentName) {
                     "live" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
@@ -155,6 +154,10 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    fun setPlayer(fragment: Fragment, tag: String) {
+        supportFragmentManager.beginTransaction().replace(R.id.main_activity_fragment_layout, fragment, tag).commit()
+    }
+
     private fun setFragment(fragment: Fragment) {
         // 同じFragmentの場合はやらない（例：生放送開いてるのにもう一回生放送開いたときは何もしない）
         val findFragment = supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
@@ -169,8 +172,7 @@ class MainActivity : AppCompatActivity() {
     // Android 10からアプリにフォーカスが当たらないとクリップボードの中身が取れなくなったため
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        // 一部の端末（LG製の端末？）で大量にエラーが出ているので。。。LG端末なんて持ってないのでわからん！
-        if (!pref_setting.getBoolean("setting_deprecated_clipbord_get_id", false)) {
+        if (!prefSetting.getBoolean("setting_deprecated_clipbord_get_id", false)) {
             //クリップボードに番組IDが含まれてればテキストボックスに自動で入れる
             if (activity_main_liveid_edittext.text.toString().isEmpty()) {
                 setClipBoardProgramID()
@@ -208,7 +210,7 @@ class MainActivity : AppCompatActivity() {
     // 番組一覧
     private fun showProgramListFragment() {
         //ログイン情報があるかどうか
-        if (pref_setting.getString("mail", "")?.isNotEmpty() == true) {
+        if (prefSetting.getString("mail", "")?.isNotEmpty() == true) {
             setFragment(ProgramListFragment())
             // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_NICOLIVE)
         } else {
@@ -221,7 +223,7 @@ class MainActivity : AppCompatActivity() {
 
     // 動画一覧
     private fun showVideoListFragment() {
-        if (pref_setting.getString("mail", "")?.isNotEmpty() == true || isNotLoginMode(this)) {
+        if (prefSetting.getString("mail", "")?.isNotEmpty() == true || isNotLoginMode(this)) {
             // ニコニコ動画
             setFragment(NicoVideoSelectFragment())
             // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_NICOVIDEO)
@@ -237,8 +239,8 @@ class MainActivity : AppCompatActivity() {
                 when (i) {
                     0 -> {
                         // 「ログイン無しで利用する」と「起動時の画面を動画にする」設定有効
-                        pref_setting.edit { putBoolean("setting_no_login", true) }
-                        pref_setting.edit { putString("setting_launch_fragment", "video") }
+                        prefSetting.edit { putBoolean("setting_no_login", true) }
+                        prefSetting.edit { putString("setting_launch_fragment", "video") }
                         showVideoListFragment()
                     }
                     1 -> {
@@ -333,7 +335,7 @@ class MainActivity : AppCompatActivity() {
                     lifecycleScope.launch(errorHandler) {
                         // コミュID->生放送ID
                         val nicoLiveHTML = NicoLiveHTML()
-                        val response = nicoLiveHTML.getNicoLiveHTML(communityId, pref_setting.getString("user_session", ""), false)
+                        val response = nicoLiveHTML.getNicoLiveHTML(communityId, prefSetting.getString("user_session", ""), false)
                         val responseString = withContext(Dispatchers.Default) {
                             response.body?.string()
                         }
@@ -370,6 +372,18 @@ class MainActivity : AppCompatActivity() {
     private fun showToast(message: String) {
         runOnUiThread {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** 戻る押した時、MainActivityにおいたFragmentへ通知を飛ばす */
+    override fun onBackPressed() {
+        val fragment = supportFragmentManager.findFragmentById(R.id.main_activity_fragment_layout)
+        (fragment as MainActivityPlayerFragmentInterface).apply {
+            if (isMiniPlayerMode()) {
+                super.onBackPressed() // Activity終了
+            } else {
+                onBackButtonPress() // 戻るキー押した関数を呼ぶ
+            }
         }
     }
 

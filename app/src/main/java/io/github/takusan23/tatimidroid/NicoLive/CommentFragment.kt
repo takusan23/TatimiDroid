@@ -21,6 +21,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
@@ -45,7 +46,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
-import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
 import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
@@ -53,11 +54,10 @@ import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoLivePagerAdapter
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFactory
-import io.github.takusan23.tatimidroid.NimadoActivity
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.android.synthetic.main.include_nicolive_player_controller.*
@@ -74,8 +74,14 @@ import kotlin.concurrent.timerTask
  *
  * BottomFragmentとかViewPager2の中のFragmentは[requireParentFragment]が使えるかもしれないから伝えておく。
  * BottomFragmentで[requireParentFragment]を使うときは、このFragmentの[getChildFragmentManager]を使って開く必要がある
+ *
+ * ひつようなもの
+ * liveId       | String    | 番組ID
+ * watch_mode   | String    | comment_viewer comment_post nicocas のどれか
+ * isOfficial   | Boolean   | 公式番組ならtrue。無くてもいいかも？
+ * is_jk        | Boolean   | 実況ならtrue
  * */
-class CommentFragment : Fragment() {
+class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     lateinit var commentActivity: AppCompatActivity
     lateinit var prefSetting: SharedPreferences
@@ -168,10 +174,10 @@ class CommentFragment : Fragment() {
         darkModeSupport = DarkModeSupport(requireContext())
         darkModeSupport.setActivityTheme(activity as AppCompatActivity)
 
-        // ActionBarが邪魔という意見があった（私も思う）ので消す
-        if (requireActivity() !is NimadoActivity) {
-            (requireActivity() as AppCompatActivity).supportActionBar?.hide()
-        }
+        // // ActionBarが邪魔という意見があった（私も思う）ので消す
+        // if (requireActivity() !is NimadoActivity) {
+        //     (requireActivity() as AppCompatActivity).supportActionBar?.hide()
+        // }
 
         //ダークモード対応
         applyViewThemeColor()
@@ -250,13 +256,12 @@ class CommentFragment : Fragment() {
             live_framelayout.visibility = View.GONE
         }
 
-        //コメント投稿画面開く
         fab.setOnClickListener {
             //表示アニメーションに挑戦した。
             val showAnimation = AnimationUtils.loadAnimation(context, R.anim.comment_cardview_show_animation)
             //表示
-            comment_activity_comment_cardview.startAnimation(showAnimation)
-            comment_activity_comment_cardview.visibility = View.VISIBLE
+            include?.startAnimation(showAnimation)
+            include?.isVisible = true
             fab.hide()
             //コメント投稿など
             commentCardView()
@@ -409,19 +414,35 @@ class CommentFragment : Fragment() {
 
     /** ダークモード等テーマに合わせた色を設定する */
     private fun applyViewThemeColor() {
-        commentActivity.supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(requireContext())))
         activity_comment_tab_layout.background = ColorDrawable(getThemeColor(requireContext()))
-        comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(getThemeColor(requireContext()))
         comment_fragment_app_bar.background = ColorDrawable(getThemeColor(requireContext()))
+        comment_viewpager?.background = ColorDrawable(getThemeColor(requireContext()))
+        comment_fragment_land_space?.background = ColorDrawable(getThemeColor(requireContext()))
+        player_nicolive_control_info_main?.background = ColorDrawable(getThemeColor(requireContext()))
     }
 
     /** コントローラーを初期化する。HTML取得後にやると良さそう */
     private fun initController(programTitle: String) {
+        // クリックイベントを通過させない
+        comment_fragment_land_space?.isClickable = true
+        player_nicolive_control_info_main?.isClickable = true
         val job = Job()
         // 戻るボタン
         player_nicolive_control_back_button.isVisible = true
         player_nicolive_control_back_button.setOnClickListener {
-            requireActivity().onBackPressed()
+            // 最小化するとかしないとか
+            when {
+                viewModel.isFullScreenMode -> {
+                    setCloseFullScreen()
+                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
+                }
+                comment_fragment_motionlayout.currentState == R.id.comment_fragment_transition_start -> {
+                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
+                }
+                else -> {
+                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_start)
+                }
+            }
         }
         // 番組情報
         player_nicolive_control_title.text = programTitle
@@ -448,6 +469,7 @@ class CommentFragment : Fragment() {
         if (!viewModel.isFullScreenMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             player_nicolive_control_info_main.isVisible = true
         }
+
         // 押したら消せるように
         player_nicolive_control_parent.setOnClickListener {
             player_nicolive_control_main.isVisible = !player_nicolive_control_main.isVisible
@@ -464,6 +486,30 @@ class CommentFragment : Fragment() {
                 showToast(InternetConnectionCheck.createNetworkMessage(requireContext()))
             }
         }
+        // MotionLayout
+        comment_fragment_motionlayout.addTransitionListener(object : MotionLayout.TransitionListener {
+            override fun onTransitionStarted(p0: MotionLayout?, p1: Int, p2: Int) {
+            }
+
+            override fun onTransitionChange(p0: MotionLayout?, p1: Int, p2: Int, p3: Float) {
+
+            }
+
+            override fun onTransitionCompleted(p0: MotionLayout?, p1: Int) {
+                // ここどうする？
+                (requireActivity() as MainActivity).main_activity_bottom_navigationview.isVisible = p1 == R.id.comment_fragment_transition_end
+                // アイコン直す
+                val icon = when (comment_fragment_motionlayout.currentState) {
+                    R.id.comment_fragment_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
+                    else -> requireContext().getDrawable(R.drawable.ic_expand_more_24px)
+                }
+                player_nicolive_control_back_button.setImageDrawable(icon)
+            }
+
+            override fun onTransitionTrigger(p0: MotionLayout?, p1: Int, p2: Boolean, p3: Float) {
+
+            }
+        })
         updateHideController(job)
     }
 
@@ -492,9 +538,7 @@ class CommentFragment : Fragment() {
         // 全画面だよ
         viewModel.isFullScreenMode = true
         // コメビュ非表示
-        comment_activity_fragment_layout?.visibility = View.GONE
-        // 背景黒にする
-        comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(ColorStateList.valueOf(Color.BLACK))
+        comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_fullscreen)
         // 経過時間消す
         player_nicolive_control_info_main.isVisible = false
         // システムバー非表示
@@ -531,15 +575,12 @@ class CommentFragment : Fragment() {
         // 全画面ではない
         viewModel.isFullScreenMode = false
         // コメビュ表示
-        comment_activity_fragment_layout?.visibility = View.VISIBLE
-        // 背景黒戻す
-        comment_activity_fragment_layout_elevation_cardview.setCardBackgroundColor(ColorStateList.valueOf(getThemeColor(context)))
+        comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_start)
         // 経過時間出す
         player_nicolive_control_info_main.isVisible = true
         // システムバー表示
         setSystemBarVisibility(true)
         // アイコン変更
-
         player_nicolive_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
         // 画面の幅取得
         val displayWidth = DisplaySizeTool.getDisplayWidth(context)
@@ -602,7 +643,7 @@ class CommentFragment : Fragment() {
     fun showProgramEndMessageSnackBar(message: String, commentJSONParse: CommentJSONParse) {
         if (commentJSONParse.premium.contains("運営")) {
             //終了メッセージ
-            Snackbar.make(live_video_view, context?.getString(R.string.program_disconnect) ?: "", Snackbar.LENGTH_SHORT).setAction(context?.getString(R.string.end)) {
+            Snackbar.make(fab, context?.getString(R.string.program_disconnect) ?: "", Snackbar.LENGTH_SHORT).setAction(context?.getString(R.string.end)) {
                 //終了
                 if (activity !is NimadoActivity) {
                     //二窓Activity以外では終了できるようにする。
@@ -669,6 +710,7 @@ class CommentFragment : Fragment() {
 
     /** ViewPager2初期化 */
     private fun initViewPager() {
+        comment_viewpager ?: return
         comment_viewpager.id = View.generateViewId()
         nicoLivePagerAdapter = NicoLivePagerAdapter(this, liveId, isOfficial, isJK)
         comment_viewpager.adapter = nicoLivePagerAdapter
@@ -868,8 +910,9 @@ class CommentFragment : Fragment() {
                     }
                     //16:9の9を計算
                     frameLayoutParams.height = getAspectHeightFromWidth(frameLayoutParams.width)
-                    live_framelayout.layoutParams = frameLayoutParams
                 }
+                comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_start)?.constrainHeight(R.id.live_framelayout, frameLayoutParams.height)
+                comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_start)?.constrainWidth(R.id.live_framelayout, frameLayoutParams.width)
             }
             // 高さ更新
             comment_canvas.finalHeight = comment_canvas.height
@@ -1263,8 +1306,8 @@ class CommentFragment : Fragment() {
             // 非表示アニメーションに挑戦した。
             val hideAnimation = AnimationUtils.loadAnimation(context, R.anim.comment_cardview_hide_animation)
             // 表示
-            comment_activity_comment_cardview.startAnimation(hideAnimation)
-            comment_activity_comment_cardview.visibility = View.GONE
+            include?.startAnimation(hideAnimation)
+            include?.isVisible = false
             fab.show()
             // IMEも消す（Android 11 以降）
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -1411,7 +1454,7 @@ class CommentFragment : Fragment() {
         if (fab.isShown) {
             return fab
         } else {
-            return comment_activity_comment_cardview
+            return include
         }
     }
 
@@ -1501,5 +1544,21 @@ class CommentFragment : Fragment() {
     }
 
     fun isInitGoogleCast(): Boolean = ::googleCast.isInitialized
+
+    /** 戻るキー押しったとき */
+    override fun onBackButtonPress() {
+        comment_fragment_motionlayout.apply {
+            if (currentState == R.id.comment_fragment_transition_end) {
+                parentFragmentManager.beginTransaction().remove(this@CommentFragment).commit()
+            } else {
+                transitionToState(R.id.comment_fragment_transition_end)
+            }
+        }
+    }
+
+    /** ミニプレイヤーで再生していればtrueを返す */
+    override fun isMiniPlayerMode(): Boolean {
+        return comment_fragment_motionlayout.currentState == R.id.comment_fragment_transition_end
+    }
 
 }

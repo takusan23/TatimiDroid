@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- いつものConstraintLayout -->
+    <ConstraintSet android:id="@+id/comment_fragment_transition_start">
+        <Constraint
+                android:id="@+id/live_framelayout"
+                android:layout_width="0dp"
+                android:layout_height="250dp"
+                app:layout_constraintEnd_toStartOf="@+id/comment_activity_fragment_layout"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintBottom_toBottomOf="@+id/player_nicolive_control_info_main" />
+        <Constraint
+                android:id="@+id/player_nicolive_control_info_main"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintEnd_toStartOf="@+id/comment_activity_fragment_layout"
+                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
+                app:layout_constraintTop_toBottomOf="@+id/live_framelayout"
+                app:layout_constraintBottom_toBottomOf="parent" />
+        <Constraint
+                android:id="@+id/comment_fragment_land_space"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
+                app:layout_constraintBottom_toTopOf="@+id/live_framelayout" />
+    </ConstraintSet>
+
+    <!-- ミニプレイヤー時のConstraintLayout -->
+    <ConstraintSet android:id="@+id/comment_fragment_transition_end">
+        <Constraint
+                android:id="@+id/live_framelayout"
+                android:layout_width="320dp"
+                android:layout_height="180dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+        <Constraint
+                android:id="@+id/comment_activity_fragment_layout"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="0dp"
+                app:layout_constraintBottom_toBottomOf="@+id/live_framelayout"
+                app:layout_constraintStart_toEndOf="@+id/live_framelayout"
+                app:layout_constraintTop_toTopOf="@+id/live_framelayout" />
+        <Constraint
+                android:id="@+id/player_nicolive_control_info_main"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="visible"
+                app:layout_constraintEnd_toStartOf="@+id/comment_activity_fragment_layout"
+                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
+                app:layout_editor_absoluteY="363dp" />
+        <Constraint
+                android:layout_height="0dp"
+                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
+                app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
+                android:layout_width="0dp"
+                android:id="@+id/comment_fragment_land_space"
+                app:layout_constraintBottom_toTopOf="@+id/live_framelayout" />
+    </ConstraintSet>
+
+    <!-- フルスクリーン時のConstraintLayout -->
+    <ConstraintSet android:id="@+id/comment_fragment_transition_fullscreen">
+        <Constraint
+                android:id="@+id/player_nicolive_control_info_main"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="visible"
+                app:layout_constraintEnd_toStartOf="@+id/comment_activity_fragment_layout"
+                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
+                app:layout_constraintTop_toBottomOf="@+id/live_framelayout" />
+        <Constraint
+                android:id="@+id/comment_activity_fragment_layout"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/live_framelayout"
+                app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+                android:id="@+id/live_framelayout"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+    </ConstraintSet>
+
+    <!-- ミニプレイヤー -->
+    <Transition
+            android:id="@+id/comment_fragment_land_transition"
+            app:constraintSetEnd="@id/comment_fragment_transition_end"
+            app:constraintSetStart="@+id/comment_fragment_transition_start" />
+
+    <!-- フルスクリーン -->
+    <Transition
+            android:id="@+id/comment_fragment_land_transition_fullscreen"
+            app:constraintSetEnd="@+id/comment_fragment_transition_fullscreen"
+            app:constraintSetStart="@+id/comment_fragment_transition_start" />
+    <Transition
+            android:id="@+id/comment_fragment_land_transition_fullscreen_mini"
+            app:constraintSetEnd="@+id/comment_fragment_transition_end"
+            app:constraintSetStart="@+id/comment_fragment_transition_fullscreen" />
+
+</MotionScene>

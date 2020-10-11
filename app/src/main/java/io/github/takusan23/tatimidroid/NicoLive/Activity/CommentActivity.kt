@@ -55,7 +55,6 @@ class CommentActivity : AppCompatActivity() {
             bundle.putString("liveId", liveId)
             bundle.putString("watch_mode", watch_mode)
             bundle.putBoolean("isOfficial", isOfficial)
-            bundle.putString("html", html)
             bundle.putBoolean("is_jk", isJK)
             commentFragment.arguments = bundle
             trans.replace(R.id.activity_comment_new_linearlayout, commentFragment, liveId)
