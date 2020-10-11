@@ -23,7 +23,7 @@
         <Constraint android:id="@+id/fragment_nicovideo_player_framelayout" />
     </ConstraintSet>
 
-    <!-- ミニプレイヤー時のConstraintLayout -->
+    <!-- ミニプレイヤー時のConstraintLayout。320*180になっているけど、Kotlinでアスペクト比が判明した時にサイズ変更をしているのでここは仮 -->
     <ConstraintSet android:id="@+id/fragment_nicovideo_transition_end">
         <Constraint
                 android:id="@+id/fragment_nicovideo_background"
@@ -45,5 +45,9 @@
 
     <Transition
             app:constraintSetEnd="@id/fragment_nicovideo_transition_end"
-            app:constraintSetStart="@+id/fragment_nicovideo_transition_start" />
+            app:constraintSetStart="@+id/fragment_nicovideo_transition_start">
+        <OnSwipe
+                app:dragDirection="dragDown"
+                app:touchRegionId="@+id/fragment_nicovideo_player_framelayout" />
+    </Transition>
 </MotionScene>

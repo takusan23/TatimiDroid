@@ -382,14 +382,11 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 constrainHeight(R.id.fragment_nicovideo_background, playerHeight)
                 constrainWidth(R.id.fragment_nicovideo_background, playerWidth)
             }
-
-/*
-            // ついでにミニプレイヤーのときも
+            // ミニプレイヤーも
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
-                constrainHeight(R.id.fragment_nicovideo_background, (playerHeight / 2))
-                constrainWidth(R.id.fragment_nicovideo_background, (playerWidth / 2))
+                constrainHeight(R.id.fragment_nicovideo_background, playerHeight / 2)
+                constrainWidth(R.id.fragment_nicovideo_background, playerWidth / 2)
             }
-*/
         }
     }
 
@@ -513,6 +510,21 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 }
             }
         }
+        // MotionLayoutでスワイプできない対策に独自FrameLayoutを作った
+        fragment_nicovideo_motionlayout_parent_framelayout?.apply {
+            setAllowIds(R.id.fragment_nicovideo_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
+            swipeTargetView = fragment_nicovideo_player_framelayout
+            motionLayout = fragment_nicovideo_motionlayout
+            // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
+            onSwipeTargetViewClickFunc = {
+                // 非表示切り替え
+                player_control_main.isVisible = !player_control_main.isVisible
+                setVisibilityPlaylistFab(player_control_main.isVisible)
+                // ３秒待ってもViewが表示されてる場合は消せるように。
+                updateHideController(job)
+            }
+        }
+
         // 連続再生とそれ以外でアイコン変更
         val playListModePrevIcon = if (requireIsPlayListPlaying()) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
         val playListModeNextIcon = if (requireIsPlayListPlaying()) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
@@ -525,6 +537,17 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         player_control_next.setOnClickListener {
             // 次の動画へ
             requireNicoVideoPlayListFragment()?.nextVideo(viewModel.isFullScreenMode)
+        }
+        // 全画面ボタン
+        player_control_fullscreen.setOnClickListener {
+            if (viewModel.isFullScreenMode) {
+                // 全画面終了ボタン
+                setCloseFullScreen()
+            } else {
+                // なお全画面は横のみサポート。SCREEN_ORIENTATION_USER_LANDSCAPEを使うと逆向き横画面を回避できる（横画面でも二通りあるけど自動で解決してくれる）
+                requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                setFullScreen()
+            }
         }
         // ダブルタップ版setOnClickListener。拡張関数です。DoubleClickListener
         player_control_parent.setOnDoubleClickListener { motionEvent, isDoubleClick ->
@@ -542,25 +565,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 updateHideController(job)
             }
         }
-        // 全画面ボタン
-        player_control_fullscreen.setOnClickListener {
-            if (viewModel.isFullScreenMode) {
-                // 全画面終了ボタン
-                setCloseFullScreen()
-            } else {
-                // なお全画面は横のみサポート。SCREEN_ORIENTATION_USER_LANDSCAPEを使うと逆向き横画面を回避できる（横画面でも二通りあるけど自動で解決してくれる）
-                requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
-                setFullScreen()
-            }
-        }
-        // コントローラー消せるように
-        player_control_parent.setOnClickListener {
-            // 非表示切り替え
-            player_control_main.isVisible = !player_control_main.isVisible
-            setVisibilityPlaylistFab(player_control_main.isVisible)
-            // ３秒待ってもViewが表示されてる場合は消せるように。
-            updateHideController(job)
-        }
         // ポップアップ/バッググラウンドなど
         player_control_popup.setOnClickListener {
             // ポップアップ再生
@@ -574,6 +578,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // Activity落とす
             activity?.finish()
         }
+
         // MotionLayoutのコールバック
         fragment_nicovideo_motionlayout.addTransitionListener(object : MotionLayout.TransitionListener {
             override fun onTransitionStarted(p0: MotionLayout?, p1: Int, p2: Int) {
@@ -599,6 +604,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
             }
         })
+
         // シークバー用意
         player_control_seek.max = (exoPlayer.duration / 1000L).toInt()
         player_control_seek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -714,57 +720,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         viewModel.contentUrl.value?.let { initExoPlayer(it) }
         fragment_nicovideo_background.visibility = View.VISIBLE
         showSwipeToRefresh()
-    }
-
-    // アスペクト比合わせる。引数は 横/縦 の答え
-    private fun setAspectRate(round: Double) {
-        // 画面の幅取得。令和最新版（ビリビリワイヤレスイヤホン並感）
-        val displayWidth = DisplaySizeTool.getDisplayWidth(context)
-        // 縦画面だったらtrue
-        val isPortLait = context?.resources?.configuration?.orientation == Configuration.ORIENTATION_PORTRAIT
-        when (round) {
-            1.0 -> {
-                // 縦も横も同じ
-                fragment_nicovideo_background.updateLayoutParams {
-                    width = if (isPortLait) {
-                        // 縦
-                        (displayWidth / 1.5).toInt()
-                    } else {
-                        // 横
-                        displayWidth / 2
-                    }
-                    height = width
-                }
-            }
-            1.3 -> {
-                // 4:3動画
-                // 4:3をそのまま出すと大きすぎるので調整（代わりに黒帯出るけど仕方ない）
-                fragment_nicovideo_background.updateLayoutParams {
-                    width = if (isPortLait) {
-                        // 縦
-                        (displayWidth / 1.2).toInt()
-                    } else {
-                        // 横
-                        displayWidth / 2
-                    }
-                    height = getOldAspectHeightFromWidth(width)
-                }
-            }
-            1.7 -> {
-                // 16:9動画
-                // 横の長さから縦の高さ計算
-                fragment_nicovideo_background.updateLayoutParams {
-                    width = if (isPortLait) {
-                        // 縦
-                        displayWidth
-                    } else {
-                        // 横
-                        displayWidth / 2
-                    }
-                    height = getAspectHeightFromWidth(width)
-                }
-            }
-        }
     }
 
     /** コメント一覧Fragmentを取得する。無い可能性も有る？ */

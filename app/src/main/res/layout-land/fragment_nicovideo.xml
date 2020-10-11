@@ -1,88 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<io.github.takusan23.tatimidroid.SwipeFixVerMotionLayoutParentFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/fragment_nicovideo_motionlayout"
+        android:id="@+id/fragment_nicovideo_motionlayout_parent_framelayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        app:layoutDescription="@xml/fragment_nicovideo_land_scene">
+        android:layout_height="match_parent">
 
-    <!-- 背景。アスペクト比を合わせるとどうしても空間ができるので埋める。プレイヤーはこのFrameLayoutと同じ大きさになるように制約を書いたので、こいつのサイズ変更だけでいい -->
-    <FrameLayout
-            android:id="@+id/fragment_nicovideo_background"
-            android:layout_width="0dp"
+    <androidx.constraintlayout.motion.widget.MotionLayout
+            android:id="@+id/fragment_nicovideo_motionlayout"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clickable="true"
-            android:elevation="5dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/fragment_nicovideo_viewpager_parent"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:orientation="horizontal"
+            app:layoutDescription="@xml/fragment_nicovideo_land_scene">
 
-    <!-- プレイヤー -->
-    <FrameLayout
-            android:id="@+id/fragment_nicovideo_player_framelayout"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:elevation="5dp"
-            app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_background"
-            app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
-            app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_background"
-            app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
-            app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background">
-
-        <SurfaceView
-                android:id="@+id/fragment_nicovideo_surfaceview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-        <io.github.takusan23.tatimidroid.ReCommentCanvas
-                android:id="@+id/fragment_nicovideo_comment_canvas"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-
-        <!-- コントローラーのレイアウトを読み込む -->
-        <include layout="@layout/include_nicovideo_player_controller" />
-    </FrameLayout>
-
-    <!-- TabLayoutをRecyclerViewのスクロールに合わせて表示したりしなかったりすつ -->
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-            android:id="@+id/fragment_nicovideo_viewpager_parent"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_background"
-            app:layout_constraintTop_toTopOf="parent">
-
-        <com.google.android.material.appbar.AppBarLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-            <com.google.android.material.tabs.TabLayout
-                    android:id="@+id/fragment_nicovideo_tablayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:layout_scrollFlags="scroll|enterAlways|snap"
-                    app:tabMode="scrollable" />
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                android:id="@+id/fragment_nicovideo_swipe"
-                android:layout_width="match_parent"
+        <!-- 背景。アスペクト比を合わせるとどうしても空間ができるので埋める。プレイヤーはこのFrameLayoutと同じ大きさになるように制約を書いたので、こいつのサイズ変更だけでいい -->
+        <FrameLayout
+                android:id="@+id/fragment_nicovideo_background"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+                android:elevation="5dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/fragment_nicovideo_viewpager_parent"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-            <androidx.viewpager2.widget.ViewPager2
-                    android:id="@+id/fragment_nicovideo_viewpager"
+        <!-- プレイヤー -->
+        <FrameLayout
+                android:id="@+id/fragment_nicovideo_player_framelayout"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:elevation="5dp"
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_background"
+                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
+                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_background"
+                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background">
+
+            <SurfaceView
+                    android:id="@+id/fragment_nicovideo_surfaceview"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent" />
 
-            </androidx.viewpager2.widget.ViewPager2>
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            <io.github.takusan23.tatimidroid.ReCommentCanvas
+                    android:id="@+id/fragment_nicovideo_comment_canvas"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-</androidx.constraintlayout.motion.widget.MotionLayout>
+            <!-- コントローラーのレイアウトを読み込む -->
+            <include layout="@layout/include_nicovideo_player_controller" />
+        </FrameLayout>
+
+        <!-- TabLayoutをRecyclerViewのスクロールに合わせて表示したりしなかったりすつ -->
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:id="@+id/fragment_nicovideo_viewpager_parent"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_background"
+                app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.appbar.AppBarLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <com.google.android.material.tabs.TabLayout
+                        android:id="@+id/fragment_nicovideo_tablayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:layout_scrollFlags="scroll|enterAlways|snap"
+                        app:tabMode="scrollable" />
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                    android:id="@+id/fragment_nicovideo_swipe"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+                <androidx.viewpager2.widget.ViewPager2
+                        android:id="@+id/fragment_nicovideo_viewpager"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                </androidx.viewpager2.widget.ViewPager2>
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </androidx.constraintlayout.motion.widget.MotionLayout>
+
+</io.github.takusan23.tatimidroid.SwipeFixVerMotionLayoutParentFrameLayout>

@@ -141,8 +141,8 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             bundle.putLong("current_pos", item.vpos.toLong())
             val commentLockonBottomFragment = CommentLockonBottomFragment()
             commentLockonBottomFragment.arguments = bundle
-            if (context is AppCompatActivity) {
-                commentLockonBottomFragment.show(context.supportFragmentManager, "comment_menu")
+            if (nicoVideoFragment != null) {
+                commentLockonBottomFragment.show(nicoVideoFragment.childFragmentManager, "comment_menu")
             }
         }
 

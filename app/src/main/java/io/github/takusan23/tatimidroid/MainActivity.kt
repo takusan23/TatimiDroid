@@ -126,7 +126,6 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-
         // 画面回転時・・・はsavedInstanceStateがnull以外になる。これないと画面回転時にFragmentを再生成（2個目作成）するはめになりますよ！
         if (savedInstanceState == null) {
             // モバイルデータ接続のときは常にキャッシュ一覧を開くの設定が有効かどうか
