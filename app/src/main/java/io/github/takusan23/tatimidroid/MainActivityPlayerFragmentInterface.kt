@@ -1,6 +1,6 @@
 package io.github.takusan23.tatimidroid
 
-/** MainActivityの上に表示させるFragmentにはこれを継承してほしい。 */
+/** MainActivityの上に表示させるFragmentにはこれを実装してほしい。 */
 interface MainActivityPlayerFragmentInterface {
 
     /**
