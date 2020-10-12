@@ -174,11 +174,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         darkModeSupport = DarkModeSupport(requireContext())
         darkModeSupport.setActivityTheme(activity as AppCompatActivity)
 
-        // // ActionBarが邪魔という意見があった（私も思う）ので消す
-        // if (requireActivity() !is NimadoActivity) {
-        //     (requireActivity() as AppCompatActivity).supportActionBar?.hide()
-        // }
-
         //ダークモード対応
         applyViewThemeColor()
 
@@ -499,14 +494,19 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
 
             override fun onTransitionCompleted(p0: MotionLayout?, p1: Int) {
-                // ここどうする？
-                (requireActivity() as MainActivity).main_activity_bottom_navigationview.isVisible = p1 == R.id.comment_fragment_transition_end
-                // アイコン直す
-                val icon = when (comment_fragment_motionlayout.currentState) {
-                    R.id.comment_fragment_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
-                    else -> requireContext().getDrawable(R.drawable.ic_expand_more_24px)
+                // 終了アニメーション
+                if (p1 == R.id.comment_fragment_transition_finish) {
+                    parentFragmentManager.beginTransaction().remove(this@CommentFragment).commit()
+                } else {
+                    // ここどうする？
+                    (requireActivity() as MainActivity).main_activity_bottom_navigationview.isVisible = p1 == R.id.comment_fragment_transition_end
+                    // アイコン直す
+                    val icon = when (comment_fragment_motionlayout.currentState) {
+                        R.id.comment_fragment_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
+                        else -> requireContext().getDrawable(R.drawable.ic_expand_more_24px)
+                    }
+                    player_nicolive_control_back_button.setImageDrawable(icon)
                 }
-                player_nicolive_control_back_button.setImageDrawable(icon)
             }
 
             override fun onTransitionTrigger(p0: MotionLayout?, p1: Int, p2: Boolean, p3: Float) {
@@ -922,6 +922,11 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 }
                 // ミニプレイヤーも
                 comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
+                    constrainHeight(R.id.live_framelayout, frameLayoutParams.height / 2)
+                    constrainWidth(R.id.live_framelayout, frameLayoutParams.width / 2)
+                }
+                // 終了も
+                comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
                     constrainHeight(R.id.live_framelayout, frameLayoutParams.height / 2)
                     constrainWidth(R.id.live_framelayout, frameLayoutParams.width / 2)
                 }
