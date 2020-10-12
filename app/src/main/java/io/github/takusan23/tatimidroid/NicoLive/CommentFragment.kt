@@ -60,9 +60,7 @@ import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
-import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.include_nicolive_player_controller.*
-import kotlinx.android.synthetic.main.include_nicovideo_player_controller.*
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -421,13 +419,12 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         comment_viewpager?.background = ColorDrawable(getThemeColor(requireContext()))
         comment_fragment_background?.background = ColorDrawable(getThemeColor(requireContext()))
         player_nicolive_control_info_main?.background = ColorDrawable(getThemeColor(requireContext()))
+        comment_fragment_background.background = ColorDrawable(getThemeColor(requireContext()))
     }
 
     /** コントローラーを初期化する。HTML取得後にやると良さそう */
     private fun initController(programTitle: String) {
         // クリックイベントを通過させない
-        comment_fragment_background?.isClickable = true
-        player_nicolive_control_info_main?.isClickable = true
         val job = Job()
         // 戻るボタン
         player_nicolive_control_back_button.isVisible = true
@@ -482,7 +479,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         comment_fragment_motionlayout_parent_framelayout.apply {
             setAllowIds(R.id.comment_fragment_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
             swipeTargetView = live_framelayout
-            motionLayout = fragment_nicovideo_motionlayout
+            motionLayout = comment_fragment_motionlayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
                 player_nicolive_control_main.isVisible = !player_nicolive_control_main.isVisible
@@ -906,6 +903,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                         //16:9の9を計算
                         frameLayoutParams.height = getAspectHeightFromWidth(displayWidth / 2)
                     }
+                    // FrameLayoutのサイズ変更のみで済む
                     live_framelayout.layoutParams = frameLayoutParams
                 } else {
                     //縦画面
@@ -917,8 +915,16 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     //16:9の9を計算
                     frameLayoutParams.height = getAspectHeightFromWidth(frameLayoutParams.width)
                 }
-                comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_start)?.constrainHeight(R.id.live_framelayout, frameLayoutParams.height)
-                comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_start)?.constrainWidth(R.id.live_framelayout, frameLayoutParams.width)
+                // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
+                comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
+                    constrainHeight(R.id.live_framelayout, frameLayoutParams.height)
+                    constrainWidth(R.id.live_framelayout, frameLayoutParams.width)
+                }
+                // ミニプレイヤーも
+                comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
+                    constrainHeight(R.id.live_framelayout, frameLayoutParams.height / 2)
+                    constrainWidth(R.id.live_framelayout, frameLayoutParams.width / 2)
+                }
             }
             // 高さ更新
             comment_canvas.finalHeight = comment_canvas.height

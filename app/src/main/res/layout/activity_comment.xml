@@ -2,8 +2,8 @@
 <io.github.takusan23.tatimidroid.SwipeFixVerMotionLayoutParentFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
         android:id="@+id/comment_fragment_motionlayout_parent_framelayout"
+        android:layout_width="match_parent"
         android:layout_height="match_parent">
 
     <androidx.constraintlayout.motion.widget.MotionLayout
@@ -17,6 +17,7 @@
                 android:id="@+id/comment_fragment_background"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
+                android:elevation="5dp"
                 app:layout_constraintBottom_toBottomOf="@+id/live_framelayout"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -27,6 +28,7 @@
                 android:id="@+id/live_framelayout"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
+                android:elevation="5dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
@@ -254,7 +256,6 @@
                     android:visibility="gone" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
 
     </androidx.constraintlayout.motion.widget.MotionLayout>
 

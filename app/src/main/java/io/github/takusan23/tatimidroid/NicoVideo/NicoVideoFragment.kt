@@ -119,9 +119,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // ActionBar消す
-        // (activity as AppCompatActivity).supportActionBar?.hide()
-
         // くーるくるー
         showSwipeToRefresh()
 
@@ -363,7 +360,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 playerWidth /= 2
                 playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, playerWidth).roundToInt()
             }
-            // レイアウト調整。横んときはちょっと別
+            // レイアウト調整。プレイヤーのFrameLayoutのサイズを変える
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_start).apply {
                 constrainHeight(R.id.fragment_nicovideo_player_framelayout, playerHeight)
                 constrainWidth(R.id.fragment_nicovideo_player_framelayout, playerWidth)
