@@ -7,11 +7,12 @@
         <Constraint
                 android:id="@+id/fragment_nicovideo_background"
                 android:layout_width="0dp"
-                android:layout_height="300dp"
+                android:layout_height="0dp"
                 android:layout_gravity="center"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_player_framelayout" />
         <Constraint
                 android:id="@+id/fragment_nicovideo_viewpager_parent"
                 android:layout_width="match_parent"
@@ -20,7 +21,12 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/fragment_nicovideo_background" />
-        <Constraint android:id="@+id/fragment_nicovideo_player_framelayout" />
+        <Constraint android:id="@+id/fragment_nicovideo_player_framelayout"
+                android:layout_height="200dp"
+                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background"
+                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
+                android:layout_width="0dp" />
     </ConstraintSet>
 
     <!-- ミニプレイヤー時のConstraintLayout。320*180になっているけど、Kotlinでアスペクト比が判明した時にサイズ変更をしているのでここは仮 -->

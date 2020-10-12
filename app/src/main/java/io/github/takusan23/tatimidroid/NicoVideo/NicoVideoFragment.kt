@@ -374,10 +374,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 playerWidth /= 2
                 playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, playerWidth).roundToInt()
             }
-            // レイアウト調整
+            // レイアウト調整。プレイヤーのFrameLayoutのみ。背景はプレイヤーFrameLayoutの高さに合うように制約が設定してある。幅は最大
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_start).apply {
-                constrainHeight(R.id.fragment_nicovideo_background, playerHeight)
-                constrainWidth(R.id.fragment_nicovideo_background, playerWidth)
+                constrainHeight(R.id.fragment_nicovideo_player_framelayout, playerHeight)
+                constrainWidth(R.id.fragment_nicovideo_player_framelayout, playerWidth)
             }
             // ミニプレイヤーも
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
