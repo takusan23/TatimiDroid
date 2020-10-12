@@ -24,11 +24,11 @@
                 app:layout_constraintStart_toStartOf="@+id/live_framelayout"
                 app:layout_constraintTop_toBottomOf="@+id/live_framelayout" />
         <Constraint
-                android:id="@+id/comment_fragment_land_space"
-                app:layout_constraintBottom_toTopOf="@+id/live_framelayout"
+                android:id="@+id/comment_fragment_background"
                 app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
     </ConstraintSet>
 
     <!-- ミニプレイヤー時のConstraintLayout -->
@@ -59,12 +59,13 @@
                 app:layout_constraintStart_toStartOf="@+id/live_framelayout"
                 app:layout_editor_absoluteY="363dp" />
         <Constraint
-                android:id="@+id/comment_fragment_land_space"
+                android:id="@+id/comment_fragment_background"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintBottom_toTopOf="@+id/live_framelayout"
                 app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
-                app:layout_constraintStart_toStartOf="@+id/live_framelayout" />
+                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
+                app:layout_constraintBottom_toBottomOf="@+id/live_framelayout"
+                app:layout_constraintTop_toTopOf="@+id/live_framelayout" />
     </ConstraintSet>
 
     <!-- フルスクリーン時のConstraintLayout -->
@@ -99,7 +100,12 @@
     <Transition
             android:id="@+id/comment_fragment_land_transition"
             app:constraintSetEnd="@id/comment_fragment_transition_end"
-            app:constraintSetStart="@+id/comment_fragment_transition_start" />
+            app:constraintSetStart="@+id/comment_fragment_transition_start" >
+        <OnSwipe
+                app:touchAnchorId="@+id/live_framelayout"
+                app:dragDirection="dragDown"
+                app:touchAnchorSide="bottom" />
+    </Transition>
 
     <!-- フルスクリーン -->
     <Transition

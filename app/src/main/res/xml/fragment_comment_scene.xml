@@ -29,6 +29,22 @@
                 android:layout_marginBottom="8dp"
                 app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_fab_coordinator"
                 app:layout_constraintEnd_toEndOf="parent" />
+        <Constraint
+                android:layout_height="0dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/live_framelayout"
+                app:layout_constraintBottom_toBottomOf="@+id/live_framelayout"
+                app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
+                android:layout_width="0dp"
+                android:id="@+id/comment_fragment_background" />
+        <Constraint
+                app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="@+id/live_framelayout"
+                app:layout_constraintTop_toTopOf="@+id/live_framelayout"
+                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
+                android:id="@+id/comment_fragment_background" />
     </ConstraintSet>
 
     <ConstraintSet android:id="@+id/comment_fragment_transition_start">
@@ -67,6 +83,10 @@
                         app:touchAnchorId="@+id/live_framelayout"
                         app:touchRegionId="@+id/live_framelayout" />
         -->
+        <OnSwipe
+                app:touchAnchorId="@+id/live_framelayout"
+                app:dragDirection="dragDown"
+                app:touchAnchorSide="bottom" />
     </Transition>
 
 </MotionScene>

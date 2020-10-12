@@ -60,7 +60,9 @@ import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
+import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.include_nicolive_player_controller.*
+import kotlinx.android.synthetic.main.include_nicovideo_player_controller.*
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -417,14 +419,14 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         activity_comment_tab_layout.background = ColorDrawable(getThemeColor(requireContext()))
         comment_fragment_app_bar.background = ColorDrawable(getThemeColor(requireContext()))
         comment_viewpager?.background = ColorDrawable(getThemeColor(requireContext()))
-        comment_fragment_land_space?.background = ColorDrawable(getThemeColor(requireContext()))
+        comment_fragment_background?.background = ColorDrawable(getThemeColor(requireContext()))
         player_nicolive_control_info_main?.background = ColorDrawable(getThemeColor(requireContext()))
     }
 
     /** コントローラーを初期化する。HTML取得後にやると良さそう */
     private fun initController(programTitle: String) {
         // クリックイベントを通過させない
-        comment_fragment_land_space?.isClickable = true
+        comment_fragment_background?.isClickable = true
         player_nicolive_control_info_main?.isClickable = true
         val job = Job()
         // 戻るボタン
@@ -469,16 +471,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         if (!viewModel.isFullScreenMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             player_nicolive_control_info_main.isVisible = true
         }
-
-        // 押したら消せるように
-        player_nicolive_control_parent.setOnClickListener {
-            player_nicolive_control_main.isVisible = !player_nicolive_control_main.isVisible
-            // フルスクリーン時はFabも消す
-            if (viewModel.isFullScreenMode) {
-                if (player_nicolive_control_main.isVisible) fab.show() else fab.hide()
-            }
-            updateHideController(job)
-        }
         // 接続方法
         player_nicolive_control_video_network.apply {
             setImageDrawable(InternetConnectionCheck.getConnectionTypeDrawable(requireContext()))
@@ -486,7 +478,21 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 showToast(InternetConnectionCheck.createNetworkMessage(requireContext()))
             }
         }
-        // MotionLayout
+        // MotionLayout関係
+        comment_fragment_motionlayout_parent_framelayout.apply {
+            setAllowIds(R.id.comment_fragment_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
+            swipeTargetView = live_framelayout
+            motionLayout = fragment_nicovideo_motionlayout
+            // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
+            onSwipeTargetViewClickFunc = {
+                player_nicolive_control_main.isVisible = !player_nicolive_control_main.isVisible
+                // フルスクリーン時はFabも消す
+                if (viewModel.isFullScreenMode) {
+                    if (player_nicolive_control_main.isVisible) fab.show() else fab.hide()
+                }
+                updateHideController(job)
+            }
+        }
         comment_fragment_motionlayout.addTransitionListener(object : MotionLayout.TransitionListener {
             override fun onTransitionStarted(p0: MotionLayout?, p1: Int, p2: Int) {
             }

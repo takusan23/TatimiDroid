@@ -511,7 +511,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
         }
         // MotionLayoutでスワイプできない対策に独自FrameLayoutを作った
-        fragment_nicovideo_motionlayout_parent_framelayout?.apply {
+        fragment_nicovideo_motionlayout_parent_framelayout.apply {
             setAllowIds(R.id.fragment_nicovideo_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
             swipeTargetView = fragment_nicovideo_player_framelayout
             motionLayout = fragment_nicovideo_motionlayout
