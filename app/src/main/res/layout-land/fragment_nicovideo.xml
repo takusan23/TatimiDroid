@@ -25,6 +25,8 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         <!-- プレイヤー -->
+
+        <!-- TabLayoutをRecyclerViewのスクロールに合わせて表示したりしなかったりすつ -->
         <FrameLayout
                 android:id="@+id/fragment_nicovideo_player_framelayout"
                 android:layout_width="0dp"
@@ -51,7 +53,6 @@
             <include layout="@layout/include_nicovideo_player_controller" />
         </FrameLayout>
 
-        <!-- TabLayoutをRecyclerViewのスクロールに合わせて表示したりしなかったりすつ -->
         <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:id="@+id/fragment_nicovideo_viewpager_parent"
                 android:layout_width="0dp"

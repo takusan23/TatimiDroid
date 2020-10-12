@@ -384,6 +384,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 constrainHeight(R.id.fragment_nicovideo_background, playerHeight / 2)
                 constrainWidth(R.id.fragment_nicovideo_background, playerWidth / 2)
             }
+            fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_finish).apply {
+                constrainHeight(R.id.fragment_nicovideo_background, playerHeight / 2)
+                constrainWidth(R.id.fragment_nicovideo_background, playerWidth / 2)
+            }
         }
     }
 
@@ -416,6 +420,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
     }
 
+    /** フルスクリーン解除 */
     private fun setCloseFullScreen() {
         requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         viewModel.isFullScreenMode = false
@@ -440,7 +445,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
         }
     }
-
 
     /**
      * システムバーを非表示にする関数
@@ -587,14 +591,19 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
 
             override fun onTransitionCompleted(p0: MotionLayout?, p1: Int) {
-                // ここどうする？
-                (requireActivity() as MainActivity).main_activity_bottom_navigationview.isVisible = p1 == R.id.fragment_nicovideo_transition_end
-                // アイコン直す
-                val icon = when (fragment_nicovideo_motionlayout.currentState) {
-                    R.id.fragment_nicovideo_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
-                    else -> requireContext().getDrawable(R.drawable.ic_expand_more_24px)
+                if (p1 == R.id.fragment_nicovideo_transition_finish) {
+                    // 終了時。左へスワイプした時
+                    parentFragmentManager.beginTransaction().remove(this@NicoVideoFragment).commit()
+                } else {
+                    // ここどうする？
+                    (requireActivity() as MainActivity).main_activity_bottom_navigationview.isVisible = p1 == R.id.fragment_nicovideo_transition_end
+                    // アイコン直す
+                    val icon = when (fragment_nicovideo_motionlayout.currentState) {
+                        R.id.fragment_nicovideo_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
+                        else -> requireContext().getDrawable(R.drawable.ic_expand_more_24px)
+                    }
+                    player_control_back_button.setImageDrawable(icon)
                 }
-                player_control_back_button.setImageDrawable(icon)
             }
 
             override fun onTransitionTrigger(p0: MotionLayout?, p1: Int, p2: Boolean, p3: Float) {
