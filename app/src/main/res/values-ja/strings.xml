@@ -527,4 +527,8 @@
     <string name="setting_scroll_tab_hide_description">コメント一覧等をスクロールすると自動でタブを隠しますが、これが嫌な場合は有効にすることで常時表示させることが出来ます。</string>
     <string name="setting_nicolive_mobiledata_quality_title">モバイルデータ通信時の画質</string>
     <string name="setting_nicolive_mobiledata_quality_description">モバイルデータ通信時に通常再生、音声のみ、最低画質が選択できるようになります。</string>
+    <string name="setting_comment_canvas_min_line_title">最低限確保する行の設定を有効にする</string>
+    <string name="setting_comment_canvas_min_line_description">プレイヤーが小さくなった場合でも最低限コメントの行を確保する設定です。ミニプレイヤー向け</string>
+    <string name="setting_comment_canvas_min_line_value_title">最低限確保する行の設定</string>
+    <string name="setting_comment_canvas_priority">設定の優先順位は 10行確保 -> コメントの行の設定 -> 最低限確保する行の設定 になります。</string>
 </resources>

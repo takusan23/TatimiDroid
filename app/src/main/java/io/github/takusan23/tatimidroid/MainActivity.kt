@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -154,6 +155,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setPlayer(fragment: Fragment, tag: String) {
+        main_activity_bottom_navigationview.isVisible = false
         supportFragmentManager.beginTransaction().replace(R.id.main_activity_fragment_layout, fragment, tag).commit()
     }
 
