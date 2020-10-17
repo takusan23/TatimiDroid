@@ -1,17 +1,19 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
-import android.content.Context
-import kotlinx.coroutines.*
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.FormBody
-import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.Response
 
 /**
  * タイムシフト予約をするAPIまとめ
  * 登録済みか確認する関数は
  * */
 class NicoLiveTimeShiftAPI {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * タイムシフト登録APIを叩く。コルーチンです。
@@ -34,7 +36,6 @@ class NicoLiveTimeShiftAPI {
             header("Origin", "https://live2.nicovideo.jp") // これが必須の模様
             post(postFormData)
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         response
     }
@@ -54,7 +55,6 @@ class NicoLiveTimeShiftAPI {
             header("Origin", "https://live2.nicovideo.jp") // これが必須の模様
             delete()
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         response
     }

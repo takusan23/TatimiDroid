@@ -1,8 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -12,6 +13,9 @@ import java.text.SimpleDateFormat
  * コルーチンです。
  * */
 class NicoRepoAPI {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * ニコレポのAPIを叩いてレスポンスを返す関数。
@@ -25,7 +29,6 @@ class NicoRepoAPI {
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         response
     }

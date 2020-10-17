@@ -14,11 +14,15 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONObject
 import java.io.File
 import java.io.FileNotFoundException
@@ -32,10 +36,12 @@ import java.util.*
  * */
 class NicoVideoCache(val context: Context?) {
 
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
+
     // ダウンロード進捗通知のID
     private var DOWNLOAD_NOTIFICATION_ID = 1919
-    val notificationManager =
-        context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     // ダウンロード中止ならtrue
     var isCacheGetCancel = false
@@ -280,7 +286,6 @@ class NicoVideoCache(val context: Context?) {
             addHeader("Cookie", "user_session=$userSession")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 resultFun(1)
@@ -411,7 +416,6 @@ class NicoVideoCache(val context: Context?) {
             header("Cookie", "user_session=$userSession")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
 

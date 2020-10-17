@@ -1,9 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommentServerData
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
@@ -20,6 +20,9 @@ import java.util.*
  * 公式番組では今の部屋のみ接続している。
  * */
 class NicoLiveComment {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     // 接続済みWebSocketアドレスが入る
     val connectedWebSocketAddressList = arrayListOf<String>()
@@ -47,7 +50,6 @@ class NicoLiveComment {
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         response
     }

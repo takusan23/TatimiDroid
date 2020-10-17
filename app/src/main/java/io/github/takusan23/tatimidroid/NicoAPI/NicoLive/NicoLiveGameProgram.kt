@@ -1,9 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -15,7 +15,9 @@ import java.util.*
  * */
 class NicoLiveGameProgram {
 
-    //
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
+
     companion object {
         /** ニコ生ゲームプレイ中の番組取得API */
         const val NICONAMA_GAME_PLAYING = "https://api.spi.nicovideo.jp/v1/matching/profiles/targets/frontend/statuses/playing?limit=30"
@@ -37,7 +39,6 @@ class NicoLiveGameProgram {
             header("Cookie", "user_session=$userSession")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 

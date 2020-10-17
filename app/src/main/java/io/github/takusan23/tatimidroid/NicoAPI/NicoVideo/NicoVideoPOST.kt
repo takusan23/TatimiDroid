@@ -1,8 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -11,6 +12,9 @@ import java.text.SimpleDateFormat
  * 投稿動画取得
  * */
 class NicoVideoPOST {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * 投稿動画取得APIを叩く。
@@ -31,7 +35,6 @@ class NicoVideoPOST {
             addHeader("X-Frontend-Version", "0")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 

@@ -1,9 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -15,11 +15,13 @@ import org.jsoup.Jsoup
  * ルーキー
  * 等を取得するクラス。
  * コルーチンですねえ！
- * ProgramAPIクラスは非推奨です
  *
  * **んなことよりニコ生TOPページの一番上に朝鮮中央テレビミラーとか馬の放送とかいらんやろ。ランキングとか置けよ**
  * */
 class NicoLiveProgram {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * NicoLiveProgram#parseJSON()の二番目の引数に入れる値。const val と val って何が違うんだ？
@@ -56,7 +58,6 @@ class NicoLiveProgram {
             header("Cookie", "user_session=$userSession")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 

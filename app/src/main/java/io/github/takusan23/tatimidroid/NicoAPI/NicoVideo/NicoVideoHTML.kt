@@ -2,10 +2,14 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.*
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -22,6 +26,8 @@ import kotlin.concurrent.timerTask
  * */
 class NicoVideoHTML {
 
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     // 定期実行（今回はハートビート処理）に必要なやつ
     var heartBeatTimer = Timer()
@@ -37,7 +43,6 @@ class NicoVideoHTML {
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
@@ -306,7 +311,6 @@ class NicoVideoHTML {
             .addHeader("User-Agent", "TatimiDroid;@takusan_23")
             .addHeader("Content-Type", "application/json")
             .build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         if (response.isSuccessful) {
             val responseString = response.body?.string()
@@ -353,7 +357,6 @@ class NicoVideoHTML {
             header("Cookie", "user_session=$userSession")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         if (response.isSuccessful) {
             return@async response
@@ -503,7 +506,6 @@ class NicoVideoHTML {
             header("User-Agent", "TatimiDroid;@takusan_23")
             post(postData)
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         if (response.isSuccessful) {
             response
@@ -545,7 +547,6 @@ class NicoVideoHTML {
             .header("Cookie", "user_session=${userSession}")
             .header("User-Agent", "TatimiDroid;@takusan_23")
             .build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         if (response.isSuccessful) {
             response.body?.string()
@@ -566,7 +567,6 @@ class NicoVideoHTML {
             .post(json!!.toRequestBody("application/json".toMediaTypeOrNull()))
             .addHeader("User-Agent", "TatimiDroid;@takusan_23")
             .build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
 

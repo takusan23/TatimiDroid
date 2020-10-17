@@ -1,14 +1,17 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.*
-import java.io.IOException
+import okhttp3.Request
 
 /**
  * ニコニ広告APIを叩く。
  * */
 class NicoAdAPI {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * ニコニ広告のAPIを叩く。
@@ -21,7 +24,6 @@ class NicoAdAPI {
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 

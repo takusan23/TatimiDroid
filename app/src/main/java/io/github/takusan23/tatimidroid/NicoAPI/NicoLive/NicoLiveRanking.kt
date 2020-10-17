@@ -1,9 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -14,6 +14,9 @@ import java.net.URLDecoder
  * なおPC版ではなくスマホ版のサイトから取得している。(スマホ版はJSONがHTMLの中にある。PC版は無いので)
  * */
 class NicoLiveRanking {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * ニコ生のランキングサイト（スマホ版）のHTMLを取得する関数
@@ -26,7 +29,6 @@ class NicoLiveRanking {
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 

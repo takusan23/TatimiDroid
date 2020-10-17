@@ -1,11 +1,10 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
-import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import org.json.JSONObject
 
 /**
@@ -14,6 +13,9 @@ import org.json.JSONObject
  * ランキングに貢献できるって。まーたランキングが；；
  * */
 class NicoLikeAPI {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * いいね♡
@@ -34,7 +36,6 @@ class NicoLikeAPI {
             addHeader("X-Request-With", "https://www.nicovideo.jp")
             post(FormBody.Builder().build()) // POST
         }.build()
-        val okHttpClient = OkHttpClient()
         return@withContext okHttpClient.newCall(request).execute()
     }
 
@@ -65,7 +66,6 @@ class NicoLikeAPI {
             addHeader("X-Request-With", "https://www.nicovideo.jp")
             delete() // Delete
         }.build()
-        val okHttpClient = OkHttpClient()
         return@withContext okHttpClient.newCall(request).execute()
     }
 
