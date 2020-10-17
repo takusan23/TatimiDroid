@@ -1,9 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
@@ -13,6 +13,9 @@ import java.util.*
  * ニコ動の検索結果をスクレイピングする
  * */
 class NicoVideoSearchHTML {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * 検索結果のHTMLを返す。コルーチン
@@ -35,9 +38,7 @@ class NicoVideoSearchHTML {
             addHeader("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
-        val response = okHttpClient.newCall(request).execute()
-        response
+        okHttpClient.newCall(request).execute()
     }
 
     /**
@@ -47,21 +48,6 @@ class NicoVideoSearchHTML {
     suspend fun parseHTML(html: String?): ArrayList<NicoVideoData> = withContext(Dispatchers.Default) {
         val list = arrayListOf<NicoVideoData>()
         val document = Jsoup.parse(html)
-
-/*
-        // なんでか知らんけどコメント投稿数だけ取れない。
-        val jsonString = document.getElementsByTag("script")[27].html()
-        val videoList = JSONObject(jsonString).getJSONArray("itemListElement")
-        for (i in 0 until videoList.length()) {
-            val videoObject = videoList.getJSONObject(i)
-            val title = videoObject.getString("name")
-            val thumb = videoObject.getJSONArray("thumbnailUrl").getJSONObject(0).getString("url")
-            val date = iso8601ToUnixTime(videoObject.getString("uploadDate"))
-            val viewCount = videoObject.getJSONArray("interactionStatistic").getJSONObject(0).getInt("userInteractionCount")
-            val mylistCount = videoObject.getJSONArray("interactionStatistic").getJSONObject(1).getInt("userInteractionCount")
-        }
-*/
-
         val li = document.getElementsByTag("li")
         li.forEach {
             // ニコニ広告はのせない？

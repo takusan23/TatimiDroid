@@ -1,8 +1,8 @@
 package io.github.takusan23.tatimidroid.NicoAPI.JK
 
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -20,14 +20,17 @@ import java.util.regex.Pattern
  * */
 class NicoJKHTML {
 
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
+
     // コメントのやり取りに使う
-    lateinit var socket: Socket
+    private lateinit var socket: Socket
 
     /**
      * コメント送信時に使う値。
      * Socket通信すると最初に流れてくるらしい。
      * */
-    var ticket = ""
+    private var ticket = ""
 
     /**
      * チャンネル一覧のHTML取得。スクレイピング。コルーチンです。
@@ -41,7 +44,6 @@ class NicoJKHTML {
             header("Cookie", "user_session=$userSession")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         return@withContext okHttpClient.newCall(request).execute()
     }
 
@@ -93,7 +95,6 @@ class NicoJKHTML {
             header("Cookie", "user_session=$userSession")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         return@withContext okHttpClient.newCall(request).execute()
     }
 
@@ -237,7 +238,6 @@ class NicoJKHTML {
             header("Cookie", "user_session=$userSession")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         return@withContext response
     }

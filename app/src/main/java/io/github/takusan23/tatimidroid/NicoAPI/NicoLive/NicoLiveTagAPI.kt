@@ -1,10 +1,11 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
-import kotlinx.coroutines.*
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.Response
 import org.json.JSONObject
 
 /**
@@ -12,6 +13,9 @@ import org.json.JSONObject
  * コルーチンで呼んでね
  * */
 class NicoLiveTagAPI {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * タグを返すAPIを叩く関数
@@ -25,7 +29,6 @@ class NicoLiveTagAPI {
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         response
     }

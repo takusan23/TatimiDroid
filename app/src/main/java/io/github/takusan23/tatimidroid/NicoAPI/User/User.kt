@@ -1,19 +1,19 @@
 package io.github.takusan23.tatimidroid.NicoAPI.User
 
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import okhttp3.*
+import okhttp3.Request
 import org.json.JSONObject
 
 /**
  * ニコニコのユーザー情報を取得するAPI
  * コルーチン版のみ
- * @param context Context
- * @param userId ユーザーID。自分のを取得する場合は空にして、getUserCoroutine()の引数に「https://nvapi.nicovideo.jp/v1/users/me」を指定
  * */
 class User {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * ユーザー情報を取得する。コルーチン版。
@@ -29,7 +29,6 @@ class User {
             header("x-frontend-id", "3") // これ必要。
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         if (response.isSuccessful) {
             withContext(Dispatchers.Default) {

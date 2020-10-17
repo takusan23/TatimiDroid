@@ -2,9 +2,9 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import android.os.Build
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
@@ -19,6 +19,9 @@ import java.util.*
  * */
 class NicoVideoSeriesAPI {
 
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
+
     /**
      * シリーズの動画一覧へアクセスしてHTMLを取りに行く。スマホ版は申し訳ないが規制が入ってるのでNG。
      * @param seriesId シリーズのID。https://nicovideo.jp/series/{ここの文字}
@@ -32,7 +35,6 @@ class NicoVideoSeriesAPI {
             addHeader("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 

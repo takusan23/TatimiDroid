@@ -1,9 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -13,6 +13,9 @@ import java.text.SimpleDateFormat
  * 履歴取得API
  * */
 class NicoVideoHistoryAPI {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * 履歴を取得する。
@@ -27,7 +30,6 @@ class NicoVideoHistoryAPI {
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 

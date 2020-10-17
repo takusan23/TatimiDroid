@@ -5,11 +5,15 @@ import android.os.Looper
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ScheduleDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import org.json.JSONArray
@@ -26,6 +30,9 @@ import kotlin.concurrent.schedule
  *  コルーチンで使ってね
  * */
 class NicoLiveHTML {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     // 視聴セッションWebSocket
     lateinit var nicoLiveWebSocketClient: WebSocketClient
@@ -108,7 +115,6 @@ class NicoLiveHTML {
                 addHeader("Cookie", "user_session=$userSession")
             }
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         response
     }
@@ -128,7 +134,6 @@ class NicoLiveHTML {
             addHeader("Cookie", "user_session=$userSession")
 
         }.build()
-        val okHttpClient = OkHttpClient()
         val response = okHttpClient.newCall(request).execute()
         response
     }
@@ -345,7 +350,6 @@ class NicoLiveHTML {
             header("User-Agent", "TatimiDroid;@takusan_23")
             post(requestBodyJSON)
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 error()

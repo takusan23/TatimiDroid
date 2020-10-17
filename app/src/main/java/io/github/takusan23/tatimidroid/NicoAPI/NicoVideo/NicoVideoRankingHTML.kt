@@ -2,9 +2,9 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import android.os.Build
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONException
 import org.json.JSONObject
@@ -18,6 +18,9 @@ import java.time.temporal.ChronoUnit
  * API無いっぽいしスマホ版スクレイピング（スマホ版じゃないとコメント数取れない？）
  * */
 class NicoVideoRankingHTML {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /** URLたち */
     companion object {
@@ -69,7 +72,6 @@ class NicoVideoRankingHTML {
             addHeader("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         return@withContext okHttpClient.newCall(request).execute()
     }
 

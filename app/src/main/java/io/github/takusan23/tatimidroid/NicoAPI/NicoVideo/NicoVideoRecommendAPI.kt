@@ -1,8 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -11,6 +12,10 @@ import java.text.SimpleDateFormat
  * 関連動画のAPIを叩く・パースする関数
  * */
 class NicoVideoRecommendAPI {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
+
     /**
      * 関連動画取得APIを叩く。
      * @param watchRecommendationRecipe parseJSON()#watchRecommendationRecipeの値。
@@ -21,7 +26,6 @@ class NicoVideoRecommendAPI {
             addHeader("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 

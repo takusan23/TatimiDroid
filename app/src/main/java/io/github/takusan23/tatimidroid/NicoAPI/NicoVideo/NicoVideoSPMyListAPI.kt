@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
@@ -15,6 +16,9 @@ import java.text.SimpleDateFormat
  * こっちはスマホWebブラウザ版のAPI。token取得が不要で便利そう（小並感
  * */
 class NicoVideoSPMyListAPI {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
      * マイリスト一覧のAPIを叩く関数
@@ -68,7 +72,6 @@ class NicoVideoSPMyListAPI {
             header("x-frontend-id", "3")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
@@ -85,7 +88,6 @@ class NicoVideoSPMyListAPI {
             header("x-frontend-id", "3")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
@@ -106,7 +108,6 @@ class NicoVideoSPMyListAPI {
             url(url)
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
@@ -233,7 +234,6 @@ class NicoVideoSPMyListAPI {
             header("x-request-with", "nicovideo")
             delete()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
@@ -252,7 +252,6 @@ class NicoVideoSPMyListAPI {
             header("x-request-with", "nicovideo")
             delete()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
@@ -274,7 +273,6 @@ class NicoVideoSPMyListAPI {
             header("x-request-with", "nicovideo")
             post(FormBody.Builder().build())
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
@@ -294,7 +292,6 @@ class NicoVideoSPMyListAPI {
             header("x-request-with", "nicovideo")
             post(FormBody.Builder().build())
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 

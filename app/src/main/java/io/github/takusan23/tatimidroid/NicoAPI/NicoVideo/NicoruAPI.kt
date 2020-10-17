@@ -1,9 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
@@ -14,6 +14,9 @@ import org.json.JSONObject
  * nicoru_result.statusが2ならnicorukey切れてる。4ならすでに追加済み。
  * */
 class NicoruAPI {
+
+    /** シングルトンなOkHttpClient */
+    private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     // nicoruKey
     var nicoruKey = ""
@@ -32,7 +35,6 @@ class NicoruAPI {
             header("X-Frontend-Id", "6")
             get()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
@@ -82,7 +84,6 @@ class NicoruAPI {
             header("Content-Type", "application/x-www-form-urlencoded")
             post(postData.toString().toRequestBody("application/json".toMediaTypeOrNull()))
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
@@ -102,7 +103,6 @@ class NicoruAPI {
             header("X-Request-With", "https://www.nicovideo.jp")
             delete()
         }.build()
-        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).execute()
     }
 
