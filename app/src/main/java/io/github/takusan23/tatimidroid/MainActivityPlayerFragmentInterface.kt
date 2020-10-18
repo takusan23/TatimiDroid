@@ -1,7 +1,7 @@
 package io.github.takusan23.tatimidroid
 
 /**
- *  MainActivityの上に表示させるFragmentにはこれを実装してほしい。
+ *  MainActivityの上に表示させるFragmentにはこれを実装してほしい。(生放送と動画のことな)
  *
  *  何でかっていうと戻るボタンがFragmentでは取れない。
  *  からActivityでFragmentを取得することになるんだけど、

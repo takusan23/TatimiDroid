@@ -24,7 +24,7 @@
         <Constraint
                 android:id="@+id/fragment_nicovideo_player_framelayout"
                 android:layout_width="0dp"
-                android:layout_height="200dp"
+                android:layout_height="300dp"
                 app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
                 app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
                 app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background" />

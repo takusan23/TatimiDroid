@@ -37,6 +37,7 @@ import kotlin.collections.ArrayList
  * フォロー中とかニコ生TOP表示Fragment
  * */
 class CommunityListFragment : Fragment() {
+
     var userSession = ""
     lateinit var pref_setting: SharedPreferences
     var recyclerViewList: ArrayList<NicoLiveProgramData> = arrayListOf()

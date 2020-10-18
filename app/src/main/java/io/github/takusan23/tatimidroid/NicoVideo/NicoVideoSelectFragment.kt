@@ -81,7 +81,7 @@ class NicoVideoSelectFragment : Fragment() {
     private fun initDarkMode() {
         val darkModeSupport = DarkModeSupport(requireContext())
         fragment_video_list_linearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
-        fragment_video_bar?.background = ColorDrawable(getThemeColor(darkModeSupport.context))
+        // fragment_video_bar?.background = ColorDrawable(getThemeColor(darkModeSupport.context))
     }
 
     fun setFragment(fragment: Fragment) {

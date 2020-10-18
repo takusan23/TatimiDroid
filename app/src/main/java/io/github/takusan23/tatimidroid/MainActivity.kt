@@ -370,6 +370,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** [MainActivity]のBottomNavigationを非表示にする関数 */
+    fun setVisibilityBottomNav(isVisible: Boolean) {
+        main_activity_bottom_navigationview.isVisible = isVisible
+    }
+
     private fun showToast(message: String) {
         runOnUiThread {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()

@@ -12,13 +12,16 @@
             android:layout_height="match_parent"
             android:layout_margin="2dp"
             android:clickable="true"
+            android:focusable="true"
             android:foreground="?android:attr/selectableItemBackground">
 
         <LinearLayout
                 android:id="@+id/adapter_community_before_motion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:divider="?android:dividerHorizontal"
+                android:orientation="vertical"
+                android:showDividers="middle">
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -108,7 +111,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
-                            android:text="@string/mode_comeview" />
+                            android:padding="2dp"
+                            android:text="@string/mode_comeview"
+                            app:icon="@drawable/ic_outline_comment_24px" />
 
                     <Button
                             android:id="@+id/adapter_community_watchmode_comepost"
@@ -116,7 +121,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
-                            android:text="@string/mode_post" />
+                            android:text="@string/mode_post"
+                            app:icon="@drawable/ic_outline_create_24px" />
 
                     <Button
                             android:id="@+id/adapter_community_watchmode_nicocas"
@@ -124,7 +130,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_margin="2dp"
-                            android:text="@string/mode_nicocas" />
+                            android:padding="2dp"
+                            android:text="@string/mode_nicocas"
+                            app:icon="@drawable/ic_outline_create_24px" />
 
                     <Button
                             android:id="@+id/adapter_community_watchmode_description"

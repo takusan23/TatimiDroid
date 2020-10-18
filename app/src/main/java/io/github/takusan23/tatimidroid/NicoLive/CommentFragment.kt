@@ -57,7 +57,6 @@ import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFacto
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.android.synthetic.main.include_nicolive_player_controller.*
@@ -199,6 +198,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // ViewPager
         initViewPager()
+
+        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
 
         // センサーによる画面回転
         if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
@@ -472,7 +473,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
         // MotionLayout関係
         comment_fragment_motionlayout_parent_framelayout.apply {
-            setAllowIds(R.id.comment_fragment_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
+            allowIdList.add(R.id.comment_fragment_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
             swipeTargetView = live_framelayout
             motionLayout = comment_fragment_motionlayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
@@ -483,6 +484,15 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     if (player_nicolive_control_main.isVisible) fab.show() else fab.hide()
                 }
                 updateHideController(job)
+            }
+            // swipeTargetViewの上にあるViewをここに書く。ここに書いたViewを押した際はonSwipeTargetViewClickFuncが呼ばれなくなる(View#setOnClickListenerは呼ばれる)
+            addAllIsClickableFromChildView(player_nicolive_control_main)
+            // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
+            onBlockViewClickFunc = { view ->
+                // UI非表示なら表示
+                if (!player_nicolive_control_main.isVisible) {
+                    onSwipeTargetViewClickFunc?.invoke()
+                }
             }
         }
         comment_fragment_motionlayout.addTransitionListener(object : MotionLayout.TransitionListener {
@@ -499,7 +509,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     parentFragmentManager.beginTransaction().remove(this@CommentFragment).commit()
                 } else {
                     // ここどうする？
-                    (requireActivity() as MainActivity).main_activity_bottom_navigationview.isVisible = p1 == R.id.comment_fragment_transition_end
+                    val isMiniPlayerMode = isMiniPlayerMode()
+                    (requireActivity() as MainActivity).setVisibilityBottomNav(isMiniPlayerMode)
+                    setMiniPlayer(isMiniPlayerMode)
                     // アイコン直す
                     val icon = when (comment_fragment_motionlayout.currentState) {
                         R.id.comment_fragment_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
@@ -514,6 +526,18 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
         })
         updateHideController(job)
+    }
+
+    /**
+     * ミニプレイヤー用UIを有効/無効にする関数
+     * @param isMiniPlayerMode 有効にする場合はtrue。通常に戻す場合はfalse
+     * */
+    fun setMiniPlayer(isMiniPlayerMode: Boolean) {
+        player_nicolive_control_video_network.isVisible = !isMiniPlayerMode
+        player_nicolive_control_send.isVisible = !isMiniPlayerMode
+        player_nicolive_control_popup.isVisible = !isMiniPlayerMode
+        player_nicolive_control_background.isVisible = !isMiniPlayerMode
+        player_nicolive_control_fullscreen.isVisible = !isMiniPlayerMode
     }
 
     /** コントローラーを消すためのコルーチン。 */
@@ -558,7 +582,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // Fab等消せるように
         live_framelayout.setOnClickListener {
             // コントローラー表示中は無視する
-            if (comment_activity_comment_cardview.visibility == View.VISIBLE) return@setOnClickListener
+            if (comment_activity_comment_cardview?.visibility == View.VISIBLE) return@setOnClickListener
             // FABの表示、非表示
             if (fab.isShown) {
                 fab.hide()

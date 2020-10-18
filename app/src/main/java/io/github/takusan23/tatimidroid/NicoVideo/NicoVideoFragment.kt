@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
@@ -48,7 +49,6 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
 import kotlinx.android.synthetic.main.include_nicovideo_player_controller.*
 import kotlinx.coroutines.Job
@@ -143,6 +143,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // ViewModel初期化
         viewModel = ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen)).get(NicoVideoViewModel::class.java)
+
+        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
 
         // ViewPager
         initViewPager(viewModel.dynamicAddFragmentList)
@@ -267,13 +269,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
             player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
         }
-        // 再生ボタン押したとき
-        player_control_pause.setOnClickListener {
-            // コメント流し制御
-            exoPlayer.playWhenReady = !exoPlayer.playWhenReady
-            // アイコン入れ替え
-            setPlayIcon()
-        }
         exoPlayer.addListener(object : Player.EventListener {
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                 super.onPlayerStateChanged(playWhenReady, playbackState)
@@ -365,6 +360,21 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 constrainHeight(R.id.fragment_nicovideo_player_framelayout, playerHeight)
                 constrainWidth(R.id.fragment_nicovideo_player_framelayout, playerWidth)
             }
+            // ミニプレイヤーも
+            fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
+                constrainHeight(R.id.fragment_nicovideo_background, (playerHeight / 1.5).roundToInt())
+                constrainWidth(R.id.fragment_nicovideo_background, (playerWidth / 1.5).roundToInt())
+            }
+            fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_finish).apply {
+                constrainHeight(R.id.fragment_nicovideo_background, (playerHeight / 1.5).roundToInt())
+                constrainWidth(R.id.fragment_nicovideo_background, (playerWidth / 1.5).roundToInt())
+            }
+            // 全画面UI
+            fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_fullscreen).apply {
+                val fullScreenWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(width, height, displayHeight).toInt()
+                constrainHeight(R.id.fragment_nicovideo_player_framelayout, displayHeight)
+                constrainWidth(R.id.fragment_nicovideo_player_framelayout, fullScreenWidth)
+            }
         } else {
             // 縦画面
             var playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, displayWidth).roundToInt()
@@ -404,20 +414,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         fragment_nicovideo_motionlayout.transitionToState(R.id.fragment_nicovideo_transition_fullscreen)
         // システムバー消す
         setSystemBarVisibility(false)
-        // アスペクト比調整
-        fragment_nicovideo_background.updateLayoutParams {
-            val displayWidth = DisplaySizeTool.getDisplayWidth(context)
-            val displayHeight = DisplaySizeTool.getDisplayHeight(context)
-            if (isLandscape()) {
-                // 横画面。横の大きさを計算する
-                width = if (viewModel.is169AspectLate) getAspectWidthFromHeight(displayHeight) else getOldAspectWidthFromHeight(displayHeight)
-                height = displayHeight
-            } else {
-                // 縦画面。縦の大きさを計算する
-                height = if (viewModel.is169AspectLate) getAspectHeightFromWidth(displayWidth) else getOldAspectHeightFromWidth(displayWidth)
-                width = displayWidth
-            }
-        }
+        // 背景を黒く
+        fragment_nicovideo_background.background = ColorDrawable(Color.BLACK)
     }
 
     /** フルスクリーン解除 */
@@ -429,21 +427,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         fragment_nicovideo_motionlayout.transitionToState(R.id.fragment_nicovideo_transition_start)
         // システムバー表示
         setSystemBarVisibility(true)
-        // アスペ（クト比）直す
-        fragment_nicovideo_background.updateLayoutParams {
-            // 画面の幅取得。令和最新版（ビリビリワイヤレスイヤホン並感）
-            val displayWidth = DisplaySizeTool.getDisplayWidth(context)
-            val displayHeight = DisplaySizeTool.getDisplayHeight(context)
-            if (isLandscape()) {
-                // 横画面。縦の大きさを求める
-                width = displayWidth / 2
-                height = if (viewModel.is169AspectLate) getAspectHeightFromWidth(width) else getOldAspectHeightFromWidth(width)
-            } else {
-                // 縦画面。縦の大きさを求める
-                width = if (viewModel.is169AspectLate) displayWidth else (displayWidth / 1.2).toInt()
-                height = if (viewModel.is169AspectLate) getAspectHeightFromWidth(width) else getOldAspectHeightFromWidth(width)
-            }
-        }
+        // 背景戻す
+        fragment_nicovideo_background.background = ColorDrawable(getThemeColor(requireContext()))
     }
 
     /**
@@ -513,19 +498,50 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
         // MotionLayoutでスワイプできない対策に独自FrameLayoutを作った
         fragment_nicovideo_motionlayout_parent_framelayout.apply {
-            setAllowIds(R.id.fragment_nicovideo_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
+            allowIdList.add(R.id.fragment_nicovideo_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
             swipeTargetView = fragment_nicovideo_player_framelayout
             motionLayout = fragment_nicovideo_motionlayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
-                // 非表示切り替え
                 player_control_main.isVisible = !player_control_main.isVisible
                 setVisibilityPlaylistFab(player_control_main.isVisible)
                 // ３秒待ってもViewが表示されてる場合は消せるように。
                 updateHideController(job)
             }
+            onSwipeTargetViewDoubleClickFunc = { ev ->
+                // player_control_parentでコントローラーのUIが表示されてなくてもスキップできるように
+                if (ev != null) {
+                    val skip = if (ev.x > player_control_center_parent.width / 2) {
+                        // 半分より右
+                        (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+                    } else {
+                        // 半分より左
+                        -(prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+                    }
+                    exoPlayer.seekTo(exoPlayer.currentPosition + skip)
+                    fragment_nicovideo_comment_canvas.seekComment()
+                    updateHideController(job)
+                }
+            }
+            // swipeTargetViewの上にあるViewをここに書く。ここに書いたViewを押した際はonSwipeTargetViewClickFuncが呼ばれなくなる(View#setOnClickListenerは呼ばれる)
+            addAllIsClickableFromChildView(player_control_main)
+            // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
+            onBlockViewClickFunc = { view ->
+                // UI非表示なら表示
+                player_control_main?.apply {
+                    if (!isVisible) {
+                        onSwipeTargetViewClickFunc?.invoke()
+                    }
+                }
+            }
         }
-
+        // 再生/一時停止
+        player_control_pause.setOnClickListener {
+            // 再生ボタン押したとき
+            exoPlayer.playWhenReady = !exoPlayer.playWhenReady
+            // アイコン入れ替え
+            setPlayIcon()
+        }
         // 連続再生とそれ以外でアイコン変更
         val playListModePrevIcon = if (requireIsPlayListPlaying()) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
         val playListModeNextIcon = if (requireIsPlayListPlaying()) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
@@ -548,22 +564,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 // なお全画面は横のみサポート。SCREEN_ORIENTATION_USER_LANDSCAPEを使うと逆向き横画面を回避できる（横画面でも二通りあるけど自動で解決してくれる）
                 requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
                 setFullScreen()
-            }
-        }
-        // ダブルタップ版setOnClickListener。拡張関数です。DoubleClickListener
-        player_control_parent.setOnDoubleClickListener { motionEvent, isDoubleClick ->
-            // player_control_parentでコントローラーのUIが表示されてなくてもスキップできるように
-            if (isDoubleClick && motionEvent != null) {
-                val skip = if (motionEvent.x > player_control_center_parent.width / 2) {
-                    // 半分より右
-                    (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
-                } else {
-                    // 半分より左
-                    -(prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
-                }
-                exoPlayer.seekTo(exoPlayer.currentPosition + skip)
-                fragment_nicovideo_comment_canvas.seekComment()
-                updateHideController(job)
             }
         }
         // ポップアップ/バッググラウンドなど
@@ -596,7 +596,9 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     parentFragmentManager.beginTransaction().remove(this@NicoVideoFragment).commit()
                 } else {
                     // ここどうする？
-                    (requireActivity() as MainActivity).main_activity_bottom_navigationview.isVisible = p1 == R.id.fragment_nicovideo_transition_end
+                    val isMiniPlayerMode = isMiniPlayerMode()
+                    (requireActivity() as MainActivity).setVisibilityBottomNav(isMiniPlayerMode)
+                    setMiniPlayer(isMiniPlayerMode)
                     // アイコン直す
                     val icon = when (fragment_nicovideo_motionlayout.currentState) {
                         R.id.fragment_nicovideo_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
@@ -623,9 +625,11 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                // コントローラー非表示カウントダウン終了
-                job.cancelChildren()
-                isTouchSeekBar = true
+                // コントローラー非表示カウントダウン終了。なんかミニプレイヤー時に反応するので対策
+                if (!isMiniPlayerMode()) {
+                    job.cancelChildren()
+                    isTouchSeekBar = true
+                }
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
@@ -670,6 +674,23 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 setFabVisibility(!isVisibility) // 反転する
             }
         }
+    }
+
+    /**
+     * ミニプレイヤー用UIを有効/無効にする関数
+     * @param isMiniPlayerMode 有効にする場合はtrue。通常に戻す場合はfalse
+     * */
+    fun setMiniPlayer(isMiniPlayerMode: Boolean) {
+        player_control_video_network.isVisible = !isMiniPlayerMode
+        player_control_popup.isVisible = !isMiniPlayerMode
+        player_control_background.isVisible = !isMiniPlayerMode
+        player_control_repeat.isVisible = !isMiniPlayerMode
+        player_control_fullscreen.isVisible = !isMiniPlayerMode
+        player_control_prev.isVisible = !isMiniPlayerMode
+        player_control_next.isVisible = !isMiniPlayerMode
+        player_control_current.isVisible = !isMiniPlayerMode
+        player_control_seek.isVisible = !isMiniPlayerMode
+        player_control_duration.isVisible = !isMiniPlayerMode
     }
 
     // Progress表示
