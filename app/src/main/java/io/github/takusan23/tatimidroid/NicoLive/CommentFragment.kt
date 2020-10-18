@@ -422,23 +422,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun initController(programTitle: String) {
         // クリックイベントを通過させない
         val job = Job()
-        // 戻るボタン
+        // 最小化するとかしないとか
         player_nicolive_control_back_button.isVisible = true
-        player_nicolive_control_back_button.setOnClickListener {
-            // 最小化するとかしないとか
-            when {
-                viewModel.isFullScreenMode -> {
-                    setCloseFullScreen()
-                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
-                }
-                comment_fragment_motionlayout.currentState == R.id.comment_fragment_transition_start -> {
-                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
-                }
-                else -> {
-                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_start)
-                }
-            }
-        }
         // 番組情報
         player_nicolive_control_title.text = programTitle
         // Marqueeを有効にするにはフォーカスをあてないといけない？。<marquee>とかWeb黎明期感ある（その時代の人じゃないけど）
@@ -474,6 +459,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // MotionLayout関係
         comment_fragment_motionlayout_parent_framelayout.apply {
             allowIdList.add(R.id.comment_fragment_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
+            allowIdList.add(R.id.comment_fragment_transition_fullscreen) // フルスクリーン時もクリックが行かないように
             swipeTargetView = live_framelayout
             motionLayout = comment_fragment_motionlayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
@@ -489,9 +475,28 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             addAllIsClickableFromChildView(player_nicolive_control_main)
             // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
             onBlockViewClickFunc = { view ->
-                // UI非表示なら表示
-                if (!player_nicolive_control_main.isVisible) {
-                    onSwipeTargetViewClickFunc?.invoke()
+                player_nicolive_control_main?.apply {
+                    // UI非表示なら表示
+                    if (!isVisible) {
+                        onSwipeTargetViewClickFunc?.invoke()
+                    } else {
+                        when (view?.id) {
+                            // なんか最小化ボタンはsetOnClickListener使えなかったので
+                            player_nicolive_control_back_button.id -> {
+                                when {
+                                    viewModel.isFullScreenMode -> {
+                                        setCloseFullScreen()
+                                    }
+                                    comment_fragment_motionlayout.currentState == R.id.comment_fragment_transition_start -> {
+                                        comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
+                                    }
+                                    else -> {
+                                        comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_start)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -534,7 +539,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     fun setMiniPlayer(isMiniPlayerMode: Boolean) {
         player_nicolive_control_video_network.isVisible = !isMiniPlayerMode
-        player_nicolive_control_send.isVisible = !isMiniPlayerMode
         player_nicolive_control_popup.isVisible = !isMiniPlayerMode
         player_nicolive_control_background.isVisible = !isMiniPlayerMode
         player_nicolive_control_fullscreen.isVisible = !isMiniPlayerMode
@@ -570,26 +574,10 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         player_nicolive_control_info_main.isVisible = false
         // システムバー非表示
         setSystemBarVisibility(false)
-        // 画面の大きさ取得
-        val displayHeight = DisplaySizeTool.getDisplayHeight(context)
+        // 背景色
+        comment_fragment_background.background = ColorDrawable(Color.BLACK)
         // アイコン変更
         player_nicolive_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
-        // ExoPlayerのアスペクト比設定
-        live_framelayout.updateLayoutParams {
-            height = displayHeight
-            width = getAspectWidthFromHeight(displayHeight)
-        }
-        // Fab等消せるように
-        live_framelayout.setOnClickListener {
-            // コントローラー表示中は無視する
-            if (comment_activity_comment_cardview?.visibility == View.VISIBLE) return@setOnClickListener
-            // FABの表示、非表示
-            if (fab.isShown) {
-                fab.hide()
-            } else {
-                fab.show()
-            }
-        }
         // 高さ更新
         comment_canvas.finalHeight = comment_canvas.height
     }
@@ -598,9 +586,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * 全画面解除
      * */
     private fun setCloseFullScreen() {
-        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         // 全画面ではない
         viewModel.isFullScreenMode = false
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         // コメビュ表示
         comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_start)
         // 経過時間出す
@@ -609,19 +597,14 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         setSystemBarVisibility(true)
         // アイコン変更
         player_nicolive_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
-        // 画面の幅取得
-        val displayWidth = DisplaySizeTool.getDisplayWidth(context)
-        // ExoPlayerのアスペクト比設定
-        live_framelayout.updateLayoutParams {
-            width = displayWidth / 2
-            height = getAspectHeightFromWidth(displayWidth / 2)
-        }
+        // 背景色もどす
+        comment_fragment_background.background = ColorDrawable(getThemeColor(context))
         // 高さ更新
         comment_canvas.finalHeight = comment_canvas.height
     }
 
     /** 上と下に出るコメントをセットする */
-    fun setUneiComment(comment: String) {
+    private fun setUneiComment(comment: String) {
         val isNicoad = comment.contains("/nicoad")
         val isInfo = comment.contains("/info")
         val isUadPoint = comment.contains("/uadpoint")
@@ -902,6 +885,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         exoPlayer.stop()
         //設定で読み込むかどうか
         Handler(Looper.getMainLooper()).post {
+
             // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
             if (viewModel.currentQuality == "audio_high") {
                 live_audio_only_textview.isVisible = true
@@ -911,8 +895,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 live_surface_view.background = null
             }
             live_surface_view.isVisible = true
-            // 画面の幅取得。Android 11に対応した
+            // 画面の幅/高さ取得。Android 11に対応した
             val displayWidth = DisplaySizeTool.getDisplayWidth(context)
+            val displayHeight = DisplaySizeTool.getDisplayHeight(context)
             //ウィンドウの半分ぐらいの大きさに設定
             val frameLayoutParams = live_framelayout.layoutParams
             // 全画面だった場合はアスペクト比調整しない
@@ -939,22 +924,29 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     //16:9の9を計算
                     frameLayoutParams.height = getAspectHeightFromWidth(frameLayoutParams.width)
                 }
-                // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
-                comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
-                    constrainHeight(R.id.live_framelayout, frameLayoutParams.height)
-                    constrainWidth(R.id.live_framelayout, frameLayoutParams.width)
-                }
-                // ミニプレイヤーも
-                comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
-                    constrainHeight(R.id.live_framelayout, frameLayoutParams.height / 2)
-                    constrainWidth(R.id.live_framelayout, frameLayoutParams.width / 2)
-                }
-                // 終了も
-                comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
-                    constrainHeight(R.id.live_framelayout, frameLayoutParams.height / 2)
-                    constrainWidth(R.id.live_framelayout, frameLayoutParams.width / 2)
-                }
             }
+
+            // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
+            comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
+                constrainHeight(R.id.live_framelayout, frameLayoutParams.height)
+                constrainWidth(R.id.live_framelayout, frameLayoutParams.width)
+            }
+            // ミニプレイヤーも
+            comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
+                constrainHeight(R.id.comment_fragment_background, frameLayoutParams.height / 2)
+                constrainWidth(R.id.comment_fragment_background, frameLayoutParams.width / 2)
+            }
+            // 終了も
+            comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
+                constrainHeight(R.id.comment_fragment_background, frameLayoutParams.height / 2)
+                constrainWidth(R.id.comment_fragment_background, frameLayoutParams.width / 2)
+            }
+            // 全画面UIも
+            comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_fullscreen)?.apply {
+                constrainHeight(R.id.live_framelayout, displayHeight)
+                constrainWidth(R.id.live_framelayout, getAspectWidthFromHeight(displayHeight))
+            }
+
             // 高さ更新
             comment_canvas.finalHeight = comment_canvas.height
             val sourceFactory = DefaultDataSourceFactory(requireContext(), "TatimiDroid;@takusan_23", object : TransferListener {

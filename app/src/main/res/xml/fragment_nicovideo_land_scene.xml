@@ -107,7 +107,8 @@
             app:constraintSetStart="@+id/fragment_nicovideo_transition_start">
         <OnSwipe
                 app:dragDirection="dragDown"
-                app:touchAnchorId="@+id/fragment_nicovideo_player_framelayout" />
+                app:touchAnchorId="@+id/fragment_nicovideo_player_framelayout"
+                app:touchRegionId="@+id/fragment_nicovideo_player_framelayout" />
     </Transition>
 
     <!-- 左へスワイプしたときの遷移 -->
@@ -117,7 +118,7 @@
         <OnSwipe
                 app:dragDirection="dragLeft"
                 app:touchAnchorId="@+id/fragment_nicovideo_player_framelayout"
-                app:touchAnchorSide="left" />
+                app:touchRegionId="@+id/fragment_nicovideo_player_framelayout" />
     </Transition>
 
 </MotionScene>

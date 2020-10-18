@@ -480,25 +480,11 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // 戻るボタン
         player_control_back_button.isVisible = true
         player_control_back_button.setOnClickListener {
-            // 最小化するとかしないとか
-            fragment_nicovideo_motionlayout.apply {
-                when {
-                    viewModel.isFullScreenMode -> {
-                        setCloseFullScreen()
-                        transitionToState(R.id.fragment_nicovideo_transition_fullscreen)
-                    }
-                    currentState == R.id.fragment_nicovideo_transition_start -> {
-                        transitionToState(R.id.fragment_nicovideo_transition_end)
-                    }
-                    else -> {
-                        transitionToState(R.id.fragment_nicovideo_transition_start)
-                    }
-                }
-            }
         }
         // MotionLayoutでスワイプできない対策に独自FrameLayoutを作った
         fragment_nicovideo_motionlayout_parent_framelayout.apply {
             allowIdList.add(R.id.fragment_nicovideo_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
+            allowIdList.add(R.id.fragment_nicovideo_transition_fullscreen) // フルスクリーン時もクリックが行かないように
             swipeTargetView = fragment_nicovideo_player_framelayout
             motionLayout = fragment_nicovideo_motionlayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
@@ -527,10 +513,30 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             addAllIsClickableFromChildView(player_control_main)
             // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
             onBlockViewClickFunc = { view ->
-                // UI非表示なら表示
                 player_control_main?.apply {
+                    // UI非表示なら表示
                     if (!isVisible) {
                         onSwipeTargetViewClickFunc?.invoke()
+                    } else {
+                        when (view?.id) {
+                            // なんか最小化ボタンはsetOnClickListener使えなかったので
+                            player_control_back_button.id -> {
+                                // 最小化するとかしないとか
+                                fragment_nicovideo_motionlayout.apply {
+                                    when {
+                                        viewModel.isFullScreenMode -> {
+                                            setCloseFullScreen()
+                                        }
+                                        currentState == R.id.fragment_nicovideo_transition_start -> {
+                                            transitionToState(R.id.fragment_nicovideo_transition_end)
+                                        }
+                                        else -> {
+                                            transitionToState(R.id.fragment_nicovideo_transition_start)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -780,46 +786,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             val formattedTime = DateUtils.formatElapsedTime(exoPlayer.currentPosition / 1000L)
             player_control_current.text = formattedTime
         }
-    }
-
-    /**
-     * 16:9で横の大きさがわかるときに縦の大きさを返す
-     * @param width 横
-     * @return 高さ
-     * */
-    private fun getAspectHeightFromWidth(width: Int): Int {
-        val heightCalc = width / 16
-        return heightCalc * 9
-    }
-
-    /**
-     * 4:3で横の長さがわかるときに縦の長さを返す
-     * @param width 横
-     * @return 高さ
-     * */
-    private fun getOldAspectHeightFromWidth(width: Int): Int {
-        val heightCalc = width / 4
-        return heightCalc * 3
-    }
-
-    /**
-     * 16:9で縦の大きさが分かる時に横の大きさを返す。
-     * @param height 高さ
-     * @return 幅
-     * */
-    private fun getAspectWidthFromHeight(height: Int): Int {
-        val widthCalc = height / 9
-        return widthCalc * 16
-    }
-
-    /**
-     * 4:3で縦の大きさが分かる時に横の大きさを返す。
-     * @param height 高さ
-     * @return はば
-     * */
-    private fun getOldAspectWidthFromHeight(height: Int): Int {
-        val widthCalc = height / 3
-        return widthCalc * 4
     }
 
 

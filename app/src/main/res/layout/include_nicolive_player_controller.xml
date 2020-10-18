@@ -25,10 +25,12 @@
                     android:id="@+id/player_nicolive_control_back_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:padding="10dp"
                     android:src="@drawable/ic_expand_more_24px"
-                    android:visibility="gone"
-                    android:tint="#ffffff" />
+                    android:tint="#ffffff"
+                    android:visibility="gone" />
 
             <LinearLayout
                     android:layout_width="wrap_content"
@@ -68,8 +70,8 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:src="@drawable/ic_send_black"
-                    android:visibility="gone"
-                    android:tint="#ffffff" />
+                    android:tint="#ffffff"
+                    android:visibility="gone" />
 
             <ImageView
                     android:id="@+id/player_nicolive_control_popup"
@@ -113,8 +115,8 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_volume_up_24px"
-                    android:visibility="gone"
-                    android:tint="#ffffff" />
+                    android:tint="#ffffff"
+                    android:visibility="gone" />
 
             <ImageView
                     android:id="@+id/player_nicolive_control_close"
@@ -125,8 +127,8 @@
                     android:foreground="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="10dp"
                     android:src="@drawable/ic_clear_black"
-                    android:visibility="gone"
-                    android:tint="#ffffff" />
+                    android:tint="#ffffff"
+                    android:visibility="gone" />
         </LinearLayout>
 
         <LinearLayout

@@ -18,8 +18,7 @@
         <Constraint
                 android:id="@+id/player_nicolive_control_info_main"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_height="wrap_content"
                 app:layout_constraintEnd_toStartOf="@+id/comment_activity_fragment_layout"
                 app:layout_constraintStart_toStartOf="@+id/live_framelayout"
                 app:layout_constraintTop_toBottomOf="@+id/live_framelayout" />
@@ -94,6 +93,14 @@
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+                android:id="@+id/comment_fragment_background"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
     </ConstraintSet>
 
     <!-- 終了時のConstraintLayout -->
@@ -141,7 +148,7 @@
         <OnSwipe
                 app:dragDirection="dragDown"
                 app:touchAnchorId="@+id/live_framelayout"
-                app:touchAnchorSide="bottom" />
+                app:touchRegionId="@+id/live_framelayout" />
     </Transition>
 
     <!-- 終了への遷移 -->
@@ -151,7 +158,7 @@
         <OnSwipe
                 app:dragDirection="dragLeft"
                 app:touchAnchorId="@+id/live_framelayout"
-                app:touchAnchorSide="left" />
+                app:touchRegionId="@+id/live_framelayout" />
     </Transition>
 
 

@@ -40,7 +40,7 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
      *
      * そうすることで、重ねたViewの[View.setOnClickListener]が呼ばれ、[onSwipeTargetViewClickFunc]は呼ばれなくなります。
      *
-     * あと、[blockViewList]が押されたときに呼ばれる[onBlockViewClickFunc]なんてものもありますので、使ってみてください。
+     * あと、[blockViewList]が押されたときに呼ばれる[onBlockViewClickFunc]なんてものもありますので、[View.setOnClickListener]が動かないときなどで使ってみてください。
      *
      * もし、MotionLayoutを動かしたくない場合は、重ねるViewに[View.isClickable]を[false]にすることで、MotionLayoutも動かなくなります。
      * */
@@ -85,7 +85,6 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
 
         if (swipeTargetView != null && ev != null && motionLayout != null) {
-
 
             // タッチがswipeTargetViewの中にあるときのみタッチイベントを渡す
             val isTouchingSwipeTargetView = ev.x > swipeTargetView!!.left && ev.x < swipeTargetView!!.right && ev.y > swipeTargetView!!.top && ev.y < swipeTargetView!!.bottom
