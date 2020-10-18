@@ -179,7 +179,7 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
      * [getChildViewRecursive]で取得したViewの中から、[View.isClickable]がtrueの物を取り出し、すべて[blockViewList]に追加する関数
      * @param viewGroup 親ViewGroup
      * */
-    fun addAllIsClickableFromChildView(viewGroup: ViewGroup) {
+    fun addAllIsClickableViewFromParentView(viewGroup: ViewGroup) {
         val isClickableViewList = getChildViewRecursive(viewGroup).filter { view -> view.isClickable }
         blockViewList.addAll(isClickableViewList)
     }

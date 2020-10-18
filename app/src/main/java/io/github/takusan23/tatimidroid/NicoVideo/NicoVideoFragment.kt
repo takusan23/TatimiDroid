@@ -510,7 +510,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 }
             }
             // swipeTargetViewの上にあるViewをここに書く。ここに書いたViewを押した際はonSwipeTargetViewClickFuncが呼ばれなくなる(View#setOnClickListenerは呼ばれる)
-            addAllIsClickableFromChildView(player_control_main)
+            addAllIsClickableViewFromParentView(player_control_main)
             // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
             onBlockViewClickFunc = { view ->
                 player_control_main?.apply {

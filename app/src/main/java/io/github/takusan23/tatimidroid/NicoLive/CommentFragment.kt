@@ -472,7 +472,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 updateHideController(job)
             }
             // swipeTargetViewの上にあるViewをここに書く。ここに書いたViewを押した際はonSwipeTargetViewClickFuncが呼ばれなくなる(View#setOnClickListenerは呼ばれる)
-            addAllIsClickableFromChildView(player_nicolive_control_main)
+            addAllIsClickableViewFromParentView(player_nicolive_control_main)
             // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
             onBlockViewClickFunc = { view ->
                 player_nicolive_control_main?.apply {
@@ -853,7 +853,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun multiLineSnackbar(view: View, message: String) {
         val snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT)
         val snackbarView = snackbar.view
-        val textView = snackbarView.findViewById(com.google.android.material.R.id.snackbar_text) as TextView
+        val textView = snackbarView.findViewById(R.id.snackbar_text) as TextView
         textView.maxLines = 5 // show multiple line
         snackbar.anchorView = getSnackbarAnchorView() // 何のViewの上に表示するか指定
         snackbar.show()
@@ -895,57 +895,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 live_surface_view.background = null
             }
             live_surface_view.isVisible = true
-            // 画面の幅/高さ取得。Android 11に対応した
-            val displayWidth = DisplaySizeTool.getDisplayWidth(context)
-            val displayHeight = DisplaySizeTool.getDisplayHeight(context)
-            //ウィンドウの半分ぐらいの大きさに設定
-            val frameLayoutParams = live_framelayout.layoutParams
-            // 全画面だった場合はアスペクト比調整しない
-            if (!viewModel.isFullScreenMode) {
-                //横画面のときの対応
-                if (commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    //二窓モードのときはとりあえず更に小さくしておく
-                    if (isNimadoMode) {
-                        frameLayoutParams.width = displayWidth / 4
-                        frameLayoutParams.height = getAspectHeightFromWidth(displayWidth / 4)
-                    } else {
-                        //16:9の9を計算
-                        frameLayoutParams.height = getAspectHeightFromWidth(displayWidth / 2)
-                    }
-                    // FrameLayoutのサイズ変更のみで済む
-                    live_framelayout.layoutParams = frameLayoutParams
-                } else {
-                    //縦画面
-                    frameLayoutParams.width = displayWidth
-                    //二窓モードのときは小さくしておく
-                    if (isNimadoMode) {
-                        frameLayoutParams.width = displayWidth / 2
-                    }
-                    //16:9の9を計算
-                    frameLayoutParams.height = getAspectHeightFromWidth(frameLayoutParams.width)
-                }
-            }
 
-            // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
-            comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
-                constrainHeight(R.id.live_framelayout, frameLayoutParams.height)
-                constrainWidth(R.id.live_framelayout, frameLayoutParams.width)
-            }
-            // ミニプレイヤーも
-            comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
-                constrainHeight(R.id.comment_fragment_background, frameLayoutParams.height / 2)
-                constrainWidth(R.id.comment_fragment_background, frameLayoutParams.width / 2)
-            }
-            // 終了も
-            comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
-                constrainHeight(R.id.comment_fragment_background, frameLayoutParams.height / 2)
-                constrainWidth(R.id.comment_fragment_background, frameLayoutParams.width / 2)
-            }
-            // 全画面UIも
-            comment_fragment_motionlayout?.getConstraintSet(R.id.comment_fragment_transition_fullscreen)?.apply {
-                constrainHeight(R.id.live_framelayout, displayHeight)
-                constrainWidth(R.id.live_framelayout, getAspectWidthFromHeight(displayHeight))
-            }
+            // アスペクト比直す
+            aspectRatioFix()
 
             // 高さ更新
             comment_canvas.finalHeight = comment_canvas.height
@@ -1011,6 +963,55 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             val width = live_framelayout.layoutParams.width
             surfaceViewLayoutParams = FrameLayout.LayoutParams(width, height)
 
+        }
+    }
+
+    /** アスペクト比を直す */
+    private fun aspectRatioFix() {
+        // 画面の幅/高さ取得。Android 11に対応した
+        val displayWidth = DisplaySizeTool.getDisplayWidth(context)
+        val displayHeight = DisplaySizeTool.getDisplayHeight(context)
+        val isLandScape = commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if (isLandScape) {
+            // 横画面時
+            val playerWidth = if (isNimadoMode) displayWidth / 4 else displayWidth / 2
+            val playerHeight = (9F / 16 * playerWidth)
+            // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
+            comment_fragment_motionlayout?.apply {
+                getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
+                    constrainHeight(R.id.live_framelayout, playerHeight.toInt())
+                    constrainWidth(R.id.live_framelayout, playerWidth)
+                }
+                // ミニプレイヤー時
+                getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
+                    constrainHeight(R.id.live_framelayout, (playerHeight / 1.5).toInt())
+                    constrainWidth(R.id.live_framelayout, (playerWidth / 1.5).toInt())
+                }
+                getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
+                    constrainHeight(R.id.live_framelayout, (playerHeight / 1.5).toInt())
+                    constrainWidth(R.id.live_framelayout, (playerWidth / 1.5).toInt())
+                }
+            }
+        } else {
+            // 縦画面時
+            val playerWidth = displayWidth
+            val playerHeight = (9F / 16 * playerWidth)
+            // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
+            comment_fragment_motionlayout?.apply {
+                getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
+                    constrainHeight(R.id.live_framelayout, playerHeight.toInt())
+                    constrainWidth(R.id.live_framelayout, playerWidth)
+                }
+                // ミニプレイヤー時
+                getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
+                    constrainHeight(R.id.live_framelayout, playerHeight.toInt() / 2)
+                    constrainWidth(R.id.live_framelayout, playerWidth / 2)
+                }
+                getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
+                    constrainHeight(R.id.live_framelayout, playerHeight.toInt() / 2)
+                    constrainWidth(R.id.live_framelayout, playerWidth / 2)
+                }
+            }
         }
     }
 

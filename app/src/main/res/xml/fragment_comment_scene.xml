@@ -19,6 +19,17 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+                android:id="@+id/comment_fragment_background"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginEnd="1dp"
+                android:layout_marginRight="1dp"
+                android:elevation="5dp"
+                app:layout_constraintBottom_toBottomOf="@+id/live_framelayout"
+                app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
+                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
+                app:layout_constraintTop_toTopOf="@+id/live_framelayout" />
     </ConstraintSet>
 
     <!-- ミニプレイヤー時 -->
@@ -88,7 +99,8 @@
         <OnSwipe
                 app:dragDirection="dragDown"
                 app:touchAnchorId="@+id/live_framelayout"
-                app:touchAnchorSide="bottom" />
+                app:touchAnchorSide="bottom"
+                app:touchRegionId="@+id/live_framelayout" />
     </Transition>
 
     <!-- 終了遷移 -->
@@ -98,7 +110,8 @@
         <OnSwipe
                 app:dragDirection="dragLeft"
                 app:touchAnchorId="@+id/live_framelayout"
-                app:touchAnchorSide="left" />
+                app:touchAnchorSide="left"
+                app:touchRegionId="@+id/live_framelayout" />
     </Transition>
 
 </MotionScene>
