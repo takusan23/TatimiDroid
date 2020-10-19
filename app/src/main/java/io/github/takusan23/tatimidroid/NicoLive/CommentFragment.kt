@@ -48,7 +48,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
-import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoLivePagerAdapter
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
@@ -295,7 +294,10 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // Activity終了
         viewModel.messageLiveData.observe(viewLifecycleOwner) { message ->
             when (message) {
-                "finish" -> if (requireActivity() is CommentActivity) requireActivity().finish() // 二窓のときは終了しない
+                "finish" -> if (requireActivity() is MainActivity) {
+                    // 二窓のときは終了しない
+                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_finish)
+                }
             }
         }
 
@@ -328,6 +330,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // バックグラウンド再生無いので非表示
             player_nicolive_control_background.isVisible = false
             initController(getFlv.channelName)
+            aspectRatioFix()
         }
 
         // うんこめ
@@ -859,26 +862,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         snackbar.show()
     }
 
-    /**
-     * 16:9で横の大きさがわかるときに縦の大きさを返す
-     * @param width 幅
-     * @return 幅にあった高さ。16:9になる
-     * */
-    private fun getAspectHeightFromWidth(width: Int): Int {
-        val heightCalc = width / 16
-        return heightCalc * 9
-    }
-
-    /**
-     * 16:9で縦の大きさが分かる時に横の大きさを返す関数
-     * @param height 高さ
-     * @return 高さにあった幅。16:9になる
-     * */
-    private fun getAspectWidthFromHeight(height: Int): Int {
-        val widthCalc = height / 9
-        return widthCalc * 16
-    }
-
     //視聴モード
     fun setPlayVideoView() {
         val hlsAddress = viewModel.hlsAddress.value ?: return
@@ -966,7 +949,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
     }
 
-    /** アスペクト比を直す */
+    /** アスペクト比を直す。ミニプレイヤーと全画面UIのアスペクト比も直す */
     private fun aspectRatioFix() {
         // 画面の幅/高さ取得。Android 11に対応した
         val displayWidth = DisplaySizeTool.getDisplayWidth(context)
@@ -1583,7 +1566,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     override fun onBackButtonPress() {
         comment_fragment_motionlayout.apply {
             if (currentState == R.id.comment_fragment_transition_end) {
-                parentFragmentManager.beginTransaction().remove(this@CommentFragment).commit()
+                // 終了へ
+                transitionToState(R.id.comment_fragment_transition_finish)
             } else {
                 transitionToState(R.id.comment_fragment_transition_end)
             }

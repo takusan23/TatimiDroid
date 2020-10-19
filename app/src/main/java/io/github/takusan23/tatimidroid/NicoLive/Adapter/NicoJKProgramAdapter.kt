@@ -1,17 +1,19 @@
 package io.github.takusan23.tatimidroid.NicoLive.Adapter
 
-import android.content.Intent
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKData
+import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.R
 
-class NicoJKProgramAdapter(val nicoJKDataList: ArrayList<NicoJKData>) : RecyclerView.Adapter<NicoJKProgramAdapter.ViewHolder>() {
+/** 実況チャンネル一覧Adapter */
+class NicoJKProgramAdapter(private val nicoJKDataList: ArrayList<NicoJKData>) : RecyclerView.Adapter<NicoJKProgramAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_nico_jk, parent, false)
@@ -31,12 +33,15 @@ class NicoJKProgramAdapter(val nicoJKDataList: ArrayList<NicoJKData>) : Recycler
             nicoJKIkioiTextView.text = nicoJKData.ikioi
             // 押したとき
             cardView.setOnClickListener {
-                val intent = Intent(context, CommentActivity::class.java)
-                intent.putExtra("liveId", nicoJKData.channnelId)
-                intent.putExtra("watch_mode", "comment_post")
-                intent.putExtra("isOfficial", false)
-                intent.putExtra("is_jk", true) // 実況ならtrue
-                context?.startActivity(intent)
+                val bundle = Bundle().apply {
+                    putString("liveId", nicoJKData.channnelId)
+                    putString("watch_mode", "comment_post")
+                    putBoolean("isOfficial", false)
+                    putBoolean("is_jk",true)
+                }
+                val commentFragment = CommentFragment()
+                commentFragment.arguments = bundle
+                (context as MainActivity).setPlayer(commentFragment, nicoJKData.channnelId)
             }
         }
     }

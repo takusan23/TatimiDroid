@@ -33,6 +33,7 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
@@ -497,7 +498,7 @@ class NicoVideoPlayService : Service() {
             popupView.player_control_fullscreen.setOnClickListener {
                 stopSelf()
                 // アプリ起動
-                val intent = Intent(this, NicoVideoActivity::class.java)
+                val intent = Intent(this, MainActivity::class.java)
                 intent.putExtra("id", videoId)
                 intent.putExtra("cache", isCache)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK

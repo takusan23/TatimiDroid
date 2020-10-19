@@ -24,7 +24,7 @@ import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
-import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
@@ -337,7 +337,7 @@ class CommentMenuFragment : Fragment() {
                         setShortLabel(channelName)
                         setLongLabel(channelName)
                         setIcon(Icon.createWithResource(context, R.drawable.ic_flash_on_24px))
-                        val intent = Intent(context, CommentActivity::class.java).apply {
+                        val intent = Intent(context, MainActivity::class.java).apply {
                             action = Intent.ACTION_MAIN
                             putExtra("liveId", commentFragment.liveId)
                             putExtra("is_jk", commentFragment.isJK)

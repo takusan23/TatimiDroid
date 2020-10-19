@@ -11,11 +11,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoPOST
 import io.github.takusan23.tatimidroid.NicoAPI.User.User
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo_post.*
@@ -66,7 +65,7 @@ class NicoVideoPOSTFragment : Fragment() {
         initRecyclerView()
 
         when {
-            activity is NicoVideoActivity && recyclerViewList.isNotEmpty() -> {
+            recyclerViewList.isNotEmpty() -> {
                 // 動画再生アクティビティのときはViewPagerくるくるしても多分値残ってる
                 nicoVideoListAdapter.notifyDataSetChanged()
             }

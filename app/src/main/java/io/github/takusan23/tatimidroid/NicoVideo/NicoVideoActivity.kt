@@ -19,6 +19,7 @@ import kotlinx.android.synthetic.main.activity_nicovideo.*
  * eco      |   エコノミー再生するなら（?eco=1）true
  * internet |   キャッシュ有っても強制的にインターネットから取得する場合はtrue
  * */
+@Deprecated("新UIへ移行。MainActivity#setPlayer経由でFragmentを乗せる")
 class NicoVideoActivity : AppCompatActivity() {
 
     lateinit var darkModeSupport: DarkModeSupport

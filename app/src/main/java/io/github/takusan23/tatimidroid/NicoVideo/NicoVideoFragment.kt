@@ -887,7 +887,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
     override fun onBackButtonPress() {
         fragment_nicovideo_motionlayout.apply {
             if (currentState == R.id.fragment_nicovideo_transition_end) {
-                parentFragmentManager.beginTransaction().remove(this@NicoVideoFragment).commit()
+                transitionToState(R.id.fragment_nicovideo_transition_finish)
             } else {
                 transitionToState(R.id.fragment_nicovideo_transition_end)
             }

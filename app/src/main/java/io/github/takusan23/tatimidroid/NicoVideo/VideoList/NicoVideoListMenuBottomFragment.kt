@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
@@ -26,7 +27,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
@@ -158,11 +159,12 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         }
         bottom_fragment_nicovideo_list_menu_play.setOnClickListener {
             // 通常再生
-            val nicoVideoActivity = Intent(context, NicoVideoActivity::class.java).apply {
-                putExtra("id", nicoVideoData.videoId)
-                putExtra("cache", isCache)
-            }
-            startActivity(nicoVideoActivity)
+            val nicoVideoFragment = NicoVideoFragment()
+            val bundle = Bundle()
+            bundle.putString("id", nicoVideoData.videoId)
+            bundle.putBoolean("cache", isCache)
+            nicoVideoFragment.arguments = bundle
+            (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, nicoVideoData.videoId)
         }
         // 強制エコノミーはキャッシュでは塞ぐ
         if (isCache) {
@@ -170,23 +172,24 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         }
         bottom_fragment_nicovideo_list_menu_economy_play.setOnClickListener {
             // エコノミーで再生
-            val nicoVideoActivity = Intent(context, NicoVideoActivity::class.java).apply {
-                putExtra("id", nicoVideoData.videoId)
-                putExtra("eco", true)
-            }
-            startActivity(nicoVideoActivity)
+            val nicoVideoFragment = NicoVideoFragment()
+            val bundle = Bundle()
+            bundle.putString("id", nicoVideoData.videoId)
+            bundle.putBoolean("eco", true)
+            nicoVideoFragment.arguments = bundle
+            (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, nicoVideoData.videoId)
         }
         // インターネットを利用して再生。キャッシュ以外でなお動画IDじゃないときは表示しない
         if (isCache && NICOVIDEO_ID_REGEX.toRegex().matches(videoId)) {
             bottom_fragment_nicovideo_list_menu_internet_play.apply {
                 isVisible = true
                 setOnClickListener {
-                    // エコノミーで再生
-                    val nicoVideoActivity = Intent(context, NicoVideoActivity::class.java).apply {
-                        putExtra("id", nicoVideoData.videoId)
-                        putExtra("internet", true)
-                    }
-                    startActivity(nicoVideoActivity)
+                    val nicoVideoFragment = NicoVideoFragment()
+                    val bundle = Bundle()
+                    bundle.putString("id", nicoVideoData.videoId)
+                    bundle.putBoolean("internet", true)
+                    nicoVideoFragment.arguments = bundle
+                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment,nicoVideoData.videoId)
                 }
             }
         }

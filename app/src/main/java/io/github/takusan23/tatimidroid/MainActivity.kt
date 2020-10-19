@@ -24,8 +24,9 @@ import io.github.takusan23.tatimidroid.Fragment.LoginFragment
 import io.github.takusan23.tatimidroid.Fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.DialogWatchModeBottomFragment
+import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.Tool.*
@@ -55,6 +56,11 @@ import kotlinx.coroutines.withContext
  * intent.putExtra("app_shortcut", "cache")
  * startActivity(intent)
  * ```
+ *
+ * 生放送、動画再生画面を起動する方法
+ * putExtra()にliveIdかidをつけることで起動できます。
+ * その他の値もIntentに入れてくれれば、Fragmentに詰めて設置します。
+ *
  * */
 class MainActivity : AppCompatActivity() {
 
@@ -89,6 +95,9 @@ class MainActivity : AppCompatActivity() {
 
         // 共有から起動した
         lunchShareIntent()
+
+        // 生放送/動画画面
+        launchPlayer()
 
         // 新しいUIの説明表示
         initNewUIDescription()
@@ -154,6 +163,34 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    /** MainActivityのIntentに情報を詰めることにより、[setPlayer]を代わりに設置する関数 */
+    private fun launchPlayer() {
+        intent?.apply {
+            val liveId = getStringExtra("liveId")
+            val videoId = getStringExtra("id")
+            if (!liveId.isNullOrEmpty()) {
+                // 生放送 か 実況
+                val commentFragment = CommentFragment().apply {
+                    arguments = intent.extras
+                }
+                setPlayer(commentFragment, liveId)
+            }
+            if (!videoId.isNullOrEmpty()) {
+                // 動画
+                val videoFragment = NicoVideoFragment().apply {
+                    arguments = intent.extras
+                }
+                setPlayer(videoFragment, videoId)
+            }
+        }
+    }
+
+    /**
+     * 生放送Fragment[io.github.takusan23.tatimidroid.NicoLive.CommentFragment]、または動画Fragment[io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment]を置くための関数
+     * もしMainActivityがない場合は(Service等)、MainActivityのIntentにデータを詰めて(liveId/id)起動することで開けます。
+     * @param fragment 生放送Fragment か 動画Fragment。[MainActivityPlayerFragmentInterface]を実装してほしい
+     * @param tag Fragmentを探すときのタグ。いまんところこのタグでFragmentを探してるコードはないはず
+     * */
     fun setPlayer(fragment: Fragment, tag: String) {
         main_activity_bottom_navigationview.isVisible = false
         supportFragmentManager.beginTransaction().replace(R.id.main_activity_fragment_layout, fragment, tag).commit()
@@ -359,10 +396,12 @@ class MainActivity : AppCompatActivity() {
             nicoVideoIdMatcher.find() -> {
                 // 動画ID
                 val videoId = nicoVideoIdMatcher.group()
-                val intent = Intent(this, NicoVideoActivity::class.java)
-                intent.putExtra("id", videoId)
-                intent.putExtra("cache", false)
-                startActivity(intent)
+                val nicoVideoFragment = NicoVideoFragment()
+                val bundle = Bundle()
+                bundle.putString("id", videoId)
+                bundle.putBoolean("cache", false)
+                nicoVideoFragment.arguments = bundle
+                setPlayer(nicoVideoFragment, videoId)
             }
             else -> {
                 Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()

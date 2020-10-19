@@ -18,6 +18,7 @@ import io.github.takusan23.tatimidroid.Tool.LanguageTool
 /**
  * CommentFragment（生放送再生Fragment）を乗っけるためのActivity。
  * */
+@Deprecated("新UIへ移行。MainActivity#setPlayer経由でFragmentを乗せる")
 class CommentActivity : AppCompatActivity() {
 
     lateinit var pref_setting: SharedPreferences
