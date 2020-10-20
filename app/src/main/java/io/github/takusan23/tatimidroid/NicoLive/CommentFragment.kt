@@ -296,7 +296,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             when (message) {
                 "finish" -> if (requireActivity() is MainActivity) {
                     // 二窓のときは終了しない
-                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_finish)
+                    parentFragmentManager.beginTransaction().remove(this).commit()
                 }
             }
         }
