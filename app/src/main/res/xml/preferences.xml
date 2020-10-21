@@ -390,6 +390,12 @@
                 android:title="@string/setting_first_time_show_title" />
 
         <Preference
+                android:icon="@drawable/ic_history_24px"
+                android:key="history_db_backup"
+                android:summary="取り扱いには気をつけて。"
+                android:title="履歴データベースの引き継ぎ(バックアップ)" />
+
+        <Preference
                 android:icon="@drawable/ic_outline_info_24px"
                 android:key="licence_preference"
                 android:title="@string/licence" />

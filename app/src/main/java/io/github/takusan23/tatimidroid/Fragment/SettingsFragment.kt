@@ -2,27 +2,30 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.Activity.LicenceActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
+import io.github.takusan23.tatimidroid.Tool.AppDataZip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.text.SimpleDateFormat
 
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
     /** プライバシーポリシー */
-    val PRIVACY_POLICY_URL = "https://github.com/takusan23/TatimiDroid/blob/master/privacy_policy.md"
+    private val PRIVACY_POLICY_URL = "https://github.com/takusan23/TatimiDroid/blob/master/privacy_policy.md"
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
@@ -44,8 +47,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val firstTimeDay = findPreference<Preference>("first_time_preference")
         // 端末内履歴消す
         val nicoHistoryDBClear = findPreference<Preference>("delete_history")
-        // DarkModeSwitch
-        val darkmode_switch_preference = findPreference<SwitchPreference>("setting_darkmode")
+        // 端末内履歴書出し
+        val backupHistoryDB = findPreference<Preference>("history_db_backup")
 
         licence_preference?.setOnPreferenceClickListener {
             //ライセンス画面
@@ -85,13 +88,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }.show(getParentFragmentManager(), "delete")
             true
         }
-
-
-/*
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
-            darkmode_switch_preference?.isVisible = true
-        }
-*/
 
         fontPreference?.setOnPreferenceClickListener {
             // フォント設定へ切り替え
@@ -149,6 +145,18 @@ class SettingsFragment : PreferenceFragmentCompat() {
             false
         }
 
+        // Zipファイルへ
+        backupHistoryDB?.setOnPreferenceClickListener {
+            // データベースのファイルの場所
+            val dbFile = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                File("${context?.dataDir?.path}/databases/NicoHistory.db") // getDataDir()がヌガー以降じゃないと使えない
+            } else {
+                File("/data/user/0/io.github.takusan23.tatimidroid/databases/NicoHistory.db") // ハードコート大丈夫か・・？
+            }
+            AppDataZip.createZipFile(requireActivity() as AppCompatActivity, dbFile)
+            false
+        }
+
     }
 
     /** UnixTime -> わかりやすい形式に */
@@ -158,7 +166,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
 
-    fun startBrowser(link: String) {
+    private fun startBrowser(link: String) {
         val i = Intent(Intent.ACTION_VIEW, link.toUri());
         startActivity(i);
     }
