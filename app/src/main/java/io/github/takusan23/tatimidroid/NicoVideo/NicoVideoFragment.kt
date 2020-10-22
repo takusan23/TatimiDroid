@@ -158,7 +158,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // Activity終了などのメッセージ受け取り
         viewModel.messageLiveData.observe(viewLifecycleOwner) {
             when (it) {
-                getString(R.string.encryption_video_not_play) -> requireActivity().finish()
+                getString(R.string.encryption_video_not_play) -> finishFragment()
             }
         }
 
@@ -577,13 +577,13 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // ポップアップ再生
             startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
             // Activity落とす
-            activity?.finish()
+            finishFragment()
         }
         player_control_background.setOnClickListener {
             // バッググラウンド再生
             startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
             // Activity落とす
-            activity?.finish()
+            finishFragment()
         }
 
         // MotionLayoutのコールバック
@@ -872,6 +872,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         super.onDestroy()
         seekTimer.cancel()
         exoPlayer.release()
+        (requireActivity() as MainActivity).setVisibilityBottomNav(true)
     }
 
     private fun showToast(message: String?) {
@@ -879,6 +880,9 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
+
+    /** Fragment終了関数 */
+    private fun finishFragment() = parentFragmentManager.beginTransaction().remove(this).commit()
 
     /** 画面が横かどうかを返す。横ならtrue */
     fun isLandscape() = requireActivity().resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE

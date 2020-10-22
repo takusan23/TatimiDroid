@@ -272,7 +272,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             viewModel = ViewModelProvider(this, NicoLiveViewModelFactory(requireActivity().application, liveId, isWatchingMode, isJK)).get(NicoLiveViewModel::class.java)
         } else {
             showToast(getString(R.string.mail_pass_error))
-            commentActivity.finish()
+            finishFragment()
         }
 
         // 全画面再生時なら
@@ -294,10 +294,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // Activity終了
         viewModel.messageLiveData.observe(viewLifecycleOwner) { message ->
             when (message) {
-                "finish" -> if (requireActivity() is MainActivity) {
-                    // 二窓のときは終了しない
-                    parentFragmentManager.beginTransaction().remove(this).commit()
-                }
+                "finish" -> finishFragment()
             }
         }
 
@@ -1117,7 +1114,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             startQuality = viewModel.currentQuality
         )
         // Activity落とす
-        activity?.finish()
+        finishFragment()
     }
 
 
@@ -1559,6 +1556,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
         }
     }
+
+    /** Fragment終了関数 */
+    private fun finishFragment() = parentFragmentManager.beginTransaction().remove(this).commit()
 
     fun isInitGoogleCast(): Boolean = ::googleCast.isInitialized
 
