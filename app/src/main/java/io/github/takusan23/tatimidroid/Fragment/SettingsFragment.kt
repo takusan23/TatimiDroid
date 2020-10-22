@@ -4,11 +4,16 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.widget.EditText
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceGroup
 import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.Activity.LicenceActivity
 import io.github.takusan23.tatimidroid.R
@@ -29,6 +34,40 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val editText = EditText(context).apply {
+            hint = "検索"
+            setCompoundDrawablesRelativeWithIntrinsicBounds(context.getDrawable(R.drawable.ic_24px), null, null, null)
+        }
+
+        // 設定項目を配列にしまう
+        val preferenceList = arrayListOf<Preference>().apply {
+            // 再帰的に呼び出す
+            fun getChildPreference(group: PreferenceGroup) {
+                val preferenceCount = group.preferenceCount
+                repeat(preferenceCount) { index ->
+                    val preference = group.getPreference(index)
+                    add(preference)
+                    if (preference is PreferenceGroup) {
+                        getChildPreference(preference)
+                    }
+                }
+            }
+            getChildPreference(preferenceScreen)
+        }
+
+        // テキスト変更を監視。
+        editText.addTextChangedListener {
+            val inputText = it?.toString() ?: return@addTextChangedListener
+            // PreferenceCategory以外を非表示
+            preferenceList.forEach { preference -> if (preference !is PreferenceGroup) preference.isVisible = false }
+            // 部分一致した設定のみを表示する。なお、所属してるPreferenceCategoryが非表示だと出ない
+            preferenceList.filter { preference -> preference.title?.contains(inputText) ?: false }.forEach { preference -> preference.isVisible = true }
+        }
+        (view as LinearLayout).addView(editText, 0) // 無理矢理感
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
