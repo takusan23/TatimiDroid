@@ -12,6 +12,9 @@ import io.github.takusan23.tatimidroid.Room.Database.NGDB
  * */
 object NGDBInit {
 
+    /** [NGDB]のデータベースの名前 */
+    const val NG_DB_NAME = "NGList.db"
+
     private lateinit var ngdb: NGDB
 
     /**

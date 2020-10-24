@@ -186,7 +186,7 @@ class CommentMenuFragment : Fragment() {
         // バッググラウンド再生。
         fragment_comment_fragment_menu_background_button.setOnClickListener {
             commentFragment.apply {
-                setBackgroundProgramPlay()
+                startBackgroundPlay()
                 exoPlayer.stop()
                 live_framelayout.visibility = View.GONE
             }
@@ -206,7 +206,7 @@ class CommentMenuFragment : Fragment() {
                     startActivity(intent)
                 } else {
                     //ポップアップ再生。コメント付き
-                    startOverlayPlayer()
+                    startPopupPlay()
                     exoPlayer.stop()
                     live_framelayout.visibility = View.GONE
                 }

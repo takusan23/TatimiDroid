@@ -55,6 +55,7 @@
         <Preference
                 android:icon="@drawable/ic_font_download_24px"
                 android:key="font_preference"
+                android:fragment="io.github.takusan23.tatimidroid.Fragment.Setting.FontSettingFragment"
                 android:summary="@string/setting_font_description"
                 android:title="@string/font_setting" />
 
@@ -438,6 +439,7 @@
     <Preference
             android:icon="@drawable/ic_policy_black"
             android:key="dev_setting"
+            android:fragment="io.github.takusan23.tatimidroid.Fragment.Setting.DevSettingFragment"
             android:summary="フリとかじゃなくて"
             android:title="開発者用実験項目" />
 

@@ -128,33 +128,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
             true
         }
 
-        fontPreference?.setOnPreferenceClickListener {
-            // フォント設定へ切り替え
-            fragmentManager?.beginTransaction()?.apply {
-                replace(
-                    R.id.main_activity_linearlayout,
-                    FontSettingFragment(),
-                    "font_preference"
-                )
-                addToBackStack(null)
-            }?.commit()
-            true
-        }
-
-        // 開発者用設定項目
-        devSetting?.setOnPreferenceClickListener {
-            // フォント設定へ切り替え
-            fragmentManager?.beginTransaction()?.apply {
-                replace(
-                    R.id.main_activity_linearlayout,
-                    DevSettingFragment(),
-                    "dev_preference"
-                )
-                addToBackStack(null)
-            }?.commit()
-            true
-        }
-
         aboutCache?.setOnPreferenceClickListener {
             startBrowser("https://takusan23.github.io/Bibouroku/2020/04/08/たちみどろいどのキャッシュ機能について/")
             true

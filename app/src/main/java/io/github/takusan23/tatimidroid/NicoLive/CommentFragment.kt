@@ -1067,7 +1067,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 if (resultCode == PackageManager.PERMISSION_GRANTED) {
                     //権限ゲット！YATTA!
                     //ポップアップ再生
-                    startOverlayPlayer()
+                    startPopupPlay()
                     Toast.makeText(context, "権限を取得しました。", Toast.LENGTH_SHORT).show()
                 } else {
                     //何もできない。
@@ -1087,13 +1087,13 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         destroyCode()
     }
 
-    /*オーバーレイ*/
-    fun startOverlayPlayer() {
+    /** ポップアップ再生 */
+    fun startPopupPlay() {
         startPlayService("popup")
     }
 
-    /*バックグラウンド再生*/
-    fun setBackgroundProgramPlay() {
+    /** バックグラウンド再生 */
+    fun startBackgroundPlay() {
         startPlayService("background")
     }
 

@@ -29,6 +29,7 @@ import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -425,8 +426,36 @@ class MainActivity : AppCompatActivity() {
         val fragment = supportFragmentManager.findFragmentById(R.id.main_activity_fragment_layout)
         // もしFragmentが見つからなかった場合はActivityを終了させる
         if (fragment == null) super.onBackPressed()
-        (fragment as MainActivityPlayerFragmentInterface).apply {
+        (fragment as? MainActivityPlayerFragmentInterface)?.apply {
             onBackButtonPress() // 戻るキー押した関数を呼ぶ
+        }
+    }
+
+    /** アプリを離れたとき */
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        // アプリを離れたらポップアップ再生
+        val isLeaveAppPopup = prefSetting.getBoolean("setting_leave_popup", false)
+        // アプリを離れたらバックグラウンド再生
+        val isLeaveAppBackground = prefSetting.getBoolean("setting_leave_background", false)
+        // Fragment取得
+        supportFragmentManager.findFragmentById(R.id.main_activity_fragment_layout).apply {
+            when (this) {
+                is CommentFragment -> {
+                    // 生放送
+                    when {
+                        isLeaveAppPopup -> startPopupPlay()
+                        isLeaveAppBackground -> startBackgroundPlay()
+                    }
+                }
+                is NicoVideoFragment -> {
+                    // 動画
+                    when {
+                        isLeaveAppPopup -> startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
+                        isLeaveAppBackground -> startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
+                    }
+                }
+            }
         }
     }
 

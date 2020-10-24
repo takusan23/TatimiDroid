@@ -82,7 +82,7 @@ class CommentActivity : AppCompatActivity() {
             //別アプリを開いた時の処理
             if (prefSetting.getBoolean("setting_leave_background", false)) {
                 //バックグラウンド再生
-                setBackgroundProgramPlay()
+                startBackgroundPlay()
             }
             if (prefSetting.getBoolean("setting_leave_popup", false)) {
                 //ポップアップ再生
@@ -94,11 +94,11 @@ class CommentActivity : AppCompatActivity() {
                             Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${packageName}"))
                         this.startActivityForResult(intent, 114)
                     } else {
-                        startOverlayPlayer()
+                        startPopupPlay()
                     }
                 } else {
                     //ろりぽっぷ
-                    startOverlayPlayer()
+                    startPopupPlay()
                 }
             }
         }
