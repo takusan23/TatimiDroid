@@ -247,7 +247,7 @@ class NicoVideoInfoFragment : Fragment() {
     private fun setLike() {
         // いいね！機能。キャッシュのときは使わない
         val jsonObject = viewModel.nicoVideoJSON.value ?: return
-        if (!viewModel.isOfflinePlay && isLoginMode(context)) {
+        if (viewModel.isOfflinePlay.value == false && isLoginMode(context)) {
             // キャッシュじゃない　かつ　ログイン必須モード
             this@NicoVideoInfoFragment.fragment_nicovideo_info_like_chip.isVisible = true
             // いいね♡済みかもしれないので

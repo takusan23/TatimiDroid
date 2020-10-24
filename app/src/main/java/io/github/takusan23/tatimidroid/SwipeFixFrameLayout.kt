@@ -79,7 +79,7 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
      * 引数のViewには[blockViewList]の中から一致したViewが入っています。[View.getId]を利用することで分岐できると思います。
      *
      * */
-    var onBlockViewClickFunc: ((view: View?) -> Unit)? = null
+    var onBlockViewClickFunc: ((view: View?, event: MotionEvent?) -> Unit)? = null
 
     /** 子のViewへタッチイベントを渡すかどうか */
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
@@ -105,7 +105,7 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
                         postDelayed({
                             // MotionLayoutへタッチを渡さないけど押したViewのクリックは渡す
                             blockTouchList.forEach { blockView ->
-                                onBlockViewClickFunc?.invoke(blockView) // 代わりの関数で代替する
+                                onBlockViewClickFunc?.invoke(blockView, ev) // 代わりの関数で代替する
                             }
                         }, onSwipeTargetViewClickFuncDelayMs)
                     } else {

@@ -21,9 +21,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        debug {
-            applicationIdSuffix ".kaihatu"
-        }
+//        debug {
+//            applicationIdSuffix ".kaihatu"
+//        }
     }
     compileOptions {
         targetCompatibility 1.8
@@ -38,11 +38,9 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     // MotionLayoutのonSwipe直す自作ライブラリ
     implementation 'com.github.takusan23:MotionLayoutSwipeFixFrameLayout:0552b935c2'
-    // Activity Result APIでonActivityResultを駆逐する
-    implementation 'androidx.activity:activity-ktx:1.2.0-beta01'
-    implementation 'androidx.fragment:fragment:1.3.0-beta01'
-    // ViewModel楽に取るための Ktx
-    implementation 'androidx.fragment:fragment-ktx:1.2.5'
+    // Activity Result APIでonActivityResultを駆逐する。あとなんかしらんけどこの環境ではalphaをbetaにすると使えなくなる
+    implementation 'androidx.activity:activity-ktx:1.2.0-alpha08'
+    implementation 'androidx.fragment:fragment-ktx:1.3.0-alpha08'
     // ViewModel と LiveData
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     // Room

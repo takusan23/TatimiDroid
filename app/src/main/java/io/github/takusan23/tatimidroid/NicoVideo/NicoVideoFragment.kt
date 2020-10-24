@@ -93,9 +93,11 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     lateinit var viewModel: NicoVideoViewModel
 
-    val videoId by lazy { viewModel.videoId }
+    /** 動画ID。ViewModel初期化までは空っぽ */
+    var videoId = ""
 
-    val isCache by lazy { viewModel.isCache }
+    /** キャッシュ再生かどうか。ViewModel初期化までは不明 */
+    var isCache = false
 
     private var seekTimer = Timer()
 
@@ -130,29 +132,40 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             RotationSensor(requireActivity(), lifecycle)
         }
 
+        // MainActivityのBottomNavigation消すなど
+        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
+
         // 動画ID
-        val videoId = arguments?.getString("id") ?: ""
+        val videoId = arguments?.getString("id")
         // キャッシュ再生
-        val isCache = arguments?.getBoolean("cache") ?: false
+        val isCache = arguments?.getBoolean("cache")
         // エコノミー再生
         val isEconomy = arguments?.getBoolean("eco") ?: false
         // 強制的にインターネットを利用して取得
         val useInternet = arguments?.getBoolean("internet") ?: false
         // 全画面で開始
         val isStartFullScreen = arguments?.getBoolean("fullscreen") ?: false
+        // 連続再生？
+        val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
 
         // ViewModel初期化
-        viewModel = ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen)).get(NicoVideoViewModel::class.java)
-
-        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
-
-        // ViewPager
-        initViewPager(viewModel.dynamicAddFragmentList)
+        viewModel = ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList)).get(NicoVideoViewModel::class.java)
 
         // 全画面モードなら
         if (viewModel.isFullScreenMode) {
             requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
             setFullScreen()
+        }
+
+        // 動画ID変更受け取り。
+        viewModel.playingVideoId.observe(viewLifecycleOwner) {
+            this.videoId = it
+        }
+
+        // キャッシュ再生かどうか
+        viewModel.isOfflinePlay.observe(viewLifecycleOwner) {
+            this.isCache = it
+            initViewPager(viewModel.dynamicAddFragmentList)
         }
 
         // Activity終了などのメッセージ受け取り
@@ -174,8 +187,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             viewModel.contentUrl.observe(viewLifecycleOwner) { contentUrl ->
                 val oldPosition = exoPlayer.currentPosition
                 initExoPlayer(contentUrl)
-                // 画質変更時は途中から再生
-                if (oldPosition > 0) {
+                // 画質変更時は途中から再生。動画IDが一致してないとだめ
+                if (oldPosition > 0 && exoPlayer.currentMediaItem?.mediaId == videoId) {
                     exoPlayer.seekTo(oldPosition)
                 }
                 exoPlayer.setVideoSurfaceView(fragment_nicovideo_surfaceview)
@@ -191,12 +204,13 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // 動画情報
         viewModel.nicoVideoData.observe(viewLifecycleOwner) { nicoVideoData ->
+            // ViewPager
             initUI(nicoVideoData)
         }
 
         // ViewPager追加など
         viewModel.nicoVideoJSON.observe(viewLifecycleOwner) { json ->
-            if (!viewModel.isOfflinePlay) {
+            if (viewModel.isOfflinePlay.value == false) {
                 viewPagerAddAccountFragment(json)
             }
         }
@@ -247,10 +261,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // キャッシュ再生と分ける
         when {
             // キャッシュを優先的に利用する　もしくは　キャッシュ再生時
-            viewModel.isOfflinePlay -> {
+            viewModel.isOfflinePlay.value ?: false -> {
                 // キャッシュ再生
                 val dataSourceFactory = DefaultDataSourceFactory(requireContext(), "TatimiDroid;@takusan_23")
-                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(contentUrl.toUri()))
+                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.Builder().setUri(contentUrl.toUri()).setMediaId(videoId).build())
                 exoPlayer.setMediaSource(videoSource)
             }
             // それ以外：インターネットで取得
@@ -258,7 +272,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 // SmileサーバーはCookieつけないと見れないため
                 val dataSourceFactory = DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
                 dataSourceFactory.defaultRequestProperties.set("Cookie", viewModel.nicoHistory)
-                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(contentUrl.toUri()))
+                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.Builder().setUri(contentUrl.toUri()).setMediaId(videoId).build())
                 exoPlayer.setMediaSource(videoSource)
             }
         }
@@ -281,7 +295,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 }
                 if (playbackState == Player.STATE_ENDED && playWhenReady) {
                     // 動画おわった。連続再生時なら次の曲へ
-                    requireNicoVideoPlayListFragment()?.nextVideo(viewModel.isFullScreenMode)
+                    viewModel.nextVideo()
                 }
                 if (!isRotationProgressSuccessful) {
                     // 一度だけ実行するように。画面回転前の時間を適用する
@@ -479,8 +493,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         val job = Job()
         // 戻るボタン
         player_control_back_button.isVisible = true
-        player_control_back_button.setOnClickListener {
-        }
         // MotionLayoutでスワイプできない対策に独自FrameLayoutを作った
         fragment_nicovideo_motionlayout_parent_framelayout.apply {
             allowIdList.add(R.id.fragment_nicovideo_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
@@ -511,8 +523,9 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
             // swipeTargetViewの上にあるViewをここに書く。ここに書いたViewを押した際はonSwipeTargetViewClickFuncが呼ばれなくなる(View#setOnClickListenerは呼ばれる)
             addAllIsClickableViewFromParentView(player_control_main)
+            blockViewList.add(player_control_seek)
             // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
-            onBlockViewClickFunc = { view ->
+            onBlockViewClickFunc = { view, event ->
                 player_control_main?.apply {
                     // UI非表示なら表示
                     if (!isVisible) {
@@ -536,6 +549,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                                     }
                                 }
                             }
+                            // なんかUI非表示なのにシークバー反応するので対策
+                            player_control_seek.id -> {
+                                isTouchSeekBar = event?.action == MotionEvent.ACTION_MOVE
+                            }
                         }
                     }
                 }
@@ -549,8 +566,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             setPlayIcon()
         }
         // 連続再生とそれ以外でアイコン変更
-        val playListModePrevIcon = if (requireIsPlayListPlaying()) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
-        val playListModeNextIcon = if (requireIsPlayListPlaying()) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
+        val playListModePrevIcon = if (viewModel.isPlayListMode) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
+        val playListModeNextIcon = if (viewModel.isPlayListMode) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
         player_control_prev.setImageDrawable(playListModePrevIcon)
         player_control_next.setImageDrawable(playListModeNextIcon)
         player_control_prev.setOnClickListener {
@@ -559,7 +576,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
         player_control_next.setOnClickListener {
             // 次の動画へ
-            requireNicoVideoPlayListFragment()?.nextVideo(viewModel.isFullScreenMode)
+            viewModel.nextVideo()
         }
         // 全画面ボタン
         player_control_fullscreen.setOnClickListener {
@@ -620,9 +637,12 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         })
 
         // シークバー用意
-        player_control_seek.max = (exoPlayer.duration / 1000L).toInt()
         player_control_seek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser && !player_control_main.isVisible) {
+                    // ユーザー操作だけど、プレイヤーが非表示の時は変更しない。なんかMotionLayoutのせいなのかVisibility=GONEでも操作できるっぽい？
+                    seekBar?.progress = (exoPlayer.currentPosition / 1000L).toInt()
+                }
                 // シークいじったら時間反映されるように
                 val formattedTime = DateUtils.formatElapsedTime((seekBar?.progress ?: 0).toLong())
                 val videoLengthFormattedTime = DateUtils.formatElapsedTime(exoPlayer.duration / 1000L)
@@ -631,15 +651,11 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                // コントローラー非表示カウントダウン終了。なんかミニプレイヤー時に反応するので対策
-                if (!isMiniPlayerMode()) {
-                    job.cancelChildren()
-                    isTouchSeekBar = true
-                }
+                // コントローラー非表示カウントダウン終了。
+                job.cancelChildren()
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                isTouchSeekBar = false
                 // コメントシークに対応させる
                 fragment_nicovideo_comment_canvas.seekComment()
                 // ExoPlayer再開
@@ -780,6 +796,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun setProgress() {
         // シークバー操作中でなければ
         if (player_control_seek != null && !isTouchSeekBar) {
+            player_control_seek.max = (exoPlayer.duration / 1000L).toInt()
             player_control_seek.progress = (exoPlayer.currentPosition / 1000L).toInt()
             viewModel.currentPosition = exoPlayer.currentPosition
             // 再生時間TextView
@@ -796,7 +813,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     private fun initViewPager(dynamicAddFragmentList: ArrayList<TabLayoutData> = arrayListOf()) {
         // このFragmentを置いたときに付けたTag
-        viewPager = NicoVideoRecyclerPagerAdapter(this, videoId, viewModel.isOfflinePlay, dynamicAddFragmentList)
+        viewPager = NicoVideoRecyclerPagerAdapter(this, videoId, viewModel.isOfflinePlay.value ?: false, dynamicAddFragmentList)
         fragment_nicovideo_viewpager.adapter = viewPager
         TabLayoutMediator(fragment_nicovideo_tablayout, fragment_nicovideo_viewpager) { tab, position ->
             tab.text = viewPager.fragmentTabName[position]

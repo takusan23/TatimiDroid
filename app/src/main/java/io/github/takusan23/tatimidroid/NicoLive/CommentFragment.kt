@@ -474,7 +474,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // swipeTargetViewの上にあるViewをここに書く。ここに書いたViewを押した際はonSwipeTargetViewClickFuncが呼ばれなくなる(View#setOnClickListenerは呼ばれる)
             addAllIsClickableViewFromParentView(player_nicolive_control_main)
             // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
-            onBlockViewClickFunc = { view ->
+            onBlockViewClickFunc = { view, event ->
                 player_nicolive_control_main?.apply {
                     // UI非表示なら表示
                     if (!isVisible) {

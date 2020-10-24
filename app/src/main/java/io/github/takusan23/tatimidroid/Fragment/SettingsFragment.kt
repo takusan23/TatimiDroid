@@ -68,6 +68,19 @@ class SettingsFragment : PreferenceFragmentCompat() {
             preferenceList.filter { preference -> preference.title?.contains(inputText) ?: false }.forEach { preference -> preference.isVisible = true }
         }
         (view as LinearLayout).addView(editText, 0) // 無理矢理感
+
+        // Zipファイルへ
+        findPreference<Preference>("history_db_backup")?.setOnPreferenceClickListener {
+            // データベースのファイルの場所
+            val dbFile = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                File("${context?.dataDir?.path}/databases/NicoHistory.db") // getDataDir()がヌガー以降じゃないと使えない
+            } else {
+                File("/data/user/0/io.github.takusan23.tatimidroid/databases/NicoHistory.db") // ハードコート大丈夫か・・？
+            }
+            AppDataZip.createZipFile((requireActivity() as AppCompatActivity), dbFile)
+            false
+        }
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -156,19 +169,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
             false
         }
-
-        // Zipファイルへ
-        backupHistoryDB?.setOnPreferenceClickListener {
-            // データベースのファイルの場所
-            val dbFile = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                File("${context?.dataDir?.path}/databases/NicoHistory.db") // getDataDir()がヌガー以降じゃないと使えない
-            } else {
-                File("/data/user/0/io.github.takusan23.tatimidroid/databases/NicoHistory.db") // ハードコート大丈夫か・・？
-            }
-            AppDataZip.createZipFile(requireActivity() as AppCompatActivity, dbFile)
-            false
-        }
-
     }
 
     /** UnixTime -> わかりやすい形式に */

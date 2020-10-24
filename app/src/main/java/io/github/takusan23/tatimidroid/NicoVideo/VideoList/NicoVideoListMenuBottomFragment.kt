@@ -25,7 +25,6 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
-import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
@@ -127,12 +126,14 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     private fun initPlayListPlayButton() {
         val videoList = arguments?.getSerializable("video_list") as ArrayList<NicoVideoData>
         bottom_fragment_nicovideo_list_menu_playlist.setOnClickListener {
-            val intent = Intent(context, NicoVideoPlayListActivity::class.java)
-            // 中身を入れる
-            intent.putExtra("video_list", videoList) // BundleでNicoVideoListAdapterから渡してもらった
-            intent.putExtra("name", "")
-            intent.putExtra("start_id", nicoVideoData.videoId)
-            context?.startActivity(intent)
+            val nicoVideoFragment = NicoVideoFragment().apply {
+                val bundle = Bundle().apply {
+                    putSerializable("video_list", videoList) // BundleでNicoVideoListAdapterから渡してもらった
+                    putString("id", nicoVideoData.videoId)
+                }
+                arguments = bundle
+            }
+            (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, nicoVideoData.videoId)
         }
     }
 
@@ -189,7 +190,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                     bundle.putString("id", nicoVideoData.videoId)
                     bundle.putBoolean("internet", true)
                     nicoVideoFragment.arguments = bundle
-                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment,nicoVideoData.videoId)
+                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, nicoVideoData.videoId)
                 }
             }
         }
