@@ -124,16 +124,18 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     }
 
     private fun initPlayListPlayButton() {
+        // 連続再生
         val videoList = arguments?.getSerializable("video_list") as ArrayList<NicoVideoData>
         bottom_fragment_nicovideo_list_menu_playlist.setOnClickListener {
             val nicoVideoFragment = NicoVideoFragment().apply {
-                val bundle = Bundle().apply {
+                arguments = Bundle().apply {
                     putSerializable("video_list", videoList) // BundleでNicoVideoListAdapterから渡してもらった
                     putString("id", nicoVideoData.videoId)
                 }
-                arguments = bundle
             }
             (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, nicoVideoData.videoId)
+            // メニュー閉じる
+            dismiss()
         }
     }
 

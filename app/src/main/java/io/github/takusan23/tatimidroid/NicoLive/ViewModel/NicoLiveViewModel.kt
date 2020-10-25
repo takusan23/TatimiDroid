@@ -153,6 +153,9 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
     /** 全画面再生時はtrue */
     var isFullScreenMode = false
 
+    /** ミニプレイヤーかどうか。 */
+    val isMiniPlayerMode = MutableLiveData(false)
+
     init {
         // 匿名でコメントを投稿する場合
         nicoLiveHTML.isPostTokumeiComment = prefSetting.getBoolean("nicolive_post_tokumei", true)

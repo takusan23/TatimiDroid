@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.NicoVideo.VideoList
 
-import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -14,10 +13,8 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
-import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist_list.*
@@ -76,18 +73,6 @@ class NicoVideoMyListListFragment : Fragment() {
             getMyListItems()
         }
 
-    }
-
-    /** 連続再生Fragmentへ、、 */
-    private fun startPlayListActivity() {
-        val intent = Intent(requireContext(), NicoVideoPlayListActivity::class.java)
-        // 中身を入れる
-        intent.putExtra("video_list", recyclerViewList)
-        intent.putExtra("name", myListName)
-        startActivity(intent)
-        if (activity is NicoVideoActivity) {
-            activity?.finish()
-        }
     }
 
     // マイリストの中身取得

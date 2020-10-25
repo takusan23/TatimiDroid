@@ -198,8 +198,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // ViewPager
         initViewPager()
 
-        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
-
         // センサーによる画面回転
         if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
             RotationSensor(commentActivity, lifecycle)
@@ -279,6 +277,23 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         if (viewModel.isFullScreenMode) {
             requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
             setFullScreen()
+        }
+
+        // ミニプレイヤー時なら
+        viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
+            // MainActivityのBottomNavを表示させるか
+            (requireActivity() as MainActivity).setVisibilityBottomNav(isMiniPlayerMode)
+            setMiniPlayer(isMiniPlayerMode)
+            // アイコン直す
+            val icon = when (comment_fragment_motionlayout.currentState) {
+                R.id.comment_fragment_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
+                else -> requireContext().getDrawable(R.drawable.ic_expand_more_24px)
+            }
+            player_nicolive_control_back_button.setImageDrawable(icon)
+            // 画面回転前がミニプレイヤーだったらミニプレイヤーにする
+            if(isMiniPlayerMode){
+                comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
+            }
         }
 
         // 統計情報は押したときに計算するようにした
@@ -515,14 +530,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 } else {
                     // ここどうする？
                     val isMiniPlayerMode = isMiniPlayerMode()
-                    (requireActivity() as MainActivity).setVisibilityBottomNav(isMiniPlayerMode)
-                    setMiniPlayer(isMiniPlayerMode)
-                    // アイコン直す
-                    val icon = when (comment_fragment_motionlayout.currentState) {
-                        R.id.comment_fragment_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
-                        else -> requireContext().getDrawable(R.drawable.ic_expand_more_24px)
-                    }
-                    player_nicolive_control_back_button.setImageDrawable(icon)
+                    viewModel.isMiniPlayerMode.value = isMiniPlayerMode
                 }
             }
 

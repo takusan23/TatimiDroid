@@ -39,8 +39,8 @@ import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
-import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoRecyclerPagerAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoPlayListBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
@@ -132,9 +132,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             RotationSensor(requireActivity(), lifecycle)
         }
 
-        // MainActivityのBottomNavigation消すなど
-        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
-
         // 動画ID
         val videoId = arguments?.getString("id")
         // キャッシュ再生
@@ -157,15 +154,35 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             setFullScreen()
         }
 
+        // ミニプレイヤーなら
+        viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
+            // MainActivityのBottomNavを表示させるか
+            (requireActivity() as MainActivity).setVisibilityBottomNav(isMiniPlayerMode)
+            setMiniPlayer(isMiniPlayerMode)
+            // アイコン直す
+            val icon = when (fragment_nicovideo_motionlayout.currentState) {
+                R.id.fragment_nicovideo_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
+                else -> requireContext().getDrawable(R.drawable.ic_expand_more_24px)
+            }
+            player_control_back_button.setImageDrawable(icon)
+            // 画面回転前がミニプレイヤーだったらミニプレイヤーにする
+            if (isMiniPlayerMode) {
+                fragment_nicovideo_motionlayout.transitionToState(R.id.fragment_nicovideo_transition_end)
+            }
+        }
+
         // 動画ID変更受け取り。
         viewModel.playingVideoId.observe(viewLifecycleOwner) {
             this.videoId = it
         }
 
-        // キャッシュ再生かどうか
+        // キャッシュ再生かどうか。ついでに連続再生の動画変更イベントもここで
         viewModel.isOfflinePlay.observe(viewLifecycleOwner) {
             this.isCache = it
+            // 動画変更時にやることリスト
             initViewPager(viewModel.dynamicAddFragmentList)
+            fragment_nicovideo_comment_canvas.clearCommentList()
+            player_control_playlist.isVisible = viewModel.isPlayListMode
         }
 
         // Activity終了などのメッセージ受け取り
@@ -502,7 +519,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
                 player_control_main.isVisible = !player_control_main.isVisible
-                setVisibilityPlaylistFab(player_control_main.isVisible)
                 // ３秒待ってもViewが表示されてる場合は消せるように。
                 updateHideController(job)
             }
@@ -589,6 +605,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 setFullScreen()
             }
         }
+        // 連続再生ならプレイリスト
+        player_control_playlist.setOnClickListener {
+            NicoVideoPlayListBottomFragment().show(childFragmentManager, "list")
+        }
         // ポップアップ/バッググラウンドなど
         player_control_popup.setOnClickListener {
             // ポップアップ再生
@@ -620,14 +640,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 } else {
                     // ここどうする？
                     val isMiniPlayerMode = isMiniPlayerMode()
-                    (requireActivity() as MainActivity).setVisibilityBottomNav(isMiniPlayerMode)
-                    setMiniPlayer(isMiniPlayerMode)
-                    // アイコン直す
-                    val icon = when (fragment_nicovideo_motionlayout.currentState) {
-                        R.id.fragment_nicovideo_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
-                        else -> requireContext().getDrawable(R.drawable.ic_expand_more_24px)
-                    }
-                    player_control_back_button.setImageDrawable(icon)
+                    viewModel.isMiniPlayerMode.value = isMiniPlayerMode
                 }
             }
 
@@ -679,21 +692,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             delay(3000)
             if (player_control_main?.isVisible == true) {
                 player_control_main?.isVisible = false
-                setVisibilityPlaylistFab(false)
-            }
-        }
-    }
-
-    /**
-     * 連続再生FragmentのFabを消す関数。なお全画面再生時のみこの関数が動く
-     * 連続再生Fragment[NicoVideoPlayListFragment]の上にこのFragmentときのみ
-     * @param isVisibility 表示する際はtrue
-     * */
-    private fun setVisibilityPlaylistFab(isVisibility: Boolean) {
-        if (viewModel.isFullScreenMode) {
-            // 連続再生Fragmentがある場合
-            (parentFragmentManager.findFragmentByTag(NicoVideoPlayListActivity.FRAGMENT_TAG) as? NicoVideoPlayListFragment)?.apply {
-                setFabVisibility(!isVisibility) // 反転する
             }
         }
     }
@@ -702,7 +700,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * ミニプレイヤー用UIを有効/無効にする関数
      * @param isMiniPlayerMode 有効にする場合はtrue。通常に戻す場合はfalse
      * */
-    fun setMiniPlayer(isMiniPlayerMode: Boolean) {
+    private fun setMiniPlayer(isMiniPlayerMode: Boolean) {
         player_control_video_network.isVisible = !isMiniPlayerMode
         player_control_popup.isVisible = !isMiniPlayerMode
         player_control_background.isVisible = !isMiniPlayerMode
@@ -713,6 +711,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         player_control_current.isVisible = !isMiniPlayerMode
         player_control_seek.isVisible = !isMiniPlayerMode
         player_control_duration.isVisible = !isMiniPlayerMode
+        player_control_playlist.isVisible = !isMiniPlayerMode
     }
 
     // Progress表示
@@ -773,12 +772,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /** コメント一覧Fragmentを取得する。無い可能性も有る？ */
     private fun requireCommentFragment() = (viewPager.fragmentList[1] as? NicoVideoCommentFragment)
-
-    /** ニコ動連続再生Fragmentを取得する。連続再生じゃない場合はnull。 */
-    private fun requireNicoVideoPlayListFragment() = parentFragmentManager.findFragmentByTag(NicoVideoPlayListActivity.FRAGMENT_TAG) as? NicoVideoPlayListFragment
-
-    /** 連続再生時かどうかを返す。連続再生時はtrue */
-    private fun requireIsPlayListPlaying() = requireNicoVideoPlayListFragment() != null
 
     /** アイコン入れ替え */
     private fun setPlayIcon() {
@@ -889,7 +882,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         super.onDestroy()
         seekTimer.cancel()
         exoPlayer.release()
-        (requireActivity() as MainActivity).setVisibilityBottomNav(true)
     }
 
     private fun showToast(message: String?) {

@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoVideo.VideoList
 
 import android.content.ComponentName
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Parcelable
@@ -17,11 +16,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoVideo.Activity.NicoVideoPlayListActivity
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheFilterBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
@@ -72,15 +72,16 @@ class NicoVideoCacheFragment : Fragment() {
             fragment_cache_card_motionlayout.transitionToStart()
         }
 
-        // 連続再生
         fragment_cache_menu_playlist_textview.setOnClickListener {
-            val intent = Intent(requireContext(), NicoVideoPlayListActivity::class.java)
+            // 連続再生
             if (viewModel.recyclerViewList.value != null) {
-                // 中身を入れる
-                intent.putExtra("video_list", viewModel.recyclerViewList.value)
-                intent.putExtra("name", getString(R.string.cache))
-                startActivity(intent)
+                val nicoVideoFragment = NicoVideoFragment()
+                nicoVideoFragment.arguments = Bundle().apply {
+                    putSerializable("video_list", viewModel.recyclerViewList.value) // BundleでNicoVideoListAdapterから渡してもらった
+                }
+                (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, viewModel.recyclerViewList.value?.get(0)?.videoId ?: "")
             }
+            // メニュー閉じる
             fragment_cache_card_motionlayout.transitionToStart()
         }
 

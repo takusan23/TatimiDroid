@@ -122,11 +122,23 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** 全画面再生 */
     var isFullScreenMode = startFullScreen
 
+    /** ミニプレイヤーかどうか */
+    var isMiniPlayerMode = MutableLiveData(false)
+
     /** 連続再生かどうか。連続再生ならtrue */
     val isPlayListMode = videoList != null
 
     /** 連続再生時に、再生中の動画が[videoList]から見てどこの位置にあるかが入っている */
     val playListCurrentPosition = MutableLiveData(0)
+
+    /** 連続再生時に逆順再生が有効になっているか。trueなら逆順 */
+    val isReversed = MutableLiveData(false)
+
+    /** 連続再生の最初の並び順が入っている */
+    val originVideoSortList = videoList?.map { nicoVideoData -> nicoVideoData.videoId }
+
+    /** 連続再生時にシャッフル再生が有効になってるか。trueならシャッフル再生 */
+    val isShuffled = MutableLiveData(false)
 
     init {
 
@@ -407,7 +419,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         }
     }
 
-    /** 次の動画に行く関数 */
+    /** 連続再生時に次の動画に行く関数 */
     fun nextVideo() {
         if (isPlayListMode && videoList != null) {
             // 連続再生時のみ利用可能
@@ -420,6 +432,15 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                 0
             }
             val videoData = videoList[nextVideoPos]
+            load(videoData.videoId, videoData.isCache, isEco, useInternet)
+        }
+    }
+
+    /** 連続再生時に動画IDを指定して切り替える関数 */
+    fun playlistGoto(videoId: String) {
+        if (isPlayListMode && videoList != null) {
+            // 動画情報を見つける
+            val videoData = videoList.find { nicoVideoData -> nicoVideoData.videoId == videoId } ?: return
             load(videoData.videoId, videoData.isCache, isEco, useInternet)
         }
     }

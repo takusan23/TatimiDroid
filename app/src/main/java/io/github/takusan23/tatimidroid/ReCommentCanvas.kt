@@ -188,6 +188,13 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }
     }
 
+    fun clearCommentList(){
+        rawCommentList.clear()
+        drawNakaCommentList.clear()
+        drawShitaCommentList.clear()
+        drawUeCommentList.clear()
+    }
+
     /** Viewがおわった時 */
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
