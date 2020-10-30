@@ -39,7 +39,7 @@ class NicoVideoCacheFragment : Fragment() {
     /** バックグラウンド連続再生のMediaSessionへ接続する */
     var mediaBrowser: MediaBrowserCompat? = null
 
-    /** ViewModel。画面回転時に再読み込みされるのつらい */
+    /** ViewModel。画面回転時に再読み込みされるのつらいので */
     private val viewModel by viewModels<NicoVideoCacheFragmentViewModel>({ this })
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

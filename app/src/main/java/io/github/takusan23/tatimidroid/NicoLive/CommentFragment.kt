@@ -1088,6 +1088,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun destroyCode() {
         // 止める
         exoPlayer.release()
+        (requireActivity() as MainActivity).setVisibilityBottomNav(true)
     }
 
     override fun onDestroy() {

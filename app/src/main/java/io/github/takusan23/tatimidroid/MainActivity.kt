@@ -194,7 +194,10 @@ class MainActivity : AppCompatActivity() {
      * */
     fun setPlayer(fragment: Fragment, tag: String) {
         main_activity_bottom_navigationview.isVisible = false
-        supportFragmentManager.beginTransaction().replace(R.id.main_activity_fragment_layout, fragment, tag).commit()
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.main_activity_fragment_layout, fragment, tag)
+            .commit()
     }
 
     private fun setFragment(fragment: Fragment) {

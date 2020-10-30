@@ -232,6 +232,9 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
         }
 
+        // コントローラー用意
+        initController()
+
     }
 
     /** UIに反映させる */
@@ -316,7 +319,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 }
                 if (!isRotationProgressSuccessful) {
                     // 一度だけ実行するように。画面回転前の時間を適用する
-                    initController()
                     isRotationProgressSuccessful = true
                     // 前回見た位置から再生
                     exoPlayer.seekTo(viewModel.currentPosition)
@@ -341,7 +343,9 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             override fun onVideoSizeChanged(width: Int, height: Int, unappliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
                 super.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio)
                 // DMCのJSONからも幅とかは取れるけどキャッシュ再生でJSONがない場合をサポートしたいため
-                aspectRatioFix(width, height)
+                if (isAdded) { // コールバックなのでこの時点でもう無いかもしれない
+                    aspectRatioFix(width, height)
+                }
             }
         })
         var secInterval = 0L
@@ -504,7 +508,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
     }
 
-    /** コントローラー初期化。[exoPlayer]の再生ができる状態になったら呼んでください */
+    /** コントローラー初期化。ミニプレイヤーをスワイプして終了はこの関数を呼ばないと使えない */
     fun initController() {
         // コントローラーを消すためのコルーチン
         val job = Job()
@@ -711,7 +715,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         player_control_current.isVisible = !isMiniPlayerMode
         player_control_seek.isVisible = !isMiniPlayerMode
         player_control_duration.isVisible = !isMiniPlayerMode
-        player_control_playlist.isVisible = !isMiniPlayerMode
+        player_control_playlist.isVisible = !isMiniPlayerMode && viewModel.isPlayListMode
     }
 
     // Progress表示
@@ -882,6 +886,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         super.onDestroy()
         seekTimer.cancel()
         exoPlayer.release()
+        (requireActivity() as MainActivity).setVisibilityBottomNav(true)
     }
 
     private fun showToast(message: String?) {
