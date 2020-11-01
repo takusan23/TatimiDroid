@@ -886,7 +886,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         super.onDestroy()
         seekTimer.cancel()
         exoPlayer.release()
-        (requireActivity() as MainActivity).setVisibilityBottomNav(true)
     }
 
     private fun showToast(message: String?) {
@@ -913,6 +912,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
     }
 
     /** ミニプレイヤーかどうか */
-    override fun isMiniPlayerMode() = fragment_nicovideo_motionlayout.currentState == R.id.fragment_nicovideo_transition_end
+    override fun isMiniPlayerMode() = fragment_nicovideo_motionlayout.currentState == R.id.fragment_nicovideo_transition_end || fragment_nicovideo_motionlayout.currentState == R.id.fragment_nicovideo_transition_finish
 
 }

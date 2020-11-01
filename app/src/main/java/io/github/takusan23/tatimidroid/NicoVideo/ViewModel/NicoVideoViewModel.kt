@@ -168,7 +168,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
      * 再生する関数。
      * @param videoId 動画ID
      * */
-    private fun load(videoId: String, isCache: Boolean, isEco: Boolean, useInternet: Boolean) {
+    fun load(videoId: String, isCache: Boolean, isEco: Boolean, useInternet: Boolean) {
         onCleared()
         // 動画ID変更を通知
         playingVideoId.value = videoId

@@ -36,6 +36,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.github.takusan23:SearchPreferenceFragment:1.1.2'
     // MotionLayoutのonSwipe直す自作ライブラリ
     implementation 'com.github.takusan23:MotionLayoutSwipeFixFrameLayout:0552b935c2'
     // Activity Result APIでonActivityResultを駆逐する。あとなんかしらんけどこの環境ではalphaをbetaにすると使えなくなる

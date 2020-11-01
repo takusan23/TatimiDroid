@@ -279,6 +279,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             setFullScreen()
         }
 
+        // MainActivityのBottomNavを表示させるか
+        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
+
         // ミニプレイヤー時なら
         viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
             // MainActivityのBottomNavを表示させるか
@@ -1088,7 +1091,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun destroyCode() {
         // 止める
         exoPlayer.release()
-        (requireActivity() as MainActivity).setVisibilityBottomNav(true)
     }
 
     override fun onDestroy() {

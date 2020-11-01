@@ -354,17 +354,17 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                 add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cache_delete), R.drawable.ic_outline_delete_24px))
                 add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cancel), R.drawable.ic_arrow_back_black_24dp, Color.parseColor("#ff0000")))
             }
-            val okCancelBottomSheetFragment =
-                DialogBottomSheet(getString(R.string.cache_delete_message), buttonItems) { i, bottomSheetDialogFragment ->
-                    if (i == 0) {
-                        nicoVideoCache.deleteCache(nicoVideoData.videoId)
-                        val viewModel by viewModels<NicoVideoCacheFragmentViewModel>({ requireParentFragment() })
-                        // 再読み込み
-                        viewModel.init()
-                        dismiss()
-                    }
+            val okCancelBottomSheetFragment = DialogBottomSheet(getString(R.string.cache_delete_message), buttonItems) { i, bottomSheetDialogFragment ->
+                if (i == 0) {
+                    val viewModel by viewModels<NicoVideoCacheFragmentViewModel>({ requireParentFragment() })
+                    viewModel.cacheVideoList
+                    nicoVideoCache.deleteCache(nicoVideoData.videoId)
+                    // 再読み込み
+                    viewModel.init()
+                    dismiss()
                 }
-            okCancelBottomSheetFragment.show(childFragmentManager, "delete_dialog")
+            }
+            okCancelBottomSheetFragment.show(parentFragmentManager, "delete_dialog")
         }
 
         // 動画ID以外は非表示にする処理

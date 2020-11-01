@@ -53,9 +53,9 @@
                 android:title="@string/setting_scroll_tab_hide_title" />
 
         <Preference
+                android:fragment="io.github.takusan23.tatimidroid.Fragment.Setting.FontSettingFragment"
                 android:icon="@drawable/ic_font_download_24px"
                 android:key="font_preference"
-                android:fragment="io.github.takusan23.tatimidroid.Fragment.Setting.FontSettingFragment"
                 android:summary="@string/setting_font_description"
                 android:title="@string/font_setting" />
 
@@ -204,24 +204,6 @@
 
         <SwitchPreference
                 android:defaultValue="false"
-                android:icon="@drawable/ic_outline_format_color_fill_24px"
-                android:key="setting_command_room_color"
-                android:summary="@string/setting_command_room_color_description"
-                android:title="@string/setting_command_room_color"
-                app:isPreferenceVisible="false" />
-
-        <!--
-            <SwitchPreference
-                    android:defaultValue="true"
-                    android:enabled="false"
-                    android:icon="@drawable/ic_new_comment_icon"
-                    android:key="setting_new_comment"
-                    android:summary="@string/setting_new_comment_area_description"
-                    android:title="@string/setting_new_comment_area_title" />
-        -->
-
-        <SwitchPreference
-                android:defaultValue="false"
                 android:icon="@drawable/ic_outline_comment_24px"
                 android:key="setting_comment_collection_useage"
                 android:summary="@string/setting_comment_collection_useage_description"
@@ -233,7 +215,6 @@
                 android:key="setting_comment_collection_assist"
                 android:summary="@string/setting_comment_collection_assist_description"
                 android:title="@string/setting_comment_collection_assist" />
-
 
         <SwitchPreference
                 android:defaultValue="false"
@@ -437,9 +418,9 @@
     </PreferenceCategory>
 
     <Preference
+            android:fragment="io.github.takusan23.tatimidroid.Fragment.Setting.DevSettingFragment"
             android:icon="@drawable/ic_policy_black"
             android:key="dev_setting"
-            android:fragment="io.github.takusan23.tatimidroid.Fragment.Setting.DevSettingFragment"
             android:summary="フリとかじゃなくて"
             android:title="開発者用実験項目" />
 
@@ -447,15 +428,5 @@
             android:icon="@drawable/ic_outline_delete_24px"
             android:key="delete_history"
             android:title="@string/delete_history_db_title" />
-
-    <!--
-        <SwitchPreference
-                android:title="@string/watching_mode_title"
-                android:key="setting_watching_mode"
-                android:summary="@string/watching_mode_description"
-                android:defaultValue="false"
-                />
-    -->
-
 
 </PreferenceScreen>

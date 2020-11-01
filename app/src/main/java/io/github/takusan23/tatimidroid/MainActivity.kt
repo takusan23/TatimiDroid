@@ -18,10 +18,11 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
+import io.github.takusan23.searchpreferencefragment.SearchPreferenceChildFragment
+import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
 import io.github.takusan23.tatimidroid.BottomFragment.NicoHistoryBottomFragment
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.Fragment.LoginFragment
-import io.github.takusan23.tatimidroid.Fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.DialogWatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
@@ -123,7 +124,15 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 R.id.menu_setting -> {
-                    setFragment(SettingsFragment())
+                    // 自作ライブラリ https://github.com/takusan23/SearchPreferenceFragment
+                    val searchSettingsFragment = SearchPreferenceFragment()
+                    searchSettingsFragment.arguments = Bundle().apply {
+                        // 階層化されている場合
+                        val hashMap = hashMapOf<String, Int>()
+                        putSerializable(SearchPreferenceFragment.PREFERENCE_XML_FRAGMENT_NAME_HASH_MAP, hashMap)
+                        putInt(SearchPreferenceChildFragment.PREFERENCE_XML_RESOURCE_ID, R.xml.preferences)
+                    }
+                    setFragment(searchSettingsFragment)
                 }
                 R.id.menu_nicovideo -> {
                     if (isConnectionInternet(this)) {
@@ -193,7 +202,6 @@ class MainActivity : AppCompatActivity() {
      * @param tag Fragmentを探すときのタグ。いまんところこのタグでFragmentを探してるコードはないはず
      * */
     fun setPlayer(fragment: Fragment, tag: String) {
-        main_activity_bottom_navigationview.isVisible = false
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.main_activity_fragment_layout, fragment, tag)
@@ -210,6 +218,10 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction().replace(R.id.main_activity_linearlayout, fragment).commit()
     }
 
+    /**
+     * 現在表示中のFragmentを返す
+     * */
+    fun currentFragment() = supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
 
     // Android 10からアプリにフォーカスが当たらないとクリップボードの中身が取れなくなったため
     override fun onWindowFocusChanged(hasFocus: Boolean) {
