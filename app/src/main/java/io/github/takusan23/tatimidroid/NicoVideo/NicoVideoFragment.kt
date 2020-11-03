@@ -522,7 +522,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             motionLayout = fragment_nicovideo_motionlayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
-                player_control_main.isVisible = !player_control_main.isVisible
+                player_control_main?.isVisible = !player_control_main.isVisible
                 // ３秒待ってもViewが表示されてる場合は消せるように。
                 updateHideController(job)
             }
@@ -669,6 +669,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 // コントローラー非表示カウントダウン終了。
+                isTouchSeekBar = true
                 job.cancelChildren()
             }
 
@@ -677,8 +678,9 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 fragment_nicovideo_comment_canvas.seekComment()
                 // ExoPlayer再開
                 exoPlayer.seekTo((seekBar?.progress ?: 0) * 1000L)
-                // コントローラー非表示カウントダウン再開
+                // コントローラー非表示カウントダウン開始
                 updateHideController(job)
+                isTouchSeekBar = false
             }
         })
         // Viewを数秒後に非表示するとか

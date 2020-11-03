@@ -494,7 +494,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             motionLayout = comment_fragment_motionlayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
-                player_nicolive_control_main.isVisible = !player_nicolive_control_main.isVisible
+                player_nicolive_control_main?.isVisible = !player_nicolive_control_main.isVisible
                 // フルスクリーン時はFabも消す
                 if (viewModel.isFullScreenMode) {
                     if (player_nicolive_control_main.isVisible) fab.show() else fab.hide()
