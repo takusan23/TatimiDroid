@@ -272,13 +272,13 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             setFullScreen()
         }
 
-        // MainActivityのBottomNavを表示させるか
-        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
+        // MainActivityのBottomNavを表示させるか。二窓Activityのせいでas?にしている
+        (requireActivity() as? MainActivity)?.setVisibilityBottomNav(false)
 
         // ミニプレイヤー時なら
         viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
             // MainActivityのBottomNavを表示させるか
-            (requireActivity() as MainActivity).setVisibilityBottomNav(isMiniPlayerMode)
+            (requireActivity() as? MainActivity)?.setVisibilityBottomNav(isMiniPlayerMode)
             setMiniPlayer(isMiniPlayerMode)
             // アイコン直す
             val icon = when (comment_fragment_motionlayout.currentState) {
@@ -997,7 +997,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
         } else {
             // 縦画面時
-            val playerWidth = displayWidth
+            val playerWidth = if (isNimadoMode) displayWidth / 2 else displayWidth
             val playerHeight = (9F / 16 * playerWidth)
             // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
             comment_fragment_motionlayout?.apply {
@@ -1025,13 +1025,13 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     override fun onResume() {
         super.onResume()
-        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
+        (requireActivity() as? MainActivity)?.setVisibilityBottomNav(false)
     }
 
     override fun onPause() {
         super.onPause()
         googleCast.pause()
-        (requireActivity() as MainActivity).setVisibilityBottomNav(true)
+        (requireActivity() as? MainActivity)?.setVisibilityBottomNav(true)
     }
 
     fun showToast(message: String) {
