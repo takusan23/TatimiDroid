@@ -157,7 +157,7 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
     val isMiniPlayerMode = MutableLiveData(false)
 
     /**
-     * コメントのみを表示させ、生放送を見ない。
+     * コメントのみを表示させ、生放送を見ない。見ない場合はtrue
      * 設定項目、「setting_watch_live」の値を反転している
      * */
     var isCommentOnlyMode = !prefSetting.getBoolean("setting_watch_live", true)

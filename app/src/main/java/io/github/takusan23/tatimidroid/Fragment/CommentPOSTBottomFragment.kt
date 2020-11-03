@@ -12,7 +12,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
@@ -47,12 +46,6 @@ class CommentPOSTBottomFragment : BottomSheetDialogFragment() {
         }
         //投稿
         bottom_fragment_post_button.setOnClickListener {
-            if (activity is CommentActivity) {
-                //コメント投稿
-                //(activity as CommentActivity).sendComment(bottom_fragment_post_edittext.text.toString())
-                //閉じる
-                this@CommentPOSTBottomFragment.dismiss()
-            }
         }
 
         //IMEを表示させる

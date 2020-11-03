@@ -380,7 +380,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // HLSアドレス取得
         viewModel.hlsAddress.observe(viewLifecycleOwner) { address ->
             if (viewModel.isCommentOnlyMode) {
-                setCommentOnlyMode(false)
+                setCommentOnlyMode(true)
             } else {
                 setPlayVideoView()
                 initQualityChangeBottomFragment(viewModel.currentQuality, viewModel.qualityListJSONArray)
@@ -1025,7 +1025,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     override fun onResume() {
         super.onResume()
-        setPlayVideoView()
         (requireActivity() as MainActivity).setVisibilityBottomNav(false)
     }
 
@@ -1147,7 +1146,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     override fun onStart() {
         super.onStart()
         //再生部分を作り直す
-        if (viewModel.hlsAddress.value?.isNotEmpty() == true) {
+        if (viewModel.hlsAddress.value?.isNotEmpty() == true && !viewModel.isCommentOnlyMode) {
             live_framelayout.visibility = View.VISIBLE
             setPlayVideoView()
         }

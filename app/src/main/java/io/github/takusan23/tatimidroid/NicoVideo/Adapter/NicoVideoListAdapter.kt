@@ -21,7 +21,6 @@ import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
@@ -109,10 +108,6 @@ class NicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideoDat
             }
             // 再生画面表示
             cardView.setOnClickListener {
-                // すでにあるActivityを消す？
-                if (context is NicoVideoActivity) {
-                    context.finish()
-                }
                 // なんかキャッシュが存在しない時があるらしい？
                 if (data.isCache && nicoVideoCache.getCacheFolderVideoFileName(data.videoId) == null) {
                     // 再取得ダイアログ出す

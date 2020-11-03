@@ -26,7 +26,6 @@
                 android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
                 android:value="io.github.takusan23.tatimidroid.GoogleCast.CastOptionsProvider" />
 
-        <activity android:name=".NicoVideo.NicoVideoActivity" />
         <activity
                 android:name=".NimadoActivity"
                 android:label="@string/nimado"
@@ -39,7 +38,6 @@
         <activity android:name=".NicoLive.Activity.CommentCollectionListActivity" />
         <activity android:name=".Activity.NGListActivity" />
         <activity android:name=".Activity.KonoApp" />
-        <activity android:name=".NicoLive.Activity.CommentActivity" />
         <activity android:name=".Activity.LicenceActivity" />
         <activity
                 android:name=".Activity.KotehanListActivity"
