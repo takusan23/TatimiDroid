@@ -531,4 +531,6 @@
     <string name="setting_comment_canvas_min_line_description">It is a setting to secure at least a comment line even if the player becomes small. For mini players</string>
     <string name="setting_comment_canvas_min_line_value_title">Minimum line setting</string>
     <string name="setting_comment_canvas_priority">The priority of the setting is 10 lines reserved-> comment line settings-> minimum reserved lines.</string>
+    <string name="konomi_tag">Favorite tag (Konomi tag)</string>
+    <string name="konomi_tag_empty">The broadcaster has not set a konomi tag.</string>
 </resources>

@@ -531,4 +531,6 @@
     <string name="setting_comment_canvas_min_line_description">プレイヤーが小さくなった場合でも最低限コメントの行を確保する設定です。ミニプレイヤー向け</string>
     <string name="setting_comment_canvas_min_line_value_title">最低限確保する行の設定</string>
     <string name="setting_comment_canvas_priority">設定の優先順位は 10行確保 -> コメントの行の設定 -> 最低限確保する行の設定 になります。</string>
+    <string name="konomi_tag">好みタグ</string>
+    <string name="konomi_tag_empty">放送者が好みタグを設定していません。</string>
 </resources>
