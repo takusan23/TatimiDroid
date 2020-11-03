@@ -9,8 +9,16 @@ import java.text.SimpleDateFormat
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+/**
+ * Zip形式でアプリデータを書き出したり読み込んだりする
+ * */
 object AppDataZip {
 
+    /**
+     * 履歴DB等をエクスポートする関数。バックアップでどうぞ
+     * @param activity IntentでZipファイルの場所を選んでもらうんだけど、そのAPIでActivityが必要
+     * @param files Zipに入れるファイル。可変長引数だけど配列にでもよくね
+     * */
     fun createZipFile(activity: AppCompatActivity, vararg files: File) {
         // Activity Result API を使う
         val callback = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->

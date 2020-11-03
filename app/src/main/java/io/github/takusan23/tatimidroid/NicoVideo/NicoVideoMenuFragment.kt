@@ -248,13 +248,7 @@ class NicoVideoMenuFragment : Fragment() {
     // 動画再生ボタン
     private fun initPlayButton() {
         fragment_nicovideo_menu_video_play.setOnClickListener {
-            requireNicoVideoFragment()?.apply {
-                if (fragment_nicovideo_framelayout.visibility == View.GONE) {
-                    commentOnlyModeDisable()
-                } else {
-                    commentOnlyModeEnable()
-                }
-            }
+            requireNicoVideoFragment().setCommentOnlyMode(!viewModel.isCommentOnlyMode)
         }
     }
 

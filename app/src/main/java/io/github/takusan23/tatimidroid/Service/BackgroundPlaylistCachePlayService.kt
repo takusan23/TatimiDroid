@@ -206,7 +206,6 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             // playWhenReadyが切り替わったら呼ばれる
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
                 super.onPlayWhenReadyChanged(playWhenReady, reason)
-                println("onPlayWhenReadyChanged $playWhenReady")
                 // 通知/状態 更新
                 updateState()
                 showNotification()
@@ -215,7 +214,6 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             // playbackStateが変わったら呼ばれる
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
-                println("onPlaybackStateChanged $state")
                 // 通知/状態 更新
                 updateState()
                 showNotification()
@@ -224,7 +222,6 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             // 次の曲いったら
             override fun onPositionDiscontinuity(reason: Int) {
                 super.onPositionDiscontinuity(reason)
-                println("onPositionDiscontinuity")
                 // 通知/状態 更新
                 updateState()
                 showNotification()
@@ -233,7 +230,6 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             // リピート条件変わったら
             override fun onRepeatModeChanged(repeatMode: Int) {
                 super.onRepeatModeChanged(repeatMode)
-                println("onRepeatModeChanged")
                 // 通知/状態 更新
                 updateState()
                 showNotification()
@@ -244,7 +240,6 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             // シャッフル有効・無効切り替わったら
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
                 super.onShuffleModeEnabledChanged(shuffleModeEnabled)
-                println("onShuffleModeEnabledChanged")
                 // 通知/状態 更新
                 updateState()
                 showNotification()

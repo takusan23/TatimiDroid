@@ -24,7 +24,7 @@ import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
-import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
@@ -171,22 +171,13 @@ class CommentMenuFragment : Fragment() {
         //生放送を再生ボタン
         fragment_comment_fragment_menu_view_live_button.setOnClickListener {
             (requireParentFragment() as CommentFragment).apply {
-                if (live_framelayout.visibility == View.VISIBLE) {
-                    live_framelayout.visibility = View.GONE
-                    if (!isNicoJK()) {
-                        // JK以外はExoPlayerをRelease
-                        exoPlayer.stop()
-                    }
-                } else {
-                    live_framelayout.visibility = View.VISIBLE
-                    setPlayVideoView()
-                }
+                setCommentOnlyMode(!viewModel.isCommentOnlyMode)
             }
         }
         // バッググラウンド再生。
         fragment_comment_fragment_menu_background_button.setOnClickListener {
             commentFragment.apply {
-                setBackgroundProgramPlay()
+                startBackgroundPlay()
                 exoPlayer.stop()
                 live_framelayout.visibility = View.GONE
             }
@@ -206,7 +197,7 @@ class CommentMenuFragment : Fragment() {
                     startActivity(intent)
                 } else {
                     //ポップアップ再生。コメント付き
-                    startOverlayPlayer()
+                    startPopupPlay()
                     exoPlayer.stop()
                     live_framelayout.visibility = View.GONE
                 }
@@ -337,7 +328,7 @@ class CommentMenuFragment : Fragment() {
                         setShortLabel(channelName)
                         setLongLabel(channelName)
                         setIcon(Icon.createWithResource(context, R.drawable.ic_flash_on_24px))
-                        val intent = Intent(context, CommentActivity::class.java).apply {
+                        val intent = Intent(context, MainActivity::class.java).apply {
                             action = Intent.ACTION_MAIN
                             putExtra("liveId", commentFragment.liveId)
                             putExtra("is_jk", commentFragment.isJK)

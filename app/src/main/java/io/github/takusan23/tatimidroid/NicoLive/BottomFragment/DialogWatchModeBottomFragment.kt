@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.NicoLive.BottomFragment
 
-import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,9 +10,10 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
-import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
+import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
@@ -35,11 +35,7 @@ class DialogWatchModeBottomFragment : BottomSheetDialogFragment() {
     lateinit var commentPostModeButton: Button
     lateinit var nicocasModeButton: Button
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.dialog_watchmode_layout, container, false)
     }
 
@@ -62,12 +58,10 @@ class DialogWatchModeBottomFragment : BottomSheetDialogFragment() {
      * 番組情報取得
      * */
     fun getProgram() {
-        val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-        val editor = pref_setting.edit()
+        val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
         //LiveID
         val liveId = arguments?.getString("liveId") ?: ""
-        val user_session = pref_setting.getString("user_session", "")
-
+        val user_session = prefSetting.getString("user_session", "")
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             activity?.runOnUiThread {
@@ -126,51 +120,42 @@ class DialogWatchModeBottomFragment : BottomSheetDialogFragment() {
                 //コメントビューワーモード
                 //コメント投稿機能、視聴継続メッセージ送信機能なし
                 commentViewerModeButton.setOnClickListener {
-                    //設定変更
-                    editor.putBoolean("setting_watching_mode", false)
-                    editor.putBoolean("setting_nicocas_mode", false)
-                    editor.apply()
-                    //画面移動
-                    val intent = Intent(context, CommentActivity::class.java)
-                    intent.putExtra("liveId", liveId)
-                    intent.putExtra("watch_mode", "comment_viewer")
-                    intent.putExtra("isOfficial", isOfficial)
-                    // intent.putExtra("html", responseString)
-                    startActivity(intent)
+                    // Fragment設置
+                    val commentFragment = CommentFragment()
+                    val bundle = Bundle()
+                    bundle.putString("liveId", liveId)
+                    bundle.putString("watch_mode", "comment_viewer")
+                    bundle.putBoolean("isOfficial", isOfficial)
+                    commentFragment.arguments = bundle
+                    (requireActivity() as MainActivity).setPlayer(commentFragment, liveId)
                     this@DialogWatchModeBottomFragment.dismiss()
                 }
 
                 //コメント投稿モード
                 //書き込める
                 commentPostModeButton.setOnClickListener {
-                    //設定変更
-                    editor.putBoolean("setting_watching_mode", true)
-                    editor.putBoolean("setting_nicocas_mode", false)
-                    editor.apply()
                     //画面移動
-                    val intent = Intent(context, CommentActivity::class.java)
-                    intent.putExtra("liveId", liveId)
-                    intent.putExtra("watch_mode", "comment_post")
-                    intent.putExtra("isOfficial", isOfficial)
-                    //  intent.putExtra("html", responseString)
-                    startActivity(intent)
+                    val commentFragment = CommentFragment()
+                    val bundle = Bundle()
+                    bundle.putString("liveId", liveId)
+                    bundle.putString("watch_mode", "comment_post")
+                    bundle.putBoolean("isOfficial", isOfficial)
+                    commentFragment.arguments = bundle
+                    (requireActivity() as MainActivity).setPlayer(commentFragment, liveId)
                     this@DialogWatchModeBottomFragment.dismiss()
                 }
 
                 //nicocas式コメント投稿モード
                 //nicocasのAPIでコメント投稿を行う
                 nicocasModeButton.setOnClickListener {
-                    //設定変更
-                    editor.putBoolean("setting_watching_mode", false)
-                    editor.putBoolean("setting_nicocas_mode", true)
-                    editor.apply()
                     //画面移動
-                    val intent = Intent(context, CommentActivity::class.java)
-                    intent.putExtra("liveId", liveId)
-                    intent.putExtra("watch_mode", "nicocas")
-                    intent.putExtra("isOfficial", isOfficial)
-                    // intent.putExtra("html", responseString)
-                    startActivity(intent)
+                    val commentFragment = CommentFragment()
+                    val bundle = Bundle()
+                    bundle.putString("liveId", liveId)
+                    bundle.putString("watch_mode", "nicocas")
+                    bundle.putBoolean("isOfficial", isOfficial)
+                    commentFragment.arguments = bundle
+                    (requireActivity() as MainActivity).setPlayer(commentFragment, liveId)
                     this@DialogWatchModeBottomFragment.dismiss()
                 }
             } else if (!canWatchLive) {

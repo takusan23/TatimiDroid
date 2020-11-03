@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoLikeAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeBottomFragment
@@ -217,10 +218,11 @@ class NicoVideoInfoFragment : Fragment() {
                         if (id != null) {
                             Snackbar.make(button, "${getString(R.string.find_video_id)} : $id", Snackbar.LENGTH_SHORT).apply {
                                 setAction(R.string.play) {
-                                    val intent = Intent(context, NicoVideoActivity::class.java).apply {
-                                        putExtra("id", id)
-                                    }
-                                    startActivity(intent)
+                                    val nicoVideoFragment = NicoVideoFragment()
+                                    val bundle = Bundle()
+                                    bundle.putString("id", id)
+                                    nicoVideoFragment.arguments = bundle
+                                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment,id)
                                 }
                                 show()
                             }
@@ -245,7 +247,7 @@ class NicoVideoInfoFragment : Fragment() {
     private fun setLike() {
         // いいね！機能。キャッシュのときは使わない
         val jsonObject = viewModel.nicoVideoJSON.value ?: return
-        if (!viewModel.isOfflinePlay && isLoginMode(context)) {
+        if (viewModel.isOfflinePlay.value == false && isLoginMode(context)) {
             // キャッシュじゃない　かつ　ログイン必須モード
             this@NicoVideoInfoFragment.fragment_nicovideo_info_like_chip.isVisible = true
             // いいね♡済みかもしれないので
@@ -338,7 +340,7 @@ class NicoVideoInfoFragment : Fragment() {
     private fun multiLineSnackbar(view: View, message: String, time: Int = Snackbar.LENGTH_SHORT): Snackbar {
         val snackbar = Snackbar.make(view, message, time)
         val snackbarView = snackbar.view
-        val textView = snackbarView.findViewById(com.google.android.material.R.id.snackbar_text) as TextView
+        val textView = snackbarView.findViewById(R.id.snackbar_text) as TextView
         textView.maxLines = Int.MAX_VALUE
         return snackbar
     }
@@ -415,11 +417,12 @@ class NicoVideoInfoFragment : Fragment() {
             span.setSpan(object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     // 再生画面表示
-                    val intent = Intent(context, NicoVideoActivity::class.java).apply {
-                        putExtra("id", id)
-                    }
-                    activity?.finish()
-                    startActivity(intent)
+                    val nicoVideoFragment = NicoVideoFragment()
+                    val bundle = Bundle()
+                    bundle.putString("id", id)
+                    bundle.putBoolean("cache", false)
+                    nicoVideoFragment.arguments = bundle
+                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment,id)
                 }
             }, mather.start(), mather.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }

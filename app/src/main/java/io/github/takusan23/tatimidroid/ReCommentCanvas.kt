@@ -188,6 +188,13 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }
     }
 
+    fun clearCommentList(){
+        rawCommentList.clear()
+        drawNakaCommentList.clear()
+        drawShitaCommentList.clear()
+        drawUeCommentList.clear()
+    }
+
     /** Viewがおわった時 */
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
@@ -456,25 +463,38 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * @return フォントサイズ
      * */
     fun getCommandFontSize(command: String): Float {
+        // でふぉ
+        val defaultFontSize = 20 * resources.displayMetrics.scaledDensity
+
         // コメント行を自由に設定する設定
         val isCustomCommentLine = prefSetting.getBoolean("setting_comment_canvas_custom_line_use", false)
-        val customCommentLine = prefSetting.getString("setting_comment_canvas_custom_line_value", "10")?.toInt() ?: 20
+        val customCommentLine = prefSetting.getString("setting_comment_canvas_custom_line_value", "10")?.toIntOrNull() ?: 20
+
+        // CommentCanvasが小さくても最低限確保する行
+        val isMinLineSetting = prefSetting.getBoolean("setting_comment_canvas_min_line",true)
+        val minLineValue = prefSetting.getString("setting_comment_canvas_min_line_value","10")?.toIntOrNull() ?: 10
+
+        // 現在最大何行書けるか
+        val currentCommentLine = finalHeight / defaultFontSize
+
         // 強制10行表示モード
         val is10LineMode = prefSetting.getBoolean("setting_comment_canvas_10_line", false)
+
         // フォントサイズ
-        val defaultFontSize = when {
+        val fontSize = when {
             is10LineMode -> (finalHeight / 10).toFloat() // 強制10行確保
             isCustomCommentLine -> (finalHeight / customCommentLine).toFloat() // 自由に行設定
-            else -> 20 * resources.displayMetrics.scaledDensity // でふぉ
+            isMinLineSetting && currentCommentLine < minLineValue -> (finalHeight / minLineValue).toFloat() // 最低限確保する設定。最低限確保する行を下回る必要がある
+            else -> defaultFontSize // でふぉ
         }
         return when {
             command.contains("big") -> {
-                (defaultFontSize * 1.3).toFloat()
+                (fontSize * 1.3).toFloat()
             }
             command.contains("small") -> {
-                (defaultFontSize * 0.8).toFloat()
+                (fontSize * 0.8).toFloat()
             }
-            else -> defaultFontSize
+            else -> fontSize
         }
     }
 

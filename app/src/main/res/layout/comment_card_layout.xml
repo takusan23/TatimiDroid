@@ -6,8 +6,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        app:cardElevation="5dp"
         android:layout_margin="16dp"
-        android:visibility="gone"
+        android:visibility="visible"
         app:cardCornerRadius="10dp"
         tools:visibility="visible">
 
@@ -16,7 +17,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="5dp">
-
 
         <com.google.android.material.chip.ChipGroup
                 android:id="@+id/comment_cardview_chipgroup"

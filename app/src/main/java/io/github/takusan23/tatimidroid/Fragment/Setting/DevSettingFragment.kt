@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.Fragment
+package io.github.takusan23.tatimidroid.Fragment.Setting
 
 import android.app.Activity
 import android.content.Intent
@@ -8,11 +8,10 @@ import android.view.View
 import android.widget.Toast
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.CommentGetService
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
 

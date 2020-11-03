@@ -34,7 +34,7 @@ class NicoVideoSelectFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // ダークモード
-        initDarkMode()
+        setDarkMode()
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -78,7 +78,7 @@ class NicoVideoSelectFragment : Fragment() {
 
     }
 
-    private fun initDarkMode() {
+    private fun setDarkMode() {
         val darkModeSupport = DarkModeSupport(requireContext())
         fragment_video_list_linearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
         fragment_video_bar?.background = ColorDrawable(getThemeColor(darkModeSupport.context))

@@ -34,12 +34,13 @@ import org.json.JSONObject
  *
  * でも何をおいておけば良いのかよくわからんので散らばってる。
  *
- * @param videoId 動画ID
- * @param isCache キャッシュで再生するか。ただし最終的には[isOfflinePlay]がtrueの時キャッシュ利用再生になります
- * @param isEco エコノミー再生ならtrue
- * @param useInternet キャッシュが有っても強制的にインターネットを経由して取得する場合はtrue
+ * @param videoId 動画ID。連続再生の[videoList]が指定されている場合はnullに出来ます。また、連続再生時にこの値に動画IDを入れるとその動画から再生を始めるようにします。
+ * @param isCache キャッシュで再生するか。ただし最終的には[isOfflinePlay]がtrueの時キャッシュ利用再生になります。連続再生の[videoList]が指定されている場合はnullに出来ます。
+ * @param isEco エコノミー再生ならtrue。なお、キャッシュを優先的に利用する設定等でキャッシュ再生になっている場合があるので[isOfflinePlay]を使ってください。なお連続再生時はすべての動画をエコノミーで再生します。
+ * @param useInternet キャッシュが有っても強制的にインターネットを経由して取得する場合はtrue。なお連続再生時ではすべての動画をインターネット経由で取得します。
+ * @param videoList 連続再生するなら配列を入れてね。nullでもいい
  * */
-class NicoVideoViewModel(application: Application, val videoId: String, val isCache: Boolean, val isEco: Boolean, useInternet: Boolean, startFullScreen: Boolean) : AndroidViewModel(application) {
+class NicoVideoViewModel(application: Application, videoId: String? = null, isCache: Boolean? = null, val isEco: Boolean, val useInternet: Boolean, startFullScreen: Boolean, val videoList: ArrayList<NicoVideoData>?) : AndroidViewModel(application) {
 
     /** Context */
     private val context = getApplication<Application>().applicationContext
@@ -50,8 +51,11 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
     /** ニコニコのログイン情報。ユーザーセッション */
     private val userSession = prefSetting.getString("user_session", "") ?: ""
 
-    /** 結局インターネットで取得するのかローカルなのか。trueならキャッシュ再生 */
-    var isOfflinePlay = false
+    /** 再生中の動画ID。動画変更の検知は[isOfflinePlay]をObserveしたほうが良いと思う（[playingVideoId]→[isOfflinePlay]の順番でLiveData通知が行く） */
+    var playingVideoId = MutableLiveData<String>()
+
+    /** 結局インターネットで取得するのかローカルなのか。trueならキャッシュ再生。ちなみにLiveDataの通知順だと、[playingVideoId]のほうが先にくる。 */
+    var isOfflinePlay = MutableLiveData<Boolean>()
 
     /** ViewPager2に動的に追加したFragment。 */
     val dynamicAddFragmentList = arrayListOf<TabLayoutData>()
@@ -118,16 +122,67 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
     /** 全画面再生 */
     var isFullScreenMode = startFullScreen
 
-    /** 16:9の動画の際はtrue */
-    var is169AspectLate = true
+    /** ミニプレイヤーかどうか */
+    var isMiniPlayerMode = MutableLiveData(false)
+
+    /** 連続再生かどうか。連続再生ならtrue */
+    val isPlayListMode = videoList != null
+
+    /** 連続再生時に、再生中の動画が[videoList]から見てどこの位置にあるかが入っている */
+    val playListCurrentPosition = MutableLiveData(0)
+
+    /** 連続再生時に逆順再生が有効になっているか。trueなら逆順 */
+    val isReversed = MutableLiveData(false)
+
+    /** 連続再生の最初の並び順が入っている */
+    val originVideoSortList = videoList?.map { nicoVideoData -> nicoVideoData.videoId }
+
+    /** 連続再生時にシャッフル再生が有効になってるか。trueならシャッフル再生 */
+    val isShuffled = MutableLiveData(false)
+
+    /** コメントのみ表示する場合はtrue */
+    var isCommentOnlyMode = prefSetting.getBoolean("setting_nicovideo_comment_only", false)
 
     init {
+
+        // 最初の動画。連続再生と分岐
+        if (isPlayListMode) {
+            val videoData = videoList!![0]
+            val startVideoId = videoId ?: videoData.videoId
+            // 指定した動画がキャッシュ再生かどうか
+            val startVideoIdCanCachePlay = videoList.find { nicoVideoData -> nicoVideoData.videoId == startVideoId }?.isCache ?: false
+            load(startVideoId, startVideoIdCanCachePlay, isEco, useInternet)
+        } else {
+            load(videoId!!, isCache!!, isEco, useInternet)
+        }
+
+        // NGデータベースを監視する
+        viewModelScope.launch {
+            NGDBInit.getInstance(context).ngDBDAO().flowGetNGAll().collect {
+                ngList = it
+                // コメントフィルター通す
+                commentFilter()
+            }
+        }
+
+    }
+
+    /**
+     * 再生する関数。
+     * @param videoId 動画ID
+     * */
+    fun load(videoId: String, isCache: Boolean, isEco: Boolean, useInternet: Boolean) {
         onCleared()
+        // 動画ID変更を通知
+        playingVideoId.value = videoId
+        if (videoList != null) {
+            playListCurrentPosition.value = videoList.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == videoId }
+        }
         // どの方法で再生するか
         // キャッシュを優先的に使う設定有効？
         val isPriorityCache = prefSetting.getBoolean("setting_nicovideo_cache_priority", false)
         // キャッシュ再生が有効ならtrue
-        isOfflinePlay = when {
+        isOfflinePlay.value = when {
             useInternet -> false // オンライン
             isCache -> true // キャッシュ再生
             NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache -> true // キャッシュ優先再生が可能
@@ -140,24 +195,17 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
         // 再生準備を始める
         when {
             // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
-            isOfflinePlay -> cachePlay()
+            isOfflinePlay.value ?: false -> cachePlay()
             // エコノミー再生？
             isEconomy || isPreferenceEconomyMode -> coroutine(true, "", "", true)
             // それ以外：インターネットで取得
             else -> coroutine()
         }
-        viewModelScope.launch {
-            // NGデータベースを監視する
-            NGDBInit.getInstance(context).ngDBDAO().flowGetNGAll().collect {
-                ngList = it
-                // コメントフィルター通す
-                commentFilter()
-            }
-        }
     }
 
     /** キャッシュから再生する */
     private fun cachePlay() {
+        val videoId = playingVideoId.value ?: return
         // コメントファイルがxmlならActivity終了
         val xmlCommentJSON = XMLCommentJSON(context)
         if (xmlCommentJSON.commentXmlFilePath(videoId) != null && !xmlCommentJSON.commentJSONFileExists(videoId)) {
@@ -170,12 +218,12 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
                 // 動画のファイル名取得
                 val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
                 if (videoFileName != null) {
-                    contentUrl.postValue("${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName")
+                    contentUrl.postValue("${nicoVideoCache.getCacheFolderPath()}/${playingVideoId.value}/$videoFileName")
                     // 動画情報
                     if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                         val jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
                         nicoVideoJSON.postValue(jsonObject)
-                        nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay))
+                        nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay.value ?: false))
                     }
                     // コメント取得
                     launch {
@@ -197,8 +245,16 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
         }
     }
 
-    /** インターネットから取得して再生する */
+    /**
+     * インターネットから取得して再生する
+     * @param videoId 動画ID
+     * @param isGetComment コメントを取得する場合はtrue。基本true
+     * @param videoQualityId 画質変更をする場合は入れてね。こんなの「archive_h264_4000kbps_1080p」
+     * @param audioQualityId 音質変更をする場合は入れてね。
+     * @param smileServerLowRequest Smile鯖で低画質をリクエストする場合はtrue。
+     * */
     fun coroutine(isGetComment: Boolean = true, videoQualityId: String = "", audioQualityId: String = "", smileServerLowRequest: Boolean = false) {
+        val videoId = playingVideoId.value ?: return
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             throwable.printStackTrace()
@@ -269,7 +325,7 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
                 contentUrl.postValue(nicoVideoHTML.getContentURI(nicoVideoJSON.value!!, null))
             }
             // データクラスへ詰める
-            nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(nicoVideoJSON.value!!, isOfflinePlay))
+            nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(nicoVideoJSON.value!!, isOfflinePlay.value ?: false))
             // データベースへ書き込む
             insertDB()
             // コメント取得など
@@ -348,6 +404,7 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
 
     /** 履歴データベースへ書き込む */
     private fun insertDB() {
+        val videoId = playingVideoId.value ?: return
         viewModelScope.launch(Dispatchers.IO) {
             val unixTime = System.currentTimeMillis() / 1000
             // 入れるデータ
@@ -362,6 +419,32 @@ class NicoVideoViewModel(application: Application, val videoId: String, val isCa
             )
             // 追加
             NicoHistoryDBInit.getInstance(context).nicoHistoryDBDAO().insert(nicoHistoryDBEntity)
+        }
+    }
+
+    /** 連続再生時に次の動画に行く関数 */
+    fun nextVideo() {
+        if (isPlayListMode && videoList != null) {
+            // 連続再生時のみ利用可能
+            val currentPos = playListCurrentPosition.value ?: return
+            val nextVideoPos = if (currentPos + 1 < videoList.size) {
+                // 次の動画がある
+                currentPos + 1
+            } else {
+                // 最初の動画にする
+                0
+            }
+            val videoData = videoList[nextVideoPos]
+            load(videoData.videoId, videoData.isCache, isEco, useInternet)
+        }
+    }
+
+    /** 連続再生時に動画IDを指定して切り替える関数 */
+    fun playlistGoto(videoId: String) {
+        if (isPlayListMode && videoList != null) {
+            // 動画情報を見つける
+            val videoData = videoList.find { nicoVideoData -> nicoVideoData.videoId == videoId } ?: return
+            load(videoData.videoId, videoData.isCache, isEco, useInternet)
         }
     }
 

@@ -14,17 +14,14 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoPlayListBottomFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoPlayListFragment
-import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoPlayListViewModel
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 
 /**
  * ニコ動連続再生で一覧表示する用のAdapter
  * */
-class NicoVideoPlayListAdapter(val list: ArrayList<NicoVideoData>, val viewModel: NicoVideoPlayListViewModel) : RecyclerView.Adapter<NicoVideoPlayListAdapter.ViewHolder>() {
+class NicoVideoPlayListAdapter(val list: ArrayList<NicoVideoData>, val viewModel: NicoVideoViewModel) : RecyclerView.Adapter<NicoVideoPlayListAdapter.ViewHolder>() {
 
-    /** 動画切り替えるのに使う */
-    var nicoVideoPlayListFragment: NicoVideoPlayListFragment? = null
 
     /** BottomFragmentを操作するのに使う */
     var nicoVideoPlayListBottomFragment: NicoVideoPlayListBottomFragment? = null
@@ -41,8 +38,6 @@ class NicoVideoPlayListAdapter(val list: ArrayList<NicoVideoData>, val viewModel
             // 情報入れる
             val data = list[position]
 
-            val context = titleTextView.context
-
             // タイトルなど
             titleTextView.text = data.title
             idTextView.text = data.videoId
@@ -55,10 +50,7 @@ class NicoVideoPlayListAdapter(val list: ArrayList<NicoVideoData>, val viewModel
 
             // 再生
             parentLinearLayout.setOnClickListener {
-                // Fragment取得
-                val isFullScreenPlaying = nicoVideoPlayListFragment?.isNicoVideoFragmentFullScreenPlaying() ?: false
-                nicoVideoPlayListFragment?.setVideo(data.videoId, data.isCache, isFullScreenPlaying)
-                setPlayingItemBackgroundColor(data.videoId, parentLinearLayout)
+                viewModel.playlistGoto(data.videoId) // 動画切り替え
                 notifyDataSetChanged() // 一覧更新
             }
 

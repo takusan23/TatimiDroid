@@ -1,6 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoLive
 
-import android.content.*
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,10 +14,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoActivity
 import io.github.takusan23.tatimidroid.BottomFragment.NicoHistoryBottomFragment
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.DialogWatchModeBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.activity_main.*
@@ -106,11 +109,14 @@ class LiveIDFragment : Fragment() {
                     }
                 }
                 nicoVideoIdMatcher.find() -> {
-                    val nicoVideo = nicoVideoIdMatcher.group()
-                    val intent = Intent(context, NicoVideoActivity::class.java)
-                    intent.putExtra("id", nicoVideo)
-                    intent.putExtra("cache", false)
-                    context?.startActivity(intent)
+                    val videoId = nicoVideoIdMatcher.group()
+                    val nicoVideoFragment = NicoVideoFragment().apply {
+                        arguments = Bundle().apply {
+                            putString("id", videoId)
+                            putBoolean("cache", false)
+                        }
+                    }
+                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, videoId)
                 }
                 else -> {
                     //正規表現失敗

@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
@@ -19,10 +18,7 @@ import kotlinx.android.synthetic.main.fragment_nicovideo_recommend.*
  * */
 class NicoVideoRecommendFragment : Fragment() {
 
-    lateinit var nicoVideoListAdapter: NicoVideoListAdapter
-
-    /** ニコ動Fragment取得。画面回転復帰直後はnullになる？。ボタンを押すたびに取得したほうがいいかも */
-    private fun requireNicoVideoFragment() = parentFragmentManager.findFragmentByTag(arguments?.getString("id")) as? NicoVideoFragment
+    private lateinit var nicoVideoListAdapter: NicoVideoListAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_recommend, container, false)

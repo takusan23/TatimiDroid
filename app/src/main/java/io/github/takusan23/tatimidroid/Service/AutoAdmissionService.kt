@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
-import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentActivity
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Database.AutoAdmissionDB
@@ -61,7 +60,7 @@ class AutoAdmissionService : Service() {
                 app.contains("tatimidroid_app") -> {
                     // たちみどろいど
                     // ここにIntent起動書く。
-                    val intent = Intent(applicationContext, CommentActivity::class.java)
+                    val intent = Intent(applicationContext, MainActivity::class.java)
                     // これいる
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     // 番組ID

@@ -12,8 +12,8 @@ android {
         applicationId "io.github.takusan23.tatimidroid"
         minSdkVersion 22
         targetSdkVersion 30
-        versionCode 72
-        versionName "11.2.3"
+        versionCode 73
+        versionName "12.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -21,9 +21,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        //debug {
-        //    applicationIdSuffix ".kaihatu"
-        //}
+//        debug {
+//            applicationIdSuffix ".kaihatu"
+//        }
     }
     compileOptions {
         targetCompatibility 1.8
@@ -36,11 +36,12 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    // Activity Result APIでonActivityResultを駆逐する
+    implementation 'com.github.takusan23:SearchPreferenceFragment:1.2.0'
+    // MotionLayoutのonSwipe直す自作ライブラリ
+    implementation 'com.github.takusan23:MotionLayoutSwipeFixFrameLayout:0552b935c2'
+    // Activity Result APIでonActivityResultを駆逐する。あとなんかしらんけどこの環境ではalphaをbetaにすると使えなくなる
     implementation 'androidx.activity:activity-ktx:1.2.0-alpha08'
-    implementation 'androidx.fragment:fragment:1.3.0-alpha08'
-    // ViewModel楽に取るための Ktx
-    implementation 'androidx.fragment:fragment-ktx:1.2.5'
+    implementation 'androidx.fragment:fragment-ktx:1.3.0-alpha08'
     // ViewModel と LiveData
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     // Room
@@ -51,7 +52,7 @@ dependencies {
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     // MotionLayout
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
     // MediaSession
     implementation "androidx.media:media:1.2.0"
     //GoogleCast
@@ -74,7 +75,7 @@ dependencies {
     // OkHttp
     implementation("com.squareup.okhttp3:okhttp:4.7.2")
     // Material Design
-    implementation 'com.google.android.material:material:1.3.0-alpha02'
+    implementation 'com.google.android.material:material:1.3.0-alpha03'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // Android 5.x でWebViewが落ちるので
     implementation 'androidx.appcompat:appcompat:1.1.0'

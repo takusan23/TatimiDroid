@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -272,13 +273,13 @@ class ProgramInfoFragment : Fragment() {
 
             // タイムシフト予約済みか
             val userProgramReservation = jsonObject.getJSONObject("userProgramReservation")
-            val isReserved = userProgramReservation.getBoolean("isReserved")
 
-            // タイムシフト機能が使えない場合
-            // JSONに programTimeshift と programTimeshiftWatch が存在しない場合はTS予約が無効にされている？
-            // 存在すればTS予約が利用できる
-            val canTSReserve =
-                jsonObject.has("programTimeshift") && jsonObject.has("programTimeshiftWatch")
+            /**
+             * タイムシフト機能が使えない場合
+             * JSONに programTimeshift と programTimeshiftWatch が存在しない場合はTS予約が無効にされている？
+             * 存在すればTS予約が利用できる
+             * */
+            val canTSReserve = jsonObject.has("programTimeshift") && jsonObject.has("programTimeshiftWatch")
             activity?.runOnUiThread {
                 if (fragment_program_info_timeshift_button == null) {
                     return@runOnUiThread
@@ -289,6 +290,27 @@ class ProgramInfoFragment : Fragment() {
                         getString(R.string.disabled_ts_reservation)
                 }
             }
+
+            /**
+             * 好みタグ機能。なお好みタグから選んで番組へ入るとなぜかニコニ広告みたいに通知が行く模様。じゃあ使わんわ
+             * */
+            val konomiTagList = jsonObject.getJSONObject("programBroadcaster").getJSONArray("konomiTags")
+            if (konomiTagList.length() == 0) {
+                // 未設定であることを教える
+                fragment_program_info_konomi_tag_empty.isVisible = true
+            } else {
+                // JSONパース
+                for (i in 0 until konomiTagList.length()){
+                    val tagText = konomiTagList.getJSONObject(i).getString("text")
+                    //ボタン作成
+                    val button = MaterialButton(requireContext(),null).apply {
+                        text = tagText
+                        isAllCaps = false
+                    }
+                    fragment_program_info_konomi_tag_linear_layout.addView(button)
+                }
+            }
+
         }
     }
 
@@ -317,12 +339,13 @@ class ProgramInfoFragment : Fragment() {
             // 全部消す
             fragment_program_info_tag_linearlayout.removeAllViews()
             list.forEach {
-                val text = it.title
+                val tag = it.title
                 val isNicopedia = it.hasNicoPedia
                 //ボタン作成
-                val button = MaterialButton(requireContext())
-                button.text = text
-                button.isAllCaps = false
+                val button = MaterialButton(requireContext()).apply {
+                    text = tag
+                    isAllCaps = false
+                }
                 val nicopediaUrl = it.nicoPediaUrl
                 button.setOnClickListener {
                     val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())

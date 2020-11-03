@@ -527,4 +527,10 @@
     <string name="setting_scroll_tab_hide_description">If you scroll the comment list etc., the tab will be hidden automatically, but if you do not like this, you can enable it to always display it.</string>
     <string name="setting_nicolive_mobiledata_quality_title">Image quality during mobile data communication</string>
     <string name="setting_nicolive_mobiledata_quality_description">During mobile data communication, you will be able to select normal playback, voice only, and minimum image quality.</string>
+    <string name="setting_comment_canvas_min_line_title">Enable the minimum row setting</string>
+    <string name="setting_comment_canvas_min_line_description">It is a setting to secure at least a comment line even if the player becomes small. For mini players</string>
+    <string name="setting_comment_canvas_min_line_value_title">Minimum line setting</string>
+    <string name="setting_comment_canvas_priority">The priority of the setting is 10 lines reserved-> comment line settings-> minimum reserved lines.</string>
+    <string name="konomi_tag">Favorite tag (Konomi tag)</string>
+    <string name="konomi_tag_empty">The broadcaster has not set a konomi tag.</string>
 </resources>

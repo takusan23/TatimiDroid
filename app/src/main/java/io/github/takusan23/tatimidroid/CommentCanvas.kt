@@ -94,12 +94,6 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     /** コメントを流さないときはtrue */
     var isPause = false
 
-    // 10行確保モード
-    var isTenLineSetting = false
-
-    // コメント行を自由に変更可能
-    var isCustomCommentLine = false
-    var customCommentLine = 10
 
     // 透明度の設定（重そう小並感）
     var commentAlpha = 1.0F
@@ -113,35 +107,31 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     /** アスキーアート（コメントアート・職人）のために使う。最後に追加しあ高さが入る */
     private var oldHeight = 0
 
+    private val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+
     init {
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
-        val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         // コメントの更新頻度をfpsで設定するかどうか
-        val enableCommentSpeedFPS = pref_setting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
+        val enableCommentSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
         // コメントの流れる速度
-        val speed = pref_setting.getString("setting_comment_speed", "3")?.toInt() ?: 3
+        val speed = prefSetting.getString("setting_comment_speed", "3")?.toInt() ?: 3
         // コメントキャンバスの更新頻度
         val update = if (enableCommentSpeedFPS) {
             // fpsで設定
-            val fps = pref_setting.getString("setting_comment_canvas_speed_fps", "60")?.toIntOrNull() ?: 60
+            val fps = prefSetting.getString("setting_comment_canvas_speed_fps", "60")?.toIntOrNull() ?: 60
             // 1000で割る （例：1000/60=16....）
             (1000 / fps)
         } else {
             // ミリ秒で指定
-            pref_setting.getString("setting_comment_canvas_timer", "10")?.toIntOrNull() ?: 10
+            prefSetting.getString("setting_comment_canvas_timer", "10")?.toIntOrNull() ?: 10
         }.toLong()
         // コメントの透明度
-        commentAlpha = pref_setting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F
-        // コメントの行を最低10行確保するモード
-        isTenLineSetting = pref_setting.getBoolean("setting_comment_canvas_10_line", false)
+        commentAlpha = prefSetting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F
         // コメントの色を部屋の色にする設定が有効ならtrue
-        isCommentColorRoom = pref_setting.getBoolean("setting_command_room_color", false)
-        // コメント行を自由に設定する設定
-        isCustomCommentLine = pref_setting.getBoolean("setting_comment_canvas_custom_line_use", false)
-        customCommentLine = pref_setting.getString("setting_comment_canvas_custom_line_value", "10")?.toInt() ?: 20
+        isCommentColorRoom = prefSetting.getBoolean("setting_command_room_color", false)
         // 開発者用項目
-        isShowDrawTextRect = pref_setting.getBoolean("dev_setting_comment_canvas_text_rect", false) ?: false
+        isShowDrawTextRect = prefSetting.getBoolean("dev_setting_comment_canvas_text_rect", false) ?: false
         // 定期実行
         timer.schedule(update, update) {
 
@@ -393,20 +383,37 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
      * @param asciiArtLines [asciiArt]がtrueのときは画面に収まるように文字サイズを調整します。そのためにコメントアートが何行になるかの値が必要なので指定してください。
      * */
     fun postComment(comment: String, commentJSONParse: CommentJSONParse, asciiArt: Boolean = false, asciiArtLines: Int = -1) {
-        when {
-            // コメント行をカスタマイズしてるとき
-            isCustomCommentLine -> {
-                fontsize = (finalHeight / customCommentLine).toFloat()
-                // blackPaint.textSize = fontsize
-            }
+        // 現在の行数
+        val defaultFontSize = 20 * resources.displayMetrics.scaledDensity
+
+        // コメントの行を最低10行確保するモード
+        val isTenLineSetting = prefSetting.getBoolean("setting_comment_canvas_10_line", false)
+
+        // コメント行を自由に設定する設定
+        val isCustomCommentLine = prefSetting.getBoolean("setting_comment_canvas_custom_line_use", false)
+        val customCommentLine = prefSetting.getString("setting_comment_canvas_custom_line_value", "10")?.toIntOrNull() ?: 20
+
+        // CommentCanvasが小さくても最低限確保する行
+        val isMinLineSetting = prefSetting.getBoolean("setting_comment_canvas_min_line", true)
+        val minLineValue = prefSetting.getString("setting_comment_canvas_min_line_value", "10")?.toIntOrNull() ?: 10
+        // 現在最大何行書けるか
+        val currentCommentLine = finalHeight / defaultFontSize
+
+        fontsize = when {
             // ポップアップ再生 / 10行コメント確保ーモード時
             isPopupView || isTenLineSetting -> {
-                fontsize = (finalHeight / 10).toFloat()
-                // blackPaint.textSize = fontsize
+                (finalHeight / 10).toFloat()
+            }
+            // コメント行をカスタマイズしてるとき
+            isCustomCommentLine -> {
+                (finalHeight / customCommentLine).toFloat()
+            }
+            // 最低限確保
+            isMinLineSetting && currentCommentLine < minLineValue -> {
+                (finalHeight / minLineValue).toFloat()
             }
             else -> {
-                fontsize = 20 * resources.displayMetrics.scaledDensity
-                // blackPaint.textSize = fontsize
+                defaultFontSize
             }
         }
         // アスキーアートが画面に収まるように。ただし特に何もしなくても画面内に収まる場合は無視。改行多くて入らない場合のみ

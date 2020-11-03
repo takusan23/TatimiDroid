@@ -53,6 +53,7 @@
                 android:title="@string/setting_scroll_tab_hide_title" />
 
         <Preference
+                android:fragment="io.github.takusan23.tatimidroid.Fragment.Setting.FontSettingFragment"
                 android:icon="@drawable/ic_font_download_24px"
                 android:key="font_preference"
                 android:summary="@string/setting_font_description"
@@ -203,24 +204,6 @@
 
         <SwitchPreference
                 android:defaultValue="false"
-                android:icon="@drawable/ic_outline_format_color_fill_24px"
-                android:key="setting_command_room_color"
-                android:summary="@string/setting_command_room_color_description"
-                android:title="@string/setting_command_room_color"
-                app:isPreferenceVisible="false" />
-
-        <!--
-            <SwitchPreference
-                    android:defaultValue="true"
-                    android:enabled="false"
-                    android:icon="@drawable/ic_new_comment_icon"
-                    android:key="setting_new_comment"
-                    android:summary="@string/setting_new_comment_area_description"
-                    android:title="@string/setting_new_comment_area_title" />
-        -->
-
-        <SwitchPreference
-                android:defaultValue="false"
                 android:icon="@drawable/ic_outline_comment_24px"
                 android:key="setting_comment_collection_useage"
                 android:summary="@string/setting_comment_collection_useage_description"
@@ -232,7 +215,6 @@
                 android:key="setting_comment_collection_assist"
                 android:summary="@string/setting_comment_collection_assist_description"
                 android:title="@string/setting_comment_collection_assist" />
-
 
         <SwitchPreference
                 android:defaultValue="false"
@@ -284,6 +266,9 @@
     <!-- コメント描画系 -->
     <PreferenceCategory android:title="@string/setting_comment_canvas">
 
+        <Preference android:summary="@string/setting_comment_canvas_priority" />
+
+        <!-- 10行確保 -->
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_format_line_spacing_black_24dp"
@@ -291,6 +276,7 @@
                 android:summary="@string/setting_comment_10_line_description"
                 android:title="@string/setting_comment_10_line_title" />
 
+        <!-- 自由に設定できるモード -->
         <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_waves_black_24dp"
@@ -305,6 +291,19 @@
                 android:summary="@string/setting_custom_comment_line_value_description"
                 android:title="@string/setting_custom_comment_line_value_title" />
 
+        <!-- 最低限確保する設定 -->
+        <SwitchPreference
+                android:defaultValue="true"
+                android:icon="@drawable/ic_format_line_spacing_black_24dp"
+                android:key="setting_comment_canvas_min_line"
+                android:summary="@string/setting_comment_canvas_min_line_description"
+                android:title="@string/setting_comment_canvas_min_line_title" />
+
+        <EditTextPreference
+                android:defaultValue="10"
+                android:dependency="setting_comment_canvas_min_line"
+                android:key="setting_comment_canvas_min_line_value"
+                android:title="@string/setting_comment_canvas_min_line_value_title" />
 
         <EditTextPreference
                 android:defaultValue="10"
@@ -389,11 +388,13 @@
                 android:summary="@string/setting_first_time_show_description"
                 android:title="@string/setting_first_time_show_title" />
 
+<!--
         <Preference
                 android:icon="@drawable/ic_history_24px"
                 android:key="history_db_backup"
                 android:summary="取り扱いには気をつけて。"
                 android:title="履歴データベースの引き継ぎ(バックアップ)" />
+-->
 
         <Preference
                 android:icon="@drawable/ic_outline_info_24px"
@@ -419,6 +420,7 @@
     </PreferenceCategory>
 
     <Preference
+            android:fragment="io.github.takusan23.tatimidroid.Fragment.Setting.DevSettingFragment"
             android:icon="@drawable/ic_policy_black"
             android:key="dev_setting"
             android:summary="フリとかじゃなくて"
@@ -428,15 +430,5 @@
             android:icon="@drawable/ic_outline_delete_24px"
             android:key="delete_history"
             android:title="@string/delete_history_db_title" />
-
-    <!--
-        <SwitchPreference
-                android:title="@string/watching_mode_title"
-                android:key="setting_watching_mode"
-                android:summary="@string/watching_mode_description"
-                android:defaultValue="false"
-                />
-    -->
-
 
 </PreferenceScreen>

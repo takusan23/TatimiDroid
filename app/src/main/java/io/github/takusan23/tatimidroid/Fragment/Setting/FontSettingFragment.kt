@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.Fragment
+package io.github.takusan23.tatimidroid.Fragment.Setting
 
 import android.app.Activity
 import android.content.Intent

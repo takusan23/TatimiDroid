@@ -3,8 +3,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="10sp">
+        android:orientation="vertical">
 
     <TextView
             android:id="@+id/bottom_fragment_nicovideo_list_menu_title"
@@ -12,12 +11,14 @@
             android:layout_height="wrap_content"
             android:text="動画タイトル"
             android:textSize="18sp"
+            android:padding="5dp"
             android:textStyle="bold" />
 
     <TextView
             android:id="@+id/bottom_fragment_nicovideo_list_menu_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="5dp"
             android:text="動画ID" />
 
     <ScrollView
@@ -27,7 +28,6 @@
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5sp"
                 android:orientation="vertical">
 
             <TextView
@@ -38,7 +38,7 @@
                     android:drawableStart="@drawable/ic_content_paste_black_24dp"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/video_id_copy" />
 
             <TextView
@@ -49,7 +49,7 @@
                     android:drawableStart="@drawable/ic_outline_open_in_browser_24px"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/open_browser" />
 
             <TextView
@@ -60,7 +60,7 @@
                     android:drawableStart="@drawable/ic_folder_open_black_24dp"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/add_mylist" />
 
             <TextView
@@ -71,7 +71,7 @@
                     android:drawableStart="@drawable/ic_outline_query_builder_24px"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/atodemiru_add" />
 
             <TextView
@@ -82,7 +82,7 @@
                     android:drawableStart="@drawable/ic_tatimidroid_playlist_play_black"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/cache_background_play"
                     android:visibility="gone" />
 
@@ -94,7 +94,7 @@
                     android:drawableStart="@drawable/ic_tatimidroid_list_icon_black"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/playlist_button" />
 
             <TextView
@@ -105,7 +105,7 @@
                     android:drawableStart="@drawable/ic_play_arrow_24px"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/play_video" />
 
             <TextView
@@ -116,7 +116,7 @@
                     android:drawableStart="@drawable/ic_play_arrow_24px"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/internet_play"
                     android:visibility="gone" />
 
@@ -128,7 +128,7 @@
                     android:drawableStart="@drawable/ic_play_arrow_24px"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/economy_play" />
 
             <TextView
@@ -139,7 +139,7 @@
                     android:drawableStart="@drawable/ic_popup_icon_black"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/popup_video_player" />
 
             <TextView
@@ -150,7 +150,7 @@
                     android:drawableStart="@drawable/ic_background_icon_black"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/background_video_player" />
 
             <TextView
@@ -161,7 +161,7 @@
                     android:drawableStart="@drawable/ic_save_alt_black_24dp"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/get_cache" />
 
             <TextView
@@ -172,7 +172,7 @@
                     android:drawableStart="@drawable/ic_save_alt_black_24dp"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="10sp"
+                    android:padding="10dp"
                     android:text="@string/get_cache_eco" />
 
             <LinearLayout
@@ -191,7 +191,7 @@
                         android:drawableStart="@drawable/ic_outline_comment_24px"
                         android:focusable="true"
                         android:foreground="?android:attr/selectableItemBackground"
-                        android:padding="10sp"
+                        android:padding="10dp"
                         android:text="@string/xml_to_json"
                         android:visibility="gone" />
 
@@ -203,7 +203,7 @@
                         android:drawableStart="@drawable/ic_refresh_black_24dp"
                         android:focusable="true"
                         android:foreground="?android:attr/selectableItemBackground"
-                        android:padding="10sp"
+                        android:padding="10dp"
                         android:text="@string/get_cache_re_get" />
 
                 <TextView
@@ -214,7 +214,7 @@
                         android:drawableStart="@drawable/ic_outline_delete_24px"
                         android:focusable="true"
                         android:foreground="?android:attr/selectableItemBackground"
-                        android:padding="10sp"
+                        android:padding="10dp"
                         android:text="@string/delete_cache" />
             </LinearLayout>
 
