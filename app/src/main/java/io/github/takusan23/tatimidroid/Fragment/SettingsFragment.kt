@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.widget.addTextChangedListener
@@ -78,6 +79,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 File("/data/user/0/io.github.takusan23.tatimidroid/databases/NicoHistory.db") // ハードコート大丈夫か・・？
             }
             AppDataZip.createZipFile((requireActivity() as AppCompatActivity), dbFile)
+            Toast.makeText(requireContext(), "将来的に実装される予定", Toast.LENGTH_SHORT).show()
             false
         }
 

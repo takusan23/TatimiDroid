@@ -235,6 +235,10 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             fab.hide()
         }
 
+        if(isNimadoMode){
+            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout,false)
+        }
+
         //運営コメント、InfoコメントのTextView初期化
         uncomeTextView = TextView(context)
         live_framelayout.addView(uncomeTextView)
