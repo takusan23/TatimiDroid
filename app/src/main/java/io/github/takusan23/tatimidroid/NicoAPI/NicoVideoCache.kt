@@ -32,7 +32,6 @@ import java.util.*
 /**
  * キャッシュ取得など。
  * APIじゃないけど置く場所ないのでここで
- * ブロードキャスト初期化も
  * */
 class NicoVideoCache(val context: Context?) {
 

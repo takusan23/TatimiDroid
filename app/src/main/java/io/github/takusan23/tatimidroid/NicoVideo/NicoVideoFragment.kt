@@ -197,13 +197,13 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             Snackbar.make(fragment_nicovideo_surfaceview, it, Snackbar.LENGTH_SHORT).show()
         }
 
-        if (prefSetting.getBoolean("setting_nicovideo_comment_only", false)) {
-            fragment_nicovideo_background.visibility = View.GONE
+        if (viewModel.isCommentOnlyMode) {
+            setCommentOnlyMode(true)
         } else {
             // 動画再生
             viewModel.contentUrl.observe(viewLifecycleOwner) { contentUrl ->
                 val oldPosition = exoPlayer.currentPosition
-                initExoPlayer(contentUrl)
+                playExoPlayer(contentUrl)
                 // 画質変更時は途中から再生。動画IDが一致してないとだめ
                 if (oldPosition > 0 && exoPlayer.currentMediaItem?.mediaId == videoId) {
                     exoPlayer.seekTo(oldPosition)
@@ -277,7 +277,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
     }
 
-    private fun initExoPlayer(contentUrl: String) {
+    private fun playExoPlayer(contentUrl: String) {
         // キャッシュ再生と分ける
         when {
             // キャッシュを優先的に利用する　もしくは　キャッシュ再生時
@@ -756,22 +756,24 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
     }
 
     /**
-     * コメントのみの表示に切り替える
+     * 動画再生View（SurfaceView）を非表示にしてコメントのみの表示にする関数
+     * @param enable コメントのみにする場合はtrue
      * */
-    fun commentOnlyModeEnable() {
+    fun setCommentOnlyMode(enable: Boolean) {
+        viewModel.isCommentOnlyMode = enable
         exoPlayer.stop()
-        fragment_nicovideo_background.visibility = View.GONE
-        hideSwipeToRefresh()
-    }
-
-    /**
-     * コメントのみの表示を無効にする。動画を再生する
-     * */
-    fun commentOnlyModeDisable() {
-        exoPlayer.stop()
-        viewModel.contentUrl.value?.let { initExoPlayer(it) }
-        fragment_nicovideo_background.visibility = View.VISIBLE
-        showSwipeToRefresh()
+        if (enable) {
+            // MotionLayoutを無効
+            MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, false)
+            MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_player_framelayout, View.GONE)
+            hideSwipeToRefresh()
+        } else {
+            // MotionLayoutを有効
+            MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, true)
+            MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_player_framelayout, View.VISIBLE)
+            viewModel.contentUrl.value?.let { playExoPlayer(it) }
+            showSwipeToRefresh()
+        }
     }
 
     /** コメント一覧Fragmentを取得する。無い可能性も有る？ */
@@ -869,6 +871,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         super.onResume()
         exoPlayer.playWhenReady = true
         comment_canvas?.isPause = false
+        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
     }
 
     override fun onPause() {
@@ -880,6 +883,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 putLong("progress_$videoId", exoPlayer.currentPosition)
             }
         }
+        (requireActivity() as MainActivity).setVisibilityBottomNav(true)
     }
 
     override fun onDestroy() {
@@ -902,11 +906,17 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /** 戻るキー押した時 */
     override fun onBackButtonPress() {
-        fragment_nicovideo_motionlayout.apply {
-            if (currentState == R.id.fragment_nicovideo_transition_end) {
-                transitionToState(R.id.fragment_nicovideo_transition_finish)
-            } else {
-                transitionToState(R.id.fragment_nicovideo_transition_end)
+        // コメントのみの表示の際は何もしない
+        // コメントのみの表示の際はFragment終了
+        if (viewModel.isCommentOnlyMode) {
+            finishFragment()
+        } else {
+            fragment_nicovideo_motionlayout.apply {
+                if (currentState == R.id.fragment_nicovideo_transition_end) {
+                    transitionToState(R.id.fragment_nicovideo_transition_finish)
+                } else {
+                    transitionToState(R.id.fragment_nicovideo_transition_end)
+                }
             }
         }
     }

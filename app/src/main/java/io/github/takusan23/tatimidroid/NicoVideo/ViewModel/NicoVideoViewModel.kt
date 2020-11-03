@@ -140,6 +140,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** 連続再生時にシャッフル再生が有効になってるか。trueならシャッフル再生 */
     val isShuffled = MutableLiveData(false)
 
+    /** コメントのみ表示する場合はtrue */
+    var isCommentOnlyMode = prefSetting.getBoolean("setting_nicovideo_comment_only", false)
+
     init {
 
         // 最初の動画。連続再生と分岐

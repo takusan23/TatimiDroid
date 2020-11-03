@@ -18,6 +18,16 @@ object MotionLayoutTool {
         }
     }
 
-
+    /**
+     * MotionLayoutで使用するViewを表示/非表示にする関数
+     * @param motionLayout MotionLayout
+     * @param targetViewId 表示を切り替えたいViewのId
+     * @param visibility [android.view.View.VISIBLE]等を参照
+     * */
+    fun setMotionLayoutViewVisible(motionLayout: MotionLayout, targetViewId: Int, visibility: Int) {
+        motionLayout.constraintSetIds.forEach { id ->
+            motionLayout.getConstraintSet(id).setVisibility(targetViewId, visibility)
+        }
+    }
 
 }

@@ -156,6 +156,12 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
     /** ミニプレイヤーかどうか。 */
     val isMiniPlayerMode = MutableLiveData(false)
 
+    /**
+     * コメントのみを表示させ、生放送を見ない。
+     * 設定項目、「setting_watch_live」の値を反転している
+     * */
+    var isCommentOnlyMode = !prefSetting.getBoolean("setting_watch_live", true)
+
     init {
         // 匿名でコメントを投稿する場合
         nicoLiveHTML.isPostTokumeiComment = prefSetting.getBoolean("nicolive_post_tokumei", true)

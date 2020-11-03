@@ -100,9 +100,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     /** ニコニコ実況ならtrue */
     var isJK = false
 
-    /** 生放送を見る場合はtrue */
-    var watchLive = false
-
     /** コメント表示をOFFにする場合はtrue */
     var isCommentHide = false
 
@@ -210,9 +207,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             comment_canvas.typeface = customFont.typeface
         }
 
-        //生放送を視聴する場合はtrue
-        watchLive = prefSetting.getBoolean("setting_watch_live", true)
-
         // argumentsから値もらう
         var watchingmode = false
         var nicocasmode = false
@@ -235,8 +229,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             fab.hide()
         }
 
-        if(isNimadoMode){
-            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout,false)
+        if (isNimadoMode) {
+            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, false)
         }
 
         //運営コメント、InfoコメントのTextView初期化
@@ -247,11 +241,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         infoTextView = TextView(context)
         live_framelayout.addView(infoTextView)
         infoTextView.visibility = View.GONE
-
-        //視聴しない場合は非表示
-        if (!watchLive) {
-            live_framelayout.visibility = View.GONE
-        }
 
         fab.setOnClickListener {
             //表示アニメーションに挑戦した。
@@ -298,7 +287,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
             player_nicolive_control_back_button.setImageDrawable(icon)
             // 画面回転前がミニプレイヤーだったらミニプレイヤーにする
-            if(isMiniPlayerMode){
+            if (isMiniPlayerMode) {
                 comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
             }
         }
@@ -390,7 +379,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // HLSアドレス取得
         viewModel.hlsAddress.observe(viewLifecycleOwner) { address ->
-            if (watchLive) {
+            if (viewModel.isCommentOnlyMode) {
+                setCommentOnlyMode(false)
+            } else {
                 setPlayVideoView()
                 initQualityChangeBottomFragment(viewModel.currentQuality, viewModel.qualityListJSONArray)
                 googleCast.apply {
@@ -428,6 +419,23 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
         }
 
+    }
+
+    /**
+     * コメントのみの表示に切り替える関数
+     * @param isCommentOnly コメントのみの表示にする場合
+     * */
+    fun setCommentOnlyMode(isCommentOnly: Boolean) {
+        viewModel.isCommentOnlyMode = isCommentOnly
+        exoPlayer.stop()
+        if (isCommentOnly) {
+            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, false)
+            MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.live_framelayout, View.GONE)
+        } else {
+            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, true)
+            MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.live_framelayout, View.VISIBLE)
+            setPlayVideoView()
+        }
     }
 
     /** ダークモード等テーマに合わせた色を設定する */
@@ -1018,11 +1026,13 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     override fun onResume() {
         super.onResume()
         setPlayVideoView()
+        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
     }
 
     override fun onPause() {
         super.onPause()
         googleCast.pause()
+        (requireActivity() as MainActivity).setVisibilityBottomNav(true)
     }
 
     fun showToast(message: String) {
@@ -1579,12 +1589,17 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /** 戻るキー押しったとき */
     override fun onBackButtonPress() {
-        comment_fragment_motionlayout.apply {
-            if (currentState == R.id.comment_fragment_transition_end) {
-                // 終了へ
-                transitionToState(R.id.comment_fragment_transition_finish)
-            } else {
-                transitionToState(R.id.comment_fragment_transition_end)
+        // コメントのみの表示の際はFragment終了
+        if (viewModel.isCommentOnlyMode) {
+            finishFragment()
+        } else {
+            comment_fragment_motionlayout.apply {
+                if (currentState == R.id.comment_fragment_transition_end) {
+                    // 終了へ
+                    transitionToState(R.id.comment_fragment_transition_finish)
+                } else {
+                    transitionToState(R.id.comment_fragment_transition_end)
+                }
             }
         }
     }

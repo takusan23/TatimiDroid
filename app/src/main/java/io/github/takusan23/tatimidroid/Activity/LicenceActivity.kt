@@ -22,6 +22,23 @@ class LicenceActivity : AppCompatActivity() {
 
         title = getString(R.string.licence)
 
+        val searchPreferenceFragment = """---takusan23/MotionLayoutSwipeFixFrameLayout---
+            
+ Copyright 2020 takusan_23
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.  
+        """.trimIndent()
+
         val swipeFixFrameLayoutLicense = """---takusan23/MotionLayoutSwipeFixFrameLayout---
             
  Copyright 2020 takusan_23
@@ -581,7 +598,7 @@ limitations under the License.
         """.trimIndent()
 
         fragment_license_textview.text =
-            "$java_WebSocket_licence $jsoup_licence $coroutines_licence $okhttp3_licence $exoplayer_licence $material_icon_license $material_licence $glide $swipeFixFrameLayoutLicense"
+            "$java_WebSocket_licence $jsoup_licence $coroutines_licence $okhttp3_licence $exoplayer_licence $material_icon_license $material_licence $glide $swipeFixFrameLayoutLicense $searchPreferenceFragment"
 
     }
 

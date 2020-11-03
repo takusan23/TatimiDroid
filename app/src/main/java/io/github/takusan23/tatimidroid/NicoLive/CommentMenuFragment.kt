@@ -171,16 +171,7 @@ class CommentMenuFragment : Fragment() {
         //生放送を再生ボタン
         fragment_comment_fragment_menu_view_live_button.setOnClickListener {
             (requireParentFragment() as CommentFragment).apply {
-                if (live_framelayout.visibility == View.VISIBLE) {
-                    live_framelayout.visibility = View.GONE
-                    if (!isNicoJK()) {
-                        // JK以外はExoPlayerをRelease
-                        exoPlayer.stop()
-                    }
-                } else {
-                    live_framelayout.visibility = View.VISIBLE
-                    setPlayVideoView()
-                }
+                setCommentOnlyMode(!viewModel.isCommentOnlyMode)
             }
         }
         // バッググラウンド再生。

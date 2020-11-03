@@ -425,7 +425,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** [MainActivity]のBottomNavigationを非表示にする関数 */
+    /**
+     * [MainActivity]のBottomNavigationを非表示にする関数
+     * [onPause]と[onResume]にそれぞれ呼ぶといい感じ？
+     * */
     fun setVisibilityBottomNav(isVisible: Boolean) {
         main_activity_bottom_navigationview.isVisible = isVisible
     }
