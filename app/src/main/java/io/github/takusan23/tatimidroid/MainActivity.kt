@@ -23,6 +23,7 @@ import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
 import io.github.takusan23.tatimidroid.BottomFragment.NicoHistoryBottomFragment
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.Fragment.LoginFragment
+import io.github.takusan23.tatimidroid.Fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.DialogWatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
@@ -125,7 +126,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.menu_setting -> {
                     // 自作ライブラリ https://github.com/takusan23/SearchPreferenceFragment
-                    val searchSettingsFragment = SearchPreferenceFragment()
+                    val searchSettingsFragment = SettingsFragment()
                     searchSettingsFragment.arguments = Bundle().apply {
                         // 階層化されている場合
                         val hashMap = hashMapOf<String, Int>()
