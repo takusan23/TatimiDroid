@@ -241,7 +241,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                         // 消す
                         lifecycleScope.launch(Dispatchers.Main) {
                             // マイリストFragment
-                            val myListFragment = fragmentManager?.findFragmentById(R.id.fragment_video_list_linearlayout) as NicoVideoMyListFragment
+                            val myListFragment = (requireActivity() as AppCompatActivity).supportFragmentManager.findFragmentById(R.id.fragment_video_list_linearlayout) as NicoVideoMyListFragment
                             // マイリスト削除API叩く。スマホ版のAPI
                             val nicoVideoSPMyListAPI = NicoVideoSPMyListAPI()
                             val deleteResponse = withContext(Dispatchers.IO) {
