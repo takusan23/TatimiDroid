@@ -36,7 +36,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.github.takusan23:SearchPreferenceFragment:1.2.0'
+    implementation 'com.github.takusan23:SearchPreferenceFragment:1.3.0'
     // MotionLayoutのonSwipe直す自作ライブラリ
     implementation 'com.github.takusan23:MotionLayoutSwipeFixFrameLayout:0552b935c2'
     // Activity Result APIでonActivityResultを駆逐する。あとなんかしらんけどこの環境ではalphaをbetaにすると使えなくなる
@@ -52,7 +52,7 @@ dependencies {
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     // MotionLayout
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     // MediaSession
     implementation "androidx.media:media:1.2.0"
     //GoogleCast

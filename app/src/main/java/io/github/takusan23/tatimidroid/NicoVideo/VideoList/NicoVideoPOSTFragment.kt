@@ -119,7 +119,13 @@ class NicoVideoPOSTFragment : Fragment() {
             // 自分の場合はまずユーザーIDを取る
             val userId = if (arguments?.getBoolean("my", false) == true) {
                 // 自分の場合はAPI叩いてユーザーID取る
-                User().getUserCoroutine("", userSession, "https://nvapi.nicovideo.jp/v1/users/me")?.userId?.toString()
+                val user = User()
+                val response = user.getUserCoroutine("", userSession, "https://nvapi.nicovideo.jp/v1/users/me")
+                if (!response.isSuccessful) {
+                    null
+                } else {
+                    user.parseUserData(response.body?.string()).userId.toString()
+                }
             } else {
                 // ユーザーID指定
                 arguments?.getString("userId")

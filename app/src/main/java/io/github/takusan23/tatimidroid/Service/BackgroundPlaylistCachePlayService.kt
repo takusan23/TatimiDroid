@@ -85,8 +85,8 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
         // ブロードキャスト用意
         initBroadcast()
 
-        // MediaSession用意
-        mediaSessionCompat = MediaSessionCompat(this, "media_session").apply {
+        // MediaSession用意。tagを変えるとMediaResumeがリセット？
+        mediaSessionCompat = MediaSessionCompat(this, "cache_media_session").apply {
 
             // 前回リピートモード有効にしてたか
             val repeatMode = prefSetting.getInt("cache_repeat_mode", 0)

@@ -886,6 +886,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     fun setPlayVideoView() {
         val hlsAddress = viewModel.hlsAddress.value ?: return
         exoPlayer.stop()
+
         //設定で読み込むかどうか
         Handler(Looper.getMainLooper()).post {
 
@@ -899,7 +900,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
             live_surface_view.isVisible = true
 
-            // アスペクト比直す
             aspectRatioFix()
 
             // 高さ更新
@@ -931,6 +931,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             exoPlayer.playWhenReady = true
 
             exoPlayer.addListener(object : Player.EventListener {
+
                 override fun onPlayerError(error: ExoPlaybackException) {
                     super.onPlayerError(error)
                     error.printStackTrace()
@@ -941,7 +942,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                         println("再度再生準備を行います")
                         activity?.runOnUiThread {
                             //再生準備
-                            exoPlayer.prepare(hlsMediaSource)
+                            exoPlayer.setMediaSource(hlsMediaSource)
+                            exoPlayer.prepare()
                             //SurfaceViewセット
                             exoPlayer.setVideoSurfaceView(live_surface_view)
                             //再生

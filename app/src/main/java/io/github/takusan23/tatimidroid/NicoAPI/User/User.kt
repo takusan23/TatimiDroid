@@ -29,30 +29,33 @@ class User {
             header("x-frontend-id", "3") // これ必要。
             get()
         }.build()
-        val response = okHttpClient.newCall(request).execute()
-        if (response.isSuccessful) {
-            withContext(Dispatchers.Default) {
-                val jsonObject = JSONObject(response.body?.string())
-                val user = jsonObject.getJSONObject("data").getJSONObject("user")
-                val description = user.getString("description")
-                val isPremium = user.getBoolean("isPremium")
-                val niconicoVersion = user.getString("registeredVersion") // GINZA とか く とか
-                val followeeCount = user.getInt("followeeCount")
-                val followerCount = user.getInt("followerCount")
-                val userLevel = user.getJSONObject("userLevel")
-                val currentLevel = userLevel.getInt("currentLevel") // ユーザーレベル。大人数ゲームとかはレベル条件ある
-                val userId = user.getInt("id")
-                val nickName = user.getString("nickname")
-                val isFollowing = if (jsonObject.getJSONObject("data").has("relationships")) {
-                    jsonObject.getJSONObject("data").getJSONObject("relationships")
-                        .getJSONObject("sessionUser").getBoolean("isFollowing") // フォロー中かどうか
-                } else {
-                    false
-                }
-                UserData(description, isPremium, niconicoVersion, followeeCount, followerCount, userId, nickName, isFollowing, currentLevel)
-            }
-        } else {
-            null
-        }
+        okHttpClient.newCall(request).execute()
     }
+
+    /**
+     * [getUserCoroutine]のレスポンスぼでーをパースする
+     * @param responseString [okhttp3.ResponseBody.string]
+     * @return データクラス
+     * */
+    suspend fun parseUserData(responseString: String?) = withContext(Dispatchers.Default) {
+        val jsonObject = JSONObject(responseString)
+        val user = jsonObject.getJSONObject("data").getJSONObject("user")
+        val description = user.getString("description")
+        val isPremium = user.getBoolean("isPremium")
+        val niconicoVersion = user.getString("registeredVersion") // GINZA とか く とか
+        val followeeCount = user.getInt("followeeCount")
+        val followerCount = user.getInt("followerCount")
+        val userLevel = user.getJSONObject("userLevel")
+        val currentLevel = userLevel.getInt("currentLevel") // ユーザーレベル。大人数ゲームとかはレベル条件ある
+        val userId = user.getInt("id")
+        val nickName = user.getString("nickname")
+        val isFollowing = if (jsonObject.getJSONObject("data").has("relationships")) {
+            jsonObject.getJSONObject("data").getJSONObject("relationships")
+                .getJSONObject("sessionUser").getBoolean("isFollowing") // フォロー中かどうか
+        } else {
+            false
+        }
+        UserData(description, isPremium, niconicoVersion, followeeCount, followerCount, userId, nickName, isFollowing, currentLevel)
+    }
+
 }

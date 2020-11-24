@@ -153,8 +153,9 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             }
         }
         // コメントを追加する
-        commentAddTimer.schedule(100, 100) {
-            GlobalScope.launch(coroutineJob + Dispatchers.Main) {
+        GlobalScope.launch(coroutineJob + Dispatchers.Main) {
+            // delay+whileで定期実行が書ける
+            while (true) {
                 if (exoPlayer != null) {
                     val currentVPos = exoPlayer!!.contentPosition / 100L
                     val currentPositionSec = exoPlayer!!.contentPosition / 1000
@@ -179,8 +180,11 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                         }
                     }
                 }
+                delay(100)
             }
         }
+
+
         // Viewの大きさ決定版
         viewTreeObserver.addOnGlobalLayoutListener {
             finalHeight = height
@@ -188,7 +192,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }
     }
 
-    fun clearCommentList(){
+    fun clearCommentList() {
         rawCommentList.clear()
         drawNakaCommentList.clear()
         drawShitaCommentList.clear()
@@ -471,15 +475,14 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         val customCommentLine = prefSetting.getString("setting_comment_canvas_custom_line_value", "10")?.toIntOrNull() ?: 20
 
         // CommentCanvasが小さくても最低限確保する行
-        val isMinLineSetting = prefSetting.getBoolean("setting_comment_canvas_min_line",true)
-        val minLineValue = prefSetting.getString("setting_comment_canvas_min_line_value","10")?.toIntOrNull() ?: 10
+        val isMinLineSetting = prefSetting.getBoolean("setting_comment_canvas_min_line", true)
+        val minLineValue = prefSetting.getString("setting_comment_canvas_min_line_value", "10")?.toIntOrNull() ?: 10
 
         // 現在最大何行書けるか
         val currentCommentLine = finalHeight / defaultFontSize
 
         // 強制10行表示モード
         val is10LineMode = prefSetting.getBoolean("setting_comment_canvas_10_line", false)
-
         // フォントサイズ
         val fontSize = when {
             is10LineMode -> (finalHeight / 10).toFloat() // 強制10行確保
@@ -555,6 +558,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             command.contains("blue") -> "#0000FF"
             command.contains("purple") -> "#C000FF"
             command.contains("black") -> "#000000"
+           // command.contains("#") -> {
+           //     return command.split(" ").find { s -> s.contains("#") } ?: "#FFFFFF"
+           //     // return ("#.{6}?").toRegex().find(command)?.value ?: "#FFFFFF"
+           // }
             // その他
             else -> "#ffffff"
         }

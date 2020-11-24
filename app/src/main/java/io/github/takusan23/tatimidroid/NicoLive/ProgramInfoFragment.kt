@@ -169,7 +169,10 @@ class ProgramInfoFragment : Fragment() {
                 userId = supplier.getString("programProviderId")
                 // ユーザー情報取得。フォロー中かどうか判断するため
                 val userData = withContext(Dispatchers.IO) {
-                    User().getUserCoroutine(userId, usersession)
+                    val user = User()
+                    val response = user.getUserCoroutine(userId, usersession)
+                    if (!response.isSuccessful) return@withContext null
+                    user.parseUserData(response.body?.string())
                 }
                 // ユーザーフォロー中？
                 if (userData?.isFollowing == true) {
@@ -259,8 +262,7 @@ class ProgramInfoFragment : Fragment() {
                     }
                 }
             }
-            // タグの登録に必要なトークンを取得
-            tagToken = tag.getString("apiToken")
+
             // タグが変更できない場合はボタンをグレーアウトする
             if (isTagNotEditable) {
                 fragment_program_info_tag_add_button.apply {
@@ -339,8 +341,7 @@ class ProgramInfoFragment : Fragment() {
             // 全部消す
             fragment_program_info_tag_linearlayout.removeAllViews()
             list.forEach {
-                val tag = it.title
-                val isNicopedia = it.hasNicoPedia
+                val tag = it.tagName
                 //ボタン作成
                 val button = MaterialButton(requireContext()).apply {
                     text = tag

@@ -10,20 +10,25 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.NicoLive.ProgramInfoFragment
-import io.github.takusan23.tatimidroid.NicoLive.Adapter.TagRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
+import io.github.takusan23.tatimidroid.NicoLive.Adapter.TagRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.NicoLive.ProgramInfoFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_tags.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
+/** タグ編集BottomFragment */
 class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
 
     lateinit var programFragment: ProgramInfoFragment
 
     // RecyclerView
-    var recyclerViewList = arrayListOf<NicoLiveTagAPI.NicoLiveTagItemData>()
+    var recyclerViewList = arrayListOf<NicoLiveTagDataClass>()
     lateinit var tagRecyclerViewAdapter: TagRecyclerViewAdapter
 
     lateinit var pref_setting: SharedPreferences

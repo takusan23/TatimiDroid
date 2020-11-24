@@ -340,6 +340,7 @@
                 android:key="setting_comment_speed"
                 android:summary="@string/setting_comment_speed_description"
                 android:title="@string/setting_comment_speed_title" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/leave_app">
@@ -388,13 +389,13 @@
                 android:summary="@string/setting_first_time_show_description"
                 android:title="@string/setting_first_time_show_title" />
 
-<!--
-        <Preference
-                android:icon="@drawable/ic_history_24px"
-                android:key="history_db_backup"
-                android:summary="取り扱いには気をつけて。"
-                android:title="履歴データベースの引き継ぎ(バックアップ)" />
--->
+        <!--
+                <Preference
+                        android:icon="@drawable/ic_history_24px"
+                        android:key="history_db_backup"
+                        android:summary="取り扱いには気をつけて。"
+                        android:title="履歴データベースの引き継ぎ(バックアップ)" />
+        -->
 
         <Preference
                 android:icon="@drawable/ic_outline_info_24px"
