@@ -392,8 +392,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
             // レイアウト調整。プレイヤーのFrameLayoutのサイズを変える
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_start).apply {
-                constrainHeight(R.id.fragment_nicovideo_player_framelayout, playerHeight)
-                constrainWidth(R.id.fragment_nicovideo_player_framelayout, playerWidth)
+                constrainHeight(R.id.fragment_nicovideo_surfaceview, playerHeight)
+                constrainWidth(R.id.fragment_nicovideo_surfaceview, playerWidth)
             }
             // ミニプレイヤーも
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
@@ -407,8 +407,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // 全画面UI
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_fullscreen).apply {
                 val fullScreenWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(width, height, displayHeight).toInt()
-                constrainHeight(R.id.fragment_nicovideo_player_framelayout, displayHeight)
-                constrainWidth(R.id.fragment_nicovideo_player_framelayout, fullScreenWidth)
+                constrainHeight(R.id.fragment_nicovideo_surfaceview, displayHeight)
+                constrainWidth(R.id.fragment_nicovideo_surfaceview, fullScreenWidth)
             }
         } else {
             // 縦画面
@@ -421,8 +421,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
             // レイアウト調整。プレイヤーのFrameLayoutのみ。背景はプレイヤーFrameLayoutの高さに合うように制約が設定してある。幅は最大
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_start).apply {
-                constrainHeight(R.id.fragment_nicovideo_player_framelayout, playerHeight)
-                constrainWidth(R.id.fragment_nicovideo_player_framelayout, playerWidth)
+                constrainHeight(R.id.fragment_nicovideo_surfaceview, playerHeight)
+                constrainWidth(R.id.fragment_nicovideo_surfaceview, playerWidth)
             }
             // ミニプレイヤーも
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
@@ -514,12 +514,29 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         val job = Job()
         // 戻るボタン
         player_control_back_button.isVisible = true
+        player_control_back_button.setOnClickListener {
+            // 最小化するとかしないとか
+            fragment_nicovideo_motionlayout.apply {
+                when {
+                    viewModel.isFullScreenMode -> {
+                        setCloseFullScreen()
+                    }
+                    currentState == R.id.fragment_nicovideo_transition_start -> {
+                        transitionToState(R.id.fragment_nicovideo_transition_end)
+                    }
+                    else -> {
+                        transitionToState(R.id.fragment_nicovideo_transition_start)
+                    }
+                }
+            }
+        }
         // MotionLayoutでスワイプできない対策に独自FrameLayoutを作った
         fragment_nicovideo_motionlayout_parent_framelayout.apply {
             allowIdList.add(R.id.fragment_nicovideo_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
             allowIdList.add(R.id.fragment_nicovideo_transition_fullscreen) // フルスクリーン時もクリックが行かないように
-            swipeTargetView = fragment_nicovideo_player_framelayout
+            swipeTargetView = include2
             motionLayout = fragment_nicovideo_motionlayout
+            seekbar = player_control_seek
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
                 player_control_main?.isVisible = !player_control_main.isVisible
@@ -551,29 +568,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     if (!isVisible) {
                         onSwipeTargetViewClickFunc?.invoke()
                     } else {
-                        when (view?.id) {
-                            // なんか最小化ボタンはsetOnClickListener使えなかったので
-                            player_control_back_button.id -> {
-                                // 最小化するとかしないとか
-                                fragment_nicovideo_motionlayout.apply {
-                                    when {
-                                        viewModel.isFullScreenMode -> {
-                                            setCloseFullScreen()
-                                        }
-                                        currentState == R.id.fragment_nicovideo_transition_start -> {
-                                            transitionToState(R.id.fragment_nicovideo_transition_end)
-                                        }
-                                        else -> {
-                                            transitionToState(R.id.fragment_nicovideo_transition_start)
-                                        }
-                                    }
-                                }
-                            }
-                            // なんかUI非表示なのにシークバー反応するので対策
-                            player_control_seek.id -> {
-                                isTouchSeekBar = event?.action == MotionEvent.ACTION_MOVE
-                            }
-                        }
+                        view?.performClick()
                     }
                 }
             }
@@ -767,12 +762,12 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         if (enable) {
             // MotionLayoutを無効
             MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, false)
-            MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_player_framelayout, View.GONE)
+            MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_background, View.GONE)
             hideSwipeToRefresh()
         } else {
             // MotionLayoutを有効
             MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, true)
-            MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_player_framelayout, View.VISIBLE)
+            MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_background, View.VISIBLE)
             viewModel.contentUrl.value?.let { playExoPlayer(it) }
             showSwipeToRefresh()
         }

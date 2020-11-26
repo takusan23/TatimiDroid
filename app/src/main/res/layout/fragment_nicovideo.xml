@@ -16,38 +16,42 @@
         <FrameLayout
                 android:id="@+id/fragment_nicovideo_background"
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
+                android:layout_height="0dp"
                 android:layout_gravity="center"
-                android:elevation="5dp"
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- プレイヤー -->
-        <FrameLayout
-                android:id="@+id/fragment_nicovideo_player_framelayout"
+        <!-- 映像 -->
+        <SurfaceView
+                android:id="@+id/fragment_nicovideo_surfaceview"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- コメント -->
+        <io.github.takusan23.tatimidroid.ReCommentCanvas
+                android:id="@+id/fragment_nicovideo_comment_canvas"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:elevation="5dp"
-                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_background"
-                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
-                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
-                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background">
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surfaceview" />
 
-            <SurfaceView
-                    android:id="@+id/fragment_nicovideo_surfaceview"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-
-            <io.github.takusan23.tatimidroid.ReCommentCanvas
-                    android:id="@+id/fragment_nicovideo_comment_canvas"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent" />
-
-            <!-- コントローラーのレイアウトを読み込む -->
-            <include layout="@layout/include_nicovideo_player_controller" />
-
-        </FrameLayout>
+        <!-- コントローラーのレイアウトを読み込む -->
+        <include
+                android:id="@+id/include2"
+                layout="@layout/include_nicovideo_player_controller"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surfaceview" />
 
         <!-- TabLayoutをRecyclerViewのスクロールに合わせて表示したりしなかったりすつ -->
         <androidx.coordinatorlayout.widget.CoordinatorLayout

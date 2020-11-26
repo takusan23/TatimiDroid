@@ -8,6 +8,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.SeekBar
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.view.children
 
@@ -81,7 +82,11 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
      * */
     var onBlockViewClickFunc: ((view: View?, event: MotionEvent?) -> Unit)? = null
 
-    /** 子のViewへタッチイベントを渡すかどうか */
+    var seekbar: SeekBar? = null
+
+    /**
+     * 子のViewへタッチイベントを渡すかどうか
+     * */
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
 
         if (swipeTargetView != null && ev != null && motionLayout != null) {
@@ -128,15 +133,14 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
                 return super.onInterceptTouchEvent(ev)
             } else if (allowIdList.contains(motionLayout!!.currentState)) {
                 // タッチイベントを渡すことが許可されているIDなら渡す
-/*
                 if (!isTouchingSwipeTargetView) {
                     // swipeTargetId以外ではMotionLayout動かさない。のでTransitionを無効にする
                     motionLayout!!.definedTransitions.forEach { transition ->
                         transition.setEnable(false)
                     }
-                    motionLayout
                 }
-*/
+
+
                 return super.onInterceptTouchEvent(ev)
             } else if (motionLayout!!.progress != 0f && motionLayout!!.progress != 1f) {
                 // もしMotionLayout進行中なら
