@@ -56,7 +56,6 @@ class NicoVideoCacheFragment : Fragment() {
             initRecyclerView(list)
             // 中身0だった場合
             fragment_cache_empty_message.isVisible = list.isEmpty()
-            if (fragment_cache_empty_message.isVisible) fragment_cache_fab.hide() else fragment_cache_fab.show()
         }
 
         // 合計容量
