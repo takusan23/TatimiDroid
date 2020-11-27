@@ -534,12 +534,13 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         fragment_nicovideo_motionlayout_parent_framelayout.apply {
             allowIdList.add(R.id.fragment_nicovideo_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
             allowIdList.add(R.id.fragment_nicovideo_transition_fullscreen) // フルスクリーン時もクリックが行かないように
-            swipeTargetView = include2
+            swipeTargetView = fragment_nicovideo_surfaceview
             motionLayout = fragment_nicovideo_motionlayout
             seekbar = player_control_seek
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
                 player_control_main?.isVisible = !player_control_main.isVisible
+                MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout,!player_control_main.isVisible)
                 // ３秒待ってもViewが表示されてる場合は消せるように。
                 updateHideController(job)
             }
@@ -568,7 +569,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     if (!isVisible) {
                         onSwipeTargetViewClickFunc?.invoke()
                     } else {
-                        view?.performClick()
+                        // view?.performClick()
                     }
                 }
             }
@@ -693,6 +694,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             delay(3000)
             if (player_control_main?.isVisible == true) {
                 player_control_main?.isVisible = false
+                MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout,true)
             }
         }
     }

@@ -67,8 +67,8 @@
             app:constraintSetStart="@+id/fragment_nicovideo_transition_start">
         <OnSwipe
                 app:dragDirection="dragDown"
-                app:touchAnchorId="@+id/fragment_nicovideo_background"
-                app:touchRegionId="@+id/fragment_nicovideo_background" />
+                app:touchAnchorId="@+id/fragment_nicovideo_surfaceview"
+                app:touchRegionId="@+id/fragment_nicovideo_surfaceview" />
     </Transition>
 
     <!-- 左へスワイプしたときの遷移 -->
@@ -77,7 +77,7 @@
             app:constraintSetStart="@+id/fragment_nicovideo_transition_end">
         <OnSwipe
                 app:dragDirection="dragLeft"
-                app:touchAnchorId="@+id/fragment_nicovideo_background"
-                app:touchRegionId="@+id/fragment_nicovideo_background" />
+                app:touchAnchorId="@+id/fragment_nicovideo_surfaceview"
+                app:touchRegionId="@+id/fragment_nicovideo_surfaceview" />
     </Transition>
 </MotionScene>
