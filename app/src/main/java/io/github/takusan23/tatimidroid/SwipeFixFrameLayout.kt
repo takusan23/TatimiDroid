@@ -8,7 +8,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.SeekBar
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.view.children
 
@@ -81,8 +80,6 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
      *
      * */
     var onBlockViewClickFunc: ((view: View?, event: MotionEvent?) -> Unit)? = null
-
-    var seekbar: SeekBar? = null
 
     /**
      * 子のViewへタッチイベントを渡すかどうか

@@ -51,6 +51,14 @@
                 app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
                 app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
                 app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background" />
+        <Constraint
+                android:id="@+id/fragment_nicovideo_comment_canvas"
+                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surfaceview"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surfaceview" />
     </ConstraintSet>
 
     <!-- 終了モーション -->

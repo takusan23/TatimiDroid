@@ -536,11 +536,11 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             allowIdList.add(R.id.fragment_nicovideo_transition_fullscreen) // フルスクリーン時もクリックが行かないように
             swipeTargetView = fragment_nicovideo_surfaceview
             motionLayout = fragment_nicovideo_motionlayout
-            seekbar = player_control_seek
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
                 player_control_main?.isVisible = !player_control_main.isVisible
-                MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout,!player_control_main.isVisible)
+                // あとなんかMotionLayoutが有効の時はシークバーとかが押せなくなるので表示中は一旦Transition無効化。
+                MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, !player_control_main.isVisible)
                 // ３秒待ってもViewが表示されてる場合は消せるように。
                 updateHideController(job)
             }
@@ -568,8 +568,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     // UI非表示なら表示
                     if (!isVisible) {
                         onSwipeTargetViewClickFunc?.invoke()
-                    } else {
-                        // view?.performClick()
                     }
                 }
             }
@@ -694,7 +692,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             delay(3000)
             if (player_control_main?.isVisible == true) {
                 player_control_main?.isVisible = false
-                MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout,true)
+                // あとなんかMotionLayoutが有効の時はシークバーとかが押せなくなるので表示中は一旦Transition無効化。
+                MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, !player_control_main.isVisible)
             }
         }
     }
