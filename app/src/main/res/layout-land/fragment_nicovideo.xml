@@ -15,12 +15,11 @@
             android:orientation="horizontal"
             app:layoutDescription="@xml/fragment_nicovideo_land_scene">
 
-        <!-- 背景。アスペクト比を合わせるとどうしても空間ができるので埋める -->
-        <FrameLayout
+        <View
                 android:id="@+id/fragment_nicovideo_background"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:clickable="true" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#757575" />
 
         <!-- 映像 -->
         <SurfaceView
@@ -35,7 +34,8 @@
                 android:id="@+id/fragment_nicovideo_comment_canvas"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                tools:layout_editor_absoluteX="466dp" />
+                tools:layout_editor_absoluteX="466dp"
+                tools:layout_editor_absoluteY="231dp" />
 
         <!-- コントローラー -->
         <include

@@ -397,12 +397,12 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
             // ミニプレイヤーも
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
-                constrainHeight(R.id.fragment_nicovideo_background, (playerHeight / 1.5).roundToInt())
-                constrainWidth(R.id.fragment_nicovideo_background, (playerWidth / 1.5).roundToInt())
+                constrainHeight(R.id.fragment_nicovideo_surfaceview, (playerHeight / 1.5).roundToInt())
+                constrainWidth(R.id.fragment_nicovideo_surfaceview, (playerWidth / 1.5).roundToInt())
             }
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_finish).apply {
-                constrainHeight(R.id.fragment_nicovideo_background, (playerHeight / 1.5).roundToInt())
-                constrainWidth(R.id.fragment_nicovideo_background, (playerWidth / 1.5).roundToInt())
+                constrainHeight(R.id.fragment_nicovideo_surfaceview, (playerHeight / 1.5).roundToInt())
+                constrainWidth(R.id.fragment_nicovideo_surfaceview, (playerWidth / 1.5).roundToInt())
             }
             // 全画面UI
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_fullscreen).apply {
@@ -426,12 +426,12 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
             // ミニプレイヤーも
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
-                constrainHeight(R.id.fragment_nicovideo_background, playerHeight / 2)
-                constrainWidth(R.id.fragment_nicovideo_background, playerWidth / 2)
+                constrainHeight(R.id.fragment_nicovideo_surfaceview, playerHeight / 2)
+                constrainWidth(R.id.fragment_nicovideo_surfaceview, playerWidth / 2)
             }
             fragment_nicovideo_motionlayout.getConstraintSet(R.id.fragment_nicovideo_transition_finish).apply {
-                constrainHeight(R.id.fragment_nicovideo_background, playerHeight / 2)
-                constrainWidth(R.id.fragment_nicovideo_background, playerWidth / 2)
+                constrainHeight(R.id.fragment_nicovideo_surfaceview, playerHeight / 2)
+                constrainWidth(R.id.fragment_nicovideo_surfaceview, playerWidth / 2)
             }
         }
     }
@@ -447,7 +447,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         player_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
         // コメント一覧非表示
         fragment_nicovideo_motionlayout.transitionToState(R.id.fragment_nicovideo_transition_fullscreen)
-        // システムバー消す
         setSystemBarVisibility(false)
         // 背景を黒く
         fragment_nicovideo_background.background = ColorDrawable(Color.BLACK)
@@ -566,6 +565,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     // UI非表示なら表示
                     if (!isVisible) {
                         onSwipeTargetViewClickFunc?.invoke()
+                    } else {
+                        //view?.performClick()
                     }
                 }
             }
@@ -766,12 +767,12 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         if (enable) {
             // MotionLayoutを無効
             MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, false)
-            MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_background, View.GONE)
+            MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_surfaceview, View.GONE)
             hideSwipeToRefresh()
         } else {
             // MotionLayoutを有効
             MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, true)
-            MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_background, View.VISIBLE)
+            MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_surfaceview, View.VISIBLE)
             viewModel.contentUrl.value?.let { playExoPlayer(it) }
             showSwipeToRefresh()
         }

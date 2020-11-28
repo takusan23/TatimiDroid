@@ -890,13 +890,14 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
             // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
             if (viewModel.currentQuality == "audio_high") {
-                comment_fragment_audio_only_textview.isVisible = true
+                MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_audio_only_textview, View.VISIBLE)
+                MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_surface_view, View.VISIBLE)
                 comment_fragment_surface_view.background = ColorDrawable(Color.BLACK)
             } else {
-                comment_fragment_audio_only_textview.isVisible = false
+                MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_audio_only_textview, View.GONE)
+                MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_audio_only_textview, View.GONE)
                 comment_fragment_surface_view.background = null
             }
-            comment_fragment_surface_view.isVisible = true
 
             aspectRatioFix()
 
