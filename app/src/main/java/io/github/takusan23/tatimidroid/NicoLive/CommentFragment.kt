@@ -204,7 +204,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         customFont = CustomFont(context)
         // CommentCanvasにも適用するかどうか
         if (customFont.isApplyFontFileToCommentCanvas) {
-            comment_canvas.typeface = customFont.typeface
+            comment_fragment_comment_canvas.typeface = customFont.typeface
         }
 
         // argumentsから値もらう
@@ -402,7 +402,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             if (!isCommentHide) {
                 // 豆先輩とか
                 if (!commentJSONParse.comment.contains("\n")) {
-                    comment_canvas.postComment(commentJSONParse.comment, commentJSONParse)
+                    comment_fragment_comment_canvas.postComment(commentJSONParse.comment, commentJSONParse)
                 } else {
                     // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
                     // 豆先輩！！！！！！！！！！！！！！！！！！
@@ -414,7 +414,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                         commentJSONParse.comment.split("\n")
                     }
                     // 複数行対応Var
-                    comment_canvas.postCommentAsciiArt(asciiArtComment, commentJSONParse)
+                    comment_fragment_comment_canvas.postCommentAsciiArt(asciiArtComment, commentJSONParse)
                 }
             }
         }
@@ -602,7 +602,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // アイコン変更
         player_nicolive_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
         // 高さ更新
-        comment_canvas.finalHeight = comment_canvas.height
+        comment_fragment_comment_canvas.finalHeight = comment_fragment_comment_canvas.height
     }
 
     /**
@@ -623,7 +623,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // 背景色もどす
         comment_fragment_background.background = ColorDrawable(getThemeColor(context))
         // 高さ更新
-        comment_canvas.finalHeight = comment_canvas.height
+        comment_fragment_comment_canvas.finalHeight = comment_fragment_comment_canvas.height
     }
 
     /** 上と下に出るコメントをセットする */
@@ -725,7 +725,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     private fun showQualityChangeSnackBar(selectQuality: String?) {
         // 画質変更した。SnackBarでユーザーに教える
-        multiLineSnackbar(live_surface_view, "${getString(R.string.successful_quality)}\n→${selectQuality}")
+        multiLineSnackbar(comment_fragment_surface_view, "${getString(R.string.successful_quality)}\n→${selectQuality}")
     }
 
     // 画質変更BottomFragment初期化
@@ -830,8 +830,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     fun setNicoNamaGame(isWebViewPlayer: Boolean = false) {
         // WebViewのためにFrameLayout広げるけど動画とコメントCanvasはサイズそのまま
         surfaceViewLayoutParams.apply {
-            live_surface_view.layoutParams = this
-            comment_canvas.layoutParams = this
+            comment_fragment_surface_view.layoutParams = this
+            comment_fragment_comment_canvas.layoutParams = this
         }
         // WebViewように少し広げる
         val frameLayoutParams = live_framelayout.layoutParams
@@ -892,18 +892,18 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
             // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
             if (viewModel.currentQuality == "audio_high") {
-                live_audio_only_textview.isVisible = true
-                live_surface_view.background = ColorDrawable(Color.BLACK)
+                comment_fragment_audio_only_textview.isVisible = true
+                comment_fragment_surface_view.background = ColorDrawable(Color.BLACK)
             } else {
-                live_audio_only_textview.isVisible = false
-                live_surface_view.background = null
+                comment_fragment_audio_only_textview.isVisible = false
+                comment_fragment_surface_view.background = null
             }
-            live_surface_view.isVisible = true
+            comment_fragment_surface_view.isVisible = true
 
             aspectRatioFix()
 
             // 高さ更新
-            comment_canvas.finalHeight = comment_canvas.height
+            comment_fragment_comment_canvas.finalHeight = comment_fragment_comment_canvas.height
             val sourceFactory = DefaultDataSourceFactory(requireContext(), "TatimiDroid;@takusan_23", object : TransferListener {
                 override fun onTransferInitializing(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) {
 
@@ -926,7 +926,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             exoPlayer.setMediaSource(hlsMediaSource)
             exoPlayer.prepare()
             //SurfaceViewセット
-            exoPlayer.setVideoSurfaceView(live_surface_view)
+            exoPlayer.setVideoSurfaceView(comment_fragment_surface_view)
             //再生
             exoPlayer.playWhenReady = true
 
@@ -945,7 +945,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                             exoPlayer.setMediaSource(hlsMediaSource)
                             exoPlayer.prepare()
                             //SurfaceViewセット
-                            exoPlayer.setVideoSurfaceView(live_surface_view)
+                            exoPlayer.setVideoSurfaceView(comment_fragment_surface_view)
                             //再生
                             exoPlayer.playWhenReady = true
                             Snackbar.make(fab, getString(R.string.error_player), Snackbar.LENGTH_SHORT).apply {

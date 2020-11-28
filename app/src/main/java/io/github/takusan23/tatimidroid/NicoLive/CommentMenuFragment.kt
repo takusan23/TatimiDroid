@@ -166,7 +166,7 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_menu_share_image_attach_button.setOnClickListener {
             val contentShare = ContentShare(requireActivity() as AppCompatActivity, viewModel.programTitle, liveId)
             // 今いる部屋の名前入れる
-            contentShare.shareContentAttachPicture(commentFragment.live_surface_view, commentFragment.comment_canvas)
+            contentShare.shareContentAttachPicture(commentFragment.comment_fragment_surface_view, commentFragment.comment_fragment_comment_canvas)
         }
         //生放送を再生ボタン
         fragment_comment_fragment_menu_view_live_button.setOnClickListener {

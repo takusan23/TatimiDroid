@@ -868,7 +868,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
     override fun onResume() {
         super.onResume()
         exoPlayer.playWhenReady = true
-        comment_canvas?.isPause = false
+        comment_fragment_comment_canvas?.isPause = false
         (requireActivity() as MainActivity).setVisibilityBottomNav(false)
     }
 

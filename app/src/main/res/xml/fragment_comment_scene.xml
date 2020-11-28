@@ -4,88 +4,45 @@
 
     <!-- 通常時 -->
     <ConstraintSet android:id="@+id/comment_fragment_transition_start">
-        <Constraint
-                android:id="@+id/comment_fragment_fab_coordinator"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/live_framelayout" />
-        <Constraint
-                android:id="@+id/live_framelayout"
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        <Constraint
-                android:id="@+id/comment_fragment_background"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_marginEnd="1dp"
-                android:layout_marginRight="1dp"
-                android:elevation="5dp"
-                app:layout_constraintBottom_toBottomOf="@+id/live_framelayout"
-                app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
-                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
-                app:layout_constraintTop_toTopOf="@+id/live_framelayout" />
+        <!-- 通常時はそのまま -->
     </ConstraintSet>
 
     <!-- ミニプレイヤー時 -->
     <ConstraintSet android:id="@+id/comment_fragment_transition_end">
         <Constraint
-                android:id="@+id/comment_fragment_fab_coordinator"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_background"
-                app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
-                app:layout_constraintStart_toStartOf="@+id/live_framelayout" />
-        <Constraint
-                android:id="@+id/live_framelayout"
+                android:id="@+id/comment_fragment_surface_view"
                 android:layout_width="320dp"
                 android:layout_height="180dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginRight="8dp"
                 android:layout_marginBottom="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
         <Constraint
-                android:id="@+id/comment_fragment_background"
+                android:id="@+id/comment_fragment_fab_coordinator"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/live_framelayout"
-                app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
-                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
-                app:layout_constraintTop_toTopOf="@+id/live_framelayout" />
+                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintTop_toBottomOf="@+id/comment_fragment_surface_view" />
     </ConstraintSet>
 
     <!-- 左へスワイプして終了する -->
     <ConstraintSet android:id="@+id/comment_fragment_transition_finish">
         <Constraint
+                android:id="@+id/comment_fragment_surface_view"
+                android:layout_width="320dp"
+                android:layout_height="180dp"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="parent"
+                android:layout_marginEnd="8dp" />
+        <Constraint
                 android:id="@+id/comment_fragment_fab_coordinator"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
-                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
-                app:layout_constraintTop_toBottomOf="@+id/comment_fragment_background" />
-        <Constraint
-                android:id="@+id/live_framelayout"
-                android:layout_width="320dp"
-                android:layout_height="180dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginBottom="8dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="parent" />
-        <Constraint
-                android:id="@+id/comment_fragment_background"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/live_framelayout"
-                app:layout_constraintEnd_toEndOf="@+id/live_framelayout"
-                app:layout_constraintStart_toStartOf="@+id/live_framelayout"
-                app:layout_constraintTop_toTopOf="@+id/live_framelayout" />
+                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintTop_toBottomOf="@+id/comment_fragment_surface_view" />
     </ConstraintSet>
 
     <!-- ミニプレイヤーへの遷移 -->

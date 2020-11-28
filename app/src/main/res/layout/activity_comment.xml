@@ -17,64 +17,82 @@
                 android:id="@+id/comment_fragment_background"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:elevation="5dp"
-                app:layout_constraintBottom_toBottomOf="@+id/live_framelayout"
+                android:clickable="true"
+                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
+
+        <!-- 映像 -->
+        <SurfaceView
+                android:id="@+id/comment_fragment_surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_gravity="center"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- プレイヤー -->
+        <!-- 音声のみ -->
+        <TextView
+                android:id="@+id/comment_fragment_audio_only_textview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:drawableTop="@drawable/ic_tatimidroid_playlist_play_black"
+                android:drawableTint="#ffffff"
+                android:gravity="center"
+                android:text="@string/audio_only_play"
+                android:textColor="#ffffff"
+                android:textStyle="italic"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view"
+                tools:visibility="visible" />
+
+        <!-- コメント -->
+        <io.github.takusan23.tatimidroid.CommentCanvas
+                android:id="@+id/comment_fragment_comment_canvas"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="@android:color/transparent"
+                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
+
+        <!-- コントローラー -->
+        <include
+                android:id="@+id/include3"
+                layout="@layout/include_nicolive_player_controller"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
+
+        <!-- アンケ表示用 -->
         <FrameLayout
-                android:id="@+id/live_framelayout"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:elevation="6dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-            <SurfaceView
-                    android:id="@+id/live_surface_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center" />
-
-            <TextView
-                    android:id="@+id/live_audio_only_textview"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:drawableTop="@drawable/ic_tatimidroid_playlist_play_black"
-                    android:drawableTint="#ffffff"
-                    android:gravity="center"
-                    android:text="@string/audio_only_play"
-                    android:textColor="#ffffff"
-                    android:textStyle="italic"
-                    android:visibility="gone" />
-
-            <io.github.takusan23.tatimidroid.CommentCanvas
-                    android:id="@+id/comment_canvas"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@android:color/transparent" />
-
-            <include layout="@layout/include_nicolive_player_controller" />
-
-            <FrameLayout
-                    android:id="@+id/comment_fragment_enquate_framelayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-
-        </FrameLayout>
+                android:id="@+id/comment_fragment_enquate_framelayout"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
 
         <!-- ViewPager -->
         <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:id="@+id/comment_fragment_fab_coordinator"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/live_framelayout">
+                app:layout_constraintTop_toBottomOf="@+id/comment_fragment_surface_view">
 
             <com.google.android.material.appbar.AppBarLayout
                     android:id="@+id/comment_fragment_app_bar"
