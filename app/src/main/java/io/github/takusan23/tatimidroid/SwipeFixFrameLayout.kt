@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.view.children
+import androidx.core.view.isVisible
 
 /**
  * 詳しくは：https://github.com/takusan23/MotionLayoutSwipeFixFrameLayout
@@ -93,11 +94,13 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
             if (isTouchingSwipeTargetView) {
 
                 // swipeTargetViewの上に重ねたViewのクリック判定
-                val blockTouchList = blockViewList.filter { blockView ->
-                    val screenPos = getViewPositionOnScreen(blockView)
-                    // View#rawXとかは画面から見ての座標。View#yは親のViewから見ての座標
-                    return@filter ev.rawX > screenPos.left && ev.rawX < screenPos.right && ev.rawY > screenPos.top && ev.rawY < screenPos.bottom
-                }
+                val blockTouchList = blockViewList
+                    .filter { view -> view.isEnabled && view.isVisible }
+                    .filter { blockView ->
+                        val screenPos = getViewPositionOnScreen(blockView)
+                        // View#rawXとかは画面から見ての座標。View#yは親のViewから見ての座標
+                        return@filter ev.rawX > screenPos.left && ev.rawX < screenPos.right && ev.rawY > screenPos.top && ev.rawY < screenPos.bottom
+                    }
 
                 // クリックさせるなど
                 if (ev.action == MotionEvent.ACTION_UP) {

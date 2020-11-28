@@ -13,9 +13,9 @@ import android.view.SurfaceView
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat
 import androidx.core.view.drawToBitmap
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.Dispatchers
@@ -27,43 +27,63 @@ import kotlin.coroutines.suspendCoroutine
 
 /**
  * 共有画面を出す。Activity Result APIを使った。
- * @param activity Activity Result API (保存先を選んでもらう) で使う
- * @param programId 番組 か 動画 ID
- * @param programName 名前
+ *
+ * インスタンス化する場合は書く場所に注意してください。(ライフサイクル的に見てonCreateの前でインスタンス化しないとだめ？)
+ *
+ * @param fragment Activity Result API を利用するために必要
  * */
-class ContentShare(val activity: AppCompatActivity, val programId: String, val programName: String) {
+class ContentShare(val fragment: Fragment) {
+
+    /** 保存する画像のBitmap */
+    var playerViewBitmap: Bitmap? = null
+
+    /** 共有時につける文字列 */
+    var message: String? = null
+
+    /** 番組ID / 動画ID */
+    var contentId: String? = null
+
+    /** タイトル */
+    var contentName: String? = null
+
+
+    // 保存する。Activity Result APIを使って
+    private val callback = fragment.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data?.data != null) {
+            // 成功時
+            try {
+                //保存する
+                val outputStream = fragment.context?.contentResolver?.openOutputStream(result.data?.data!!)
+                playerViewBitmap?.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                //共有画面出す
+                shareContent(contentId, contentName, result.data?.data!!, message)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     /**
      * 写真付きで共有をする。内部でコルーチンを使ってるから非同期です
      * @param commentCanvas コメントView。ReCommentCanvasでもCommentCanvasでもどうぞ
      * @param playerView ExoPlayerにセットしてるSurfaceView
      * @param message 共有時になにか追加したい場合は入れてね
+     * @param programId 番組 か 動画 ID
+     * @param programName 名前
      * */
-    fun shareContentAttachPicture(playerView: SurfaceView, commentCanvas: View, message: String = "") {
-        activity.lifecycleScope.launch {
+    fun shareContentAttachPicture(playerView: SurfaceView, commentCanvas: View, programId: String?, programName: String?, message: String? = "") {
+        this.message = message
+        this.contentId = programId
+        this.contentName = programName
+        fragment.lifecycleScope.launch {
             // ExoPlayerのViewをキャプチャーする
-            val playerViewBitmap = capturePlayerView(playerView) ?: return@launch
+            playerViewBitmap = capturePlayerView(playerView) ?: return@launch
             // コメントもキャプチャする
             val commentCanvasBitmap = captureCommentView(commentCanvas)
             // Bitmapを重ねる
             //動画とコメントのBitmapを重ねて。。重ねて
-            val canvas = Canvas(playerViewBitmap)
+            val canvas = Canvas(playerViewBitmap!!)
             canvas.drawBitmap(commentCanvasBitmap, 0F, 0F, null)
-            // 保存する。Activity Result APIを使って
-            val callback = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                if (result.resultCode == Activity.RESULT_OK && result.data?.data != null) {
-                    // 成功時
-                    try {
-                        //保存する
-                        val outputStream = activity.contentResolver.openOutputStream(result.data?.data!!)
-                        playerViewBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-                        //共有画面出す
-                        shareContent(result.data?.data!!, message)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
             // SAFを開いて保存先を選んでもらう
             val simpleDateFormat = SimpleDateFormat("HH:mm:ss")
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
@@ -77,9 +97,14 @@ class ContentShare(val activity: AppCompatActivity, val programId: String, val p
      * 共有画面出す。写真なし
      * @param uri 画像を付ける場合はUriを入れてください。
      * @param message タイトル、ID、URL以外に文字列を入れたい場合は指定してください。
+     * @param programId 番組 か 動画 ID
+     * @param programName 名前
      * */
-    fun shareContent(uri: Uri? = null, message: String = "") {
-        val builder = ShareCompat.IntentBuilder.from(activity)
+    fun shareContent(programId: String?, programName: String?, uri: Uri? = null, message: String? = "") {
+        this.message = message
+        this.contentId = programId
+        this.contentName = programName
+        val builder = ShareCompat.IntentBuilder.from(fragment.requireActivity())
         builder.setChooserTitle(programName)
         builder.setText("$programName\n#$programId\nhttps://nico.ms/$programId\n$message")
         if (uri != null) {
@@ -105,7 +130,7 @@ class ContentShare(val activity: AppCompatActivity, val programId: String, val p
                             if (copyResult == PixelCopy.SUCCESS) {
                                 result.resume(bitmap)
                             } else {
-                                Toast.makeText(activity, activity.getString(R.string.bitmap_error), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(fragment.requireContext(), fragment.requireContext().getString(R.string.bitmap_error), Toast.LENGTH_SHORT).show()
                                 result.resume(null)
                             }
                         },

@@ -539,8 +539,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
                 player_control_main?.isVisible = !player_control_main.isVisible
-                // あとなんかMotionLayoutが有効の時はシークバーとかが押せなくなるので表示中は一旦Transition無効化。
-                MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, !player_control_main.isVisible)
                 // ３秒待ってもViewが表示されてる場合は消せるように。
                 updateHideController(job)
             }
@@ -692,8 +690,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             delay(3000)
             if (player_control_main?.isVisible == true) {
                 player_control_main?.isVisible = false
-                // あとなんかMotionLayoutが有効の時はシークバーとかが押せなくなるので表示中は一旦Transition無効化。
-                MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, !player_control_main.isVisible)
             }
         }
     }
@@ -703,17 +699,24 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * @param isMiniPlayerMode 有効にする場合はtrue。通常に戻す場合はfalse
      * */
     private fun setMiniPlayer(isMiniPlayerMode: Boolean) {
-        player_control_video_network.isVisible = !isMiniPlayerMode
-        player_control_popup.isVisible = !isMiniPlayerMode
-        player_control_background.isVisible = !isMiniPlayerMode
-        player_control_repeat.isVisible = !isMiniPlayerMode
-        player_control_fullscreen.isVisible = !isMiniPlayerMode
-        player_control_prev.isVisible = !isMiniPlayerMode
-        player_control_next.isVisible = !isMiniPlayerMode
-        player_control_current.isVisible = !isMiniPlayerMode
-        player_control_seek.isVisible = !isMiniPlayerMode
-        player_control_duration.isVisible = !isMiniPlayerMode
-        player_control_playlist.isVisible = !isMiniPlayerMode && viewModel.isPlayListMode
+        listOf(
+            player_control_video_network,
+            player_control_popup,
+            player_control_background,
+            player_control_repeat,
+            player_control_fullscreen,
+            player_control_prev,
+            player_control_next,
+            player_control_current,
+            player_control_seek,
+            player_control_duration,
+            player_control_playlist,
+        ).forEach { view ->
+            // 三種の神器。これするとMotionLayoutがうまく動く？
+            view.isEnabled = !isMiniPlayerMode
+            view.isClickable = !isMiniPlayerMode
+            view.isVisible = !isMiniPlayerMode
+        }
     }
 
     // Progress表示

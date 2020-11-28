@@ -84,6 +84,17 @@
                 app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
                 app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
 
+        <!-- ニコ生ゲーム用 -->
+        <WebView
+                android:id="@+id/comment_fragment_webview"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_background"
+                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
+
         <!-- ViewPager -->
         <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:id="@+id/comment_fragment_fab_coordinator"

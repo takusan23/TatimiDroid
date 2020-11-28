@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoLive
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -8,7 +9,6 @@ import android.content.pm.ShortcutManager
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.Icon
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -16,7 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -51,6 +51,17 @@ class CommentMenuFragment : Fragment() {
     // CommentFragmentとそれのViewModel
     val commentFragment by lazy { requireParentFragment() as CommentFragment }
     val viewModel by viewModels<NicoLiveViewModel>({ commentFragment })
+
+    // Activity Result API !!!。で権限を取得する
+    private val resultAPIPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGrented ->
+        if (isGrented) {
+            // 付与された
+            commentFragment.startPopupPlay()
+        }
+    }
+
+    /** 共有用 */
+    val contentShare = ContentShare(this)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_comment_menu, container, false)
@@ -159,14 +170,12 @@ class CommentMenuFragment : Fragment() {
         }
         //（画像添付しない）共有
         fragment_comment_fragment_menu_share_button.setOnClickListener {
-            val contentShare = ContentShare(requireActivity() as AppCompatActivity, viewModel.programTitle, liveId)
-            contentShare.shareContent()
+            contentShare.shareContent(liveId, viewModel.programTitle, null, null)
         }
         //画像つき共有
         fragment_comment_fragment_menu_share_image_attach_button.setOnClickListener {
-            val contentShare = ContentShare(requireActivity() as AppCompatActivity, viewModel.programTitle, liveId)
             // 今いる部屋の名前入れる
-            contentShare.shareContentAttachPicture(commentFragment.comment_fragment_surface_view, commentFragment.comment_fragment_comment_canvas)
+            contentShare.shareContentAttachPicture(commentFragment.comment_fragment_surface_view, commentFragment.comment_fragment_comment_canvas, viewModel.programTitle, liveId)
         }
         //生放送を再生ボタン
         fragment_comment_fragment_menu_view_live_button.setOnClickListener {
@@ -179,27 +188,26 @@ class CommentMenuFragment : Fragment() {
             commentFragment.apply {
                 startBackgroundPlay()
                 exoPlayer.stop()
-                live_framelayout.visibility = View.GONE
+                setCommentOnlyMode(!viewModel.isCommentOnlyMode)
             }
         }
 
         //ポップアップ再生。いつか怒られそう（プレ垢限定要素だし）
         fragment_comment_fragment_menu_popup_button.setOnClickListener {
-            commentFragment.apply {
-                if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        !Settings.canDrawOverlays(context)
-                    } else {
-                        false
-                    }
-                ) {
-                    // 上に重ねる権限無いとき。取りに行く
-                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${context?.packageName}"))
-                    startActivity(intent)
+            if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    !Settings.canDrawOverlays(context)
                 } else {
+                    false
+                }
+            ) {
+                // 上に重ねる権限無いとき。取りに行く
+                resultAPIPermission.launch(Manifest.permission.SYSTEM_ALERT_WINDOW)
+            } else {
+                commentFragment.apply {
                     //ポップアップ再生。コメント付き
                     startPopupPlay()
                     exoPlayer.stop()
-                    live_framelayout.visibility = View.GONE
+                    setCommentOnlyMode(!viewModel.isCommentOnlyMode)
                 }
             }
         }

@@ -1,8 +1,6 @@
 package io.github.takusan23.tatimidroid.Tool
 
-import android.content.Context
 import android.graphics.Color
-import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.isVisible
@@ -12,34 +10,28 @@ import androidx.preference.PreferenceManager
  * ニコ生ゲームを遊べるようにする？
  * 公式アプリでできるけどね
  * 注意：ハードウェアアクセラレーションをViewレベルで無効にします。
- * @param isWebViewPlayer コメント表示、生放送再生をWebViewで行います。完全にPC版サイトを表示していることになります。trueの場合は ハードウェアアクセラレーション を利用します
+ *
  * */
-class NicoNamaGameWebView(val context: Context, val liveId: String, val isWebViewPlayer: Boolean = false) {
+object NicoNamaGameWebViewTool {
 
-    // WebView。これにニコ生のPC版サイトを表示させてゲームを遊べるようにする。
-    val webView: WebView = WebView(context)
-    private val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+    /**
+     * ニコ生ゲーム用にWebViewを準備する。
+     * @param webView WebView
+     * @param liveId 生放送ID
+     * @param isWebViewPlayer コメント表示、生放送再生をWebViewで行います。完全にPC版サイトを表示していることになります。trueの場合は ハードウェアアクセラレーション を利用します
+     * */
+    fun init(webView: WebView, liveId: String, isWebViewPlayer: Boolean = false) {
 
-    private var user_session: String
-
-    init {
+        val context = webView.context
+        val pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         // ユーザーセッション
-        user_session = pref_setting.getString("user_session", "") ?: ""
-        // WebViewサイズ
-        webView.apply {
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        }
+        val user_session = pref_setting.getString("user_session", "") ?: ""
+
         // Cookieセットする
         val cookie = android.webkit.CookieManager.getInstance()
         cookie.apply {
             setAcceptCookie(true)
-            setCookie(
-                "https://www.nicovideo.jp/",
-                "user_session=$user_session; Domain=.nicovideo.jp; Path=/;"
-            )
+            setCookie("https://www.nicovideo.jp/", "user_session=$user_session; Domain=.nicovideo.jp; Path=/;")
             setAcceptThirdPartyCookies(webView, true)
         }
         webView.apply {
@@ -103,10 +95,7 @@ class NicoNamaGameWebView(val context: Context, val liveId: String, val isWebVie
                     view?.isVisible = true
                 }
             }
-
             setInitialScale(200)
-
         }
     }
-
 }

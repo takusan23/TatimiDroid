@@ -12,7 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
@@ -62,6 +61,9 @@ class NicoVideoMenuFragment : Fragment() {
 
     // NicoVideoFragmentのViewModelを取得する
     val viewModel: NicoVideoViewModel by viewModels({ requireParentFragment() })
+
+    /** 共有 */
+    val contentShare = ContentShare(this)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_menu, container, false)
@@ -378,7 +380,7 @@ class NicoVideoMenuFragment : Fragment() {
 
 
     // 共有
-    fun initShare() {
+    private fun initShare() {
         // 写真付き共有
         fragment_nicovideo_menu_share_media_attach.setOnClickListener {
             requireNicoVideoFragment().apply {
@@ -386,8 +388,7 @@ class NicoVideoMenuFragment : Fragment() {
                 val currentPos = exoPlayer.currentPosition
                 val currentTime = DateUtils.formatElapsedTime(currentPos)
                 // 共有
-                val share = ContentShare(requireActivity() as AppCompatActivity, videoId, this.viewModel.nicoVideoData.value?.title ?: "")
-                share.shareContentAttachPicture(fragment_nicovideo_surfaceview, fragment_nicovideo_comment_canvas, currentTime)
+                contentShare.shareContentAttachPicture(fragment_nicovideo_surfaceview, fragment_nicovideo_comment_canvas, videoId, this.viewModel.nicoVideoData.value?.title, currentTime)
             }
         }
         // 共有
@@ -397,8 +398,7 @@ class NicoVideoMenuFragment : Fragment() {
                 val currentPos = exoPlayer.currentPosition
                 val currentTime = DateUtils.formatElapsedTime(currentPos)
                 // 共有
-                val share = ContentShare(requireActivity() as AppCompatActivity, videoId, this.viewModel.nicoVideoData.value?.title ?: "")
-                share.shareContent(null, currentTime)
+                contentShare.shareContent(videoId, this.viewModel.nicoVideoData.value?.title, null, currentTime)
             }
         }
     }

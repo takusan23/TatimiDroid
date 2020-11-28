@@ -17,6 +17,7 @@
                 android:id="@+id/comment_fragment_background"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
+                android:clickable="true"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/comment_activity_fragment_layout"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -76,6 +77,27 @@
                 app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
                 app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
 
+        <!-- アンケ用 -->
+        <FrameLayout
+                android:id="@+id/comment_fragment_enquate_framelayout"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
+
+        <!-- ニコ生ゲーム -->
+        <WebView
+                android:id="@+id/comment_fragment_webview"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
 
         <!-- 番組情報 -->
         <LinearLayout

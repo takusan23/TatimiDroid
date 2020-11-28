@@ -1,8 +1,10 @@
 package io.github.takusan23.tatimidroid.NicoLive
 
-import android.content.*
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
-import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
@@ -138,7 +140,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     lateinit var customFont: CustomFont
 
     // ニコ生ゲームようWebView
-    lateinit var nicoNamaGameWebView: NicoNamaGameWebView
+    lateinit var nicoNamaGameWebViewTool: NicoNamaGameWebViewTool
 
     // ニコ生ゲームが有効になっているか
     var isAddedNicoNamaGame = false
@@ -235,11 +237,11 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         //運営コメント、InfoコメントのTextView初期化
         uncomeTextView = TextView(context)
-        live_framelayout.addView(uncomeTextView)
+//        live_framelayout.addView(uncomeTextView)
         uncomeTextView.visibility = View.GONE
         //infoコメント
         infoTextView = TextView(context)
-        live_framelayout.addView(infoTextView)
+//        live_framelayout.addView(infoTextView)
         infoTextView.visibility = View.GONE
 
         fab.setOnClickListener {
@@ -430,10 +432,10 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         exoPlayer.stop()
         if (isCommentOnly) {
             MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, false)
-            MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.live_framelayout, View.GONE)
+            MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_surface_view, View.GONE)
         } else {
             MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, true)
-            MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.live_framelayout, View.VISIBLE)
+            MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_surface_view, View.VISIBLE)
             setPlayVideoView()
         }
     }
@@ -454,6 +456,19 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         val job = Job()
         // 最小化するとかしないとか
         player_nicolive_control_back_button.isVisible = true
+        player_nicolive_control_back_button.setOnClickListener {
+            when {
+                viewModel.isFullScreenMode -> {
+                    setCloseFullScreen()
+                }
+                comment_fragment_motionlayout.currentState == R.id.comment_fragment_transition_start -> {
+                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
+                }
+                else -> {
+                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_start)
+                }
+            }
+        }
         // 番組情報
         player_nicolive_control_title.text = programTitle
         // Marqueeを有効にするにはフォーカスをあてないといけない？。<marquee>とかWeb黎明期感ある（その時代の人じゃないけど）
@@ -490,7 +505,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         comment_fragment_motionlayout_parent_framelayout.apply {
             allowIdList.add(R.id.comment_fragment_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
             allowIdList.add(R.id.comment_fragment_transition_fullscreen) // フルスクリーン時もクリックが行かないように
-            swipeTargetView = live_framelayout
+            swipeTargetView = comment_fragment_surface_view
             motionLayout = comment_fragment_motionlayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
@@ -510,22 +525,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     if (!isVisible) {
                         onSwipeTargetViewClickFunc?.invoke()
                     } else {
-                        when (view?.id) {
-                            // なんか最小化ボタンはsetOnClickListener使えなかったので
-                            player_nicolive_control_back_button.id -> {
-                                when {
-                                    viewModel.isFullScreenMode -> {
-                                        setCloseFullScreen()
-                                    }
-                                    comment_fragment_motionlayout.currentState == R.id.comment_fragment_transition_start -> {
-                                        comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
-                                    }
-                                    else -> {
-                                        comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_start)
-                                    }
-                                }
-                            }
-                        }
+                        //
                     }
                 }
             }
@@ -560,11 +560,18 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * ミニプレイヤー用UIを有効/無効にする関数
      * @param isMiniPlayerMode 有効にする場合はtrue。通常に戻す場合はfalse
      * */
-    fun setMiniPlayer(isMiniPlayerMode: Boolean) {
-        player_nicolive_control_video_network.isVisible = !isMiniPlayerMode
-        player_nicolive_control_popup.isVisible = !isMiniPlayerMode
-        player_nicolive_control_background.isVisible = !isMiniPlayerMode
-        player_nicolive_control_fullscreen.isVisible = !isMiniPlayerMode
+    private fun setMiniPlayer(isMiniPlayerMode: Boolean) {
+        listOf(
+            player_nicolive_control_video_network,
+            player_nicolive_control_popup,
+            player_nicolive_control_background,
+            player_nicolive_control_fullscreen,
+        ).forEach { view ->
+            // 三種の神器。これするとMotionLayoutがうまく動く？
+            view.isEnabled = !isMiniPlayerMode
+            view.isClickable = !isMiniPlayerMode
+            view.isVisible = !isMiniPlayerMode
+        }
     }
 
     /** コントローラーを消すためのコルーチン。 */
@@ -826,31 +833,22 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
     }
 
-    // ニコ生ゲーム有効
+    /**
+     * 予め置いておいたWebViewでニコ生を再生してゲームを遊ぶ。
+     * @param isWebViewPlayer 生放送再生もWebViewでやる場合はtrue
+     * */
     fun setNicoNamaGame(isWebViewPlayer: Boolean = false) {
-        // WebViewのためにFrameLayout広げるけど動画とコメントCanvasはサイズそのまま
-        surfaceViewLayoutParams.apply {
-            comment_fragment_surface_view.layoutParams = this
-            comment_fragment_comment_canvas.layoutParams = this
-        }
-        // WebViewように少し広げる
-        val frameLayoutParams = live_framelayout.layoutParams
-        frameLayoutParams.height += 140
-        live_framelayout.layoutParams = frameLayoutParams
-        // ニコ生WebView
-        nicoNamaGameWebView = NicoNamaGameWebView(requireContext(), liveId, isWebViewPlayer)
-        live_framelayout.addView(nicoNamaGameWebView.webView)
+        comment_fragment_webview.isVisible = true
+        NicoNamaGameWebViewTool.init(comment_fragment_webview, liveId, isWebViewPlayer)
         isAddedNicoNamaGame = true
     }
 
-    // ニコ生ゲーム削除
+    /**
+     * ニコ生ゲームをやめる。
+     * */
     fun removeNicoNamaGame() {
-        live_framelayout.removeView(nicoNamaGameWebView.webView)
-        // FrameLayout戻す
-        live_framelayout.layoutParams.apply {
-            height = surfaceViewLayoutParams.height
-            width = surfaceViewLayoutParams.width
-        }
+        comment_fragment_webview.isVisible = false
+        comment_fragment_webview.loadUrl("about:blank")
         isAddedNicoNamaGame = false
     }
 
@@ -962,12 +960,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     }
                 }
             })
-
-            // 16:9のLayoutParams
-            val height = live_framelayout.layoutParams.height
-            val width = live_framelayout.layoutParams.width
-            surfaceViewLayoutParams = FrameLayout.LayoutParams(width, height)
-
         }
     }
 
@@ -984,17 +976,17 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
             comment_fragment_motionlayout?.apply {
                 getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
-                    constrainHeight(R.id.live_framelayout, playerHeight.toInt())
-                    constrainWidth(R.id.live_framelayout, playerWidth)
+                    constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt())
+                    constrainWidth(R.id.comment_fragment_surface_view, playerWidth)
                 }
                 // ミニプレイヤー時
                 getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
-                    constrainHeight(R.id.live_framelayout, (playerHeight / 1.5).toInt())
-                    constrainWidth(R.id.live_framelayout, (playerWidth / 1.5).toInt())
+                    constrainHeight(R.id.comment_fragment_surface_view, (playerHeight / 1.5).toInt())
+                    constrainWidth(R.id.comment_fragment_surface_view, (playerWidth / 1.5).toInt())
                 }
                 getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
-                    constrainHeight(R.id.live_framelayout, (playerHeight / 1.5).toInt())
-                    constrainWidth(R.id.live_framelayout, (playerWidth / 1.5).toInt())
+                    constrainHeight(R.id.comment_fragment_surface_view, (playerHeight / 1.5).toInt())
+                    constrainWidth(R.id.comment_fragment_surface_view, (playerWidth / 1.5).toInt())
                 }
             }
         } else {
@@ -1004,17 +996,17 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
             comment_fragment_motionlayout?.apply {
                 getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
-                    constrainHeight(R.id.live_framelayout, playerHeight.toInt())
-                    constrainWidth(R.id.live_framelayout, playerWidth)
+                    constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt())
+                    constrainWidth(R.id.comment_fragment_surface_view, playerWidth)
                 }
                 // ミニプレイヤー時
                 getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
-                    constrainHeight(R.id.live_framelayout, playerHeight.toInt() / 2)
-                    constrainWidth(R.id.live_framelayout, playerWidth / 2)
+                    constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt() / 2)
+                    constrainWidth(R.id.comment_fragment_surface_view, playerWidth / 2)
                 }
                 getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
-                    constrainHeight(R.id.live_framelayout, playerHeight.toInt() / 2)
-                    constrainWidth(R.id.live_framelayout, playerWidth / 2)
+                    constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt() / 2)
+                    constrainWidth(R.id.comment_fragment_surface_view, playerWidth / 2)
                 }
             }
         }
@@ -1085,24 +1077,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         Toast.makeText(context, "${getString(R.string.copy_communityid)} : ${viewModel.communityId}", Toast.LENGTH_SHORT).show()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        //println(requestCode)
-        when (requestCode) {
-            114 -> {
-                if (resultCode == PackageManager.PERMISSION_GRANTED) {
-                    //権限ゲット！YATTA!
-                    //ポップアップ再生
-                    startPopupPlay()
-                    Toast.makeText(context, "権限を取得しました。", Toast.LENGTH_SHORT).show()
-                } else {
-                    //何もできない。
-                    Toast.makeText(context, "権限取得に失敗しました。", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
     private fun destroyCode() {
         // 止める
         exoPlayer.release()
@@ -1149,7 +1123,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         super.onStart()
         //再生部分を作り直す
         if (viewModel.hlsAddress.value?.isNotEmpty() == true && !viewModel.isCommentOnlyMode) {
-            live_framelayout.visibility = View.VISIBLE
             setPlayVideoView()
         }
     }
@@ -1183,7 +1156,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     // アンケ画面消す
                     comment_fragment_enquate_framelayout.removeAllViews()
                     // SnackBar
-                    Snackbar.make(live_framelayout, "${getString(R.string.enquate)}：${jsonArray[i]}", Snackbar.LENGTH_SHORT).apply {
+                    Snackbar.make(comment_fragment_surface_view, "${getString(R.string.enquate)}：${jsonArray[i]}", Snackbar.LENGTH_SHORT).apply {
                         anchorView = getSnackbarAnchorView()
                         show()
                     }
@@ -1253,7 +1226,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 shareText += "$question : ${enquatePerText(result)}\n"
             }
             //アンケ結果を共有
-            Snackbar.make(live_framelayout, getString(R.string.enquate_result), Snackbar.LENGTH_SHORT).apply {
+            Snackbar.make(comment_fragment_surface_view, getString(R.string.enquate_result), Snackbar.LENGTH_SHORT).apply {
                 anchorView = getSnackbarAnchorView()
                 setAction(getString(R.string.share)) {
                     //共有する

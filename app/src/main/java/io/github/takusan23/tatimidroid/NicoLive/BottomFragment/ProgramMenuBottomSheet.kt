@@ -10,7 +10,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -51,6 +50,9 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
     private var liveId = ""
     private var userSession = ""
+
+    // 共有
+    private val contentShare = ContentShare(this)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.bottom_fragment_program_menu, container, false)
@@ -266,8 +268,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
     private fun initShareButton() {
         bottom_fragment_program_info_share.setOnClickListener {
-            val contentShare = ContentShare(requireActivity() as AppCompatActivity, nicoLiveHTML.programTitle, liveId)
-            contentShare.shareContent()
+            contentShare.shareContent(liveId,nicoLiveHTML.programTitle,null)
         }
     }
 
