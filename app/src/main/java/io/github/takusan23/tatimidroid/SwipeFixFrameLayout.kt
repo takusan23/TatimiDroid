@@ -129,6 +129,7 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
                         }, onSwipeTargetViewClickFuncDelayMs)
                     }
                 }
+
                 // 指定したViewを動かしている場合は渡す
                 return super.onInterceptTouchEvent(ev)
             } else if (allowIdList.contains(motionLayout!!.currentState)) {

@@ -75,6 +75,20 @@
                 app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
                 app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
                 app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background" />
+        <Constraint
+                android:id="@+id/fragment_nicovideo_control_include"
+                app:layout_constraintBottom_toBottomOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintEnd_toEndOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintStart_toStartOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintTop_toTopOf="@id/fragment_nicovideo_surfaceview" />
+        <Constraint
+                android:id="@+id/fragment_nicovideo_comment_canvas"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintEnd_toEndOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintStart_toStartOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintTop_toTopOf="@id/fragment_nicovideo_surfaceview" />
     </ConstraintSet>
 
     <!-- フルスクリーン時のConstraintLayout -->
@@ -95,6 +109,14 @@
                 app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
                 app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background" />
         <Constraint
+                android:id="@+id/fragment_nicovideo_background"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
                 android:id="@+id/fragment_nicovideo_comment_canvas"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -102,26 +124,32 @@
                 app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surfaceview"
                 app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surfaceview"
                 app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surfaceview" />
+        <Constraint
+                android:id="@+id/fragment_nicovideo_control_include"
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_editor_absoluteY="106dp" />
     </ConstraintSet>
 
     <!-- 終了モーション -->
     <ConstraintSet android:id="@+id/fragment_nicovideo_transition_finish">
         <Constraint
                 android:id="@+id/fragment_nicovideo_background"
-                android:layout_width="360dp"
+                android:layout_width="320dp"
                 android:layout_height="180dp"
-                android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="parent"
-                app:layout_constraintHorizontal_chainStyle="packed" />
+                android:layout_marginEnd="8dp" />
         <Constraint
                 android:id="@+id/fragment_nicovideo_viewpager_parent"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_background"
-                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
-                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background" />
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surfaceview" />
         <Constraint
                 android:id="@+id/fragment_nicovideo_surfaceview"
                 android:layout_width="0dp"
@@ -130,6 +158,20 @@
                 app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
                 app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
                 app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background" />
+        <Constraint
+                android:id="@+id/fragment_nicovideo_control_include"
+                app:layout_constraintBottom_toBottomOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintEnd_toEndOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintStart_toStartOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintTop_toTopOf="@id/fragment_nicovideo_surfaceview" />
+        <Constraint
+                android:id="@+id/fragment_nicovideo_comment_canvas"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintEnd_toEndOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintStart_toStartOf="@id/fragment_nicovideo_surfaceview"
+                app:layout_constraintTop_toTopOf="@id/fragment_nicovideo_surfaceview" />
     </ConstraintSet>
 
     <!-- ミニプレイヤーへの遷移 -->

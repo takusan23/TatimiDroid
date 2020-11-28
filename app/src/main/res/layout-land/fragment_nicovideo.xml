@@ -20,56 +20,33 @@
                 android:id="@+id/fragment_nicovideo_background"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:clickable="true"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/fragment_nicovideo_viewpager_parent"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintHorizontal_chainStyle="packed"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:clickable="true" />
 
         <!-- 映像 -->
         <SurfaceView
                 android:id="@+id/fragment_nicovideo_surfaceview"
                 android:layout_width="0dp"
                 android:layout_height="250dp"
-                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_background"
-                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
-                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_background"
-                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_background" />
+                tools:layout_editor_absoluteX="266dp"
+                tools:layout_editor_absoluteY="106dp" />
 
         <!-- コメント描画 -->
         <io.github.takusan23.tatimidroid.ReCommentCanvas
                 android:id="@+id/fragment_nicovideo_comment_canvas"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_background"
-                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surfaceview" />
+                tools:layout_editor_absoluteX="466dp" />
 
         <!-- コントローラー -->
         <include
                 android:id="@+id/fragment_nicovideo_control_include"
-                layout="@layout/include_nicovideo_player_controller"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surfaceview" />
+                layout="@layout/include_nicovideo_player_controller" />
 
         <!-- ViewPagerなど -->
         <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:id="@+id/fragment_nicovideo_viewpager_parent"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_background"
-                app:layout_constraintTop_toTopOf="parent">
+                android:layout_height="match_parent">
 
             <com.google.android.material.appbar.AppBarLayout
                     android:layout_width="match_parent"
