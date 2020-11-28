@@ -52,8 +52,8 @@
             app:constraintSetStart="@+id/comment_fragment_transition_start">
         <OnSwipe
                 app:dragDirection="dragDown"
-                app:touchAnchorId="@+id/comment_fragment_surface_view"
-                app:touchRegionId="@+id/comment_fragment_surface_view" />
+                app:touchAnchorId="@+id/comment_fragment_control_include"
+                app:touchRegionId="@+id/comment_fragment_control_include" />
     </Transition>
 
     <!-- 終了遷移 -->
@@ -62,8 +62,8 @@
             app:constraintSetStart="@+id/comment_fragment_transition_end">
         <OnSwipe
                 app:dragDirection="dragLeft"
-                app:touchAnchorId="@+id/comment_fragment_surface_view"
-                app:touchRegionId="@+id/comment_fragment_surface_view" />
+                app:touchAnchorId="@+id/comment_fragment_control_include"
+                app:touchRegionId="@+id/comment_fragment_control_include" />
     </Transition>
 
 </MotionScene>

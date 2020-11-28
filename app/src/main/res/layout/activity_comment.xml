@@ -65,7 +65,7 @@
 
         <!-- コントローラー -->
         <include
-                android:id="@+id/include3"
+                android:id="@+id/comment_fragment_control_include"
                 layout="@layout/include_nicolive_player_controller"
                 android:layout_width="0dp"
                 android:layout_height="0dp"

@@ -534,7 +534,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         fragment_nicovideo_motionlayout_parent_framelayout.apply {
             allowIdList.add(R.id.fragment_nicovideo_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
             allowIdList.add(R.id.fragment_nicovideo_transition_fullscreen) // フルスクリーン時もクリックが行かないように
-            swipeTargetView = fragment_nicovideo_surfaceview
+            swipeTargetView = fragment_nicovideo_control_include
             motionLayout = fragment_nicovideo_motionlayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = {
@@ -710,13 +710,13 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             player_control_current,
             player_control_seek,
             player_control_duration,
-            player_control_playlist,
         ).forEach { view ->
-            // 三種の神器。これするとMotionLayoutがうまく動く？
-            view.isEnabled = !isMiniPlayerMode
-            view.isClickable = !isMiniPlayerMode
+            // 一応3つ書いとく
             view.isVisible = !isMiniPlayerMode
+            view.isClickable = !isMiniPlayerMode
+            view.isEnabled = !isMiniPlayerMode
         }
+        player_control_playlist.isVisible = !isMiniPlayerMode && viewModel.isPlayListMode
     }
 
     // Progress表示

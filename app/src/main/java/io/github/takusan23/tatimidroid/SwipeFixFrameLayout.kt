@@ -132,6 +132,7 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
                 // 指定したViewを動かしている場合は渡す
                 return super.onInterceptTouchEvent(ev)
             } else if (allowIdList.contains(motionLayout!!.currentState)) {
+/*
                 // タッチイベントを渡すことが許可されているIDなら渡す
                 if (!isTouchingSwipeTargetView) {
                     // swipeTargetId以外ではMotionLayout動かさない。のでTransitionを無効にする
@@ -139,8 +140,7 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
                         transition.setEnable(false)
                     }
                 }
-
-
+*/
                 return super.onInterceptTouchEvent(ev)
             } else if (motionLayout!!.progress != 0f && motionLayout!!.progress != 1f) {
                 // もしMotionLayout進行中なら

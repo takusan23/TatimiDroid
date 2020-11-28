@@ -5,6 +5,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+    <!-- こっちに制約（app:layout_constraintBottomなんとか～）みたいなのは書かなくていいらしい。 -->
+    <!-- Sceneの方に制約を書く（初期状態含め） -->
     <androidx.constraintlayout.motion.widget.MotionLayout
             android:id="@+id/fragment_nicovideo_motionlayout"
             android:layout_width="match_parent"
@@ -45,7 +47,7 @@
 
         <!-- コントローラーのレイアウトを読み込む -->
         <include
-                android:id="@+id/include2"
+                android:id="@+id/fragment_nicovideo_control_include"
                 layout="@layout/include_nicovideo_player_controller"
                 android:layout_width="0dp"
                 android:layout_height="0dp"

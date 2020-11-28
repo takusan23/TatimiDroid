@@ -6,6 +6,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+    <!-- こっちに制約（app:layout_constraintBottomなんとか～）みたいなのは書かなくていいらしい。 -->
+    <!-- Sceneの方に制約を書く（初期状態含め） -->
     <androidx.constraintlayout.motion.widget.MotionLayout
             android:id="@+id/fragment_nicovideo_motionlayout"
             android:layout_width="match_parent"
@@ -13,7 +15,7 @@
             android:orientation="horizontal"
             app:layoutDescription="@xml/fragment_nicovideo_land_scene">
 
-        <!-- 背景。アスペクト比を合わせるとどうしても空間ができるので埋める。プレイヤーはこのFrameLayoutと同じ大きさになるように制約を書いたので、こいつのサイズ変更だけでいい -->
+        <!-- 背景。アスペクト比を合わせるとどうしても空間ができるので埋める -->
         <FrameLayout
                 android:id="@+id/fragment_nicovideo_background"
                 android:layout_width="0dp"
@@ -24,9 +26,7 @@
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-        </FrameLayout>
+                app:layout_constraintTop_toTopOf="parent" />
 
         <!-- 映像 -->
         <SurfaceView
@@ -50,7 +50,7 @@
 
         <!-- コントローラー -->
         <include
-                android:id="@+id/include2"
+                android:id="@+id/fragment_nicovideo_control_include"
                 layout="@layout/include_nicovideo_player_controller"
                 android:layout_width="0dp"
                 android:layout_height="0dp"

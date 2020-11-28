@@ -52,7 +52,7 @@ dependencies {
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     // MotionLayout
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.0-alpha1'
     // MediaSession
     implementation "androidx.media:media:1.2.0"
     //GoogleCast
