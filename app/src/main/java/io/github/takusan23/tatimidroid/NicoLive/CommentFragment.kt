@@ -143,9 +143,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     // ニコ生ゲームが有効になっているか
     var isAddedNicoNamaGame = false
 
-    // SurfaceView(ExoPlayer) + CommentCanvasのLayoutParams
-    lateinit var surfaceViewLayoutParams: FrameLayout.LayoutParams
-
     // スワイプで画面切り替えるやつ
     lateinit var nicoLivePagerAdapter: NicoLivePagerAdapter
 
@@ -521,13 +518,11 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             addAllIsClickableViewFromParentView(player_nicolive_control_main)
             // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
             onBlockViewClickFunc = { view, event ->
-                player_nicolive_control_main?.apply {
-                    // UI非表示なら表示
-                    if (!isVisible) {
-                        onSwipeTargetViewClickFunc?.invoke(null)
-                    } else {
-                        //
-                    }
+                // UI非表示なら表示
+                if (!player_nicolive_control_main.isVisible) {
+                    onSwipeTargetViewClickFunc?.invoke(null)
+                } else {
+                    //
                 }
             }
         }
@@ -840,6 +835,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     fun setNicoNamaGame(isWebViewPlayer: Boolean = false) {
         MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_webview, View.VISIBLE)
+        MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, false)
         NicoNamaGameWebViewTool.init(comment_fragment_webview, liveId, isWebViewPlayer)
         isAddedNicoNamaGame = true
     }
@@ -849,6 +845,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     fun removeNicoNamaGame() {
         MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_webview, View.GONE)
+        MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, true)
         comment_fragment_webview.loadUrl("about:blank")
         isAddedNicoNamaGame = false
     }
@@ -1132,6 +1129,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun setEnquetePOSTLayout(message: String, type: String) {
         enquateView = layoutInflater.inflate(R.layout.bottom_fragment_enquate_layout, null, false)
         if (type.contains("start")) {
+            // アンケ中はMotionLayoutのTransitionを一時的に無効化
+            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, false)
             //アンケ開始
             comment_fragment_enquate_framelayout?.removeAllViews()
             comment_fragment_enquate_framelayout?.addView(enquateView)
@@ -1184,7 +1183,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 }
             }
         } else if (enquateJSONArray.isNotEmpty()) {
-            //println(enquateJSONArray)
+            // 結果出たらMotionLayoutのTransitionを一時的に有効に戻す
+            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, true)
             //アンケ結果
             comment_fragment_enquate_framelayout?.removeAllViews()
             comment_fragment_enquate_framelayout?.addView(enquateView)

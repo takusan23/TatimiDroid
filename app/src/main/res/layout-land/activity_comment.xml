@@ -49,32 +49,29 @@
                 android:background="@android:color/transparent"
                 android:elevation="5dp" />
 
-        <FrameLayout
+        <!-- コントローラー -->
+        <include
                 android:id="@+id/comment_fragment_control"
+                layout="@layout/include_nicolive_player_controller"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:elevation="5dp">
+                android:background="@android:color/transparent"
+                android:elevation="5dp" />
 
-            <!-- コントローラー -->
-            <include
-                    layout="@layout/include_nicolive_player_controller"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@android:color/transparent" />
+        <!-- アンケ用 -->
+        <FrameLayout
+                android:id="@+id/comment_fragment_enquate_framelayout"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:elevation="5dp" />
 
-            <!-- アンケ用 -->
-            <FrameLayout
-                    android:id="@+id/comment_fragment_enquate_framelayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-
-            <!-- ニコ生ゲーム -->
-            <WebView
-                    android:id="@+id/comment_fragment_webview"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:visibility="gone" />
-        </FrameLayout>
+        <!-- ニコ生ゲーム -->
+        <WebView
+                android:id="@+id/comment_fragment_webview"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:elevation="5dp"
+                android:visibility="gone" />
 
         <!-- 番組情報 -->
         <LinearLayout
