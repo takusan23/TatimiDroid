@@ -16,14 +16,15 @@
         <View
                 android:id="@+id/comment_fragment_background"
                 android:layout_width="0dp"
-                android:layout_height="0dp" />
+                android:layout_height="0dp"
+                android:elevation="5dp" />
 
         <!-- 映像 -->
         <SurfaceView
                 android:id="@+id/comment_fragment_surface_view"
                 android:layout_width="0dp"
                 android:layout_height="250dp"
-                tools:layout_editor_absoluteY="81dp" />
+                android:elevation="5dp" />
 
         <!-- 音声のみ -->
         <TextView
@@ -38,7 +39,6 @@
                 android:textColor="#ffffff"
                 android:textStyle="italic"
                 android:visibility="gone"
-                tools:layout_editor_absoluteX="211dp"
                 tools:visibility="visible" />
 
         <!-- コメント描画 -->
@@ -46,30 +46,35 @@
                 android:id="@+id/comment_fragment_comment_canvas"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:background="@android:color/transparent" />
-
-        <!-- コントローラー -->
-        <include
-                android:id="@+id/comment_fragment_control_include"
-                layout="@layout/include_nicolive_player_controller"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
                 android:background="@android:color/transparent"
-                tools:layout_editor_absoluteY="83dp" />
+                android:elevation="5dp" />
 
-        <!-- アンケ用 -->
         <FrameLayout
-                android:id="@+id/comment_fragment_enquate_framelayout"
+                android:id="@+id/comment_fragment_control"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:visibility="gone" />
+                android:elevation="5dp">
 
-        <!-- ニコ生ゲーム -->
-        <WebView
-                android:id="@+id/comment_fragment_webview"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:visibility="gone" />
+            <!-- コントローラー -->
+            <include
+                    layout="@layout/include_nicolive_player_controller"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent" />
+
+            <!-- アンケ用 -->
+            <FrameLayout
+                    android:id="@+id/comment_fragment_enquate_framelayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            <!-- ニコ生ゲーム -->
+            <WebView
+                    android:id="@+id/comment_fragment_webview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone" />
+        </FrameLayout>
 
         <!-- 番組情報 -->
         <LinearLayout
@@ -77,6 +82,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
+                android:elevation="5dp"
                 android:orientation="horizontal">
 
             <LinearLayout

@@ -564,7 +564,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 player_control_main?.apply {
                     // UI非表示なら表示
                     if (!isVisible) {
-                        onSwipeTargetViewClickFunc?.invoke()
+                        onSwipeTargetViewClickFunc?.invoke(null)
                     } else {
                         //view?.performClick()
                     }

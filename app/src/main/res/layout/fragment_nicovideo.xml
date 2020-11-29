@@ -15,12 +15,13 @@
             app:layoutDescription="@xml/fragment_nicovideo_scene">
 
         <!-- 背景。アスペクト比を合わせるとどうしても空間ができるので埋める。-->
-        <FrameLayout
+        <View
                 android:id="@+id/fragment_nicovideo_background"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_gravity="center"
                 android:clickable="true"
+                android:elevation="5dp"
                 app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -31,6 +32,7 @@
                 android:id="@+id/fragment_nicovideo_surfaceview"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
+                android:elevation="5dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -40,6 +42,7 @@
                 android:id="@+id/fragment_nicovideo_comment_canvas"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
+                android:elevation="5dp"
                 app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
                 app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surfaceview"
                 app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surfaceview"

@@ -52,7 +52,7 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
      *
      * 注意：ほんのちょっとだけ遅延させてから高階関数を呼んでいます。理由はこの上（子のView）のクリックイベントがうまく処理できないため。
      * */
-    var onSwipeTargetViewClickFunc: (() -> Unit)? = null
+    var onSwipeTargetViewClickFunc: ((event: MotionEvent?) -> Unit)? = null
 
     /** [onSwipeTargetViewClickFunc]を呼ぶまでどれぐらい遅延させるか。 */
     var onSwipeTargetViewClickFuncDelayMs = 100L
@@ -125,7 +125,7 @@ class SwipeFixFrameLayout(context: Context, attributeSet: AttributeSet? = null) 
                                 lastTouchTime = System.currentTimeMillis()
                             }
                             // 普通のクリック
-                            onSwipeTargetViewClickFunc?.invoke()
+                            onSwipeTargetViewClickFunc?.invoke(ev)
                         }, onSwipeTargetViewClickFuncDelayMs)
                     }
                 }

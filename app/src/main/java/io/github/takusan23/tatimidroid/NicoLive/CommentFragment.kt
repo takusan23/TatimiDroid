@@ -58,6 +58,7 @@ import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFacto
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
+import kotlinx.android.synthetic.main.activity_comment.view.*
 import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
 import kotlinx.android.synthetic.main.comment_card_layout.*
 import kotlinx.android.synthetic.main.include_nicolive_player_controller.*
@@ -138,9 +139,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     // フォント変更機能
     lateinit var customFont: CustomFont
-
-    // ニコ生ゲームようWebView
-    lateinit var nicoNamaGameWebViewTool: NicoNamaGameWebViewTool
 
     // ニコ生ゲームが有効になっているか
     var isAddedNicoNamaGame = false
@@ -257,6 +255,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // ステータスバー透明化＋タイトルバー非表示＋ノッチ領域にも侵略。関数名にAndがつくことはあんまりない
         hideStatusBarAndSetFullScreen()
+        // なんかxmlが効かないので
+        MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_audio_only_textview, View.GONE)
 
         // ログイン情報がなければ終了
         if (prefSetting.getString("mail", "")?.contains("") != false) {
@@ -501,14 +501,15 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 showToast(InternetConnectionCheck.createNetworkMessage(requireContext()))
             }
         }
+
         // MotionLayout関係
         comment_fragment_motionlayout_parent_framelayout.apply {
             allowIdList.add(R.id.comment_fragment_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
             allowIdList.add(R.id.comment_fragment_transition_fullscreen) // フルスクリーン時もクリックが行かないように
-            swipeTargetView = comment_fragment_surface_view
+            swipeTargetView = comment_fragment_control
             motionLayout = comment_fragment_motionlayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
-            onSwipeTargetViewClickFunc = {
+            onSwipeTargetViewClickFunc = { event ->
                 player_nicolive_control_main?.isVisible = !player_nicolive_control_main.isVisible
                 // フルスクリーン時はFabも消す
                 if (viewModel.isFullScreenMode) {
@@ -523,7 +524,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 player_nicolive_control_main?.apply {
                     // UI非表示なら表示
                     if (!isVisible) {
-                        onSwipeTargetViewClickFunc?.invoke()
+                        onSwipeTargetViewClickFunc?.invoke(null)
                     } else {
                         //
                     }
@@ -838,7 +839,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * @param isWebViewPlayer 生放送再生もWebViewでやる場合はtrue
      * */
     fun setNicoNamaGame(isWebViewPlayer: Boolean = false) {
-        comment_fragment_webview.isVisible = true
+        MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_webview, View.VISIBLE)
         NicoNamaGameWebViewTool.init(comment_fragment_webview, liveId, isWebViewPlayer)
         isAddedNicoNamaGame = true
     }
@@ -847,7 +848,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * ニコ生ゲームをやめる。
      * */
     fun removeNicoNamaGame() {
-        comment_fragment_webview.isVisible = false
+        MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_webview, View.GONE)
         comment_fragment_webview.loadUrl("about:blank")
         isAddedNicoNamaGame = false
     }

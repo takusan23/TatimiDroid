@@ -13,11 +13,12 @@
             app:layoutDescription="@xml/fragment_comment_scene">
 
         <!-- 背景 -->
-        <FrameLayout
+        <View
                 android:id="@+id/comment_fragment_background"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:clickable="true"
+                android:elevation="5dp"
                 app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
                 app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
                 app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
@@ -29,6 +30,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_gravity="center"
+                android:elevation="5dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -58,42 +60,51 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:background="@android:color/transparent"
+                android:elevation="5dp"
                 app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
                 app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
                 app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
                 app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
 
         <!-- コントローラー -->
-        <include
-                android:id="@+id/comment_fragment_control_include"
-                layout="@layout/include_nicolive_player_controller"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
-                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
-                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
-                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
-
-        <!-- アンケ表示用 -->
         <FrameLayout
-                android:id="@+id/comment_fragment_enquate_framelayout"
+                android:id="@+id/comment_fragment_control"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
-                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
-                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
-                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
+                android:elevation="5dp"
+                tools:layout_editor_absoluteX="83dp">
 
-        <!-- ニコ生ゲーム用 -->
-        <WebView
-                android:id="@+id/comment_fragment_webview"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_background"
-                app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
-                app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
-                app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
+            <include
+                    layout="@layout/include_nicolive_player_controller"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
+                    app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                    app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                    app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
+
+            <!-- アンケ表示用 -->
+            <FrameLayout
+                    android:id="@+id/comment_fragment_enquate_framelayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_surface_view"
+                    app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                    app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                    app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
+
+            <!-- ニコ生ゲーム用 -->
+            <WebView
+                    android:id="@+id/comment_fragment_webview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="@+id/comment_fragment_background"
+                    app:layout_constraintEnd_toEndOf="@+id/comment_fragment_surface_view"
+                    app:layout_constraintStart_toStartOf="@+id/comment_fragment_surface_view"
+                    app:layout_constraintTop_toTopOf="@+id/comment_fragment_surface_view" />
+        </FrameLayout>
+
 
         <!-- ViewPager -->
         <androidx.coordinatorlayout.widget.CoordinatorLayout
