@@ -87,7 +87,7 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
     /** コメント配列 */
     val commentList = arrayListOf<CommentJSONParse>()
 
-    /** 運営コメントを渡すLiveData。[CommentJSONParse]に変換可能なJSON文字列 か clear って文字が入るはず */
+    /** 運営コメントを渡すLiveData。 */
     val unneiCommentLiveData = MutableLiveData<String>()
 
     /** アンケートがあったら表示するLiveData。 */

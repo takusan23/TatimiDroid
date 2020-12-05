@@ -121,6 +121,14 @@
                             android:text="@string/hide_info_perm" />
 
                     <Switch
+                            android:id="@+id/fragment_comment_fragment_menu_hide_emotion_switch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:padding="5sp"
+                            android:text="コメント一覧でエモーションを表示しない" />
+
+                    <Switch
                             android:id="@+id/fragment_comment_fragment_menu_iyayo_comment_switch"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

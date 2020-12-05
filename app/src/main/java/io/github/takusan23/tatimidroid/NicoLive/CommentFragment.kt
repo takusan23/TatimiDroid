@@ -16,17 +16,18 @@ import android.os.Looper
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
-import android.text.util.Linkify
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.EditorInfo
-import android.widget.*
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
-import androidx.core.text.HtmlCompat
 import androidx.core.view.children
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -116,12 +117,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     // アンケートView
     lateinit var enquateView: View
 
-    // 運営コメント
-    lateinit var uncomeTextView: TextView
-
-    // 下のコメント（広告貢献、ランクイン等）
-    lateinit var infoTextView: TextView
-
     // 運コメ・infoコメント非表示
     var hideInfoUnnkome = false
 
@@ -192,6 +187,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // ViewPager
         initViewPager()
 
+        // アスペクト比なおす
+        aspectRatioFix()
+
         // センサーによる画面回転
         if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
             RotationSensor(commentActivity, lifecycle)
@@ -229,15 +227,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         if (isNimadoMode) {
             MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, false)
         }
-
-        //運営コメント、InfoコメントのTextView初期化
-        uncomeTextView = TextView(context)
-//        live_framelayout.addView(uncomeTextView)
-        uncomeTextView.visibility = View.GONE
-        //infoコメント
-        infoTextView = TextView(context)
-//        live_framelayout.addView(infoTextView)
-        infoTextView.visibility = View.GONE
 
         fab.setOnClickListener {
             //表示アニメーションに挑戦した。
@@ -342,11 +331,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // うんこめ
         viewModel.unneiCommentLiveData.observe(viewLifecycleOwner) { unnkome ->
-            if (unnkome == "clear") {
-                removeUnneiComment()
-            } else {
-                setUneiComment(CommentJSONParse(unnkome, getString(R.string.room_integration), liveId).comment)
-            }
+            showInfoOrUNEIComment(CommentJSONParse(unnkome, getString(R.string.room_integration), liveId).comment)
         }
 
         // あんけーと
@@ -629,45 +614,66 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         comment_fragment_comment_canvas.finalHeight = comment_fragment_comment_canvas.height
     }
 
-    /** 上と下に出るコメントをセットする */
-    private fun setUneiComment(comment: String) {
-        val isNicoad = comment.contains("/nicoad")
-        val isInfo = comment.contains("/info")
-        val isUadPoint = comment.contains("/uadpoint")
-        val isSpi = comment.contains("/spi")
-        val isGift = comment.contains("/gift")
-        // 上に表示されるやつ
-        if (!isNicoad && !isInfo && !isUadPoint && !isSpi && !isGift) {
-            // 生主コメント
-            setUnneiComment(comment)
-        } else {
-            // UIスレッド
-            activity?.runOnUiThread {
-                // 下に表示するやつ
-                if (isInfo) {
-                    // /info {数字}　を消す
-                    val regex = "/info \\d+ ".toRegex()
-                    showInfoComment(comment.replace(regex, ""))
+    /**
+     * Info（ニコニ広告、ランクイン等）と、運営コメントを表示する関数
+     * */
+    private fun showInfoOrUNEIComment(comment: String) {
+        requireActivity().runOnUiThread {
+            val isNicoad = comment.contains("/nicoad")
+            val isInfo = comment.contains("/info")
+            val isUadPoint = comment.contains("/uadpoint")
+            val isSpi = comment.contains("/spi")
+            val isGift = comment.contains("/gift")
+            // エモーション。いらない
+            val isHideEmotion = prefSetting.getBoolean("setting_nicolive_hide_emotion", false)
+            val isEmotion = comment.contains("/emotion")
+            // アニメーション
+            val infoAnim = comment_fragment_info_comment_textview.toDropPopAlertMotionLayoutFix().also { anim ->
+//                anim.motionLayout = comment_fragment_motionlayout
+            }
+            val uneiAnim = comment_fragment_unei_comment_textview.toDropPopAlertMotionLayoutFix().also { anim ->
+//                anim.motionLayout = comment_fragment_motionlayout
+            }
+            when {
+                isInfo || isUadPoint -> {
+                    // info
+                    val message = comment.replace("/info \\d+ ".toRegex(), "")
+                    comment_fragment_info_comment_textview.text = message
+                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
                 }
-                // ニコニ広告
-                if (isNicoad) {
+                isNicoad -> {
+                    // 広告
                     val json = JSONObject(comment.replace("/nicoad ", ""))
-                    val comment = json.getString("message")
-                    showInfoComment(comment)
+                    val message = json.getString("message")
+                    comment_fragment_info_comment_textview.text = message
+                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
                 }
-                // spi (ニコニコ新市場に商品が貼られたとき)
-                if (isSpi) {
-                    showInfoComment(comment.replace("/spi ", ""))
+                isSpi -> {
+                    // ニコニコ新市場
+                    val message = comment.replace("/spi ", "")
+                    comment_fragment_info_comment_textview.text = message
+                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
                 }
-                // 投げ銭
-                if (isGift) {
-                    // スペース区切り配列
+                isGift -> {
+                    // 投げ銭。スペース区切り配列
                     val list = comment.replace("/gift ", "").split(" ")
                     val userName = list[2]
                     val giftPoint = list[3]
                     val giftName = list[5]
                     val message = "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
-                    showInfoComment(message)
+                    comment_fragment_info_comment_textview.text = message
+                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                }
+                isEmotion && !isHideEmotion -> {
+                    // エモーション
+                    val message = comment.replace("/emotion ", "エモーション：")
+                    comment_fragment_info_comment_textview.text = message
+                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                }
+                else -> {
+                    // 生主コメント表示
+                    comment_fragment_unei_comment_textview.text = comment
+                    uneiAnim.alert(DropPopAlertMotionLayoutFix.ALERT_DROP)
                 }
             }
         }
@@ -1470,91 +1476,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             return fab
         } else {
             return include
-        }
-    }
-
-    /** 運営コメント（上に出るやつ）表示 */
-    fun setUnneiComment(comment: String) {
-        //UIスレッドで呼ばないと動画止まる？
-        commentActivity.runOnUiThread {
-            //テキスト、背景色
-            uncomeTextView.visibility = View.VISIBLE
-            uncomeTextView.text = HtmlCompat.fromHtml(comment, HtmlCompat.FROM_HTML_MODE_COMPACT)
-            uncomeTextView.textSize = 20F
-            uncomeTextView.setTextColor(Color.WHITE)
-            uncomeTextView.background = ColorDrawable(Color.parseColor("#80000000"))
-            uncomeTextView.autoLinkMask = Linkify.WEB_URLS
-            //追加
-            val layoutParams = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            layoutParams.gravity = Gravity.TOP
-            uncomeTextView.layoutParams = layoutParams
-            uncomeTextView.gravity = Gravity.CENTER
-            //表示アニメーション
-            val showAnimation =
-                AnimationUtils.loadAnimation(requireContext(), R.anim.unnei_comment_show_animation)
-            //表示
-            uncomeTextView.startAnimation(showAnimation)
-            lifecycleScope.launch {
-                delay(5000)
-                removeUnneiComment()
-            }
-        }
-    }
-
-    //運営コメント消す
-    fun removeUnneiComment() {
-        if (!isAdded) return
-        commentActivity.runOnUiThread {
-            if (this@CommentFragment::uncomeTextView.isInitialized) {
-                //表示アニメーション
-                val hideAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.unnei_comment_close_animation)
-                //表示
-                uncomeTextView.startAnimation(hideAnimation)
-                //初期化済みなら
-                uncomeTextView.visibility = View.GONE
-            }
-        }
-    }
-
-    //infoコメント
-    fun showInfoComment(comment: String) {
-        //テキスト、背景色
-        infoTextView.text = comment
-        infoTextView.textSize = 15F
-        infoTextView.setTextColor(Color.WHITE)
-        infoTextView.background = ColorDrawable(Color.parseColor("#80000000"))
-        //追加
-        val layoutParams = FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-        layoutParams.gravity = Gravity.BOTTOM
-        infoTextView.layoutParams = layoutParams
-        infoTextView.gravity = Gravity.CENTER
-        //表示アニメーション
-        val showAnimation =
-            AnimationUtils.loadAnimation(requireContext(), R.anim.comment_cardview_show_animation)
-        //表示
-        infoTextView.startAnimation(showAnimation)
-        infoTextView.visibility = View.VISIBLE
-        //５秒後ぐらいで消す？
-        Timer().schedule(timerTask {
-            removeInfoComment()
-        }, 5000)
-    }
-
-    //Infoコメント消す
-    fun removeInfoComment() {
-        commentActivity.runOnUiThread {
-            if (context != null) {
-                //非表示アニメーション
-                val hideAnimation = AnimationUtils.loadAnimation(context, R.anim.comment_cardview_hide_animation)
-                infoTextView.startAnimation(hideAnimation)
-                infoTextView.visibility = View.GONE
-            }
         }
     }
 

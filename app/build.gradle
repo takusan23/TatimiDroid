@@ -36,6 +36,9 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // アニメーションしながら出てくるView
+    implementation 'com.github.takusan23:DropPopAlert:1.1.0'
+    // 検索PreferenceFragment
     implementation 'com.github.takusan23:SearchPreferenceFragment:1.3.0'
     // MotionLayoutのonSwipe直す自作ライブラリ
     implementation 'com.github.takusan23:MotionLayoutSwipeFixFrameLayout:0552b935c2'

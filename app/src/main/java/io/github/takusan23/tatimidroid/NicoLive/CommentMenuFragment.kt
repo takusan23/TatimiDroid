@@ -88,7 +88,7 @@ class CommentMenuFragment : Fragment() {
         }
 
         //クリックイベント
-        setClick()
+        initSwitch()
 
         //OutlinedButtonのテキストの色
         darkmode()
@@ -134,7 +134,7 @@ class CommentMenuFragment : Fragment() {
     }
 
     //クリックイベント
-    private fun setClick() {
+    private fun initSwitch() {
         //キャスト
         if (commentFragment.isInitGoogleCast()) {
             val googleCast = commentFragment.googleCast
@@ -319,6 +319,11 @@ class CommentMenuFragment : Fragment() {
             startActivity(intent)
         }
 
+        // エモーションをコメント一覧に表示しない
+        fragment_comment_fragment_menu_hide_emotion_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            prefSetting.edit { putBoolean("setting_nicolive_hide_emotion", isChecked) }
+        }
+
     }
 
     /**
@@ -350,7 +355,6 @@ class CommentMenuFragment : Fragment() {
         }
     }
 
-    // CommentFragmentのViewModelから値をもらう
     private fun setValue() {
         //コメント非表示
         fragment_comment_fragment_menu_comment_hidden_switch.isChecked = commentFragment.isCommentHide

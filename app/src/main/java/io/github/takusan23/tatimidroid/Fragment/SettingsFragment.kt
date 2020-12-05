@@ -3,6 +3,9 @@ package io.github.takusan23.tatimidroid.Fragment
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
+import android.os.Bundle
+import android.view.View
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
@@ -28,7 +31,14 @@ class SettingsFragment : SearchPreferenceFragment() {
     private val PRIVACY_POLICY_URL = "https://github.com/takusan23/TatimiDroid/blob/master/privacy_policy.md"
 
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val editText = view.findViewById<EditText>(R.id.search_fragment_input)
+        editText.hint = getString(R.string.serch)
+    }
+
     init {
+
         /**
          * Preferenceを押したときに呼ばれるやつ
          * */

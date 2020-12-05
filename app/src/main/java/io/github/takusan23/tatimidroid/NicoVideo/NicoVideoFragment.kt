@@ -235,6 +235,9 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // コントローラー用意
         initController()
 
+        // アスペクト比直す。とりあえず16:9で
+        aspectRatioFix(16,9)
+
     }
 
     /** UIに反映させる */
