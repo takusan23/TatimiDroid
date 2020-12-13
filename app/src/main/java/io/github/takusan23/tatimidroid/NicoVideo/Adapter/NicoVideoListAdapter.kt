@@ -8,8 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
@@ -17,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
-import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
@@ -25,11 +22,9 @@ import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.AnniversaryDate
 import io.github.takusan23.tatimidroid.Tool.calcAnniversary
-import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -108,45 +103,27 @@ class NicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideoDat
             }
             // 再生画面表示
             cardView.setOnClickListener {
-                // なんかキャッシュが存在しない時があるらしい？
-                if (data.isCache && nicoVideoCache.getCacheFolderVideoFileName(data.videoId) == null) {
-                    // 再取得ダイアログ出す
-                    val buttonItems = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
-                        add(DialogBottomSheet.DialogBottomSheetItem("再取得する", R.drawable.ic_save_alt_black_24dp))
-                        add(DialogBottomSheet.DialogBottomSheetItem("キャンセル", R.drawable.ic_arrow_back_black_24dp, Color.parseColor("#ff0000")))
+
+                // 再生方法
+                val playType = prefSetting.getString("setting_play_type_video", "default") ?: "default"
+                when (playType) {
+                    "default" -> {
+                        // 画面遷移
+                        val nicoVideoFragment = NicoVideoFragment()
+                        val bundle = Bundle()
+                        bundle.putString("id", data.videoId)
+                        bundle.putBoolean("cache", data.isCache)
+                        nicoVideoFragment.arguments = bundle
+                        (context as MainActivity).setPlayer(nicoVideoFragment, data.videoId)
                     }
-                    DialogBottomSheet("キャッシュが存在しませんでした。再取得しますか？", buttonItems) { i, bottomSheetDialogFragment ->
-                        if (i == 0) {
-                            // インターネット環境があれば再取得
-                            if (isConnectionInternet(context)) {
-                                // 再取得
-                                startCacheService(context, data.videoId, false)
-                            } else {
-                                Toast.makeText(context, "インターネットへ接続できません", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }.show((context as AppCompatActivity).supportFragmentManager, "cache")
-                } else {
-                    // 再生方法
-                    val playType = prefSetting.getString("setting_play_type_video", "default") ?: "default"
-                    when (playType) {
-                        "default" -> {
-                            // 画面遷移
-                            val nicoVideoFragment = NicoVideoFragment()
-                            val bundle = Bundle()
-                            bundle.putString("id", data.videoId)
-                            bundle.putBoolean("cache", data.isCache)
-                            nicoVideoFragment.arguments = bundle
-                            (context as MainActivity).setPlayer(nicoVideoFragment, data.videoId)
-                        }
-                        "popup" -> {
-                            startVideoPlayService(context = context, mode = "popup", videoId = data.videoId, isCache = data.isCache)
-                        }
-                        "background" -> {
-                            startVideoPlayService(context = context, mode = "background", videoId = data.videoId, isCache = data.isCache)
-                        }
+                    "popup" -> {
+                        startVideoPlayService(context = context, mode = "popup", videoId = data.videoId, isCache = data.isCache)
+                    }
+                    "background" -> {
+                        startVideoPlayService(context = context, mode = "background", videoId = data.videoId, isCache = data.isCache)
                     }
                 }
+
             }
 
             // メニュー画面表示

@@ -150,13 +150,13 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
         if (nicoVideoFragment != null) {
 
             // JSON
-            val jsonObject = nicoVideoFragment.viewModel.nicoVideoJSON.value ?: return
+            val jsonObject = nicoVideoFragment.viewModel.nicoVideoJSON.value
 
             // オフライン再生かどうか
             val isOfflinePlay = nicoVideoFragment.viewModel.isOfflinePlay
 
-            // プレ垢
-            val isPremium = if (isOfflinePlay.value == false) {
+            // プレ垢かどうが
+            val isPremium = if (jsonObject != null) {
                 NicoVideoHTML().isPremium(jsonObject)
             } else {
                 false
@@ -168,8 +168,15 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             }
 
             // プレ垢はニコるくんつける
-            if (isPremium && isShowNicoruButton && isOfflinePlay.value == false) {
+            if (isPremium && isShowNicoruButton) {
                 holder.nicoruButton.isVisible = true
+                // ただしキャッシュ再生時は押せなくする
+                if (isOfflinePlay.value == true) {
+                    holder.nicoruButton.apply {
+                        isClickable = false
+                        isEnabled = false
+                    }
+                }
             }
         }
     }

@@ -143,6 +143,18 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** コメントのみ表示する場合はtrue */
     var isCommentOnlyMode = prefSetting.getBoolean("setting_nicovideo_comment_only", false)
 
+    /** 映像なしでコメントを流すコメント描画のみ、映像なしモード。ニコニコ実況みたいな */
+    val isNotPlayVideoMode = MutableLiveData<Boolean>()
+
+    /**
+     * こっからコメントのみを流す映像なしモードで使うプロパティたち
+     * */
+
+    var notPlayVideoIsPlaying = true
+    var notPlayVideoCurrentPosition = 0L
+    var notPlayVideoIsRepeatMode = false
+    var notPlayVideoDurationMs = 0L
+
     init {
 
         // 最初の動画。連続再生と分岐
@@ -215,32 +227,46 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             return
         } else {
             viewModelScope.launch(Dispatchers.IO) {
-                // 動画のファイル名取得
-                val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
-                if (videoFileName != null) {
+
+                // 動画ファイルが有るか
+                if (nicoVideoCache.hasCacheVideoFile(videoId)) {
+                    val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
                     contentUrl.postValue("${nicoVideoCache.getCacheFolderPath()}/${playingVideoId.value}/$videoFileName")
-                    // 動画情報
-                    if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
-                        val jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
-                        nicoVideoJSON.postValue(jsonObject)
-                        nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay.value ?: false))
+                } else {
+                    // 動画無しでコメントだけを流すモードへ切り替える
+                    withContext(Dispatchers.Main) {
+                        showToast("映像なしモードでコメントのみを流します。")
+                        messageLiveData.postValue("映像なしモードでコメントのみを流します。")
+                        isNotPlayVideoMode.postValue(true)
                     }
-                    // コメント取得
+
+                }
+
+                // 動画情報JSONがあるかどうか
+                if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+                    val jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
+                    nicoVideoJSON.postValue(jsonObject)
+                    nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay.value ?: false))
+                }
+
+                // コメントが有るか
+                if (xmlCommentJSON.commentJSONFileExists(videoId)) {
+                    // コメント取得。
                     launch {
                         val commentJSONFilePath = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
                         val loadCommentAsync = nicoVideoHTML.parseCommentJSON(commentJSONFilePath, videoId)
                         // フィルターで3ds消したりする。が、コメントは並列で読み込んでるので、並列で作業してるコメント取得を待つ（合流する）
                         rawCommentList = ArrayList(loadCommentAsync)
                         commentFilter(true)
+
+                        // 動画なしモードと発覚した場合は自前で再生時間等を作成する
+                        if (isNotPlayVideoMode.value == true) {
+                            initNotPlayVideoMode()
+                        }
+
                     }
-                } else {
-                    // 動画が見つからなかった
-                    withContext(Dispatchers.Main) {
-                        showToast(getString(R.string.not_found_video))
-                        messageLiveData.postValue(getString(R.string.not_found_video))
-                    }
-                    return@launch
                 }
+
             }
         }
     }
@@ -343,6 +369,39 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             launch { getRecommend() }
             // ニコるくん
             launch { initNicoru() }
+        }
+    }
+
+    /**
+     * 動画なしコメントのみを流すモードの初期化
+     * */
+    private fun initNotPlayVideoMode() {
+        viewModelScope.launch {
+            // duration計算する
+            val lastVpos = commentList.value?.maxOf { commentJSONParse -> commentJSONParse.vpos.toLong() }
+            if (lastVpos != null) {
+                notPlayVideoDurationMs = lastVpos * 10 // 100vpos = 1s なので 10かけて 1000ms = 1s にする
+            }
+            while (true) {
+                // プログレスバー進める
+                delay(100)
+                // 再生中のみプログレスバーを進める
+                if (notPlayVideoIsPlaying) {
+                    if (notPlayVideoCurrentPosition < notPlayVideoDurationMs) {
+                        // 動画の長さのほうが大きい時は加算
+                        notPlayVideoCurrentPosition += 100
+                    } else {
+                        if (notPlayVideoIsRepeatMode) {
+                            // リピートモードなら0にして再生を続ける。
+                            notPlayVideoIsPlaying = true
+                            notPlayVideoCurrentPosition = 0L
+                        } else {
+                            // おしまい
+                            notPlayVideoIsPlaying = false
+                        }
+                    }
+                }
+            }
         }
     }
 

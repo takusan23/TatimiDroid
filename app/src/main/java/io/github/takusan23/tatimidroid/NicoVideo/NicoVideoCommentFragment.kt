@@ -57,8 +57,8 @@ class NicoVideoCommentFragment : Fragment() {
         dev_nicovideo_comment_fragment_following_button.setOnClickListener {
             // Fragmentはクソ！
             devNicoVideoFragment.apply {
+                val currentPos = if (viewModel.isNotPlayVideoMode.value == true) viewModel.notPlayVideoCurrentPosition else exoPlayer.currentPosition
                 // スクロール
-                val currentPos = exoPlayer.currentPosition
                 scroll(currentPos)
                 // Visibilityゴーン。誰もカルロス・ゴーンの話しなくなったな
                 setFollowingButtonVisibility(false)

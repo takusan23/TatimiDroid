@@ -434,7 +434,7 @@ class NicoVideoCache(val context: Context?) {
     }
 
     /**
-     * 動画のコメント取得。NicoVideoHTML#getComment()を使ってる。ここだけコルーチンなの不自然ある。
+     * 動画のコメント取得。NicoVideoHTML#getComment()を使ってる。非同期
      * @param videoIdFolder 保存先フォルダー
      * @param videoId 動画ID
      * @param json data-api-data

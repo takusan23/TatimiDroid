@@ -252,8 +252,13 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_comment_menu_nicovideo_seek.setOnClickListener {
             // こっから再生できるようにする
             if (fragment is NicoVideoFragment) {
-                fragment.exoPlayer.seekTo(currentPos * 10) // vposに*10すればミリ秒になる
+                if (fragment.viewModel.isNotPlayVideoMode.value == true) {
+                    fragment.viewModel.notPlayVideoCurrentPosition = currentPos * 10 // vposに*10すればミリ秒になる
+                } else {
+                    fragment.exoPlayer.seekTo(currentPos * 10) // vposに*10すればミリ秒になる
+                }
                 fragment.fragment_nicovideo_comment_canvas.seekComment()
+
             }
         }
     }

@@ -82,6 +82,12 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /** 再生時間取るのに使う */
     var exoPlayer: SimpleExoPlayer? = null
 
+    /** [exoPlayer] がnullの際に使われる。こちらに再生時間を入れても良い */
+    var currentPos = 0L
+
+    /** [exoPlayer] がnullの際に使われる。こちらに一時停止かどうかを入れても良い */
+    var isPlaying = false
+
     /**
      * この２つはコメントが重複しないようにするためのもの
      * */
@@ -118,9 +124,9 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // コメントを動かす
         commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
             GlobalScope.launch(coroutineJob + Dispatchers.Main) {
-                if (exoPlayer?.isPlaying == true) {
+                if (isPlay()) {
                     // 現在の再生位置
-                    val currentPos = exoPlayer?.currentPosition ?: 0
+                    val currentPos = currentPos()
                     // 画面外のコメントは描画しない
                     for (reDrawCommentData in drawNakaCommentList.toList().filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
                         if (reDrawCommentData != null) {
@@ -156,28 +162,26 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         GlobalScope.launch(coroutineJob + Dispatchers.Main) {
             // delay+whileで定期実行が書ける
             while (true) {
-                if (exoPlayer != null) {
-                    val currentVPos = exoPlayer!!.contentPosition / 100L
-                    val currentPositionSec = exoPlayer!!.contentPosition / 1000
-                    if (tmpPosition != currentPositionSec) {
-                        drewedList.clear()
-                        tmpPosition = currentPositionSec
+                val currentVPos = currentPos() / 100L
+                val currentPositionSec = currentPos() / 1000
+                if (tmpPosition != currentPositionSec) {
+                    drewedList.clear()
+                    tmpPosition = currentPositionSec
+                }
+                val drawList = withContext(Dispatchers.IO) {
+                    rawCommentList.filter { commentJSONParse ->
+                        (commentJSONParse.vpos.toLong() / 10L) == (currentVPos)
                     }
-                    val drawList = withContext(Dispatchers.IO) {
-                        rawCommentList.filter { commentJSONParse ->
-                            (commentJSONParse.vpos.toLong() / 10L) == (currentVPos)
-                        }
-                    }
-                    drawList.forEach {
-                        // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
-                        // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
-                        val isAddable = drewedList.toList().none { id -> if (it.commentNo.isEmpty()) it.vpos.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
-                        if (isAddable) {
-                            // コメントIDない場合はvposで代替する
-                            drewedList.add(if (it.commentNo.isEmpty()) it.vpos.toLong() else it.commentNo.toLong())
-                            // コメント登録。
-                            drawComment(it, exoPlayer!!.contentPosition)
-                        }
+                }
+                drawList.forEach {
+                    // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
+                    // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
+                    val isAddable = drewedList.toList().none { id -> if (it.commentNo.isEmpty()) it.vpos.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
+                    if (isAddable) {
+                        // コメントIDない場合はvposで代替する
+                        drewedList.add(if (it.commentNo.isEmpty()) it.vpos.toLong() else it.commentNo.toLong())
+                        // コメント登録。
+                        drawComment(it, currentPos())
                     }
                 }
                 delay(100)
@@ -219,7 +223,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             val moveValue = (1000 / commentUpdateMs).toInt() * commentMoveMinus
             // 画面のサイズ分取り出す？
             repeat((finalWidth.toFloat() / moveValue).roundToInt()) { sec ->
-                val currentPos = exoPlayer!!.currentPosition
+                val currentPos = currentPos()
                 val currentPosSec = currentPos / 1000
                 val drawList = withContext(Dispatchers.IO) {
                     rawCommentList.filter { commentJSONParse ->
@@ -558,10 +562,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             command.contains("blue") -> "#0000FF"
             command.contains("purple") -> "#C000FF"
             command.contains("black") -> "#000000"
-           // command.contains("#") -> {
-           //     return command.split(" ").find { s -> s.contains("#") } ?: "#FFFFFF"
-           //     // return ("#.{6}?").toRegex().find(command)?.value ?: "#FFFFFF"
-           // }
+            // command.contains("#") -> {
+            //     return command.split(" ").find { s -> s.contains("#") } ?: "#FFFFFF"
+            //     // return ("#.{6}?").toRegex().find(command)?.value ?: "#FFFFFF"
+            // }
             // その他
             else -> "#ffffff"
         }
@@ -622,6 +626,16 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }.toLong()
     }
 
+    /** 現在再生中かどうかを返す */
+    private fun isPlay(): Boolean {
+        return exoPlayer?.playWhenReady ?: isPlaying
+    }
+
+    /** 現在の再生時間を返す */
+    private fun currentPos(): Long {
+        return exoPlayer?.currentPosition ?: currentPos
+    }
+
 }
 
 /**
@@ -640,5 +654,5 @@ class ReDrawCommentData(
     val pos: String,
     val fontSize: Float,
     val measure: Float,
-    val asciiArt: Boolean = false
+    val asciiArt: Boolean = false,
 )
