@@ -165,6 +165,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** 動画の時間を通知するLiveData。ミリ秒 */
     val playerDurationMs = MutableLiveData<Long>()
 
+    /** [isNotPlayVideoMode]がtrueのときにコルーチンを使うのでそれ */
+    private val notVideoPlayModeCoroutineContext = Job()
+
     init {
 
         // 最初の動画。連続再生と分岐
@@ -195,6 +198,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
      * */
     fun load(videoId: String, isCache: Boolean, isEco: Boolean, useInternet: Boolean) {
         onCleared()
+        notVideoPlayModeCoroutineContext.cancelChildren()
+        playerCurrentPositionMs = 0
+
         // 動画ID変更を通知
         playingVideoId.value = videoId
         if (videoList != null) {
@@ -386,7 +392,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
      * ExoPlayerがいないので動画の時間を自分で進めるしか無い。
      * */
     private fun initNotPlayVideoMode() {
-        viewModelScope.launch {
+        viewModelScope.launch(notVideoPlayModeCoroutineContext) {
             // duration計算する
             val lastVpos = commentList.value?.maxOf { commentJSONParse -> commentJSONParse.vpos.toLong() }
             if (lastVpos != null) {
