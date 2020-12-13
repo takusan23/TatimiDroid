@@ -245,11 +245,10 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                 } else {
                     // 動画無しでコメントだけを流すモードへ切り替える
                     withContext(Dispatchers.Main) {
-                        showToast("映像なしモードでコメントのみを流します。")
-                        messageLiveData.postValue("映像なしモードでコメントのみを流します。")
+                        showToast(context.getString(R.string.nicovideo_not_play_video_mode))
+                        messageLiveData.postValue(context.getString(R.string.nicovideo_not_play_video_mode))
                         isNotPlayVideoMode.postValue(true)
                     }
-
                 }
 
                 // 動画情報JSONがあるかどうか
@@ -457,6 +456,11 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     fun commentFilter(isShowToast: Boolean = false) {
         // 3DSけす？
         val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
+        /**
+         * かんたんコメントを消す。forkの値が2の場合はかんたんコメントになる。
+         * どうでもいいんだけどあの機能、関係ないところでうぽつとかできるから控えめに言ってあらし機能だろあれ。てかROM専は何してもコメントしないぞ
+         * */
+        val isHideKantanComment = prefSetting.getBoolean("nicovideo_comment_kantan_comment_hidden", false)
         // NGコメント。ngList引数が省略時されてるときはDBから取り出す
         val ngCommentList = ngList.map { ngdbEntity -> ngdbEntity.value }
         // NGユーザー。ngList引数が省略時されてるときはDBから取り出す
@@ -464,6 +468,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         // はい、NGでーす
         val filteredList = rawCommentList
             .filter { commentJSONParse -> if (is3DSCommentHidden) !commentJSONParse.mail.contains("device:3DS") else true }
+            .filter { commentJSONParse -> if (isHideKantanComment) commentJSONParse.fork != 2 else true } // fork == 2 が かんたんコメント
             .filter { commentJSONParse -> !ngCommentList.contains(commentJSONParse.comment) }
             .filter { commentJSONParse -> !ngUserList.contains(commentJSONParse.userId) } as ArrayList<CommentJSONParse>
         commentList.postValue(filteredList)

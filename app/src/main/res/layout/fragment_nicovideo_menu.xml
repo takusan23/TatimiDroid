@@ -81,7 +81,14 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="5sp"
-                                android:text="@string/menu_device_3ds_block" />
+                                android:text="@string/nicovideo_setting_hide_device_3ds" />
+
+                        <Switch
+                                android:id="@+id/fragment_nicovideo_menu_hide_kantan_comment"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="5sp"
+                                android:text="@string/nicovideo_setting_hide_kantan_comment" />
 
                         <Switch
                                 android:id="@+id/fragment_nicovideo_menu_hide_comment_canvas"

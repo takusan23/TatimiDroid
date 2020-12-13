@@ -87,7 +87,7 @@
                     android:gravity="center"
                     android:text="Infoコメント"
                     android:textColor="#ffffff"
-                    android:textSize="20sp"
+                    android:textSize="16dp"
                     android:visibility="gone"
                     tools:visibility="visible" />
 

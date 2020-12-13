@@ -134,7 +134,10 @@ class NicoVideoMenuFragment : Fragment() {
         initSkipSetting()
 
         // 3DS消す
-        init3DSHide()
+        init3DSHideSwitch()
+
+        // かんたんコメント消す
+        initKantanCommentHideSwitch()
 
         // コテハン一覧Activityボタン初期化
         initKotehanButton()
@@ -163,11 +166,23 @@ class NicoVideoMenuFragment : Fragment() {
         }
     }
 
-    private fun init3DSHide() {
+    private fun init3DSHideSwitch() {
         fragment_nicovideo_menu_3ds_switch.isChecked = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
         fragment_nicovideo_menu_3ds_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             // 変更
             prefSetting.edit { putBoolean("nicovideo_comment_3ds_hidden", isChecked) }
+            // コメント再適用
+            lifecycleScope.launch {
+                viewModel.commentFilter()
+            }
+        }
+    }
+
+    private fun initKantanCommentHideSwitch() {
+        fragment_nicovideo_menu_hide_kantan_comment.isChecked = prefSetting.getBoolean("nicovideo_comment_kantan_comment_hidden", false)
+        fragment_nicovideo_menu_hide_kantan_comment.setOnCheckedChangeListener { buttonView, isChecked ->
+            // 変更
+            prefSetting.edit { putBoolean("nicovideo_comment_kantan_comment_hidden", isChecked) }
             // コメント再適用
             lifecycleScope.launch {
                 viewModel.commentFilter()

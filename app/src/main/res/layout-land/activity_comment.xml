@@ -70,7 +70,7 @@
                     android:text="Infoコメント"
                     android:textColor="#ffffff"
                     android:layout_gravity="bottom"
-                    android:textSize="20sp"
+                    android:textSize="16dp"
                     android:visibility="gone"
                     tools:visibility="visible" />
 
@@ -86,7 +86,7 @@
                     android:layout_gravity="top"
                     android:text="UNEIコメント"
                     android:textColor="#ffffff"
-                    android:textSize="20sp"
+                    android:textSize="20dp"
                     android:visibility="gone"
                     tools:visibility="visible" />
 

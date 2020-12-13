@@ -201,7 +201,7 @@
     <string name="dictionary">Dictionary</string>
     <string name="low_latency">Low latency mode</string>
     <string name="setting_low_latency_off_title">Disable low latency mode</string>
-    <string name="menu_device_3ds_block">Hide 3DS comments</string>
+    <string name="nicovideo_setting_hide_device_3ds">Hide 3DS comments</string>
     <string name="register_date">Registration date</string>
     <string name="toriaezu_mylist">Toriaezu Mylist</string>
     <string name="nicoru">Nicoru</string>
@@ -533,4 +533,6 @@
     <string name="setting_comment_canvas_priority">The priority of the setting is 10 lines reserved-> comment line settings-> minimum reserved lines.</string>
     <string name="konomi_tag">Favorite tag (Konomi tag)</string>
     <string name="konomi_tag_empty">The broadcaster has not set a konomi tag.</string>
+    <string name="nicovideo_not_play_video_mode">Since there is no video file, only comments will be sent. (Some functions cannot be used.)</string>
+    <string name="nicovideo_setting_hide_kantan_comment">Hide kantan comments</string>
 </resources>

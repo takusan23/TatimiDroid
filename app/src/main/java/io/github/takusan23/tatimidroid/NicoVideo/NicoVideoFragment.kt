@@ -244,14 +244,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 // プログレスバー用意
                 initVideoProgressBar()
 
-                // 再生時間をコメント描画Canvasへ入れ続ける
-                lifecycleScope.launch {
-                    while (true) {
-                        delay(100)
-                        fragment_nicovideo_comment_canvas.currentPos = viewModel.playerCurrentPositionMs
-                        fragment_nicovideo_comment_canvas.isPlaying = viewModel.playerIsPlaying.value!!
-                    }
-                }
             }
         }
 
@@ -416,6 +408,11 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         lifecycleScope.launch {
             while (true) {
                 delay(100)
+
+                // 再生時間をコメント描画Canvasへ入れ続ける
+                fragment_nicovideo_comment_canvas.currentPos = viewModel.playerCurrentPositionMs
+                fragment_nicovideo_comment_canvas.isPlaying = viewModel.playerIsPlaying.value!!
+
                 // 再生中のみ
                 if (viewModel.playerIsPlaying.value == true) {
 

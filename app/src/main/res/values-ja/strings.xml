@@ -201,7 +201,7 @@
     <string name="dictionary">ニコ百</string>
     <string name="low_latency">低遅延モード</string>
     <string name="setting_low_latency_off_title">低遅延モードを無効にする</string>
-    <string name="menu_device_3ds_block">3DSのコメントを非表示にする</string>
+    <string name="nicovideo_setting_hide_device_3ds">3DSのコメントを非表示にする</string>
     <string name="register_date">登録日</string>
     <string name="toriaezu_mylist">とりあえずマイリスト</string>
     <string name="nicoru">ニコる</string>
@@ -533,4 +533,6 @@
     <string name="setting_comment_canvas_priority">設定の優先順位は 10行確保 -> コメントの行の設定 -> 最低限確保する行の設定 になります。</string>
     <string name="konomi_tag">好みタグ</string>
     <string name="konomi_tag_empty">放送者が好みタグを設定していません。</string>
+    <string name="nicovideo_not_play_video_mode">動画ファイルがないため、コメントのみを流します。（一部機能が使えません。）</string>
+    <string name="nicovideo_setting_hide_kantan_comment">かんたんコメントを非表示にする</string>
 </resources>
