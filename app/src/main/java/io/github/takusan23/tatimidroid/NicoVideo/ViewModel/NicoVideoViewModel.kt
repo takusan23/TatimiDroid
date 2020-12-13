@@ -144,16 +144,26 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     var isCommentOnlyMode = prefSetting.getBoolean("setting_nicovideo_comment_only", false)
 
     /** 映像なしでコメントを流すコメント描画のみ、映像なしモード。ニコニコ実況みたいな */
-    val isNotPlayVideoMode = MutableLiveData<Boolean>()
+    val isNotPlayVideoMode = MutableLiveData<Boolean>(false)
+
+    /** プレイヤーの再生状態を通知するLiveData。これ経由で一時停止等を操作する。trueで再生 */
+    val playerIsPlaying = MutableLiveData(false)
 
     /**
-     * こっからコメントのみを流す映像なしモードで使うプロパティたち
+     * 現在の再生位置。LiveDataではないので定期的に値を入れてください。ミリ秒
+     * [isNotPlayVideoMode]がtrueの場合（コメントのみを流すモードの時）は[initNotPlayVideoMode]を呼んで動画を再生している" つもり" になって値を入れてあげてください。
+     * 呼ばないとコメントが流れません。
      * */
+    var playerCurrentPositionMs = 0L
 
-    var notPlayVideoIsPlaying = true
-    var notPlayVideoCurrentPosition = 0L
-    var notPlayVideoIsRepeatMode = false
-    var notPlayVideoDurationMs = 0L
+    /** 動画をシークする際に使うLiveData。再生時間の取得には[playerCurrentPositionMs]を使ってくれ。ミリ秒 */
+    val playerSetSeekMs = MutableLiveData<Long>()
+
+    /** リピートモードを設定するLiveData。これ経由でリピートモードの設定をする。trueでリピート */
+    val playerIsRepeatMode = MutableLiveData(false)
+
+    /** 動画の時間を通知するLiveData。ミリ秒 */
+    val playerDurationMs = MutableLiveData<Long>()
 
     init {
 
@@ -374,30 +384,31 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
 
     /**
      * 動画なしコメントのみを流すモードの初期化
+     * ExoPlayerがいないので動画の時間を自分で進めるしか無い。
      * */
     private fun initNotPlayVideoMode() {
         viewModelScope.launch {
             // duration計算する
             val lastVpos = commentList.value?.maxOf { commentJSONParse -> commentJSONParse.vpos.toLong() }
             if (lastVpos != null) {
-                notPlayVideoDurationMs = lastVpos * 10 // 100vpos = 1s なので 10かけて 1000ms = 1s にする
+                playerDurationMs.postValue(lastVpos * 10) // 100vpos = 1s なので 10かけて 1000ms = 1s にする
             }
             while (true) {
                 // プログレスバー進める
                 delay(100)
-                // 再生中のみプログレスバーを進める
-                if (notPlayVideoIsPlaying) {
-                    if (notPlayVideoCurrentPosition < notPlayVideoDurationMs) {
+                // 再生中 でなお 動画の時間がわかってるとき のみプログレスバーを進める
+                if (playerIsPlaying.value == true && playerDurationMs.value != null) {
+                    if (playerCurrentPositionMs < playerDurationMs.value!!) {
                         // 動画の長さのほうが大きい時は加算
-                        notPlayVideoCurrentPosition += 100
+                        playerCurrentPositionMs += 100
                     } else {
-                        if (notPlayVideoIsRepeatMode) {
+                        if (playerIsRepeatMode.value == true) {
                             // リピートモードなら0にして再生を続ける。
-                            notPlayVideoIsPlaying = true
-                            notPlayVideoCurrentPosition = 0L
+                            playerIsPlaying.value = true
+                            playerCurrentPositionMs = 0L
                         } else {
                             // おしまい
-                            notPlayVideoIsPlaying = false
+                            playerIsPlaying.value = false
                         }
                     }
                 }

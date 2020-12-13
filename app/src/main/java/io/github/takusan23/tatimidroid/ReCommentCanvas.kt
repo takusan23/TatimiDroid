@@ -5,7 +5,6 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
-import com.google.android.exoplayer2.SimpleExoPlayer
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.concurrent.schedule
@@ -79,13 +78,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /** コメントを登録するTimer */
     private var commentAddTimer = Timer()
 
-    /** 再生時間取るのに使う */
-    var exoPlayer: SimpleExoPlayer? = null
-
-    /** [exoPlayer] がnullの際に使われる。こちらに再生時間を入れても良い */
+    /** 再生時間を入れてください。定期的に */
     var currentPos = 0L
 
-    /** [exoPlayer] がnullの際に使われる。こちらに一時停止かどうかを入れても良い */
+    /** 再生中かどうか。再生状態が変わったらこちらも更新してください。 */
     var isPlaying = false
 
     /**
@@ -124,9 +120,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // コメントを動かす
         commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
             GlobalScope.launch(coroutineJob + Dispatchers.Main) {
-                if (isPlay()) {
-                    // 現在の再生位置
-                    val currentPos = currentPos()
+                if (isPlaying) {
                     // 画面外のコメントは描画しない
                     for (reDrawCommentData in drawNakaCommentList.toList().filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
                         if (reDrawCommentData != null) {
@@ -162,8 +156,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         GlobalScope.launch(coroutineJob + Dispatchers.Main) {
             // delay+whileで定期実行が書ける
             while (true) {
-                val currentVPos = currentPos() / 100L
-                val currentPositionSec = currentPos() / 1000
+                val currentVPos = currentPos / 100L
+                val currentPositionSec = currentPos / 1000
                 if (tmpPosition != currentPositionSec) {
                     drewedList.clear()
                     tmpPosition = currentPositionSec
@@ -181,7 +175,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                         // コメントIDない場合はvposで代替する
                         drewedList.add(if (it.commentNo.isEmpty()) it.vpos.toLong() else it.commentNo.toLong())
                         // コメント登録。
-                        drawComment(it, currentPos())
+                        drawComment(it, currentPos)
                     }
                 }
                 delay(100)
@@ -223,7 +217,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             val moveValue = (1000 / commentUpdateMs).toInt() * commentMoveMinus
             // 画面のサイズ分取り出す？
             repeat((finalWidth.toFloat() / moveValue).roundToInt()) { sec ->
-                val currentPos = currentPos()
+                val currentPos = currentPos
                 val currentPosSec = currentPos / 1000
                 val drawList = withContext(Dispatchers.IO) {
                     rawCommentList.filter { commentJSONParse ->
@@ -624,16 +618,6 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             // ミリ秒で指定
             prefSetting.getString("setting_comment_canvas_timer", "10")?.toIntOrNull() ?: 10
         }.toLong()
-    }
-
-    /** 現在再生中かどうかを返す */
-    private fun isPlay(): Boolean {
-        return exoPlayer?.playWhenReady ?: isPlaying
-    }
-
-    /** 現在の再生時間を返す */
-    private fun currentPos(): Long {
-        return exoPlayer?.currentPosition ?: currentPos
     }
 
 }

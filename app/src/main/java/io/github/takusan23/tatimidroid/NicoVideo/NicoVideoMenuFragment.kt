@@ -208,17 +208,25 @@ class NicoVideoMenuFragment : Fragment() {
 
     // ポップアップ再生、バッググラウンド再生ボタン。startVideoPlayService()はNicoVideoPlayServiceに書いてあります。（internal funなのでどこでも呼べる）
     private fun initVideoPlayServiceButton() {
-        fragment_nicovideo_menu_popup.setOnClickListener {
-            // ポップアップ再生
-            startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
-            // Activity落とす
-            activity?.finish()
-        }
-        fragment_nicovideo_menu_background.setOnClickListener {
-            // バッググラウンド再生
-            startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
-            // Activity落とす
-            activity?.finish()
+        viewModel.isNotPlayVideoMode.observe(viewLifecycleOwner) { isCommentDrawOnlyMode ->
+            if (isCommentDrawOnlyMode) {
+                // 映像流さずコメントだけ流す場合はポップアップ再生ボタンをふさぐ
+                fragment_nicovideo_menu_popup.isEnabled = false
+                fragment_nicovideo_menu_background.isEnabled = false
+            } else {
+                fragment_nicovideo_menu_popup.setOnClickListener {
+                    // ポップアップ再生
+                    startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
+                    // Activity落とす
+                    activity?.finish()
+                }
+                fragment_nicovideo_menu_background.setOnClickListener {
+                    // バッググラウンド再生
+                    startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
+                    // Activity落とす
+                    activity?.finish()
+                }
+            }
         }
     }
 

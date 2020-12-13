@@ -57,7 +57,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.util.*
-import kotlin.concurrent.timerTask
 import kotlin.math.roundToInt
 
 /**
@@ -209,8 +208,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     exoPlayer.seekTo(oldPosition)
                 }
                 exoPlayer.setVideoSurfaceView(fragment_nicovideo_surfaceview)
-                //  コメントキャンバスにも入れる
-                fragment_nicovideo_comment_canvas.exoPlayer = this@NicoVideoFragment.exoPlayer
             }
         }
 
@@ -234,22 +231,32 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // 動画を再生しないコメントを流すのみのモード
         viewModel.isNotPlayVideoMode.observe(viewLifecycleOwner) { isCommentDrawOnly ->
-            // ExoPlayer終了（使わないので）
-            exoPlayer.stop()
-            hideSwipeToRefresh()
+            // コメントのみ流す
+            if (isCommentDrawOnly) {
+                // ExoPlayer終了（使わないので）
+                exoPlayer.stop()
+                hideSwipeToRefresh()
 
-            // プログレスバー用意
-            initVideoProgressBar()
+                // ポップアップ再生も使わないため
+                player_control_popup.isVisible = false
+                player_control_background.isVisible = false
 
-            // 再生時間を入れ続ける
-            lifecycleScope.launch {
-                while (true) {
-                    delay(100)
-                    fragment_nicovideo_comment_canvas.currentPos = viewModel.notPlayVideoCurrentPosition
-                    fragment_nicovideo_comment_canvas.isPlaying = viewModel.notPlayVideoIsPlaying
+                // プログレスバー用意
+                initVideoProgressBar()
+
+                // 再生時間をコメント描画Canvasへ入れ続ける
+                lifecycleScope.launch {
+                    while (true) {
+                        delay(100)
+                        fragment_nicovideo_comment_canvas.currentPos = viewModel.playerCurrentPositionMs
+                        fragment_nicovideo_comment_canvas.isPlaying = viewModel.playerIsPlaying.value!!
+                    }
                 }
             }
         }
+
+        // LiveDataの通知でExoPlayerを操作するようにしたので
+        initExoPlayerControlLiveData()
 
         // コントローラー用意
         initController()
@@ -257,6 +264,44 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // アスペクト比直す。とりあえず16:9で
         aspectRatioFix(16, 9)
 
+    }
+
+    /** LiveDataを経由してExoPlayerを操作するので、コールバックをセットする関数 */
+    private fun initExoPlayerControlLiveData() {
+        // 一時停止、再生になったとき
+        viewModel.playerIsPlaying.observe(viewLifecycleOwner) { isPlaying ->
+            exoPlayer.playWhenReady = isPlaying
+            val drawable = if (isPlaying) {
+                context?.getDrawable(R.drawable.ic_pause_black_24dp)
+            } else {
+                context?.getDrawable(R.drawable.ic_play_arrow_24px)
+            }
+            player_control_pause.setImageDrawable(drawable)
+        }
+        // シークしたとき
+        viewModel.playerSetSeekMs.observe(viewLifecycleOwner) { seekPos ->
+            viewModel.playerCurrentPositionMs = seekPos
+            exoPlayer.seekTo(seekPos)
+        }
+        // 動画の再生時間
+        viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
+            player_control_seek.max = (duration / 1000).toInt()
+            player_control_duration.text = DateUtils.formatElapsedTime(duration / 1000)
+        }
+        // リピートモードが変わったとき
+        viewModel.playerIsRepeatMode.observe(viewLifecycleOwner) { isRepeatMode ->
+            if (isRepeatMode) {
+                // リピート有効時
+                exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+                player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
+                prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
+            } else {
+                // リピート無効時
+                exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
+                prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
+            }
+        }
     }
 
     /** UIに反映させる */
@@ -282,26 +327,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         player_control_id.text = nicoVideoData.videoId
         // リピートボタン押したとき
         player_control_repeat.setOnClickListener {
-            if (viewModel.isNotPlayVideoMode.value == true) {
-                // 映像なしモード
-                viewModel.notPlayVideoIsRepeatMode = !viewModel.notPlayVideoIsRepeatMode
-            } else {
-                // 通常再生
-                when (exoPlayer.repeatMode) {
-                    Player.REPEAT_MODE_OFF -> {
-                        // リピート無効時
-                        exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-                        player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
-                        prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
-                    }
-                    Player.REPEAT_MODE_ONE -> {
-                        // リピート有効時
-                        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                        player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
-                        prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
-                    }
-                }
-            }
+            // リピートモード変更LiveData送信
+            viewModel.playerIsRepeatMode.postValue(!viewModel.playerIsRepeatMode.value!!)
         }
     }
 
@@ -324,17 +351,16 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 exoPlayer.setMediaSource(videoSource)
             }
         }
+        // 準備と再生
         exoPlayer.prepare()
-        exoPlayer.playWhenReady = true
+        viewModel.playerIsPlaying.postValue(true)
         // リピートするか
-        if (prefSetting.getBoolean("nicovideo_repeat_on", true)) {
-            exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-            player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
-        }
+        viewModel.playerIsRepeatMode.postValue(prefSetting.getBoolean("nicovideo_repeat_on", true))
         exoPlayer.addListener(object : Player.EventListener {
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                 super.onPlayerStateChanged(playWhenReady, playbackState)
-                setPlayIcon()
+                // 動画時間をセットする
+                viewModel.playerDurationMs.postValue(exoPlayer.duration)
                 if (playbackState == Player.STATE_BUFFERING) {
                     // STATE_BUFFERING はシークした位置からすぐに再生できないとき。読込み中のこと。
                     showSwipeToRefresh()
@@ -349,7 +375,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     // 一度だけ実行するように。画面回転前の時間を適用する
                     isRotationProgressSuccessful = true
                     // 前回見た位置から再生
-                    exoPlayer.seekTo(viewModel.currentPosition)
+                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition)
                     fragment_nicovideo_comment_canvas.seekComment()
                     if (viewModel.currentPosition == 0L) {
                         // 画面回転時に２回目以降表示されると邪魔なので制御
@@ -357,7 +383,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                         if (progress != 0L && isCache) {
                             Snackbar.make(fragment_nicovideo_surfaceview, "${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", Snackbar.LENGTH_LONG).apply {
                                 setAction(R.string.play) {
-                                    exoPlayer.seekTo(progress)
+                                    viewModel.playerSetSeekMs.postValue(progress)
                                 }
                                 show()
                             }
@@ -379,34 +405,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // プログレスバー動かす
         initVideoProgressBar()
-
-        var secInterval = 0L
-        seekTimer.cancel()
-        seekTimer = Timer()
-        seekTimer.schedule(timerTask {
-            Handler(Looper.getMainLooper()).post {
-                if (exoPlayer.isPlaying) {
-                    setProgress()
-                    val sec = exoPlayer.currentPosition / 1000
-                    // コメント一覧スクロールする
-                    if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
-                        requireCommentFragment()?.apply {
-                            // 追いかけるボタン利用しない
-                            scroll(exoPlayer.currentPosition)
-                            // 使わないので非表示
-                            setFollowingButtonVisibility(false)
-                        }
-                    } else {
-                        // 追いかけるボタン表示するかなどをやってる関数
-                        // 一秒ごとに動かしたい
-                        if (secInterval != sec) {
-                            secInterval = sec
-                            requireCommentFragment()?.setScrollFollowButton(exoPlayer.currentPosition)
-                        }
-                    }
-                }
-            }
-        }, 100, 100)
     }
 
     /**
@@ -414,53 +412,36 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     private fun initVideoProgressBar() {
         var tempTime = 0L
-
         // コルーチンでらくらく定期実行
         lifecycleScope.launch {
             while (true) {
                 delay(100)
-                if (viewModel.isNotPlayVideoMode.value == true) {
-                    // 映像なしコメントのみを流すモード
-                    if (viewModel.notPlayVideoIsPlaying) {
-                        setProgress()
-                        val sec = viewModel.notPlayVideoCurrentPosition / 1000
-                        // コメント一覧スクロールする
-                        if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
-                            requireCommentFragment()?.apply {
-                                // 追いかけるボタン利用しない
-                                scroll(viewModel.notPlayVideoCurrentPosition)
-                                // 使わないので非表示
-                                setFollowingButtonVisibility(false)
-                            }
-                        } else {
-                            // 追いかけるボタン表示するかなどをやってる関数
-                            // 一秒ごとに動かしたい
-                            if (tempTime != sec) {
-                                tempTime = sec
-                                requireCommentFragment()?.setScrollFollowButton(viewModel.notPlayVideoCurrentPosition)
-                            }
-                        }
+                // 再生中のみ
+                if (viewModel.playerIsPlaying.value == true) {
+
+                    // ExoPlayerが利用できる場合は再生時間をViewModelへ渡す
+                    if (viewModel.isNotPlayVideoMode.value == false) {
+                        viewModel.playerCurrentPositionMs = exoPlayer.currentPosition
                     }
-                } else {
-                    // 通常再生
-                    if (exoPlayer.isPlaying) {
-                        setProgress()
-                        val sec = exoPlayer.currentPosition / 1000
-                        // コメント一覧スクロールする
-                        if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
-                            requireCommentFragment()?.apply {
-                                // 追いかけるボタン利用しない
-                                scroll(exoPlayer.currentPosition)
-                                // 使わないので非表示
-                                setFollowingButtonVisibility(false)
-                            }
-                        } else {
-                            // 追いかけるボタン表示するかなどをやってる関数
-                            // 一秒ごとに動かしたい
-                            if (tempTime != sec) {
-                                tempTime = sec
-                                requireCommentFragment()?.setScrollFollowButton(exoPlayer.currentPosition)
-                            }
+
+                    // シークバー動かす+ViewModelの再生時間更新
+                    setProgress()
+
+                    val sec = viewModel.playerCurrentPositionMs / 1000
+                    // コメント一覧スクロールする
+                    if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
+                        requireCommentFragment()?.apply {
+                            // 追いかけるボタン利用しない
+                            scroll(viewModel.playerCurrentPositionMs)
+                            // 使わないので非表示
+                            setFollowingButtonVisibility(false)
+                        }
+                    } else {
+                        // 追いかけるボタン表示するかなどをやってる関数
+                        // 一秒ごとに動かしたい
+                        if (tempTime != sec) {
+                            tempTime = sec
+                            requireCommentFragment()?.setScrollFollowButton(viewModel.playerCurrentPositionMs)
                         }
                     }
                 }
@@ -642,11 +623,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                         // 半分より左
                         -(prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
                     }
-                    if (viewModel.isNotPlayVideoMode.value == true) {
-                        viewModel.notPlayVideoCurrentPosition += skip
-                    } else {
-                        exoPlayer.seekTo(exoPlayer.currentPosition + skip)
-                    }
+                    // LivaData経由でシークしろと通知飛ばす
+                    viewModel.playerSetSeekMs.postValue(viewModel.playerCurrentPositionMs + skip)
                     fragment_nicovideo_comment_canvas.seekComment()
                     updateHideController(job)
                 }
@@ -669,13 +647,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // 再生/一時停止
         player_control_pause.setOnClickListener {
             // 再生ボタン押したとき
-            if (viewModel.isNotPlayVideoMode.value == true) {
-                viewModel.notPlayVideoIsPlaying = !viewModel.notPlayVideoIsPlaying
-            } else {
-                exoPlayer.playWhenReady = !exoPlayer.playWhenReady
-            }
-            // アイコン入れ替え
-            setPlayIcon()
+            viewModel.playerIsPlaying.postValue(!viewModel.playerIsPlaying.value!!)
         }
         // 連続再生とそれ以外でアイコン変更
         val playListModePrevIcon = if (viewModel.isPlayListMode) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
@@ -684,11 +656,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         player_control_next.setImageDrawable(playListModeNextIcon)
         player_control_prev.setOnClickListener {
             // 動画の最初へ
-            if (viewModel.isNotPlayVideoMode.value == true) {
-                viewModel.notPlayVideoCurrentPosition = 0
-            } else {
-                exoPlayer.seekTo(0)
-            }
+            viewModel.playerSetSeekMs.postValue(0)
         }
         player_control_next.setOnClickListener {
             // 次の動画へ
@@ -754,23 +722,12 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser && !player_control_main.isVisible) {
                     // ユーザー操作だけど、プレイヤーが非表示の時は変更しない。なんかMotionLayoutのせいなのかVisibility=GONEでも操作できるっぽい？
-                    if (viewModel.isNotPlayVideoMode.value == true) {
-                        // 映像なしコメントのみ流すモード
-                        seekBar?.progress = (viewModel.notPlayVideoCurrentPosition / 1000L).toInt()
-                        // シークいじったら時間反映されるように
-                        val formattedTime = DateUtils.formatElapsedTime((seekBar?.progress ?: 0).toLong())
-                        val videoLengthFormattedTime = DateUtils.formatElapsedTime(viewModel.notPlayVideoDurationMs / 1000L)
-                        player_control_current.text = formattedTime
-                        player_control_duration.text = videoLengthFormattedTime
-                    } else {
-                        // 通常再生
-                        seekBar?.progress = (exoPlayer.currentPosition / 1000L).toInt()
-                        // シークいじったら時間反映されるように
-                        val formattedTime = DateUtils.formatElapsedTime((seekBar?.progress ?: 0).toLong())
-                        val videoLengthFormattedTime = DateUtils.formatElapsedTime(exoPlayer.duration / 1000L)
-                        player_control_current.text = formattedTime
-                        player_control_duration.text = videoLengthFormattedTime
-                    }
+                    seekBar?.progress = (viewModel.playerCurrentPositionMs / 1000L).toInt()
+                    // シークいじったら時間反映されるように
+                    val formattedTime = DateUtils.formatElapsedTime((seekBar?.progress ?: 0).toLong())
+                    val videoLengthFormattedTime = DateUtils.formatElapsedTime((viewModel.playerDurationMs.value ?: 0) / 1000L)
+                    player_control_current.text = formattedTime
+                    player_control_duration.text = videoLengthFormattedTime
                 }
             }
 
@@ -784,11 +741,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 // コメントシークに対応させる
                 fragment_nicovideo_comment_canvas.seekComment()
                 // ExoPlayer再開
-                if (viewModel.isNotPlayVideoMode.value == true) {
-                    viewModel.notPlayVideoCurrentPosition = (seekBar?.progress ?: 0) * 1000L
-                } else {
-                    exoPlayer.seekTo((seekBar?.progress ?: 0) * 1000L)
-                }
+                viewModel.playerSetSeekMs.postValue((seekBar?.progress ?: 0) * 1000L)
                 // コントローラー非表示カウントダウン開始
                 updateHideController(job)
                 isTouchSeekBar = false
@@ -887,35 +840,22 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, false)
             MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_surfaceview, View.GONE)
             hideSwipeToRefresh()
+            viewModel.playerIsPlaying.value = false
         } else {
             // MotionLayoutを有効
             MotionLayoutTool.allTransitionEnable(fragment_nicovideo_motionlayout, true)
             MotionLayoutTool.setMotionLayoutViewVisible(fragment_nicovideo_motionlayout, R.id.fragment_nicovideo_surfaceview, View.VISIBLE)
-            viewModel.contentUrl.value?.let { playExoPlayer(it) }
-            showSwipeToRefresh()
+            if (viewModel.isNotPlayVideoMode.value == true) {
+                viewModel.playerIsPlaying.value = true
+            } else {
+                viewModel.contentUrl.value?.let { playExoPlayer(it) }
+                showSwipeToRefresh()
+            }
         }
     }
 
     /** コメント一覧Fragmentを取得する。無い可能性も有る？ */
     private fun requireCommentFragment() = (viewPager.fragmentList[1] as? NicoVideoCommentFragment)
-
-    /** アイコン入れ替え */
-    private fun setPlayIcon() {
-        val drawable = if (viewModel.isNotPlayVideoMode.value == true) {
-            if (viewModel.notPlayVideoIsPlaying) {
-                context?.getDrawable(R.drawable.ic_pause_black_24dp)
-            } else {
-                context?.getDrawable(R.drawable.ic_play_arrow_24px)
-            }
-        } else {
-            if (exoPlayer.playWhenReady) {
-                context?.getDrawable(R.drawable.ic_pause_black_24dp)
-            } else {
-                context?.getDrawable(R.drawable.ic_play_arrow_24px)
-            }
-        }
-        player_control_pause.setImageDrawable(drawable)
-    }
 
     /**
      * 進捗進める
@@ -923,30 +863,14 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * 定期的に呼んでね
      * */
     private fun setProgress() {
-        if (viewModel.isNotPlayVideoMode.value == true) {
-            // 動画なしコメントのみを再生するモード
-            if (player_control_seek != null && !isTouchSeekBar) {
-                // シークバー操作中でなければ
-                player_control_seek.max = (viewModel.notPlayVideoDurationMs / 1000L).toInt()
-                player_control_seek.progress = (viewModel.notPlayVideoCurrentPosition / 1000L).toInt()
-                viewModel.currentPosition = viewModel.notPlayVideoCurrentPosition
-                // 再生時間TextView
-                val formattedTime = DateUtils.formatElapsedTime(viewModel.notPlayVideoCurrentPosition / 1000L)
-                player_control_current.text = formattedTime
-                // 動画時間TextView
-                player_control_duration.text = DateUtils.formatElapsedTime(viewModel.notPlayVideoDurationMs / 1000L)
-            }
-        } else {
-            // 通常再生
-            if (player_control_seek != null && !isTouchSeekBar) {
-                // シークバー操作中でなければ
-                player_control_seek.max = (exoPlayer.duration / 1000L).toInt()
-                player_control_seek.progress = (exoPlayer.currentPosition / 1000L).toInt()
-                viewModel.currentPosition = exoPlayer.currentPosition
-                // 再生時間TextView
-                val formattedTime = DateUtils.formatElapsedTime(exoPlayer.currentPosition / 1000L)
-                player_control_current.text = formattedTime
-            }
+        // 動画なしコメントのみを再生するモード
+        if (player_control_seek != null && !isTouchSeekBar) {
+            // シークバー操作中でなければ
+            player_control_seek.progress = (viewModel.playerCurrentPositionMs / 1000L).toInt()
+            viewModel.currentPosition = viewModel.playerCurrentPositionMs
+            // 再生時間TextView
+            val formattedTime = DateUtils.formatElapsedTime(viewModel.playerCurrentPositionMs / 1000L)
+            player_control_current.text = formattedTime
         }
     }
 
@@ -1015,20 +939,18 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     override fun onResume() {
         super.onResume()
-        exoPlayer.playWhenReady = true
-        viewModel.notPlayVideoIsPlaying = true
+        viewModel.playerIsPlaying.postValue(true)
         comment_fragment_comment_canvas?.isPause = false
         (requireActivity() as MainActivity).setVisibilityBottomNav(false)
     }
 
     override fun onPause() {
         super.onPause()
-        exoPlayer.playWhenReady = false
-        viewModel.notPlayVideoIsPlaying = false
+        viewModel.playerIsPlaying.postValue(true)
         // キャッシュ再生の場合は位置を保存する
         if (isCache) {
             prefSetting.edit {
-                putLong("progress_$videoId", exoPlayer.currentPosition)
+                putLong("progress_$videoId", viewModel.playerCurrentPositionMs)
             }
         }
         (requireActivity() as MainActivity).setVisibilityBottomNav(true)

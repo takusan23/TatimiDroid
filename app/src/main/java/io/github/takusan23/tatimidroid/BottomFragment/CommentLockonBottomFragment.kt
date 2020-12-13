@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -23,6 +24,7 @@ import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
@@ -252,13 +254,10 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_comment_menu_nicovideo_seek.setOnClickListener {
             // こっから再生できるようにする
             if (fragment is NicoVideoFragment) {
-                if (fragment.viewModel.isNotPlayVideoMode.value == true) {
-                    fragment.viewModel.notPlayVideoCurrentPosition = currentPos * 10 // vposに*10すればミリ秒になる
-                } else {
-                    fragment.exoPlayer.seekTo(currentPos * 10) // vposに*10すればミリ秒になる
-                }
+                // LiveData経由でExoPlayerを操作
+                val viewModel by viewModels<NicoVideoViewModel>({ fragment })
+                viewModel.playerSetSeekMs.postValue(currentPos * 10)
                 fragment.fragment_nicovideo_comment_canvas.seekComment()
-
             }
         }
     }
