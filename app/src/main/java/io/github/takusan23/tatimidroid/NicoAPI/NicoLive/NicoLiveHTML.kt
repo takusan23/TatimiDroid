@@ -599,7 +599,6 @@ class NicoLiveHTML {
             "ch2646442" to "jk8", // フジテレビ
             "ch2646485" to "jk9", // TOKYO MX
             "ch2646846" to "jk211", // BS11
-            // "co1736565" to "co1736565",
         )
         return channelIdList[channelId]
     }

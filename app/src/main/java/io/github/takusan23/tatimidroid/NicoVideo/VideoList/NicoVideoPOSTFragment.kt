@@ -18,7 +18,10 @@ import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo_post.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * 投稿動画取得
@@ -37,9 +40,6 @@ class NicoVideoPOSTFragment : Fragment() {
 
     // 今のページ
     var page = 1
-
-    // キャンセルできるように
-    lateinit var coroutine: Job
 
     // 追加読み込み制御
     var isLoading = false
@@ -107,15 +107,11 @@ class NicoVideoPOSTFragment : Fragment() {
         } else {
             this@NicoVideoPOSTFragment.userSession
         }
-        // 通信してるならキャンセル
-        if (::coroutine.isInitialized) {
-            coroutine.cancel()
-        }
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             showToast("${getString(R.string.error)}\n${throwable}")
         }
-        coroutine = lifecycleScope.launch(errorHandler) {
+        lifecycleScope.launch(errorHandler) {
             // 自分の場合はまずユーザーIDを取る
             val userId = if (arguments?.getBoolean("my", false) == true) {
                 // 自分の場合はAPI叩いてユーザーID取る
@@ -124,7 +120,10 @@ class NicoVideoPOSTFragment : Fragment() {
                 if (!response.isSuccessful) {
                     null
                 } else {
-                    user.parseUserData(response.body?.string()).userId.toString()
+                    // UIスレッドなので切り替え
+                    withContext(Dispatchers.Default) {
+                        user.parseUserData(response.body?.string()).userId.toString()
+                    }
                 }
             } else {
                 // ユーザーID指定

@@ -264,12 +264,17 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             nicoVideoCache.loadCache()
         }
         // ExoPlayerのプレイリスト機能
-        val mediaItems = videoList.map { nicoVideoData ->
-            MediaItem.Builder().setMediaId(nicoVideoData.videoId).setUri(nicoVideoCache.getCacheFolderVideoFilePath(nicoVideoData.videoId).toUri()).build()
-        }
+        val mediaItems = videoList
+            .filter { nicoVideoData ->
+                // 動画ファイルが存在するもののみ（映像なしコメントのみ再生モード実装の弊害）
+                nicoVideoCache.hasCacheVideoFile(nicoVideoData.videoId)
+            }
+            .map { nicoVideoData ->
+                MediaItem.Builder().setMediaId(nicoVideoData.videoId).setUri(nicoVideoCache.getCacheFolderVideoFilePath(nicoVideoData.videoId).toUri()).build()
+            }
         // 再生位置を出す
         val index = if (seekVideoId != null) {
-            videoList.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == seekVideoId }
+            mediaItems.indexOfFirst { nicoVideoData -> nicoVideoData.mediaId == seekVideoId }
         } else {
             0
         }

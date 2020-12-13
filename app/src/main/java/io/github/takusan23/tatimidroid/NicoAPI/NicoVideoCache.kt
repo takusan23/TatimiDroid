@@ -92,9 +92,7 @@ class NicoVideoCache(val context: Context?) {
                     val isCache = true
                     val title = video.getString("title")
                     val thum = "${videoFolder.path}/${videoId}.jpg"
-                    val date =
-                        NicoVideoHTML()
-                            .postedDateTimeToUnixTime(video.getString("postedDateTime"))
+                    val date = NicoVideoHTML().postedDateTimeToUnixTime(video.getString("postedDateTime"))
                     val viewCount = video.getInt("viewCount").toString()
                     val commentCount =
                         jsonObject.getJSONObject("thread").getInt("commentCount").toString()
@@ -115,9 +113,7 @@ class NicoVideoCache(val context: Context?) {
                     val data = NicoVideoData(isCache = isCache, isMylist = false, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = duration, cacheAddedDate = cacheAddedDate, uploaderName = uploaderName, videoTag = tagsJSONArray)
                     list.add(data)
                 } else {
-                    /**
-                     * 動画情報JSON、サムネイルがない場合で読み込みたいときに使う。主にニコ生TSを見るときに使って。
-                     * */
+
                     /**
                      * 動画情報JSON、サムネイルがない場合で読み込みたいときに使う。主にニコ生TSを見るときに使って。
                      * */

@@ -284,14 +284,14 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         viewModel.playerIsRepeatMode.observe(viewLifecycleOwner) { isRepeatMode ->
             if (isRepeatMode) {
                 // リピート有効時
-                exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
-                prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
-            } else {
-                // リピート無効時
                 exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
                 player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
                 prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
+            } else {
+                // リピート無効時
+                exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+                player_control_repeat.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
+                prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
             }
         }
     }
@@ -346,8 +346,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // 準備と再生
         exoPlayer.prepare()
         viewModel.playerIsPlaying.postValue(true)
-        // リピートするか
-        viewModel.playerIsRepeatMode.postValue(prefSetting.getBoolean("nicovideo_repeat_on", true))
         exoPlayer.addListener(object : Player.EventListener {
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                 super.onPlayerStateChanged(playWhenReady, playbackState)

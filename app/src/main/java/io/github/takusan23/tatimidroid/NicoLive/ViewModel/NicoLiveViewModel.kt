@@ -269,7 +269,9 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
      * */
     private fun checkNicoJK() {
         val nicoJKId = nicoLiveHTML.channelIdToNicoJKId(nicoLiveHTML.communityId)
-        isNicoJKLiveData.postValue(nicoJKId)
+        if (nicoJKId != null) {
+            isNicoJKLiveData.postValue(nicoJKId)
+        }
     }
 
     /** 座席番号と部屋の名前取得 */

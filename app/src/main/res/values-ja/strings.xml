@@ -536,7 +536,7 @@
     <string name="nicovideo_not_play_video_mode">動画ファイルがないため、コメントのみを流します。（一部機能が使えません。）</string>
     <string name="nicovideo_setting_hide_kantan_comment">かんたんコメントを非表示にする</string>
     <string name="hide_emotion">エモーションを非表示にする</string>
-    <string name="not_receive_live">映像を受信をやめる</string>
-    <string name="nicolive_nicojk_not_receive_live">映像の受信をやめる（ニコニコ実況だといらないかなー）</string>
+    <string name="not_receive_live">映像の受信をやめる</string>
+    <string name="nicolive_nicojk_not_receive_live">映像の受信をやめる（ニコニコ実況だとコメントだけでいい？）</string>
     <string name="nicolive_nicojk_program_list">ニコ生版ニコニコ実況 (jk)</string>
 </resources>

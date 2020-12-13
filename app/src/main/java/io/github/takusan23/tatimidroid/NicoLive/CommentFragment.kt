@@ -526,8 +526,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             addAllIsClickableViewFromParentView(player_nicolive_control_main)
             // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
             onBlockViewClickFunc = { view, event ->
-                // UI非表示なら表示
-                if (!player_nicolive_control_main.isVisible) {
+                // UI非表示なら表示。なんかnullになる
+                if (player_nicolive_control_main?.isVisible == false) {
                     onSwipeTargetViewClickFunc?.invoke(null)
                 } else {
                     //

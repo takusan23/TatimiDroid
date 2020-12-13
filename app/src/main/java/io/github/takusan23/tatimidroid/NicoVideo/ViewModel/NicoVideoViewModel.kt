@@ -160,7 +160,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     val playerSetSeekMs = MutableLiveData<Long>()
 
     /** リピートモードを設定するLiveData。これ経由でリピートモードの設定をする。trueでリピート */
-    val playerIsRepeatMode = MutableLiveData(false)
+    val playerIsRepeatMode = MutableLiveData(prefSetting.getBoolean("nicovideo_repeat_on", true))
 
     /** 動画の時間を通知するLiveData。ミリ秒 */
     val playerDurationMs = MutableLiveData<Long>()
