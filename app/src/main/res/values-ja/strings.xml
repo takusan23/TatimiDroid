@@ -292,7 +292,7 @@
     <string name="nicolive_top">ニコ生トップ</string>
     <string name="upcoming_programs">これからの注目番組</string>
     <string name="popular_reservation_program">人気の予約番組</string>
-    <string name="dropdown_title">おすすめ・ランキング・公式番組等はここを押して展開く</string>
+    <string name="dropdown_title">おすすめ・ランキング・公式番組等はここを押して展開</string>
     <string name="nicoad_advertise">広告を打つ</string>
     <string name="serch">検索</string>
     <string name="comment_serch">コメント検索</string>
@@ -535,4 +535,8 @@
     <string name="konomi_tag_empty">放送者が好みタグを設定していません。</string>
     <string name="nicovideo_not_play_video_mode">動画ファイルがないため、コメントのみを流します。（一部機能が使えません。）</string>
     <string name="nicovideo_setting_hide_kantan_comment">かんたんコメントを非表示にする</string>
+    <string name="hide_emotion">エモーションを非表示にする</string>
+    <string name="not_receive_live">映像を受信をやめる</string>
+    <string name="nicolive_nicojk_not_receive_live">映像の受信をやめる（ニコニコ実況だといらないかなー）</string>
+    <string name="nicolive_nicojk_program_list">ニコ生版ニコニコ実況 (jk)</string>
 </resources>

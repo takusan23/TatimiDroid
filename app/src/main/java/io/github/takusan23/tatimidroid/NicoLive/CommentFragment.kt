@@ -329,6 +329,29 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             aspectRatioFix()
         }
 
+        // 新ニコニコ実況の番組と発覚した場合
+        viewModel.isNicoJKLiveData.observe(viewLifecycleOwner) { nicoJKId ->
+            // 映像受信するのやめる？
+            val snackbar = multiLineSnackbar(player_nicolive_control_active_text, getString(R.string.nicolive_nicojk_not_receive_live))
+            snackbar.duration = Snackbar.LENGTH_LONG
+            snackbar.setAction(R.string.not_receive_live) {
+                // 映像を受信しないモードをtrueへ
+                viewModel.isNotReceiveLive.postValue(true)
+            }
+        }
+
+        // 映像を受信しないモード
+        viewModel.isNotReceiveLive.observe(viewLifecycleOwner) { isNotReceiveLive ->
+            if (isNotReceiveLive) {
+                // ExoPlayerを終了させる
+                comment_fragment_surface_view.background = ColorDrawable(Color.BLACK)
+                exoPlayer.stop()
+            } else {
+                setPlayVideoView()
+                initQualityChangeBottomFragment(viewModel.currentQuality, viewModel.qualityListJSONArray)
+            }
+        }
+
         // うんこめ
         viewModel.unneiCommentLiveData.observe(viewLifecycleOwner) { unnkome ->
             showInfoOrUNEIComment(CommentJSONParse(unnkome, getString(R.string.room_integration), liveId).comment)
@@ -873,15 +896,17 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /**
      * MultilineなSnackbar
+     *
      * https://stackoverflow.com/questions/30705607/android-multiline-snackbar
      * */
-    private fun multiLineSnackbar(view: View, message: String) {
+    private fun multiLineSnackbar(view: View, message: String): Snackbar {
         val snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT)
         val snackbarView = snackbar.view
         val textView = snackbarView.findViewById(R.id.snackbar_text) as TextView
         textView.maxLines = 5 // show multiple line
         snackbar.anchorView = getSnackbarAnchorView() // 何のViewの上に表示するか指定
         snackbar.show()
+        return snackbar
     }
 
     //視聴モード

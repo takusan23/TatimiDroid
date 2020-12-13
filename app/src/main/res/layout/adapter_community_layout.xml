@@ -42,12 +42,12 @@
                             android:id="@+id/adapter_community_program_thumb"
                             android:layout_width="100dp"
                             android:layout_height="60dp"
-                            android:layout_gravity="center"
-                            android:layout_margin="5dp" />
+                            android:layout_gravity="center" />
 
                     <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_margin="5dp"
                             android:orientation="vertical">
 
                         <TextView

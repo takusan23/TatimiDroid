@@ -584,6 +584,27 @@ class NicoLiveHTML {
     }
 
     /**
+     * 指定したチャンネルIDがニコニコ実況のものだったらjk+文字のかたちで返す。違ったらnull
+     * 例：ch2646436 -> jk1
+     * */
+    fun channelIdToNicoJKId(channelId: String): String? {
+        // KotlinのこのMapの書き方すき
+        val channelIdList = mutableMapOf(
+            "ch2646436" to "jk1", // NHK 総合
+            "ch2646437" to "jk2", // Eテレ。小学校でがんこちゃん見るんだっけ？
+            "ch2646438" to "jk4", // 日本テレビ
+            "ch2646439" to "jk5", // テレビ朝日
+            "ch2646440" to "jk6", // TBSテレビ
+            "ch2646441" to "jk7", // テレビ東京
+            "ch2646442" to "jk8", // フジテレビ
+            "ch2646485" to "jk9", // TOKYO MX
+            "ch2646846" to "jk211", // BS11
+            // "co1736565" to "co1736565",
+        )
+        return channelIdList[channelId]
+    }
+
+    /**
      * 終了時によんで
      * WebSocket切るので
      * */

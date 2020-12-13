@@ -225,12 +225,21 @@ class NicoLivePlayService : Service() {
                     // 使うやつだけ
                     when {
                         command == "stream" -> {
-                            // HLSアドレス取得
-                            hlsAddress = getHlsAddress(message) ?: ""
-                            // UI Thread
-                            Handler(Looper.getMainLooper()).post {
-                                // 生放送再生
-                                initPlayer()
+                            // ニコニコ実況チャンネルの場合は映像の受信をやめる
+                            if (!isNicoJK()) {
+                                // HLSアドレス取得
+                                hlsAddress = getHlsAddress(message) ?: ""
+                                // UI Thread
+                                Handler(Looper.getMainLooper()).post {
+                                    // 生放送再生
+                                    initPlayer()
+                                }
+                            } else {
+                                // 新ニコニコ実況のとき
+                                Handler(Looper.getMainLooper()).post {
+                                    initPopUpView()
+                                    println("はい")
+                                }
                             }
                         }
                         command == "room" -> {
@@ -431,7 +440,8 @@ class NicoLivePlayService : Service() {
         windowManager.addView(popupView, params)
         commentCanvas = popupView.overlay_commentCanvas
         commentCanvas.isPopupView = true
-        if (isJK) {
+
+        if (isJK || isNicoJK()) {
             // ニコニコ実況の場合はSurfaceView非表示
             popupView.overlay_surfaceview.visibility = View.GONE
             // 半透明
@@ -586,6 +596,11 @@ class NicoLivePlayService : Service() {
             windowManager.updateViewLayout(popupView, params)
         }
 
+    }
+
+    /** ニコニコチャンネルになったニコニコ実況かどうかを返す。新ニコニコ実況ならtrue */
+    private fun isNicoJK(): Boolean {
+        return nicoLiveHTML.channelIdToNicoJKId(nicoLiveHTML.communityId) != null
     }
 
     /** MediaSession。音楽アプリの再生中のあれ */

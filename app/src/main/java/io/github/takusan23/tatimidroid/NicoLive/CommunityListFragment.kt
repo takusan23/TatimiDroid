@@ -128,7 +128,46 @@ class CommunityListFragment : Fragment() {
             YOYAKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.POPULAR_BEFORE_OPEN_BROADCAST_STATUS_PROGRAM)
             KOREKARA -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.RECENT_JUST_BEFORE_BROADCAST_STATUS_PROGRAM)
             ROOKIE -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.ROOKIE_PROGRAM)
+            NICOLIVE_JK -> setNicoLiveJKProgramList()
         }
+    }
+
+    /**
+     * ニコ生版ニコニコ実況の一覧を読み込む。まあハードコートなので一瞬だと思います。
+     * */
+    private fun setNicoLiveJKProgramList() {
+        // おはよう！午前４時に 何してるんだい？
+        val startTime = Calendar.getInstance().apply {
+            // 午前4時に枠が変わる
+            set(Calendar.HOUR_OF_DAY, 4)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+        }.time.time
+
+        // 次の日の朝４時まで
+        val endTime = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 4)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+        }.time.time
+
+        // ニコ生版ニコニコ実況のチャンネル一覧。今回はハードコートする
+        val programList = arrayListOf(
+            NicoLiveProgramData("NHK 総合", "NHK 総合（ニコニコ実況）", startTime.toString(), endTime.toString(), "ch2646436", "NHK 総合（ニコニコ実況）", "ON_AIR", "", true),
+            NicoLiveProgramData("Eテレ 総合", "Eテレ 総合（ニコニコ実況）", startTime.toString(), endTime.toString(), "ch2646437", "Eテレ 総合（ニコニコ実況）", "ON_AIR", "", true),
+            NicoLiveProgramData("日本テレビ", "日本テレビ（ニコニコ実況）", startTime.toString(), endTime.toString(), "ch2646438", "日本テレビ（ニコニコ実況）", "ON_AIR", "", true),
+            NicoLiveProgramData("テレビ朝日", "テレビ朝日（ニコニコ実況）", startTime.toString(), endTime.toString(), "ch2646439", "テレビ朝日（ニコニコ実況）", "ON_AIR", "", true),
+            NicoLiveProgramData("TBSテレビ", "TBSテレビ（ニコニコ実況）", startTime.toString(), endTime.toString(), "ch2646440", "TBSテレビ（ニコニコ実況）", "ON_AIR", "", true),
+            NicoLiveProgramData("テレビ東京", "テレビ東京（ニコニコ実況）", startTime.toString(), endTime.toString(), "ch2646441", "テレビ東京（ニコニコ実況）", "ON_AIR", "", true),
+            NicoLiveProgramData("フジテレビ", "フジテレビ（ニコニコ実況）", startTime.toString(), endTime.toString(), "ch2646442", "フジテレビ（ニコニコ実況）", "ON_AIR", "", true),
+            NicoLiveProgramData("TOKYO MX", "TOKYO MX（ニコニコ実況）", startTime.toString(), endTime.toString(), "ch2646485", "TOKYO MX（ニコニコ実況）", "ON_AIR", "", true),
+            NicoLiveProgramData("BS11", "BS11（ニコニコ実況）", startTime.toString(), endTime.toString(), "ch2646846", "BS11（ニコニコ実況）", "ON_AIR", "", true),
+        )
+        recyclerViewList.clear()
+        recyclerViewList.addAll(programList)
+        communityRecyclerViewAdapter.notifyDataSetChanged()
+        swipeRefreshLayout.isRefreshing = false
     }
 
     /**
@@ -370,6 +409,9 @@ class CommunityListFragment : Fragment() {
 
         /** ルーキー番組 */
         const val ROOKIE = 10
+
+        /** ニコ生版ニコニコ実況 */
+        const val NICOLIVE_JK = 11
     }
 
 }

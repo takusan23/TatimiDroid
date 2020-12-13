@@ -535,4 +535,8 @@
     <string name="konomi_tag_empty">The broadcaster has not set a konomi tag.</string>
     <string name="nicovideo_not_play_video_mode">Since there is no video file, only comments will be sent. (Some functions cannot be used.)</string>
     <string name="nicovideo_setting_hide_kantan_comment">Hide kantan comments</string>
+    <string name="hide_emotion">Hide emotions</string>
+    <string name="not_receive_live">Do not receive video</string>
+    <string name="nicolive_nicojk_not_receive_live">Stop receiving video (I don\'t think it\'s a live commentary)</string>
+    <string name="nicolive_nicojk_program_list">Nico live version Nico Nico live (jk)</string>
 </resources>

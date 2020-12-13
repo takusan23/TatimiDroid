@@ -126,7 +126,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:padding="5sp"
-                            android:text="コメント一覧でエモーションを表示しない" />
+                            android:text="@string/hide_emotion" />
 
                     <Switch
                             android:id="@+id/fragment_comment_fragment_menu_iyayo_comment_switch"
@@ -144,13 +144,20 @@
                             android:padding="5sp"
                             android:text="@string/iyayo_hidden" />
 
-
                     <Switch
                             android:id="@+id/fragment_comment_fragment_menu_low_latency_switch"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:padding="5sp"
                             android:text="@string/low_latency" />
+
+                    <Switch
+                            android:id="@+id/fragment_comment_fragment_menu_not_live_recive"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:padding="5sp"
+                            android:text="@string/not_receive_live" />
 
                     <Switch
                             android:id="@+id/fragment_comment_fragment_menu_command_save_switch"

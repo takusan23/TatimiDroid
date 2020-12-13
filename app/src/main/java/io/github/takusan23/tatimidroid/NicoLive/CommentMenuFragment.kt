@@ -239,6 +239,12 @@ class CommentMenuFragment : Fragment() {
             viewModel.nicoLiveHTML.sendLowLatency(isChecked)
         }
 
+        // 映像を受信しない（将来のニコニコ実況のため？）
+        fragment_comment_fragment_menu_not_live_recive.isChecked = viewModel.isNotReceiveLive.value ?: false
+        fragment_comment_fragment_menu_not_live_recive.setOnCheckedChangeListener { buttonView, isChecked ->
+            viewModel.isNotReceiveLive.postValue(!viewModel.isNotReceiveLive.value!!)
+        }
+
         // コメント一行モード on/off
         fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit {

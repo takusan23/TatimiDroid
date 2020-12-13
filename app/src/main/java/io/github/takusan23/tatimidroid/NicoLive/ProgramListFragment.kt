@@ -48,6 +48,7 @@ class ProgramListFragment : Fragment() {
                 R.id.nicolive_program_list_menu_yoyaku -> setFragment(CommunityListFragment.YOYAKU)
                 R.id.nicolive_program_list_menu_auto_admission -> setFragment(CommunityListFragment.ADMISSION)
                 R.id.nicolive_program_list_menu_rookie -> setFragment(CommunityListFragment.ROOKIE)
+                R.id.nicolive_program_list_menu_nicolive_jk -> setFragment(CommunityListFragment.NICOLIVE_JK)
                 R.id.nicolive_program_list_menu_jk -> {
                     // ニコニコ実況。ｊｋ
                     val nicoJKChannelFragment = NicoJKChannelFragment()

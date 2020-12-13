@@ -28,9 +28,9 @@ class NicoJKChannelFragment : Fragment() {
         val adapter = NicoJKChannelViewPager(activity as AppCompatActivity)
         fragment_jk_channel_viewpager2.adapter = adapter
         // TabLayout
-        TabLayoutMediator(fragment_jk_channel_tablayout, fragment_jk_channel_viewpager2, TabLayoutMediator.TabConfigurationStrategy { tab, position ->
+        TabLayoutMediator(fragment_jk_channel_tablayout, fragment_jk_channel_viewpager2) { tab, position ->
             tab.text = adapter.tabNameList[position]
-        }).attach()
+        }.attach()
 
     }
 

@@ -39,11 +39,11 @@ import kotlin.math.roundToInt
  *
  * いまだに何をおいておけば良いのかわからん
  *
- * @param liveId 番組ID
+ * @param liveIdOrCommunityId 番組IDかコミュIDかチャンネルID。どれが来るか知らんから、番組IDが欲しい場合は[NicoLiveHTML.liveId]を使ってね
  * @param isJK 実況の時はtrue
  * @param isLoginMode HTML取得時にログインする場合はtrue
  * */
-class NicoLiveViewModel(application: Application, val liveId: String, val isLoginMode: Boolean, val isJK: Boolean) : AndroidViewModel(application) {
+class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: String, val isLoginMode: Boolean, val isJK: Boolean) : AndroidViewModel(application) {
 
     /** Context */
     private val context = getApplication<Application>().applicationContext
@@ -63,8 +63,11 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
     /** ニコ実関係 */
     val nicoJK = NicoJKHTML()
 
-    /** Snackbar表示用LiveData。無理やり複数行表示に対応してね */
+    /** Snackbar表示用LiveData。複数行行ける */
     val snackbarLiveData = MutableLiveData<String>()
+
+    /** ニコニコ実況だったら呼ばれるLiveData */
+    val isNicoJKLiveData = MutableLiveData<String>()
 
     /** Fragment(Activity)へメッセージを送信するためのLiveData。Activity終了など。*/
     val messageLiveData = MutableLiveData<String>()
@@ -162,6 +165,9 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
      * */
     var isCommentOnlyMode = !prefSetting.getBoolean("setting_watch_live", true)
 
+    /** 映像を取得しないモードならtrue。[isCommentOnlyMode]との違いはコメントは描画し続けるというところ。ニコニコチャンネルになった実況用 */
+    var isNotReceiveLive = MutableLiveData(false)
+
     init {
         // 匿名でコメントを投稿する場合
         nicoLiveHTML.isPostTokumeiComment = prefSetting.getBoolean("nicolive_post_tokumei", true)
@@ -206,12 +212,18 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
                 activeUserClear()
                 // 経過時間
                 setLiveTime()
+
+                /**
+                 * すでにニコニコ実況チャンネルが存在する：https://ch.nicovideo.jp/jk1
+                 * ので文字列部分一致してたら生放送の映像受信を止めるかどうか尋ねる
+                 * */
+                checkNicoJK()
             }
         } else {
             // ニコ実況。JK
             viewModelScope.launch(errorHandler + Dispatchers.Default) {
                 // getflv叩く。
-                val getFlvResponse = nicoJK.getFlv(liveId, userSession)
+                val getFlvResponse = nicoJK.getFlv(liveIdOrCommunityId, userSession)
                 if (!getFlvResponse.isSuccessful) {
                     // 失敗のときは落とす
                     messageLiveData.postValue("finish")
@@ -252,10 +264,18 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
         }
     }
 
+    /**
+     * 視聴中の番組が新ニコニコ実況かどう判断する
+     * */
+    private fun checkNicoJK() {
+        val nicoJKId = nicoLiveHTML.channelIdToNicoJKId(nicoLiveHTML.communityId)
+        isNicoJKLiveData.postValue(nicoJKId)
+    }
+
     /** 座席番号と部屋の名前取得 */
     private suspend fun getPlayerStatus() = withContext(Dispatchers.IO) {
         // getPlayerStatus叩いて座席番号取得
-        val getPlayerStatusResponse = nicoLiveHTML.getPlayerStatus(liveId, userSession)
+        val getPlayerStatusResponse = nicoLiveHTML.getPlayerStatus(nicoLiveHTML.liveId, userSession)
         if (getPlayerStatusResponse.isSuccessful) {
             // なおステータスコード200でも中身がgetPlayerStatusのものかどうかはまだわからないので、、、
             val document =
@@ -266,7 +286,7 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
             if (hasGetPlayerStatusTag && document.getElementsByTag("getplayerstatus ")[0].attr("status") == "ok") {
                 val roomName = document.getElementsByTag("room_label")[0].text() // 部屋名
                 val chairNo = document.getElementsByTag("room_seetno")[0].text() // 座席番号
-                roomNameAndChairIdLiveData.postValue("$liveId - $roomName - $chairNo")
+                roomNameAndChairIdLiveData.postValue("${nicoLiveHTML.liveId} - $roomName - $chairNo")
             } else {
                 // getPlayerStatus取得失敗時
                 snackbarLiveData.postValue(getString(R.string.error_getplayserstatus))
@@ -298,7 +318,7 @@ class NicoLiveViewModel(application: Application, val liveId: String, val isLogi
                     // コマンドをくっつける
                     val command = "$color $size $position"
                     // ニコキャスのAPIを叩いてコメントを投稿する
-                    nicoLiveHTML.sendCommentNicocasAPI(comment, command, liveId, userSession, { showToast(getString(R.string.error)) }, { response ->
+                    nicoLiveHTML.sendCommentNicocasAPI(comment, command, nicoLiveHTML.liveId, userSession, { showToast(getString(R.string.error)) }, { response ->
                         // 成功時
                         if (response.isSuccessful) {
                             //成功
@@ -590,7 +610,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
     private fun receiveCommentFun(comment: String, roomName: String, isHistoryComment: Boolean) {
         val room = if (isJK) programTitle else roomName
         // JSONぱーす
-        val commentJSONParse = CommentJSONParse(comment, room, liveId)
+        val commentJSONParse = CommentJSONParse(comment, room, nicoLiveHTML.liveId)
         // アンケートや運コメを表示させる。
         if (roomName != getString(R.string.room_limit)) {
             when {
@@ -675,7 +695,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
      * */
     private suspend fun connectionStoreCommentServer(userId: String? = null, yourPostKey: String? = null) = withContext(Dispatchers.Default) {
         // コメントサーバー取得API叩く
-        val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, userSession)
+        val allRoomResponse = nicoLiveComment.getProgramInfo(nicoLiveHTML.liveId, userSession)
         if (!allRoomResponse.isSuccessful) {
             showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
             return@withContext
@@ -694,7 +714,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         // 入れるデータ
         val nicoHistoryDBEntity = NicoHistoryDBEntity(
             type = "live",
-            serviceId = liveId,
+            serviceId = nicoLiveHTML.liveId,
             userId = communityId,
             title = programTitle,
             unixTime = unixTime,
@@ -707,7 +727,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
     /** ニコ生放送ページのHTML取得。コルーチンです */
     private suspend fun getNicoLiveHTML(): String? = withContext(Dispatchers.Default) {
         // ニコ生視聴ページリクエスト
-        val livePageResponse = nicoLiveHTML.getNicoLiveHTML(liveId, userSession, isLoginMode)
+        val livePageResponse = nicoLiveHTML.getNicoLiveHTML(liveIdOrCommunityId, userSession, isLoginMode)
         if (!livePageResponse.isSuccessful) {
             // 失敗のときは落とす
             messageLiveData.postValue("finish")

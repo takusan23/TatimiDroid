@@ -456,11 +456,13 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     fun commentFilter(isShowToast: Boolean = false) {
         // 3DSけす？
         val is3DSCommentHidden = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
+
         /**
          * かんたんコメントを消す。forkの値が2の場合はかんたんコメントになる。
          * どうでもいいんだけどあの機能、関係ないところでうぽつとかできるから控えめに言ってあらし機能だろあれ。てかROM専は何してもコメントしないぞ
          * */
         val isHideKantanComment = prefSetting.getBoolean("nicovideo_comment_kantan_comment_hidden", false)
+
         // NGコメント。ngList引数が省略時されてるときはDBから取り出す
         val ngCommentList = ngList.map { ngdbEntity -> ngdbEntity.value }
         // NGユーザー。ngList引数が省略時されてるときはDBから取り出す

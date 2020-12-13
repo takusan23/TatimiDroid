@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -61,9 +62,13 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         val isOfficial = item.isOfficial // 公式ならtrue
         val isOnAir = liveNow.contains("ON_AIR") || liveNow.contains("Begun")
 
+        // ニコ生版ニコニコ実況は時間が取れないので非表示へ
+        holder.timeTextView.isVisible = live_time != "-1"
+
         //時間を文字列に
         val simpleDateFormat = SimpleDateFormat("MM/dd HH:mm:ss EEE曜日")
         val time = simpleDateFormat.format(live_time.toLong())
+
 
         holder.titleTextView.text = title
         holder.communityNameTextView.text = "[${name}]"
@@ -109,12 +114,16 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         }
 
         // サムネ
-        holder.thumbImageView.imageTintList = null
-        Glide.with(holder.thumbImageView)
-            .load(thumb)
-            .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
-            .into(holder.thumbImageView)
-
+        if (thumb.isNotEmpty()) {
+            holder.thumbImageView.imageTintList = null
+            Glide.with(holder.thumbImageView)
+                .load(thumb)
+                .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
+                .into(holder.thumbImageView)
+        } else {
+            // URLがからなので非表示
+            holder.thumbImageView.isVisible = false
+        }
 
         // 視聴モードボタン
         initWatchModeButton(holder, item)
