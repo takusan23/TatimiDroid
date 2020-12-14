@@ -272,8 +272,14 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
         // シークしたとき
         viewModel.playerSetSeekMs.observe(viewLifecycleOwner) { seekPos ->
-            viewModel.playerCurrentPositionMs = seekPos
-            exoPlayer.seekTo(seekPos)
+            if (0 <= seekPos && seekPos <= (viewModel.playerDurationMs.value ?: 0)) {
+                viewModel.playerCurrentPositionMs = seekPos
+                exoPlayer.seekTo(seekPos)
+            } else {
+                // 負の値に突入するので０
+                viewModel.playerCurrentPositionMs = 0
+                exoPlayer.seekTo(0)
+            }
         }
         // 動画の再生時間
         viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
