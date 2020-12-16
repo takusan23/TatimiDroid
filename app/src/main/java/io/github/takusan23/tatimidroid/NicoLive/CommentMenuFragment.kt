@@ -177,7 +177,7 @@ class CommentMenuFragment : Fragment() {
         fragment_comment_fragment_menu_background_button.setOnClickListener {
             commentFragment.apply {
                 startBackgroundPlay()
-                exoPlayer.stop()
+                viewModel.isNotReceiveLive.value = true
                 setCommentOnlyMode(!viewModel.isCommentOnlyMode)
             }
         }
@@ -196,7 +196,7 @@ class CommentMenuFragment : Fragment() {
                 commentFragment.apply {
                     //ポップアップ再生。コメント付き
                     startPopupPlay()
-                    exoPlayer.stop()
+                    viewModel.isNotReceiveLive.value = true
                     setCommentOnlyMode(!viewModel.isCommentOnlyMode)
                 }
             }

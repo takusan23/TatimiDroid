@@ -737,9 +737,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                // コントローラー非表示カウントダウン終了。
-                isTouchSeekBar = true
-                job.cancelChildren()
+                if (player_control_main.isVisible) {
+                    isTouchSeekBar = true
+                    job.cancelChildren()
+                }
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {

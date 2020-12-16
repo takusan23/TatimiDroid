@@ -120,8 +120,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     // 二窓モードになっている場合
     var isNimadoMode = false
 
-    //ExoPlayer
-    val exoPlayer by lazy { SimpleExoPlayer.Builder(requireContext()).build() }
+    // ExoPlayer
+    lateinit var exoPlayer: SimpleExoPlayer
 
     // GoogleCast使うか？
     lateinit var googleCast: GoogleCast
@@ -177,6 +177,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         liveId = arguments?.getString("liveId") ?: ""
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+
+        exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
 
         // ViewPager
         initViewPager()
@@ -316,12 +318,12 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             viewModel.isNotReceiveLive.postValue(true)
         }
 
-        // 映像を受信しないモード
+        // 映像を受信しないモード。映像なしだと3分で620KBぐらい？
         viewModel.isNotReceiveLive.observe(viewLifecycleOwner) { isNotReceiveLive ->
             if (isNotReceiveLive) {
-                // ExoPlayerを終了させる
+                // 背景真っ暗へ
                 comment_fragment_surface_view.background = ColorDrawable(Color.BLACK)
-                exoPlayer.stop()
+                exoPlayer.release()
             } else {
                 setPlayVideoView()
                 initQualityChangeBottomFragment(viewModel.currentQuality, viewModel.qualityListJSONArray)
@@ -886,9 +888,17 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     }
 
     //視聴モード
-    fun setPlayVideoView() {
+    private fun setPlayVideoView() {
+
+        // ExoPlayer作り直す
         val hlsAddress = viewModel.hlsAddress.value ?: return
-        exoPlayer.stop()
+        exoPlayer.release()
+        exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
+
+        // ニコ生版ニコニコ実況の場合 と 映像を受信しないモードのとき は接続しないので即return
+        if (viewModel.nicoLiveHTML.getNicoJKIdFromChannelId(viewModel.communityId) != null || viewModel.isNotReceiveLive.value == true) {
+            return
+        }
 
         //設定で読み込むかどうか
         Handler(Looper.getMainLooper()).post {

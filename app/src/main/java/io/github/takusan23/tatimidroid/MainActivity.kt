@@ -170,6 +170,7 @@ class MainActivity : AppCompatActivity() {
                 "nicolive" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
                 "nicovideo" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
                 "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+                "jk" -> setFragment(ProgramListFragment().apply { arguments = Bundle().apply { putInt("fragment", R.id.nicolive_program_list_menu_nicolive_jk) } })
             }
         }
 
