@@ -589,10 +589,6 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
                     unneiCommentLiveData.postValue(comment)
                 }
-                //運営コメントけす
-                if (commentJSONParse.comment.contains("/clear")) {
-                    unneiCommentLiveData.postValue("clear")
-                }
             }
         }
         // 匿名コメント落とすモード

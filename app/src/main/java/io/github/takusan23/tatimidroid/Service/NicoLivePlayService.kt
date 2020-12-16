@@ -86,7 +86,7 @@ class NicoLivePlayService : Service() {
     var uiHideTimer = Timer() // UIを自動で非表示にするためのTimer
 
     // 番組情報関係
-    var liveId = ""
+    var liveId = "" // 生放送IDじゃなくてちゃんねるIDの可能性も有る
     var userSession = ""
     var isCommentPOSTMode = false   // コメント投稿モード。ログイン状態
     var isNicoCasMode = false       // nicocasモード。非ログイン状態
@@ -202,7 +202,6 @@ class NicoLivePlayService : Service() {
                                 // 新ニコニコ実況のとき
                                 Handler(Looper.getMainLooper()).post {
                                     initPopUpView()
-                                    println("はい")
                                 }
                             }
                         }
@@ -242,7 +241,7 @@ class NicoLivePlayService : Service() {
      * */
     private suspend fun connectionStoreCommentServer() = withContext(Dispatchers.Default) {
         // コメントサーバー取得API叩く
-        val allRoomResponse = nicoLiveComment.getProgramInfo(liveId, userSession)
+        val allRoomResponse = nicoLiveComment.getProgramInfo(nicoLiveHTML.liveId, userSession)
         if (!allRoomResponse.isSuccessful) {
             showToast("${getString(R.string.error)}\n${allRoomResponse.code}")
             return@withContext
@@ -335,7 +334,8 @@ class NicoLivePlayService : Service() {
                     println("再度再生準備を行います")
                     Handler(Looper.getMainLooper()).post {
                         // 再生準備
-                        popupExoPlayer.prepare(hlsMediaSource)
+                        popupExoPlayer.setMediaSource(hlsMediaSource)
+                        popupExoPlayer.prepare()
                         if (::popupView.isInitialized) {
                             //SurfaceViewセット
                             popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
