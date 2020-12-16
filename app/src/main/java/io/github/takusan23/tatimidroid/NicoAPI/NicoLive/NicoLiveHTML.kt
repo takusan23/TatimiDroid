@@ -587,7 +587,7 @@ class NicoLiveHTML {
      * 指定したチャンネルIDがニコニコ実況のものだったらjk+文字のかたちで返す。違ったらnull
      * 例：ch2646436 -> jk1
      * */
-    fun channelIdToNicoJKId(channelId: String): String? {
+    fun getNicoJKIdFromChannelId(channelId: String): String? {
         // KotlinのこのMapの書き方すき
         val channelIdList = mutableMapOf(
             "ch2646436" to "jk1", // NHK 総合

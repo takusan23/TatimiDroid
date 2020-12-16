@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.content.res.ColorStateList
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.Icon
 import android.os.Build
@@ -21,6 +22,7 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
@@ -30,9 +32,16 @@ import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.ContentShare
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
+import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_comment_menu.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.Request
+import java.io.File
+import java.io.IOException
 
 
 /**
@@ -82,8 +91,8 @@ class CommentMenuFragment : Fragment() {
         //CommentFragmentへ値を渡す
         setCommentFragmentValue()
 
-        // Dynamic Shortcutsテスト。とりあえず試験的にニコニコ実況だけ
-        if (commentFragment.isJK && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        // ニコ生全てでホーム画面にピン留めできるように
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             fragment_comment_fragment_menu_dymanic_shortcut_button.visibility = View.VISIBLE
         }
 
@@ -99,25 +108,6 @@ class CommentMenuFragment : Fragment() {
             fragment_comment_fragment_nico_nama_game_switch.isEnabled = false
         }
 
-        // ニコニコ実況で使わないボタンを消す
-        hideNicoJK()
-
-    }
-
-    private fun hideNicoJK() {
-        if (isNicoJK()) {
-            fragment_comment_fragment_menu_background_button.isEnabled = false
-            fragment_comment_fragment_menu_cast_button.isEnabled = false
-            fragment_comment_fragment_menu_floating_button.isEnabled = false
-            fragment_comment_fragment_menu_iyayo_comment_switch.isEnabled = false
-            fragment_comment_fragment_menu_iyayo_hidden_switch.isEnabled = false
-            fragment_comment_fragment_menu_low_latency_switch.isEnabled = false
-            fragment_comment_fragment_menu_copy_liveid_button.isEnabled = false
-            fragment_comment_fragment_menu_copy_communityid_button.isEnabled = false
-            fragment_comment_fragment_menu_open_browser_button.isEnabled = false
-            fragment_comment_fragment_menu_ng_list_button.isEnabled = false
-            fragment_comment_fragment_nico_nama_game_switch.isEnabled = false
-        }
     }
 
     fun darkmode() {
@@ -340,17 +330,24 @@ class CommentMenuFragment : Fragment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Android 7.1 以降のみ対応
             val shortcutManager = context?.getSystemService(Context.SHORTCUT_SERVICE) as ShortcutManager
+            // サポート済みのランチャーだった
             if (shortcutManager.isRequestPinShortcutSupported) {
-                // サポート済みのランチャーだった
-                viewModel.nicoJKGetFlv.value?.apply {
-                    val shortcut = ShortcutInfo.Builder(context, commentFragment.liveId).apply {
-                        setShortLabel(channelName)
-                        setLongLabel(channelName)
-                        setIcon(Icon.createWithResource(context, R.drawable.ic_flash_on_24px))
+                // すべての番組でホーム画面にピン留めをサポート
+                lifecycleScope.launch {
+                    val viewModel = commentFragment.viewModel
+                    // サムネイル取得！
+                    val iconBitmap = getThumb(requireContext(), viewModel.thumbnailURL, viewModel.communityId)
+                    // 一旦Bitmapに変換したあと、Iconに変換するとうまくいく。
+                    val bitmap = BitmapFactory.decodeFile(iconBitmap)
+                    val icon = Icon.createWithAdaptiveBitmap(bitmap)
+                    // Android 11から？setShortLabelの値ではなくBuilder()の第二引数がタイトルに使われるようになったらしい
+                    val shortcut = ShortcutInfo.Builder(context, viewModel.programTitle).apply {
+                        setShortLabel(viewModel.programTitle)
+                        setLongLabel(viewModel.programTitle)
+                        setIcon(icon)
                         val intent = Intent(context, MainActivity::class.java).apply {
                             action = Intent.ACTION_MAIN
-                            putExtra("liveId", commentFragment.liveId)
-                            putExtra("is_jk", commentFragment.isJK)
+                            putExtra("liveId", viewModel.nicoLiveHTML.communityId)
                             putExtra("watch_mode", "comment_post")
                         }
                         setIntent(intent)
@@ -360,6 +357,35 @@ class CommentMenuFragment : Fragment() {
             }
         }
     }
+
+    /**
+     * サムネイルをデバイスに保存する。キャッシュに保存すべきなのか永続の方に入れるべきなのかよくわからないけど、とりま永続の方に入れる
+     * */
+    private suspend fun getThumb(context: Context?, thumbUrl: String, liveId: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url(thumbUrl)
+            get()
+        }.build()
+        val response = try {
+            OkHttpClientSingleton.okHttpClient.newCall(request).execute()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
+        val iconFolder = File(context?.getExternalFilesDir(null), "icon")
+        if (!iconFolder.exists()) {
+            iconFolder.mkdir()
+        }
+        val iconFile = File(iconFolder, "$liveId.jpg")
+        return@withContext try {
+            iconFile.writeBytes(response?.body?.bytes() ?: return@withContext null)
+            iconFile.path
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
+    }
+
 
     private fun setValue() {
         //コメント非表示
@@ -402,11 +428,6 @@ class CommentMenuFragment : Fragment() {
             viewModel.nicoLiveHTML.isPostTokumeiComment = isChecked
             prefSetting.edit { putBoolean("nicolive_post_tokumei", isChecked) }
         }
-    }
-
-    // ニコニコ実況ならtrue
-    fun isNicoJK(): Boolean {
-        return commentFragment.isJK
     }
 
 }

@@ -12,9 +12,8 @@ import io.github.takusan23.tatimidroid.R
  * @param parentFragment ViewPager2に入れたFragmentで[Fragment.requireParentFragment]を呼んだ時に返すFragment。
  * @param liveId 生放送ID
  * @param isOfficial 公式番組の場合はtrue
- * @param isJK 実況ならtrue
  * */
-class NicoLivePagerAdapter(val parentFragment: Fragment, val liveId: String, val isOfficial: Boolean = false, val isJK: Boolean = false) : FragmentStateAdapter(parentFragment) {
+class NicoLivePagerAdapter(val parentFragment: Fragment, val liveId: String, val isOfficial: Boolean = false) : FragmentStateAdapter(parentFragment) {
 
     /** Fragmentの配列。配列で管理する必要性は */
     val fragmentList = arrayListOf<Fragment>()
@@ -41,21 +40,6 @@ class NicoLivePagerAdapter(val parentFragment: Fragment, val liveId: String, val
                         context.getString(R.string.gift),
                         context.getString(R.string.nicoads),
                         context.getString(R.string.program_info),
-                    )
-                )
-            }
-            isJK -> {
-                // ニコニコ実況で使うFragment
-                fragmentList.addAll(
-                    arrayListOf(
-                        CommentMenuFragment().apply { arguments = liveIdBundle() },
-                        CommentViewFragment().apply { arguments = liveIdBundle() },
-                    )
-                )
-                fragmentTabNameList.addAll(
-                    arrayListOf(
-                        context.getString(R.string.menu),
-                        context.getString(R.string.comment),
                     )
                 )
             }
@@ -97,7 +81,6 @@ class NicoLivePagerAdapter(val parentFragment: Fragment, val liveId: String, val
     override fun getItemCount(): Int {
         return when {
             isOfficial -> 5
-            isJK -> 2
             else -> 6
         }
     }

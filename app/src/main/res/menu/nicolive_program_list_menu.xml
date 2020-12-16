@@ -38,11 +38,13 @@
         <item
                 android:id="@+id/nicolive_program_list_menu_nicolive_jk"
                 android:icon="@drawable/ic_personal_video_black_24dp"
-                android:title="@string/nicolive_nicojk_program_list" />
+                android:title="@string/nicolive_jk" />
+<!--
         <item
                 android:id="@+id/nicolive_program_list_menu_jk"
                 android:icon="@drawable/ic_personal_video_black_24dp"
                 android:title="@string/nico_jk" />
+-->
         <item
                 android:id="@+id/nicolive_program_list_menu_auto_admission"
                 android:icon="@drawable/ic_auto_admission_start_icon"

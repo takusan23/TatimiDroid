@@ -67,25 +67,14 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>, p
         // 絶対時刻か相対時刻か
         var time = ""
         if (prefSetting.getBoolean("setting_zettai_zikoku_hyouzi", true)) {
-            if (commentFragmentViewModel.isJK) {
-                // 絶対時刻（12:13:00）など
-                // UnixTime -> Minute
-                if (commentJSONParse.date.isNotEmpty()) {
-                    val calendar = Calendar.getInstance(TimeZone.getDefault())
-                    calendar.timeInMillis = commentJSONParse.date.toLong() * 1000L
-                    val simpleDateFormat = SimpleDateFormat("HH:mm:ss")
-                    time = simpleDateFormat.format(commentJSONParse.date.toLong() * 1000L)
-                }
+            if (commentJSONParse.date.isNotEmpty()) {
+                //相対時刻（25:25）など
+                val programStartTime = commentFragmentViewModel.nicoLiveHTML.programStartTime
+                val commentUnixTime = commentJSONParse.date.toLong()
+                val calc = (commentUnixTime - programStartTime)
+                time = DateUtils.formatElapsedTime(calc) // 時：分：秒　っていい感じにしてくれる
             } else {
-                if (commentJSONParse.date.isNotEmpty()) {
-                    //相対時刻（25:25）など
-                    val programStartTime = commentFragmentViewModel.nicoLiveHTML.programStartTime
-                    val commentUnixTime = commentJSONParse.date.toLong()
-                    val calc = (commentUnixTime - programStartTime)
-                    time = DateUtils.formatElapsedTime(calc) // 時：分：秒　っていい感じにしてくれる
-                } else {
-                    time = "0"
-                }
+                time = "0"
             }
         } else {
             // 絶対時刻（12:13:00）など

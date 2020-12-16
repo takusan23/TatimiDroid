@@ -6,12 +6,14 @@
         <item>@string/nicolive</item>
         <item>@string/nicovideo</item>
         <item>@string/cache</item>
+        <item>@string/nico_jk</item>
     </string-array>
     <!-- 起動時の設定 設定される値  -->
     <string-array name="launch_fragment_value">
         <item>live</item>
         <item>video</item>
         <item>cache</item>
+        <item>jk</item>
     </string-array>
 
     <!-- デフォルトの再生方法 表示される値  -->

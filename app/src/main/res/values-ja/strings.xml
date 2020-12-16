@@ -406,7 +406,7 @@
     <string name="setting_show_nicoru_button_description">まだ第二期ニコるくんはベータ段階なので一応デフォルトで無効にしてあります。</string>
     <string name="open_background">バッググラウンド再生で開く</string>
     <string name="open_popup">ポップアップ再生で開く</string>
-    <string name="add_homescreen">ホーム画面に追加（試験導入）</string>
+    <string name="add_homescreen">ホーム画面に追加</string>
     <string name="setting_video_and_live">動画、生放送共通設定</string>
     <string name="setting_enter_post_description">無効にすると複数行でコメントを投稿できるようになります。</string>
     <string name="setting_economy_title">強制エコノミーモードで視聴する</string>
@@ -538,5 +538,6 @@
     <string name="hide_emotion">エモーションを非表示にする</string>
     <string name="not_receive_live">映像の受信をやめる</string>
     <string name="nicolive_nicojk_not_receive_live">映像の受信をやめる（ニコニコ実況だとコメントだけでいい？）</string>
-    <string name="nicolive_nicojk_program_list">ニコ生版ニコニコ実況 (jk)</string>
+    <string name="nicolive_jk">ニコ生版ニコニコ実況 (jk)</string>
+    <string name="nicolive_jk_not_live_receive">ニコ生版ニコニコ実況のため映像の受信をやめました</string>
 </resources>

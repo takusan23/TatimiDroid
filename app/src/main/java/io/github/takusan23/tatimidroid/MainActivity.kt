@@ -50,8 +50,8 @@ import kotlinx.coroutines.withContext
  *         - ニコ動
  *     - cache
  *         - キャッシュ一覧
- *     - login
- *         - 二段階認証が必要な際にどうぞ
+ *     - jk
+ *         - ニコニコ実況
  *
  * ```kotlin
  * // キャッシュ一覧を直接開く例
@@ -162,6 +162,7 @@ class MainActivity : AppCompatActivity() {
                     "live" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
                     "video" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
                     "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+                    "jk" -> setFragment(ProgramListFragment().apply { arguments = Bundle().apply { putInt("fragment", R.id.nicolive_program_list_menu_nicolive_jk) } })
                 }
             }
             // App Shortcutから起動
@@ -267,11 +268,9 @@ class MainActivity : AppCompatActivity() {
         //ログイン情報があるかどうか
         if (prefSetting.getString("mail", "")?.isNotEmpty() == true) {
             setFragment(ProgramListFragment())
-            // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_NICOLIVE)
         } else {
             // ログイン画面へ切り替える
             setFragment(LoginFragment())
-            // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_LOGIN)
             Toast.makeText(this, getString(R.string.mail_pass_error), Toast.LENGTH_SHORT).show()
         }
     }

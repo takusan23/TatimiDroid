@@ -26,13 +26,9 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 
-/*
-* わざわざFloatingなコメントビューあーを作るためにクラスを作ったのかって？
-* AndroidManifestに属性を設定しないといけないんですけどそれをCommentActivityで適用して
-* BubblesAPIを使おうとするとアプリが履歴で大増殖します。
-* 多分こいつ（属性）のせい。複数インスタンスを許可するには必要らしい。→android:documentLaunchMode
-* というわけでわざわざ作ったわけです。
-* */
+/**
+ * フローティングコメビュ。[CommentFragment]を上に乗っけてる。
+ * */
 class FloatingCommentViewer : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

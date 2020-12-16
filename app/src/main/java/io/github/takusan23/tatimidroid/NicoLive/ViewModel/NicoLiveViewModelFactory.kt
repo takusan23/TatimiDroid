@@ -7,10 +7,10 @@ import androidx.lifecycle.ViewModelProvider
 /**
  * [NicoLiveViewModel]は生放送ID（とかいろいろ）を引数にほしいので独自に用意
  * */
-class NicoLiveViewModelFactory(val application: Application, val liveId: String, val isLoginMode: Boolean, val isJK: Boolean) : ViewModelProvider.Factory {
+class NicoLiveViewModelFactory(val application: Application, val liveId: String, val isLoginMode: Boolean) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return NicoLiveViewModel(application, liveId, isLoginMode, isJK) as T
+        return NicoLiveViewModel(application, liveId, isLoginMode) as T
     }
 
 }

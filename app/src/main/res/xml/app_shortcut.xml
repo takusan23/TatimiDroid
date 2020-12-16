@@ -46,5 +46,20 @@
                     android:value="cache" />
         </intent>
     </shortcut>
+    <!-- ニコニコ実況 -->
+    <shortcut
+            android:icon="@drawable/ic_personal_video_black_24dp"
+            android:shortcutId="jk"
+            android:shortcutShortLabel="@string/nico_jk">
+        <!-- インテント -->
+        <intent
+                android:action="android.intent.action.VIEW"
+                android:targetClass="io.github.takusan23.tatimidroid.MainActivity"
+                android:targetPackage="io.github.takusan23.tatimidroid">
+            <extra
+                    android:name="app_shortcut"
+                    android:value="jk" />
+        </intent>
+    </shortcut>
 
 </shortcuts>

@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
@@ -14,6 +13,8 @@ import kotlinx.android.synthetic.main.fragment_program_list.*
 
 /**
  * 番組一覧Fragmentを乗せるFragment
+ *
+ * BundleにIntを"fragment"の名前で[R.id.nicolive_program_list_menu_nicolive_jk]等を入れておくことで指定したページを開くことができます。
  * */
 class ProgramListFragment : Fragment() {
 
@@ -23,8 +24,6 @@ class ProgramListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.nicolive)
 
         // 背景色
         fragment_program_backdrop.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
@@ -49,16 +48,16 @@ class ProgramListFragment : Fragment() {
                 R.id.nicolive_program_list_menu_auto_admission -> setFragment(CommunityListFragment.ADMISSION)
                 R.id.nicolive_program_list_menu_rookie -> setFragment(CommunityListFragment.ROOKIE)
                 R.id.nicolive_program_list_menu_nicolive_jk -> setFragment(CommunityListFragment.NICOLIVE_JK)
-                R.id.nicolive_program_list_menu_jk -> {
-                    // ニコニコ実況。ｊｋ
-                    val nicoJKChannelFragment = NicoJKChannelFragment()
-                    parentFragmentManager.beginTransaction().replace(fragment_program_list_linearlayout.id, nicoJKChannelFragment).commit()
-                    fragment_program_motionlayout?.transitionToStart()
-                }
             }
             true
         }
 
+        // ページを指定して開く
+        val menuId = arguments?.getInt("fragment")
+        if (menuId != null) {
+            fragment_program_menu.setCheckedItem(menuId)
+            fragment_program_menu.menu.performIdentifierAction(menuId, 0)
+        }
     }
 
     /**

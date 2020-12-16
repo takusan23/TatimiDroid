@@ -280,6 +280,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 viewModel.playerCurrentPositionMs = 0
                 exoPlayer.seekTo(0)
             }
+            // シークさせる
+            fragment_nicovideo_comment_canvas.seekComment()
         }
         // 動画の再生時間
         viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
@@ -351,19 +353,22 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
         // 準備と再生
         exoPlayer.prepare()
-        viewModel.playerIsPlaying.postValue(true)
+        exoPlayer.playWhenReady = true
         exoPlayer.addListener(object : Player.EventListener {
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                super.onPlayerStateChanged(playWhenReady, playbackState)
+
+            override fun onPlaybackStateChanged(state: Int) {
+                super.onPlaybackStateChanged(state)
+                // 再生
+                viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
                 // 動画時間をセットする
                 viewModel.playerDurationMs.postValue(exoPlayer.duration)
-                if (playbackState == Player.STATE_BUFFERING) {
+                if (state == Player.STATE_BUFFERING) {
                     // STATE_BUFFERING はシークした位置からすぐに再生できないとき。読込み中のこと。
                     showSwipeToRefresh()
                 } else {
                     hideSwipeToRefresh()
                 }
-                if (playbackState == Player.STATE_ENDED && playWhenReady) {
+                if (state == Player.STATE_ENDED && exoPlayer.playWhenReady) {
                     // 動画おわった。連続再生時なら次の曲へ
                     viewModel.nextVideo()
                 }
@@ -372,7 +377,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     isRotationProgressSuccessful = true
                     // 前回見た位置から再生
                     viewModel.playerSetSeekMs.postValue(viewModel.currentPosition)
-                    fragment_nicovideo_comment_canvas.seekComment()
                     if (viewModel.currentPosition == 0L) {
                         // 画面回転時に２回目以降表示されると邪魔なので制御
                         val progress = prefSetting.getLong("progress_$videoId", 0)
@@ -387,6 +391,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     }
                 }
             }
+
         })
         // 縦、横取得
         exoPlayer.addVideoListener(object : VideoListener {
@@ -626,7 +631,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     }
                     // LivaData経由でシークしろと通知飛ばす
                     viewModel.playerSetSeekMs.postValue(viewModel.playerCurrentPositionMs + skip)
-                    fragment_nicovideo_comment_canvas.seekComment()
                     updateHideController(job)
                 }
             }

@@ -9,8 +9,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKFlvData
-import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommentServerData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
@@ -43,7 +41,7 @@ import kotlin.math.roundToInt
  * @param isJK 実況の時はtrue
  * @param isLoginMode HTML取得時にログインする場合はtrue
  * */
-class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: String, val isLoginMode: Boolean, val isJK: Boolean) : AndroidViewModel(application) {
+class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: String, val isLoginMode: Boolean) : AndroidViewModel(application) {
 
     /** Context */
     private val context = getApplication<Application>().applicationContext
@@ -60,9 +58,6 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** ニコ生のコメントサーバーへ接続する */
     val nicoLiveComment = NicoLiveComment()
 
-    /** ニコ実関係 */
-    val nicoJK = NicoJKHTML()
-
     /** Snackbar表示用LiveData。複数行行ける */
     val snackbarLiveData = MutableLiveData<String>()
 
@@ -77,9 +72,6 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
 
     /** 番組情報 */
     val nicoLiveProgramData = MutableLiveData<NicoLiveProgramData>()
-
-    /** ニコニコ実況のデータ */
-    val nicoJKGetFlv = MutableLiveData<NicoJKFlvData>()
 
     /** コメントを送るLiveData。ただ配列に入れる処理はこっちが担当するので、コメントが来た時に処理したい場合はどうぞ（RecyclerView更新など） */
     val commentReceiveLiveData = MutableLiveData<CommentJSONParse>()
@@ -175,76 +167,51 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             showToast("${getString(R.string.error)}\n${throwable}")
         }
-        if (!isJK) {
-            // 低遅延設定
-            nicoLiveHTML.isLowLatency = prefSetting.getBoolean("nicolive_low_latency", false)
-            // 初回の画質を低画質にする設定（モバイル回線で最低画質にする設定とか強制低画質モードとか）
-            val mobileDataQualitySetting = prefSetting.getString("setting_nicolive_mobile_data_quality", "default")
-            val isMobileDataLowQuality = (mobileDataQualitySetting == "super_low_quality") && isConnectionMobileDataInternet(context) // 有効時 でなお モバイルデータ接続時
-            val isPreferenceLowQuality = prefSetting.getBoolean("setting_nicolive_quality_low", false)
-            // モバイルデータ通信時に音声のみで再生する設定
-            val isMobileDataAudioOnly = mobileDataQualitySetting == "audio_only" && isConnectionMobileDataInternet(context)
-            if ((isMobileDataLowQuality || isPreferenceLowQuality) && !isMobileDataAudioOnly) {
-                nicoLiveHTML.startQuality = "super_low"
-            } else if (isMobileDataAudioOnly) {
-                // モバイルデータ通信時に音声のみで再生する場合
-                nicoLiveHTML.startQuality = "audio_high"
-            }
-            // ニコ生
-            viewModelScope.launch(errorHandler + Dispatchers.Default) {
-                // 情報取得
-                val html = getNicoLiveHTML()
-                val jsonObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(html)
-                nicoLiveJSON.postValue(jsonObject)
-                // 番組名取得など
-                nicoLiveHTML.initNicoLiveData(jsonObject)
-                programTitle = nicoLiveHTML.programTitle
-                communityId = nicoLiveHTML.communityId
-                thumbnailURL = nicoLiveHTML.thumb
-                nicoLiveProgramData.postValue(nicoLiveHTML.getProgramData(jsonObject))
-                // 履歴に追加
-                launch { insertDB() }
-                // WebSocketへ接続
-                connectWebSocket(jsonObject)
-                // getPlayerStatus叩く
-                launch { getPlayerStatus() }
-                // コメント人数を定期的に数える
-                activeUserClear()
-                // 経過時間
-                setLiveTime()
 
-                /**
-                 * すでにニコニコ実況チャンネルが存在する：https://ch.nicovideo.jp/jk1
-                 * ので文字列部分一致してたら生放送の映像受信を止めるかどうか尋ねる
-                 * */
-                checkNicoJK()
-            }
-        } else {
-            // ニコ実況。JK
-            viewModelScope.launch(errorHandler + Dispatchers.Default) {
-                // getflv叩く。
-                val getFlvResponse = nicoJK.getFlv(liveIdOrCommunityId, userSession)
-                if (!getFlvResponse.isSuccessful) {
-                    // 失敗のときは落とす
-                    messageLiveData.postValue("finish")
-                    showToast("${getString(R.string.error)}\n${getFlvResponse.code}")
-                    return@launch
-                }
-                // getflvパースする
-                val getFlv = withContext(Dispatchers.Default) {
-                    nicoJK.parseGetFlv(getFlvResponse.body?.string())!!
-                }
-                nicoJKGetFlv.postValue(getFlv)
-                // 番組情報入れる
-                programTitle = getFlv.channelName
-                // コメント人数を定期的に数える
-                activeUserClear()
-                // 接続
-                withContext(Dispatchers.Default) {
-                    nicoJK.connectionCommentServer(getFlv, ::receiveCommentFun)
-                }
-            }
+        // 低遅延設定
+        nicoLiveHTML.isLowLatency = prefSetting.getBoolean("nicolive_low_latency", false)
+        // 初回の画質を低画質にする設定（モバイル回線で最低画質にする設定とか強制低画質モードとか）
+        val mobileDataQualitySetting = prefSetting.getString("setting_nicolive_mobile_data_quality", "default")
+        val isMobileDataLowQuality = (mobileDataQualitySetting == "super_low_quality") && isConnectionMobileDataInternet(context) // 有効時 でなお モバイルデータ接続時
+        val isPreferenceLowQuality = prefSetting.getBoolean("setting_nicolive_quality_low", false)
+        // モバイルデータ通信時に音声のみで再生する設定
+        val isMobileDataAudioOnly = mobileDataQualitySetting == "audio_only" && isConnectionMobileDataInternet(context)
+        if ((isMobileDataLowQuality || isPreferenceLowQuality) && !isMobileDataAudioOnly) {
+            nicoLiveHTML.startQuality = "super_low"
+        } else if (isMobileDataAudioOnly) {
+            // モバイルデータ通信時に音声のみで再生する場合
+            nicoLiveHTML.startQuality = "audio_high"
         }
+        // ニコ生
+        viewModelScope.launch(errorHandler + Dispatchers.Default) {
+            // 情報取得
+            val html = getNicoLiveHTML()
+            val jsonObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(html)
+            nicoLiveJSON.postValue(jsonObject)
+            // 番組名取得など
+            nicoLiveHTML.initNicoLiveData(jsonObject)
+            programTitle = nicoLiveHTML.programTitle
+            communityId = nicoLiveHTML.communityId
+            thumbnailURL = nicoLiveHTML.thumb
+            nicoLiveProgramData.postValue(nicoLiveHTML.getProgramData(jsonObject))
+            // 履歴に追加
+            launch { insertDB() }
+            // WebSocketへ接続
+            connectWebSocket(jsonObject)
+            // getPlayerStatus叩く
+            launch { getPlayerStatus() }
+            // コメント人数を定期的に数える
+            activeUserClear()
+            // 経過時間
+            setLiveTime()
+
+            /**
+             * すでにニコニコ実況チャンネルが存在する：https://ch.nicovideo.jp/jk1
+             * ので文字列部分一致してたら生放送の映像受信を止めるかどうか尋ねる
+             * */
+            checkNicoJK()
+        }
+
         // NGデータベースを監視する
         viewModelScope.launch {
             val dao = NGDBInit.getInstance(context).ngDBDAO()
@@ -268,7 +235,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
      * 視聴中の番組が新ニコニコ実況かどう判断する
      * */
     private fun checkNicoJK() {
-        val nicoJKId = nicoLiveHTML.channelIdToNicoJKId(nicoLiveHTML.communityId)
+        val nicoJKId = nicoLiveHTML.getNicoJKIdFromChannelId(nicoLiveHTML.communityId)
         if (nicoJKId != null) {
             isNicoJKLiveData.postValue(nicoJKId)
         }
@@ -306,30 +273,23 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
      * @param color コメントの色。これらは省略が可能
      * */
     suspend fun sendComment(comment: String, color: String = "white", size: String = "medium", position: String = "naka", isUseNicocasAPI: Boolean = false): Unit = withContext(Dispatchers.IO) {
-        if (isJK) {
-            // ニコニコ実況
-            nicoJKGetFlv.value?.apply {
-                nicoJK.postCommnet(comment, userId, baseTime.toLong(), threadId, userSession)
-            }
-        } else {
-            if (comment != "\n") {
-                if (!isUseNicocasAPI) {
-                    // 視聴セッションWebSocketにコメントを送信する
-                    nicoLiveHTML.sendPOSTWebSocketComment(comment, color, size, position)
-                } else {
-                    // コマンドをくっつける
-                    val command = "$color $size $position"
-                    // ニコキャスのAPIを叩いてコメントを投稿する
-                    nicoLiveHTML.sendCommentNicocasAPI(comment, command, nicoLiveHTML.liveId, userSession, { showToast(getString(R.string.error)) }, { response ->
-                        // 成功時
-                        if (response.isSuccessful) {
-                            //成功
-                            snackbarLiveData.postValue(getString(R.string.comment_post_success))
-                        } else {
-                            showToast("${getString(R.string.error)}\n${response.code}")
-                        }
-                    })
-                }
+        if (comment != "\n") {
+            if (!isUseNicocasAPI) {
+                // 視聴セッションWebSocketにコメントを送信する
+                nicoLiveHTML.sendPOSTWebSocketComment(comment, color, size, position)
+            } else {
+                // コマンドをくっつける
+                val command = "$color $size $position"
+                // ニコキャスのAPIを叩いてコメントを投稿する
+                nicoLiveHTML.sendCommentNicocasAPI(comment, command, nicoLiveHTML.liveId, userSession, { showToast(getString(R.string.error)) }, { response ->
+                    // 成功時
+                    if (response.isSuccessful) {
+                        //成功
+                        snackbarLiveData.postValue(getString(R.string.comment_post_success))
+                    } else {
+                        showToast("${getString(R.string.error)}\n${response.code}")
+                    }
+                })
             }
         }
     }
@@ -610,9 +570,8 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
 
     /** コメントを受け取る高階関数 */
     private fun receiveCommentFun(comment: String, roomName: String, isHistoryComment: Boolean) {
-        val room = if (isJK) programTitle else roomName
         // JSONぱーす
-        val commentJSONParse = CommentJSONParse(comment, room, nicoLiveHTML.liveId)
+        val commentJSONParse = CommentJSONParse(comment, roomName, nicoLiveHTML.liveId)
         // アンケートや運コメを表示させる。
         if (roomName != getString(R.string.room_limit)) {
             when {
@@ -770,7 +729,6 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
     override fun onCleared() {
         super.onCleared()
         nicoLiveHTML.destroy()
-        nicoJK.destroy()
         nicoLiveComment.destroy()
     }
 }

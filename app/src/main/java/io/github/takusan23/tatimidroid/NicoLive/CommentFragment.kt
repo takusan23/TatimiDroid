@@ -78,10 +78,10 @@ import kotlin.concurrent.timerTask
  * BottomFragmentで[requireParentFragment]を使うときは、このFragmentの[getChildFragmentManager]を使って開く必要がある
  *
  * ひつようなもの
- * liveId       | String    | 番組ID
+ * liveId       | String    | 番組ID か コミュID か チャンネルID。生放送ID以外が来る可能性もある
  * watch_mode   | String    | comment_viewer comment_post nicocas のどれか
  * isOfficial   | Boolean   | 公式番組ならtrue。無くてもいいかも？
- * is_jk        | Boolean   | 実況ならtrue
+ *
  * */
 class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
@@ -100,9 +100,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /** 視聴モードがnicocasの場合 */
     var isNicocasMode = false
-
-    /** ニコニコ実況ならtrue */
-    var isJK = false
 
     /** コメント表示をOFFにする場合はtrue */
     var isCommentHide = false
@@ -173,9 +170,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
         isOfficial = arguments?.getBoolean("isOfficial") ?: false
-
-        // ニコニコ実況ならtrue
-        isJK = arguments?.getBoolean("is_jk") ?: false
 
         //スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -248,7 +242,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         if (prefSetting.getString("mail", "")?.contains("") != false) {
             usersession = prefSetting.getString("user_session", "") ?: ""
             // ViewModel初期化
-            viewModel = ViewModelProvider(this, NicoLiveViewModelFactory(requireActivity().application, liveId, isWatchingMode, isJK)).get(NicoLiveViewModel::class.java)
+            viewModel = ViewModelProvider(this, NicoLiveViewModelFactory(requireActivity().application, liveId, isWatchingMode)).get(NicoLiveViewModel::class.java)
         } else {
             showToast(getString(R.string.mail_pass_error))
             finishFragment()
@@ -312,32 +306,14 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             player_nicolive_control_id.text = message
         }
 
-        // ニコニコ実況の時のUI
-        viewModel.nicoJKGetFlv.observe(viewLifecycleOwner) { getFlv ->
-            // 番組情報入れる
-            player_nicolive_control_title.text = getFlv.channelName
-            player_nicolive_control_id.text = liveId
-            // コマンドいらないと思うし消す
-            comment_cardview_comment_command_edit_button.visibility = View.GONE
-            // アクティブ計算以外使わないので消す
-            (player_nicolive_control_time.parent as View).isVisible = false
-            player_nicolive_control_watch_count.isVisible = false
-            player_nicolive_control_comment_count.isVisible = false
-            // バックグラウンド再生無いので非表示
-            player_nicolive_control_background.isVisible = false
-            initController(getFlv.channelName)
-            aspectRatioFix()
-        }
-
         // 新ニコニコ実況の番組と発覚した場合
         viewModel.isNicoJKLiveData.observe(viewLifecycleOwner) { nicoJKId ->
-            // 映像受信するのやめる？
-            val snackbar = multiLineSnackbar(player_nicolive_control_active_text, getString(R.string.nicolive_nicojk_not_receive_live))
-            snackbar.duration = Snackbar.LENGTH_LONG
-            snackbar.setAction(R.string.not_receive_live) {
-                // 映像を受信しないモードをtrueへ
-                viewModel.isNotReceiveLive.postValue(true)
-            }
+            // バックグラウンド再生無いので非表示
+            player_nicolive_control_background.isVisible = false
+            // 映像を受信しない。
+            multiLineSnackbar(player_nicolive_control_active_text, getString(R.string.nicolive_jk_not_live_receive))
+            // 映像を受信しないモードをtrueへ
+            viewModel.isNotReceiveLive.postValue(true)
         }
 
         // 映像を受信しないモード
@@ -777,7 +753,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun initViewPager() {
         comment_viewpager ?: return
         comment_viewpager.id = View.generateViewId()
-        nicoLivePagerAdapter = NicoLivePagerAdapter(this, liveId, isOfficial, isJK)
+        nicoLivePagerAdapter = NicoLivePagerAdapter(this, liveId, isOfficial)
         comment_viewpager.adapter = nicoLivePagerAdapter
         // Tabに入れる名前
         TabLayoutMediator(activity_comment_tab_layout, comment_viewpager) { tab, position ->
@@ -1139,7 +1115,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             liveId = liveId,
             isCommentPost = isWatchingMode,
             isNicocasMode = isNicocasMode,
-            isJK = isJK,
             isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
             startQuality = viewModel.currentQuality
         )

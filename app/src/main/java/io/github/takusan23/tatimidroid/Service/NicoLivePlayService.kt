@@ -33,8 +33,6 @@ import com.google.android.exoplayer2.upstream.TransferListener
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKFlvData
-import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommentServerData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
@@ -77,8 +75,6 @@ class NicoLivePlayService : Service() {
 
     // ニコ生視聴
     private val nicoLiveHTML = NicoLiveHTML()
-    private val nicoJK = NicoJKHTML()
-    lateinit var NicoJKFlvData: NicoJKFlvData
 
     /** コメントサーバー接続など */
     val nicoLiveComment = NicoLiveComment()
@@ -99,12 +95,8 @@ class NicoLivePlayService : Service() {
     var thumbnailURL = ""
     var hlsAddress = ""
 
-    // ニコニコ実況の場合はtrue
-    var isJK = false
-
     // 再生モード。ポップアップかバッググラウンド
     var playMode = "popup"
-
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -134,8 +126,7 @@ class NicoLivePlayService : Service() {
         nicoLiveHTML.isPostTokumeiComment = isTokumei
         // 低遅延モードon/off
         nicoLiveHTML.isLowLatency = prefSetting.getBoolean("nicolive_low_latency", false)
-        // JK
-        isJK = intent?.getBooleanExtra("is_jk", false) ?: false
+
         // 開始時の画質を指定するか
         nicoLiveHTML.startQuality = intent?.getStringExtra("start_quality") ?: "high"
 
@@ -147,38 +138,11 @@ class NicoLivePlayService : Service() {
             nicoLiveHTML.startQuality = "super_low"
         }
 
-        if (isJK) {
-            jkCoroutine()
-        } else {
-            coroutine()
-        }
+        coroutine()
 
         initBroadcast()
 
         return START_NOT_STICKY
-    }
-
-    // ニコニコ実況のデータ取得
-    private fun jkCoroutine() {
-        GlobalScope.launch {
-            // getflv叩く。
-            val getFlvResponse = nicoJK.getFlv(liveId, userSession)
-            if (!getFlvResponse.isSuccessful) {
-                // 失敗のときは落とす
-                stopSelf()
-                showToast("${getString(R.string.error)}\n${getFlvResponse.code}")
-                return@launch
-            }
-            // getflvパースする
-            NicoJKFlvData = nicoJK.parseGetFlv(getFlvResponse.body?.string())!!
-            Handler(Looper.getMainLooper()).post {
-                // 通知の内容更新
-                showNotification(NicoJKFlvData.channelName)
-                initPopUpView()
-            }
-            // 接続。最後に呼べ。
-            nicoJK.connectionCommentServer(NicoJKFlvData, ::commentFun)
-        }
     }
 
     // データ取得
@@ -441,7 +405,7 @@ class NicoLivePlayService : Service() {
         commentCanvas = popupView.overlay_commentCanvas
         commentCanvas.isPopupView = true
 
-        if (isJK || isNicoJK()) {
+        if (isNicoJK()) {
             // ニコニコ実況の場合はSurfaceView非表示
             popupView.overlay_surfaceview.visibility = View.GONE
             // 半透明
@@ -488,7 +452,6 @@ class NicoLivePlayService : Service() {
             intent.putExtra("liveId", liveId)
             intent.putExtra("watch_mode", mode)
             intent.putExtra("isOfficial", nicoLiveHTML.isOfficial)
-            intent.putExtra("is_jk", isJK)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
         }
@@ -600,7 +563,7 @@ class NicoLivePlayService : Service() {
 
     /** ニコニコチャンネルになったニコニコ実況かどうかを返す。新ニコニコ実況ならtrue */
     private fun isNicoJK(): Boolean {
-        return nicoLiveHTML.channelIdToNicoJKId(nicoLiveHTML.communityId) != null
+        return nicoLiveHTML.getNicoJKIdFromChannelId(nicoLiveHTML.communityId) != null
     }
 
     /** MediaSession。音楽アプリの再生中のあれ */
@@ -719,11 +682,6 @@ class NicoLivePlayService : Service() {
                         val remoteInput = RemoteInput.getResultsFromIntent(intent)
                         val comment = remoteInput.getCharSequence("direct_reply_comment")
                         when {
-                            isJK -> {
-                                GlobalScope.launch {
-                                    nicoJK.postCommnet(comment as String, NicoJKFlvData.userId, NicoJKFlvData.baseTime.toLong(), NicoJKFlvData.threadId, userSession)
-                                }
-                            }
                             isCommentPOSTMode -> {
                                 nicoLiveHTML.sendPOSTWebSocketComment(comment as String) // コメント投稿
                                 showNotification(programTitle) // 通知再設置
@@ -776,7 +734,6 @@ class NicoLivePlayService : Service() {
                 release()
             }
         }
-        nicoJK.destroy()
     }
 
     private fun showToast(message: String) {
@@ -804,10 +761,9 @@ class NicoLivePlayService : Service() {
  * @param isCommentPost コメント投稿モードならtrue
  * @param isNicocasMode ニコキャス式湖面投稿モードならtrue
  * @param isTokumei 匿名でコメントする場合はtrue。省略時true
- * @param isJK 実況ならtrue。省略時false
  * @param startQuality 画質を指定する場合は入れてね。highとか。ない場合はそのままでいいです（省略時：high）。
  * */
-fun startLivePlayService(context: Context?, mode: String, liveId: String, isCommentPost: Boolean, isNicocasMode: Boolean, isJK: Boolean = false, isTokumei: Boolean = true, startQuality: String = "high") {
+fun startLivePlayService(context: Context?, mode: String, liveId: String, isCommentPost: Boolean, isNicocasMode: Boolean, isTokumei: Boolean = true, startQuality: String = "high") {
     // ポップアップ再生の権限があるか
     if (mode == "popup") {
         if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -830,7 +786,6 @@ fun startLivePlayService(context: Context?, mode: String, liveId: String, isComm
         putExtra("is_comment_post", isCommentPost)
         putExtra("is_nicocas", isNicocasMode)
         putExtra("is_tokumei", isTokumei)
-        putExtra("is_jk", isJK)
         putExtra("start_quality", startQuality)
     }
     // サービス終了（起動させてないときは何もならないと思う）させてから起動させる。（
