@@ -29,8 +29,6 @@ class CommentRoomFragment : Fragment() {
 
     lateinit var pref_setting: SharedPreferences
 
-    var liveId = ""
-
     var recyclerViewList = arrayListOf<CommentJSONParse>()
     lateinit var commentRecyclerViewAdapter: CommentRecyclerViewAdapter
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
@@ -41,8 +39,6 @@ class CommentRoomFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
-        liveId = arguments?.getString("liveId") ?: ""
 
         //ここから下三行必須
         initRecyclerView()

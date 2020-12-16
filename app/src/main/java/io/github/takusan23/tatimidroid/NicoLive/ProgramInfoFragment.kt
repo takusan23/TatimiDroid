@@ -41,7 +41,6 @@ import java.text.SimpleDateFormat
  * */
 class ProgramInfoFragment : Fragment() {
 
-    var liveId = ""
     var usersession = ""
     lateinit var pref_setting: SharedPreferences
 
@@ -58,6 +57,7 @@ class ProgramInfoFragment : Fragment() {
     // CommentFragmentとそれのViewModel
     val commentFragment by lazy { requireParentFragment() as CommentFragment }
     val viewModel by viewModels<NicoLiveViewModel>({ commentFragment })
+    val liveId by lazy { viewModel.nicoLiveHTML.liveId }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
@@ -66,8 +66,6 @@ class ProgramInfoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        //番組ID取得
-        liveId = arguments?.getString("liveId") ?: ""
         pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
         usersession = pref_setting.getString("user_session", "") ?: ""
 

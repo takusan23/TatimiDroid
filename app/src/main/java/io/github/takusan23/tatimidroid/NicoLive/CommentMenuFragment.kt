@@ -55,7 +55,7 @@ class CommentMenuFragment : Fragment() {
     lateinit var darkModeSupport: DarkModeSupport
     lateinit var prefSetting: SharedPreferences
 
-    var liveId = ""
+    val liveId by lazy { viewModel.nicoLiveHTML.liveId }
 
     // CommentFragmentとそれのViewModel
     val commentFragment by lazy { requireParentFragment() as CommentFragment }
@@ -81,9 +81,6 @@ class CommentMenuFragment : Fragment() {
 
         darkModeSupport = DarkModeSupport(requireContext())
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-
-        //CommentFragmentしゅとく～
-        liveId = arguments?.getString("liveId") ?: ""
 
         //値設定
         setValue()
@@ -341,9 +338,10 @@ class CommentMenuFragment : Fragment() {
                     val bitmap = BitmapFactory.decodeFile(iconBitmap)
                     val icon = Icon.createWithAdaptiveBitmap(bitmap)
                     // Android 11から？setShortLabelの値ではなくBuilder()の第二引数がタイトルに使われるようになったらしい
-                    val shortcut = ShortcutInfo.Builder(context, viewModel.programTitle).apply {
-                        setShortLabel(viewModel.programTitle)
-                        setLongLabel(viewModel.programTitle)
+                    val name = viewModel.nicoLiveHTML.communityName
+                    val shortcut = ShortcutInfo.Builder(context, name).apply {
+                        setShortLabel(name)
+                        setLongLabel(name)
                         setIcon(icon)
                         val intent = Intent(context, MainActivity::class.java).apply {
                             action = Intent.ACTION_MAIN

@@ -62,7 +62,6 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     //それぞれ
     private var comment = ""
     private var userId = ""
-    private var liveId = ""
 
     //RecyclerView
     var recyclerViewList = arrayListOf<CommentJSONParse>()
@@ -76,7 +75,6 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        liveId = arguments?.getString("liveId") ?: ""
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
         userSession = prefSetting.getString("user_session", "") ?: ""
 
@@ -233,7 +231,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                     // 生放送メニュー出す
                     val programMenuBottomSheet = ProgramMenuBottomSheet()
                     val bundle = Bundle()
-                    bundle.putString("liveId", liveId)
+                    bundle.putString("liveId", liveIdRegex.value)
                     programMenuBottomSheet.arguments = bundle
                     programMenuBottomSheet.show(activity?.supportFragmentManager!!, "video_menu")
                 }

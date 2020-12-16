@@ -6,10 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.GiftRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_gift_layout.*
 import okhttp3.*
@@ -21,20 +23,16 @@ class GiftFragment : Fragment() {
     var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
     lateinit var giftRecyclerViewAdapter: GiftRecyclerViewAdapter
     lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
-    var liveId = ""
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+
+    val viewModel by viewModels<NicoLiveViewModel>({ requireParentFragment() })
+    val liveId by lazy { viewModel.nicoLiveHTML.liveId }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_gift_layout, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
-        //番組ID取得
-        liveId = arguments?.getString("liveId") ?: ""
 
         recyclerViewList = ArrayList()
         gift_recyclerview.setHasFixedSize(true)

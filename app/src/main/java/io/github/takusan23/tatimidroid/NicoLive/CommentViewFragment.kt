@@ -28,8 +28,6 @@ class CommentViewFragment : Fragment() {
     // getString(R.string.arena)
     private lateinit var stringArena: String
 
-    var liveId = ""
-
     private lateinit var recyclerView: RecyclerView
 
     // CommentFragmentとそれのViewModel
@@ -43,9 +41,6 @@ class CommentViewFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-
-        //LiveIDとる
-        liveId = arguments?.getString("liveId") ?: ""
 
         recyclerView = view.findViewById(R.id.fragment_comment_recyclerview)
 
