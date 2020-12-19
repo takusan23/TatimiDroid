@@ -258,7 +258,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     }
 
-    /** LiveDataを経由してExoPlayerを操作するので、コールバックをセットする関数 */
+    /**
+     * LiveDataを経由してExoPlayerを操作するので、コールバックをセットする関数
+     * と思ったけどくそ使いにくいなこれ。どうにかしたい
+     * */
     private fun initExoPlayerControlLiveData() {
         // 一時停止、再生になったとき
         viewModel.playerIsPlaying.observe(viewLifecycleOwner) { isPlaying ->
@@ -377,7 +380,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     isRotationProgressSuccessful = true
                     // 前回見た位置から再生
                     viewModel.playerSetSeekMs.postValue(viewModel.currentPosition)
-                    if (viewModel.currentPosition == 0L) {
+                    if (exoPlayer.currentPosition == 0L) {
                         // 画面回転時に２回目以降表示されると邪魔なので制御
                         val progress = prefSetting.getLong("progress_$videoId", 0)
                         if (progress != 0L && isCache) {

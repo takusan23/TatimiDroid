@@ -32,6 +32,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.ContentShare
+import io.github.takusan23.tatimidroid.Tool.MotionLayoutTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.fragment_nicovideo.*
@@ -152,7 +153,8 @@ class NicoVideoMenuFragment : Fragment() {
             // 設定保存
             prefSetting.edit { putBoolean("nicovideo_comment_canvas_hide", b) }
             // 消す
-            requireNicoVideoFragment()?.fragment_nicovideo_comment_canvas?.isVisible = !b
+            val visibility = if (b) View.GONE else View.VISIBLE
+            MotionLayoutTool.setMotionLayoutViewVisible(requireNicoVideoFragment().fragment_nicovideo_motionlayout, requireNicoVideoFragment().fragment_nicovideo_comment_canvas.id, visibility)
         }
         // 設定読み出し
         fragment_nicovideo_menu_hide_comment_canvas.isChecked = prefSetting.getBoolean("nicovideo_comment_canvas_hide", false)

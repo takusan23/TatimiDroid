@@ -157,7 +157,10 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
      * */
     var isCommentOnlyMode = !prefSetting.getBoolean("setting_watch_live", true)
 
-    /** 映像を取得しないモードならtrue。[isCommentOnlyMode]との違いはコメントは描画し続けるというところ。ニコニコチャンネルになった実況用 */
+    /**
+     * 映像を取得しないモードならtrue。[isCommentOnlyMode]との違いはコメントは描画し続けるというところ。ニコニコチャンネルになった実況用
+     * ななはらでも3分で2MBぐらい？
+     * */
     var isNotReceiveLive = MutableLiveData(false)
 
     init {

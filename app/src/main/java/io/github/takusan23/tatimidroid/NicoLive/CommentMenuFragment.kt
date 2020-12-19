@@ -30,10 +30,7 @@ import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Tool.ContentShare
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
-import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
-import io.github.takusan23.tatimidroid.Tool.isDarkMode
+import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.android.synthetic.main.activity_comment.*
 import kotlinx.android.synthetic.main.fragment_comment_menu.*
 import kotlinx.coroutines.Dispatchers
@@ -387,7 +384,7 @@ class CommentMenuFragment : Fragment() {
 
     private fun setValue() {
         //コメント非表示
-        fragment_comment_fragment_menu_comment_hidden_switch.isChecked = commentFragment.isCommentHide
+        fragment_comment_fragment_menu_comment_hidden_switch.isChecked = prefSetting.getBoolean("nicolive_comment_canvas_hide", false)
         //Infoコメント非表示
         fragment_comment_fragment_menu_hide_info_perm_switch.isChecked = commentFragment.hideInfoUnnkome
         //匿名で投稿するか
@@ -415,7 +412,9 @@ class CommentMenuFragment : Fragment() {
         //押したらすぐ反映できるように
         fragment_comment_fragment_menu_comment_hidden_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             //コメント非表示
-            commentFragment.isCommentHide = isChecked
+            prefSetting.edit { putBoolean("nicolive_comment_canvas_hide", isChecked) }
+            val visibility = if (isChecked) View.GONE else View.VISIBLE
+            MotionLayoutTool.setMotionLayoutViewVisible(commentFragment.comment_fragment_motionlayout, commentFragment.comment_fragment_comment_canvas.id, visibility)
         }
         fragment_comment_fragment_menu_hide_info_perm_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             //Infoコメント非表示
