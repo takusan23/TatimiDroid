@@ -257,12 +257,12 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
 
         // MainActivityのBottomNavを表示させるか。二窓Activityのせいでas?にしている
-        (requireActivity() as? MainActivity)?.setVisibilityBottomNav(false)
+        (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
 
         // ミニプレイヤー時なら
         viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
             // MainActivityのBottomNavを表示させるか
-            (requireActivity() as? MainActivity)?.setVisibilityBottomNav(isMiniPlayerMode)
+            (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
             setMiniPlayer(isMiniPlayerMode)
             // アイコン直す
             val icon = when (comment_fragment_motionlayout.currentState) {
@@ -523,6 +523,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             override fun onTransitionCompleted(p0: MotionLayout?, p1: Int) {
                 // 終了アニメーション
                 if (p1 == R.id.comment_fragment_transition_finish) {
+                    // Fragment終了へ
                     parentFragmentManager.beginTransaction().remove(this@CommentFragment).commit()
                 } else {
                     // ここどうする？
@@ -1035,13 +1036,13 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     override fun onResume() {
         super.onResume()
-        (requireActivity() as? MainActivity)?.setVisibilityBottomNav(false)
+        (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
     }
 
     override fun onPause() {
         super.onPause()
         googleCast.pause()
-        (requireActivity() as? MainActivity)?.setVisibilityBottomNav(true)
+        (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
     }
 
     fun showToast(message: String) {
@@ -1513,7 +1514,11 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /** ミニプレイヤーで再生していればtrueを返す */
     override fun isMiniPlayerMode(): Boolean {
-        return comment_fragment_motionlayout.currentState == R.id.comment_fragment_transition_end
+        // なんかたまにnullになる
+        return comment_fragment_motionlayout?.let {
+            // この行がreturnの値になる。apply{ }に返り値機能がついた
+            it.currentState == R.id.comment_fragment_transition_end || it.currentState == R.id.comment_fragment_transition_finish
+        } ?: false
     }
 
 }

@@ -156,7 +156,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // ミニプレイヤーなら
         viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
             // MainActivityのBottomNavを表示させるか
-            (requireActivity() as MainActivity).setVisibilityBottomNav(isMiniPlayerMode)
+            (requireActivity() as MainActivity).setVisibilityBottomNav()
             setMiniPlayer(isMiniPlayerMode)
             // アイコン直す
             val icon = when (fragment_nicovideo_motionlayout.currentState) {
@@ -710,6 +710,14 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
 
             override fun onTransitionCompleted(p0: MotionLayout?, p1: Int) {
+                when (p1) {
+                    R.id.fragment_nicovideo_transition_finish -> {
+
+                    }
+                    R.id.fragment_nicovideo_transition_fullscreen -> {
+
+                    }
+                }
                 if (p1 == R.id.fragment_nicovideo_transition_finish) {
                     // 終了時。左へスワイプした時
                     parentFragmentManager.beginTransaction().remove(this@NicoVideoFragment).commit()
@@ -948,21 +956,23 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     override fun onResume() {
         super.onResume()
-        viewModel.playerIsPlaying.postValue(true)
+        viewModel.playerIsPlaying.postValue(false)
         comment_fragment_comment_canvas?.isPause = false
-        (requireActivity() as MainActivity).setVisibilityBottomNav(false)
+        (requireActivity() as MainActivity).setVisibilityBottomNav()
     }
 
     override fun onPause() {
         super.onPause()
-        viewModel.playerIsPlaying.postValue(true)
+        viewModel.playerIsPlaying.postValue(false)
+        // コントローラー表示
+        fragment_nicovideo_motionlayout_parent_framelayout.onSwipeTargetViewClickFunc?.invoke(null)
         // キャッシュ再生の場合は位置を保存する
         if (isCache) {
             prefSetting.edit {
                 putLong("progress_$videoId", viewModel.playerCurrentPositionMs)
             }
         }
-        (requireActivity() as MainActivity).setVisibilityBottomNav(true)
+        (requireActivity() as MainActivity).setVisibilityBottomNav()
     }
 
     override fun onDestroy() {
@@ -1000,7 +1010,13 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
     }
 
-    /** ミニプレイヤーかどうか */
-    override fun isMiniPlayerMode() = fragment_nicovideo_motionlayout.currentState == R.id.fragment_nicovideo_transition_end || fragment_nicovideo_motionlayout.currentState == R.id.fragment_nicovideo_transition_finish
+    /** ミニプレイヤーかどうか。なんかnullの時がある？ */
+    override fun isMiniPlayerMode(): Boolean {
+        // なんかたまにnullになる
+        return fragment_nicovideo_motionlayout?.let {
+            // この行がreturnの値になる。apply{ }に返り値機能がついた
+            it.currentState == R.id.fragment_nicovideo_transition_end || it.currentState == R.id.fragment_nicovideo_transition_finish
+        } ?: false
+    }
 
 }

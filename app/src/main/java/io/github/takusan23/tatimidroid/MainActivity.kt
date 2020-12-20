@@ -428,10 +428,12 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * [MainActivity]のBottomNavigationを非表示にする関数
-     * [onPause]と[onResume]にそれぞれ呼ぶといい感じ？
+     *
+     * 表示するかどうかは、表示中Fragmentの[MainActivityPlayerFragmentInterface.isMiniPlayerMode]の返り値で判断してます。
      * */
-    fun setVisibilityBottomNav(isVisible: Boolean) {
-        main_activity_bottom_navigationview.isVisible = isVisible
+    fun setVisibilityBottomNav() {
+        val fragment = supportFragmentManager.findFragmentById(R.id.main_activity_fragment_layout)
+        main_activity_bottom_navigationview.isVisible = (fragment as? MainActivityPlayerFragmentInterface)?.isMiniPlayerMode() ?: true
     }
 
     private fun showToast(message: String) {
