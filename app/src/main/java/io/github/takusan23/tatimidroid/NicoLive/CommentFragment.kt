@@ -1031,7 +1031,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     override fun onStop() {
         super.onStop()
-        exoPlayer.stop()
     }
 
     override fun onResume() {

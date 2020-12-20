@@ -954,16 +954,13 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onPause() {
+        super.onPause()
+
         viewModel.playerIsPlaying.postValue(false)
         comment_fragment_comment_canvas?.isPause = false
         (requireActivity() as MainActivity).setVisibilityBottomNav()
-    }
 
-    override fun onPause() {
-        super.onPause()
-        viewModel.playerIsPlaying.postValue(false)
         // コントローラー表示
         fragment_nicovideo_motionlayout_parent_framelayout.onSwipeTargetViewClickFunc?.invoke(null)
         // キャッシュ再生の場合は位置を保存する
