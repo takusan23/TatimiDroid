@@ -17,6 +17,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -84,11 +85,6 @@ class CommentMenuFragment : Fragment() {
 
         //CommentFragmentへ値を渡す
         setCommentFragmentValue()
-
-        // ニコ生全てでホーム画面にピン留めできるように
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            fragment_comment_fragment_menu_dymanic_shortcut_button.visibility = View.VISIBLE
-        }
 
         //クリックイベント
         initSwitch()
@@ -321,6 +317,14 @@ class CommentMenuFragment : Fragment() {
      * Android 8以降で利用できる。
      * */
     private fun createPinnedShortcut() {
+
+        // ショートカットを押したときのインテント
+        val intent = Intent(context, MainActivity::class.java).apply {
+            action = Intent.ACTION_MAIN
+            putExtra("liveId", viewModel.nicoLiveHTML.communityId)
+            putExtra("watch_mode", "comment_post")
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Android 7.1 以降のみ対応
             val shortcutManager = context?.getSystemService(Context.SHORTCUT_SERVICE) as ShortcutManager
@@ -340,15 +344,30 @@ class CommentMenuFragment : Fragment() {
                         setShortLabel(name)
                         setLongLabel(name)
                         setIcon(icon)
-                        val intent = Intent(context, MainActivity::class.java).apply {
-                            action = Intent.ACTION_MAIN
-                            putExtra("liveId", viewModel.nicoLiveHTML.communityId)
-                            putExtra("watch_mode", "comment_post")
-                        }
                         setIntent(intent)
                     }.build()
                     shortcutManager.requestPinShortcut(shortcut, null)
                 }
+            }
+        } else {
+            /**
+             * Android 7以下も暗黙的ブロードキャストを送信することで作成できる
+             *
+             * 古いスマホならワンセグ目的で使えそうだし、ワンセグ+ニコニコ実況って使い方がいいのかも
+             * */
+            lifecycleScope.launch {
+                // コミュ画像取得
+                val iconBitmap = getThumb(requireContext(), viewModel.thumbnailURL, viewModel.communityId)
+                val bitmap = BitmapFactory.decodeFile(iconBitmap)
+                // ショートカット作成ブロードキャストインテント
+                val intent = Intent("com.android.launcher.action.INSTALL_SHORTCUT").apply {
+                    putExtra(Intent.EXTRA_SHORTCUT_INTENT, intent)
+                    putExtra(Intent.EXTRA_SHORTCUT_NAME, viewModel.nicoLiveHTML.communityName)
+                    putExtra(Intent.EXTRA_SHORTCUT_ICON, bitmap)
+                }
+                // ブロードキャスト送信
+                requireContext().sendBroadcast(intent)
+                Toast.makeText(requireContext(), "ショートカットを作成しました", Toast.LENGTH_SHORT).show()
             }
         }
     }

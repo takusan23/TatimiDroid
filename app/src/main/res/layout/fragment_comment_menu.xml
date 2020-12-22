@@ -255,8 +255,7 @@
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/add_homescreen"
-                            android:visibility="gone" />
+                            android:text="@string/add_homescreen" />
 
                 </LinearLayout>
 
