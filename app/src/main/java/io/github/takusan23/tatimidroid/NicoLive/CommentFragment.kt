@@ -171,7 +171,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // 公式番組の場合はAPIが使えないため部屋別表示を無効にする。
         isOfficial = arguments?.getBoolean("isOfficial") ?: false
 
-        //スリープにしない
+        // スリープにしない
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         liveId = arguments?.getString("liveId") ?: ""
@@ -179,9 +179,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
         exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
-
-        // ViewPager
-        initViewPager()
 
         // アスペクト比なおす
         aspectRatioFix()
@@ -298,6 +295,10 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // 番組情報
         viewModel.nicoLiveProgramData.observe(viewLifecycleOwner) { data ->
+            // ViewPager初期化
+            isOfficial = data.isOfficial
+            initViewPager()
+            // コントローラも
             initController(data.title)
             googleCast.apply {
                 programTitle = data.title
@@ -1099,6 +1100,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun destroyCode() {
         // 止める
         exoPlayer.release()
+        // 牛乳を飲んで状態異常を解除
+        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     override fun onDestroy() {
@@ -1493,7 +1496,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     }
 
     /** Fragment終了関数 */
-    private fun finishFragment() = parentFragmentManager.beginTransaction().remove(this).commit()
+    private fun finishFragment() {
+        parentFragmentManager.beginTransaction().remove(this).commit()
+    }
 
     fun isInitGoogleCast(): Boolean = ::googleCast.isInitialized
 

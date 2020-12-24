@@ -18,8 +18,12 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoLiveJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveGameProgram
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveProgram
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveRanking
+import io.github.takusan23.tatimidroid.NicoAPI.NicoRepo.NicoRepoAPIX
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.AutoAdmissionAdapter
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommunityRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
@@ -148,7 +152,7 @@ class CommunityListFragment : Fragment() {
         lifecycleScope.launch(errorHandler) {
             val nicoLiveJKHTML = NicoLiveJKHTML()
             val response = nicoLiveJKHTML.getNicoLiveJKProgramList(userSession)
-            val nicoLiveJKProgramList= withContext(Dispatchers.Default) {
+            val nicoLiveJKProgramList = withContext(Dispatchers.Default) {
                 nicoLiveJKHTML.parseNicoLiveJKProgramList(response.body?.string())
             }
             recyclerViewList.addAll(nicoLiveJKProgramList)
@@ -269,7 +273,7 @@ class CommunityListFragment : Fragment() {
      * */
     private fun getProgramDataFromNicorepo() {
         recyclerViewList.clear()
-        val nicoLiveNicoRepoAPI = NicoLiveNicoRepoAPI()
+        val nicoRepoAPI = NicoRepoAPIX()
         // 例外を捕まえる。これでtry/catchをそれぞれ書かなくても済む？
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             // エラー
@@ -277,34 +281,38 @@ class CommunityListFragment : Fragment() {
         }
         // コルーチン実行
         lifecycleScope.launch(errorHandler) {
-            val nicorepo = nicoLiveNicoRepoAPI.getNicorepo(userSession)
-            when {
-                nicorepo.isSuccessful -> {
-                    // 成功時
-                    withContext(Dispatchers.Default) {
-                        val followProgram = nicoLiveNicoRepoAPI.parseJSON(nicorepo.body?.string())
-                        followProgram.forEach {
-                            recyclerViewList.add(it)
+            withContext(Dispatchers.IO) {
+                val response = nicoRepoAPI.getNicoRepoResponse(userSession)
+                when {
+                    response.isSuccessful -> {
+                        // 成功時
+                        withContext(Dispatchers.Default) {
+                            val followProgram = nicoRepoAPI.parseNicoRepoResponse(response.body?.string())
+                            nicoRepoAPI.toProgramDataList(followProgram).forEach {
+                                recyclerViewList.add(it)
+                            }
+                        }
+                        // 反映
+                        withContext(Dispatchers.Main) {
+                            communityRecyclerViewAdapter.notifyDataSetChanged()
+                            swipeRefreshLayout.isRefreshing = false
                         }
                     }
-                    // 反映
-                    communityRecyclerViewAdapter.notifyDataSetChanged()
-                    swipeRefreshLayout.isRefreshing = false
-                }
-                !NicoLiveHTML().hasNiconicoID(nicorepo) -> {
-                    // ログインキレた
-                    showSnackBar(message = getString(R.string.login_disable_message), showTime = Snackbar.LENGTH_INDEFINITE, buttonText = getString(R.string.login)) {
-                        lifecycleScope.launch {
-                            // 再ログイン+再取得
-                            userSession = NicoLogin.secureNicoLogin(context) ?: return@launch
-                            getProgramDataFromNicorepo()
+                    !NicoLiveHTML().hasNiconicoID(response) -> {
+                        // ログインキレた
+                        showSnackBar(message = getString(R.string.login_disable_message), showTime = Snackbar.LENGTH_INDEFINITE, buttonText = getString(R.string.login)) {
+                            lifecycleScope.launch {
+                                // 再ログイン+再取得
+                                userSession = NicoLogin.secureNicoLogin(context) ?: return@launch
+                                getProgramDataFromNicorepo()
+                            }
+                            return@showSnackBar
                         }
-                        return@showSnackBar
                     }
-                }
-                else -> {
-                    // 失敗時
-                    showToast("${getString(R.string.error)}\n${nicorepo.code}")
+                    else -> {
+                        // 失敗時
+                        showToast("${getString(R.string.error)}\n${response.code}")
+                    }
                 }
             }
         }

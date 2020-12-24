@@ -10,20 +10,19 @@ import org.json.JSONObject
  * ニコニコのユーザー情報を取得するAPI
  * コルーチン版のみ
  * */
-class User {
+class UserAPI {
 
     /** シングルトンなOkHttpClient */
     private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     /**
-     * ユーザー情報を取得する。コルーチン版。
+     * ユーザー情報を取得する。コルーチン版。自分の情報を取得する[getMyAccountUserData]もあります。
      * @param userId ユーザーID。作者は「40210583」
      * @param userSession ユーザーセッション
-     * @param url 自分のページを表示させる場合はこれ→https://nvapi.nicovideo.jp/v1/users/me
      * */
-    suspend fun getUserCoroutine(userId: String, userSession: String, url: String = "https://nvapi.nicovideo.jp/v1/users/$userId") = withContext(Dispatchers.IO) {
+    suspend fun getUserData(userId: String, userSession: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
-            url(url)
+            url("https://nvapi.nicovideo.jp/v1/users/$userId")
             header("Cookie", "user_session=$userSession")
             header("User-Agent", "TatimiDroid;@takusan_23")
             header("x-frontend-id", "3") // これ必要。
@@ -33,7 +32,22 @@ class User {
     }
 
     /**
-     * [getUserCoroutine]のレスポンスぼでーをパースする
+     * 自分のアカウントの情報を取得する。
+     * @param userSession ユーザーセッション
+     * */
+    suspend fun getMyAccountUserData(userSession: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("https://nvapi.nicovideo.jp/v1/users/me")
+            header("Cookie", "user_session=$userSession")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("x-frontend-id", "3") // これ必要。
+            get()
+        }.build()
+        okHttpClient.newCall(request).execute()
+    }
+
+    /**
+     * [getUserData]のレスポンスぼでーをパースする
      * @param responseString [okhttp3.ResponseBody.string]
      * @return データクラス
      * */
@@ -56,7 +70,7 @@ class User {
             false
         }
         val largeIcon = user.getJSONObject("icons").getString("large")
-        UserData(description, isPremium, niconicoVersion, followeeCount, followerCount, userId, nickName, isFollowing, currentLevel,largeIcon)
+        UserData(description, isPremium, niconicoVersion, followeeCount, followerCount, userId, nickName, isFollowing, currentLevel, largeIcon)
     }
 
 }

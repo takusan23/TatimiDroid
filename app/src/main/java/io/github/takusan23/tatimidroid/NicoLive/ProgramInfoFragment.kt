@@ -21,7 +21,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
-import io.github.takusan23.tatimidroid.NicoAPI.User.User
+import io.github.takusan23.tatimidroid.NicoAPI.User.UserAPI
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveTagBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
@@ -167,8 +167,8 @@ class ProgramInfoFragment : Fragment() {
                 userId = supplier.getString("programProviderId")
                 // ユーザー情報取得。フォロー中かどうか判断するため
                 val userData = withContext(Dispatchers.IO) {
-                    val user = User()
-                    val response = user.getUserCoroutine(userId, usersession)
+                    val user = UserAPI()
+                    val response = user.getUserData(userId, usersession)
                     if (!response.isSuccessful) return@withContext null
                     user.parseUserData(response.body?.string())
                 }

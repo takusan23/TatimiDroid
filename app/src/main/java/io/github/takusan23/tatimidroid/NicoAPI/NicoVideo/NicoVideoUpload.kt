@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 /**
  * 投稿動画取得
  * */
-class NicoVideoPOST {
+class NicoVideoUpload {
 
     /** シングルトンなOkHttpClient */
     private val okHttpClient = OkHttpClientSingleton.okHttpClient
@@ -20,13 +20,19 @@ class NicoVideoPOST {
      * 投稿動画取得APIを叩く。
      * マイページが変わって（というか私GINZA時代だしずっと変わってなかったんやな）投稿動画APIが出現した
      * というわけでスクレイピング回避することに成功しました。
-     * @param userId ユーザーID。
+     * @param userId ユーザーID。nullなら自分の投稿動画を取りに行く
      * @param userSession ユーザーセッション
      * @param page ページ。最近のサイトみたいに必要な部分だけAPIを叩いて取得するようになった。
      * */
-    suspend fun getPOSTVideo(userId: String, userSession: String, page: Int = 0) = withContext(Dispatchers.IO) {
-        // うらる
-        val url = "https://nvapi.nicovideo.jp/v1/users/$userId/videos?sortKey=registeredAt&sortOrder=desc&pageSize=25&page=$page"
+    suspend fun getUploadVideo(userId: String? = null, userSession: String, page: Int = 0) = withContext(Dispatchers.IO) {
+        // うらる。v1じゃないv2が存在する
+        val url = if (userId == null) {
+            // じぶん
+            "https://nvapi.nicovideo.jp/v1/users/me/videos?sortKey=registeredAt&sortOrder=desc&pageSize=25&page=$page"
+        } else {
+            // ほかのひと
+            "https://nvapi.nicovideo.jp/v1/users/$userId/videos?sortKey=registeredAt&sortOrder=desc&pageSize=25&page=$page"
+        }
         val request = Request.Builder().apply {
             url(url)
             addHeader("Cookie", "user_session=${userSession}")
@@ -39,11 +45,11 @@ class NicoVideoPOST {
     }
 
     /**
-     * [getPOSTVideo]のレスポンスぼでーJSONをパースする。
+     * [getUploadVideo]のレスポンスぼでーJSONをパースする。
      * @param responseString レスポンス。JSON
      * @return [NicoVideoData]の配列
      * */
-    suspend fun parsePOSTVideo(responseString: String?) = withContext(Dispatchers.Default) {
+    suspend fun parseUploadVideo(responseString: String?) = withContext(Dispatchers.Default) {
         val videoList = arrayListOf<NicoVideoData>()
         val jsonObject = JSONObject(responseString)
         val items = jsonObject.getJSONObject("data").getJSONArray("items")

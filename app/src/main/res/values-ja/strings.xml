@@ -540,4 +540,7 @@
     <string name="nicolive_nicojk_not_receive_live">映像の受信をやめる（ニコニコ実況だとコメントだけでいい？）</string>
     <string name="nicolive_jk">ニコ生版ニコニコ実況 (jk)</string>
     <string name="nicolive_jk_not_live_receive">ニコ生版ニコニコ実況のため映像の受信をやめました</string>
+    <string name="mypage">マイページ</string>
+    <string name="follower_count">フォロワー</string>
+    <string name="follow_count">フォロー</string>
 </resources>

@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoAPI.User.User
+import io.github.takusan23.tatimidroid.NicoAPI.User.UserAPI
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
@@ -276,8 +276,8 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     private fun getUserName(userId: String) = lifecycleScope.launch(Dispatchers.Main) {
         // API叩く
         val user = withContext(Dispatchers.IO) {
-            val user = User()
-            val response = user.getUserCoroutine(userId, userSession)
+            val user = UserAPI()
+            val response = user.getUserData(userId, userSession)
             if (!response.isSuccessful) return@withContext null
             user.parseUserData(response.body?.string())
         }

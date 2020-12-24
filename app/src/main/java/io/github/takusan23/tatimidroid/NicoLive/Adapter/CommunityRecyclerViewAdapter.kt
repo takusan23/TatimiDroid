@@ -34,9 +34,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 // 番組RecyclerViewAdapter
-class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<NicoLiveProgramData>) : RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
+class CommunityRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<NicoLiveProgramData>) : RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
 
-    lateinit var prefSetting: SharedPreferences
+    private lateinit var prefSetting: SharedPreferences
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_community_layout, parent, false)
@@ -105,10 +105,8 @@ class CommunityRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<
         * 番組IDコピー機能
         * */
         holder.communityCard.setOnLongClickListener {
-            Toast.makeText(content, "${content.getString(R.string.copy_program_id)} : $liveId", Toast.LENGTH_SHORT)
-                .show()
-            val clipboardManager =
-                content.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            Toast.makeText(content, "${content.getString(R.string.copy_program_id)} : $liveId", Toast.LENGTH_SHORT).show()
+            val clipboardManager = content.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboardManager.setPrimaryClip(ClipData.newPlainText("liveid", liveId))
             true
         }

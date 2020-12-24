@@ -540,4 +540,7 @@
     <string name="nicolive_nicojk_not_receive_live">Stop receiving the video (Is it okay to just comment if it\'s a live commentary?)</string>
     <string name="nicolive_jk">Nico live version Nico Nico live (jk)</string>
     <string name="nicolive_jk_not_live_receive">Nico live version Nico Nico live commentary stopped receiving video</string>
+    <string name="mypage">My page</string>
+    <string name="follow_count">following</string>
+    <string name="follower_count">follower</string>
 </resources>

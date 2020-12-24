@@ -10,7 +10,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoInfoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoMenuFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoRecommendFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoPOSTFragment
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoUploadVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.R
@@ -103,7 +103,7 @@ class NicoVideoRecyclerPagerAdapter(val fragment: Fragment, val videoId: String,
             // Fragment作る
             when (data.type) {
                 TAB_LAYOUT_DATA_SEARCH -> NicoVideoSearchFragment()
-                TAB_LAYOUT_DATA_POST -> NicoVideoPOSTFragment()
+                TAB_LAYOUT_DATA_POST -> NicoVideoUploadVideoFragment()
                 TAB_LAYOUT_DATA_MYLIST -> NicoVideoMyListListFragment()
                 TAB_LAYOUT_DATA_SERIES -> NicoVideoSeriesFragment()
                 else -> null
@@ -149,7 +149,7 @@ class NicoVideoRecyclerPagerAdapter(val fragment: Fragment, val videoId: String,
      * */
     private fun getType(fragment: Fragment): String {
         return when (fragment) {
-            is NicoVideoPOSTFragment -> TAB_LAYOUT_DATA_POST
+            is NicoVideoUploadVideoFragment -> TAB_LAYOUT_DATA_POST
             is NicoVideoMyListListFragment -> TAB_LAYOUT_DATA_MYLIST
             is NicoVideoSearchFragment -> TAB_LAYOUT_DATA_SEARCH
             is NicoVideoSeriesFragment -> TAB_LAYOUT_DATA_SERIES

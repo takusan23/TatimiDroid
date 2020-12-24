@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
 /**
- * [NicoAccountViewModel]を初期化するクラス
+ * [NicoVideoUploadVideoViewModel]を初期化するくらす
  * */
-class NicoAccountViewModelFactory(val application: Application, val userId: String?) : ViewModelProvider.Factory {
+class NicoVideoUploadVideoViewModelFactory(val application: Application, val userId: String?) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return NicoAccountViewModel(application, userId) as T
+        return NicoVideoUploadVideoViewModel(application, userId) as T
     }
 
 }

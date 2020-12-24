@@ -40,6 +40,7 @@
                     android:checkable="true"
                     android:checked="true"
                     android:text="@string/nicolive"
+                    app:chipCornerRadius="5dp"
                     app:chipIcon="@drawable/ic_outline_live_tv_24px_black" />
 
             <com.google.android.material.chip.Chip
@@ -52,6 +53,7 @@
                     android:checkable="true"
                     android:checked="true"
                     android:text="@string/nicovideo"
+                    app:chipCornerRadius="5dp"
                     app:chipIcon="@drawable/ic_local_movies_24px" />
 
             <com.google.android.material.chip.Chip
@@ -63,6 +65,7 @@
                     android:checkable="true"
                     android:checked="false"
                     android:text="@string/today_only"
+                    app:chipCornerRadius="5dp"
                     app:chipIcon="@drawable/ic_event_available_24px" />
 
             <com.google.android.material.chip.Chip
@@ -74,6 +77,7 @@
                     android:checkable="true"
                     android:checked="false"
                     android:text="@string/zyuuhuku_hide"
+                    app:chipCornerRadius="5dp"
                     app:chipIcon="@drawable/ic_filter_alt_black_24dp" />
 
         </LinearLayout>

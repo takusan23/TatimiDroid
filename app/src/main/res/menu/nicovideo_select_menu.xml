@@ -26,5 +26,9 @@
                 android:id="@+id/nicovideo_select_menu_search"
                 android:icon="@drawable/ic_24px"
                 android:title="@string/serch" />
+        <item
+                android:id="@+id/nicovideo_select_menu_account"
+                android:icon="@drawable/ic_outline_account_circle_24px"
+                android:title="@string/mypage" />
     </group>
 </menu>

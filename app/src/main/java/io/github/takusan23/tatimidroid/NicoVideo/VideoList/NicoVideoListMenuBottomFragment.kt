@@ -47,7 +47,8 @@ import kotlinx.coroutines.withContext
  * video_id | String  | 動画ID。画面回転時に詰むのでこっちがいい？
  * is_cache | Boolean | キャッシュの場合はtrue
  * --- できれば（インターネット接続無いと詰む） ---
- * data     | NicoVideoData | 入ってる場合はインターネットでの取得はせず、こちらを使います。
+ * data         | NicoVideoData     | 入ってる場合はインターネットでの取得はせず、こちらを使います。
+ * video_list   | NicoVideoData[]   | 連続再生で使う。なくてもいい
  * */
 class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
@@ -125,17 +126,22 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     private fun initPlayListPlayButton() {
         // 連続再生
-        val videoList = arguments?.getSerializable("video_list") as ArrayList<NicoVideoData>
-        bottom_fragment_nicovideo_list_menu_playlist.setOnClickListener {
-            val nicoVideoFragment = NicoVideoFragment().apply {
-                arguments = Bundle().apply {
-                    putSerializable("video_list", videoList) // BundleでNicoVideoListAdapterから渡してもらった
-                    putString("id", nicoVideoData.videoId)
+        val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
+        if (videoList != null) {
+            bottom_fragment_nicovideo_list_menu_playlist.setOnClickListener {
+                val nicoVideoFragment = NicoVideoFragment().apply {
+                    arguments = Bundle().apply {
+                        putSerializable("video_list", videoList) // BundleでNicoVideoListAdapterから渡してもらった
+                        putString("id", nicoVideoData.videoId)
+                    }
                 }
+                (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, nicoVideoData.videoId)
+                // メニュー閉じる
+                dismiss()
             }
-            (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, nicoVideoData.videoId)
-            // メニュー閉じる
-            dismiss()
+        } else {
+            // セットされてない場合は非表示
+            bottom_fragment_nicovideo_list_menu_playlist.isVisible = false
         }
     }
 

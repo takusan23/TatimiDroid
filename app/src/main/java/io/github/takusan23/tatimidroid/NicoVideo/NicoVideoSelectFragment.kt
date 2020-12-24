@@ -8,6 +8,7 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.*
@@ -55,6 +56,7 @@ class NicoVideoSelectFragment : Fragment() {
             fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_mylist).isVisible = false
             fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_history).isVisible = false
             fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_nicorepo).isVisible = false
+            fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_account).isVisible = false
         }
 
         // メニュー押したとき
@@ -65,8 +67,9 @@ class NicoVideoSelectFragment : Fragment() {
                 R.id.nicovideo_select_menu_history -> setFragment(NicoVideoHistoryFragment())
                 R.id.nicovideo_select_menu_search -> setFragment(NicoVideoSearchFragment())
                 R.id.nicovideo_select_menu_nicorepo -> setFragment(NicoVideoNicoRepoFragment())
+                R.id.nicovideo_select_menu_account -> setFragment(NicoAccountFragment())
                 R.id.nicovideo_select_menu_post -> {
-                    setFragment(NicoVideoPOSTFragment().apply {
+                    setFragment(NicoVideoUploadVideoFragment().apply {
                         arguments = Bundle().apply {
                             putBoolean("my", true)
                         }
@@ -74,6 +77,17 @@ class NicoVideoSelectFragment : Fragment() {
                 }
             }
             true
+        }
+
+        // 戻るキー押したとき。アカウントFragmentから他Fragmentへ遷移した際、戻るキーでもとのFragmentに戻るために使う
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            if (childFragmentManager.backStackEntryCount > 0) {
+                // Fragmentが積み上がっている場合は戻す
+                childFragmentManager.popBackStack()
+            } else {
+                // コールバック消す
+                this.remove()
+            }
         }
 
     }
@@ -84,11 +98,23 @@ class NicoVideoSelectFragment : Fragment() {
         fragment_video_bar?.background = ColorDrawable(getThemeColor(darkModeSupport.context))
     }
 
-    fun setFragment(fragment: Fragment) {
+    /**
+     * Fragmentを設置、置き換える関数
+     * @param fragment Fragment
+     * @param popbackstack バックキーで戻れるように。適当な値を引数に入れると戻れるようになります。
+     * */
+    fun setFragment(fragment: Fragment, popbackstack: String? = null) {
         // Handler(UIスレッド指定)で実行するとダークモード、画面切り替えに耐えるアプリが作れる。
         Handler(Looper.getMainLooper()).post {
             fragment_video_motionlayout?.transitionToStart()
-            activity?.supportFragmentManager?.beginTransaction()?.replace(fragment_video_list_linearlayout.id, fragment)?.commit()
+            childFragmentManager.beginTransaction().apply {
+                replace(fragment_video_list_linearlayout.id, fragment)
+                // fragmentを積み上げる。
+                if (popbackstack != null) {
+                    addToBackStack(popbackstack)
+                }
+                commit()
+            }
         }
     }
 

@@ -39,7 +39,6 @@ class ProgramListFragment : Fragment() {
         fragment_program_menu.setNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.nicolive_program_list_menu_follow -> setFragment(CommunityListFragment.FOLLOW)
-                R.id.nicolive_program_list_menu_nicorepo -> setFragment(CommunityListFragment.NICOREPO)
                 R.id.nicolive_program_list_menu_osusume -> setFragment(CommunityListFragment.RECOMMEND)
                 R.id.nicolive_program_list_menu_ranking -> setFragment(CommunityListFragment.RANKING)
                 R.id.nicolive_program_list_menu_top -> setFragment(CommunityListFragment.CHUMOKU)
@@ -48,6 +47,7 @@ class ProgramListFragment : Fragment() {
                 R.id.nicolive_program_list_menu_auto_admission -> setFragment(CommunityListFragment.ADMISSION)
                 R.id.nicolive_program_list_menu_rookie -> setFragment(CommunityListFragment.ROOKIE)
                 R.id.nicolive_program_list_menu_nicolive_jk -> setFragment(CommunityListFragment.NICOLIVE_JK)
+                R.id.nicolive_program_list_menu_nicorepo -> setFragment(CommunityListFragment.NICOREPO)
             }
             true
         }

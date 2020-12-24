@@ -41,8 +41,8 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoRecyclerPagerAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoPlayListBottomFragment
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoPOSTFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoUploadVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.R
@@ -926,7 +926,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             val userId = ownerObject.getInt("id").toString()
             val nickname = ownerObject.getString("nickname")
             // DevNicoVideoFragment
-            val postFragment = NicoVideoPOSTFragment().apply {
+            val postFragment = NicoVideoUploadVideoFragment().apply {
                 arguments = Bundle().apply {
                     putString("userId", userId)
                 }
@@ -976,6 +976,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         super.onDestroy()
         seekTimer.cancel()
         exoPlayer.release()
+        // 牛乳を飲んで状態異常を解除
+        activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private fun showToast(message: String?) {

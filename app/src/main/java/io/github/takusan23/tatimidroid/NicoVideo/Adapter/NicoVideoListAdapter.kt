@@ -33,10 +33,10 @@ import java.util.*
  * ランキング、視聴履歴の一覧から関連動画等色んな所で使ってる。
  * @param nicoVideoViewModel [NicoVideoViewModel]が取得できる場合は入れてください。[NicoVideoViewModel.load]関数で動画を切り替えます
  * */
-class NicoVideoListAdapter(private val nicoVideoDataList: ArrayList<NicoVideoData>) : RecyclerView.Adapter<NicoVideoListAdapter.ViewHolder>() {
+class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : RecyclerView.Adapter<NicoVideoListAdapter.ViewHolder>() {
 
-    lateinit var prefSetting: SharedPreferences
-    lateinit var nicoVideoCache: NicoVideoCache
+    private lateinit var prefSetting: SharedPreferences
+    private lateinit var nicoVideoCache: NicoVideoCache
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val titleTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_title)
