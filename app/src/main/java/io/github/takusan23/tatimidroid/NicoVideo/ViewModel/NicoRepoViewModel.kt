@@ -67,7 +67,7 @@ class NicoRepoViewModel(application: Application, val userId: String? = null) : 
             loadingLiveData.postValue(true)
             val nicoRepoAPI = NicoRepoAPIX()
             val response = nicoRepoAPI.getNicoRepoResponse(userSession, userId)
-            // 失敗したら落とす
+            // 失敗時
             if (!response.isSuccessful) {
                 withContext(Dispatchers.Main) {
                     showToast("${getString(R.string.error)}\n${response.code}")

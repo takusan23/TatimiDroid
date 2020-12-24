@@ -28,6 +28,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoMyListListViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
 import io.github.takusan23.tatimidroid.Service.startCacheService
@@ -266,7 +267,8 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                                 // 位置特定
                                 val currentPos = myListFragment.fragment_nicovideo_mylist_tablayout.selectedTabPosition
                                 val fragment = myListFragment.adapter.fragmentList[currentPos]
-                                (fragment as NicoVideoMyListListFragment).getMyListItems()
+                                val viewModel by viewModels<NicoVideoMyListListViewModel>({ fragment })
+                                viewModel.getMyListVideoList()
                             } else {
                                 showToast("${getString(R.string.error)}\n${deleteResponse.code}")
                             }

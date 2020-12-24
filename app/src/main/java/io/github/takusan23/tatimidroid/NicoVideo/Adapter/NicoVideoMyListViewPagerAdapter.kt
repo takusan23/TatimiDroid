@@ -12,7 +12,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFr
  * フリックで切り替えできるようになるよ。
  * @param myListList とりあえずマイリストはMyListData#idの値を空にしてね
  * */
-class NicoVideoMyListViewPagerAdapter(val activity: AppCompatActivity, val myListList: ArrayList<NicoVideoSPMyListAPI.MyListData>) : FragmentStateAdapter(activity) {
+class NicoVideoMyListViewPagerAdapter(val activity: AppCompatActivity, private val myListList: ArrayList<NicoVideoSPMyListAPI.MyListData>) : FragmentStateAdapter(activity) {
 
     /**
      * Fragment一覧。
@@ -24,6 +24,7 @@ class NicoVideoMyListViewPagerAdapter(val activity: AppCompatActivity, val myLis
             val bundle = Bundle().apply {
                 putString("mylist_id", it.id)
                 putString("mylist_name", it.title)
+                putBoolean("mylist_is_me", it.isMe)
             }
             fragment.arguments = bundle
             add(fragment)

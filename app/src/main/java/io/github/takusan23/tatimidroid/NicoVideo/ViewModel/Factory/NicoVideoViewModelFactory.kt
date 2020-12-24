@@ -1,9 +1,10 @@
-package io.github.takusan23.tatimidroid.NicoVideo.ViewModel
+package io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 
 /**
  * [NicoVideoViewModel]は動画IDを引数に欲しいので独自のファクトリークラス？を作成する

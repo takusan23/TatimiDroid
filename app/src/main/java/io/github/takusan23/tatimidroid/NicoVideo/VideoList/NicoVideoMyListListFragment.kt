@@ -1,48 +1,39 @@
 package io.github.takusan23.tatimidroid.NicoVideo.VideoList
 
-import android.content.SharedPreferences
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.preference.PreferenceManager
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoMyListListViewModelFactory
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoMyListListViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist_list.*
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * マイリスト一覧表示Fragment。
  * ViewPagerで表示するFragmentです。
  * 入れてほしいもの↓
  * mylist_id   |String |マイリストのID。空の場合はとりあえずマイリストをリクエストします
- * is_other    |Boolean|他の人のマイリストを読み込む時に使う。
+ * mylist_is_me|Boolean|マイリストが自分のものかどうか。自分のマイリストの場合はtrue
  * */
 class NicoVideoMyListListFragment : Fragment() {
 
-    lateinit var nicoVideoListAdapter: NicoVideoListAdapter
-    lateinit var prefSetting: SharedPreferences
+    /** ViewModel */
+    private lateinit var myListListViewModel: NicoVideoMyListListViewModel
+
+    /** RecyclerViewへ渡す配列 */
     private val recyclerViewList = arrayListOf<NicoVideoData>()
 
-    private var userSession = ""
-    private var myListId = ""
-    private var isOther = false
-    private var sortMenuPos = 0
-    private var myListName = ""
-
-    private val nicoVideoSPMyListAPI = NicoVideoSPMyListAPI()
+    /** RecyclerViewへ入れるAdapter */
+    val nicoVideoListAdapter = NicoVideoListAdapter(recyclerViewList)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_mylist_list, container, false)
@@ -51,8 +42,9 @@ class NicoVideoMyListListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-        userSession = prefSetting.getString("user_session", "") ?: ""
+        val myListId = arguments?.getString("mylist_id")!!
+        val isMe = arguments?.getBoolean("mylist_is_me")!!
+        myListListViewModel = ViewModelProvider(this, NicoVideoMyListListViewModelFactory(requireActivity().application, myListId, isMe)).get(NicoVideoMyListListViewModel::class.java)
 
         // ダークモード
         fragment_nicovideo_mylist_list_app_bar.background = ColorDrawable(getThemeColor(requireContext()))
@@ -63,70 +55,26 @@ class NicoVideoMyListListFragment : Fragment() {
         // 並び替えメニュー初期化
         initSortMenu()
 
-        myListId = arguments?.getString("mylist_id") ?: return
-        isOther = arguments?.getBoolean("is_other") ?: false
-
-        // データ取得
-        getMyListItems()
-
-        fragment_nicovideo_mylist_list_swipe.setOnRefreshListener {
-            getMyListItems()
-        }
-
-    }
-
-    // マイリストの中身取得
-    fun getMyListItems() {
-        // エラー時
-        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            showToast("${getString(R.string.error)}\n${throwable}")
-        }
-        lifecycleScope.launch(errorHandler) {
-            // 初期化
+        // データ取得を待つ
+        myListListViewModel.nicoVideoDataListLiveData.observe(viewLifecycleOwner) { videoList ->
             recyclerViewList.clear()
+            recyclerViewList.addAll(videoList)
             nicoVideoListAdapter.notifyDataSetChanged()
-            fragment_nicovideo_mylist_list_swipe.isRefreshing = true
-            // データ取得
-            // とりあえずマイリストかマイリストか？
-            val myListItemsReponse = when {
-                isOther -> nicoVideoSPMyListAPI.getOtherUserMyListItems(myListId, userSession)
-                myListId.isEmpty() -> nicoVideoSPMyListAPI.getToriaezuMyListList(userSession)
-                else -> nicoVideoSPMyListAPI.getMyListItems(myListId, userSession)
-            }
-            if (!myListItemsReponse.isSuccessful) {
-                // 失敗時
-                showToast("${getString(R.string.error)}\n${myListItemsReponse.code}")
-                return@launch
-            }
-            // レスポンス
-            val responseString = withContext(Dispatchers.Default) {
-                myListItemsReponse.body?.string()
-            }
-            // パース
-            val videoItems = withContext(Dispatchers.Default) {
-                if (isOther) {
-                    nicoVideoSPMyListAPI.parseOtherUserMyListJSON(responseString)
-                } else {
-                    nicoVideoSPMyListAPI.parseMyListItems(myListId, responseString)
-                }.sortedByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate } // ソート
-            }
-            // マイリス名
-            myListName = if (isOther) {
-                nicoVideoSPMyListAPI.parseMyListName(responseString)
-            } else {
-                arguments?.getString("mylist_name") ?: ""
-            }
-            // RecyclerViewへ追加
-            videoItems.forEach {
-                recyclerViewList.add(it)
-            }
-            nicoVideoListAdapter.notifyDataSetChanged()
-            fragment_nicovideo_mylist_list_swipe.isRefreshing = false
-            sort()
-            // 連続再生ボタン
         }
+
+        // くるくる
+        myListListViewModel.loadingLiveData.observe(viewLifecycleOwner) { isLoading ->
+            fragment_nicovideo_mylist_list_swipe.isRefreshing = isLoading
+        }
+
+        // ひっぱって更新
+        fragment_nicovideo_mylist_list_swipe.setOnRefreshListener {
+            myListListViewModel.getMyListVideoList()
+        }
+
     }
 
+    /** 並び替えメニュー初期化 */
     private fun initSortMenu() {
         val sortList = arrayListOf(
             "登録が新しい順",
@@ -146,47 +94,18 @@ class NicoVideoMyListListFragment : Fragment() {
         fragment_nicovideo_mylist_list_sort.apply {
             setAdapter(adapter)
             setOnItemClickListener { parent, view, position, id ->
-                sortMenuPos = position
-                sort()
+                myListListViewModel.sort(position)
             }
             setText(sortList[0], false)
         }
     }
 
-
-    // ソートする
-    private fun sort() {
-        // 選択
-        when (sortMenuPos) {
-            0 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.mylistAddedDate }
-            1 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.mylistAddedDate }
-            2 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.viewCount.toInt() }
-            3 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.viewCount.toInt() }
-            4 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.date }
-            5 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.date }
-            6 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.duration }
-            7 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.duration }
-            8 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.commentCount.toInt() }
-            9 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.commentCount.toInt() }
-            10 -> recyclerViewList.sortByDescending { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
-            11 -> recyclerViewList.sortBy { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
-        }
-        nicoVideoListAdapter.notifyDataSetChanged()
-    }
-
-    private fun showToast(message: String) {
-        activity?.runOnUiThread {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-
+    /** RecyclerView初期化 */
     private fun initRecyclerView() {
         fragment_nicovideo_mylist_list_recyclerview.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             // Adapterセット
-            nicoVideoListAdapter = NicoVideoListAdapter(recyclerViewList)
             adapter = nicoVideoListAdapter
         }
     }

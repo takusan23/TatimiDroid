@@ -9,10 +9,11 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoNicoRepoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoUploadVideoFragment
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoAccountViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoAccountViewModel
-import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoAccountViewModelFactory
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_account.*
 
@@ -74,6 +75,16 @@ class NicoAccountFragment : Fragment() {
                     }
                 }
                 (requireParentFragment() as NicoVideoSelectFragment).setFragment(nicoRepoFragment, "nicorepo")
+            }
+
+            // マイリストFragment
+            fragment_account_mylist.setOnClickListener {
+                val myListFragment = NicoVideoMyListFragment().apply {
+                    arguments = Bundle().apply {
+                        putString("userId", data.userId.toString())
+                    }
+                }
+                (requireParentFragment() as NicoVideoSelectFragment).setFragment(myListFragment, "mylist")
             }
 
         }

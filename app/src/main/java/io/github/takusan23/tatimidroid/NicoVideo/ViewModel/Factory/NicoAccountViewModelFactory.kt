@@ -1,8 +1,9 @@
-package io.github.takusan23.tatimidroid.NicoVideo.ViewModel
+package io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoAccountViewModel
 
 /**
  * [NicoAccountViewModel]を初期化するクラス

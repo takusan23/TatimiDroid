@@ -23,11 +23,18 @@ class NicoVideoSPMyListAPI {
     /**
      * マイリスト一覧のAPIを叩く関数
      * @param userSession ユーザーセッション
+     * @param userId ユーザーID。ない場合は自分のを取りに行きます
      * @return OkHttpのレスポンス
      * */
-    suspend fun getMyListList(userSession: String) = withContext(Dispatchers.IO) {
+    suspend fun getMyListList(userSession: String, userId: String? = null) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
-            url("https://nvapi.nicovideo.jp/v1/users/me/mylists")
+            if (userId == null) {
+                // わたし
+                url("https://nvapi.nicovideo.jp/v1/users/me/mylists")
+            } else {
+                // ほかのひと
+                url("https://nvapi.nicovideo.jp/v1/users/${userId}/mylists")
+            }
             header("Cookie", "user_session=$userSession")
             header("User-Agent", "TatimiDroid;@takusan_23")
             header("x-frontend-id", "3")
@@ -43,7 +50,7 @@ class NicoVideoSPMyListAPI {
      * @param responseString getMyListList()のレスポンス
      *
      * */
-    suspend fun parseMyListList(responseString: String?) = withContext(Dispatchers.Default) {
+    suspend fun parseMyListList(responseString: String?, isMe: Boolean = false) = withContext(Dispatchers.Default) {
         val myListListDataList = arrayListOf<MyListData>()
         val jsonObject = JSONObject(responseString)
         val mylists = jsonObject.getJSONObject("data").getJSONArray("mylists")
@@ -52,7 +59,7 @@ class NicoVideoSPMyListAPI {
             val title = list.getString("name")
             val id = list.getString("id")
             val itemsCount = list.getInt("itemsCount")
-            val data = MyListData(title, id, itemsCount)
+            val data = MyListData(title, id, itemsCount, isMe)
             myListListDataList.add(data)
         }
         myListListDataList
@@ -176,7 +183,7 @@ class NicoVideoSPMyListAPI {
     }
 
     /**
-     * 他の人のマイリストのJSONをパースする。
+     * 他の人のマイリストのJSONをパースする。他の人のマイリストなので、[NicoVideoData.isMylist]はfalseになっています
      * @param json [getOtherUserMyListItems]の戻り値
      * @return NicoVideoData配列
      * */
@@ -301,6 +308,13 @@ class NicoVideoSPMyListAPI {
         return simpleDateFormat.parse(time).time
     }
 
-    data class MyListData(val title: String, val id: String, val itemsCount: Int) : Serializable
+    /**
+     * マイリスト一覧で使うデータクラス
+     * @param id マイリストID
+     * @param isMe 私のものだったらtrue。APIが違う？ので
+     * @param itemsCount 動画数
+     * @param title マイリスト名
+     * */
+    data class MyListData(val title: String, val id: String, val itemsCount: Int, val isMe: Boolean) : Serializable
 
 }

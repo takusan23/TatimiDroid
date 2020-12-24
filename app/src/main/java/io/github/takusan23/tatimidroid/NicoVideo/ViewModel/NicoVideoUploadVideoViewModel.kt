@@ -69,7 +69,7 @@ class NicoVideoUploadVideoViewModel(application: Application, val userId: String
             // 投稿動画取得API
             val nicoVideoUpload = NicoVideoUpload()
             val response = nicoVideoUpload.getUploadVideo(userId, userSession, page)
-            // 失敗したら落とす
+            // 失敗時
             if (!response.isSuccessful) {
                 withContext(Dispatchers.Main) {
                     showToast("${getString(R.string.error)}\n${response.code}")

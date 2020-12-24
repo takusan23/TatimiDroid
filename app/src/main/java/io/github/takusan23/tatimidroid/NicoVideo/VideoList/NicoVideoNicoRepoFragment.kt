@@ -9,8 +9,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoRepo.NicoRepoDataClass
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoRepoAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoRepoViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoRepoViewModel
-import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoRepoViewModelFactory
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_nicorepo.*
 

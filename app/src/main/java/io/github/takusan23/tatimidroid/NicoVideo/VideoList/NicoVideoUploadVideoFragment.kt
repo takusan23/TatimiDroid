@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoUploadVideoViewModel
-import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoUploadVideoViewModelFactory
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoUploadVideoViewModelFactory
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_post.*
 
