@@ -18,7 +18,7 @@ import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import kotlinx.android.synthetic.main.fragment_nicovideo_mylist_list.*
 
 /**
- * マイリスト一覧表示Fragment。
+ * マイリストの動画一覧表示Fragment。
  * ViewPagerで表示するFragmentです。
  * 入れてほしいもの↓
  * mylist_id   |String |マイリストのID。空の場合はとりあえずマイリストをリクエストします

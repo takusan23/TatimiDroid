@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/fragment_account_user_parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -21,7 +22,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:text="@string/follow_count"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -48,7 +48,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
             android:layout_marginEnd="8dp"
-            android:text="ユーザー名"
             app:layout_constraintEnd_toStartOf="@+id/fragment_account_follow_button"
             app:layout_constraintStart_toEndOf="@+id/fragment_account_avatar_image_view"
             app:layout_constraintTop_toTopOf="@+id/fragment_account_avatar_image_view" />
@@ -57,7 +56,6 @@
             android:id="@+id/fragment_account_user_id_text_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="ユーザーID"
             app:layout_constraintEnd_toEndOf="@+id/fragment_account_user_name_text_view"
             app:layout_constraintStart_toStartOf="@+id/fragment_account_user_name_text_view"
             app:layout_constraintTop_toBottomOf="@+id/fragment_account_user_name_text_view" />
@@ -66,7 +64,6 @@
             android:id="@+id/fragment_account_version_name_text_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="GINZA"
             app:layout_constraintEnd_toEndOf="@+id/fragment_account_user_id_text_view"
             app:layout_constraintStart_toStartOf="@+id/fragment_account_user_id_text_view"
             app:layout_constraintTop_toBottomOf="@+id/fragment_account_user_id_text_view" />
@@ -76,7 +73,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="フォロワー"
             app:layout_constraintEnd_toStartOf="@+id/fragment_account_follower_count_text_view"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="@+id/fragment_account_version_name_text_view"
@@ -86,7 +82,6 @@
             android:id="@+id/fragment_account_follower_count_text_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="フォロー"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/fragment_account_follow_count_text_view"
@@ -99,7 +94,6 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:text="説明文"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/fragment_account_follow_count_text_view" />

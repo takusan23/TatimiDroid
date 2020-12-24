@@ -7,21 +7,21 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.*
-import java.util.ArrayList
+import java.util.*
 
 /**
  * マイリスト追加BottomFragmentで使ってるRecyclerViewで使うAdapter
  * */
-class NicoVideoMylistAdapter(val mylistList: ArrayList<Pair<String, String>>) : RecyclerView.Adapter<NicoVideoMylistAdapter.ViewHolder>() {
+class NicoVideoAddMyListAdapter(val mylistList: ArrayList<NicoVideoSPMyListAPI.MyListData>) : RecyclerView.Adapter<NicoVideoAddMyListAdapter.ViewHolder>() {
 
     // スマホ版マイリストAPI
     private val spMyListAPI = NicoVideoSPMyListAPI()
@@ -33,8 +33,9 @@ class NicoVideoMylistAdapter(val mylistList: ArrayList<Pair<String, String>>) : 
     lateinit var mylistBottomFragment: NicoVideoAddMylistBottomFragment
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val linearLayout = itemView.findViewById<LinearLayout>(R.id.adapter_nicovideo_mylist_parent)
+        val linearLayout = itemView.findViewById<ConstraintLayout>(R.id.adapter_nicovideo_mylist_parent)
         val titleTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_mylist_title)
+        val countTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_mylist_count_text_view)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -51,10 +52,11 @@ class NicoVideoMylistAdapter(val mylistList: ArrayList<Pair<String, String>>) : 
             prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
             val userSession = prefSetting.getString("user_session", "") ?: ""
 
-            val title = mylistList[position].first
-            val mylistId = mylistList[position].second
+            val myList = mylistList[position]
+            val mylistId = myList.id
 
-            titleTextView.text = title
+            titleTextView.text = myList.title
+            countTextView.text = "${myList.itemsCount} 件"
 
             // マイリスト追加
             linearLayout.setOnClickListener {

@@ -2,10 +2,12 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import android.os.Build
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoSeriesData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
 import java.time.Duration
@@ -21,6 +23,47 @@ class NicoVideoSeriesAPI {
 
     /** シングルトンなOkHttpClient */
     private val okHttpClient = OkHttpClientSingleton.okHttpClient
+
+    /**
+     * シリーズ一覧を取得する。こいつはAPIが存在する
+     * @param userId ユーザーID。nullの場合は自分のを取得します
+     * @param userSession ユーザーセッション
+     * */
+    suspend fun getSeriesList(userSession: String, userId: String? = null) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            if (userId == null) {
+                url("https://nvapi.nicovideo.jp/v1/users/me/series")
+            } else {
+                url("https://nvapi.nicovideo.jp/v1/users/${userId}/series")
+            }
+            addHeader("Cookie", "user_session=$userSession")
+            addHeader("User-Agent", "TatimiDroid;@takusan_23")
+            addHeader("x-frontend-id", "6")
+            get()
+        }.build()
+        okHttpClient.newCall(request).execute()
+    }
+
+    /**
+     * シリーズ一覧をパースする
+     * @param responseString [getSeriesList]で取得したれすぽんすぼでー
+     * @return [NicoVideoSeriesData]の配列
+     * */
+    suspend fun parseSeriesList(responseString: String?) = withContext(Dispatchers.Default) {
+        val seriesList = arrayListOf<NicoVideoSeriesData>()
+        val jsonObject = JSONObject(responseString)
+        val itemsJSONArray = jsonObject.getJSONObject("data").getJSONArray("items")
+        for (i in 0 until itemsJSONArray.length()) {
+            val seriesObject = itemsJSONArray.getJSONObject(i)
+            val title = seriesObject.getString("title")
+            val itemsCount = seriesObject.getInt("itemsCount")
+            val thumbUrl = seriesObject.getString("thumbnailUrl")
+            val seriesId = seriesObject.getInt("id").toString()
+            val seriesData = NicoVideoSeriesData(title, seriesId, itemsCount, thumbUrl)
+            seriesList.add(seriesData)
+        }
+        seriesList
+    }
 
     /**
      * シリーズの動画一覧へアクセスしてHTMLを取りに行く。スマホ版は申し訳ないが規制が入ってるのでNG。

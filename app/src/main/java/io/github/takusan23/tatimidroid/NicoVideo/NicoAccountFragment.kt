@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoNicoRepoFragment
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoUploadVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoAccountViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoAccountViewModel
@@ -57,12 +58,15 @@ class NicoAccountFragment : Fragment() {
             // プレ垢
             fragment_account_premium.isVisible = data.isPremium
 
+            // Fragmentにわたすデータ
+            val bundle = Bundle().apply {
+                putString("userId", data.userId.toString())
+            }
+
             // 投稿動画Fragmentへ遷移
             fragment_account_upload_video.setOnClickListener {
                 val nicoVideoPOSTFragment = NicoVideoUploadVideoFragment().apply {
-                    arguments = Bundle().apply {
-                        putString("userId", data.userId.toString())
-                    }
+                    arguments = bundle
                 }
                 (requireParentFragment() as NicoVideoSelectFragment).setFragment(nicoVideoPOSTFragment, "post")
             }
@@ -70,9 +74,7 @@ class NicoAccountFragment : Fragment() {
             // ニコレポFragment
             fragment_account_nicorepo.setOnClickListener {
                 val nicoRepoFragment = NicoVideoNicoRepoFragment().apply {
-                    arguments = Bundle().apply {
-                        putString("userId", data.userId.toString())
-                    }
+                    arguments = bundle
                 }
                 (requireParentFragment() as NicoVideoSelectFragment).setFragment(nicoRepoFragment, "nicorepo")
             }
@@ -80,11 +82,17 @@ class NicoAccountFragment : Fragment() {
             // マイリストFragment
             fragment_account_mylist.setOnClickListener {
                 val myListFragment = NicoVideoMyListFragment().apply {
-                    arguments = Bundle().apply {
-                        putString("userId", data.userId.toString())
-                    }
+                    arguments = bundle
                 }
                 (requireParentFragment() as NicoVideoSelectFragment).setFragment(myListFragment, "mylist")
+            }
+
+            // シリーズFragment
+            fragment_account_series.setOnClickListener {
+                val seriesFragment = NicoVideoSeriesListFragment().apply {
+                    arguments = bundle
+                }
+                (requireParentFragment() as NicoVideoSelectFragment).setFragment(seriesFragment, "series")
             }
 
         }

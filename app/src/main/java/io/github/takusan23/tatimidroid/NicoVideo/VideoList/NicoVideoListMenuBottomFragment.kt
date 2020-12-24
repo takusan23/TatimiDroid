@@ -36,7 +36,6 @@ import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
-import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -247,8 +246,6 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                     if (i == 0) {
                         // 消す
                         lifecycleScope.launch(Dispatchers.Main) {
-                            // マイリストFragment
-                            val myListFragment = (requireActivity() as AppCompatActivity).supportFragmentManager.findFragmentById(R.id.fragment_video_list_linearlayout) as NicoVideoMyListFragment
                             // マイリスト削除API叩く。スマホ版のAPI
                             val nicoVideoSPMyListAPI = NicoVideoSPMyListAPI()
                             val deleteResponse = withContext(Dispatchers.IO) {
@@ -264,10 +261,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                                 showToast(getString(R.string.mylist_delete_ok))
                                 this@NicoVideoListMenuBottomFragment.dismiss()
                                 // 再読み込み
-                                // 位置特定
-                                val currentPos = myListFragment.fragment_nicovideo_mylist_tablayout.selectedTabPosition
-                                val fragment = myListFragment.adapter.fragmentList[currentPos]
-                                val viewModel by viewModels<NicoVideoMyListListViewModel>({ fragment })
+                                val viewModel by viewModels<NicoVideoMyListListViewModel>({ parentFragmentManager.findFragmentById(R.id.fragment_video_list_linearlayout)!! })
                                 viewModel.getMyListVideoList()
                             } else {
                                 showToast("${getString(R.string.error)}\n${deleteResponse.code}")

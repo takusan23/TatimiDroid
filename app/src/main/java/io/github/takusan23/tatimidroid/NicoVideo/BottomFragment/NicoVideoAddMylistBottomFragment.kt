@@ -8,13 +8,17 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoMylistAdapter
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAddMyListAdapter
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_mylist.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * マイリスト追加BottomFragment
@@ -22,8 +26,8 @@ import kotlinx.coroutines.*
 class NicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
 
     // アダプター
-    lateinit var nicoVideoMylistAdapter: NicoVideoMylistAdapter
-    val recyclerViewList = arrayListOf<Pair<String, String>>()
+    lateinit var nicoVideoAddMyListAdapter: NicoVideoAddMyListAdapter
+    val recyclerViewList = arrayListOf<NicoVideoSPMyListAPI.MyListData>()
 
     // ユーザーセッション
     lateinit var prefSetting: SharedPreferences
@@ -66,13 +70,10 @@ class NicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
             }
             // レスポンスをパースしてRecyclerViewに突っ込む
             withContext(Dispatchers.Default) {
-                spMyListAPI.parseMyListList(myListListResponse.body?.string()).forEach { myList ->
-                    val pair = Pair(myList.title, myList.id)
-                    recyclerViewList.add(pair)
-                }
+                recyclerViewList.addAll(spMyListAPI.parseMyListList(myListListResponse.body?.string()))
             }
             // 一覧更新
-            nicoVideoMylistAdapter.notifyDataSetChanged()
+            nicoVideoAddMyListAdapter.notifyDataSetChanged()
         }
     }
 
@@ -80,10 +81,13 @@ class NicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
         bottom_fragment_nicovideo_mylist_recyclerview.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
-            nicoVideoMylistAdapter = NicoVideoMylistAdapter(recyclerViewList)
-            nicoVideoMylistAdapter.id = arguments?.getString("id", "") ?: ""
-            nicoVideoMylistAdapter.mylistBottomFragment = this@NicoVideoAddMylistBottomFragment
-            adapter = nicoVideoMylistAdapter
+            nicoVideoAddMyListAdapter = NicoVideoAddMyListAdapter(recyclerViewList)
+            nicoVideoAddMyListAdapter.id = arguments?.getString("id", "") ?: ""
+            nicoVideoAddMyListAdapter.mylistBottomFragment = this@NicoVideoAddMylistBottomFragment
+            adapter = nicoVideoAddMyListAdapter
+            // 区切り線
+            val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+            addItemDecoration(itemDecoration)
         }
     }
 

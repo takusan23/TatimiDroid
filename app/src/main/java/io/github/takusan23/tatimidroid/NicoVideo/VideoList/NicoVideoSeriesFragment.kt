@@ -5,34 +5,33 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.preference.PreferenceManager
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSeriesAPI
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoSeriesViewModelFactory
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoSeriesViewModel
 import io.github.takusan23.tatimidroid.R
 import kotlinx.android.synthetic.main.fragment_nicovideo_series.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
- * シリーズFragment
+ * シリーズの動画一覧Fragment
+ *
+ * レイアウトはシリーズ一覧をそのまま使いまわしてる
  *
  * 入れてほしいもの
  * series_id    | String    | シリーズID。https://sp.nicovideo.jp/series/{ここの数字}
- * series_title | String    | シリーズタイトル
  * */
 class NicoVideoSeriesFragment : Fragment() {
 
-    val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
+    /** データ取得などViewModel */
+    private lateinit var nicoVideoSeriesViewModel: NicoVideoSeriesViewModel
 
-    // Adapter
-    val nicoVideoList = arrayListOf<NicoVideoData>()
-    val nicoVideoListAdapter = NicoVideoListAdapter(nicoVideoList)
+    /** RecyclerViewにわたす配列 */
+    private val nicoVideoList = arrayListOf<NicoVideoData>()
 
-    val seriesTitle by lazy { arguments?.getString("series_title") }
+    /** RecyclerViewにセットするAdapter */
+    private val nicoVideoListAdapter = NicoVideoListAdapter(nicoVideoList)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_nicovideo_series, container, false)
@@ -41,31 +40,28 @@ class NicoVideoSeriesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val seriesId = arguments?.getString("series_id")!!
+        nicoVideoSeriesViewModel = ViewModelProvider(this, NicoVideoSeriesViewModelFactory(requireActivity().application, seriesId)).get(NicoVideoSeriesViewModel::class.java)
+
         initRecyclerView()
 
-        // 画面回転復帰時
-        if (savedInstanceState != null) {
-            // ViewModelにしたい
-            (savedInstanceState.getSerializable("list") as ArrayList<NicoVideoData>).toList().forEach {
-                nicoVideoList.add(it)
-            }
+        // シリーズ動画一覧取得
+        nicoVideoSeriesViewModel.nicoVideoDataListLiveData.observe(viewLifecycleOwner) { list ->
+            nicoVideoList.clear()
+            nicoVideoList.addAll(list)
             nicoVideoListAdapter.notifyDataSetChanged()
-        } else {
-            // シリーズ取得
-            val seriesId = arguments?.getString("series_id") ?: return
-            val userSession = prefSetting.getString("user_session", "") ?: return
-            lifecycleScope.launch(Dispatchers.Default) {
-                val seriesAPI = NicoVideoSeriesAPI()
-                val response = seriesAPI.getSeriesVideoList(userSession, seriesId)
-                seriesAPI.parseSeriesVideoList(response.body?.string())?.forEach {
-                    nicoVideoList.add(it)
-                }
-                withContext(Dispatchers.Main) {
-                    // 反映
-                    nicoVideoListAdapter.notifyDataSetChanged()
-                }
-            }
         }
+
+        // 読み込み
+        nicoVideoSeriesViewModel.loadingLiveData.observe(viewLifecycleOwner) { isLoading ->
+            fragment_nicovideo_series_refresh.isRefreshing = isLoading
+        }
+
+        // ひっぱって更新
+        fragment_nicovideo_series_refresh.setOnRefreshListener {
+            nicoVideoSeriesViewModel.getSeriesVideoList()
+        }
+
     }
 
     /** RecyclerView初期化 */
@@ -75,11 +71,6 @@ class NicoVideoSeriesFragment : Fragment() {
             setHasFixedSize(true)
             adapter = nicoVideoListAdapter
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putSerializable("list", nicoVideoList)
     }
 
 }

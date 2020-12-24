@@ -20,7 +20,6 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
-import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.AnniversaryDate
@@ -31,7 +30,6 @@ import java.util.*
 /**
  * ニコ動の動画を一覧で表示するときに使うAdapter。
  * ランキング、視聴履歴の一覧から関連動画等色んな所で使ってる。
- * @param nicoVideoViewModel [NicoVideoViewModel]が取得できる場合は入れてください。[NicoVideoViewModel.load]関数で動画を切り替えます
  * */
 class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : RecyclerView.Adapter<NicoVideoListAdapter.ViewHolder>() {
 
