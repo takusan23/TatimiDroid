@@ -259,6 +259,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // MainActivityのBottomNavを表示させるか。二窓Activityのせいでas?にしている
         (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
 
+        // アスペクト比直す。再生直前でもやってるけど
+        aspectRatioFix()
+
         // ミニプレイヤー時なら
         viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
             // MainActivityのBottomNavを表示させるか

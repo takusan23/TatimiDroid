@@ -55,7 +55,8 @@ class User {
         } else {
             false
         }
-        UserData(description, isPremium, niconicoVersion, followeeCount, followerCount, userId, nickName, isFollowing, currentLevel)
+        val largeIcon = user.getJSONObject("icons").getString("large")
+        UserData(description, isPremium, niconicoVersion, followeeCount, followerCount, userId, nickName, isFollowing, currentLevel,largeIcon)
     }
 
 }

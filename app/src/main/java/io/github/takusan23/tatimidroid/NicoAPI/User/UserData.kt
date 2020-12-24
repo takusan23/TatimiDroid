@@ -14,5 +14,6 @@ data class UserData(
     val userId: Int,
     val nickName: String,
     val isFollowing: Boolean,
-    val currentLevel: Int
+    val currentLevel: Int,
+    val largeIcon:String,
 ) : Serializable
