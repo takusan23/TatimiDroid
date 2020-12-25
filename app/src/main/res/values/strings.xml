@@ -543,4 +543,8 @@
     <string name="mypage">My page</string>
     <string name="follow_count">following</string>
     <string name="follower_count">follower</string>
+    <string name="nicovideo_account_follow_message_message">Can i follow you?</string>
+    <string name="nicovideo_account_remove_follow_message">Can I unfollow you?</string>
+    <string name="nicovideo_account_follow">Follow</string>
+    <string name="nicovideo_account_remove_follow">Unfollow</string>
 </resources>

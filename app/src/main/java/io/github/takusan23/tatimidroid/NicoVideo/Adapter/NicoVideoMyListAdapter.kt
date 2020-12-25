@@ -32,7 +32,10 @@ class NicoVideoMyListAdapter(private val myListDataList: ArrayList<NicoVideoSPMy
         holder.apply {
             val myListItem = myListDataList[position]
             titleTextView.text = "${myListItem.title}"
-            countTextView.text = "${myListItem.itemsCount} 件"
+            countTextView.text = if (!myListItem.isAtodemiru) {
+                // あとでみるは件数持ってないので非表示
+                "${myListItem.itemsCount} 件"
+            } else ""
 
             // マイリスト動画一覧へ遷移
             linearLayout.setOnClickListener {

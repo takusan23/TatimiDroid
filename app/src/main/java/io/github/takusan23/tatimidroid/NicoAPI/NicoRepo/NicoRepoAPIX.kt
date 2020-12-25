@@ -49,18 +49,21 @@ class NicoRepoAPIX {
         val dataList = jsonObject.getJSONArray("data")
         for (i in 0 until dataList.length()) {
             val nicorepoObject = dataList.getJSONObject(i)
-            val contentObject = nicorepoObject.getJSONObject("object")
-            // 動画、生放送のみ
-            if (IDRegex(contentObject.getString("url")) != null) {
-                val isVideo = contentObject.getString("type") == "video"
-                val message = nicorepoObject.getString("title")
-                val contentId = IDRegex(contentObject.getString("url"))!!  // トップレベル関数
-                val date = toUnixTime(nicorepoObject.getString("updated"))
-                val userName = nicorepoObject.getJSONObject("actor").getString("name")
-                val thumb = contentObject.getString("image")
-                val title = contentObject.getString("name")
-                val nicoRepoDataClass = NicoRepoDataClass(isVideo, message, contentId, date, userName, thumb, title)
-                list.add(nicoRepoDataClass)
+            // objectがない時がある？
+            if (nicorepoObject.has("object")) {
+                val contentObject = nicorepoObject.getJSONObject("object")
+                // 動画、生放送のみ
+                if (IDRegex(contentObject.getString("url")) != null) {
+                    val isVideo = contentObject.getString("type") == "video"
+                    val message = nicorepoObject.getString("title")
+                    val contentId = IDRegex(contentObject.getString("url"))!!  // トップレベル関数
+                    val date = toUnixTime(nicorepoObject.getString("updated"))
+                    val userName = nicorepoObject.getJSONObject("actor").getString("name")
+                    val thumb = contentObject.getString("image")
+                    val title = contentObject.getString("name")
+                    val nicoRepoDataClass = NicoRepoDataClass(isVideo, message, contentId, date, userName, thumb, title)
+                    list.add(nicoRepoDataClass)
+                }
             }
         }
         list

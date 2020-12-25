@@ -53,7 +53,7 @@ class NicoVideoInfoFragment : Fragment() {
 
     val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
     val userSession by lazy { prefSetting.getString("user_session", "") ?: "" }
-    val videoId by lazy { arguments?.getString("id") ?: "sm157" }
+    val videoId by lazy { arguments?.getString("id")!! }
 
     // NicoVideoFragmentのViewModelを取得する
     val viewModel: NicoVideoViewModel by viewModels({ requireParentFragment() })
@@ -155,6 +155,22 @@ class NicoVideoInfoFragment : Fragment() {
                 // 投稿者情報がない場合は消す
                 if (nickname.isEmpty()) {
                     fragment_nicovideo_info_owner_cardview.isVisible = false
+                } else {
+                    if (!userId.contains("co")) {
+                        // ユーザー情報Fragmentへ飛ばす
+                        fragment_nicovideo_info_owner_cardview.setOnClickListener {
+                            val accountFragment = NicoAccountFragment().apply {
+                                arguments = Bundle().apply {
+                                    putString("userId", userId)
+                                }
+                            }
+                            (requireActivity() as MainActivity).setFragment(accountFragment, "account")
+                            requireDevNicoVideoFragment().fragment_nicovideo_motionlayout.transitionToState(R.id.fragment_nicovideo_transition_end)
+                        }
+                    } else {
+                        //チャンネルの時、ch以外にもそれぞれアニメの名前を入れても通る。例：te-kyu2 / gochiusa など
+                        openBrowser("https://ch.nicovideo.jp/$userId")
+                    }
                 }
 
                 // 投稿者アイコン。インターネット接続時
@@ -222,13 +238,14 @@ class NicoVideoInfoFragment : Fragment() {
                                     val bundle = Bundle()
                                     bundle.putString("id", id)
                                     nicoVideoFragment.arguments = bundle
-                                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment,id)
+                                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, id)
                                 }
                                 show()
                             }
                         }
                     }
                 }
+/*
                 //ユーザーページ
                 fragment_nicovideo_info_owner_textview.setOnClickListener {
                     if (!userId.contains("co")) {
@@ -238,6 +255,7 @@ class NicoVideoInfoFragment : Fragment() {
                         openBrowser("https://ch.nicovideo.jp/$userId")
                     }
                 }
+*/
                 // いいね機能
                 setLike()
             }
@@ -422,7 +440,7 @@ class NicoVideoInfoFragment : Fragment() {
                     bundle.putString("id", id)
                     bundle.putBoolean("cache", false)
                     nicoVideoFragment.arguments = bundle
-                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment,id)
+                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, id)
                 }
             }, mather.start(), mather.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }

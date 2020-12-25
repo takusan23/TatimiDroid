@@ -62,7 +62,7 @@ class NicoVideoMyListViewModel(application: Application, val userId: String? = n
             // 自分の場合は先頭にとりあえずマイリスト追加する
             if (userId == null) {
                 // とりあえずマイリスト追加
-                myListItems.add(0, NicoVideoSPMyListAPI.MyListData(getString(R.string.atodemiru), "", 500, true))
+                myListItems.add(0, NicoVideoSPMyListAPI.MyListData(getString(R.string.atodemiru), "", 500, true, true))
             }
             // LiveData送信
             myListDataLiveData.postValue(myListItems)

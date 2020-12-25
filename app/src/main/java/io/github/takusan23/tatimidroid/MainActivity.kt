@@ -211,14 +211,23 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 
-    private fun setFragment(fragment: Fragment) {
+    /**
+     * Fragmentを置く。戻るキーに対応させる場合は第二引数にnull以外を入れてね
+     * */
+    fun setFragment(fragment: Fragment, backstack: String? = null) {
         // 同じFragmentの場合はやらない（例：生放送開いてるのにもう一回生放送開いたときは何もしない）
         val findFragment = supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
         if (findFragment != null && findFragment.javaClass == fragment.javaClass) {
             return // Fragmentはすでに設置済みなので
         }
         // Fragmentセット
-        supportFragmentManager.beginTransaction().replace(R.id.main_activity_linearlayout, fragment).commit()
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.main_activity_linearlayout, fragment)
+            if (backstack != null) {
+                addToBackStack(backstack)
+            }
+            commit()
+        }
     }
 
     /**

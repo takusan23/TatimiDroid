@@ -543,4 +543,8 @@
     <string name="mypage">マイページ</string>
     <string name="follower_count">フォロワー</string>
     <string name="follow_count">フォロー</string>
+    <string name="nicovideo_account_follow_message_message">フォローしてもいいですか？</string>
+    <string name="nicovideo_account_remove_follow_message">フォロー解除してもいいですか？</string>
+    <string name="nicovideo_account_follow">フォロー</string>
+    <string name="nicovideo_account_remove_follow">フォロー解除</string>
 </resources>

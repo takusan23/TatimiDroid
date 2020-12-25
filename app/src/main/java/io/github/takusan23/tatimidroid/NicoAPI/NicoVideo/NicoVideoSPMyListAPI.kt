@@ -314,7 +314,8 @@ class NicoVideoSPMyListAPI {
      * @param isMe 私のものだったらtrue。APIが違う？ので
      * @param itemsCount 動画数
      * @param title マイリスト名
+     * @param isAtodemiru あとでみるならtrue
      * */
-    data class MyListData(val title: String, val id: String, val itemsCount: Int, val isMe: Boolean) : Serializable
+    data class MyListData(val title: String, val id: String, val itemsCount: Int, val isMe: Boolean, val isAtodemiru: Boolean = false) : Serializable
 
 }

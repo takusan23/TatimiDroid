@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoNicoRepoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesListFragment
@@ -39,7 +40,6 @@ class NicoAccountFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val userId = arguments?.getString("userId")
-
         accountViewModel = ViewModelProvider(this, NicoAccountViewModelFactory(requireActivity().application, userId)).get(NicoAccountViewModel::class.java)
 
         // ViewModelからでーたをうけとる
@@ -55,6 +55,10 @@ class NicoAccountFragment : Fragment() {
             fragment_account_avatar_image_view.imageTintList = null
             // 自分ならフォローボタン潰す
             fragment_account_follow_button.isVisible = userId != null
+
+            // フォローボタン押せるように
+            setFollowButtonClick()
+
             // プレ垢
             fragment_account_premium.isVisible = data.isPremium
 
@@ -68,7 +72,7 @@ class NicoAccountFragment : Fragment() {
                 val nicoVideoPOSTFragment = NicoVideoUploadVideoFragment().apply {
                     arguments = bundle
                 }
-                (requireParentFragment() as NicoVideoSelectFragment).setFragment(nicoVideoPOSTFragment, "post")
+                setFragment(nicoVideoPOSTFragment, "post")
             }
 
             // ニコレポFragment
@@ -76,7 +80,7 @@ class NicoAccountFragment : Fragment() {
                 val nicoRepoFragment = NicoVideoNicoRepoFragment().apply {
                     arguments = bundle
                 }
-                (requireParentFragment() as NicoVideoSelectFragment).setFragment(nicoRepoFragment, "nicorepo")
+                setFragment(nicoRepoFragment, "nicorepo")
             }
 
             // マイリストFragment
@@ -84,7 +88,7 @@ class NicoAccountFragment : Fragment() {
                 val myListFragment = NicoVideoMyListFragment().apply {
                     arguments = bundle
                 }
-                (requireParentFragment() as NicoVideoSelectFragment).setFragment(myListFragment, "mylist")
+                setFragment(myListFragment, "mylist")
             }
 
             // シリーズFragment
@@ -92,10 +96,43 @@ class NicoAccountFragment : Fragment() {
                 val seriesFragment = NicoVideoSeriesListFragment().apply {
                     arguments = bundle
                 }
-                (requireParentFragment() as NicoVideoSelectFragment).setFragment(seriesFragment, "series")
+                setFragment(seriesFragment, "series")
             }
 
         }
+
+        // フォロー状態をLiveDataで受け取る
+        accountViewModel.followStatusLiveData.observe(viewLifecycleOwner) { isFollowing ->
+            // フォロー中ならフォロー中にする
+            if (isFollowing) {
+                fragment_account_follow_button.text = getString(R.string.is_following)
+            } else {
+                fragment_account_follow_button.text = getString(R.string.follow_count)
+            }
+        }
+
+    }
+
+    private fun setFollowButtonClick() {
+        // フォローボタン押した時
+        fragment_account_follow_button.setOnClickListener {
+            // フォロー状態を確認
+            val isFollowing = accountViewModel.followStatusLiveData.value == true
+            // メッセージ調整
+            val snackbarMessage = if (!isFollowing) getString(R.string.nicovideo_account_follow_message_message) else getString(R.string.nicovideo_account_remove_follow_message)
+            val snackbarAction = if (!isFollowing) getString(R.string.nicovideo_account_follow) else getString(R.string.nicovideo_account_remove_follow)
+            // 確認する
+            Snackbar.make(it, snackbarMessage, Snackbar.LENGTH_LONG).setAction(snackbarAction) {
+                accountViewModel.postFollowRequest()
+            }.show()
+        }
+    }
+
+    /**
+     * Fragmentを置く。第２引数はバックキーで戻るよう
+     * */
+    private fun setFragment(fragment: Fragment, backstack: String) {
+        parentFragmentManager.beginTransaction().replace(id, fragment).addToBackStack(backstack).commit()
     }
 
 }
