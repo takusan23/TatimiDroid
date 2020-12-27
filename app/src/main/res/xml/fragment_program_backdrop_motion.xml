@@ -7,12 +7,12 @@
             motion:constraintSetEnd="@id/program_backdrop_end"
             motion:constraintSetStart="@id/program_backdrop_start"
             motion:duration="500">
-        <OnClick motion:targetId="@+id/fragment_program_bar" />
+        <OnClick motion:targetId="@+id/fragment_program_bar_linear_layout" />
     </Transition>
 
     <ConstraintSet android:id="@+id/program_backdrop_start">
         <Constraint
-                android:id="@+id/fragment_program_bar"
+                android:id="@+id/fragment_program_bar_linear_layout"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_marginTop="75dp"
@@ -25,7 +25,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
         <Constraint
-                android:id="@+id/fragment_program_backdrop"
+                android:id="@+id/fragment_program_backdrop_linear_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10sp"
@@ -38,7 +38,7 @@
 
     <ConstraintSet android:id="@+id/program_backdrop_end">
         <Constraint
-                android:id="@+id/fragment_program_bar"
+                android:id="@+id/fragment_program_bar_linear_layout"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:background="#fff"
@@ -48,9 +48,9 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/fragment_program_backdrop" />
+                app:layout_constraintTop_toBottomOf="@+id/fragment_program_backdrop_linear_layout" />
         <Constraint
-                android:id="@+id/fragment_program_backdrop"
+                android:id="@+id/fragment_program_backdrop_linear_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10sp"

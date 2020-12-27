@@ -9,12 +9,10 @@ import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.view.isVisible
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -25,7 +23,7 @@ import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.Fragment.LoginFragment
 import io.github.takusan23.tatimidroid.Fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
-import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.DialogWatchModeBottomFragment
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
@@ -33,7 +31,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
-import kotlinx.android.synthetic.main.activity_main.*
+import io.github.takusan23.tatimidroid.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -69,6 +67,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var prefSetting: SharedPreferences
 
+    /** findViewById駆逐 */
+    val viewBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+
     /**
      * 言語変更機能をつける
      * 端末の設定で日本語でもこのアプリだけ英語で使うみたいな使い方ができます。
@@ -84,12 +85,12 @@ class MainActivity : AppCompatActivity() {
         val darkModeSupport = DarkModeSupport(this)
         darkModeSupport.setMainActivityTheme(this)
 
-        setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar)
+        setContentView(viewBinding.root)
+        setSupportActionBar(viewBinding.activityMainToolBar)
 
         //ダークモード対応
         if (isDarkMode(this)) {
-            main_activity_bottom_navigationview.backgroundTintList = ColorStateList.valueOf(getThemeColor(darkModeSupport.context))
+            viewBinding.mainActivityBottomNavigationView.backgroundTintList = ColorStateList.valueOf(getThemeColor(darkModeSupport.context))
             supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(darkModeSupport.context)))
         }
 
@@ -112,7 +113,7 @@ class MainActivity : AppCompatActivity() {
         initButton()
 
         // 画面切り替え
-        main_activity_bottom_navigationview.setOnNavigationItemSelectedListener { item ->
+        viewBinding.mainActivityBottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.menu_login -> {
                     if (isConnectionInternet(this)) {
@@ -153,23 +154,23 @@ class MainActivity : AppCompatActivity() {
             val isMobileDataShowCacheList = prefSetting.getBoolean("setting_mobile_data_show_cache", false)
             if (isMobileDataShowCacheList && isConnectionMobileDataInternet(this)) {
                 // キャッシュ表示
-                main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+                viewBinding.mainActivityBottomNavigationView.selectedItemId = R.id.menu_cache
             } else {
                 // 起動時の画面
                 val launchFragmentName = prefSetting.getString("setting_launch_fragment", "live") ?: "live"
                 // selectedItemIdでsetOnNavigationItemSelectedListener{}呼ばれるって。はよいえ
                 when (launchFragmentName) {
-                    "live" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
-                    "video" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
-                    "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+                    "live" -> viewBinding.mainActivityBottomNavigationView.selectedItemId = R.id.menu_community
+                    "video" -> viewBinding.mainActivityBottomNavigationView.selectedItemId = R.id.menu_nicovideo
+                    "cache" -> viewBinding.mainActivityBottomNavigationView.selectedItemId = R.id.menu_cache
                     "jk" -> setFragment(ProgramListFragment().apply { arguments = Bundle().apply { putInt("fragment", R.id.nicolive_program_list_menu_nicolive_jk) } })
                 }
             }
             // App Shortcutから起動
             when (intent?.getStringExtra("app_shortcut")) {
-                "nicolive" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_community
-                "nicovideo" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_nicovideo
-                "cache" -> main_activity_bottom_navigationview.selectedItemId = R.id.menu_cache
+                "nicolive" -> viewBinding.mainActivityBottomNavigationView.selectedItemId = R.id.menu_community
+                "nicovideo" -> viewBinding.mainActivityBottomNavigationView.selectedItemId = R.id.menu_nicovideo
+                "cache" -> viewBinding.mainActivityBottomNavigationView.selectedItemId = R.id.menu_cache
                 "jk" -> setFragment(ProgramListFragment().apply { arguments = Bundle().apply { putInt("fragment", R.id.nicolive_program_list_menu_nicolive_jk) } })
             }
         }
@@ -240,7 +241,7 @@ class MainActivity : AppCompatActivity() {
         super.onWindowFocusChanged(hasFocus)
         if (!prefSetting.getBoolean("setting_deprecated_clipbord_get_id", false)) {
             //クリップボードに番組IDが含まれてればテキストボックスに自動で入れる
-            if (activity_main_liveid_edittext.text.toString().isEmpty()) {
+            if (viewBinding.activityMainContentIdEditText.text.toString().isEmpty()) {
                 setClipBoardProgramID()
             }
         }
@@ -255,21 +256,15 @@ class MainActivity : AppCompatActivity() {
             val idRegex = IDRegex(clipboardText.toString())
             if (idRegex != null) {
                 // IDを入れるEditTextに正規表現の結果を入れる
-                activity_main_liveid_edittext.setText(idRegex)
+                viewBinding.activityMainContentIdEditText.setText(idRegex)
             }
         }
     }
 
     // 新UIの説明出すボタン。「？」ボタン
     private fun initNewUIDescription() {
-        main_activity_show_new_ui_description.setOnClickListener {
-            activity_main_new_ui_text.apply {
-                if (visibility == View.VISIBLE) {
-                    visibility = View.GONE
-                } else {
-                    visibility = View.VISIBLE
-                }
-            }
+        viewBinding.mainActivityShowNewUiDescriptionImageView.setOnClickListener {
+            viewBinding.activityMainNewUiTextLinearLayout.isVisible = !viewBinding.activityMainNewUiTextLinearLayout.isVisible
         }
     }
 
@@ -309,7 +304,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     1 -> {
                         // ログインする
-                        main_activity_bottom_navigationview.selectedItemId = R.id.menu_login
+                        viewBinding.mainActivityBottomNavigationView.selectedItemId = R.id.menu_login
                         setFragment(LoginFragment())
                         // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_LOGIN)
                         //メアド設定してね！
@@ -335,14 +330,11 @@ class MainActivity : AppCompatActivity() {
      * 生放送、番組ID入力画面
      * */
     private fun initIDInput() {
-        activity_main_liveid_edittext.addTextChangedListener {
-            // 将来なにか書くかも
-        }
         // Enter押したら再生する
-        activity_main_liveid_edittext.setOnKeyListener { v, keyCode, event ->
+        viewBinding.activityMainContentIdEditText.setOnKeyListener { v, keyCode, event ->
             // 二回呼ばれる対策
             if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                idRegexLaunchPlay(activity_main_liveid_edittext.text.toString())
+                idRegexLaunchPlay(viewBinding.activityMainContentIdEditText.text.toString())
             }
             false
         }
@@ -350,19 +342,19 @@ class MainActivity : AppCompatActivity() {
 
     // ボタン初期化
     private fun initButton() {
-        activity_main_nimado_button.setOnClickListener {
+        viewBinding.activityMainNimadoButton.setOnClickListener {
             val intent = Intent(this, NimadoActivity::class.java)
             startActivity(intent)
         }
-        activity_main_history_button.setOnClickListener {
+        viewBinding.activityMainHistoryButton.setOnClickListener {
             // 履歴ボタン
             val nicoHistoryBottomFragment = NicoHistoryBottomFragment()
-            nicoHistoryBottomFragment.editText = activity_main_liveid_edittext
+            nicoHistoryBottomFragment.editText = viewBinding.activityMainContentIdEditText
             nicoHistoryBottomFragment.show(supportFragmentManager, "history")
         }
-        activity_main_connect_button.setOnClickListener {
+        viewBinding.activityMainConnectButton.setOnClickListener {
             // 画面切り替え
-            idRegexLaunchPlay(activity_main_liveid_edittext.text.toString())
+            idRegexLaunchPlay(viewBinding.activityMainContentIdEditText.text.toString())
         }
     }
 
@@ -383,7 +375,7 @@ class MainActivity : AppCompatActivity() {
                     //ダイアログ
                     val bundle = Bundle()
                     bundle.putString("liveId", liveId)
-                    val dialog = DialogWatchModeBottomFragment()
+                    val dialog = WatchModeBottomFragment()
                     dialog.arguments = bundle
                     dialog.show(supportFragmentManager, "watchmode")
                 }
@@ -413,7 +405,7 @@ class MainActivity : AppCompatActivity() {
                         //ダイアログ
                         val bundle = Bundle()
                         bundle.putString("liveId", nicoLiveHTML.liveId)
-                        val dialog = DialogWatchModeBottomFragment()
+                        val dialog = WatchModeBottomFragment()
                         dialog.arguments = bundle
                         dialog.show(supportFragmentManager, "watchmode")
                     }
@@ -442,7 +434,7 @@ class MainActivity : AppCompatActivity() {
      * */
     fun setVisibilityBottomNav() {
         val fragment = supportFragmentManager.findFragmentById(R.id.main_activity_fragment_layout)
-        main_activity_bottom_navigationview.isVisible = (fragment as? MainActivityPlayerFragmentInterface)?.isMiniPlayerMode() ?: true
+        viewBinding.mainActivityBottomNavigationView.isVisible = (fragment as? MainActivityPlayerFragmentInterface)?.isMiniPlayerMode() ?: true
     }
 
     private fun showToast(message: String) {

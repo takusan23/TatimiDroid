@@ -5,12 +5,12 @@
         android:orientation="vertical">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/fragment_comment_history_swipe_to_refresh"
+            android:id="@+id/fragment_nicovideo_history_swipe_to_refresh"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
         <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/fragment_comment_history_recyclerview"
+                android:id="@+id/fragment_nicovideo_history_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scrollbars="vertical" />

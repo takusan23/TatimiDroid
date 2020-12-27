@@ -17,7 +17,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoUploadVideoF
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoAccountViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoAccountViewModel
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_account.*
+import io.github.takusan23.tatimidroid.databinding.FragmentAccountBinding
 
 /**
  * アカウント情報Fragment
@@ -32,8 +32,11 @@ class NicoAccountFragment : Fragment() {
 
     private lateinit var accountViewModel: NicoAccountViewModel
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentAccountBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_account, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -44,23 +47,23 @@ class NicoAccountFragment : Fragment() {
 
         // ViewModelからでーたをうけとる
         accountViewModel.userDataLiveData.observe(viewLifecycleOwner) { data ->
-            fragment_account_user_name_text_view.text = data.nickName
-            fragment_account_user_id_text_view.text = data.userId.toString()
-            fragment_account_version_name_text_view.text = data.niconicoVersion
-            fragment_account_description_text_view.text = HtmlCompat.fromHtml(data.description, HtmlCompat.FROM_HTML_MODE_COMPACT)
-            fragment_account_follow_count_text_view.text = "${getString(R.string.follow_count)}：${data.followeeCount}"
-            fragment_account_follower_count_text_view.text = "${getString(R.string.follower_count)}：${data.followerCount}"
+            viewBinding.fragmentAccountUserNameTextView.text = data.nickName
+            viewBinding.fragmentAccountUserIdTextView.text = data.userId.toString()
+            viewBinding.fragmentAccountVersionNameTextView.text = data.niconicoVersion
+            viewBinding.fragmentAccountDescriptionTextView.text = HtmlCompat.fromHtml(data.description, HtmlCompat.FROM_HTML_MODE_COMPACT)
+            viewBinding.fragmentAccountFollowCountTextView.text = "${getString(R.string.follow_count)}：${data.followeeCount}"
+            viewBinding.fragmentAccountFollowerCountTextView.text = "${getString(R.string.follower_count)}：${data.followerCount}"
             // あば＾～ー画像
-            Glide.with(fragment_account_avatar_image_view).load(data.largeIcon).into(fragment_account_avatar_image_view)
-            fragment_account_avatar_image_view.imageTintList = null
+            Glide.with(viewBinding.fragmentAccountAvatarImageView).load(data.largeIcon).into(viewBinding.fragmentAccountAvatarImageView)
+            viewBinding.fragmentAccountAvatarImageView.imageTintList = null
             // 自分ならフォローボタン潰す
-            fragment_account_follow_button.isVisible = userId != null
+            viewBinding.fragmentAccountFollowButton.isVisible = userId != null
 
             // フォローボタン押せるように
             setFollowButtonClick()
 
             // プレ垢
-            fragment_account_premium.isVisible = data.isPremium
+            viewBinding.fragmentAccountPremium.isVisible = data.isPremium
 
             // Fragmentにわたすデータ
             val bundle = Bundle().apply {
@@ -68,7 +71,7 @@ class NicoAccountFragment : Fragment() {
             }
 
             // 投稿動画Fragmentへ遷移
-            fragment_account_upload_video.setOnClickListener {
+            viewBinding.fragmentAccountUploadVideoTextView.setOnClickListener {
                 val nicoVideoPOSTFragment = NicoVideoUploadVideoFragment().apply {
                     arguments = bundle
                 }
@@ -76,7 +79,7 @@ class NicoAccountFragment : Fragment() {
             }
 
             // ニコレポFragment
-            fragment_account_nicorepo.setOnClickListener {
+            viewBinding.fragmentAccountNicorepoTextView.setOnClickListener {
                 val nicoRepoFragment = NicoVideoNicoRepoFragment().apply {
                     arguments = bundle
                 }
@@ -84,7 +87,7 @@ class NicoAccountFragment : Fragment() {
             }
 
             // マイリストFragment
-            fragment_account_mylist.setOnClickListener {
+            viewBinding.fragmentAccountMylistTextView.setOnClickListener {
                 val myListFragment = NicoVideoMyListFragment().apply {
                     arguments = bundle
                 }
@@ -92,7 +95,7 @@ class NicoAccountFragment : Fragment() {
             }
 
             // シリーズFragment
-            fragment_account_series.setOnClickListener {
+            viewBinding.fragmentAccountSeriesTextView.setOnClickListener {
                 val seriesFragment = NicoVideoSeriesListFragment().apply {
                     arguments = bundle
                 }
@@ -104,10 +107,10 @@ class NicoAccountFragment : Fragment() {
         // フォロー状態をLiveDataで受け取る
         accountViewModel.followStatusLiveData.observe(viewLifecycleOwner) { isFollowing ->
             // フォロー中ならフォロー中にする
-            if (isFollowing) {
-                fragment_account_follow_button.text = getString(R.string.is_following)
+            viewBinding.fragmentAccountFollowButton.text = if (isFollowing) {
+                getString(R.string.is_following)
             } else {
-                fragment_account_follow_button.text = getString(R.string.follow_count)
+                getString(R.string.follow_count)
             }
         }
 
@@ -115,7 +118,7 @@ class NicoAccountFragment : Fragment() {
 
     private fun setFollowButtonClick() {
         // フォローボタン押した時
-        fragment_account_follow_button.setOnClickListener {
+        viewBinding.fragmentAccountFollowButton.setOnClickListener {
             // フォロー状態を確認
             val isFollowing = accountViewModel.followStatusLiveData.value == true
             // メッセージ調整

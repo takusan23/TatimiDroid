@@ -20,6 +20,7 @@
                     android:padding="5sp">
 
                 <include
+                        android:id="@+id/fragment_font_setting_include"
                         layout="@layout/adapter_comment_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
@@ -47,7 +48,7 @@
                                 android:layout_margin="5sp">
 
                             <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/fragment_font_setting_font_size_id_edittext"
+                                    android:id="@+id/fragment_font_setting_font_size_id_edit_text"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:hint="@string/setting_font_size_id_input"
@@ -61,7 +62,7 @@
                                 android:layout_margin="5sp">
 
                             <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/fragment_font_setting_font_size_comment_edittext"
+                                    android:id="@+id/fragment_font_setting_font_size_comment_edit_text"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:hint="@string/setting_font_size_comment_input"

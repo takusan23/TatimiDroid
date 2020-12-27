@@ -24,7 +24,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.button.MaterialButton
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.DialogWatchModeBottomFragment
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.R
@@ -199,7 +199,7 @@ class CommunityRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<NicoLive
                 //ダイアログ
                 val bundle = Bundle()
                 bundle.putString("liveId", nicoLiveProgramData.programId)
-                val dialog = DialogWatchModeBottomFragment()
+                val dialog = WatchModeBottomFragment()
                 dialog.arguments = bundle
                 dialog.show((context as AppCompatActivity).supportFragmentManager, "watchmode")
             }

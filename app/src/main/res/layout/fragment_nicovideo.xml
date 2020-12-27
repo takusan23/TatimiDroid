@@ -8,7 +8,7 @@
     <!-- こっちに制約（app:layout_constraintBottomなんとか～）みたいなのは書かなくていいらしい。 -->
     <!-- Sceneの方に制約を書く（初期状態含め） -->
     <androidx.constraintlayout.motion.widget.MotionLayout
-            android:id="@+id/fragment_nicovideo_motionlayout"
+            android:id="@+id/fragment_nicovideo_motion_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
@@ -22,14 +22,14 @@
                 android:layout_gravity="center"
                 android:clickable="true"
                 android:elevation="5dp"
-                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surface_view"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
         <!-- 映像 -->
         <SurfaceView
-                android:id="@+id/fragment_nicovideo_surfaceview"
+                android:id="@+id/fragment_nicovideo_surface_view"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:elevation="5dp"
@@ -43,10 +43,10 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:elevation="5dp"
-                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surfaceview" />
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surface_view"
+                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surface_view"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surface_view" />
 
         <!-- コントローラーのレイアウトを読み込む -->
         <include
@@ -54,10 +54,10 @@
                 layout="@layout/include_nicovideo_player_controller"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surfaceview"
-                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surfaceview" />
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_surface_view"
+                app:layout_constraintEnd_toEndOf="@+id/fragment_nicovideo_surface_view"
+                app:layout_constraintStart_toStartOf="@+id/fragment_nicovideo_surface_view"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_surface_view" />
 
         <!-- TabLayoutをRecyclerViewのスクロールに合わせて表示したりしなかったりすつ -->
         <androidx.coordinatorlayout.widget.CoordinatorLayout

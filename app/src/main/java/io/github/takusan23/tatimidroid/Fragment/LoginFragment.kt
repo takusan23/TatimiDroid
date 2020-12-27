@@ -12,18 +12,22 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_login.*
+import io.github.takusan23.tatimidroid.databinding.FragmentLoginBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** ログイン画面Fragment */
 class LoginFragment : Fragment() {
+
     lateinit var prefSetting: SharedPreferences
+
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentLoginBinding.inflate(layoutInflater) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.fragment_login, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -31,15 +35,15 @@ class LoginFragment : Fragment() {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
         //保存していたら取得
-        fragment_login_mail_inputedittext.setText(prefSetting.getString("mail", ""))
-        fragment_login_password_inputedittext.setText(prefSetting.getString("password", ""))
+        viewBinding.fragmentLoginMailEditText.setText(prefSetting.getString("mail", ""))
+        viewBinding.fragmentLoginPasswordEditText.setText(prefSetting.getString("password", ""))
 
         //おしたとき
-        fragment_login_button.setOnClickListener {
+        viewBinding.fragmentLoginButton.setOnClickListener {
             // ログインAPI叩く
             lifecycleScope.launch(Dispatchers.Main) {
-                val mail = fragment_login_mail_inputedittext.text.toString()
-                val pass = fragment_login_password_inputedittext.text.toString()
+                val mail = viewBinding.fragmentLoginMailEditText.text.toString()
+                val pass = viewBinding.fragmentLoginPasswordEditText.text.toString()
                 // メアドを保存する
                 NicoLogin.saveMailPassPreference(requireContext(), mail, pass)
                 // ログインAPIを叩く

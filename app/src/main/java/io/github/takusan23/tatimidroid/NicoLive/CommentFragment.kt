@@ -58,11 +58,8 @@ import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFactory
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.*
-import kotlinx.android.synthetic.main.activity_comment.*
-import kotlinx.android.synthetic.main.activity_comment.view.*
-import kotlinx.android.synthetic.main.bottom_fragment_enquate_layout.view.*
-import kotlinx.android.synthetic.main.comment_card_layout.*
-import kotlinx.android.synthetic.main.include_nicolive_player_controller.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveBinding
+import io.github.takusan23.tatimidroid.databinding.IncludeNicoliveEnquateBinding
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -144,8 +141,11 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     lateinit var viewModel: NicoLiveViewModel
 
+    /** findViewById駆逐。Kotlin Android Extensions 代替 */
+    val viewBinding by lazy { FragmentNicoliveBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.activity_comment, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -192,7 +192,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         customFont = CustomFont(context)
         // CommentCanvasにも適用するかどうか
         if (customFont.isApplyFontFileToCommentCanvas) {
-            comment_fragment_comment_canvas.typeface = customFont.typeface
+            viewBinding.commentFragmentCommentCanvas.typeface = customFont.typeface
         }
 
         // argumentsから値もらう
@@ -214,20 +214,20 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
 
         if (!watchingmode && !nicocasmode) {
-            fab.hide()
+            viewBinding.fragmentNicoLiveFab.hide()
         }
 
         if (isNimadoMode) {
-            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, false)
+            MotionLayoutTool.allTransitionEnable(viewBinding.commentFragmentMotionLayout, false)
         }
 
-        fab.setOnClickListener {
+        viewBinding.fragmentNicoLiveFab.setOnClickListener {
             //表示アニメーションに挑戦した。
             val showAnimation = AnimationUtils.loadAnimation(context, R.anim.comment_cardview_show_animation)
             //表示
-            include?.startAnimation(showAnimation)
-            include?.isVisible = true
-            fab.hide()
+            viewBinding.include.root.startAnimation(showAnimation)
+            viewBinding.include.root.isVisible = true
+            viewBinding.fragmentNicoLiveFab.hide()
             //コメント投稿など
             commentCardView()
         }
@@ -235,7 +235,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // ステータスバー透明化＋タイトルバー非表示＋ノッチ領域にも侵略。関数名にAndがつくことはあんまりない
         hideStatusBarAndSetFullScreen()
         // なんかxmlが効かないので
-        MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_audio_only_textview, View.GONE)
+        MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_audio_only_textview, View.GONE)
 
         // ログイン情報がなければ終了
         if (prefSetting.getString("mail", "")?.contains("") != false) {
@@ -265,25 +265,25 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
             setMiniPlayer(isMiniPlayerMode)
             // アイコン直す
-            val icon = when (comment_fragment_motionlayout.currentState) {
+            val icon = when (viewBinding.commentFragmentMotionLayout.currentState) {
                 R.id.comment_fragment_transition_end -> requireContext().getDrawable(R.drawable.ic_expand_less_black_24dp)
                 else -> requireContext().getDrawable(R.drawable.ic_expand_more_24px)
             }
-            player_nicolive_control_back_button.setImageDrawable(icon)
+            viewBinding.commentFragmentControl.playerNicoliveControlBackButton.setImageDrawable(icon)
             // 画面回転前がミニプレイヤーだったらミニプレイヤーにする
             if (isMiniPlayerMode) {
-                comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
+                viewBinding.commentFragmentMotionLayout.transitionToState(R.id.comment_fragment_transition_end)
             }
         }
 
         // 統計情報は押したときに計算するようにした
-        player_nicolive_control_statistics.setOnClickListener {
+        viewBinding.playerNicoliveControlStatistics.setOnClickListener {
             viewModel.calcToukei(true)
         }
 
         // SnackBar表示
         viewModel.snackbarLiveData.observe(viewLifecycleOwner) { message ->
-            multiLineSnackbar(player_nicolive_control_active_text, message)
+            multiLineSnackbar(viewBinding.playerNicoliveControlActiveText, message)
         }
 
         // Activity終了
@@ -309,15 +309,15 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // getPlayerStatus
         viewModel.roomNameAndChairIdLiveData.observe(viewLifecycleOwner) { message ->
-            player_nicolive_control_id.text = message
+            viewBinding.commentFragmentControl.playerNicoliveControlId.text = message
         }
 
         // 新ニコニコ実況の番組と発覚した場合
         viewModel.isNicoJKLiveData.observe(viewLifecycleOwner) { nicoJKId ->
             // バックグラウンド再生無いので非表示
-            player_nicolive_control_background.isVisible = false
+            viewBinding.commentFragmentControl.playerNicoliveControlBackground.isVisible = false
             // 映像を受信しない。
-            multiLineSnackbar(player_nicolive_control_active_text, getString(R.string.nicolive_jk_not_live_receive))
+            multiLineSnackbar(viewBinding.playerNicoliveControlActiveText, getString(R.string.nicolive_jk_not_live_receive))
             // 映像を受信しないモードをtrueへ
             viewModel.isNotReceiveLive.postValue(true)
         }
@@ -326,7 +326,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         viewModel.isNotReceiveLive.observe(viewLifecycleOwner) { isNotReceiveLive ->
             if (isNotReceiveLive) {
                 // 背景真っ暗へ
-                comment_fragment_surface_view.background = ColorDrawable(Color.BLACK)
+                viewBinding.commentFragmentSurfaceView.background = ColorDrawable(Color.BLACK)
                 exoPlayer.release()
             } else {
                 setPlayVideoView()
@@ -346,24 +346,24 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // 統計情報
         viewModel.statisticsLiveData.observe(viewLifecycleOwner) { statistics ->
-            player_nicolive_control_watch_count?.text = statistics.viewers.toString()
-            player_nicolive_control_comment_count?.text = statistics.comments.toString()
+            viewBinding.playerNicoliveControlWatchCount.text = statistics.viewers.toString()
+            viewBinding.playerNicoliveControlCommentCount.text = statistics.comments.toString()
         }
 
         // アクティブユーザー？
         viewModel.activeCommentPostUserLiveData.observe(viewLifecycleOwner) { active ->
-            player_nicolive_control_active_text.text = active
-            player_nicolive_control_statistics.isVisible = true
+            viewBinding.playerNicoliveControlActiveText.text = active
+            viewBinding.playerNicoliveControlStatistics.isVisible = true
         }
 
         // 経過時間
         viewModel.programTimeLiveData.observe(viewLifecycleOwner) { programTime ->
-            player_nicolive_control_time.text = programTime
+            viewBinding.playerNicoliveControlTime.text = programTime
         }
 
         // 終了時刻
         viewModel.formattedProgramEndTime.observe(viewLifecycleOwner) { endTime ->
-            player_nicolive_control_end_time.text = endTime
+            viewBinding.playerNicoliveControlEndTime.text = endTime
         }
 
         // HLSアドレス取得
@@ -391,7 +391,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             if (!isCommentHide) {
                 // 豆先輩とか
                 if (!commentJSONParse.comment.contains("\n")) {
-                    comment_fragment_comment_canvas.postComment(commentJSONParse.comment, commentJSONParse)
+                    viewBinding.commentFragmentCommentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
                 } else {
                     // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
                     // 豆先輩！！！！！！！！！！！！！！！！！！
@@ -403,7 +403,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                         commentJSONParse.comment.split("\n")
                     }
                     // 複数行対応Var
-                    comment_fragment_comment_canvas.postCommentAsciiArt(asciiArtComment, commentJSONParse)
+                    viewBinding.commentFragmentCommentCanvas.postCommentAsciiArt(asciiArtComment, commentJSONParse)
                 }
             }
         }
@@ -418,23 +418,23 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         viewModel.isCommentOnlyMode = isCommentOnly
         exoPlayer.stop()
         if (isCommentOnly) {
-            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, false)
-            MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_surface_view, View.GONE)
+            MotionLayoutTool.allTransitionEnable(viewBinding.commentFragmentMotionLayout, false)
+            MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_surface_view, View.GONE)
         } else {
-            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, true)
-            MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_surface_view, View.VISIBLE)
+            MotionLayoutTool.allTransitionEnable(viewBinding.commentFragmentMotionLayout, true)
+            MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_surface_view, View.VISIBLE)
             setPlayVideoView()
         }
     }
 
     /** ダークモード等テーマに合わせた色を設定する */
     private fun applyViewThemeColor() {
-        activity_comment_tab_layout.background = ColorDrawable(getThemeColor(requireContext()))
-        comment_fragment_app_bar.background = ColorDrawable(getThemeColor(requireContext()))
-        comment_viewpager?.background = ColorDrawable(getThemeColor(requireContext()))
-        comment_fragment_background?.background = ColorDrawable(getThemeColor(requireContext()))
-        player_nicolive_control_info_main?.background = ColorDrawable(getThemeColor(requireContext()))
-        comment_fragment_background.background = ColorDrawable(getThemeColor(requireContext()))
+        viewBinding.activityCommentTabLayout.background = ColorDrawable(getThemeColor(requireContext()))
+        viewBinding.commentFragmentAppBar.background = ColorDrawable(getThemeColor(requireContext()))
+        viewBinding.commentViewpager.background = ColorDrawable(getThemeColor(requireContext()))
+        viewBinding.commentFragmentBackground.background = ColorDrawable(getThemeColor(requireContext()))
+        viewBinding.playerNicoliveControlInfoMain.background = ColorDrawable(getThemeColor(requireContext()))
+        viewBinding.commentFragmentBackground.background = ColorDrawable(getThemeColor(requireContext()))
     }
 
     /** コントローラーを初期化する。HTML取得後にやると良さそう */
@@ -442,28 +442,28 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // クリックイベントを通過させない
         val job = Job()
         // 最小化するとかしないとか
-        player_nicolive_control_back_button.isVisible = true
-        player_nicolive_control_back_button.setOnClickListener {
+        viewBinding.commentFragmentControl.playerNicoliveControlBackButton.isVisible = true
+        viewBinding.commentFragmentControl.playerNicoliveControlBackButton.setOnClickListener {
             when {
                 viewModel.isFullScreenMode -> {
                     setCloseFullScreen()
                 }
-                comment_fragment_motionlayout.currentState == R.id.comment_fragment_transition_start -> {
-                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_end)
+                viewBinding.commentFragmentMotionLayout.currentState == R.id.comment_fragment_transition_start -> {
+                    viewBinding.commentFragmentMotionLayout.transitionToState(R.id.comment_fragment_transition_end)
                 }
                 else -> {
-                    comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_start)
+                    viewBinding.commentFragmentMotionLayout.transitionToState(R.id.comment_fragment_transition_start)
                 }
             }
         }
         // 番組情報
-        player_nicolive_control_title.text = programTitle
+        viewBinding.commentFragmentControl.playerNicoliveControlTitle.text = programTitle
         // Marqueeを有効にするにはフォーカスをあてないといけない？。<marquee>とかWeb黎明期感ある（その時代の人じゃないけど）
-        player_nicolive_control_title.isSelected = true
+        viewBinding.commentFragmentControl.playerNicoliveControlTitle.isSelected = true
         // 全画面/ポップアップ/バッググラウンド
-        player_nicolive_control_popup.setOnClickListener { startPlayService("popup") }
-        player_nicolive_control_background.setOnClickListener { startPlayService("background") }
-        player_nicolive_control_fullscreen.setOnClickListener {
+        viewBinding.commentFragmentControl.playerNicoliveControlPopup.setOnClickListener { startPlayService("popup") }
+        viewBinding.commentFragmentControl.playerNicoliveControlBackground.setOnClickListener { startPlayService("background") }
+        viewBinding.commentFragmentControl.playerNicoliveControlFullscreen.setOnClickListener {
             if (viewModel.isFullScreenMode) {
                 // 全画面終了
                 setCloseFullScreen()
@@ -474,15 +474,15 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
         }
         // 統計情報表示
-        comment_fragment_statistics_show?.setOnClickListener {
-            player_nicolive_control_info_main.isVisible = !player_nicolive_control_info_main.isVisible
+        viewBinding.commentFragmentStatisticsShow?.setOnClickListener {
+            viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible = !viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible
         }
         // 横画面なら常に表示
         if (!viewModel.isFullScreenMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            player_nicolive_control_info_main.isVisible = true
+            viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible = true
         }
         // 接続方法
-        player_nicolive_control_video_network.apply {
+        viewBinding.commentFragmentControl.playerNicoliveControlVideoNetwork.apply {
             setImageDrawable(InternetConnectionCheck.getConnectionTypeDrawable(requireContext()))
             setOnClickListener {
                 showToast(InternetConnectionCheck.createNetworkMessage(requireContext()))
@@ -490,33 +490,33 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
 
         // MotionLayout関係
-        comment_fragment_motionlayout_parent_framelayout.apply {
+        viewBinding.commentFragmentMotionlayoutParentFramelayout.apply {
             allowIdList.add(R.id.comment_fragment_transition_start) // 通常状態（コメント表示など）は無条件でタッチを渡す。それ以外はプレイヤー部分のみタッチ可能
             allowIdList.add(R.id.comment_fragment_transition_fullscreen) // フルスクリーン時もクリックが行かないように
-            swipeTargetView = comment_fragment_control
-            motionLayout = comment_fragment_motionlayout
+            swipeTargetView = viewBinding.commentFragmentControl.root
+            motionLayout = viewBinding.commentFragmentMotionLayout
             // プレイヤーを押した時。普通にsetOnClickListenerとか使うと競合して動かなくなる
             onSwipeTargetViewClickFunc = { event ->
-                player_nicolive_control_main?.isVisible = !player_nicolive_control_main.isVisible
+                viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible = !viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible
                 // フルスクリーン時はFabも消す
                 if (viewModel.isFullScreenMode) {
-                    if (player_nicolive_control_main.isVisible) fab.show() else fab.hide()
+                    if (viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible) viewBinding.fragmentNicoLiveFab.show() else viewBinding.fragmentNicoLiveFab.hide()
                 }
                 updateHideController(job)
             }
             // swipeTargetViewの上にあるViewをここに書く。ここに書いたViewを押した際はonSwipeTargetViewClickFuncが呼ばれなくなる(View#setOnClickListenerは呼ばれる)
-            addAllIsClickableViewFromParentView(player_nicolive_control_main)
+            addAllIsClickableViewFromParentView(viewBinding.commentFragmentControl.playerNicoliveControlMain)
             // blockViewListに追加したViewが押さてたときに共通で行いたい処理などを書く
             onBlockViewClickFunc = { view, event ->
                 // UI非表示なら表示。なんかnullになる
-                if (player_nicolive_control_main?.isVisible == false) {
+                if (!viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible) {
                     onSwipeTargetViewClickFunc?.invoke(null)
                 } else {
                     //
                 }
             }
         }
-        comment_fragment_motionlayout.addTransitionListener(object : MotionLayout.TransitionListener {
+        viewBinding.commentFragmentMotionLayout.addTransitionListener(object : MotionLayout.TransitionListener {
             override fun onTransitionStarted(p0: MotionLayout?, p1: Int, p2: Int) {
             }
 
@@ -549,10 +549,10 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     private fun setMiniPlayer(isMiniPlayerMode: Boolean) {
         listOf(
-            player_nicolive_control_video_network,
-            player_nicolive_control_popup,
-            player_nicolive_control_background,
-            player_nicolive_control_fullscreen,
+            viewBinding.commentFragmentControl.playerNicoliveControlVideoNetwork,
+            viewBinding.commentFragmentControl.playerNicoliveControlPopup,
+            viewBinding.commentFragmentControl.playerNicoliveControlBackground,
+            viewBinding.commentFragmentControl.playerNicoliveControlFullscreen,
         ).forEach { view ->
             // 三種の神器。これするとMotionLayoutがうまく動く？
             view.isEnabled = !isMiniPlayerMode
@@ -568,11 +568,11 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         lifecycleScope.launch(job) {
             // Viewを数秒後に消す
             delay(3000)
-            if (player_nicolive_control_main?.isVisible == true) {
-                player_nicolive_control_main?.isVisible = false
+            if (viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible) {
+                viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible = false
                 // フルスクリーン時はFabも消す
                 if (viewModel.isFullScreenMode) {
-                    if (fab.isShown) fab.hide() else fab.show()
+                    if (viewBinding.fragmentNicoLiveFab.isShown) viewBinding.fragmentNicoLiveFab.hide() else viewBinding.fragmentNicoLiveFab.show()
                 }
             }
         }
@@ -586,17 +586,17 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // 全画面だよ
         viewModel.isFullScreenMode = true
         // コメビュ非表示
-        comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_fullscreen)
+        viewBinding.commentFragmentMotionLayout.transitionToState(R.id.comment_fragment_transition_fullscreen)
         // 経過時間消す
-        player_nicolive_control_info_main.isVisible = false
+        viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible = false
         // システムバー非表示
         setSystemBarVisibility(false)
         // 背景色
-        comment_fragment_background.background = ColorDrawable(Color.BLACK)
+        viewBinding.commentFragmentBackground.background = ColorDrawable(Color.BLACK)
         // アイコン変更
-        player_nicolive_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
+        viewBinding.commentFragmentControl.playerNicoliveControlFullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
         // 高さ更新
-        comment_fragment_comment_canvas.finalHeight = comment_fragment_comment_canvas.height
+        viewBinding.commentFragmentCommentCanvas.finalHeight = viewBinding.commentFragmentCommentCanvas.height
     }
 
     /**
@@ -607,17 +607,17 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         viewModel.isFullScreenMode = false
         requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         // コメビュ表示
-        comment_fragment_motionlayout.transitionToState(R.id.comment_fragment_transition_start)
+        viewBinding.commentFragmentMotionLayout.transitionToState(R.id.comment_fragment_transition_start)
         // 経過時間出す
-        player_nicolive_control_info_main.isVisible = true
+        viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible = true
         // システムバー表示
         setSystemBarVisibility(true)
         // アイコン変更
-        player_nicolive_control_fullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
+        viewBinding.commentFragmentControl.playerNicoliveControlFullscreen.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
         // 背景色もどす
-        comment_fragment_background.background = ColorDrawable(getThemeColor(context))
+        viewBinding.commentFragmentBackground.background = ColorDrawable(getThemeColor(context))
         // 高さ更新
-        comment_fragment_comment_canvas.finalHeight = comment_fragment_comment_canvas.height
+        viewBinding.commentFragmentCommentCanvas.finalHeight = viewBinding.commentFragmentCommentCanvas.height
     }
 
     /**
@@ -634,30 +634,30 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             val isHideEmotion = prefSetting.getBoolean("setting_nicolive_hide_emotion", false)
             val isEmotion = comment.contains("/emotion")
             // アニメーション
-            val infoAnim = comment_fragment_info_comment_textview.toDropPopAlertMotionLayoutFix().also { anim ->
-//                anim.motionLayout = comment_fragment_motionlayout
+            val infoAnim = viewBinding.commentFragmentInfoCommentTextview.toDropPopAlertMotionLayoutFix().also { anim ->
+//                anim.motionLayout = viewBinding.commentFragmentMotionLayout
             }
-            val uneiAnim = comment_fragment_unei_comment_textview.toDropPopAlertMotionLayoutFix().also { anim ->
-//                anim.motionLayout = comment_fragment_motionlayout
+            val uneiAnim = viewBinding.commentFragmentUneiCommentTextview.toDropPopAlertMotionLayoutFix().also { anim ->
+//                anim.motionLayout = viewBinding.commentFragmentMotionLayout
             }
             when {
                 isInfo || isUadPoint -> {
                     // info
                     val message = comment.replace("/info \\d+ ".toRegex(), "")
-                    comment_fragment_info_comment_textview.text = message
+                    viewBinding.commentFragmentInfoCommentTextview.text = message
                     infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
                 }
                 isNicoad -> {
                     // 広告
                     val json = JSONObject(comment.replace("/nicoad ", ""))
                     val message = json.getString("message")
-                    comment_fragment_info_comment_textview.text = message
+                    viewBinding.commentFragmentInfoCommentTextview.text = message
                     infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
                 }
                 isSpi -> {
                     // ニコニコ新市場
                     val message = comment.replace("/spi ", "")
-                    comment_fragment_info_comment_textview.text = message
+                    viewBinding.commentFragmentInfoCommentTextview.text = message
                     infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
                 }
                 isGift -> {
@@ -667,18 +667,18 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     val giftPoint = list[3]
                     val giftName = list[5]
                     val message = "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
-                    comment_fragment_info_comment_textview.text = message
+                    viewBinding.commentFragmentInfoCommentTextview.text = message
                     infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
                 }
                 isEmotion && !isHideEmotion -> {
                     // エモーション
                     val message = comment.replace("/emotion ", "エモーション：")
-                    comment_fragment_info_comment_textview.text = message
+                    viewBinding.commentFragmentInfoCommentTextview.text = message
                     infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
                 }
                 else -> {
                     // 生主コメント表示
-                    comment_fragment_unei_comment_textview.text = comment
+                    viewBinding.commentFragmentUneiCommentTextview.text = comment
                     uneiAnim.alert(DropPopAlertMotionLayoutFix.ALERT_DROP)
                 }
             }
@@ -691,7 +691,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     fun showProgramEndMessageSnackBar(message: String, commentJSONParse: CommentJSONParse) {
         if (commentJSONParse.premium.contains("運営")) {
             //終了メッセージ
-            Snackbar.make(fab, context?.getString(R.string.program_disconnect) ?: "", Snackbar.LENGTH_SHORT).setAction(context?.getString(R.string.end)) {
+            Snackbar.make(viewBinding.fragmentNicoLiveFab, context?.getString(R.string.program_disconnect) ?: "", Snackbar.LENGTH_SHORT).setAction(context?.getString(R.string.end)) {
                 //終了
                 if (activity !is NimadoActivity) {
                     //二窓Activity以外では終了できるようにする。
@@ -728,7 +728,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // アンケ終了
             if (content.contains("/vote stop")) {
                 commentActivity.runOnUiThread {
-                    comment_fragment_enquate_framelayout?.removeAllViews()
+                    viewBinding.commentFragmentEnquateFramelayout.removeAllViews()
                 }
             }
         }
@@ -740,7 +740,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * */
     private fun showQualityChangeSnackBar(selectQuality: String?) {
         // 画質変更した。SnackBarでユーザーに教える
-        multiLineSnackbar(comment_fragment_surface_view, "${getString(R.string.successful_quality)}\n→${selectQuality}")
+        multiLineSnackbar(viewBinding.commentFragmentSurfaceView, "${getString(R.string.successful_quality)}\n→${selectQuality}")
     }
 
     // 画質変更BottomFragment初期化
@@ -758,22 +758,21 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /** ViewPager2初期化 */
     private fun initViewPager() {
-        comment_viewpager ?: return
-        comment_viewpager.id = View.generateViewId()
+        viewBinding.commentViewpager.id = View.generateViewId()
         nicoLivePagerAdapter = NicoLivePagerAdapter(this, liveId, isOfficial)
-        comment_viewpager.adapter = nicoLivePagerAdapter
+        viewBinding.commentViewpager.adapter = nicoLivePagerAdapter
         // Tabに入れる名前
-        TabLayoutMediator(activity_comment_tab_layout, comment_viewpager) { tab, position ->
+        TabLayoutMediator(viewBinding.activityCommentTabLayout, viewBinding.commentViewpager) { tab, position ->
             tab.text = nicoLivePagerAdapter.fragmentTabNameList[position]
         }.attach()
         // コメントを指定しておく。View#post{}で確実にcurrentItemが仕事するようになった。ViewPager2頼むよ～
-        comment_viewpager.post {
-            comment_viewpager?.setCurrentItem(1, false)
+        viewBinding.commentViewpager.post {
+            viewBinding.commentViewpager?.setCurrentItem(1, false)
         }
         // もしTabLayoutを常時表示する場合は
         if (prefSetting.getBoolean("setting_scroll_tab_hide", false)) {
             // 多分AppBarLayoutは一人っ子(AppBarLayoutの子のViewは一個)
-            comment_fragment_app_bar.getChildAt(0).updateLayoutParams<AppBarLayout.LayoutParams> {
+            viewBinding.commentFragmentAppBar.getChildAt(0).updateLayoutParams<AppBarLayout.LayoutParams> {
                 // KTX有能
                 scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
             }
@@ -846,9 +845,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * @param isWebViewPlayer 生放送再生もWebViewでやる場合はtrue
      * */
     fun setNicoNamaGame(isWebViewPlayer: Boolean = false) {
-        MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_webview, View.VISIBLE)
-        MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, false)
-        NicoNamaGameWebViewTool.init(comment_fragment_webview, liveId, isWebViewPlayer)
+        MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_webview, View.VISIBLE)
+        MotionLayoutTool.allTransitionEnable(viewBinding.commentFragmentMotionLayout, false)
+        NicoNamaGameWebViewTool.init(viewBinding.commentFragmentWebview, liveId, isWebViewPlayer)
         isAddedNicoNamaGame = true
     }
 
@@ -856,9 +855,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * ニコ生ゲームをやめる。
      * */
     fun removeNicoNamaGame() {
-        MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_webview, View.GONE)
-        MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, true)
-        comment_fragment_webview.loadUrl("about:blank")
+        MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_webview, View.GONE)
+        MotionLayoutTool.allTransitionEnable(viewBinding.commentFragmentMotionLayout, true)
+        viewBinding.commentFragmentWebview.loadUrl("about:blank")
         isAddedNicoNamaGame = false
     }
 
@@ -910,19 +909,19 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
             // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
             if (viewModel.currentQuality == "audio_high") {
-                MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_audio_only_textview, View.VISIBLE)
-                MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_surface_view, View.VISIBLE)
-                comment_fragment_surface_view.background = ColorDrawable(Color.BLACK)
+                MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_audio_only_textview, View.VISIBLE)
+                MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_surface_view, View.VISIBLE)
+                viewBinding.commentFragmentSurfaceView.background = ColorDrawable(Color.BLACK)
             } else {
-                MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_audio_only_textview, View.GONE)
-                MotionLayoutTool.setMotionLayoutViewVisible(comment_fragment_motionlayout, R.id.comment_fragment_audio_only_textview, View.GONE)
-                comment_fragment_surface_view.background = null
+                MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_audio_only_textview, View.GONE)
+                MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_audio_only_textview, View.GONE)
+                viewBinding.commentFragmentSurfaceView.background = null
             }
 
             aspectRatioFix()
 
             // 高さ更新
-            comment_fragment_comment_canvas.finalHeight = comment_fragment_comment_canvas.height
+            viewBinding.commentFragmentCommentCanvas.finalHeight = viewBinding.commentFragmentCommentCanvas.height
             val sourceFactory = DefaultDataSourceFactory(requireContext(), "TatimiDroid;@takusan_23", object : TransferListener {
                 override fun onTransferInitializing(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) {
 
@@ -945,7 +944,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             exoPlayer.setMediaSource(hlsMediaSource)
             exoPlayer.prepare()
             //SurfaceViewセット
-            exoPlayer.setVideoSurfaceView(comment_fragment_surface_view)
+            exoPlayer.setVideoSurfaceView(viewBinding.commentFragmentSurfaceView)
             //再生
             exoPlayer.playWhenReady = true
 
@@ -964,10 +963,10 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                             exoPlayer.setMediaSource(hlsMediaSource)
                             exoPlayer.prepare()
                             //SurfaceViewセット
-                            exoPlayer.setVideoSurfaceView(comment_fragment_surface_view)
+                            exoPlayer.setVideoSurfaceView(viewBinding.commentFragmentSurfaceView)
                             //再生
                             exoPlayer.playWhenReady = true
-                            Snackbar.make(fab, getString(R.string.error_player), Snackbar.LENGTH_SHORT).apply {
+                            Snackbar.make(viewBinding.fragmentNicoLiveFab, getString(R.string.error_player), Snackbar.LENGTH_SHORT).apply {
                                 anchorView = getSnackbarAnchorView()
                                 // 再生が止まった時に低遅延が有効になっていればOFFにできるように。安定して見れない場合は低遅延が有効なのが原因
                                 if (viewModel.nicoLiveHTML.isLowLatency) {
@@ -995,7 +994,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             val playerWidth = if (isNimadoMode) displayWidth / 4 else displayWidth / 2
             val playerHeight = (9F / 16 * playerWidth)
             // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
-            comment_fragment_motionlayout?.apply {
+            viewBinding.commentFragmentMotionLayout?.apply {
                 getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
                     constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt())
                     constrainWidth(R.id.comment_fragment_surface_view, playerWidth)
@@ -1015,7 +1014,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             val playerWidth = if (isNimadoMode) displayWidth / 2 else displayWidth
             val playerHeight = (9F / 16 * playerWidth)
             // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
-            comment_fragment_motionlayout?.apply {
+            viewBinding.commentFragmentMotionLayout?.apply {
                 getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
                     constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt())
                     constrainWidth(R.id.comment_fragment_surface_view, playerWidth)
@@ -1149,13 +1148,14 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     }
 
     private fun setEnquetePOSTLayout(message: String, type: String) {
-        enquateView = layoutInflater.inflate(R.layout.bottom_fragment_enquate_layout, null, false)
+        val bottomFragmentEnquateLayoutBinding = IncludeNicoliveEnquateBinding.inflate(layoutInflater)
+        enquateView = bottomFragmentEnquateLayoutBinding.root
         if (type.contains("start")) {
             // アンケ中はMotionLayoutのTransitionを一時的に無効化
-            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, false)
+            MotionLayoutTool.allTransitionEnable(viewBinding.commentFragmentMotionLayout, false)
             //アンケ開始
-            comment_fragment_enquate_framelayout?.removeAllViews()
-            comment_fragment_enquate_framelayout?.addView(enquateView)
+            viewBinding.commentFragmentEnquateFramelayout.removeAllViews()
+            viewBinding.commentFragmentEnquateFramelayout.addView(enquateView)
             // /vote start ～なんとか　を配列にする
             val voteString = message.replace("/vote start ", "")
             val voteList = voteString.split(" ") // 空白の部分で分けて配列にする
@@ -1166,7 +1166,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
             //０個目はタイトル
             val title = jsonArray[0]
-            enquateView.enquate_title.text = title.toString()
+            bottomFragmentEnquateLayoutBinding.enquateTitle.text = title.toString()
 
             //１個めから質問
             for (i in 0 until jsonArray.length()) {
@@ -1177,9 +1177,9 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     // 投票
                     viewModel.enquatePOST(i - 1)
                     // アンケ画面消す
-                    comment_fragment_enquate_framelayout.removeAllViews()
+                    viewBinding.commentFragmentEnquateFramelayout.removeAllViews()
                     // SnackBar
-                    Snackbar.make(comment_fragment_surface_view, "${getString(R.string.enquate)}：${jsonArray[i]}", Snackbar.LENGTH_SHORT).apply {
+                    Snackbar.make(viewBinding.commentFragmentSurfaceView, "${getString(R.string.enquate)}：${jsonArray[i]}", Snackbar.LENGTH_SHORT).apply {
                         anchorView = getSnackbarAnchorView()
                         show()
                     }
@@ -1193,23 +1193,23 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 button.layoutParams = layoutParams
                 //1～3は一段目
                 if (i in 1..3) {
-                    enquateView.enquate_linearlayout_1.addView(button)
+                    bottomFragmentEnquateLayoutBinding.enquateLinearlayout1.addView(button)
                 }
                 //4～6は一段目
                 if (i in 4..6) {
-                    enquateView.enquate_linearlayout_2.addView(button)
+                    bottomFragmentEnquateLayoutBinding.enquateLinearlayout2.addView(button)
                 }
                 //7～9は一段目
                 if (i in 7..9) {
-                    enquateView.enquate_linearlayout_3.addView(button)
+                    bottomFragmentEnquateLayoutBinding.enquateLinearlayout3.addView(button)
                 }
             }
         } else if (enquateJSONArray.isNotEmpty()) {
             // 結果出たらMotionLayoutのTransitionを一時的に有効に戻す
-            MotionLayoutTool.allTransitionEnable(comment_fragment_motionlayout, true)
+            MotionLayoutTool.allTransitionEnable(viewBinding.commentFragmentMotionLayout, true)
             //アンケ結果
-            comment_fragment_enquate_framelayout?.removeAllViews()
-            comment_fragment_enquate_framelayout?.addView(enquateView)
+            viewBinding.commentFragmentEnquateFramelayout?.removeAllViews()
+            viewBinding.commentFragmentEnquateFramelayout?.addView(enquateView)
             // /vote showresult ~なんとか を　配列にする
             val voteString = message.replace("/vote showresult per ", "")
             val voteList = voteString.split(" ")
@@ -1217,7 +1217,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             val questionJsonArray = JSONArray(enquateJSONArray)
             //０個目はタイトル
             val title = questionJsonArray.getString(0)
-            enquateView.enquate_title.text = title
+            bottomFragmentEnquateLayoutBinding.enquateTitle.text = title
             //共有で使う文字
             var shareText = ""
             //結果は０個めから
@@ -1236,21 +1236,21 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 button.layoutParams = layoutParams
                 //1～3は一段目
                 if (i in 0..2) {
-                    enquateView.enquate_linearlayout_1.addView(button)
+                    bottomFragmentEnquateLayoutBinding.enquateLinearlayout1.addView(button)
                 }
                 //4～6は一段目
                 if (i in 3..5) {
-                    enquateView.enquate_linearlayout_2.addView(button)
+                    bottomFragmentEnquateLayoutBinding.enquateLinearlayout2.addView(button)
                 }
                 //7～9は一段目
                 if (i in 6..8) {
-                    enquateView.enquate_linearlayout_3.addView(button)
+                    bottomFragmentEnquateLayoutBinding.enquateLinearlayout3.addView(button)
                 }
                 //共有の文字
                 shareText += "$question : ${enquatePerText(result)}\n"
             }
             //アンケ結果を共有
-            Snackbar.make(comment_fragment_surface_view, getString(R.string.enquate_result), Snackbar.LENGTH_SHORT).apply {
+            Snackbar.make(viewBinding.commentFragmentSurfaceView, getString(R.string.enquate_result), Snackbar.LENGTH_SHORT).apply {
                 anchorView = getSnackbarAnchorView()
                 setAction(getString(R.string.share)) {
                     //共有する
@@ -1282,49 +1282,49 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     //新しいコメント投稿画面
     fun commentCardView() {
         // プレ垢ならプレ垢用コメント色パレットを表示させる
-        if (viewModel.nicoLiveHTML.isPremium) {
-            comment_cardview_command_edit_color_premium_linearlayout.visibility = View.VISIBLE
-        }
+        viewBinding.include.commentCardviewCommandEditColorPremiumLinearlayout.isVisible = viewModel.nicoLiveHTML.isPremium
+
         // 184が有効になっているときはコメントInputEditTextのHintに追記する
         if (viewModel.nicoLiveHTML.isPostTokumeiComment) {
-            comment_cardview_comment_textinput_layout.hint = getString(R.string.comment)
+            viewBinding.include.commentCardviewCommandColorTextinputlayout.hint = getString(R.string.comment)
         } else {
-            comment_cardview_comment_textinput_layout.hint = "${getString(R.string.comment)}（${getString(R.string.disabled_tokumei_comment)}）"
+            viewBinding.include.commentCardviewCommandColorTextinputlayout.hint = "${getString(R.string.comment)}（${getString(R.string.disabled_tokumei_comment)}）"
         }
         //投稿ボタンを押したら投稿
-        comment_cardview_comment_send_button.setOnClickListener {
-            val comment = comment_cardview_comment_textinput_edittext.text.toString()
+        viewBinding.include.commentCardviewCommentSendButton.setOnClickListener {
+            val comment = viewBinding.include.commentCardviewCommentTextinputEdittext.text.toString()
             // 7/27からコマンド（色や位置の指定）は全部つなげて送るのではなく、それぞれ指定する必要があるので
-            val color = comment_cardview_command_color_textinputlayout.text.toString()
-            val position = comment_cardview_command_position_textinputlayout.text.toString()
-            val size = comment_cardview_command_size_textinputlayout.text.toString()
+            val color = viewBinding.include.commentCardviewCommandColorTextinputlayout.text.toString()
+            viewBinding.include.commentCardviewCommandSizeTextinputlayout
+            val position = viewBinding.include.commentCardviewCommandPositionTextinputlayout.text.toString()
+            val size = viewBinding.include.commentCardviewCommandSizeTextinputlayout.text.toString()
             // コメ送信
             lifecycleScope.launch(Dispatchers.IO) { viewModel.sendComment(comment, color, size, position, isNicocasMode) }
-            comment_cardview_comment_textinput_edittext.setText("")
+            viewBinding.include.commentCardviewCommentTextinputEdittext.setText("")
             if (!prefSetting.getBoolean("setting_command_save", false)) {
                 // コマンドを保持しない設定ならクリアボタンを押す
-                comment_cardview_comment_command_edit_reset_button.callOnClick()
+                viewBinding.include.commentCardviewCommentCommandEditResetButton.callOnClick()
             }
         }
         // Enterキー(紙飛行機ボタン)を押したら投稿する
         if (prefSetting.getBoolean("setting_enter_post", true)) {
-            comment_cardview_comment_textinput_edittext.imeOptions = EditorInfo.IME_ACTION_SEND
-            comment_cardview_comment_textinput_edittext.setOnEditorActionListener { v, actionId, event ->
+            viewBinding.include.commentCardviewCommentTextinputEdittext.imeOptions = EditorInfo.IME_ACTION_SEND
+            viewBinding.include.commentCardviewCommentTextinputEdittext.setOnEditorActionListener { v, actionId, event ->
                 if (actionId == EditorInfo.IME_ACTION_SEND) {
-                    val text = comment_cardview_comment_textinput_edittext.text.toString()
+                    val text = viewBinding.include.commentCardviewCommentTextinputEdittext.text.toString()
                     if (text.isNotEmpty()) {
                         // 空じゃなければ、コメント投稿
                         // 7/27からコマンド（色や位置の指定）は全部つなげて送るのではなく、それぞれ指定する必要があるので
-                        val color = comment_cardview_command_color_textinputlayout.text.toString()
-                        val position = comment_cardview_command_position_textinputlayout.text.toString()
-                        val size = comment_cardview_command_size_textinputlayout.text.toString()
+                        val color = viewBinding.include.commentCardviewCommandColorTextinputlayout.text.toString()
+                        val position = viewBinding.include.commentCardviewCommandPositionTextinputlayout.text.toString()
+                        val size = viewBinding.include.commentCardviewCommandSizeTextinputlayout.text.toString()
                         // コメ送信
                         lifecycleScope.launch(Dispatchers.IO) { viewModel.sendComment(text, color, size, position, isNicocasMode) }
                         // コメントリセットとコマンドリセットボタンを押す
-                        comment_cardview_comment_textinput_edittext.setText("")
+                        viewBinding.include.commentCardviewCommentTextinputEdittext.setText("")
                         if (!prefSetting.getBoolean("setting_command_save", false)) {
                             // コマンドを保持しない設定ならクリアボタンを押す
-                            comment_cardview_comment_command_edit_reset_button.callOnClick()
+                            viewBinding.include.commentCardviewCommentCommandEditResetButton.callOnClick()
                         }
                     }
                     true
@@ -1335,97 +1335,96 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         } else {
             // 複数行？一筋縄では行かない
             // https://stackoverflow.com/questions/51391747/multiline-does-not-work-inside-textinputlayout
-            comment_cardview_comment_textinput_edittext.inputType = InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_CLASS_TEXT
-            comment_cardview_comment_textinput_edittext.maxLines = Int.MAX_VALUE
+            viewBinding.include.commentCardviewCommentTextinputEdittext.inputType = InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_CLASS_TEXT
+            viewBinding.include.commentCardviewCommentTextinputEdittext.maxLines = Int.MAX_VALUE
         }
         //閉じるボタン
-        comment_cardview_close_button.setOnClickListener {
+        viewBinding.include.commentCardviewCloseButton.setOnClickListener {
             // 非表示アニメーションに挑戦した。
             val hideAnimation = AnimationUtils.loadAnimation(context, R.anim.comment_cardview_hide_animation)
             // 表示
-            include?.startAnimation(hideAnimation)
-            include?.isVisible = false
-            fab.show()
+            viewBinding.include.root.startAnimation(hideAnimation)
+            viewBinding.include.root.isVisible = false
+            viewBinding.fragmentNicoLiveFab.show()
             // IMEも消す（Android 11 以降）
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 activity?.window?.insetsController?.hide(WindowInsets.Type.ime())
             }
         }
-
-        comment_cardview_comment_command_edit_button.setOnClickListener {
+        viewBinding.include.commentCardviewCommentCommandEditButton.setOnClickListener {
             // コマンド入力画面展開
-            val visibility = comment_cardview_command_edit_linearlayout.visibility
+            val visibility = viewBinding.include.commentCardviewCommandEditLinearlayout.visibility
             if (visibility == View.GONE) {
                 // 展開
-                comment_cardview_command_edit_linearlayout.visibility = View.VISIBLE
+                viewBinding.include.commentCardviewCommandEditLinearlayout.visibility = View.VISIBLE
                 // アイコンを閉じるアイコンへ
-                comment_cardview_comment_command_edit_button.setImageDrawable(context?.getDrawable(R.drawable.ic_expand_more_24px))
+                viewBinding.include.commentCardviewCommentCommandEditButton.setImageDrawable(context?.getDrawable(R.drawable.ic_expand_more_24px))
             } else {
-                comment_cardview_command_edit_linearlayout.visibility = View.GONE
-                comment_cardview_comment_command_edit_button.setImageDrawable(context?.getDrawable(R.drawable.ic_outline_format_color_fill_24px))
+                viewBinding.include.commentCardviewCommandEditLinearlayout.visibility = View.GONE
+                viewBinding.include.commentCardviewCommentCommandEditButton.setImageDrawable(context?.getDrawable(R.drawable.ic_outline_format_color_fill_24px))
             }
         }
 
         // コマンドリセットボタン
-        comment_cardview_comment_command_edit_reset_button.setOnClickListener {
+        viewBinding.include.commentCardviewCommentCommandEditResetButton.setOnClickListener {
             // リセット
-            comment_cardview_command_color_textinputlayout.setText("")
-            comment_cardview_command_position_textinputlayout.setText("")
-            comment_cardview_command_size_textinputlayout.setText("")
+            viewBinding.include.commentCardviewCommandColorTextinputlayout.setText("")
+            viewBinding.include.commentCardviewCommandPositionTextinputlayout.setText("")
+            viewBinding.include.commentCardviewCommandSizeTextinputlayout.setText("")
             clearColorCommandSizeButton()
             clearColorCommandPosButton()
         }
         // 大きさ
-        comment_cardview_comment_command_big_button.setOnClickListener {
-            comment_cardview_command_size_textinputlayout.setText("big")
+        viewBinding.include.commentCardviewCommentCommandBigButton.setOnClickListener {
+            viewBinding.include.commentCardviewCommandSizeTextinputlayout.setText("big")
             clearColorCommandSizeButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
-        comment_cardview_comment_command_medium_button.setOnClickListener {
-            comment_cardview_command_size_textinputlayout.setText("medium")
+        viewBinding.include.commentCardviewCommentCommandMediumButton.setOnClickListener {
+            viewBinding.include.commentCardviewCommandSizeTextinputlayout.setText("medium")
             clearColorCommandSizeButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
-        comment_cardview_comment_command_small_button.setOnClickListener {
-            comment_cardview_command_size_textinputlayout.setText("small")
+        viewBinding.include.commentCardviewCommentCommandSmallButton.setOnClickListener {
+            viewBinding.include.commentCardviewCommandSizeTextinputlayout.setText("small")
             clearColorCommandSizeButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
 
         // コメントの位置
-        comment_cardview_comment_command_ue_button.setOnClickListener {
-            comment_cardview_command_position_textinputlayout.setText("ue")
+        viewBinding.include.commentCardviewCommentCommandUeButton.setOnClickListener {
+            viewBinding.include.commentCardviewCommandPositionTextinputlayout.setText("ue")
             clearColorCommandPosButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
-        comment_cardview_comment_command_naka_button.setOnClickListener {
-            comment_cardview_command_position_textinputlayout.setText("naka")
+        viewBinding.include.commentCardviewCommentCommandNakaButton.setOnClickListener {
+            viewBinding.include.commentCardviewCommandPositionTextinputlayout.setText("naka")
             clearColorCommandPosButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
-        comment_cardview_comment_command_shita_button.setOnClickListener {
-            comment_cardview_command_position_textinputlayout.setText("shita")
+        viewBinding.include.commentCardviewCommentCommandShitaButton.setOnClickListener {
+            viewBinding.include.commentCardviewCommandPositionTextinputlayout.setText("shita")
             clearColorCommandPosButton()
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.CYAN)
         }
 
         // コメントの色。流石にすべてのボタンにクリックリスナー書くと長くなるので、タグに色（文字列）を入れる方法で対処
-        comment_cardview_command_edit_color_linearlayout.children.forEach {
+        viewBinding.include.commentCardviewCommandEditColorLinearlayout.children.forEach {
             it.setOnClickListener {
-                comment_cardview_command_color_textinputlayout.setText(it.tag as String)
+                viewBinding.include.commentCardviewCommandColorTextinputlayout.setText(it.tag as String)
             }
         }
         // ↑のプレ垢版
-        comment_cardview_command_edit_color_premium_linearlayout.children.forEach {
+        viewBinding.include.commentCardviewCommandEditColorPremiumLinearlayout.children.forEach {
             it.setOnClickListener {
-                comment_cardview_command_color_textinputlayout.setText(it.tag as String)
+                viewBinding.include.commentCardviewCommandColorTextinputlayout.setText(it.tag as String)
             }
         }
 
         if (prefSetting.getBoolean("setting_comment_collection_useage", false)) {
             //コメントコレクション補充機能
             if (prefSetting.getBoolean("setting_comment_collection_assist", false)) {
-                comment_cardview_comment_textinput_edittext.addTextChangedListener(object :
+                viewBinding.include.commentCardviewCommentTextinputEdittext.addTextChangedListener(object :
                     TextWatcher {
                     override fun afterTextChanged(p0: Editable?) {
                     }
@@ -1434,7 +1433,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     }
 
                     override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                        comment_cardview_chipgroup.removeAllViews()
+                        viewBinding.include.commentCardviewChipgroup.removeAllViews()
                         //コメントコレクション読み込み
                         if (p0?.length ?: 0 >= 1) {
                             commentCollectionYomiList.forEach {
@@ -1451,17 +1450,17 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                                         //置き換える
                                         var text = p0.toString()
                                         text = text.replace(yomi, comment)
-                                        comment_cardview_comment_textinput_edittext.setText(
+                                        viewBinding.include.commentCardviewCommentTextinputEdittext.setText(
                                             text
                                         )
                                         //カーソル移動
-                                        comment_cardview_comment_textinput_edittext.setSelection(
+                                        viewBinding.include.commentCardviewCommentTextinputEdittext.setSelection(
                                             text.length
                                         )
                                         //消す
-                                        comment_cardview_chipgroup.removeAllViews()
+                                        viewBinding.include.commentCardviewChipgroup.removeAllViews()
                                     }
-                                    comment_cardview_chipgroup.addView(chip)
+                                    viewBinding.include.commentCardviewChipgroup.addView(chip)
                                 }
                             }
                         }
@@ -1469,29 +1468,29 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 })
             }
         } else {
-            comment_cardview_comment_list_button.visibility = View.GONE
+            viewBinding.include.commentCardviewCommentListButton.visibility = View.GONE
         }
     }
 
     // ボタンの色を戻す サイズボタン
     fun clearColorCommandSizeButton() {
-        comment_cardview_comment_command_size_layout.children.forEach {
+        viewBinding.include.commentCardviewCommentCommandSizeLayout.children.forEach {
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.parseColor("#757575"))
         }
     }
 
     // ボタンの色を戻す 位置ボタン
     fun clearColorCommandPosButton() {
-        comment_cardview_comment_command_pos_layout.children.forEach {
+        viewBinding.include.commentCardviewCommentCommandPosLayout.children.forEach {
             (it as Button).backgroundTintList = ColorStateList.valueOf(Color.parseColor("#757575"))
         }
     }
 
     fun getSnackbarAnchorView(): View? {
-        if (fab.isShown) {
-            return fab
+        if (viewBinding.fragmentNicoLiveFab.isShown) {
+            return viewBinding.fragmentNicoLiveFab
         } else {
-            return include
+            return viewBinding.include.root
         }
     }
 
@@ -1508,7 +1507,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         if (viewModel.isCommentOnlyMode) {
             finishFragment()
         } else {
-            comment_fragment_motionlayout.apply {
+            viewBinding.commentFragmentMotionLayout.apply {
                 if (currentState == R.id.comment_fragment_transition_end) {
                     // 終了へ
                     transitionToState(R.id.comment_fragment_transition_finish)
@@ -1522,7 +1521,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     /** ミニプレイヤーで再生していればtrueを返す */
     override fun isMiniPlayerMode(): Boolean {
         // なんかたまにnullになる
-        return comment_fragment_motionlayout?.let {
+        return viewBinding.commentFragmentMotionLayout?.let {
             // この行がreturnの値になる。apply{ }に返り値機能がついた
             it.currentState == R.id.comment_fragment_transition_end || it.currentState == R.id.comment_fragment_transition_finish
         } ?: false

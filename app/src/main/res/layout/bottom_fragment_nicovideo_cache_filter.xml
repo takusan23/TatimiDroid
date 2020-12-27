@@ -11,7 +11,7 @@
             android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/bottom_fragment_cache_filter_title"
+                android:id="@+id/bottom_fragment_cache_filter_title_edit_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="動画タイトルの部分一致検索" />
@@ -30,7 +30,7 @@
                 android:layout_weight="1">
 
             <AutoCompleteTextView
-                    android:id="@+id/bottom_fragment_cache_filter_uploader_textview"
+                    android:id="@+id/bottom_fragment_cache_filter_uploader_autocomplete_text_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clickable="false"
@@ -42,7 +42,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <ImageView
-                android:id="@+id/bottom_fragment_cache_filter_uploader_clear"
+                android:id="@+id/bottom_fragment_cache_filter_uploader_clear_image_view"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:clickable="true"
@@ -76,7 +76,7 @@
             android:orientation="vertical">
 
         <com.google.android.material.chip.ChipGroup
-                android:id="@+id/bottom_fragment_cache_filter_tag_chip"
+                android:id="@+id/bottom_fragment_cache_filter_tag_chip_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
     </LinearLayout>
@@ -87,7 +87,7 @@
             android:layout_height="wrap_content">
 
         <AutoCompleteTextView
-                android:id="@+id/bottom_fragment_cache_filter_dropdown"
+                android:id="@+id/bottom_fragment_cache_filter_dropdown_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clickable="false"
@@ -106,14 +106,14 @@
             android:orientation="vertical">
 
         <Switch
-                android:id="@+id/bottom_fragment_cache_filter_has_video_json"
+                android:id="@+id/bottom_fragment_cache_filter_has_video_json_switch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="このアプリで取得したキャッシュのみを表示させる" />
     </LinearLayout>
 
     <Button
-            android:id="@+id/bottom_fragment_cache_filter_reset"
+            android:id="@+id/bottom_fragment_cache_filter_reset_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="リセット" />

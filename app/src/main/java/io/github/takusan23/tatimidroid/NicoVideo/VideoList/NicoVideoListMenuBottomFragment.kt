@@ -35,7 +35,7 @@ import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
-import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_list_menu.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoListMenuBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -65,8 +65,11 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     lateinit var mediaBrowserCompat: MediaBrowserCompat
     lateinit var mediaControllerCompat: MediaControllerCompat
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentNicovideoListMenuBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_nicovideo_list_menu, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -100,8 +103,8 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             }
 
             // タイトル、ID設定
-            bottom_fragment_nicovideo_list_menu_title.text = nicoVideoData.title
-            bottom_fragment_nicovideo_list_menu_id.text = nicoVideoData.videoId
+            viewBinding.bottomFragmentNicovideoListMenuTitleTextView.text = nicoVideoData.title
+            viewBinding.bottomFragmentNicovideoListMenuIdTextView.text = nicoVideoData.videoId
 
             // コピーボタン
             initCopyButton()
@@ -128,7 +131,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // 連続再生
         val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
         if (videoList != null) {
-            bottom_fragment_nicovideo_list_menu_playlist.setOnClickListener {
+            viewBinding.bottomFragmentNicovideoListMenuPlaylistTextView.setOnClickListener {
                 val nicoVideoFragment = NicoVideoFragment().apply {
                     arguments = Bundle().apply {
                         putSerializable("video_list", videoList) // BundleでNicoVideoListAdapterから渡してもらった
@@ -141,17 +144,17 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             }
         } else {
             // セットされてない場合は非表示
-            bottom_fragment_nicovideo_list_menu_playlist.isVisible = false
+            viewBinding.bottomFragmentNicovideoListMenuPlaylistTextView.isVisible = false
         }
     }
 
     private fun initOpenBrowser() {
         // キャッシュ一覧では表示させない
         if (isCache) {
-            bottom_fragment_nicovideo_list_menu_browser.visibility = View.GONE
+            viewBinding.bottomFragmentNicovideoListMenuBrowserTextView.visibility = View.GONE
         }
         // ブラウザで開く。公式アニメが暗号化で見れん時に使って。
-        bottom_fragment_nicovideo_list_menu_browser.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuBrowserTextView.setOnClickListener {
             val intent = Intent(Intent.ACTION_VIEW, "https://nico.ms/${nicoVideoData.videoId}".toUri())
             startActivity(intent)
         }
@@ -160,13 +163,13 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     // ポップアップ再生、バッググラウンド再生ボタン初期化
     private fun playServiceButton() {
-        bottom_fragment_nicovideo_list_menu_popup.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuPopupTextView.setOnClickListener {
             startVideoPlayService(context = context, mode = "popup", videoId = nicoVideoData.videoId, isCache = isCache)
         }
-        bottom_fragment_nicovideo_list_menu_background.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuBackgroundTextView.setOnClickListener {
             startVideoPlayService(context = context, mode = "background", videoId = nicoVideoData.videoId, isCache = isCache)
         }
-        bottom_fragment_nicovideo_list_menu_play.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuPlayTextView.setOnClickListener {
             // 通常再生
             val nicoVideoFragment = NicoVideoFragment()
             val bundle = Bundle()
@@ -177,9 +180,9 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         }
         // 強制エコノミーはキャッシュでは塞ぐ
         if (isCache) {
-            bottom_fragment_nicovideo_list_menu_economy_play.visibility = View.GONE
+            viewBinding.bottomFragmentNicovideoListMenuEconomyPlayTextView.visibility = View.GONE
         }
-        bottom_fragment_nicovideo_list_menu_economy_play.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuEconomyPlayTextView.setOnClickListener {
             // エコノミーで再生
             val nicoVideoFragment = NicoVideoFragment()
             val bundle = Bundle()
@@ -190,7 +193,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         }
         // インターネットを利用して再生。キャッシュ以外でなお動画IDじゃないときは表示しない
         if (isCache && NICOVIDEO_ID_REGEX.toRegex().matches(videoId)) {
-            bottom_fragment_nicovideo_list_menu_internet_play.apply {
+            viewBinding.bottomFragmentNicovideoListMenuInternetPlayTextView.apply {
                 isVisible = true
                 setOnClickListener {
                     val nicoVideoFragment = NicoVideoFragment()
@@ -206,7 +209,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     // IDコピーボタン
     private fun initCopyButton() {
-        bottom_fragment_nicovideo_list_menu_copy.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuCopyTextView.setOnClickListener {
             val clipboardManager =
                 context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboardManager.setPrimaryClip(ClipData.newPlainText("videoId", nicoVideoData.videoId))
@@ -219,23 +222,23 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     private fun mylistButton() {
         // 動画ID以外はマイリスト登録ボタンを消す
         if (nicoVideoData.videoId.contains("sm") || nicoVideoData.videoId.contains("so")) {
-            bottom_fragment_nicovideo_list_menu_mylist.isVisible = true
-            bottom_fragment_nicovideo_list_menu_atodemiru.isVisible = true
+            viewBinding.bottomFragmentNicovideoListMenuMylistTextView.isVisible = true
+            viewBinding.bottomFragmentNicovideoListMenuAtodemiruTextView.isVisible = true
         } else {
-            bottom_fragment_nicovideo_list_menu_mylist.isVisible = false
-            bottom_fragment_nicovideo_list_menu_atodemiru.isVisible = false
+            viewBinding.bottomFragmentNicovideoListMenuMylistTextView.isVisible = false
+            viewBinding.bottomFragmentNicovideoListMenuAtodemiruTextView.isVisible = false
         }
         // マイリスト画面の場合は消すに切り替える
         if (nicoVideoData.isMylist) {
-            bottom_fragment_nicovideo_list_menu_mylist.text = getString(R.string.mylist_delete)
-            bottom_fragment_nicovideo_list_menu_atodemiru.isVisible = false
+            viewBinding.bottomFragmentNicovideoListMenuMylistTextView.text = getString(R.string.mylist_delete)
+            viewBinding.bottomFragmentNicovideoListMenuAtodemiruTextView.isVisible = false
         }
         // 非ログインモード時も消す
         if (isNotLoginMode(context)) {
-            bottom_fragment_nicovideo_list_menu_mylist.isVisible = false
-            bottom_fragment_nicovideo_list_menu_atodemiru.isVisible = false
+            viewBinding.bottomFragmentNicovideoListMenuMylistTextView.isVisible = false
+            viewBinding.bottomFragmentNicovideoListMenuAtodemiruTextView.isVisible = false
         }
-        bottom_fragment_nicovideo_list_menu_mylist.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuMylistTextView.setOnClickListener {
             if (nicoVideoData.isMylist) {
                 // 本当に消していい？
                 val buttonItems = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
@@ -280,7 +283,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             }
         }
         // あとで見る（とりあえずマイリスト）に追加する
-        bottom_fragment_nicovideo_list_menu_atodemiru.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuAtodemiruTextView.setOnClickListener {
             // あとで見るに追加する
             val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
                 showToast("${getString(R.string.error)}\n${throwable}")
@@ -327,30 +330,30 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
         if (isCache) {
             // キャッシュのときは再取得メニュー表示させる
-            bottom_fragment_nicovideo_list_menu_cache_menu.visibility = View.VISIBLE
-            bottom_fragment_nicovideo_list_menu_get_cache.visibility = View.GONE
-            bottom_fragment_nicovideo_list_menu_get_cache_economy.visibility = View.GONE
+            viewBinding.bottomFragmentNicovideoListMenuCacheMenu.visibility = View.VISIBLE
+            viewBinding.bottomFragmentNicovideoListMenuGetCacheTextView.visibility = View.GONE
+            viewBinding.bottomFragmentNicovideoListMenuGetCacheEconomyTextView.visibility = View.GONE
         } else {
             // キャッシュ無いときは取得ボタンを置く
-            bottom_fragment_nicovideo_list_menu_cache_menu.visibility = View.GONE
-            bottom_fragment_nicovideo_list_menu_get_cache.visibility = View.VISIBLE
-            bottom_fragment_nicovideo_list_menu_get_cache_economy.visibility = View.VISIBLE
+            viewBinding.bottomFragmentNicovideoListMenuCacheMenu.visibility = View.GONE
+            viewBinding.bottomFragmentNicovideoListMenuGetCacheTextView.visibility = View.VISIBLE
+            viewBinding.bottomFragmentNicovideoListMenuGetCacheEconomyTextView.visibility = View.VISIBLE
         }
 
         // キャッシュ取得
-        bottom_fragment_nicovideo_list_menu_get_cache.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuGetCacheTextView.setOnClickListener {
             // キャッシュ取得Service起動
             startCacheService(false)
         }
 
         // キャッシュ取得（エコノミーモード）
-        bottom_fragment_nicovideo_list_menu_get_cache_economy.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuGetCacheEconomyTextView.setOnClickListener {
             // キャッシュ取得Service起動
             startCacheService(true)
         }
 
         // キャッシュ削除
-        bottom_fragment_nicovideo_list_menu_delete_cache.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuDeleteCacheTextView.setOnClickListener {
             // 本当に消していいか聞くダイアログ作成
             val buttonItems = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
                 add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.cache_delete), R.drawable.ic_outline_delete_24px))
@@ -371,16 +374,15 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
         // 動画ID以外は非表示にする処理
         if (NICOVIDEO_ID_REGEX.toRegex().matches(videoId)) {
-            bottom_fragment_nicovideo_list_menu_re_get_cache.visibility = View.VISIBLE
+            viewBinding.bottomFragmentNicovideoListMenuReGetCacheTextView.visibility = View.VISIBLE
         } else {
-            bottom_fragment_nicovideo_list_menu_re_get_cache.visibility = View.GONE
+            viewBinding.bottomFragmentNicovideoListMenuReGetCacheTextView.visibility = View.GONE
         }
         // キャッシュの動画情報、コメント更新
-        bottom_fragment_nicovideo_list_menu_re_get_cache.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuReGetCacheTextView.setOnClickListener {
             // キャッシュ取得中はBottomFragmentを消させないようにする
             this.isCancelable = false
-            bottom_fragment_nicovideo_list_menu_re_get_cache.text =
-                getString(R.string.cache_updateing)
+            viewBinding.bottomFragmentNicovideoListMenuReGetCacheTextView.text = getString(R.string.cache_updateing)
             // 再取得
             nicoVideoCache.getReGetVideoInfoComment(nicoVideoData.videoId, userSession, context) {
                 // 取得できたら閉じる
@@ -394,9 +396,9 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // コメントファイル（XML）があれば表示させる
         val xmlCommentJSON = XMLCommentJSON(context)
         if (xmlCommentJSON.commentXmlFilePath(nicoVideoData.videoId) != null) {
-            bottom_fragment_nicovideo_list_menu_xml_to_json.visibility = View.VISIBLE
+            viewBinding.bottomFragmentNicovideoListMenuXmlToJsonTextView.visibility = View.VISIBLE
         }
-        bottom_fragment_nicovideo_list_menu_xml_to_json.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuXmlToJsonTextView.setOnClickListener {
             // BottomSheet消えないように。
             this@NicoVideoListMenuBottomFragment.isCancelable = false
             showToast(getString(R.string.wait))
@@ -437,9 +439,9 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     /** 連続再生開始ボタン設定 */
     private fun initCachePlaylistPlay() {
         if (isCache) {
-            bottom_fragment_nicovideo_list_menu_playlist_background.visibility = View.VISIBLE
+            viewBinding.bottomFragmentNicovideoListMenuPlaylistBackgroundTextView.visibility = View.VISIBLE
         }
-        bottom_fragment_nicovideo_list_menu_playlist_background.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoListMenuPlaylistBackgroundTextView.setOnClickListener {
             // ボタン押した時は動画IDを指定して再生
             mediaControllerCompat.transportControls.playFromMediaId(videoId, null)
         }

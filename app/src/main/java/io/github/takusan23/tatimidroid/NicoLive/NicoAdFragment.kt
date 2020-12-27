@@ -9,14 +9,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoAdAPI
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
-import kotlinx.android.synthetic.main.fragment_nicoad_layout.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveNicoadBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,28 +28,31 @@ import java.io.IOException
  * ニコニ広告Fragment
  * */
 class NicoAdFragment : Fragment() {
+
+    /** ギフト表示配列 */
     var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
-    lateinit var giftRecyclerViewAdapter: GiftRecyclerViewAdapter
-    lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
+
+    /** ギフト表示RecyclerViewAdapter */
+    val giftRecyclerViewAdapter = GiftRecyclerViewAdapter(recyclerViewList)
 
     val viewModel by viewModels<NicoLiveViewModel>({ requireParentFragment() })
     val liveId by lazy { viewModel.nicoLiveHTML.liveId }
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicoliveNicoadBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.fragment_nicoad_layout, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        recyclerViewList = ArrayList()
-        nicoad_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(context)
-        nicoad_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
-        giftRecyclerViewAdapter =
-            GiftRecyclerViewAdapter(recyclerViewList)
-        nicoad_recyclerview.adapter = giftRecyclerViewAdapter
-        recyclerViewLayoutManager = nicoad_recyclerview.layoutManager!!
+        viewBinding.fragmentNicoLiveNicoadRecyclerView.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = giftRecyclerViewAdapter
+        }
 
         //貢献度ランキング
         getNicoAdRanking()
@@ -58,10 +60,10 @@ class NicoAdFragment : Fragment() {
         // 情報取得
         getNicoAd()
 
-        nicoad_tablayout.setBackgroundColor(getThemeColor(context))
+        viewBinding.fragmentNicoLiveTabLayout.setBackgroundColor(getThemeColor(context))
 
         //TabLayout
-        nicoad_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+        viewBinding.fragmentNicoLiveTabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
 
             }
@@ -103,8 +105,8 @@ class NicoAdFragment : Fragment() {
                 val activePoint = data.getInt("activePoint")
                 withContext(Dispatchers.Main) {
                     // UIに反映
-                    gift_total_point.text = "${getString(R.string.nicoad_total)}：${totalPoint}pt"
-                    gift_active_point.text = "${getString(R.string.nicoad_active)}：${activePoint}pt"
+                    viewBinding.fragmentNicoLiveGiftTotalPointTextView.text = "${getString(R.string.nicoad_total)}：${totalPoint}pt"
+                    viewBinding.fragmentNicoLiveGiftActivePointTextView.text = "${getString(R.string.nicoad_active)}：${activePoint}pt"
                 }
             }
         }

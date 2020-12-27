@@ -11,7 +11,7 @@
             android:orientation="vertical">
 
         <TextView
-                android:id="@+id/bottom_fragment_program_info_title"
+                android:id="@+id/bottom_fragment_program_info_title_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
@@ -20,7 +20,7 @@
                 android:textStyle="bold" />
 
         <TextView
-                android:id="@+id/bottom_fragment_program_info_id"
+                android:id="@+id/bottom_fragment_program_info_id_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
@@ -28,7 +28,7 @@
                 android:textSize="16sp" />
 
         <TextView
-                android:id="@+id/bottom_fragment_program_info_time"
+                android:id="@+id/bottom_fragment_program_info_time_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
@@ -47,7 +47,7 @@
                     android:orientation="vertical">
 
                 <TextView
-                        android:id="@+id/bottom_fragment_program_info_community_copy"
+                        android:id="@+id/bottom_fragment_program_info_community_copy_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -58,7 +58,7 @@
                         android:text="@string/copy_communityid" />
 
                 <TextView
-                        android:id="@+id/bottom_fragment_program_info_id_copy"
+                        android:id="@+id/bottom_fragment_program_info_id_copy_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -69,7 +69,7 @@
                         android:text="@string/copy_program_id" />
 
                 <TextView
-                        android:id="@+id/bottom_fragment_program_info_popup"
+                        android:id="@+id/bottom_fragment_program_info_popup_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -80,7 +80,7 @@
                         android:text="@string/popup_player" />
 
                 <TextView
-                        android:id="@+id/bottom_fragment_program_info_background"
+                        android:id="@+id/bottom_fragment_program_info_background_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -91,7 +91,7 @@
                         android:text="@string/background_play" />
 
                 <TextView
-                        android:id="@+id/bottom_fragment_program_info_floaing_comment_viewer"
+                        android:id="@+id/bottom_fragment_program_info_floaing_comment_viewer_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -103,7 +103,7 @@
                         android:visibility="gone" />
 
                 <TextView
-                        android:id="@+id/bottom_fragment_program_info_timeshift"
+                        android:id="@+id/bottom_fragment_program_info_timeshift_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -114,7 +114,7 @@
                         android:text="@string/timeshift_reservation_button" />
 
                 <TextView
-                        android:id="@+id/bottom_fragment_program_info_calendar"
+                        android:id="@+id/bottom_fragment_program_info_add_calendar_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -125,7 +125,7 @@
                         android:text="@string/add_calendar" />
 
                 <TextView
-                        android:id="@+id/bottom_fragment_program_info_share"
+                        android:id="@+id/bottom_fragment_program_info_share_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -136,7 +136,7 @@
                         android:text="@string/share" />
 
                 <TextView
-                        android:id="@+id/bottom_fragment_program_info_auto_admission_more"
+                        android:id="@+id/bottom_fragment_program_info_auto_admission_more_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -163,7 +163,7 @@
                             android:text="@string/auto_admission_description" />
 
                     <TextView
-                            android:id="@+id/bottom_fragment_program_info_auto_admission_official_app"
+                            android:id="@+id/bottom_fragment_program_info_auto_admission_official_app_text_view"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:clickable="true"
@@ -174,7 +174,7 @@
                             android:text="@string/open_nicolive_app" />
 
                     <TextView
-                            android:id="@+id/bottom_fragment_program_info_auto_admission_tatimidroid_app"
+                            android:id="@+id/bottom_fragment_program_info_auto_admission_tatimidroid_app_text_view"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:clickable="true"
@@ -185,7 +185,7 @@
                             android:text="@string/open_tatimi_droid" />
 
                     <TextView
-                            android:id="@+id/bottom_fragment_program_info_auto_admission_popup"
+                            android:id="@+id/bottom_fragment_program_info_auto_admission_popup_text_view"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:clickable="true"
@@ -196,7 +196,7 @@
                             android:text="@string/open_popup" />
 
                     <TextView
-                            android:id="@+id/bottom_fragment_program_info_auto_admission_background"
+                            android:id="@+id/bottom_fragment_program_info_auto_admission_background_text_view"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:clickable="true"

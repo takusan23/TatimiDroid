@@ -25,7 +25,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
-import kotlinx.android.synthetic.main.fragment_comment_cache.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoCacheBinding
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -42,8 +42,11 @@ class NicoVideoCacheFragment : Fragment() {
     /** ViewModel。画面回転時に再読み込みされるのつらいので */
     private val viewModel by viewModels<NicoVideoCacheFragmentViewModel>({ this })
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoCacheBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_comment_cache, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -55,23 +58,23 @@ class NicoVideoCacheFragment : Fragment() {
         viewModel.recyclerViewList.observe(viewLifecycleOwner) { list ->
             initRecyclerView(list)
             // 中身0だった場合
-            fragment_cache_empty_message.isVisible = list.isEmpty()
+            viewBinding.fragmentNicovideoCacheEmptyMessageTextView.isVisible = list.isEmpty()
         }
 
         // 合計容量
         viewModel.totalUsedStorageGB.observe(viewLifecycleOwner) { gb ->
-            fragment_cache_storage_info.text = "${getString(R.string.cache_usage)}：$gb GB"
+            viewBinding.fragmentNicovideoCacheStorageInfoTextView.text = "${getString(R.string.cache_usage)}：$gb GB"
         }
 
 
         // フィルター / 並び替え BottomFragment
-        fragment_cache_menu_filter_textview.setOnClickListener {
+        viewBinding.fragmentNicovideoCacheMenuFilterTextview.setOnClickListener {
             val cacheFilterBottomFragment = NicoVideoCacheFilterBottomFragment()
             cacheFilterBottomFragment.show(childFragmentManager, "filter")
-            fragment_cache_card_motionlayout.transitionToStart()
+            viewBinding.fragmentNicovideoCacheCardMotionLayout.transitionToStart()
         }
 
-        fragment_cache_menu_playlist_textview.setOnClickListener {
+        viewBinding.fragmentNicovideoCacheMenuPlaylistTextview.setOnClickListener {
             // 連続再生
             if (viewModel.recyclerViewList.value != null) {
                 val nicoVideoFragment = NicoVideoFragment()
@@ -81,11 +84,11 @@ class NicoVideoCacheFragment : Fragment() {
                 (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, viewModel.recyclerViewList.value?.get(0)?.videoId ?: "")
             }
             // メニュー閉じる
-            fragment_cache_card_motionlayout.transitionToStart()
+            viewBinding.fragmentNicovideoCacheCardMotionLayout.transitionToStart()
         }
 
         // バックグラウンド連続再生
-        fragment_cache_menu_background_textview.setOnClickListener {
+        viewBinding.fragmentNicovideoCacheMenuBackgroundTextview.setOnClickListener {
             lifecycleScope.launch {
                 connectMediaSession()
                 // このActivityに関連付けられたMediaSessionControllerを取得
@@ -95,7 +98,7 @@ class NicoVideoCacheFragment : Fragment() {
                 if (videoId != null) {
                     controller.transportControls.playFromMediaId(videoId, null)
                 }
-                fragment_cache_card_motionlayout.transitionToStart()
+                viewBinding.fragmentNicovideoCacheCardMotionLayout.transitionToStart()
             }
         }
 
@@ -131,11 +134,11 @@ class NicoVideoCacheFragment : Fragment() {
     // フィルター削除関数
     fun filterDeleteMessageShow() {
         // 本当に消していい？
-        Snackbar.make(fragment_cache_empty_message, getString(R.string.filter_clear_message), Snackbar.LENGTH_SHORT).apply {
+        Snackbar.make(viewBinding.fragmentNicovideoCacheEmptyMessageTextView, getString(R.string.filter_clear_message), Snackbar.LENGTH_SHORT).apply {
             setAction(getString(R.string.reset)) {
                 CacheJSON().deleteFilterJSONFile(context)
             }
-            anchorView = fragment_cache_fab
+            anchorView = viewBinding.fragmentNicovideoCacheFab
             show()
         }
     }
@@ -147,7 +150,7 @@ class NicoVideoCacheFragment : Fragment() {
      * https://stackoverflow.com/questions/27816217/how-to-save-recyclerviews-scroll-position-using-recyclerview-state
      * */
     fun initRecyclerView(list: ArrayList<NicoVideoData>, layoutManagerParcelable: Parcelable? = null) {
-        fragment_cache_recyclerview.apply {
+        viewBinding.fragmentNicovideoCacheRecyclerView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             if (layoutManagerParcelable != null) {

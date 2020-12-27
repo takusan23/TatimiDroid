@@ -12,7 +12,7 @@
             android:orientation="vertical">
 
         <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/fragment_cache_recyclerview"
+                android:id="@+id/fragment_nicovideo_cache_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scrollbars="vertical">
@@ -22,13 +22,13 @@
     </LinearLayout>
 
     <androidx.constraintlayout.motion.widget.MotionLayout
-            android:id="@+id/fragment_cache_card_motionlayout"
+            android:id="@+id/fragment_nicovideo_cache_card_motion_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layoutDescription="@xml/fragment_comment_cache_scene">
 
         <androidx.cardview.widget.CardView
-                android:id="@+id/fragment_cache_menu_cardview"
+                android:id="@+id/fragment_nicovideo_cache_menu_cardview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -40,7 +40,7 @@
                     android:orientation="vertical">
 
                 <TextView
-                        android:id="@+id/fragment_cache_storage_info"
+                        android:id="@+id/fragment_nicovideo_cache_storage_info_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:drawableStart="@drawable/ic_data_usage_black_24dp"
@@ -48,7 +48,7 @@
                         android:text="" />
 
                 <TextView
-                        android:id="@+id/fragment_cache_menu_filter_textview"
+                        android:id="@+id/fragment_nicovideo_cache_menu_filter_textview"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -59,7 +59,7 @@
                         android:text="@string/cache_filter" />
 
                 <TextView
-                        android:id="@+id/fragment_cache_menu_background_textview"
+                        android:id="@+id/fragment_nicovideo_cache_menu_background_textview"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -70,7 +70,7 @@
                         android:text="@string/cache_background_play" />
 
                 <TextView
-                        android:id="@+id/fragment_cache_menu_playlist_textview"
+                        android:id="@+id/fragment_nicovideo_cache_menu_playlist_textview"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:clickable="true"
@@ -83,7 +83,7 @@
         </androidx.cardview.widget.CardView>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fragment_cache_fab"
+                android:id="@+id/fragment_nicovideo_cache_fab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
@@ -97,7 +97,7 @@
 
 
     <LinearLayout
-            android:id="@+id/fragment_cache_empty_message"
+            android:id="@+id/fragment_nicovideo_cache_empty_message_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

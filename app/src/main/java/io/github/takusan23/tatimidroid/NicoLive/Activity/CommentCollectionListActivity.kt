@@ -1,20 +1,19 @@
 package io.github.takusan23.tatimidroid.NicoLive.Activity
 
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.Adapter.CommentPOSTListRecyclerViewAdapter
-import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Database.CommentCollectionDB
 import io.github.takusan23.tatimidroid.Room.Entity.CommentCollectionDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.CommentCollectionDBInit
+import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
-import kotlinx.android.synthetic.main.activity_comment_postlist.*
+import io.github.takusan23.tatimidroid.databinding.ActivityCommentCollectionListBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,12 +28,13 @@ class CommentCollectionListActivity : AppCompatActivity() {
 
     var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
     lateinit var commentPOSTListRecyclerViewAdapter: CommentPOSTListRecyclerViewAdapter
-    lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
 
+    /** findViewById駆逐 */
+    val viewBinding by lazy { ActivityCommentCollectionListBinding.inflate(layoutInflater) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_comment_postlist)
+        setContentView(viewBinding.root)
 
         val darkModeSupport = DarkModeSupport(this)
         darkModeSupport.setActivityTheme(this)
@@ -43,21 +43,20 @@ class CommentCollectionListActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.comment_post_list)
 
         recyclerViewList = ArrayList()
-        activity_comment_post_list_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(this)
-        activity_comment_post_list_recyclerview.layoutManager =
-            mLayoutManager as RecyclerView.LayoutManager?
-        commentPOSTListRecyclerViewAdapter = CommentPOSTListRecyclerViewAdapter(recyclerViewList)
-        activity_comment_post_list_recyclerview.adapter = commentPOSTListRecyclerViewAdapter
-        recyclerViewLayoutManager = activity_comment_post_list_recyclerview.layoutManager!!
+        viewBinding.activityCommentPostListRecyclerView.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(this@CommentCollectionListActivity)
+            commentPOSTListRecyclerViewAdapter = CommentPOSTListRecyclerViewAdapter(recyclerViewList)
+            adapter = commentPOSTListRecyclerViewAdapter
+        }
 
         // データベース初期化
         commentCollectionDB = CommentCollectionDBInit(this).commentCollectionDB
 
         //登録
-        activity_comment_post_list_add.setOnClickListener {
-            val comment = activity_comment_post_list_comment_inputedittext.text.toString()
-            val yomi = activity_comment_post_list_yomi_inputedittext.text.toString()
+        viewBinding.activityCommentPostListAddButton.setOnClickListener {
+            val comment = viewBinding.activityCommentPostListCommentInputedittext.text.toString()
+            val yomi = viewBinding.activityCommentPostListYomiInputedittext.text.toString()
             lifecycleScope.launch(Dispatchers.Main) {
                 val filterList = withContext(Dispatchers.IO) {
                     commentCollectionDB.commentCollectionDBDAO().getAll().filter { commentCollectionEntity -> commentCollectionEntity.yomi == yomi }

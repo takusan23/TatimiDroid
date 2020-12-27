@@ -6,10 +6,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.fragment.app.Fragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
-import kotlinx.android.synthetic.main.fragment_program_list.*
+import io.github.takusan23.tatimidroid.databinding.FragmentProgramListBinding
 
 /**
  * 番組一覧Fragmentを乗せるFragment
@@ -18,25 +19,30 @@ import kotlinx.android.synthetic.main.fragment_program_list.*
  * */
 class ProgramListFragment : Fragment() {
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentProgramListBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_program_list, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         // 背景色
-        fragment_program_backdrop.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
-        fragment_program_bar?.background = ColorDrawable(getThemeColor(context))
-        fragment_program_list_linearlayout.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
-        fragment_program_menu.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
+        viewBinding.apply {
+            fragmentProgramBackdropLinearLayout.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
+            fragmentProgramBarLinearLayout?.background = ColorDrawable(getThemeColor(context))
+            fragmentProgramListLinearLayout.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
+            fragmentProgramNavigationView.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
+        }
 
         if (savedInstanceState == null) {
             setFragment(CommunityListFragment.FOLLOW)
         }
 
         // メニュー押したとき
-        fragment_program_menu.setNavigationItemSelectedListener {
+        viewBinding.fragmentProgramNavigationView.setNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.nicolive_program_list_menu_follow -> setFragment(CommunityListFragment.FOLLOW)
                 R.id.nicolive_program_list_menu_osusume -> setFragment(CommunityListFragment.RECOMMEND)
@@ -55,8 +61,8 @@ class ProgramListFragment : Fragment() {
         // ページを指定して開く
         val menuId = arguments?.getInt("fragment")
         if (menuId != null) {
-            fragment_program_menu.setCheckedItem(menuId)
-            fragment_program_menu.menu.performIdentifierAction(menuId, 0)
+            viewBinding.fragmentProgramNavigationView.setCheckedItem(menuId)
+            viewBinding.fragmentProgramNavigationView.menu.performIdentifierAction(menuId, 0)
         }
     }
 
@@ -72,8 +78,9 @@ class ProgramListFragment : Fragment() {
             val bundle = Bundle()
             bundle.putInt("page", page)
             communityListFragment.arguments = bundle
-            parentFragmentManager.beginTransaction().replace(fragment_program_list_linearlayout.id, communityListFragment).commit()
-            fragment_program_motionlayout?.transitionToStart()
+            parentFragmentManager.beginTransaction().replace(viewBinding.fragmentProgramListLinearLayout.id, communityListFragment).commit()
+            // 縦画面時、親はMotionLayoutになるんだけど、横画面時はLinearLayoutなのでキャストが必要
+            (viewBinding.fragmentProgramListParent as? MotionLayout)?.transitionToStart()
         }
     }
 

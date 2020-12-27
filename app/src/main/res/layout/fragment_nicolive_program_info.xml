@@ -31,7 +31,7 @@
                             android:padding="10sp">
 
                         <TextView
-                                android:id="@+id/fragment_program_info_title"
+                                android:id="@+id/fragment_program_info_title_text_view"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="番組名"
@@ -39,7 +39,7 @@
                                 android:textStyle="bold" />
 
                         <TextView
-                                android:id="@+id/fragment_program_info_description"
+                                android:id="@+id/fragment_program_info_description_text_view"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:autoLink="all"
@@ -47,7 +47,7 @@
                                 android:textIsSelectable="true" />
 
                         <TextView
-                                android:id="@+id/fragment_program_info_time"
+                                android:id="@+id/fragment_program_info_time_text_view"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="開始時刻" />
@@ -90,7 +90,7 @@
                                     android:orientation="vertical">
 
                                 <TextView
-                                        android:id="@+id/fragment_program_info_broadcaster_name"
+                                        android:id="@+id/fragment_program_info_broadcaster_name_text_view"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:text="@string/broadcaster"
@@ -98,7 +98,7 @@
                                         android:textStyle="bold" />
 
                                 <TextView
-                                        android:id="@+id/fragment_program_info_broadcaster_level"
+                                        android:id="@+id/fragment_program_info_broadcaster_level_text_view"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:text="@string/level"
@@ -134,7 +134,7 @@
                                 android:padding="5sp">
 
                             <ImageView
-                                    android:id="@+id/fragment_program_info_community_imageview"
+                                    android:id="@+id/fragment_program_info_community_image_view"
                                     android:layout_width="40dp"
                                     android:layout_height="match_parent"
                                     app:srcCompat="@drawable/ic_outline_people_outline_24px" />
@@ -146,7 +146,7 @@
                                     android:orientation="vertical">
 
                                 <TextView
-                                        android:id="@+id/fragment_program_info_community_name"
+                                        android:id="@+id/fragment_program_info_community_name_text_view"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:text="@string/community_name"
@@ -154,7 +154,7 @@
                                         android:textStyle="bold" />
 
                                 <TextView
-                                        android:id="@+id/fragment_program_info_community_level"
+                                        android:id="@+id/fragment_program_info_community_level_text_view"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:text="@string/community_level"
@@ -241,7 +241,7 @@
                                     android:text="@string/tag_edit" />
 
                             <LinearLayout
-                                    android:id="@+id/fragment_program_info_tag_linearlayout"
+                                    android:id="@+id/fragment_program_info_tag_linear_layout"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_margin="10sp"

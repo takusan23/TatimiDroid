@@ -13,9 +13,8 @@ import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdap
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoMyListListViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoMyListListViewModel
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
-import kotlinx.android.synthetic.main.fragment_nicovideo_mylist_list.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoMylistListBinding
 
 /**
  * マイリストの動画一覧表示Fragment。
@@ -35,8 +34,11 @@ class NicoVideoMyListListFragment : Fragment() {
     /** RecyclerViewへ入れるAdapter */
     val nicoVideoListAdapter = NicoVideoListAdapter(recyclerViewList)
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoMylistListBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_mylist_list, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -47,7 +49,7 @@ class NicoVideoMyListListFragment : Fragment() {
         myListListViewModel = ViewModelProvider(this, NicoVideoMyListListViewModelFactory(requireActivity().application, myListId, isMe)).get(NicoVideoMyListListViewModel::class.java)
 
         // ダークモード
-        fragment_nicovideo_mylist_list_app_bar.background = ColorDrawable(getThemeColor(requireContext()))
+        viewBinding.fragmentNicovideoMylistListAppBar.background = ColorDrawable(getThemeColor(requireContext()))
 
         // RecyclerView初期化
         initRecyclerView()
@@ -64,11 +66,11 @@ class NicoVideoMyListListFragment : Fragment() {
 
         // くるくる
         myListListViewModel.loadingLiveData.observe(viewLifecycleOwner) { isLoading ->
-            fragment_nicovideo_mylist_list_swipe.isRefreshing = isLoading
+            viewBinding.fragmentNicovideoMylistListSwipe.isRefreshing = isLoading
         }
 
         // ひっぱって更新
-        fragment_nicovideo_mylist_list_swipe.setOnRefreshListener {
+        viewBinding.fragmentNicovideoMylistListSwipe.setOnRefreshListener {
             myListListViewModel.getMyListVideoList()
         }
 
@@ -91,7 +93,7 @@ class NicoVideoMyListListFragment : Fragment() {
             "マイリスト数の少ない順"
         )
         val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, sortList)
-        fragment_nicovideo_mylist_list_sort.apply {
+        viewBinding.fragmentNicovideoMylistListSort.apply {
             setAdapter(adapter)
             setOnItemClickListener { parent, view, position, id ->
                 myListListViewModel.sort(position)
@@ -102,7 +104,7 @@ class NicoVideoMyListListFragment : Fragment() {
 
     /** RecyclerView初期化 */
     private fun initRecyclerView() {
-        fragment_nicovideo_mylist_list_recyclerview.apply {
+        viewBinding.fragmentNicovideoMylistListRecyclerview.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             // Adapterセット

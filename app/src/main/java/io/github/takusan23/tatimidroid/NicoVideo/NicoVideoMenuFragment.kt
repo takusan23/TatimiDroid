@@ -35,8 +35,7 @@ import io.github.takusan23.tatimidroid.Tool.ContentShare
 import io.github.takusan23.tatimidroid.Tool.MotionLayoutTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
-import kotlinx.android.synthetic.main.fragment_nicovideo.*
-import kotlinx.android.synthetic.main.fragment_nicovideo_menu.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoMenuBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -66,8 +65,11 @@ class NicoVideoMenuFragment : Fragment() {
     /** 共有 */
     val contentShare = ContentShare(this)
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoMenuBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_menu, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -85,14 +87,14 @@ class NicoVideoMenuFragment : Fragment() {
         // そもそもキャッシュ取得できない（アニメ公式はhls形式でAES-128で暗号化されてるので取れない）動画はキャッシュボタン非表示
         if (::jsonObject.isInitialized) {
             if (NicoVideoHTML().isEncryption(jsonObject.toString())) {
-                fragment_nicovideo_menu_get_cache.visibility = View.GONE
-                fragment_nicovideo_menu_get_cache_eco.visibility = View.GONE
+                viewBinding.fragmentNicovideoMenuGetCacheButton.visibility = View.GONE
+                viewBinding.fragmentNicovideoMenuGetCacheEcoButton.visibility = View.GONE
             }
         }
 
         // ログインしないモード用
         if (isNotLoginMode(context)) {
-            fragment_nicovideo_menu_add_mylist.visibility = View.GONE
+            viewBinding.fragmentNicovideoMenuAddMylistButton.visibility = View.GONE
         }
 
         // マイリスト追加ボタン
@@ -149,19 +151,19 @@ class NicoVideoMenuFragment : Fragment() {
     }
 
     private fun initCommentCanvasVisibleSwitch() {
-        fragment_nicovideo_menu_hide_comment_canvas.setOnCheckedChangeListener { compoundButton, b ->
+        viewBinding.fragmentNicovideoMenuHideCommentCanvasSwitch.setOnCheckedChangeListener { compoundButton, b ->
             // 設定保存
             prefSetting.edit { putBoolean("nicovideo_comment_canvas_hide", b) }
             // 消す
             val visibility = if (b) View.GONE else View.VISIBLE
-            MotionLayoutTool.setMotionLayoutViewVisible(requireNicoVideoFragment().fragment_nicovideo_motionlayout, requireNicoVideoFragment().fragment_nicovideo_comment_canvas.id, visibility)
+            MotionLayoutTool.setMotionLayoutViewVisible(requireNicoVideoFragment().viewBinding.fragmentNicovideoMotionLayout, requireNicoVideoFragment().viewBinding.fragmentNicovideoCommentCanvas.id, visibility)
         }
         // 設定読み出し
-        fragment_nicovideo_menu_hide_comment_canvas.isChecked = prefSetting.getBoolean("nicovideo_comment_canvas_hide", false)
+        viewBinding.fragmentNicovideoMenuHideCommentCanvasSwitch.isChecked = prefSetting.getBoolean("nicovideo_comment_canvas_hide", false)
     }
 
     private fun initKotehanButton() {
-        fragment_nicovideo_menu_kotehan_activity.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuKotehanActivityButton.setOnClickListener {
             // コテハン一覧
             val intent = Intent(context, KotehanListActivity::class.java)
             startActivity(intent)
@@ -169,8 +171,8 @@ class NicoVideoMenuFragment : Fragment() {
     }
 
     private fun init3DSHideSwitch() {
-        fragment_nicovideo_menu_3ds_switch.isChecked = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
-        fragment_nicovideo_menu_3ds_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentNicovideoMenu3dsSwitch.isChecked = prefSetting.getBoolean("nicovideo_comment_3ds_hidden", false)
+        viewBinding.fragmentNicovideoMenu3dsSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             // 変更
             prefSetting.edit { putBoolean("nicovideo_comment_3ds_hidden", isChecked) }
             // コメント再適用
@@ -181,8 +183,8 @@ class NicoVideoMenuFragment : Fragment() {
     }
 
     private fun initKantanCommentHideSwitch() {
-        fragment_nicovideo_menu_hide_kantan_comment.isChecked = prefSetting.getBoolean("nicovideo_comment_kantan_comment_hidden", false)
-        fragment_nicovideo_menu_hide_kantan_comment.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentNicovideoMenuHideKantanCommentSwitch.isChecked = prefSetting.getBoolean("nicovideo_comment_kantan_comment_hidden", false)
+        viewBinding.fragmentNicovideoMenuHideKantanCommentSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             // 変更
             prefSetting.edit { putBoolean("nicovideo_comment_kantan_comment_hidden", isChecked) }
             // コメント再適用
@@ -194,7 +196,7 @@ class NicoVideoMenuFragment : Fragment() {
 
     private fun initSkipSetting() {
         // スキップ秒数変更画面表示
-        fragment_nicovideo_menu_skip_setting.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuSkipSettingButton.setOnClickListener {
             val bundle = Bundle()
             bundle.putString("video_id", videoId)
             val skipCustomizeBottomFragment = NicoVideoSkipCustomizeBottomFragment()
@@ -204,7 +206,7 @@ class NicoVideoMenuFragment : Fragment() {
     }
 
     private fun initNGActivityButton() {
-        fragment_nicovideo_menu_ng_activity.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuNgActivityButton.setOnClickListener {
             val intent = Intent(context, NGListActivity::class.java)
             startActivity(intent)
         }
@@ -212,7 +214,7 @@ class NicoVideoMenuFragment : Fragment() {
 
     private fun initBrowserLaunchButton() {
         //ブラウザで再生。
-        fragment_nicovideo_menu_browser_launch.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuBrowserLaunchButton.setOnClickListener {
             openBrowser("https://nico.ms/$videoId")
         }
     }
@@ -228,16 +230,16 @@ class NicoVideoMenuFragment : Fragment() {
         viewModel.isNotPlayVideoMode.observe(viewLifecycleOwner) { isCommentDrawOnlyMode ->
             if (isCommentDrawOnlyMode) {
                 // 映像流さずコメントだけ流す場合はポップアップ再生ボタンをふさぐ
-                fragment_nicovideo_menu_popup.isEnabled = false
-                fragment_nicovideo_menu_background.isEnabled = false
+                viewBinding.fragmentNicovideoMenuPopupButton.isEnabled = false
+                viewBinding.fragmentNicovideoMenuBackgroundButton.isEnabled = false
             } else {
-                fragment_nicovideo_menu_popup.setOnClickListener {
+                viewBinding.fragmentNicovideoMenuPopupButton.setOnClickListener {
                     // ポップアップ再生
                     startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
                     // Activity落とす
                     activity?.finish()
                 }
-                fragment_nicovideo_menu_background.setOnClickListener {
+                viewBinding.fragmentNicovideoMenuBackgroundButton.setOnClickListener {
                     // バッググラウンド再生
                     startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
                     // Activity落とす
@@ -248,7 +250,7 @@ class NicoVideoMenuFragment : Fragment() {
     }
 
     private fun initRotationButton() {
-        fragment_nicovideo_menu_rotation.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuRotationButton.setOnClickListener {
             val conf = resources.configuration
             //live_video_view.stopPlayback()
             when (conf.orientation) {
@@ -265,7 +267,7 @@ class NicoVideoMenuFragment : Fragment() {
     }
 
     private fun initCopyButton() {
-        fragment_nicovideo_menu_copy.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuCopyButton.setOnClickListener {
             val clipboardManager = context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboardManager.setPrimaryClip(ClipData.newPlainText("videoId", videoId))
             Toast.makeText(context, "${getString(R.string.video_id_copy_ok)}：${videoId}", Toast.LENGTH_SHORT).show()
@@ -274,7 +276,7 @@ class NicoVideoMenuFragment : Fragment() {
 
     // 動画再生ボタン
     private fun initPlayButton() {
-        fragment_nicovideo_menu_video_play.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuVideoPlayButton.setOnClickListener {
             requireNicoVideoFragment().setCommentOnlyMode(!viewModel.isCommentOnlyMode)
         }
     }
@@ -283,17 +285,17 @@ class NicoVideoMenuFragment : Fragment() {
     private fun initMylistButton() {
         // マイリスト追加ボタン。インターネット接続時で動画IDでなければ消す
         if (!isConnectionInternet(context) && (videoId.contains("sm") || videoId.contains("so"))) {
-            fragment_nicovideo_menu_add_mylist.isVisible = false
-            fragment_nicovideo_menu_atodemiru.isVisible = false
+            viewBinding.fragmentNicovideoMenuAddMylistButton.isVisible = false
+            viewBinding.fragmentNicovideoMenuAtodemiruButton.isVisible = false
         }
-        fragment_nicovideo_menu_add_mylist.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuAddMylistButton.setOnClickListener {
             val addMylistBottomFragment = NicoVideoAddMylistBottomFragment()
             val bundle = Bundle()
             bundle.putString("id", videoId)
             addMylistBottomFragment.arguments = bundle
             addMylistBottomFragment.show(parentFragmentManager, "mylist")
         }
-        fragment_nicovideo_menu_atodemiru.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuAtodemiruButton.setOnClickListener {
             // あとで見るに追加する
             val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
                 showToast("${getString(R.string.error)}\n${throwable}")
@@ -331,22 +333,22 @@ class NicoVideoMenuFragment : Fragment() {
         // キャッシュ
         if (isCache) {
             // キャッシュ取得ボタン塞ぐ
-            fragment_nicovideo_menu_get_cache.visibility = View.GONE
-            fragment_nicovideo_menu_get_cache_eco.visibility = View.GONE
+            viewBinding.fragmentNicovideoMenuGetCacheButton.visibility = View.GONE
+            viewBinding.fragmentNicovideoMenuGetCacheEcoButton.visibility = View.GONE
             // キャッシュ（動画情報、コメント）再取得ボタン表示
-            fragment_nicovideo_menu_re_get_cache.visibility = View.VISIBLE
+            viewBinding.fragmentNicovideoMenuReGetCacheButton.visibility = View.VISIBLE
         } else {
-            fragment_nicovideo_menu_re_get_cache.visibility = View.GONE
+            viewBinding.fragmentNicovideoMenuReGetCacheButton.visibility = View.GONE
         }
         // 取得
-        fragment_nicovideo_menu_get_cache.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuGetCacheButton.setOnClickListener {
             if (!isCache) {
                 // キャッシュ取得サービス起動
                 startCacheService(context, videoId)
             }
         }
         // ログインするかはService側に書いてあるので。。。
-        fragment_nicovideo_menu_get_cache_eco.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuGetCacheEcoButton.setOnClickListener {
             if (!isCache) {
                 // キャッシュ取得サービス起動
                 startCacheService(context, videoId)
@@ -360,13 +362,13 @@ class NicoVideoMenuFragment : Fragment() {
             NicoVideoCache(context)
         // インターネットに繋がってなければ非表示
         if (!isConnectionInternet(context)) {
-            fragment_nicovideo_menu_re_get_cache.visibility = View.GONE
+            viewBinding.fragmentNicovideoMenuReGetCacheButton.isVisible = false
         }
         // 動画IDじゃない場合も非表示
         if (!nicoVideoCache.checkVideoId(videoId)) {
-            fragment_nicovideo_menu_re_get_cache.visibility = View.GONE
+            viewBinding.fragmentNicovideoMenuReGetCacheButton.isVisible = false
         }
-        fragment_nicovideo_menu_re_get_cache.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuReGetCacheButton.setOnClickListener {
             nicoVideoCache.getReGetVideoInfoComment(videoId, userSession, context)
         }
     }
@@ -376,9 +378,9 @@ class NicoVideoMenuFragment : Fragment() {
     private fun initQualityButton() {
         // キャッシュ再生時またはキャッシュ優先再生時は非表示
         if (isCache) {
-            fragment_nicovideo_menu_quality.visibility = View.GONE
+            viewBinding.fragmentNicovideoMenuQualityButton.visibility = View.GONE
         } else {
-            fragment_nicovideo_menu_quality.setOnClickListener {
+            viewBinding.fragmentNicovideoMenuQualityButton.setOnClickListener {
                 // DevNicoVideoFragmentから持ってくる
                 val json = viewModel.nicoVideoJSON.value ?: return@setOnClickListener
                 // DmcInfoかSmileサーバーか
@@ -407,17 +409,17 @@ class NicoVideoMenuFragment : Fragment() {
     // 共有
     private fun initShare() {
         // 写真付き共有
-        fragment_nicovideo_menu_share_media_attach.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuShareMediaAttachButton.setOnClickListener {
             requireNicoVideoFragment().apply {
                 // 再生時間も載せる
                 val currentPos = exoPlayer.currentPosition
                 val currentTime = DateUtils.formatElapsedTime(currentPos)
                 // 共有
-                contentShare.shareContentAttachPicture(fragment_nicovideo_surfaceview, fragment_nicovideo_comment_canvas, videoId, this.viewModel.nicoVideoData.value?.title, currentTime)
+                contentShare.shareContentAttachPicture(viewBinding.fragmentNicovideoSurfaceView, viewBinding.fragmentNicovideoCommentCanvas, videoId, this.viewModel.nicoVideoData.value?.title, currentTime)
             }
         }
         // 共有
-        fragment_nicovideo_menu_share.setOnClickListener {
+        viewBinding.fragmentNicovideoMenuShareButton.setOnClickListener {
             requireNicoVideoFragment().apply {
                 // 再生時間も載せる
                 val currentPos = exoPlayer.currentPosition
@@ -431,9 +433,9 @@ class NicoVideoMenuFragment : Fragment() {
     // 音量コントロール
     private fun initVolumeControl() {
         // 音量
-        fragment_nicovideo_menu_volume_seek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        viewBinding.fragmentNicovideoMenuVolumeSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                requireNicoVideoFragment()?.exoPlayer?.volume = (progress.toFloat() / 10)
+                requireNicoVideoFragment().exoPlayer.volume = (progress.toFloat() / 10)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -444,7 +446,7 @@ class NicoVideoMenuFragment : Fragment() {
 
             }
         })
-        fragment_nicovideo_menu_volume_seek.progress = (requireNicoVideoFragment().exoPlayer.volume * 10).toInt()
+        viewBinding.fragmentNicovideoMenuVolumeSeek.progress = (requireNicoVideoFragment().exoPlayer.volume * 10).toInt()
     }
 
     private fun showToast(message: String?) {

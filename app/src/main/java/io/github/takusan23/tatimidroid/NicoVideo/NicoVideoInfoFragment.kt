@@ -36,8 +36,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragme
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.*
-import kotlinx.android.synthetic.main.fragment_nicovideo.*
-import kotlinx.android.synthetic.main.fragment_nicovideo_info.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoInfoBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,13 +57,16 @@ class NicoVideoInfoFragment : Fragment() {
     // NicoVideoFragmentのViewModelを取得する
     val viewModel: NicoVideoViewModel by viewModels({ requireParentFragment() })
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoInfoBinding.inflate(layoutInflater) }
+
     /** NicoVideoFragmentを取得する */
     private fun requireDevNicoVideoFragment(): NicoVideoFragment {
         return requireParentFragment() as NicoVideoFragment
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_info, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -75,7 +77,7 @@ class NicoVideoInfoFragment : Fragment() {
             parseJSONApplyUI(json.toString())
         }
 
-        fragment_nicovideo_info_description_textview.movementMethod = LinkMovementMethod.getInstance()
+        viewBinding.fragmentNicovideoInfoDescriptionTextview.movementMethod = LinkMovementMethod.getInstance()
     }
 
     /**
@@ -127,26 +129,26 @@ class NicoVideoInfoFragment : Fragment() {
             // Fragmentがアタッチされているか確認する。
             if (isAdded) {
                 //UIスレッド
-                fragment_nicovideo_info_title_textview.text = title
-                setLinkText(HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT), fragment_nicovideo_info_description_textview)
+                viewBinding.fragmentNicovideoInfoTitleTextview.text = title
+                setLinkText(HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT), viewBinding.fragmentNicovideoInfoDescriptionTextview)
                 // 投稿日時、再生数 等
-                fragment_nicovideo_info_upload_textview.text = "${getString(R.string.post_date)}：$postedDateTime"
-                fragment_nicovideo_info_play_count_textview.text = "${getString(R.string.play_count)}：$viewCount"
-                fragment_nicovideo_info_mylist_count_textview.text = "${getString(R.string.mylist)}：$mylistCount"
-                fragment_nicovideo_info_comment_count_textview.text = "${getString(R.string.comment_count)}：$commentCount"
-                fragment_nicovideo_info_owner_textview.text = nickname
+                viewBinding.fragmentNicovideoInfoUploadTextview.text = "${getString(R.string.post_date)}：$postedDateTime"
+                viewBinding.fragmentNicovideoInfoPlayCountTextview.text = "${getString(R.string.play_count)}：$viewCount"
+                viewBinding.fragmentNicovideoInfoMylistCountTextview.text = "${getString(R.string.mylist)}：$mylistCount"
+                viewBinding.fragmentNicovideoInfoCommentCountTextview.text = "${getString(R.string.comment_count)}：$commentCount"
+                viewBinding.fragmentNicovideoInfoOwnerTextview.text = nickname
 
                 // 今日の日付から計算
-                fragment_nicovideo_info_upload_day_count_textview.text = "今日の日付から ${getDayCount(postedDateTime)} 日前に投稿"
+                viewBinding.fragmentNicovideoInfoUploadDayCountTextview.text = "今日の日付から ${getDayCount(postedDateTime)} 日前に投稿"
                 // 一周年とか。
                 val anniversary = calcAnniversary(toUnixTime(postedDateTime)) // AnniversaryDateクラス みて
                 when {
                     anniversary == 0 -> {
-                        fragment_nicovideo_info_upload_textview.setTextColor(Color.RED)
+                        viewBinding.fragmentNicovideoInfoUploadTextview.setTextColor(Color.RED)
                     }
                     anniversary != -1 -> {
-                        fragment_nicovideo_info_upload_anniversary_textview.apply {
-                            visibility = View.VISIBLE
+                        viewBinding.fragmentNicovideoInfoUploadAnniversaryTextview.apply {
+                            isVisible = true
                             text = AnniversaryDate.makeAnniversaryMessage(anniversary) // お祝いメッセージ作成
                         }
                     }
@@ -154,37 +156,37 @@ class NicoVideoInfoFragment : Fragment() {
 
                 // 投稿者情報がない場合は消す
                 if (nickname.isEmpty()) {
-                    fragment_nicovideo_info_owner_cardview.isVisible = false
+                    viewBinding.fragmentNicovideoInfoOwnerTextview.isVisible = false
                 } else {
-                    if (!userId.contains("co")) {
-                        // ユーザー情報Fragmentへ飛ばす
-                        fragment_nicovideo_info_owner_cardview.setOnClickListener {
+                    viewBinding.fragmentNicovideoInfoOwnerCardview.setOnClickListener {
+                        if (!userId.contains("co") && !userId.contains("ch")) {
+                            // ユーザー情報Fragmentへ飛ばす
                             val accountFragment = NicoAccountFragment().apply {
                                 arguments = Bundle().apply {
                                     putString("userId", userId)
                                 }
                             }
                             (requireActivity() as MainActivity).setFragment(accountFragment, "account")
-                            requireDevNicoVideoFragment().fragment_nicovideo_motionlayout.transitionToState(R.id.fragment_nicovideo_transition_end)
+                            requireDevNicoVideoFragment().viewBinding.fragmentNicovideoMotionLayout.transitionToState(R.id.fragment_nicovideo_transition_end)
+                        } else {
+                            //チャンネルの時、ch以外にもそれぞれアニメの名前を入れても通る。例：te-kyu2 / gochiusa など
+                            openBrowser("https://ch.nicovideo.jp/$userId")
                         }
-                    } else {
-                        //チャンネルの時、ch以外にもそれぞれアニメの名前を入れても通る。例：te-kyu2 / gochiusa など
-                        openBrowser("https://ch.nicovideo.jp/$userId")
                     }
                 }
 
                 // 投稿者アイコン。インターネット接続時
                 if (isConnectionInternet(context) && iconURL.isNotEmpty()) {
                     // ダークモード対策
-                    fragment_nicovideo_info_owner_imageview.imageTintList = null
-                    Glide.with(fragment_nicovideo_info_owner_imageview)
+                    viewBinding.fragmentNicovideoInfoOwnerImageview.imageTintList = null
+                    Glide.with(viewBinding.fragmentNicovideoInfoOwnerImageview)
                         .load(iconURL)
                         .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
-                        .into(fragment_nicovideo_info_owner_imageview)
+                        .into(viewBinding.fragmentNicovideoInfoOwnerImageview)
                 }
 
                 //たぐ
-                fragment_nicovideo_info_title_linearlayout.removeAllViews()
+                viewBinding.fragmentNicovideoInfoTitleLinearlayout.removeAllViews()
                 for (i in 0 until tagArray.length()) {
                     val tag = tagArray.getJSONObject(i)
                     val name = tag.getString("name")
@@ -209,7 +211,7 @@ class NicoVideoInfoFragment : Fragment() {
                             openBrowser("https://dic.nicovideo.jp/a/$name")
                         }
                     }
-                    fragment_nicovideo_info_title_linearlayout.addView(linearLayout)
+                    viewBinding.fragmentNicovideoInfoTitleLinearlayout.addView(linearLayout)
 
                     // タグ検索FragmentをViewPagerに追加する
                     button.setOnClickListener {
@@ -223,11 +225,11 @@ class NicoVideoInfoFragment : Fragment() {
                                 }
                             }
                             // 追加位置
-                            val addPos = requireDevNicoVideoFragment().viewPager.fragmentList.size
+                            val addPos = requireDevNicoVideoFragment().viewPagerAdapter.fragmentList.size
                             // ViewPager追加
-                            requireDevNicoVideoFragment().viewPager.addFragment(searchFragment, "${getString(R.string.tag)}：$name")
+                            requireDevNicoVideoFragment().viewPagerAdapter.addFragment(searchFragment, "${getString(R.string.tag)}：$name")
                             // ViewPager移動
-                            requireDevNicoVideoFragment().fragment_nicovideo_viewpager.currentItem = addPos
+                            requireDevNicoVideoFragment().viewBinding.fragmentNicovideoViewpager.currentItem = addPos
                         }
                         // 動画IDのとき。例：「後編→sm」とか
                         val id = IDRegex(name)
@@ -267,12 +269,12 @@ class NicoVideoInfoFragment : Fragment() {
         val jsonObject = viewModel.nicoVideoJSON.value ?: return
         if (viewModel.isOfflinePlay.value == false && isLoginMode(context)) {
             // キャッシュじゃない　かつ　ログイン必須モード
-            this@NicoVideoInfoFragment.fragment_nicovideo_info_like_chip.isVisible = true
+            viewBinding.fragmentNicovideoInfoLikeChip.isVisible = true
             // いいね♡済みかもしれないので
             // いいねボタンのテキスト、アイコン変更
             setLikeChipStatus(NicoVideoHTML().isLiked(jsonObject))
             // 押したとき
-            this@NicoVideoInfoFragment.fragment_nicovideo_info_like_chip.setOnClickListener {
+            viewBinding.fragmentNicovideoInfoLikeChip.setOnClickListener {
                 if (NicoVideoHTML().isLiked(jsonObject)) {
                     // いいね済み。取り消しSnackBar
                     requireDevNicoVideoFragment().showSnackbar(getString(R.string.unlike), getString(R.string.torikesu)) {
@@ -334,7 +336,7 @@ class NicoVideoInfoFragment : Fragment() {
                     withContext(Dispatchers.Main) {
                         // nullの可能性
                         val message = if (thanksMessage == "null") getString(R.string.like_ok) else thanksMessage
-                        multiLineSnackbar(fragment_nicovideo_info_like_chip, message, Snackbar.LENGTH_INDEFINITE).apply {
+                        multiLineSnackbar(viewBinding.fragmentNicovideoInfoLikeChip, message, Snackbar.LENGTH_INDEFINITE).apply {
                             // お礼メッセージ読んでる途中に消されると迷惑なので自分で閉じるように
                             setAction(R.string.close) {
                                 dismiss()
@@ -368,12 +370,12 @@ class NicoVideoInfoFragment : Fragment() {
         activity?.runOnUiThread {
             // いいね済み
             if (liked) {
-                fragment_nicovideo_info_like_chip.apply {
+                viewBinding.fragmentNicovideoInfoLikeChip.apply {
                     chipIconTint = ColorStateList.valueOf(Color.parseColor("#ffc0cb")) // ピンク
                     text = getString(R.string.liked) // いいね済み
                 }
             } else {
-                fragment_nicovideo_info_like_chip.apply {
+                viewBinding.fragmentNicovideoInfoLikeChip.apply {
                     chipIconTint = ColorStateList.valueOf(getThemeTextColor(context)) // テーマの色
                     text = getString(R.string.like) // いいね済み
                 }
@@ -459,9 +461,9 @@ class NicoVideoInfoFragment : Fragment() {
                     }
                     requireDevNicoVideoFragment().apply {
                         // ViewPager追加
-                        viewPager.addFragment(mylistFragment, "${getString(R.string.mylist)}：$mylist")
+                        viewPagerAdapter.addFragment(mylistFragment, "${getString(R.string.mylist)}：$mylist")
                         // ViewPager移動
-                        fragment_nicovideo_viewpager.currentItem = viewPager.fragmentTabName.size
+                        viewBinding.fragmentNicovideoViewpager.currentItem = viewPagerAdapter.fragmentTabName.size
                     }
                 }
             }, mylistMatcher.start(), mylistMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -481,9 +483,9 @@ class NicoVideoInfoFragment : Fragment() {
                     }
                     requireDevNicoVideoFragment().apply {
                         // ViewPager追加
-                        viewPager.addFragment(seriesFragment, "${getString(R.string.series)}：$series")
+                        viewPagerAdapter.addFragment(seriesFragment, "${getString(R.string.series)}：$series")
                         // ViewPager移動
-                        fragment_nicovideo_viewpager.currentItem = viewPager.fragmentTabName.size
+                        viewBinding.fragmentNicovideoViewpager.currentItem = viewPagerAdapter.fragmentTabName.size
                     }
                 }
             }, seriesMatcher.start(), seriesMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)

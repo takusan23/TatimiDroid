@@ -21,7 +21,7 @@ import java.util.*
 /**
  * NG一覧表示RecyclerView。削除とかできるよ
  * */
-class NGListRecyclerView(private val arrayListArrayAdapter: ArrayList<NGDBEntity>) : RecyclerView.Adapter<NGListRecyclerView.ViewHolder>() {
+class NGListRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<NGDBEntity>) : RecyclerView.Adapter<NGListRecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_ng_list_layout, parent, false)

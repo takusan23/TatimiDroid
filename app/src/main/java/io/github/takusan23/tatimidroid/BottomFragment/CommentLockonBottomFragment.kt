@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -34,10 +35,7 @@ import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.NICOLIVE_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.NICOVIDEO_ID_REGEX
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
-import kotlinx.android.synthetic.main.adapter_comment_layout.*
-import kotlinx.android.synthetic.main.adapter_comment_layout.view.*
-import kotlinx.android.synthetic.main.bottom_fragment_comment_menu_layout.*
-import kotlinx.android.synthetic.main.fragment_nicovideo.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentCommentLockonBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -69,8 +67,11 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     // 動画Fragmentかどうか
     var isNicoVideoFragment = false
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentCommentLockonBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_comment_menu_layout, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -80,22 +81,22 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
         // ダークモード
         val darkModeSupport = DarkModeSupport(requireContext())
-        bottom_fragment_comment_menu_parent_linearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
+        viewBinding.bottomFragmentCommentMenuParentLinearLayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
 
         // argmentから取り出す
         comment = arguments?.getString("comment") ?: ""
         userId = arguments?.getString("user_id") ?: ""
 
         // コメント表示
-        adapter_room_name_textview.text = arguments?.getString("label")
-        adapter_comment_textview.text = comment
+        viewBinding.bottomFragmentCommentInclude.adapterRoomNameTextView.text = arguments?.getString("label")
+        viewBinding.bottomFragmentCommentInclude.adapterCommentTextView.text = comment
 
         // 複数行格納
-        view.adapter_comment_parent.setOnClickListener {
-            if (adapter_comment_textview.maxLines == 1) {
-                adapter_comment_textview.maxLines = Int.MAX_VALUE
+        viewBinding.bottomFragmentCommentInclude.adapterCommentParent.setOnClickListener {
+            if (viewBinding.bottomFragmentCommentInclude.adapterCommentTextView.maxLines == 1) {
+                viewBinding.bottomFragmentCommentInclude.adapterCommentTextView.maxLines = Int.MAX_VALUE
             } else {
-                adapter_comment_textview.maxLines = 1
+                viewBinding.bottomFragmentCommentInclude.adapterCommentTextView.maxLines = 1
             }
         }
 
@@ -115,7 +116,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                     fragment.viewModel.commentReceiveLiveData.observe(viewLifecycleOwner) { comment ->
                         if (comment.userId == userId && !recyclerViewList.contains(comment)) {
                             recyclerViewList.add(0, comment)
-                            bottom_fragment_comment_menu_recyclerview.adapter?.notifyDataSetChanged()
+                            viewBinding.bottomFragmentCommentMenuRecyclerView.adapter?.notifyDataSetChanged()
                             showInfo()
                         }
                     }
@@ -132,38 +133,42 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         when {
             fragment is CommentFragment -> {
                 // 生放送
-                bottom_fragment_comment_menu_recyclerview.setHasFixedSize(true)
-                bottom_fragment_comment_menu_recyclerview.layoutManager = LinearLayoutManager(context)
-                val commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList, fragment)
-                bottom_fragment_comment_menu_recyclerview.adapter = commentRecyclerViewAdapter
-                //区切り線いれる
-                val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
-                bottom_fragment_comment_menu_recyclerview.addItemDecoration(itemDecoration)
+                viewBinding.bottomFragmentCommentMenuRecyclerView.apply {
+                    setHasFixedSize(true)
+                    layoutManager = LinearLayoutManager(context)
+                    val commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList, fragment)
+                    adapter = commentRecyclerViewAdapter
+                    //区切り線いれる
+                    val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+                    addItemDecoration(itemDecoration)
+                }
             }
             fragment is NicoVideoFragment -> {
                 // 動画
-                bottom_fragment_comment_menu_recyclerview.setHasFixedSize(true)
-                bottom_fragment_comment_menu_recyclerview.layoutManager = LinearLayoutManager(context)
-                val nicoVideoAdapter = NicoVideoAdapter(recyclerViewList, fragment)
-                bottom_fragment_comment_menu_recyclerview.adapter = nicoVideoAdapter
-                //区切り線いれる
-                val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
-                bottom_fragment_comment_menu_recyclerview.addItemDecoration(itemDecoration)
+                viewBinding.bottomFragmentCommentMenuRecyclerView.apply {
+                    setHasFixedSize(true)
+                    layoutManager = LinearLayoutManager(context)
+                    val nicoVideoAdapter = NicoVideoAdapter(recyclerViewList, fragment)
+                    adapter = nicoVideoAdapter
+                    //区切り線いれる
+                    val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+                    addItemDecoration(itemDecoration)
+                }
             }
         }
 
         // コテハンを読み出す
         lifecycleScope.launch(Dispatchers.Main) {
             // とりあえずユーザーID表示
-            bottom_fragment_comment_menu_kotehan_edit_text.setText(userId)
+            viewBinding.bottomFragmentCommentMenuKotehanEditText.setText(userId)
             // コテハン読み込み
             val kotehan = loadKotehan()
             // 存在すればテキストに入れる。なければnullになる
             if (kotehan != null) {
-                bottom_fragment_comment_menu_kotehan_edit_text.setText(kotehan.kotehan)
+                viewBinding.bottomFragmentCommentMenuKotehanEditText.setText(kotehan.kotehan)
             }
             // コテハン登録
-            bottom_fragment_comment_menu_kotehan_button.setOnClickListener {
+            viewBinding.bottomFragmentCommentMenuKotehanButton.setOnClickListener {
                 if (fragment != null) {
                     registerKotehan()
                 }
@@ -177,7 +182,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         setNGClick()
 
         // コピー
-        bottom_fragment_comment_menu_comment_copy.setOnClickListener {
+        viewBinding.bottomFragmentCommentMenuCommentCopyButton.setOnClickListener {
             commentCopy()
         }
 
@@ -192,13 +197,13 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         // 生IDのみ、ユーザー名取得ボタン
         if ("([0-9]+)".toRegex().matches(userId)) { // 生IDは数字だけで構成されているので正規表現（じゃなくてもできるだろうけど）
             // ユーザー名取得
-            bottom_fragment_comment_menu_get_username.visibility = View.VISIBLE
-            bottom_fragment_comment_menu_get_username.setOnClickListener {
+            viewBinding.bottomFragmentCommentMenuGetUserNameButton.isVisible = true
+            viewBinding.bottomFragmentCommentMenuGetUserNameButton.setOnClickListener {
                 getUserName(userId)
             }
             // ユーザーページ取得
-            bottom_fragment_comment_menu_open_userpage.visibility = View.VISIBLE
-            bottom_fragment_comment_menu_open_userpage.setOnClickListener {
+            viewBinding.bottomFragmentCommentMenuOpenUserPageButton.isVisible = true
+            viewBinding.bottomFragmentCommentMenuOpenUserPageButton.setOnClickListener {
                 openUserPage(userId)
             }
         }
@@ -213,8 +218,8 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         when {
             videoIdRegex?.value != null -> {
                 // どーが
-                bottom_fragment_comment_menu_nicovideo_menu.visibility = View.VISIBLE
-                bottom_fragment_comment_menu_nicovideo_menu.setOnClickListener {
+                viewBinding.bottomFragmentCommentMenuNicoVideoMenuButton.isVisible = true
+                viewBinding.bottomFragmentCommentMenuNicoVideoMenuButton.setOnClickListener {
                     // 動画メニュー出す
                     val nicoVideoMenuBottomFragment = NicoVideoListMenuBottomFragment()
                     val bundle = Bundle()
@@ -226,8 +231,8 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             }
             liveIdRegex?.value != null -> {
                 // なまほーそー
-                bottom_fragment_comment_menu_nicolive_menu.visibility = View.VISIBLE
-                bottom_fragment_comment_menu_nicolive_menu.setOnClickListener {
+                viewBinding.bottomFragmentCommentMenuNicoLiveMenuButton.isVisible = true
+                viewBinding.bottomFragmentCommentMenuNicoLiveMenuButton.setOnClickListener {
                     // 生放送メニュー出す
                     val programMenuBottomSheet = ProgramMenuBottomSheet()
                     val bundle = Bundle()
@@ -246,24 +251,23 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         val currentPos = arguments?.getLong("current_pos", -1) ?: -1
         // ボタン表示。動画Fragmentでかつcurrent_posが-1以外のとき表示
         if (isNicoVideoFragment && currentPos != -1L) {
-            bottom_fragment_comment_menu_nicovideo_seek.visibility = View.VISIBLE
-            bottom_fragment_comment_menu_nicovideo_seek.append("(${formatTime(currentPos / 100F)})") // 移動先時間追記
+            viewBinding.bottomFragmentCommentMenuNicovideoSeekButton.isVisible = true
+            viewBinding.bottomFragmentCommentMenuNicovideoSeekButton.append("(${formatTime(currentPos / 100F)})") // 移動先時間追記
         }
-        bottom_fragment_comment_menu_nicovideo_seek.setOnClickListener {
+        viewBinding.bottomFragmentCommentMenuNicovideoSeekButton.setOnClickListener {
             // こっから再生できるようにする
             if (fragment is NicoVideoFragment) {
                 // LiveData経由でExoPlayerを操作
                 val viewModel by viewModels<NicoVideoViewModel>({ fragment })
                 viewModel.playerSetSeekMs.postValue(currentPos * 10)
-                fragment.fragment_nicovideo_comment_canvas.seekComment()
             }
         }
     }
 
     private fun showInfo() {
         // NGスコア/個数など
-        bottom_fragment_comment_menu_count.text = "${getString(R.string.comment_count)}：${recyclerViewList.size}"
-        bottom_fragment_comment_menu_ng.text = "${getString(R.string.ng_score)}：${recyclerViewList.firstOrNull()?.score}"
+        viewBinding.bottomFragmentCommentMenuCountTextView.text = "${getString(R.string.comment_count)}：${recyclerViewList.size}"
+        viewBinding.bottomFragmentCommentMenuNgTextView.text = "${getString(R.string.ng_score)}：${recyclerViewList.firstOrNull()?.score}"
     }
 
     /** ユーザーページを開く */
@@ -281,7 +285,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             if (!response.isSuccessful) return@withContext null
             user.parseUserData(response.body?.string())
         }
-        bottom_fragment_comment_menu_kotehan_edit_text.setText(user?.nickName)
+        viewBinding.bottomFragmentCommentMenuKotehanEditText.setText(user?.nickName)
     }
 
     //URL正規表現
@@ -291,8 +295,8 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
             Pattern.compile("(http://|https://){1}[\\w\\.\\-/:\\#\\?\\=\\&\\;\\%\\~\\+]+")
                 .matcher(SpannableString(comment))
         if (urlRegex.find()) {
-            bottom_fragment_comment_menu_comment_url.visibility = View.VISIBLE
-            bottom_fragment_comment_menu_comment_url.setOnClickListener {
+            viewBinding.bottomFragmentCommentMenuCommentUrl.isVisible = true
+            viewBinding.bottomFragmentCommentMenuCommentUrl.setOnClickListener {
                 val uri = urlRegex.group().toUri()
                 val intent = Intent(Intent.ACTION_VIEW, uri)
                 startActivity(intent)
@@ -310,10 +314,10 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
     private fun setNGClick() {
         // コメントNG追加
         // 長押しで登録
-        bottom_fragment_comment_menu_comment_ng_button.setOnClickListener {
+        viewBinding.bottomFragmentCommentMenuCommentNgButton.setOnClickListener {
             showToast(getString(R.string.long_click))
         }
-        bottom_fragment_comment_menu_comment_ng_button.setOnLongClickListener {
+        viewBinding.bottomFragmentCommentMenuCommentNgButton.setOnLongClickListener {
             lifecycleScope.launch(Dispatchers.Main) {
                 withContext(Dispatchers.IO) {
                     // NGコメント追加。あとは生放送/動画Fragmentでデータベースを監視してるのでこれで終わり
@@ -328,10 +332,10 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         }
         // ユーザーNG追加
         // 長押しで登録
-        bottom_fragment_comment_menu_user_ng_button.setOnClickListener {
+        viewBinding.bottomFragmentCommentMenuUserNgButton.setOnClickListener {
             showToast(getString(R.string.long_click))
         }
-        bottom_fragment_comment_menu_user_ng_button.setOnLongClickListener {
+        viewBinding.bottomFragmentCommentMenuUserNgButton.setOnLongClickListener {
             lifecycleScope.launch(Dispatchers.Main) {
                 withContext(Dispatchers.IO) {
                     // NGユーザー追加
@@ -348,7 +352,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
     //コテハン登録。非同期
     private fun registerKotehan() {
-        val kotehan = bottom_fragment_comment_menu_kotehan_edit_text.text.toString()
+        val kotehan = viewBinding.bottomFragmentCommentMenuKotehanEditText.text.toString()
         if (kotehan.isNotEmpty()) {
             lifecycleScope.launch(Dispatchers.Main) {
                 // データベース用意。ここでは追加のみすればいい。後は各Fragmentが変更を検知して最新のを適用してくれる(NicoVideoFragment.setKotehanDBChangeObserve()参照)
@@ -369,7 +373,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 //登録しました！
                 Toast.makeText(context, "${getString(R.string.add_kotehan)}\n${userId}->${kotehan}", Toast.LENGTH_SHORT).show()
                 // 一覧更新など
-                bottom_fragment_comment_menu_recyclerview.adapter?.notifyDataSetChanged()
+                viewBinding.bottomFragmentCommentMenuRecyclerView.adapter?.notifyDataSetChanged()
             }
         }
     }

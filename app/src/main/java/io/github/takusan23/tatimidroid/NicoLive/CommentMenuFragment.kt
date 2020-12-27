@@ -30,10 +30,8 @@ import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.*
-import kotlinx.android.synthetic.main.activity_comment.*
-import kotlinx.android.synthetic.main.fragment_comment_menu.*
+import io.github.takusan23.tatimidroid.databinding.FragmentCommentMenuBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,8 +68,11 @@ class CommentMenuFragment : Fragment() {
     /** 共有用 */
     val contentShare = ContentShare(this)
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentCommentMenuBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_comment_menu, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -95,7 +96,7 @@ class CommentMenuFragment : Fragment() {
         // Android 5の場合はWebViewが落ちてしまうので塞ぐ
         // こればっかりはandroidx.appcompat:appcompatのせいなので私悪くない
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP_MR1) {
-            fragment_comment_fragment_nico_nama_game_switch.isEnabled = false
+            viewBinding.fragmentCommentFragmentNicoNamaGameSwitch.isEnabled = false
         }
 
     }
@@ -104,12 +105,12 @@ class CommentMenuFragment : Fragment() {
         if (isDarkMode(context)) {
             //ダークモード時ボタンのテキストの色が変わらないので
             val color = ColorStateList.valueOf(Color.parseColor("#ffffff"))
-            fragment_comment_fragment_menu_rotation_button.setTextColor(color)
-            fragment_comment_fragment_menu_copy_liveid_button.setTextColor(color)
-            fragment_comment_fragment_menu_copy_communityid_button.setTextColor(color)
-            fragment_comment_fragment_menu_open_browser_button.setTextColor(color)
-            fragment_comment_fragment_menu_ng_list_button.setTextColor(color)
-            fragment_comment_fragment_menu_share_button.setTextColor(color)
+            viewBinding.fragmentCommentFragmentMenuRotationButton.setTextColor(color)
+            viewBinding.fragmentCommentFragmentMenuCopyLiveIdButton.setTextColor(color)
+            viewBinding.fragmentCommentFragmentMenuCopyCommunityIdButton.setTextColor(color)
+            viewBinding.fragmentCommentFragmentMenuOpenBrowserButton.setTextColor(color)
+            viewBinding.fragmentCommentFragmentMenuNgListButton.setTextColor(color)
+            viewBinding.fragmentCommentFragmentMenuShareButton.setTextColor(color)
         }
     }
 
@@ -118,53 +119,53 @@ class CommentMenuFragment : Fragment() {
         //キャスト
         if (commentFragment.isInitGoogleCast()) {
             val googleCast = commentFragment.googleCast
-            googleCast.setUpCastButton(fragment_comment_fragment_menu_cast_button)
+            googleCast.setUpCastButton(viewBinding.fragmentCommentFragmentMenuCastButton)
         }
 
         // 画質変更
-        fragment_comment_fragment_menu_quality_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuQualityButton.setOnClickListener {
             NicoLiveQualitySelectBottomSheet().show(commentFragment.childFragmentManager, "quality_change")
         }
         //強制画面回転
-        fragment_comment_fragment_menu_rotation_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuRotationButton.setOnClickListener {
             commentFragment.setLandscapePortrait()
         }
         //番組IDコピー
-        fragment_comment_fragment_menu_copy_liveid_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuCopyLiveIdButton.setOnClickListener {
             commentFragment.copyProgramId()
         }
         //コミュニティIDコピー
-        fragment_comment_fragment_menu_copy_communityid_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuCopyCommunityIdButton.setOnClickListener {
             commentFragment.copyCommunityId()
         }
         //ブラウザで開く
-        fragment_comment_fragment_menu_open_browser_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuOpenBrowserButton.setOnClickListener {
             val uri = "https://live2.nicovideo.jp/watch/$liveId".toUri()
             val intent = Intent(Intent.ACTION_VIEW, uri)
             startActivity(intent)
         }
         //NGリスト
-        fragment_comment_fragment_menu_ng_list_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuNgListButton.setOnClickListener {
             val intent = Intent(context, NGListActivity::class.java)
             startActivity(intent)
         }
         //（画像添付しない）共有
-        fragment_comment_fragment_menu_share_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuShareButton.setOnClickListener {
             contentShare.shareContent(liveId, viewModel.programTitle, null, null)
         }
         //画像つき共有
-        fragment_comment_fragment_menu_share_image_attach_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuShareImageAttachButton.setOnClickListener {
             // 今いる部屋の名前入れる
-            contentShare.shareContentAttachPicture(commentFragment.comment_fragment_surface_view, commentFragment.comment_fragment_comment_canvas, viewModel.programTitle, liveId)
+            contentShare.shareContentAttachPicture(commentFragment.viewBinding.commentFragmentSurfaceView, commentFragment.viewBinding.commentFragmentCommentCanvas, viewModel.programTitle, liveId)
         }
         //生放送を再生ボタン
-        fragment_comment_fragment_menu_view_live_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuViewLiveButton.setOnClickListener {
             (requireParentFragment() as CommentFragment).apply {
                 setCommentOnlyMode(!viewModel.isCommentOnlyMode)
             }
         }
         // バッググラウンド再生。
-        fragment_comment_fragment_menu_background_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuBackgroundButton.setOnClickListener {
             commentFragment.apply {
                 startBackgroundPlay()
                 viewModel.isNotReceiveLive.value = true
@@ -173,7 +174,7 @@ class CommentMenuFragment : Fragment() {
         }
 
         //ポップアップ再生。いつか怒られそう（プレ垢限定要素だし）
-        fragment_comment_fragment_menu_popup_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuPopupButton.setOnClickListener {
             if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     !Settings.canDrawOverlays(context)
                 } else {
@@ -193,40 +194,40 @@ class CommentMenuFragment : Fragment() {
         }
 
         //フローティングコメビュ
-        fragment_comment_fragment_menu_floating_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuFloatingButton.setOnClickListener {
             //Activity移動
             commentFragment.showBubbles()
         }
 
         //フローティングコメビュはAndroid10以降で利用可能
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            fragment_comment_fragment_menu_floating_button.isEnabled = false
+            viewBinding.fragmentCommentFragmentMenuFloatingButton.isEnabled = false
         }
 
         // （ホーム画面に追加のやつ）
-        fragment_comment_fragment_menu_dymanic_shortcut_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuDymanicShortcutButton.setOnClickListener {
             createPinnedShortcut()
         }
 
         //匿名非表示
-        fragment_comment_fragment_menu_iyayo_hidden_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentMenuIyayoHiddenSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             viewModel.isTokumeiHide = isChecked
         }
 
         // 低遅延
-        fragment_comment_fragment_menu_low_latency_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentMenuLowLatencySwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit { putBoolean("nicolive_low_latency", isChecked) }
             viewModel.nicoLiveHTML.sendLowLatency(isChecked)
         }
 
         // 映像を受信しない（将来のニコニコ実況のため？）
-        fragment_comment_fragment_menu_not_live_recive.isChecked = viewModel.isNotReceiveLive.value ?: false
-        fragment_comment_fragment_menu_not_live_recive.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentMenuNotLiveReceiveSwitch.isChecked = viewModel.isNotReceiveLive.value ?: false
+        viewBinding.fragmentCommentFragmentMenuNotLiveReceiveSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             viewModel.isNotReceiveLive.postValue(!viewModel.isNotReceiveLive.value!!)
         }
 
         // コメント一行モード on/off
-        fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentMenuCommentHiddenSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit {
                 putBoolean("setting_id_hidden", isChecked)
                 apply()
@@ -234,7 +235,7 @@ class CommentMenuFragment : Fragment() {
         }
 
         // ユーザーID非表示モード
-        fragment_comment_fragment_menu_setting_one_line_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentMenuSettingOneLineSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit {
                 putBoolean("setting_one_line", isChecked)
                 apply()
@@ -242,14 +243,14 @@ class CommentMenuFragment : Fragment() {
         }
 
         // コマンド保持モード
-        fragment_comment_fragment_menu_command_save_switch.setOnCheckedChangeListener { compoundButton, b ->
+        viewBinding.fragmentCommentFragmentMenuCommandSaveSwitch.setOnCheckedChangeListener { compoundButton, b ->
             prefSetting.edit {
                 putBoolean("setting_command_save", b)
             }
         }
 
         // ノッチ領域に侵略する
-        fragment_comment_fragment_menu_display_cutout_info_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentMenuDisplayCutoutInfoSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit {
                 putBoolean("setting_display_cutout", isChecked)
             }
@@ -259,7 +260,7 @@ class CommentMenuFragment : Fragment() {
         }
 
         // ニコ生ゲーム
-        fragment_comment_fragment_nico_nama_game_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentNicoNamaGameSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             commentFragment.apply {
                 if (isChecked) {
                     setNicoNamaGame()
@@ -270,7 +271,7 @@ class CommentMenuFragment : Fragment() {
         }
 
         // ニコ生ゲーム（生放送・コメントもWebViewで利用する）
-        fragment_comment_fragment_nico_nama_game_webview_player_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentNicoNamaGameWebviewPlayerSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             commentFragment.apply {
                 if (isChecked) {
                     exoPlayer.volume = 0F
@@ -282,7 +283,7 @@ class CommentMenuFragment : Fragment() {
             }
         }
 
-        fragment_comment_fragment_volume_seek.setOnSeekBarChangeListener(object :
+        viewBinding.fragmentCommentFragmentVolumeSeek.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 commentFragment.apply {
@@ -300,13 +301,13 @@ class CommentMenuFragment : Fragment() {
         })
 
         // コテハン一覧画面
-        fragment_comment_fragment_menu_kotehan_button.setOnClickListener {
+        viewBinding.fragmentCommentFragmentMenuKotehanButton.setOnClickListener {
             val intent = Intent(context, KotehanListActivity::class.java)
             startActivity(intent)
         }
 
         // エモーションをコメント一覧に表示しない
-        fragment_comment_fragment_menu_hide_emotion_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentMenuHideEmotionSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit { putBoolean("setting_nicolive_hide_emotion", isChecked) }
         }
 
@@ -403,43 +404,43 @@ class CommentMenuFragment : Fragment() {
 
     private fun setValue() {
         //コメント非表示
-        fragment_comment_fragment_menu_comment_hidden_switch.isChecked = prefSetting.getBoolean("nicolive_comment_canvas_hide", false)
+        viewBinding.fragmentCommentFragmentMenuCommentHiddenSwitch.isChecked = prefSetting.getBoolean("nicolive_comment_canvas_hide", false)
         //Infoコメント非表示
-        fragment_comment_fragment_menu_hide_info_perm_switch.isChecked = commentFragment.hideInfoUnnkome
+        viewBinding.fragmentCommentFragmentMenuHideInfoPermSwitch.isChecked = commentFragment.hideInfoUnnkome
         //匿名で投稿するか
-        fragment_comment_fragment_menu_iyayo_comment_switch.isChecked = viewModel.nicoLiveHTML.isPostTokumeiComment
+        viewBinding.fragmentCommentFragmentMenuIyayoCommentSwitch.isChecked = viewModel.nicoLiveHTML.isPostTokumeiComment
         //匿名コメントを非表示にするか
-        fragment_comment_fragment_menu_iyayo_hidden_switch.isChecked = viewModel.isTokumeiHide
+        viewBinding.fragmentCommentFragmentMenuIyayoHiddenSwitch.isChecked = viewModel.isTokumeiHide
         //低遅延モードの有効無効
-        fragment_comment_fragment_menu_low_latency_switch.isChecked = prefSetting.getBoolean("nicolive_low_latency", true)
+        viewBinding.fragmentCommentFragmentMenuLowLatencySwitch.isChecked = prefSetting.getBoolean("nicolive_low_latency", true)
         // コメント一行もーど
-        fragment_comment_fragment_menu_comment_setting_hidden_id_swtich.isChecked = prefSetting.getBoolean("setting_id_hidden", false)
+        viewBinding.fragmentCommentFragmentMenuCommentSettingHiddenIdSwtich.isChecked = prefSetting.getBoolean("setting_id_hidden", false)
         // コマンド保持モード
-        fragment_comment_fragment_menu_command_save_switch.isChecked = prefSetting.getBoolean("setting_command_save", false)
+        viewBinding.fragmentCommentFragmentMenuCommandSaveSwitch.isChecked = prefSetting.getBoolean("setting_command_save", false)
         // ユーザーID非表示モード
-        fragment_comment_fragment_menu_setting_one_line_switch.isChecked = prefSetting.getBoolean("setting_one_line", false)
+        viewBinding.fragmentCommentFragmentMenuSettingOneLineSwitch.isChecked = prefSetting.getBoolean("setting_one_line", false)
         //音量
-        fragment_comment_fragment_volume_seek.progress = (commentFragment.exoPlayer.volume * 10).toInt()
+        viewBinding.fragmentCommentFragmentVolumeSeek.progress = (commentFragment.exoPlayer.volume * 10).toInt()
         //ニコ生ゲーム有効時
-        fragment_comment_fragment_nico_nama_game_switch.isChecked = commentFragment.isAddedNicoNamaGame
+        viewBinding.fragmentCommentFragmentNicoNamaGameSwitch.isChecked = commentFragment.isAddedNicoNamaGame
         // ノッチ領域に侵略
-        fragment_comment_fragment_menu_display_cutout_info_switch.isChecked = prefSetting.getBoolean("setting_display_cutout", false)
+        viewBinding.fragmentCommentFragmentMenuDisplayCutoutInfoSwitch.isChecked = prefSetting.getBoolean("setting_display_cutout", false)
     }
 
     //CommentFragmentへ値を渡す
     private fun setCommentFragmentValue() {
         //押したらすぐ反映できるように
-        fragment_comment_fragment_menu_comment_hidden_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentMenuCommentHiddenSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             //コメント非表示
             prefSetting.edit { putBoolean("nicolive_comment_canvas_hide", isChecked) }
             val visibility = if (isChecked) View.GONE else View.VISIBLE
-            MotionLayoutTool.setMotionLayoutViewVisible(commentFragment.comment_fragment_motionlayout, commentFragment.comment_fragment_comment_canvas.id, visibility)
+            MotionLayoutTool.setMotionLayoutViewVisible(commentFragment.viewBinding.commentFragmentMotionLayout, commentFragment.viewBinding.commentFragmentCommentCanvas.id, visibility)
         }
-        fragment_comment_fragment_menu_hide_info_perm_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentMenuHideInfoPermSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             //Infoコメント非表示
             commentFragment.hideInfoUnnkome = isChecked
         }
-        fragment_comment_fragment_menu_iyayo_comment_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentCommentFragmentMenuIyayoCommentSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             // 匿名で投稿するかどうか。
             viewModel.nicoLiveHTML.isPostTokumeiComment = isChecked
             prefSetting.edit { putBoolean("nicolive_post_tokumei", isChecked) }

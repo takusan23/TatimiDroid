@@ -15,10 +15,9 @@ import android.widget.TextView
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.Tool.CustomFont
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.adapter_comment_layout.*
-import kotlinx.android.synthetic.main.fragment_font_setting.*
+import io.github.takusan23.tatimidroid.Tool.CustomFont
+import io.github.takusan23.tatimidroid.databinding.FragmentFontSettingBinding
 import java.io.File
 
 /**
@@ -29,25 +28,28 @@ class FontSettingFragment : Fragment() {
     // SAFのリクエスト判断用
     val fontFileOpenCode = 845
 
-    lateinit var pref_setting: SharedPreferences
+    lateinit var prefSetting: SharedPreferences
+
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentFontSettingBinding.inflate(layoutInflater) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_font_setting, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
         // フォントサイズEditTextへ
         fontSizeEditTextInit()
 
         // 人生リセットボタン
-        fragment_font_setting_font_size_reset_button.setOnClickListener {
+        viewBinding.fragmentFontSettingFontSizeResetButton.setOnClickListener {
             // フォントサイズリセット
             // フォントサイズが指定されていなければ空文字が入る。
-            pref_setting.edit {
+            prefSetting.edit {
                 putFloat("setting_font_size_id", 12F)
                 putFloat("setting_font_size_comment", 14F)
                 apply()
@@ -56,7 +58,7 @@ class FontSettingFragment : Fragment() {
         }
 
         // フォント選択SAF
-        fragment_font_setting_font_file_select_button.setOnClickListener {
+        viewBinding.fragmentFontSettingFontFileSelectButton.setOnClickListener {
             // フォント選択
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             intent.apply {
@@ -65,25 +67,24 @@ class FontSettingFragment : Fragment() {
             startActivityForResult(intent, fontFileOpenCode)
         }
         // フォントファイル削除
-        fragment_font_setting_font_file_reset_button.setOnClickListener {
+        viewBinding.fragmentFontSettingFontFileResetButton.setOnClickListener {
             // 選択したフォントリセット
             resetFont()
             // 更新
             updatePreview()
             // ファイル名
-            fragment_font_setting_font_file_select_button.text =
-                "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
+            viewBinding.fragmentFontSettingFontFileSelectButton.text = "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
         }
 
         // プレビュー更新
         updatePreview()
         // ファイル名
-        fragment_font_setting_font_file_select_button.text = "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
+        viewBinding.fragmentFontSettingFontFileSelectButton.text = "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
 
         // フォントファイルをCommentCanvasにも適用するか
-        fragment_font_setting_apply_comment_canvas_switch.isChecked = pref_setting.getBoolean("setting_comment_canvas_font_file", false)
-        fragment_font_setting_apply_comment_canvas_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-            pref_setting.edit { putBoolean("setting_comment_canvas_font_file", isChecked) }
+        viewBinding.fragmentFontSettingApplyCommentCanvasSwitch.isChecked = prefSetting.getBoolean("setting_comment_canvas_font_file", false)
+        viewBinding.fragmentFontSettingApplyCommentCanvasSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+            prefSetting.edit { putBoolean("setting_comment_canvas_font_file", isChecked) }
         }
 
     }
@@ -105,7 +106,7 @@ class FontSettingFragment : Fragment() {
                 context?.contentResolver?.openInputStream(data.data!!)?.copyTo(it)
             }
             // ファイル名
-            fragment_font_setting_font_file_select_button.text = "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
+            viewBinding.fragmentFontSettingFontFileSelectButton.text = "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
             // 更新
             updatePreview()
         }
@@ -113,21 +114,21 @@ class FontSettingFragment : Fragment() {
 
     // プレビューの更新をするとき
     fun updatePreview() {
-        adapter_room_name_textview.text = "ここがIDです"
-        adapter_comment_textview.text = "ここがコメントです"
+        viewBinding.fragmentFontSettingInclude.adapterRoomNameTextView.text = "ここがIDです"
+        viewBinding.fragmentFontSettingInclude.adapterCommentTextView.text = "ここがコメントです"
         // カスタムフォント、フォントサイズとか
         val customFont = CustomFont(context)
         // フォントサイズ適用
-        adapter_room_name_textview.apply {
+        viewBinding.fragmentFontSettingInclude.adapterRoomNameTextView.apply {
             textSize = customFont.userIdFontSize
         }
-        adapter_comment_textview.apply {
+        viewBinding.fragmentFontSettingInclude.adapterCommentTextView.apply {
             textSize = customFont.commentFontSize
         }
         // TypeFace適用
         customFont.apply {
-            setTextViewFont(adapter_room_name_textview)
-            setTextViewFont(adapter_comment_textview)
+            setTextViewFont(viewBinding.fragmentFontSettingInclude.adapterRoomNameTextView)
+            setTextViewFont(viewBinding.fragmentFontSettingInclude.adapterCommentTextView)
         }
     }
 
@@ -135,18 +136,18 @@ class FontSettingFragment : Fragment() {
     // フォントサイズのEditText初期化
     fun fontSizeEditTextInit() {
         val customFont = CustomFont(context)
-        fragment_font_setting_font_size_id_edittext.setText(customFont.userIdFontSize.toString())
-        fragment_font_setting_font_size_comment_edittext.setText(customFont.commentFontSize.toString())
+        viewBinding.fragmentFontSettingFontSizeIdEditText.setText(customFont.userIdFontSize.toString())
+        viewBinding.fragmentFontSettingFontSizeCommentEditText.setText(customFont.commentFontSize.toString())
         // テキスト監視して自動で保存
-        setTextWatcher(fragment_font_setting_font_size_comment_edittext, "setting_font_size_comment")
-        setTextWatcher(fragment_font_setting_font_size_id_edittext, "setting_font_size_id")
+        setTextWatcher(viewBinding.fragmentFontSettingFontSizeCommentEditText, "setting_font_size_comment")
+        setTextWatcher(viewBinding.fragmentFontSettingFontSizeIdEditText, "setting_font_size_id")
     }
 
     // EditTextを監視して保存するやーつ
     fun setTextWatcher(textView: TextView, preferenceName: String) {
         textView.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-                pref_setting.edit {
+                prefSetting.edit {
                     // からのときは動かない + 大きすぎないように
                     if (s.toString().isNotEmpty() && s.toString().toFloat() <= 100F) {
                         putFloat(preferenceName, s.toString().toFloat())

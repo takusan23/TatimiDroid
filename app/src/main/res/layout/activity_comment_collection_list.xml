@@ -16,7 +16,7 @@
             android:text="@string/comment_collection_yomi_message" />
 
     <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/activity_comment_post_list_recyclerview"
+            android:id="@+id/activity_comment_post_list_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1">
@@ -69,7 +69,7 @@
                 android:layout_height="match_parent" />
 
         <Button
-                android:id="@+id/activity_comment_post_list_add"
+                android:id="@+id/activity_comment_post_list_add_button"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="@string/add" />

@@ -5,17 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Adapter.NicoHistoryAdapter
-import io.github.takusan23.tatimidroid.NicoLive.LiveIDFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
-import kotlinx.android.synthetic.main.bottom_fragment_history.*
-import kotlinx.android.synthetic.main.fragment_liveid.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentHistoryBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,8 +27,11 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
     lateinit var nicoHistoryAdapter: NicoHistoryAdapter
     var recyclerViewList = arrayListOf<NicoHistoryDBEntity>()
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentHistoryBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_history, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -48,16 +48,16 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
         showDBCount()
 
         // chip押したとき
-        bottom_fragment_history_chip_live.setOnClickListener { loadHistory() }
-        bottom_fragment_history_chip_video.setOnClickListener { loadHistory() }
-        bottom_fragment_history_chip_today.setOnClickListener { loadHistory() }
-        bottom_fragment_history_chip_distinct.setOnClickListener { loadHistory() }
+        viewBinding.bottomFragmentHistoryLiveChip.setOnClickListener { loadHistory() }
+        viewBinding.bottomFragmentHistoryVideoChip.setOnClickListener { loadHistory() }
+        viewBinding.bottomFragmentHistoryTodayChip.setOnClickListener { loadHistory() }
+        viewBinding.bottomFragmentHistoryDistinctChip.setOnClickListener { loadHistory() }
 
     }
 
     // 件数表示
     private fun showDBCount() {
-        bottom_fragment_history_textview.text = "${getString(R.string.history)}：${recyclerViewList.size}"
+        viewBinding.bottomFragmentHistoryTextView.text = "${getString(R.string.history)}：${recyclerViewList.size}"
     }
 
     /**
@@ -72,8 +72,8 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
                     recyclerViewList.add(0, history)
                 }
                 // 動画、生放送フィルター
-                val isVideo = bottom_fragment_history_chip_video.isChecked
-                val isLive = bottom_fragment_history_chip_live.isChecked
+                val isVideo = viewBinding.bottomFragmentHistoryVideoChip.isChecked
+                val isLive = viewBinding.bottomFragmentHistoryLiveChip.isChecked
                 when {
                     isVideo && isLive -> {
                         recyclerViewList = recyclerViewList.filter { history ->
@@ -92,7 +92,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
                     }
                 }
                 // 今日のみ
-                if (bottom_fragment_history_chip_today.isChecked) {
+                if (viewBinding.bottomFragmentHistoryTodayChip.isChecked) {
                     // から
                     val calender = Calendar.getInstance()
                     calender.set(Calendar.HOUR, 0)
@@ -106,7 +106,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
                     } as ArrayList<NicoHistoryDBEntity>
                 }
                 // 重複を表示しない
-                if (bottom_fragment_history_chip_distinct.isChecked) {
+                if (viewBinding.bottomFragmentHistoryDistinctChip.isChecked) {
                     recyclerViewList = recyclerViewList.distinctBy { history -> history.userId } as ArrayList<NicoHistoryDBEntity>
                 }
             }
@@ -117,21 +117,13 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
     }
 
     private fun initRecyclerView() {
-        bottom_fragment_history_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(context)
-        bottom_fragment_history_recyclerview.layoutManager = mLayoutManager
-        nicoHistoryAdapter = NicoHistoryAdapter(recyclerViewList)
-        bottom_fragment_history_recyclerview.adapter = nicoHistoryAdapter
-
-        // EditText渡す
-        if (::editText.isInitialized) {
-            nicoHistoryAdapter.editText = editText
-        } else {
-            val liveIDBottomFragment =
-                (activity as AppCompatActivity).supportFragmentManager.findFragmentByTag("liveid_fragment") as LiveIDFragment
-            nicoHistoryAdapter.editText = liveIDBottomFragment.main_activity_liveid_inputedittext
+        viewBinding.bottomFragmentHistoryRecyclerview.apply {
+            setHasFixedSize(true)
+            val mLayoutManager = LinearLayoutManager(context)
+            layoutManager = mLayoutManager
+            nicoHistoryAdapter = NicoHistoryAdapter(recyclerViewList)
+            adapter = nicoHistoryAdapter
         }
-
         nicoHistoryAdapter.bottomSheetDialogFragment = this
     }
 

@@ -12,8 +12,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoMyListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoMyListViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoMyListViewModel
-import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_nicovideo_mylist.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoMylistBinding
 
 /**
  * マイリスト一覧Fragment。
@@ -31,8 +30,11 @@ class NicoVideoMyListFragment : Fragment() {
     /** RecyclerViewのAdapter */
     private val myListAdapter by lazy { NicoVideoMyListAdapter(recyclerViewList, this.id, parentFragmentManager) }
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoMylistBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_mylist, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -52,11 +54,11 @@ class NicoVideoMyListFragment : Fragment() {
 
         // 読み込み
         myListViewModel.loadingLiveData.observe(viewLifecycleOwner) { isLoading ->
-            fragment_nicovideo_mylist_refresh.isRefreshing = isLoading
+            viewBinding.fragmentNicovideoMylistRefresh.isRefreshing = isLoading
         }
 
         // ひっぱって更新
-        fragment_nicovideo_mylist_refresh.setOnRefreshListener {
+        viewBinding.fragmentNicovideoMylistRefresh.setOnRefreshListener {
             myListViewModel.getMyListList()
         }
 
@@ -64,7 +66,7 @@ class NicoVideoMyListFragment : Fragment() {
 
     /** RecyclerView初期化 */
     private fun initRecyclerView() {
-        fragment_nicovideo_mylist_recycler_view.apply {
+        viewBinding.fragmentNicovideoMylistRecyclerView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             adapter = myListAdapter

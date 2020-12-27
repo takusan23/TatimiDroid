@@ -18,7 +18,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRankingHTML
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoRankingViewModel
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_dev_nicovideo_ranking.*
+import io.github.takusan23.tatimidroid.databinding.FragmentDevNicovideoRankingBinding
 import kotlinx.coroutines.Job
 
 /**
@@ -70,8 +70,11 @@ class NicoVideoRankingFragment : Fragment() {
     // ViewModel
     private val viewModel by viewModels<NicoVideoRankingViewModel>()
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentDevNicovideoRankingBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_dev_nicovideo_ranking, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -88,15 +91,15 @@ class NicoVideoRankingFragment : Fragment() {
         // ViewModel監視
         viewModel.rankingVideoList.observe(viewLifecycleOwner) { videoList ->
             // 動画一覧更新
-            fragment_video_ranking_swipe.isRefreshing = false
+            viewBinding.fragmentVideoRankingSwipe.isRefreshing = false
             recyclerViewList.clear()
             videoList.forEach { video -> recyclerViewList.add(video) }
         }
         viewModel.rankingTagList.observe(viewLifecycleOwner) { tagList ->
-            fragment_nicovideo_ranking_tag.removeAllViews()
+            viewBinding.fragmentNicovideoRankingTagLinearLayout.removeAllViews()
             // ランキングのタグ
             tagList.forEach { genreTag ->
-                val chip = (layoutInflater.inflate(R.layout.include_chip, fragment_nicovideo_ranking_tag, false) as Chip).apply {
+                val chip = (layoutInflater.inflate(R.layout.include_chip, viewBinding.fragmentNicovideoRankingTagLinearLayout, false) as Chip).apply {
                     text = genreTag
                     // 押したら読み込み
                     setOnClickListener {
@@ -108,7 +111,7 @@ class NicoVideoRankingFragment : Fragment() {
                         }
                     }
                 }
-                fragment_nicovideo_ranking_tag.addView(chip)
+                viewBinding.fragmentNicovideoRankingTagLinearLayout.addView(chip)
             }
         }
 
@@ -121,14 +124,14 @@ class NicoVideoRankingFragment : Fragment() {
             rankingGenrePos = RANKING_GENRE.indexOf(lastOpenGenre)
             rankingTimePos = RANKING_TIME.indexOf(lastOpenTime)
             // Chipに入れる
-            fragment_nicovideo_ranking_genre.text = lastOpenGenre
-            fragment_nicovideo_ranking_time.text = lastOpenTime
+            viewBinding.fragmentNicovideoRankingGenreTextView.text = lastOpenGenre
+            viewBinding.fragmentNicovideoRankingTimeTextView.text = lastOpenTime
             // データ取得
             getRanking()
         }
 
         // Swipe To Refresh
-        fragment_video_ranking_swipe.setOnRefreshListener {
+        viewBinding.fragmentVideoRankingSwipe.setOnRefreshListener {
             getRanking()
         }
     }
@@ -141,12 +144,12 @@ class NicoVideoRankingFragment : Fragment() {
         // 消す
         recyclerViewList.clear()
         nicoVideoListAdapter.notifyDataSetChanged()
-        fragment_nicovideo_ranking_tag.removeAllViews()
-        fragment_video_ranking_swipe.isRefreshing = true
+        viewBinding.fragmentNicovideoRankingTagLinearLayout.removeAllViews()
+        viewBinding.fragmentVideoRankingSwipe.isRefreshing = true
         // 次表示するときのために今選んでいるジャンル・集計時間を記録しておく
         prefSetting.edit {
-            putString("nicovideo_ranking_genre", fragment_nicovideo_ranking_genre.text.toString())
-            putString("nicovideo_ranking_time", fragment_nicovideo_ranking_time.text.toString())
+            putString("nicovideo_ranking_genre", viewBinding.fragmentNicovideoRankingGenreTextView.text.toString())
+            putString("nicovideo_ranking_time", viewBinding.fragmentNicovideoRankingTimeTextView.text.toString())
         }
         // ジャンル
         val genre = NicoVideoRankingHTML.NICOVIDEO_RANKING_GENRE[rankingGenrePos]
@@ -158,27 +161,27 @@ class NicoVideoRankingFragment : Fragment() {
 
     private fun initDropDownMenu() {
         // ジャンル選択
-        val genrePopupMenu = PopupMenu(requireContext(), fragment_nicovideo_ranking_genre)
+        val genrePopupMenu = PopupMenu(requireContext(), viewBinding.fragmentNicovideoRankingGenreTextView)
         RANKING_GENRE.forEach { genre -> genrePopupMenu.menu.add(genre) }
-        fragment_nicovideo_ranking_genre.setOnClickListener {
+        viewBinding.fragmentNicovideoRankingGenreTextView.setOnClickListener {
             genrePopupMenu.show()
         }
         // クリックイベント
         genrePopupMenu.setOnMenuItemClickListener { item ->
-            fragment_nicovideo_ranking_genre.text = item.title
+            viewBinding.fragmentNicovideoRankingGenreTextView.text = item.title
             rankingGenrePos = RANKING_GENRE.indexOf(item.title)
             // データ再取得
             getRanking()
             true
         }
         // 集計時間選択
-        val timePopupMenu = PopupMenu(requireContext(), fragment_nicovideo_ranking_time)
+        val timePopupMenu = PopupMenu(requireContext(), viewBinding.fragmentNicovideoRankingTimeTextView)
         RANKING_TIME.forEach { time -> timePopupMenu.menu.add(time) }
-        fragment_nicovideo_ranking_time.setOnClickListener {
+        viewBinding.fragmentNicovideoRankingTimeTextView.setOnClickListener {
             timePopupMenu.show()
         }
         timePopupMenu.setOnMenuItemClickListener { item ->
-            fragment_nicovideo_ranking_time.text = item.title
+            viewBinding.fragmentNicovideoRankingTimeTextView.text = item.title
             rankingTimePos = RANKING_TIME.indexOf(item.title)
             // データ再取得
             getRanking()
@@ -188,7 +191,7 @@ class NicoVideoRankingFragment : Fragment() {
 
     // RecyclerView初期化
     private fun initRecyclerView() {
-        fragment_video_ranking_recyclerview.apply {
+        viewBinding.fragmentVideoRankingRecyclerView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             nicoVideoListAdapter = NicoVideoListAdapter(recyclerViewList)
@@ -200,7 +203,7 @@ class NicoVideoRankingFragment : Fragment() {
         super.onSaveInstanceState(outState)
         // ViewModelにしたい
         outState.putSerializable("list", recyclerViewList)
-        outState.putStringArrayList("tag", fragment_nicovideo_ranking_tag.children.toList().map { view -> (view as Chip).text.toString() } as java.util.ArrayList<String>)
+        outState.putStringArrayList("tag", viewBinding.fragmentNicovideoRankingTagLinearLayout.children.toList().map { view -> (view as Chip).text.toString() } as java.util.ArrayList<String>)
     }
 
 }

@@ -14,7 +14,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoPlayListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_playlist.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoPlaylistBinding
 
 
 /**
@@ -27,8 +27,11 @@ class NicoVideoPlayListBottomFragment : BottomSheetDialogFragment() {
     /** [io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment]のViewModel取得 */
     private val viewModel by viewModels<NicoVideoViewModel>({ requireParentFragment() })
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentNicovideoPlaylistBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_nicovideo_playlist, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -44,13 +47,13 @@ class NicoVideoPlayListBottomFragment : BottomSheetDialogFragment() {
 
             // トータル何分
             val totalDuration = videoList.sumBy { nicoVideoData -> nicoVideoData.duration?.toInt() ?: 0 }
-            nicovideo_playlist_bottom_fragment_duration.text = "${getString(R.string.playlist_total_time)}：${DateUtils.formatElapsedTime(totalDuration.toLong())}"
+            viewBinding.bottomFragmentNicovideoPlaylistDurationChip.text = "${getString(R.string.playlist_total_time)}：${DateUtils.formatElapsedTime(totalDuration.toLong())}"
 
             // 件数
-            nicovideo_playlist_bottom_fragment_count.text = "${getString(R.string.video_count)}：${videoList.size}"
+            viewBinding.bottomFragmentNicovideoPlaylistCountChip.text = "${getString(R.string.video_count)}：${videoList.size}"
 
             // 逆にする
-            nicovideo_playlist_bottom_fragment_reverse.setOnClickListener {
+            viewBinding.bottomFragmentNicovideoPlaylistReverseChip.setOnClickListener {
                 val videoListTemp = ArrayList(videoList)
                 videoList.clear()
                 videoList.addAll(videoListTemp.reversed())
@@ -60,8 +63,8 @@ class NicoVideoPlayListBottomFragment : BottomSheetDialogFragment() {
             }
 
             // しゃっふる
-            nicovideo_playlist_bottom_fragment_shuffle.setOnClickListener {
-                if (nicovideo_playlist_bottom_fragment_shuffle.isChecked) {
+            viewBinding.bottomFragmentNicovideoPlaylistShuffleChip.setOnClickListener {
+                if (viewBinding.bottomFragmentNicovideoPlaylistShuffleChip.isChecked) {
                     // シャッフル
                     val videoListTemp = ArrayList(videoList)
                     videoList.clear()
@@ -76,23 +79,23 @@ class NicoVideoPlayListBottomFragment : BottomSheetDialogFragment() {
                 }
                 playlistAdapter.notifyDataSetChanged()
                 scrollPlayingItem()
-                viewModel.isShuffled.value = nicovideo_playlist_bottom_fragment_shuffle.isChecked
+                viewModel.isShuffled.value = viewBinding.bottomFragmentNicovideoPlaylistShuffleChip.isChecked
             }
 
             scrollPlayingItem()
         }
 
         // 閉じるボタン
-        nicovideo_playlist_bottom_fragment_close.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoPlaylistCloseButton.setOnClickListener {
             dismiss()
         }
 
         // Chipにチェックを入れる
         viewModel.isReversed.observe(viewLifecycleOwner) { isChecked ->
-            nicovideo_playlist_bottom_fragment_reverse.isChecked = isChecked
+            viewBinding.bottomFragmentNicovideoPlaylistReverseChip.isChecked = isChecked
         }
         viewModel.isShuffled.observe(viewLifecycleOwner) { isChecked ->
-            nicovideo_playlist_bottom_fragment_shuffle.isChecked = isChecked
+            viewBinding.bottomFragmentNicovideoPlaylistShuffleChip.isChecked = isChecked
         }
 
 
@@ -100,7 +103,7 @@ class NicoVideoPlayListBottomFragment : BottomSheetDialogFragment() {
 
     /** 再生中の動画までスクロールする */
     private fun scrollPlayingItem() {
-        val layoutManager = nicovideo_playlist_bottom_fragment_recyclerview.layoutManager as LinearLayoutManager
+        val layoutManager = viewBinding.bottomFragmentNicovideoPlaylistRecyclerView.layoutManager as LinearLayoutManager
         // 位置を特定
         val pos = viewModel.videoList?.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == viewModel.playingVideoId.value } ?: 0
         layoutManager.scrollToPosition(pos)
@@ -116,7 +119,7 @@ class NicoVideoPlayListBottomFragment : BottomSheetDialogFragment() {
 
 
     fun initRecyclerView() {
-        nicovideo_playlist_bottom_fragment_recyclerview.apply {
+        viewBinding.bottomFragmentNicovideoPlaylistRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             setHasFixedSize(true)
             adapter = playlistAdapter

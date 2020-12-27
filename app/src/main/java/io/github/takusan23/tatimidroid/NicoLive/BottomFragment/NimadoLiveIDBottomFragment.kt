@@ -15,9 +15,10 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_fragment_nimado_live_id.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentNimadoLiveIdBinding
 import kotlinx.coroutines.*
-import okhttp3.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.jsoup.Jsoup
 import java.util.regex.Pattern
 
@@ -25,12 +26,11 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
 
     lateinit var pref_setting: SharedPreferences
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.bottom_fragment_nimado_live_id, container, false)
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentNimadoLiveIdBinding.inflate(layoutInflater) }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -41,15 +41,15 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
         //クリップボード
         setClipBoardProgramID()
 
-        nimado_liveid_bottom_fragment_button_comment_post_mode.setOnClickListener {
+        viewBinding.bottomFragmentNimadoLiveidCommentPostModeButton.setOnClickListener {
             addNimado("comment_post")
             allButtonDisable()
         }
-        nimado_liveid_bottom_fragment_button_comment_nicocas_mode.setOnClickListener {
+        viewBinding.bottomFragmentNimadoLiveidCommentNicocasModeButton.setOnClickListener {
             addNimado("nicocas")
             allButtonDisable()
         }
-        nimado_liveid_bottom_fragment_button_comment_viewer_mode.setOnClickListener {
+        viewBinding.bottomFragmentNimadoLiveidCommentViewerModeButton.setOnClickListener {
             addNimado("comment_viewer")
             allButtonDisable()
         }
@@ -64,9 +64,9 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
     }
 
     fun allButtonDisable() {
-        nimado_liveid_bottom_fragment_button_comment_post_mode.isEnabled = false
-        nimado_liveid_bottom_fragment_button_comment_nicocas_mode.isEnabled = false
-        nimado_liveid_bottom_fragment_button_comment_viewer_mode.isEnabled = false
+        viewBinding.bottomFragmentNimadoLiveidCommentViewerModeButton.isEnabled = false
+        viewBinding.bottomFragmentNimadoLiveidCommentNicocasModeButton.isEnabled = false
+        viewBinding.bottomFragmentNimadoLiveidCommentPostModeButton.isEnabled = false
     }
 
     fun addNimado(mode: String) {
@@ -153,7 +153,7 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
 
     //正規表現でURLから番組ID取る
     private fun getLiveIDRegex(): String {
-        val text = nimado_liveid_bottom_fragment_liveid_edittext.text.toString()
+        val text = viewBinding.nimadoLiveidBottomFragmentLiveidEditText.text.toString()
         //正規表現で取り出す
         val nicoID_Matcher = Pattern.compile("(lv)([0-9]+)")
             .matcher(SpannableString(text))
@@ -173,7 +173,7 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
     //正規表現でテキストがco|chか判断する
     //コミュニティIDの場合は番組IDを取ってこないといけない
     fun isCommunityOrChannelID(): Boolean {
-        val text = nimado_liveid_bottom_fragment_liveid_edittext.text.toString()
+        val text = viewBinding.nimadoLiveidBottomFragmentLiveidEditText.text.toString()
         val communityID_Matcher = Pattern.compile("(co|ch)([0-9]+)")
             .matcher(SpannableString(text))
         return communityID_Matcher.find()
@@ -227,12 +227,12 @@ class NimadoLiveIDBottomFragment : BottomSheetDialogFragment() {
             if (nicoID_Matcher.find()) {
                 //取り出してEditTextに入れる
                 val liveId = nicoID_Matcher.group()
-                nimado_liveid_bottom_fragment_liveid_edittext.setText(liveId)
+                viewBinding.nimadoLiveidBottomFragmentLiveidEditText.setText(liveId)
             }
             if (communityID_Matcher.find()) {
                 //取り出してEditTextに入れる
                 val liveId = communityID_Matcher.group()
-                nimado_liveid_bottom_fragment_liveid_edittext.setText(liveId)
+                viewBinding.nimadoLiveidBottomFragmentLiveidEditText.setText(liveId)
             }
         }
     }

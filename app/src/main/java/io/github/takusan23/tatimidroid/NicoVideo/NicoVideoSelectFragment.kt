@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
+import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.*
@@ -17,7 +18,7 @@ import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
-import kotlinx.android.synthetic.main.fragment_dev_nicovideo_select.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoListBinding
 
 /**
  * ランキング、マイリスト等を表示するFragmentを乗せるFragment。
@@ -27,8 +28,11 @@ class NicoVideoSelectFragment : Fragment() {
 
     lateinit var prefSetting: SharedPreferences
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoListBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_dev_nicovideo_select, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -52,15 +56,17 @@ class NicoVideoSelectFragment : Fragment() {
         // 未ログインで利用する場合
         if (isNotLoginMode(context)) {
             // ログインが必要なやつを非表示に
-            fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_post).isVisible = false
-            fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_mylist).isVisible = false
-            fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_history).isVisible = false
-            fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_nicorepo).isVisible = false
-            fragment_nicovideo_select_menu.menu.findItem(R.id.nicovideo_select_menu_account).isVisible = false
+            viewBinding.fragmentNicovideoListMenu.menu.apply {
+                findItem(R.id.nicovideo_select_menu_post).isVisible = false
+                findItem(R.id.nicovideo_select_menu_mylist).isVisible = false
+                findItem(R.id.nicovideo_select_menu_history).isVisible = false
+                findItem(R.id.nicovideo_select_menu_nicorepo).isVisible = false
+                findItem(R.id.nicovideo_select_menu_account).isVisible = false
+            }
         }
 
         // メニュー押したとき
-        fragment_nicovideo_select_menu.setNavigationItemSelectedListener {
+        viewBinding.fragmentNicovideoListMenu.setNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.nicovideo_select_menu_ranking -> setFragment(NicoVideoRankingFragment())
                 R.id.nicovideo_select_menu_mylist -> setFragment(NicoVideoMyListFragment())
@@ -94,8 +100,8 @@ class NicoVideoSelectFragment : Fragment() {
 
     private fun setDarkMode() {
         val darkModeSupport = DarkModeSupport(requireContext())
-        fragment_video_list_linearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
-        fragment_video_bar?.background = ColorDrawable(getThemeColor(darkModeSupport.context))
+        viewBinding.fragmentVideoListLinearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
+        viewBinding.fragmentVideoBar?.background = ColorDrawable(getThemeColor(darkModeSupport.context))
     }
 
     /**
@@ -106,9 +112,10 @@ class NicoVideoSelectFragment : Fragment() {
     fun setFragment(fragment: Fragment, popbackstack: String? = null) {
         // Handler(UIスレッド指定)で実行するとダークモード、画面切り替えに耐えるアプリが作れる。
         Handler(Looper.getMainLooper()).post {
-            fragment_video_motionlayout?.transitionToStart()
+            // 縦画面時親はMotionLayoutになるんだけど、横画面時はLinearLayoutなのでキャストが必要
+            (viewBinding.fragmentNicovideoListMotionlayout as? MotionLayout)?.transitionToStart()
             childFragmentManager.beginTransaction().apply {
-                replace(fragment_video_list_linearlayout.id, fragment)
+                replace(viewBinding.fragmentVideoListLinearlayout.id, fragment)
                 // fragmentを積み上げる。
                 if (popbackstack != null) {
                     addToBackStack(popbackstack)

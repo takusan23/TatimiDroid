@@ -11,8 +11,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoRepo.NicoRepoDataClass
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoRepoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoRepoViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoRepoViewModel
-import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_nicovideo_nicorepo.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoNicorepoBinding
 
 /**
  * ニコレポFragment
@@ -33,8 +32,11 @@ class NicoVideoNicoRepoFragment : Fragment() {
     /** RecyclerViewにセットするAdapter */
     private val nicoRepoAdapter = NicoRepoAdapter(recyclerViewList)
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoNicorepoBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_nicorepo, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -48,7 +50,7 @@ class NicoVideoNicoRepoFragment : Fragment() {
 
         // 読み込みLiveDataうけとり
         nicoRepoViewModel.loadingLiveData.observe(viewLifecycleOwner) { isLoading ->
-            fragment_nicovideo_nicorepo_swipe.isRefreshing = isLoading
+            viewBinding.fragmentNicovideoNicorepoSwipe.isRefreshing = isLoading
         }
 
         // 配列受け取り
@@ -59,20 +61,20 @@ class NicoVideoNicoRepoFragment : Fragment() {
         }
 
         // ひっぱって更新
-        fragment_nicovideo_nicorepo_swipe.setOnRefreshListener {
+        viewBinding.fragmentNicovideoNicorepoSwipe.setOnRefreshListener {
             // データ消す
             recyclerViewList.clear()
             nicoRepoViewModel.getNicoRepo()
         }
 
         // そーと
-        fragment_nicovideo_nicorepo_filter_live.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentNicovideoNicorepoFilterLiveChip.setOnCheckedChangeListener { buttonView, isChecked ->
             nicoRepoViewModel.apply {
                 isShowLive = isChecked
                 filterAndPostLiveData()
             }
         }
-        fragment_nicovideo_nicorepo_filter_video.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.fragmentNicovideoNicorepoFilterVideoChip.setOnCheckedChangeListener { buttonView, isChecked ->
             nicoRepoViewModel.apply {
                 isShowVideo = isChecked
                 filterAndPostLiveData()
@@ -80,13 +82,13 @@ class NicoVideoNicoRepoFragment : Fragment() {
         }
 
         // argumentの値を適用する
-        fragment_nicovideo_nicorepo_filter_live.isChecked = arguments?.getBoolean("show_live", true) ?: true
-        fragment_nicovideo_nicorepo_filter_video.isChecked = arguments?.getBoolean("show_video", true) ?: true
+        viewBinding.fragmentNicovideoNicorepoFilterLiveChip.isChecked = arguments?.getBoolean("show_live", true) ?: true
+        viewBinding.fragmentNicovideoNicorepoFilterVideoChip.isChecked = arguments?.getBoolean("show_video", true) ?: true
     }
 
     // RecyclerViewを初期化
     private fun initRecyclerView() {
-        fragment_nicovideo_nicorepo_recyclerview.apply {
+        viewBinding.fragmentNicovideoNicorepoRecyclerview.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             adapter = nicoRepoAdapter

@@ -189,8 +189,8 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>, p
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val commentTextView: TextView = itemView.findViewById(R.id.adapter_comment_textview)
-        val roomNameTextView: TextView = itemView.findViewById(R.id.adapter_room_name_textview)
+        val commentTextView: TextView = itemView.findViewById(R.id.adapter_comment_text_view)
+        val roomNameTextView: TextView = itemView.findViewById(R.id.adapter_room_name_text_view)
         val commentRoomColorView: View = itemView.findViewById(R.id.adapter_comment_room_color)
         val parentView: View = itemView.findViewById(R.id.adapter_comment_parent)
     }

@@ -12,10 +12,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoUploadVideoViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoUploadVideoViewModelFactory
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoUploadVideoViewModel
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_nicovideo_post.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoPostBinding
 
 /**
  * 投稿動画表示Fragment
@@ -33,8 +33,11 @@ class NicoVideoUploadVideoFragment : Fragment() {
     /** RecyclerViewへセットするAdapter */
     private val nicoVideoListAdapter = NicoVideoListAdapter(recyclerViewList)
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoPostBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_post, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -48,7 +51,7 @@ class NicoVideoUploadVideoFragment : Fragment() {
 
         // 読み込み反映LiveData
         nicoVideoUploadVideoViewModel.loadingLiveData.observe(viewLifecycleOwner) { isLoading ->
-            fragment_nicovideo_post_swipe_to_refresh.isRefreshing = isLoading
+            viewBinding.fragmentNicovideoPostSwipeToRefresh.isRefreshing = isLoading
         }
 
         // データ受け取る
@@ -57,7 +60,7 @@ class NicoVideoUploadVideoFragment : Fragment() {
             recyclerViewList.addAll(videoList)
             nicoVideoListAdapter.notifyDataSetChanged()
             // スクロール
-            fragment_nicovideo_post_recyclerview.apply {
+            viewBinding.fragmentNicovideoPostRecyclerView.apply {
                 (layoutManager as LinearLayoutManager).scrollToPositionWithOffset(nicoVideoUploadVideoViewModel.recyclerViewPos, nicoVideoUploadVideoViewModel.recyclerViewYPos)
             }
             // これで最後です。；；は配列の中身が一個以上あればな話。
@@ -65,12 +68,12 @@ class NicoVideoUploadVideoFragment : Fragment() {
                 showToast(getString(R.string.end_scroll))
             }
             // からっぽなら投稿動画非公開メッセージ表示
-            fragment_nicovideo_post_private_message.isVisible = recyclerViewList.isEmpty()
+            viewBinding.fragmentNicovideoPostPrivateMessageTextView.isVisible = recyclerViewList.isEmpty()
 
         }
 
         // スワイプ更新
-        fragment_nicovideo_post_swipe_to_refresh.setOnRefreshListener {
+        viewBinding.fragmentNicovideoPostSwipeToRefresh.setOnRefreshListener {
             nicoVideoUploadVideoViewModel.apply {
                 // 位置直し
                 recyclerViewPos = 0
@@ -95,7 +98,7 @@ class NicoVideoUploadVideoFragment : Fragment() {
 
     // RecyclerView初期化
     private fun initRecyclerView() {
-        fragment_nicovideo_post_recyclerview.apply {
+        viewBinding.fragmentNicovideoPostRecyclerView.apply {
 
             setHasFixedSize(true)
             val linearLayoutManager = LinearLayoutManager(context)

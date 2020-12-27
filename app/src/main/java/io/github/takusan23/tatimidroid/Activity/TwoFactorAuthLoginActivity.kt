@@ -17,7 +17,7 @@ import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
-import kotlinx.android.synthetic.main.activity_two_factor_auth.*
+import io.github.takusan23.tatimidroid.databinding.ActivityTwoFactorAuthBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,27 +27,31 @@ import kotlinx.coroutines.launch
  * */
 class TwoFactorAuthLoginActivity : AppCompatActivity() {
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { ActivityTwoFactorAuthBinding.inflate(layoutInflater) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // ダークモード
         DarkModeSupport(this).setActivityTheme(this)
-        setContentView(R.layout.activity_two_factor_auth)
+        setContentView(viewBinding.root)
+
         if (isDarkMode(this)) {
             supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(this)))
         }
-        two_factor_auth_activity_parent.backgroundTintList = ColorStateList.valueOf(getThemeColor(this))
+        viewBinding.root.backgroundTintList = ColorStateList.valueOf(getThemeColor(this))
 
         // データを受け取る
         val loginData = intent.getSerializableExtra("login") as NicoLoginDataClass
 
         // 認証ボタン押す
-        two_factor_auth_activity_login_button.setOnClickListener {
+        viewBinding.activityTwoFactorAuthLoginButton.setOnClickListener {
 
             // 認証コード
-            val keyVisualArts = two_factor_auth_activity_key_input.text.toString()
+            val keyVisualArts = viewBinding.activityTwoFactorAuthKeyInput.text.toString()
             // このデバイスを信用する場合
-            val isTrustDevice = two_factor_auth_activity_trust_check.isChecked
+            val isTrustDevice = viewBinding.activityTwoFactorAuthTrustCheck.isChecked
 
             // 例外
             val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
@@ -89,7 +93,7 @@ class TwoFactorAuthLoginActivity : AppCompatActivity() {
             val clipboardText = clipdata.getItemAt(0).text
             if (clipboardText.matches(Regex("[0-9]+"))) {
                 // 正規表現で数字だったときは貼り付ける
-                two_factor_auth_activity_key_input.setText(clipboardText)
+                viewBinding.activityTwoFactorAuthKeyInput.setText(clipboardText)
             }
         }
     }

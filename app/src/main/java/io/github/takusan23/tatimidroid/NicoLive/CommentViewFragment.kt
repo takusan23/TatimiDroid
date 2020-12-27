@@ -6,16 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_commentview.*
+import io.github.takusan23.tatimidroid.databinding.FragmentCommentviewBinding
 
 /**
  * ニコ生コメント表示Fragment
@@ -28,41 +28,38 @@ class CommentViewFragment : Fragment() {
     // getString(R.string.arena)
     private lateinit var stringArena: String
 
-    private lateinit var recyclerView: RecyclerView
-
     // CommentFragmentとそれのViewModel
     val commentFragment by lazy { requireParentFragment() as CommentFragment }
     val viewModel by viewModels<NicoLiveViewModel>({ commentFragment })
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentCommentviewBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.fragment_commentview, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-
-        recyclerView = view.findViewById(R.id.fragment_comment_recyclerview)
-
         stringArena = getString(R.string.arena)
 
-        commentFragment.apply {
+        viewBinding.fragmentCommentRecyclerView.apply {
             // RecyclerView初期化
-            recyclerView.setHasFixedSize(true)
-            val mLayoutManager = LinearLayoutManager(context)
-            recyclerView.layoutManager = mLayoutManager
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(context)
             commentRecyclerViewAdapter = CommentRecyclerViewAdapter(viewModel.commentList, commentFragment)
-            recyclerView.adapter = commentRecyclerViewAdapter
-            recyclerView.itemAnimator = null
+            adapter = commentRecyclerViewAdapter
+            itemAnimator = null
             //区切り線いれる
             val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
-            recyclerView.addItemDecoration(itemDecoration)
+            addItemDecoration(itemDecoration)
         }
 
         // スクロールボタン。追従するぞい
-        fragment_comment_following_button.setOnClickListener {
+        viewBinding.fragmentCommentFollowingButton.setOnClickListener {
             // Fragmentはクソ！
-            (recyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(0, 0)
+            (viewBinding.fragmentCommentRecyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(0, 0)
             // Visibilityゴーン。誰もカルロス・ゴーンの話しなくなったな
             setFollowingButtonVisibility(false)
         }
@@ -91,7 +88,7 @@ class CommentViewFragment : Fragment() {
      * */
     fun recyclerViewScrollPos() {
         // れいあうとまねーじゃー
-        val linearLayoutManager = (recyclerView.layoutManager as LinearLayoutManager)
+        val linearLayoutManager = (viewBinding.fragmentCommentRecyclerView.layoutManager as LinearLayoutManager)
         // RecyclerViewで表示されてる中で一番上に表示されてるコメントの位置
         val visibleListFirstItemPos = linearLayoutManager.findFirstVisibleItemPosition()
         // 追いかけるボタンを利用するか
@@ -106,7 +103,7 @@ class CommentViewFragment : Fragment() {
         } else {
             // 利用する
             if (visibleListFirstItemPos == 0 || viewModel.commentList.isEmpty()) {
-                recyclerView.scrollToPosition(0)
+                viewBinding.fragmentCommentRecyclerView.scrollToPosition(0)
                 // 追従ボタン非表示
                 setFollowingButtonVisibility(false)
             } else {
@@ -121,13 +118,7 @@ class CommentViewFragment : Fragment() {
      * @param visible 表示する場合はtrue。非表示にする場合はfalse
      * */
     fun setFollowingButtonVisibility(visible: Boolean) {
-        fragment_comment_following_button?.apply {
-            visibility = if (visible) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
-        }
+        viewBinding.fragmentCommentFollowingButton.isVisible = !viewBinding.fragmentCommentFollowingButton.isVisible
     }
 
 }

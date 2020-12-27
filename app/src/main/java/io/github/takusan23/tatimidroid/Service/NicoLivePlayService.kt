@@ -41,10 +41,8 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
-import kotlinx.android.synthetic.main.include_nicolive_player_controller.view.*
-import kotlinx.android.synthetic.main.overlay_player_layout.view.*
+import io.github.takusan23.tatimidroid.databinding.OverlayPlayerLayoutBinding
 import kotlinx.coroutines.*
-import java.util.*
 
 
 /**
@@ -80,10 +78,9 @@ class NicoLivePlayService : Service() {
     val nicoLiveComment = NicoLiveComment()
 
     // View
-    private lateinit var popupView: View
+    private lateinit var viewBinding: OverlayPlayerLayoutBinding
     private lateinit var popupExoPlayer: SimpleExoPlayer
     private lateinit var commentCanvas: CommentCanvas
-    var uiHideTimer = Timer() // UIを自動で非表示にするためのTimer
 
     // 番組情報関係
     var liveId = "" // 生放送IDじゃなくてちゃんねるIDの可能性も有る
@@ -336,9 +333,9 @@ class NicoLivePlayService : Service() {
                         // 再生準備
                         popupExoPlayer.setMediaSource(hlsMediaSource)
                         popupExoPlayer.prepare()
-                        if (::popupView.isInitialized) {
+                        if (::viewBinding.isInitialized) {
                             //SurfaceViewセット
-                            popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
+                            popupExoPlayer.setVideoSurfaceView(viewBinding.overlaySurfaceview)
                         }
                         //再生
                         popupExoPlayer.playWhenReady = true
@@ -399,47 +396,47 @@ class NicoLivePlayService : Service() {
                 PixelFormat.TRANSLUCENT
             )
         }
-        popupView = layoutInflater.inflate(R.layout.overlay_player_layout, null)
+        viewBinding = OverlayPlayerLayoutBinding.inflate(layoutInflater)
         // 表示
-        windowManager.addView(popupView, params)
-        commentCanvas = popupView.overlay_commentCanvas
+        windowManager.addView(viewBinding.root, params)
+        commentCanvas = viewBinding.overlayCommentCanvas
         commentCanvas.isPopupView = true
 
         if (isNicoJK()) {
             // ニコニコ実況の場合はSurfaceView非表示
-            popupView.overlay_surfaceview.visibility = View.GONE
+            viewBinding.overlaySurfaceview.visibility = View.GONE
             // 半透明
-            (popupView.overlay_surfaceview.parent as FrameLayout).setBackgroundColor(Color.parseColor("#1A000000"))
+            (viewBinding.overlaySurfaceview.parent as FrameLayout).setBackgroundColor(Color.parseColor("#1A000000"))
             // ミュートボタン塞ぐ
-            popupView.player_nicolive_control_mute.visibility = View.GONE
+            viewBinding.overlayControlInclude.playerNicoliveControlMute.visibility = View.GONE
         }
 
         // 番組名、ID設定
-        popupView.apply {
-            player_nicolive_control_title.text = programTitle
-            player_nicolive_control_id.text = liveId
+        viewBinding.root.apply {
+            viewBinding.overlayControlInclude.playerNicoliveControlTitle.text = programTitle
+            viewBinding.overlayControlInclude.playerNicoliveControlId.text = liveId
         }
 
         // 使わないボタンを消す
-        popupView.apply {
-            player_nicolive_control_popup.isVisible = false
-            player_nicolive_control_background.isVisible = false
-            player_nicolive_control_video_network.isVisible = false
+        viewBinding.apply {
+            overlayControlInclude.playerNicoliveControlPopup.isVisible = false
+            overlayControlInclude.playerNicoliveControlBackground.isVisible = false
+            overlayControlInclude.playerNicoliveControlVideoNetwork.isVisible = false
         }
 
         // SurfaceViewセット
         if (::popupExoPlayer.isInitialized) {
-            popupExoPlayer.setVideoSurfaceView(popupView.overlay_surfaceview)
+            popupExoPlayer.setVideoSurfaceView(viewBinding.overlaySurfaceview)
         }
 
         //閉じる
-        popupView.player_nicolive_control_close.isVisible = true
-        popupView.player_nicolive_control_close.setOnClickListener {
+        viewBinding.overlayControlInclude.playerNicoliveControlClose.isVisible = true
+        viewBinding.overlayControlInclude.playerNicoliveControlClose.setOnClickListener {
             stopSelf()
         }
 
         //アプリ起動
-        popupView.player_nicolive_control_fullscreen.setOnClickListener {
+        viewBinding.overlayControlInclude.playerNicoliveControlFullscreen.setOnClickListener {
             stopSelf()
             // モード選ぶ
             val mode = when {
@@ -457,17 +454,17 @@ class NicoLivePlayService : Service() {
         }
 
         //ミュート・ミュート解除
-        popupView.player_nicolive_control_mute.isVisible = true
-        popupView.player_nicolive_control_mute.setOnClickListener {
+        viewBinding.overlayControlInclude.playerNicoliveControlMute.isVisible = true
+        viewBinding.overlayControlInclude.playerNicoliveControlMute.setOnClickListener {
             if (::popupExoPlayer.isInitialized) {
                 popupExoPlayer.apply {
                     //音が０のとき
                     if (volume == 0f) {
                         volume = 1f
-                        popupView.player_nicolive_control_mute.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
+                        viewBinding.overlayControlInclude.playerNicoliveControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
                     } else {
                         volume = 0f
-                        popupView.player_nicolive_control_mute.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
+                        viewBinding.overlayControlInclude.playerNicoliveControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
                     }
                 }
             }
@@ -492,7 +489,7 @@ class NicoLivePlayService : Service() {
                 // アスペクト比が(頭)おかCなるので計算で出す。(16対9なので)
                 params.height = (params.width / 16) * 9
                 // 更新
-                windowManager.updateViewLayout(popupView, params)
+                windowManager.updateViewLayout(viewBinding.root, params)
                 // 大きさを保持しておく
                 prefSetting.edit {
                     putInt("nicolive_popup_width", params.width)
@@ -502,7 +499,7 @@ class NicoLivePlayService : Service() {
             }
         })
         // 移動
-        popupView.setOnTouchListener { view, motionEvent ->
+        viewBinding.root.setOnTouchListener { view, motionEvent ->
             // タップした位置を取得する
             val x = motionEvent.rawX.toInt()
             val y = motionEvent.rawY.toInt()
@@ -529,19 +526,19 @@ class NicoLivePlayService : Service() {
 
         //ボタン表示
         var job: Job? = null
-        popupView.setOnClickListener {
+        viewBinding.root.setOnClickListener {
             // ktxで表示/非表示を短く書こう！
-            popupView.player_nicolive_control_main.isVisible = !popupView.player_nicolive_control_main.isVisible
+            viewBinding.overlayControlInclude.playerNicoliveControlMain.isVisible = !viewBinding.overlayControlInclude.playerNicoliveControlMain.isVisible
             job?.cancel()
             job = GlobalScope.launch(Dispatchers.Main) {
                 // 一定期間で消えるように
                 delay(3000)
-                popupView.player_nicolive_control_main.isVisible = false
+                viewBinding.overlayControlInclude.playerNicoliveControlMain.isVisible = false
             }
         }
 
-        popupView.player_nicolive_control_send.isVisible = true
-        popupView.player_nicolive_control_send.setOnClickListener {
+        viewBinding.overlayControlInclude.playerNicoliveControlSend.isVisible = true
+        viewBinding.overlayControlInclude.playerNicoliveControlSend.setOnClickListener {
             showNotification(programTitle)
         }
 
@@ -549,14 +546,14 @@ class NicoLivePlayService : Service() {
         if (prefSetting.getInt("nicolive_popup_width", 0) != 0) {
             params.width = prefSetting.getInt("nicolive_popup_width", width)
             params.height = prefSetting.getInt("nicolive_popup_height", height)
-            windowManager.updateViewLayout(popupView, params)
+            windowManager.updateViewLayout(viewBinding.root, params)
         }
 
         // 位置が保存されていれば適用
         if (prefSetting.getInt("nicolive_popup_x_pos", 0) != 0) {
             params.x = prefSetting.getInt("nicolive_popup_x_pos", 0)
             params.y = prefSetting.getInt("nicolive_popup_y_pos", 0)
-            windowManager.updateViewLayout(popupView, params)
+            windowManager.updateViewLayout(viewBinding.root, params)
         }
 
     }
@@ -696,11 +693,11 @@ class NicoLivePlayService : Service() {
                     }
                     "video_popup_fix_size" -> {
                         // ポップアップの大きさを治す
-                        val params = popupView.layoutParams
+                        val params = viewBinding.root.layoutParams
                         params.width = 800
                         params.height = (params.width / 16) * 9
                         // 更新
-                        windowManager.updateViewLayout(popupView, params)
+                        windowManager.updateViewLayout(viewBinding.root, params)
                         // 大きさを保持しておく
                         prefSetting.edit {
                             putInt("nicolive_popup_width", params.width)
@@ -716,8 +713,8 @@ class NicoLivePlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(broadcastReceiver)
-        if (::popupView.isInitialized) {
-            windowManager.removeView(popupView)
+        if (::viewBinding.isInitialized) {
+            windowManager.removeView(viewBinding.root)
         }
         if (::popupExoPlayer.isInitialized) {
             popupExoPlayer.release()

@@ -18,7 +18,7 @@
             android:layout_height="match_parent">
 
         <LinearLayout
-                android:id="@+id/bottom_fragment_nicovideo_quality_linearlayout"
+                android:id="@+id/bottom_fragment_nicovideo_quality_linear_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />

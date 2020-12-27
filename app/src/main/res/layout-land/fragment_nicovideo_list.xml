@@ -1,6 +1,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/fragment_nicovideo_list_motionlayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -18,12 +19,12 @@
 
         <!-- Buttonを並べるより良さそう。 -->
         <com.google.android.material.navigation.NavigationView
-                android:id="@+id/fragment_nicovideo_select_menu"
+                android:id="@+id/fragment_nicovideo_list_menu"
                 style="@style/NavigationViewSelectColor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:elevation="0dp"
-                app:menu="@menu/nicovideo_select_menu" />
+                app:menu="@menu/fragment_nicovideo_list_menu" />
     </LinearLayout>
 
     <LinearLayout

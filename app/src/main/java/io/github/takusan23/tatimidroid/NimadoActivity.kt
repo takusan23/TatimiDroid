@@ -24,13 +24,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import io.github.takusan23.tatimidroid.Adapter.NimadoListRecyclerViewAdapter
-import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NimadoLiveIDBottomFragment
+import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
-import kotlinx.android.synthetic.main.activity_nimado.*
+import io.github.takusan23.tatimidroid.databinding.ActivityNimadoBinding
 import okhttp3.*
 import okhttp3.Callback
 import org.jsoup.Jsoup
@@ -67,6 +67,8 @@ class NimadoActivity : AppCompatActivity() {
 
     var fragmentList = arrayListOf<Fragment>()
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { ActivityNimadoBinding.inflate(layoutInflater) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,7 +77,7 @@ class NimadoActivity : AppCompatActivity() {
         darkModeSupport = DarkModeSupport(this)
         darkModeSupport.setNimadoActivityTheme(this)
 
-        setContentView(R.layout.activity_nimado)
+        setContentView(viewBinding.root)
 
         pref_setting = PreferenceManager.getDefaultSharedPreferences(this)
 
@@ -83,7 +85,7 @@ class NimadoActivity : AppCompatActivity() {
 
 
         //自作Toolbarを適用させる
-        setSupportActionBar(nimado_activity_toolbar)
+        setSupportActionBar(viewBinding.nimadoActivityToolbar)
 
         //ステータスバーを透過する
         //window.statusBarColor = Color.TRANSPARENT
@@ -96,16 +98,16 @@ class NimadoActivity : AppCompatActivity() {
         //ハンバーガーアイコンを実装
         // sync drawer
         val actionBarDrawerToggle = ActionBarDrawerToggle(
-            this, drawer_layout, nimado_activity_toolbar, R.string.nimado, R.string.nimado
+            this, viewBinding.drawerLayout, viewBinding.nimadoActivityToolbar, R.string.nimado, R.string.nimado
         )
-        drawer_layout.addDrawerListener(actionBarDrawerToggle)
+        viewBinding.drawerLayout.addDrawerListener(actionBarDrawerToggle)
         actionBarDrawerToggle.syncState()
 
         //RecyclerView初期化
         initRecyclerView()
 
         //追加ボタン
-        nimado_activity_add_liveid_button.setOnClickListener {
+        viewBinding.nimadoActivityAddLiveidButton.setOnClickListener {
             val nimadoLiveIDBottomFragment = NimadoLiveIDBottomFragment()
             nimadoLiveIDBottomFragment.show(supportFragmentManager, "nimado_liveid")
         }
@@ -180,7 +182,7 @@ class NimadoActivity : AppCompatActivity() {
         if (isDarkMode(this)) {
             cardView.backgroundTintList = ColorStateList.valueOf(Color.BLACK)
         }
-        nimado_activity_linearlayout.addView(cardView)
+        viewBinding.nimadoActivityLinearlayout.addView(cardView)
 
 
         // Fragment設置
@@ -253,18 +255,17 @@ class NimadoActivity : AppCompatActivity() {
     }
 
     private fun initRecyclerView() {
-        nimado_activity_list_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(this)
-        nimado_activity_list_recyclerview.layoutManager =
-            mLayoutManager as RecyclerView.LayoutManager?
-        nimadoListRecyclerViewAdapter = NimadoListRecyclerViewAdapter(recyclerViewList)
-        nimado_activity_list_recyclerview.adapter = nimadoListRecyclerViewAdapter
-        recyclerViewLayoutManager = nimado_activity_list_recyclerview.layoutManager!!
-        nimadoListRecyclerViewAdapter.linearLayout = nimado_activity_linearlayout
-        nimadoListRecyclerViewAdapter.activity = this
-        //区切り線いれる
-        val itemDecoration = DividerItemDecoration(this, DividerItemDecoration.VERTICAL)
-        nimado_activity_list_recyclerview.addItemDecoration(itemDecoration)
+        viewBinding.nimadoActivityListRecyclerView.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(this@NimadoActivity)
+            nimadoListRecyclerViewAdapter = NimadoListRecyclerViewAdapter(recyclerViewList)
+            adapter = nimadoListRecyclerViewAdapter
+            nimadoListRecyclerViewAdapter.linearLayout = viewBinding.nimadoActivityLinearlayout
+            nimadoListRecyclerViewAdapter.activity = this@NimadoActivity
+            //区切り線いれる
+            val itemDecoration = DividerItemDecoration(this@NimadoActivity, DividerItemDecoration.VERTICAL)
+            addItemDecoration(itemDecoration)
+        }
 
         //ドラッグできるようにする
         val itemTouchHelper =
@@ -297,7 +298,7 @@ class NimadoActivity : AppCompatActivity() {
                     htmlList.add(new, html)
                     //Fragmentが入るView再設置
                     //全部消すのでは無く移動するところだけ消す
-                    val cardView = (nimado_activity_linearlayout[old] as CardView)
+                    val cardView = (viewBinding.nimadoActivityLinearlayout[old] as CardView)
                     val fragment = if (supportFragmentManager.findFragmentByTag(liveID) != null) {
                         supportFragmentManager.findFragmentByTag(liveID)
                     } else {
@@ -309,8 +310,8 @@ class NimadoActivity : AppCompatActivity() {
                         commentFragment.arguments = bundle
                         commentFragment
                     }
-                    nimado_activity_linearlayout.removeView(cardView)
-                    nimado_activity_linearlayout.addView(cardView, new)
+                    viewBinding.nimadoActivityLinearlayout.removeView(cardView)
+                    viewBinding.nimadoActivityLinearlayout.addView(cardView, new)
                     val trans = supportFragmentManager.beginTransaction()
                     //cardViewの0番目のViewがFragmentを入れるViewなので
                     if (fragment != null) {
@@ -347,7 +348,7 @@ class NimadoActivity : AppCompatActivity() {
                     //スワイプしないのでいらない
                 }
             })
-        itemTouchHelper.attachToRecyclerView(nimado_activity_list_recyclerview)
+        itemTouchHelper.attachToRecyclerView(viewBinding.nimadoActivityListRecyclerView)
     }
 
     /*

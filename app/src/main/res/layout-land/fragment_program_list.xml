@@ -2,14 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/fragment_program_list_parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        app:layoutDescription="@xml/fragment_program_backdrop_motion"
         tools:showPaths="true">
 
     <LinearLayout
-            android:id="@+id/fragment_program_backdrop"
+            android:id="@+id/fragment_program_backdrop_linear_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -19,7 +19,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.navigation.NavigationView
-                android:id="@+id/fragment_program_menu"
+                android:id="@+id/fragment_program_navigation_view"
                 style="@style/NavigationViewSelectColor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -29,7 +29,7 @@
     </LinearLayout>
 
     <LinearLayout
-            android:id="@+id/fragment_program_list_linearlayout"
+            android:id="@+id/fragment_program_list_linear_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -38,7 +38,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fragment_program_bar">
+            app:layout_constraintTop_toBottomOf="@+id/fragment_program_bar_linear_layout">
 
         <!--
         <com.google.android.material.tabs.TabLayout

@@ -25,7 +25,7 @@
                 android:layout_weight="1">
 
             <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/bottom_fragment_tag_edittext"
+                    android:id="@+id/bottom_fragment_tag_edit_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/tag" />
@@ -41,7 +41,7 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/bottom_fragment_tag_recyclerview"
+            android:id="@+id/bottom_fragment_tag_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 

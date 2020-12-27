@@ -7,7 +7,7 @@
         android:layout_height="match_parent">
 
     <androidx.constraintlayout.motion.widget.MotionLayout
-            android:id="@+id/comment_fragment_motionlayout"
+            android:id="@+id/comment_fragment_motion_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layoutDescription="@xml/fragment_comment_scene">
@@ -304,7 +304,7 @@
 
             <!-- コメント投稿部分だけ別のレイアウトを参照  -->
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab"
+                    android:id="@+id/fragment_nico_live_fab"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|end"

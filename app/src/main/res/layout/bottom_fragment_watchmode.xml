@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:id="@+id/dialog_watchmode_parent_linearlayout"
+              android:id="@+id/dialog_watchmode_parent_linear_layout"
               android:padding="10dp"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -86,7 +86,7 @@
                     android:text="@string/comment_viewer_mode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/dialog_watchmode_comment_viewer_mode_button"/>
+                    android:id="@+id/bottom_fragment_watch_mode_comment_viewer_mode_button"/>
 
             <!--コメント投稿モード-->
 
@@ -149,7 +149,7 @@
                     android:text="@string/comment_post_mode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/dialog_watchmode_comment_post_mode_button"/>
+                    android:id="@+id/bottom_fragment_watch_mode_comment_post_mode_button"/>
 
 
             <!--nicocas式コメント投稿モード-->
@@ -213,7 +213,7 @@
                     android:layout_width="match_parent"
                     android:textAllCaps="false"
                     android:layout_height="wrap_content"
-                    android:id="@+id/dialog_watchmode_nicocas_comment_mode_button"/>
+                    android:id="@+id/bottom_fragment_watch_mode_nicocas_comment_mode_button"/>
 
 
         </LinearLayout>

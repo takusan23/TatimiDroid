@@ -2,7 +2,7 @@
 <androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/fragment_program_motionlayout"
+        android:id="@+id/fragment_program_list_parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -10,7 +10,7 @@
         tools:showPaths="true">
 
     <LinearLayout
-            android:id="@+id/fragment_program_backdrop"
+            android:id="@+id/fragment_program_backdrop_linear_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
@@ -30,7 +30,7 @@
 
                 <!-- Buttonを並べるより良さそう。styleでメニュー選択時の色を変えている-->
                 <com.google.android.material.navigation.NavigationView
-                        android:id="@+id/fragment_program_menu"
+                        android:id="@+id/fragment_program_navigation_view"
                         style="@style/NavigationViewSelectColor"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -43,7 +43,7 @@
     </LinearLayout>
 
     <LinearLayout
-            android:id="@+id/fragment_program_bar"
+            android:id="@+id/fragment_program_bar_linear_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="75dp"
@@ -72,7 +72,7 @@
                 android:text="@string/dropdown_title" />
 
         <LinearLayout
-                android:id="@+id/fragment_program_list_linearlayout"
+                android:id="@+id/fragment_program_list_linear_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#fff"

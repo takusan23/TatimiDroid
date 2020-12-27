@@ -8,46 +8,48 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.GiftRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_gift_layout.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveGiftBinding
 import okhttp3.*
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
 class GiftFragment : Fragment() {
+
+    /** ギフト配列 */
     var recyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
-    lateinit var giftRecyclerViewAdapter: GiftRecyclerViewAdapter
-    lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
+
+    /** ギフト一覧Adapter */
+    val giftRecyclerViewAdapter = GiftRecyclerViewAdapter(recyclerViewList)
 
     val viewModel by viewModels<NicoLiveViewModel>({ requireParentFragment() })
     val liveId by lazy { viewModel.nicoLiveHTML.liveId }
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicoliveGiftBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.fragment_gift_layout, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        recyclerViewList = ArrayList()
-        gift_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(context)
-        gift_recyclerview.layoutManager = mLayoutManager as RecyclerView.LayoutManager?
-        giftRecyclerViewAdapter =
-            GiftRecyclerViewAdapter(recyclerViewList)
-        gift_recyclerview.adapter = giftRecyclerViewAdapter
-        recyclerViewLayoutManager = gift_recyclerview.layoutManager!!
+        viewBinding.fragmentNicoliveGiftRecyclerView.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = giftRecyclerViewAdapter
+        }
 
         //ギフト履歴
         getGiftRanking()
 
         //TabLayout
-        gift_tablayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+        viewBinding.fragmentNicoliveGiftTabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
 
             }

@@ -7,11 +7,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.Adapter.KotehanListAdapter
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
-import kotlinx.android.synthetic.main.activity_kotehan_list.*
+import io.github.takusan23.tatimidroid.databinding.ActivityKotehanListBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -22,13 +21,16 @@ import kotlinx.coroutines.withContext
  * */
 class KotehanListActivity : AppCompatActivity() {
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { ActivityKotehanListBinding.inflate(layoutInflater) }
+
     // RecyclerView
     val kotehanList = arrayListOf<KotehanDBEntity>()
     val kotehanListAdapter = KotehanListAdapter(kotehanList) // 新しい順に
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_kotehan_list)
+        setContentView(viewBinding.root)
 
         // RecyclerView初期化
         initRecyclerView()
@@ -60,12 +62,13 @@ class KotehanListActivity : AppCompatActivity() {
     // RecyclerView初期化
     private fun initRecyclerView() {
         // RecyclerView初期化
-        activity_kotehan_list_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(this@KotehanListActivity)
-        activity_kotehan_list_recyclerview.layoutManager = mLayoutManager
-        activity_kotehan_list_recyclerview.adapter = kotehanListAdapter
-        val itemDecoration = DividerItemDecoration(this@KotehanListActivity, DividerItemDecoration.VERTICAL)
-        activity_kotehan_list_recyclerview.addItemDecoration(itemDecoration)
+        viewBinding.activityKotehanListRecyclerView.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(this@KotehanListActivity)
+            adapter = kotehanListAdapter
+            val itemDecoration = DividerItemDecoration(this@KotehanListActivity, DividerItemDecoration.VERTICAL)
+            addItemDecoration(itemDecoration)
+        }
     }
 
     /**

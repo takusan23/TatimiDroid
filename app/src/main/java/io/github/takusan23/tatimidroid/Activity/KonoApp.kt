@@ -15,7 +15,7 @@ import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
-import kotlinx.android.synthetic.main.activity_kono_app.*
+import io.github.takusan23.tatimidroid.databinding.ActivityKonoAppBinding
 
 /**
  * このアプリについて。
@@ -36,6 +36,9 @@ class KonoApp : AppCompatActivity() {
     val version = "2020/12/20"
     val codeName1 = "（Zero）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { ActivityKonoAppBinding.inflate(layoutInflater) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -46,23 +49,23 @@ class KonoApp : AppCompatActivity() {
             supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(this)))
         }
 
-        setContentView(R.layout.activity_kono_app)
+        setContentView(viewBinding.root)
 
         val appVersion = packageManager.getPackageInfo(packageName, 0).versionName
 
         title = getString(R.string.kono_app)
 
-        kono_app_codename.text = "$appVersion\n$version\n$codeName1"
+        viewBinding.activityKonoAppCodenameTextView.text = "$appVersion\n$version\n$codeName1"
 
-        kono_app_app_name_cardview.setOnClickListener {
+        viewBinding.activityKonoAppCardView.setOnClickListener {
             runEasterEgg()
         }
 
         // リンク集展開/非表示など
-        kono_app_link_show_button.setOnClickListener { button ->
-            kono_app_recyclerview.isVisible = !kono_app_recyclerview.isVisible
+        viewBinding.activityKonoAppLinkShowButton.setOnClickListener { button ->
+            viewBinding.konoAppRecyclerView.isVisible = !viewBinding.konoAppRecyclerView.isVisible
             // アイコン設定
-            if (kono_app_recyclerview.isVisible) {
+            if (viewBinding.konoAppRecyclerView.isVisible) {
                 // 格納
                 (button as MaterialButton).apply {
                     text = getString(R.string.hide)
@@ -83,7 +86,7 @@ class KonoApp : AppCompatActivity() {
     }
 
     private fun initRecyclerView() {
-        kono_app_recyclerview.apply {
+        viewBinding.konoAppRecyclerView.apply {
             val menuList = arrayListOf<MenuRecyclerAdapterDataClass>().apply {
                 add(MenuRecyclerAdapterDataClass("Twitter", twitterLink, getDrawable(R.drawable.ic_outline_account_circle_24px), twitterLink))
                 add(MenuRecyclerAdapterDataClass("Mastodon", mastodonLink, getDrawable(R.drawable.ic_outline_account_circle_24px), mastodonLink))
@@ -137,7 +140,7 @@ class KonoApp : AppCompatActivity() {
         val commentJSON = CommentJSONParse("{}", "arena", "sm157")
         commentJSON.comment = aa
         commentJSON.mail = "$color $size"
-        konoapp_comment_canvas.postCommentAsciiArt(aa.split("\n"), commentJSON)
+        viewBinding.activtyKonoAppCommentCanvas.postCommentAsciiArt(aa.split("\n"), commentJSON)
     }
 
     /**

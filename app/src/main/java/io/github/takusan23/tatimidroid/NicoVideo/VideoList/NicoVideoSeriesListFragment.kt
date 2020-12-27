@@ -12,8 +12,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoSeri
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoSeriesAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoSeriesListViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoSeriesListViewModel
-import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_nicovideo_series.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoSeriesBinding
 
 /**
  * シリーズ一覧表示Fragment
@@ -32,8 +31,11 @@ class NicoVideoSeriesListFragment : Fragment() {
     /** RecyclerViewのAdapter */
     val nicoVideoSeriesAdapter by lazy { NicoVideoSeriesAdapter(seriesList, this.id, parentFragmentManager) }
 
+    /** findViewById駆逐。SeriesListもSeriesも同じレイアウト（RecyclerViewが一つあるだけ） */
+    private val viewBinding by lazy { FragmentNicovideoSeriesBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_series, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -53,11 +55,11 @@ class NicoVideoSeriesListFragment : Fragment() {
 
         // 読み込み
         seriesListViewModel.loadingLiveData.observe(viewLifecycleOwner) { isLoading ->
-            fragment_nicovideo_series_refresh.isRefreshing = isLoading
+            viewBinding.fragmentNicovideoSeriesRefresh.isRefreshing = isLoading
         }
 
         // ひっぱって更新
-        fragment_nicovideo_series_refresh.setOnRefreshListener {
+        viewBinding.fragmentNicovideoSeriesRefresh.setOnRefreshListener {
             seriesListViewModel.getSeriesList()
         }
 
@@ -65,7 +67,7 @@ class NicoVideoSeriesListFragment : Fragment() {
 
     /** RecyclerView初期化 */
     private fun initRecyclerView() {
-        fragment_nicovideo_series_recyclerview.apply {
+        viewBinding.fragmentNicovideoSeriesRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             setHasFixedSize(true)
             adapter = nicoVideoSeriesAdapter

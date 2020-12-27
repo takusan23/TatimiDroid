@@ -12,7 +12,7 @@
             android:orientation="horizontal">
 
         <com.google.android.material.chip.Chip
-                android:id="@+id/fragment_nicovideo_nicorepo_filter_video"
+                android:id="@+id/fragment_nicovideo_nicorepo_filter_video_chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
@@ -23,7 +23,7 @@
                 app:chipIcon="@drawable/ic_local_movies_24px" />
 
         <com.google.android.material.chip.Chip
-                android:id="@+id/fragment_nicovideo_nicorepo_filter_live"
+                android:id="@+id/fragment_nicovideo_nicorepo_filter_live_chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"

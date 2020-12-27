@@ -14,7 +14,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
         <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/fragment_nicovideo_series_recyclerview"
+                android:id="@+id/fragment_nicovideo_series_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scrollbars="vertical" />

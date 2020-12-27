@@ -9,18 +9,16 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.NimadoActivity
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.activity_nimado.*
 import java.util.*
 
-class NimadoListRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) :
-    RecyclerView.Adapter<NimadoListRecyclerViewAdapter.ViewHolder>() {
+class NimadoListRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<ArrayList<*>>) : RecyclerView.Adapter<NimadoListRecyclerViewAdapter.ViewHolder>() {
 
     var activity: NimadoActivity? = null
     var linearLayout: LinearLayout? = null
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
-        viewType: Int
+        viewType: Int,
     ): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.adapter_nimado_list, parent, false)
@@ -45,7 +43,7 @@ class NimadoListRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList
         holder.closeButton.setOnClickListener {
             //LinearLayoutと配列からけす
             activity?.apply {
-                nimado_activity_linearlayout?.removeViewAt(position)
+                linearLayout?.removeViewAt(position)
                 programList.removeAt(position)
                 //RecyclerViewからも
                 recyclerViewList.removeAt(position)

@@ -10,8 +10,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
-import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_fragment_skip_customize.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentSkipCustomizeBinding
 
 /**
  * 押したときのスキップ秒数を変更できるやつ
@@ -19,10 +18,13 @@ import kotlinx.android.synthetic.main.bottom_fragment_skip_customize.*
  * */
 class NicoVideoSkipCustomizeBottomFragment : BottomSheetDialogFragment() {
 
-    lateinit var prefSetting: SharedPreferences
+    private lateinit var prefSetting: SharedPreferences
+
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentSkipCustomizeBinding.inflate(layoutInflater) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_skip_customize, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -30,13 +32,13 @@ class NicoVideoSkipCustomizeBottomFragment : BottomSheetDialogFragment() {
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
-        bottom_fragment_skip_input.setText(prefSetting.getString("nicovideo_skip_sec", "5"))
+        viewBinding.bottomFragmentNicovideoSkipCustomizeEditText.setText(prefSetting.getString("nicovideo_skip_sec", "5"))
 
         // 保存
-        bottom_fragment_skip_input.addTextChangedListener {
+        viewBinding.bottomFragmentNicovideoSkipCustomizeEditText.addTextChangedListener {
             if (it?.isNotEmpty() == true) {
                 // 空文字だと toLong() で落ちるので対策（toLongOrNull()使えば変換できない時にnullにしてくれる）
-                prefSetting.edit { putString("nicovideo_skip_sec", bottom_fragment_skip_input.text.toString()) }
+                prefSetting.edit { putString("nicovideo_skip_sec", it.toString()) }
                 applyUI()
             }
         }

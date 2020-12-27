@@ -12,7 +12,7 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_qulity_fragment_layout.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoQualityBinding
 
 /**
  * ニコ生画質変更BottomFragment。
@@ -20,8 +20,11 @@ import kotlinx.android.synthetic.main.bottom_qulity_fragment_layout.*
  * */
 class NicoLiveQualitySelectBottomSheet : BottomSheetDialogFragment() {
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentNicovideoQualityBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_qulity_fragment_layout, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -54,7 +57,7 @@ class NicoLiveQualitySelectBottomSheet : BottomSheetDialogFragment() {
                 commentFragmentViewModel.nicoLiveHTML.sendQualityMessage(text)
                 dismiss()
             }
-            quality_parent_linearlayout.addView(textView)
+            viewBinding.bottomFragmentNicovideoQualityLinearLayout.addView(textView)
         }
     }
 

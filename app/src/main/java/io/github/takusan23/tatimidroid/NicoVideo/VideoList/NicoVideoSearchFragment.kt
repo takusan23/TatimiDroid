@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -19,7 +20,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdap
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
-import kotlinx.android.synthetic.main.fragment_nicovideo_search.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoSearchBinding
 import kotlinx.coroutines.*
 
 /**
@@ -59,15 +60,18 @@ class NicoVideoSearchFragment : Fragment() {
     var position = 0
     var yPos = 0
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoSearchBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_search, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         // ダークモード
-        fragment_nicovideo_search_app_bar.background = ColorDrawable(getThemeColor(requireContext()))
+        viewBinding.fragmentNicovideoSearchAppBar.background = ColorDrawable(getThemeColor(requireContext()))
 
         // ドロップダウンメニュー初期化
         initDropDownMenu()
@@ -78,31 +82,31 @@ class NicoVideoSearchFragment : Fragment() {
         // argumentの値を使って検索。
         val searchText = arguments?.getString("search")
         if (searchText != null && searchText.isNotEmpty()) {
-            fragment_nicovideo_search_input.setText(searchText)
+            viewBinding.fragmentNicovideoSearchInput.setText(searchText)
             search(searchText)
         }
 
         // 非表示オプション（再生中にタグ検索する時に使う）
         val isSearchHide = arguments?.getBoolean("search_hide") ?: false
         if (isSearchHide) {
-            (fragment_nicovideo_search_input.parent as View).visibility = View.GONE
-            (fragment_nicovideo_search_tag_key_menu.parent as View).visibility = View.GONE
+            (viewBinding.fragmentNicovideoSearchInput.parent as View).visibility = View.GONE
+            (viewBinding.fragmentNicovideoSearchTagKeyMenu.parent as View).visibility = View.GONE
         }
 
         // 検索ボタン
-        fragment_nicovideo_search.setOnClickListener {
+        viewBinding.fragmentNicovideoSearchImageView.setOnClickListener {
             page = 1
             search()
         }
 
         // 引っ張って更新
-        fragment_nicovideo_search_swipe_refresh.setOnRefreshListener {
+        viewBinding.fragmentNicovideoSearchSwipeRefresh.setOnRefreshListener {
             page = 1
             search()
         }
 
         // エンターキー押したら検索実行
-        fragment_nicovideo_search_input.setOnEditorActionListener { v, actionId, event ->
+        viewBinding.fragmentNicovideoSearchInput.setOnEditorActionListener { v, actionId, event ->
             when (actionId) {
                 EditorInfo.IME_ACTION_SEARCH -> {
                     page = 1
@@ -114,30 +118,24 @@ class NicoVideoSearchFragment : Fragment() {
         }
 
         // タグ、並び替え常に出す必要なくない？というわけで非表示にできるようにする
-        fragment_nicovideo_search_option.setOnClickListener {
-            fragment_nicovideo_search_sort_parent_linarlayout.apply {
-                if (visibility == View.VISIBLE) {
-                    visibility = View.GONE
-                } else {
-                    visibility = View.VISIBLE
-                }
-            }
+        viewBinding.fragmentNicovideoSearchOption.setOnClickListener {
+            viewBinding.fragmentNicovideoSearchSortParentLinarLayout.isVisible = !viewBinding.fragmentNicovideoSearchSortParentLinarLayout.isVisible
         }
 
         // たぐ、並び替えメニュー押しても検索できるように
-        fragment_nicovideo_search_sort_menu.addTextChangedListener {
+        viewBinding.fragmentNicovideoSearchSortMenu.addTextChangedListener {
             page = 1 // RecyclerView空にするので
             search()
         }
-        fragment_nicovideo_search_tag_key_menu.addTextChangedListener {
+        viewBinding.fragmentNicovideoSearchTagKeyMenu.addTextChangedListener {
             page = 1 // RecyclerView空にするので
             search()
         }
 
         // 動画再生中に検索した時に、ソートが消えるので表示
         if (arguments?.getBoolean("sort_show") == true) {
-            fragment_nicovideo_search_sort_parent_linarlayout.visibility = View.VISIBLE
-            (fragment_nicovideo_search_tag_key_menu.parent as View).visibility = View.GONE
+            (viewBinding.fragmentNicovideoSearchSortParentLinarLayout as View).visibility = View.GONE
+            (viewBinding.fragmentNicovideoSearchTagKeyMenu.parent as View).visibility = View.GONE
         }
 
     }
@@ -147,7 +145,7 @@ class NicoVideoSearchFragment : Fragment() {
      * 注意：pageに1が入っているときはRecyclerViewを空にします。それ以外は空にしません
      * @param searchText 検索内容。省略すると「fragment_nicovideo_search_input」の値を使います。
      * */
-    fun search(searchText: String = fragment_nicovideo_search_input.text.toString()) {
+    fun search(searchText: String = viewBinding.fragmentNicovideoSearchInput.text.toString()) {
         if (searchText.isNotEmpty()) {
             // すでにあればキャンセル？
             if (::coroutine.isInitialized) {
@@ -156,7 +154,7 @@ class NicoVideoSearchFragment : Fragment() {
             // 例外処理。コルーチン内で例外出るとここに来るようになるらしい。あたまいい
             val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
                 showToast("${getString(R.string.error)}${throwable}")
-                fragment_nicovideo_search_swipe_refresh.isRefreshing = false
+                viewBinding.fragmentNicovideoSearchSwipeRefresh.isRefreshing = false
             }
             coroutine = lifecycleScope.launch(errorHandler) {
                 val response = withContext(Dispatchers.Main) {
@@ -167,11 +165,11 @@ class NicoVideoSearchFragment : Fragment() {
                         yPos = 0
                         isMaxCount = false
                     }
-                    fragment_nicovideo_search_swipe_refresh.isRefreshing = true
+                    viewBinding.fragmentNicovideoSearchSwipeRefresh.isRefreshing = true
                     // ソート条件生成
-                    val sort = nicoVideoSearchHTML.makeSortOrder(fragment_nicovideo_search_sort_menu.text.toString())
+                    val sort = nicoVideoSearchHTML.makeSortOrder(viewBinding.fragmentNicovideoSearchSortMenu.text.toString())
                     // タグかキーワードか
-                    val tagOrKeyword = if (fragment_nicovideo_search_tag_key_menu.text.toString() == "タグ") {
+                    val tagOrKeyword = if (viewBinding.fragmentNicovideoSearchTagKeyMenu.text.toString() == "タグ") {
                         "tag"
                     } else {
                         "search"
@@ -202,10 +200,10 @@ class NicoVideoSearchFragment : Fragment() {
                 // リスト更新
                 nicoVideoListAdapter.notifyDataSetChanged()
                 // スクロール位置復元
-                fragment_nicovideo_search_recyclerview.apply {
+                viewBinding.fragmentNicovideoSearchRecyclerView.apply {
                     (layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, yPos)
                 }
-                fragment_nicovideo_search_swipe_refresh.isRefreshing = false
+                viewBinding.fragmentNicovideoSearchSwipeRefresh.isRefreshing = false
                 // また読み込めるように
                 isLoading = false
             }
@@ -214,7 +212,7 @@ class NicoVideoSearchFragment : Fragment() {
 
     // RecyclerView初期化
     private fun initRecyclerView() {
-        fragment_nicovideo_search_recyclerview.apply {
+        viewBinding.fragmentNicovideoSearchRecyclerView.apply {
             setHasFixedSize(true)
             val linearLayoutManager = LinearLayoutManager(context)
             layoutManager = linearLayoutManager
@@ -244,7 +242,7 @@ class NicoVideoSearchFragment : Fragment() {
         // タグかキーワードか
         val spinnerList = arrayListOf("タグ", "キーワード")
         val tagOrKeywordAdapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, spinnerList)
-        fragment_nicovideo_search_tag_key_menu.apply {
+        viewBinding.fragmentNicovideoSearchTagKeyMenu.apply {
             setAdapter(tagOrKeywordAdapter)
             setText(spinnerList[0], false)
         }
@@ -266,7 +264,7 @@ class NicoVideoSearchFragment : Fragment() {
             "再生時間が短い順"
         )
         val sortAdapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, sortList)
-        fragment_nicovideo_search_sort_menu.apply {
+        viewBinding.fragmentNicovideoSearchSortMenu.apply {
             setAdapter(sortAdapter)
             setText(sortList[0], false)
         }

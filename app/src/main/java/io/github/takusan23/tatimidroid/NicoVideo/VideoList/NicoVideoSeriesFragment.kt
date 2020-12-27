@@ -11,8 +11,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoSeriesViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoSeriesViewModel
-import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_nicovideo_series.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoSeriesBinding
 
 /**
  * シリーズの動画一覧Fragment
@@ -33,8 +32,11 @@ class NicoVideoSeriesFragment : Fragment() {
     /** RecyclerViewにセットするAdapter */
     private val nicoVideoListAdapter = NicoVideoListAdapter(nicoVideoList)
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoSeriesBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_series, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -54,11 +56,11 @@ class NicoVideoSeriesFragment : Fragment() {
 
         // 読み込み
         nicoVideoSeriesViewModel.loadingLiveData.observe(viewLifecycleOwner) { isLoading ->
-            fragment_nicovideo_series_refresh.isRefreshing = isLoading
+            viewBinding.fragmentNicovideoSeriesRefresh.isRefreshing = isLoading
         }
 
         // ひっぱって更新
-        fragment_nicovideo_series_refresh.setOnRefreshListener {
+        viewBinding.fragmentNicovideoSeriesRefresh.setOnRefreshListener {
             nicoVideoSeriesViewModel.getSeriesVideoList()
         }
 
@@ -66,7 +68,7 @@ class NicoVideoSeriesFragment : Fragment() {
 
     /** RecyclerView初期化 */
     private fun initRecyclerView() {
-        fragment_nicovideo_series_recyclerview.apply {
+        viewBinding.fragmentNicovideoSeriesRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             setHasFixedSize(true)
             adapter = nicoVideoListAdapter

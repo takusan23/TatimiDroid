@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.NicoLive.Activity.CommentCollectionListActivity
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.activity_comment_postlist.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -61,8 +60,8 @@ class CommentPOSTListRecyclerViewAdapter(private val arrayListArrayAdapter: Arra
         //編集
         holder.editbutton.setOnClickListener {
             //ActivityのEditTextに入れる
-            commentActivity.activity_comment_post_list_comment_inputedittext.setText(title)
-            commentActivity.activity_comment_post_list_yomi_inputedittext.setText(yomi)
+            commentActivity.viewBinding.activityCommentPostListCommentInputedittext.setText(title)
+            commentActivity.viewBinding.activityCommentPostListYomiInputedittext.setText(yomi)
         }
 
     }

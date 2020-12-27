@@ -12,8 +12,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoLiveJKHTML
@@ -29,8 +27,7 @@ import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommunityRecyclerViewAda
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_community_list_layout.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveCommunityBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,12 +46,13 @@ class CommunityListFragment : Fragment() {
     var autoAdmissionRecyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
     lateinit var communityRecyclerViewAdapter: CommunityRecyclerViewAdapter
     lateinit var autoAdmissionAdapter: AutoAdmissionAdapter
-    lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
-    lateinit var swipeRefreshLayout: SwipeRefreshLayout
+
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicoliveCommunityBinding.inflate(layoutInflater) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.fragment_commnunity_list_layout, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -64,9 +62,7 @@ class CommunityListFragment : Fragment() {
 
         initRecyclerView()
 
-        swipeRefreshLayout = view.findViewById(R.id.community_swipe)
-
-        swipeRefreshLayout.setOnRefreshListener {
+        viewBinding.fragmentNicoliveCommunitySwipe.setOnRefreshListener {
             userSession = pref_setting.getString("user_session", "") ?: ""
             setNicoLoad()
         }
@@ -96,19 +92,19 @@ class CommunityListFragment : Fragment() {
 
     // RecyclerView初期化
     private fun initRecyclerView() {
-        recyclerViewList = ArrayList()
-        community_recyclerview.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(context)
-        community_recyclerview.layoutManager = mLayoutManager
-        communityRecyclerViewAdapter = CommunityRecyclerViewAdapter(recyclerViewList)
-        autoAdmissionAdapter = AutoAdmissionAdapter(autoAdmissionRecyclerViewList)
-        autoAdmissionAdapter.communityListFragment = this
-        community_recyclerview.adapter = communityRecyclerViewAdapter
-        recyclerViewLayoutManager = community_recyclerview.layoutManager!!
+        viewBinding.fragmentNicoliveCommunityRecyclerView.apply {
+            recyclerViewList = ArrayList()
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(context)
+            communityRecyclerViewAdapter = CommunityRecyclerViewAdapter(recyclerViewList)
+            autoAdmissionAdapter = AutoAdmissionAdapter(autoAdmissionRecyclerViewList)
+            autoAdmissionAdapter.communityListFragment = this@CommunityListFragment
+            adapter = communityRecyclerViewAdapter
+        }
     }
 
     fun setNicoLoad() {
-        swipeRefreshLayout.isRefreshing = true
+        viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = true
         // 読み込むTL
         val pos = arguments?.getInt("page") ?: FOLLOW
         when (pos) {
@@ -157,7 +153,7 @@ class CommunityListFragment : Fragment() {
             }
             recyclerViewList.addAll(nicoLiveJKProgramList)
             communityRecyclerViewAdapter.notifyDataSetChanged()
-            swipeRefreshLayout.isRefreshing = false
+            viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = false
         }
     }
 
@@ -186,7 +182,7 @@ class CommunityListFragment : Fragment() {
                 }
                 // 反映
                 communityRecyclerViewAdapter.notifyDataSetChanged()
-                swipeRefreshLayout.isRefreshing = false
+                viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = false
             } else {
                 showToast("${getString(R.string.error)}\n${html.code}")
             }
@@ -217,7 +213,7 @@ class CommunityListFragment : Fragment() {
                 }
                 // 反映
                 communityRecyclerViewAdapter.notifyDataSetChanged()
-                swipeRefreshLayout.isRefreshing = false
+                viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = false
             } else {
                 showToast("${getString(R.string.error)}\n${html.code}")
             }
@@ -260,7 +256,7 @@ class CommunityListFragment : Fragment() {
                 }
                 // UIスレッドで反映
                 communityRecyclerViewAdapter.notifyDataSetChanged()
-                swipeRefreshLayout.isRefreshing = false
+                viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = false
             } else {
                 // 失敗時
                 showToast("${getString(R.string.error)}\n${html.code}")
@@ -295,7 +291,7 @@ class CommunityListFragment : Fragment() {
                         // 反映
                         withContext(Dispatchers.Main) {
                             communityRecyclerViewAdapter.notifyDataSetChanged()
-                            swipeRefreshLayout.isRefreshing = false
+                            viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = false
                         }
                     }
                     !NicoLiveHTML().hasNiconicoID(response) -> {
@@ -320,8 +316,8 @@ class CommunityListFragment : Fragment() {
 
     // SnackBar表示
     private fun showSnackBar(message: String, showTime: Int = Snackbar.LENGTH_SHORT, buttonText: String? = null, click: (() -> Unit)? = null) = lifecycleScope.launch(Dispatchers.Main) {
-        Snackbar.make(community_recyclerview, message, showTime).apply {
-            anchorView = (activity as MainActivity).main_activity_bottom_navigationview
+        Snackbar.make(viewBinding.fragmentNicoliveCommunityRecyclerView, message, showTime).apply {
+            anchorView = (activity as MainActivity).viewBinding.mainActivityBottomNavigationView
             if (buttonText != null && click != null) {
                 // nullじゃなければボタン表示
                 setAction(buttonText) { click() }
@@ -355,8 +351,8 @@ class CommunityListFragment : Fragment() {
                 }
             }
             autoAdmissionAdapter.notifyDataSetChanged()
-            community_recyclerview.adapter = autoAdmissionAdapter
-            swipeRefreshLayout.isRefreshing = false
+            viewBinding.fragmentNicoliveCommunityRecyclerView.adapter = autoAdmissionAdapter
+            viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = false
         }
     }
 

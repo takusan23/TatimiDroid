@@ -20,7 +20,7 @@
             android:padding="10dp">
 
         <TextView
-                android:id="@+id/adapter_room_name_textview"
+                android:id="@+id/adapter_room_name_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
@@ -28,7 +28,7 @@
                 android:textSize="14sp" />
 
         <TextView
-                android:id="@+id/adapter_comment_textview"
+                android:id="@+id/adapter_comment_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="読み込み中"

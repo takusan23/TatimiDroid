@@ -11,7 +11,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoInfoFragment
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_like.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoLikeBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,17 +27,20 @@ class NicoVideoLikeBottomFragment : BottomSheetDialogFragment() {
 
     // requireParentFragment() が普通に動いたわ。parentFragmentManagerのときはNicoVideoFragment。childFragmentManagerのときはNicoVideoInfoFragmentになる
     private val nicoVideoFragment by lazy { requireParentFragment() as NicoVideoFragment }
-    private val nicoVideoInfoFragment by lazy { (nicoVideoFragment.viewPager.fragmentList[2] as NicoVideoInfoFragment) }
+    private val nicoVideoInfoFragment by lazy { (nicoVideoFragment.viewPagerAdapter.fragmentList[2] as NicoVideoInfoFragment) }
+
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentNicovideoLikeBinding.inflate(layoutInflater) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_nicovideo_like, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         // メッセージ
-        bottom_fragment_nicovideo_like_description.text = HtmlCompat.fromHtml(
+        viewBinding.bottomFragmentNicovideoLikeDescriptionTextView.text = HtmlCompat.fromHtml(
             """
             いいね機能 #とは<br>
             動画を応援できる機能。<br>
@@ -50,7 +53,7 @@ class NicoVideoLikeBottomFragment : BottomSheetDialogFragment() {
         )
 
         // Like押した
-        bottom_fragment_nicovideo_like_button.setOnClickListener {
+        viewBinding.bottomFragmentNicovideoLikeButton.setOnClickListener {
             val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
                 showToast("${getString(R.string.error)}\n${throwable}") // エラーのときはToast出すなど
             }

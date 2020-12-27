@@ -6,23 +6,27 @@ import androidx.appcompat.app.AppCompatActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
-import kotlinx.android.synthetic.main.fragment_licence.*
+import io.github.takusan23.tatimidroid.databinding.ActivityLicenceBinding
 
 /**
  * 使ったライセンスかくところ
  * */
 class LicenceActivity : AppCompatActivity() {
+
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { ActivityLicenceBinding.inflate(layoutInflater) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val darkModeSupport = DarkModeSupport(this)
         darkModeSupport.setActivityTheme(this)
 
-        setContentView(R.layout.fragment_licence)
+        setContentView(viewBinding.root)
 
         title = getString(R.string.licence)
 
-        val searchPreferenceFragment = """---takusan23/MotionLayoutSwipeFixFrameLayout---
+        val searchPreferenceFragment = """---takusan23/SearchPreferenceFragment---
             
  Copyright 2020 takusan_23
 
@@ -597,7 +601,7 @@ limitations under the License.
             
         """.trimIndent()
 
-        fragment_license_textview.text =
+        viewBinding.activityLicenseTextView.text =
             "$java_WebSocket_licence $jsoup_licence $coroutines_licence $okhttp3_licence $exoplayer_licence $material_icon_license $material_licence $glide $swipeFixFrameLayoutLicense $searchPreferenceFragment"
 
     }

@@ -16,7 +16,7 @@
             <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/fragment_license_textview"/>
+                    android:id="@+id/activity_license_text_view"/>
         </LinearLayout>
     </ScrollView>
 

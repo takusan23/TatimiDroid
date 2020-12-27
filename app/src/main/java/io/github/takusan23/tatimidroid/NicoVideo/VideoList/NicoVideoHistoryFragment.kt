@@ -17,13 +17,13 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHistoryAPI
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_nicovideo_history.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoHistoryBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** ニコ動履歴Fragment */
 class NicoVideoHistoryFragment : Fragment() {
 
     lateinit var prefSetting: SharedPreferences
@@ -36,8 +36,11 @@ class NicoVideoHistoryFragment : Fragment() {
     var userSession = ""
     val nicoVideoHistoryAPI = NicoVideoHistoryAPI()
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoHistoryBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_history, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -61,7 +64,7 @@ class NicoVideoHistoryFragment : Fragment() {
         }
 
         // 引っ張った
-        fragment_comment_history_swipe_to_refresh.setOnRefreshListener {
+        viewBinding.fragmentNicovideoHistorySwipeToRefresh.setOnRefreshListener {
             getHistory()
         }
 
@@ -70,7 +73,7 @@ class NicoVideoHistoryFragment : Fragment() {
     // 履歴取得
     private fun getHistory() {
         recyclerViewList.clear()
-        fragment_comment_history_swipe_to_refresh.isRefreshing = true
+        viewBinding.fragmentNicovideoHistorySwipeToRefresh.isRefreshing = true
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             showToast("${getString(R.string.error)}\n${throwable}")
@@ -85,12 +88,12 @@ class NicoVideoHistoryFragment : Fragment() {
                         }
                     }
                     nicoVideoListAdapter.notifyDataSetChanged()
-                    fragment_comment_history_swipe_to_refresh.isRefreshing = false
+                    viewBinding.fragmentNicovideoHistorySwipeToRefresh.isRefreshing = false
                 }
                 response.code == 401 -> {
                     // ログイン切れ。再ログイン勧める
-                    Snackbar.make(fragment_comment_history_recyclerview, R.string.login_disable_message, Snackbar.LENGTH_INDEFINITE).apply {
-                        anchorView = (activity as MainActivity).main_activity_bottom_navigationview
+                    Snackbar.make(viewBinding.fragmentNicovideoHistoryRecyclerView, R.string.login_disable_message, Snackbar.LENGTH_INDEFINITE).apply {
+                        anchorView = (activity as MainActivity).viewBinding.mainActivityBottomNavigationView
                         setAction(R.string.login) {
                             // ログインする
                             lifecycleScope.launch {
@@ -108,7 +111,7 @@ class NicoVideoHistoryFragment : Fragment() {
 
     // RecyclerView初期化
     fun initRecyclerView() {
-        fragment_comment_history_recyclerview.apply {
+        viewBinding.fragmentNicovideoHistoryRecyclerView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             nicoVideoListAdapter = NicoVideoListAdapter(recyclerViewList)

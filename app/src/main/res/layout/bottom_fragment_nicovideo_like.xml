@@ -6,7 +6,7 @@
         android:orientation="vertical">
 
     <TextView
-            android:id="@+id/bottom_fragment_nicovideo_like_description"
+            android:id="@+id/bottom_fragment_nicovideo_like_description_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp" />

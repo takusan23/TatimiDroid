@@ -16,8 +16,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.AllShowDropDownMenuAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
-import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_cache_filter.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoCacheFilterBinding
 
 
 /**
@@ -39,8 +38,11 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
 
     private var uploaderNameList = arrayListOf<String>()
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentNicovideoCacheFilterBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_nicovideo_cache_filter, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -80,12 +82,12 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         }
         // Adapter作成
         val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_list_item_1, uploaderNameList)
-        bottom_fragment_cache_filter_uploader_textview.setAdapter(adapter)
-        bottom_fragment_cache_filter_uploader_textview.addTextChangedListener {
+        viewBinding.bottomFragmentCacheFilterUploaderAutocompleteTextView.setAdapter(adapter)
+        viewBinding.bottomFragmentCacheFilterUploaderAutocompleteTextView.addTextChangedListener {
             filter()
         }
-        bottom_fragment_cache_filter_uploader_clear.setOnClickListener {
-            bottom_fragment_cache_filter_uploader_textview.setText("")
+        viewBinding.bottomFragmentCacheFilterUploaderClearImageView.setOnClickListener {
+            viewBinding.bottomFragmentCacheFilterUploaderAutocompleteTextView.setText("")
             filter()
         }
     }
@@ -99,26 +101,26 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         // 全ての動画のタグを一つの配列にしてまとめる。そして被りを消してアルファベット順？
         val tagList = tagVideoList.flatten().distinct().sorted()
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, tagList)
-        bottom_fragment_cache_filter_tag_autocomplete.setAdapter(adapter)
-        bottom_fragment_cache_filter_tag_autocomplete.setOnItemClickListener { adapterView, view, i, l ->
+        viewBinding.bottomFragmentCacheFilterTagAutocomplete.setAdapter(adapter)
+        viewBinding.bottomFragmentCacheFilterTagAutocomplete.setOnItemClickListener { adapterView, view, i, l ->
             // Chip追加
             val chip = Chip(context).apply {
                 text = tagList[i]
                 isCloseIconVisible = true // 閉じる追加
                 setOnCloseIconClickListener {
-                    bottom_fragment_cache_filter_tag_chip.removeView(it)
+                    viewBinding.bottomFragmentCacheFilterTagChipGroup.removeView(it)
                     filter()
                 }
             }
-            bottom_fragment_cache_filter_tag_chip.addView(chip)
-            bottom_fragment_cache_filter_tag_autocomplete.setText("", true)
+            viewBinding.bottomFragmentCacheFilterTagChipGroup.addView(chip)
+            viewBinding.bottomFragmentCacheFilterTagAutocomplete.setText("", true)
             filter()
         }
     }
 
     // スイッチ初期化
     private fun initSwitch() {
-        bottom_fragment_cache_filter_has_video_json.setOnCheckedChangeListener { buttonView, isChecked ->
+        viewBinding.bottomFragmentCacheFilterHasVideoJsonSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             filter()
         }
     }
@@ -126,24 +128,24 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     // 並び替え初期化。Spinnerって言うらしいよ。SpiCaではない。
     private fun initSortSpinner() {
         val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_list_item_1, CACHE_FILTER_SORT_LIST)
-        bottom_fragment_cache_filter_dropdown.setAdapter(adapter)
-        bottom_fragment_cache_filter_dropdown.setText(CACHE_FILTER_SORT_LIST[0], false)
+        viewBinding.bottomFragmentCacheFilterDropdownTextView.setAdapter(adapter)
+        viewBinding.bottomFragmentCacheFilterDropdownTextView.setText(CACHE_FILTER_SORT_LIST[0], false)
         // 文字変更イベント
-        bottom_fragment_cache_filter_dropdown.addTextChangedListener {
+        viewBinding.bottomFragmentCacheFilterDropdownTextView.addTextChangedListener {
             filter()
         }
     }
 
     // 部分一致検索
     private fun initContainsSearch() {
-        bottom_fragment_cache_filter_title.addTextChangedListener {
+        viewBinding.bottomFragmentCacheFilterTitleEditText.addTextChangedListener {
             filter()
         }
     }
 
     // リセットボタン
     private fun initResetButton() {
-        bottom_fragment_cache_filter_reset.setOnClickListener {
+        viewBinding.bottomFragmentCacheFilterResetButton.setOnClickListener {
             dismiss()
             nicoVideoCacheFragment.filterDeleteMessageShow() // 本当に消していい？
         }
@@ -154,17 +156,17 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
 
         // 値をCacheFilterDataClassへ
         // 指定中のタグの名前配列
-        val filterChipNameList = bottom_fragment_cache_filter_tag_chip.children.map { view ->
+        val filterChipNameList = viewBinding.bottomFragmentCacheFilterTagChipGroup.children.map { view ->
             (view as Chip).text.toString()
         }.toList()
         // JSON化する
         val cacheJson = CacheJSON()
         val cacheFilter = CacheFilterDataClass(
-            bottom_fragment_cache_filter_title.text.toString(),
-            bottom_fragment_cache_filter_uploader_textview.text.toString(),
+            viewBinding.bottomFragmentCacheFilterTitleEditText.text.toString(),
+            viewBinding.bottomFragmentCacheFilterUploaderAutocompleteTextView.text.toString(),
             filterChipNameList,
-            bottom_fragment_cache_filter_dropdown.text.toString(),
-            bottom_fragment_cache_filter_has_video_json.isChecked
+            viewBinding.bottomFragmentCacheFilterDropdownTextView.text.toString(),
+            viewBinding.bottomFragmentCacheFilterHasVideoJsonSwitch.isChecked
         )
         // 保存
         cacheJson.saveJSON(context, cacheJson.createJSON(cacheFilter))
@@ -179,10 +181,10 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
         val cacheJson = CacheJSON()
         val data = cacheJson.readJSON(context)
         data?.apply {
-            bottom_fragment_cache_filter_title.setText(data.titleContains)
-            bottom_fragment_cache_filter_uploader_textview.setText(data.uploaderName)
-            bottom_fragment_cache_filter_dropdown.setText(data.sort)
-            bottom_fragment_cache_filter_has_video_json.isChecked = data.isTatimiDroidGetCache
+            viewBinding.bottomFragmentCacheFilterTitleEditText.setText(data.titleContains)
+            viewBinding.bottomFragmentCacheFilterUploaderAutocompleteTextView.setText(data.uploaderName)
+            viewBinding.bottomFragmentCacheFilterDropdownTextView.setText(data.sort)
+            viewBinding.bottomFragmentCacheFilterHasVideoJsonSwitch.isChecked = data.isTatimiDroidGetCache
             // タグ
             data.tagItems.forEach {
                 // Chip追加
@@ -190,11 +192,11 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
                     text = it
                     isCloseIconVisible = true // 閉じる追加
                     setOnCloseIconClickListener {
-                        bottom_fragment_cache_filter_tag_chip.removeView(it)
+                        viewBinding.bottomFragmentCacheFilterTagChipGroup.removeView(it)
                         filter()
                     }
                 }
-                bottom_fragment_cache_filter_tag_chip.addView(chip)
+                viewBinding.bottomFragmentCacheFilterTagChipGroup.addView(chip)
             }
         }
     }

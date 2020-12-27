@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
 
-apply plugin: 'kotlin-android-extensions'
+// apply plugin: 'kotlin-android-extensions' さよなら
 
 apply plugin: 'kotlin-kapt' // Room使うときのなにか。一番上に
 
@@ -25,6 +25,13 @@ android {
 //            applicationIdSuffix ".kaihatu"
 //        }
     }
+
+    // Kotlinを書くきっかけになった Kotlin Android Extensions がいよいよ非推奨になってしまった
+    // のでViewBindingに乗り換える
+    buildFeatures {
+        viewBinding true
+    }
+
     compileOptions {
         targetCompatibility 1.8
         sourceCompatibility 1.8

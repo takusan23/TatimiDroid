@@ -12,7 +12,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
-import kotlinx.android.synthetic.main.bottom_fragment_dialog.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentDialogBinding
 
 /** 引数なしのコンストラクタを用意しないとまれに落ちるらしい。本来引数じゃなくてargumentsで渡すもんだからな */
 class DialogBottomSheet() : BottomSheetDialogFragment() {
@@ -20,6 +20,9 @@ class DialogBottomSheet() : BottomSheetDialogFragment() {
     lateinit var description: String
     lateinit var buttonItems: ArrayList<DialogBottomSheetItem>
     lateinit var clickEvent: (Int, BottomSheetDialogFragment) -> Unit
+
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentDialogBinding.inflate(layoutInflater) }
 
     /**
      * BottomSheet版ダイアログを自作してみた。
@@ -34,7 +37,7 @@ class DialogBottomSheet() : BottomSheetDialogFragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_dialog, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -44,9 +47,9 @@ class DialogBottomSheet() : BottomSheetDialogFragment() {
         }
         // ダークモード
         val darkModeSupport = DarkModeSupport(requireContext())
-        bottom_fragment_dialog_parent.background = ColorDrawable(getThemeColor(darkModeSupport.context))
+        viewBinding.bottomFragmentDialogParent.background = ColorDrawable(getThemeColor(darkModeSupport.context))
         // 説明文
-        bottom_fragment_dialog_description.text = description
+        viewBinding.bottomFragmentDialogDescriptionTextView.text = description
         // ボタン作成
         for (position in 0 until buttonItems.size) {
             val item = buttonItems[position]
@@ -70,7 +73,7 @@ class DialogBottomSheet() : BottomSheetDialogFragment() {
                     dismiss()
                 }
             }
-            bottom_fragment_dialog_linearlayout.addView(textView)
+            viewBinding.bottomFragmentDialogLinearlayout.addView(textView)
         }
     }
 

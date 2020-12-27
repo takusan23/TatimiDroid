@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/two_factor_auth_activity_parent"
+        android:id="@+id/activity_two_factor_auth_parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -37,7 +37,7 @@
                     android:layout_margin="10dp">
 
                 <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/two_factor_auth_activity_key_input"
+                        android:id="@+id/activity_two_factor_auth_key_input"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/two_factor_auth_code"
@@ -45,7 +45,7 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <Switch
-                    android:id="@+id/two_factor_auth_activity_trust_check"
+                    android:id="@+id/activity_two_factor_auth_trust_check"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
@@ -53,7 +53,7 @@
                     android:text="@string/two_factor_auth_trust_device" />
 
             <Button
-                    android:id="@+id/two_factor_auth_activity_login_button"
+                    android:id="@+id/activity_two_factor_auth_login_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"

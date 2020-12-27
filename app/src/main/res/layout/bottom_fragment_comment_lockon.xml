@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/bottom_fragment_comment_menu_parent_linearlayout"
+        android:id="@+id/bottom_fragment_comment_menu_parent_linear_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
@@ -9,8 +9,8 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:layout_margin="10dp">
+            android:layout_margin="10dp"
+            android:orientation="vertical">
 
         <LinearLayout
                 android:layout_width="match_parent"
@@ -36,7 +36,9 @@
                     app:icon="@drawable/ic_local_offer_24px" />
         </LinearLayout>
 
-        <include layout="@layout/adapter_comment_layout" />
+        <include
+                android:id="@+id/bottom_fragment_comment_include"
+                layout="@layout/adapter_comment_layout" />
 
         <HorizontalScrollView
                 android:layout_width="match_parent"
@@ -48,7 +50,7 @@
                     android:orientation="horizontal">
 
                 <Button
-                        android:id="@+id/bottom_fragment_comment_menu_nicovideo_seek"
+                        android:id="@+id/bottom_fragment_comment_menu_nicovideo_seek_button"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -57,7 +59,7 @@
                         android:visibility="gone" />
 
                 <Button
-                        android:id="@+id/bottom_fragment_comment_menu_nicovideo_menu"
+                        android:id="@+id/bottom_fragment_comment_menu_nico_video_menu_button"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -66,7 +68,7 @@
                         android:visibility="gone" />
 
                 <Button
-                        android:id="@+id/bottom_fragment_comment_menu_nicolive_menu"
+                        android:id="@+id/bottom_fragment_comment_menu_nico_live_menu_button"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -84,7 +86,7 @@
                         android:visibility="gone" />
 
                 <Button
-                        android:id="@+id/bottom_fragment_comment_menu_get_username"
+                        android:id="@+id/bottom_fragment_comment_menu_get_user_name_button"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -93,7 +95,7 @@
                         android:visibility="gone" />
 
                 <Button
-                        android:id="@+id/bottom_fragment_comment_menu_open_userpage"
+                        android:id="@+id/bottom_fragment_comment_menu_open_user_page_button"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -102,7 +104,7 @@
                         android:visibility="gone" />
 
                 <Button
-                        android:id="@+id/bottom_fragment_comment_menu_comment_copy"
+                        android:id="@+id/bottom_fragment_comment_menu_comment_copy_button"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -134,7 +136,7 @@
                 android:orientation="horizontal">
 
             <TextView
-                    android:id="@+id/bottom_fragment_comment_menu_ng"
+                    android:id="@+id/bottom_fragment_comment_menu_ng_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
@@ -143,7 +145,7 @@
                     android:text="" />
 
             <TextView
-                    android:id="@+id/bottom_fragment_comment_menu_count"
+                    android:id="@+id/bottom_fragment_comment_menu_count_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
@@ -154,7 +156,7 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/bottom_fragment_comment_menu_recyclerview"
+            android:id="@+id/bottom_fragment_comment_menu_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollbars="vertical">

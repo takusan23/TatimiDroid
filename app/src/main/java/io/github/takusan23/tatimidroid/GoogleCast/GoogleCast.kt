@@ -15,7 +15,6 @@ import com.google.android.gms.cast.framework.SessionManagerListener
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.images.WebImage
-import kotlinx.android.synthetic.main.fragment_comment_menu.*
 
 class GoogleCast(var context: Context) {
 

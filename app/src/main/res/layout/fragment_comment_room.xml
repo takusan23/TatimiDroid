@@ -8,7 +8,7 @@
     <com.google.android.material.tabs.TabLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/comment_room_tablayout">
+            android:id="@+id/comment_room_tab_layout">
 
     </com.google.android.material.tabs.TabLayout>
 

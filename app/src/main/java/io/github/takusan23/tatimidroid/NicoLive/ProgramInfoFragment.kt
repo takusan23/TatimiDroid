@@ -25,7 +25,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.User.UserAPI
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveTagBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_program_info.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveProgramInfoBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,9 +59,12 @@ class ProgramInfoFragment : Fragment() {
     val viewModel by viewModels<NicoLiveViewModel>({ commentFragment })
     val liveId by lazy { viewModel.nicoLiveHTML.liveId }
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicoliveProgramInfoBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.fragment_program_info, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -74,14 +77,14 @@ class ProgramInfoFragment : Fragment() {
         }
 
         // ユーザーフォロー
-        fragment_program_info_broadcaster_follow_button.setOnClickListener {
+        viewBinding.fragmentProgramInfoBroadcasterFollowButton.setOnClickListener {
             requestFollow(userId) {
                 Toast.makeText(context, "ユーザーをフォローしました。", Toast.LENGTH_SHORT).show()
             }
         }
 
         // コミュニティフォロー
-        fragment_program_info_community_follow_button.setOnClickListener {
+        viewBinding.fragmentProgramInfoCommunityFollowButton.setOnClickListener {
             requestCommunityFollow(communityId) {
                 activity?.runOnUiThread {
                     Toast.makeText(context, "コミュニティをフォローしました。\n$communityId", Toast.LENGTH_SHORT)
@@ -92,11 +95,11 @@ class ProgramInfoFragment : Fragment() {
 
         // 公式番組はユーザーフォローボタンない？
         if (commentFragment.isOfficial) {
-            fragment_program_info_broadcaster_follow_button.isEnabled = false
+            viewBinding.fragmentProgramInfoBroadcasterFollowButton.isEnabled = false
         }
 
         // タグ編集
-        fragment_program_info_tag_add_button.setOnClickListener {
+        viewBinding.fragmentProgramInfoTagAddButton.setOnClickListener {
             val nicoLiveTagBottomFragment = NicoLiveTagBottomFragment()
             val bundle = Bundle().apply {
                 putString("liveId", liveId)
@@ -108,13 +111,13 @@ class ProgramInfoFragment : Fragment() {
         }
 
         // TS予約
-        fragment_program_info_timeshift_button.setOnClickListener {
+        viewBinding.fragmentProgramInfoTimeshiftButton.setOnClickListener {
             registerTimeShift {
                 if (it.isSuccessful) {
                     activity?.runOnUiThread {
                         // 成功したらTS予約リストへ飛ばす
                         Snackbar.make(
-                            fragment_program_info_timeshift_button,
+                            viewBinding.fragmentProgramInfoTimeshiftButton,
                             R.string.timeshift_reservation_successful,
                             Snackbar.LENGTH_LONG
                         ).setAction(R.string.timeshift_list) {
@@ -126,7 +129,7 @@ class ProgramInfoFragment : Fragment() {
                 } else if (it.code == 500) {
                     // 予約済みの可能性。
                     // なお本家も多分一度登録APIを叩いて500エラーのとき登録済みって判断するっぽい？
-                    Snackbar.make(fragment_program_info_timeshift_button, R.string.timeshift_reserved, Snackbar.LENGTH_LONG).setAction(R.string.timeshift_delete_reservation_button) {
+                    Snackbar.make(viewBinding.fragmentProgramInfoTimeshiftButton, R.string.timeshift_reserved, Snackbar.LENGTH_LONG).setAction(R.string.timeshift_delete_reservation_button) {
                         deleteTimeShift {
                             activity?.runOnUiThread {
                                 Toast.makeText(
@@ -142,7 +145,7 @@ class ProgramInfoFragment : Fragment() {
         }
 
         // 引っ張ったらタグ更新
-        fragment_program_info_swipe.setOnRefreshListener {
+        viewBinding.fragmentProgramInfoSwipe.setOnRefreshListener {
             coroutineGetTag()
         }
 
@@ -174,8 +177,8 @@ class ProgramInfoFragment : Fragment() {
                 }
                 // ユーザーフォロー中？
                 if (userData?.isFollowing == true) {
-                    fragment_program_info_broadcaster_follow_button.isEnabled = false
-                    fragment_program_info_broadcaster_follow_button.text = getString(R.string.is_following)
+                    viewBinding.fragmentProgramInfoBroadcasterFollowButton.isEnabled = false
+                    viewBinding.fragmentProgramInfoBroadcasterFollowButton.text = getString(R.string.is_following)
                 }
             }
             var level = 0
@@ -190,21 +193,21 @@ class ProgramInfoFragment : Fragment() {
             val formattedEndTime = simpleDateFormat.format(endTime * 1000)
 
             //UI
-            fragment_program_info_broadcaster_name.text = "${getString(R.string.broadcaster)} : $name"
-            fragment_program_info_broadcaster_level.text = "${getString(R.string.level)} : $level"
-            fragment_program_info_time.text = "${getString(R.string.program_start)} : $formattedBeginTime / ${getString(R.string.end_of_program)} : $formattedEndTime"
-            fragment_program_info_title.text = title
-            fragment_program_info_description.text = HtmlCompat.fromHtml(description, FROM_HTML_MODE_COMPACT)
+            viewBinding.fragmentProgramInfoBroadcasterNameTextView.text = "${getString(R.string.broadcaster)} : $name"
+            viewBinding.fragmentProgramInfoBroadcasterLevelTextView.text = "${getString(R.string.level)} : $level"
+            viewBinding.fragmentProgramInfoTimeTextView.text = "${getString(R.string.program_start)} : $formattedBeginTime / ${getString(R.string.end_of_program)} : $formattedEndTime"
+            viewBinding.fragmentProgramInfoTitleTextView.text = title
+            viewBinding.fragmentProgramInfoDescriptionTextView.text = HtmlCompat.fromHtml(description, FROM_HTML_MODE_COMPACT)
 
             // 公式番組にはユーザーアイコンない
             if (supplier.has("icons")) {
                 val userIcon = supplier.getJSONObject("icons").getString("uri150x150")
                 // ユーザーアイコン
-                fragment_program_info_broadcaster_imageview.imageTintList = null
-                Glide.with(fragment_program_info_broadcaster_imageview)
+                viewBinding.fragmentProgramInfoBroadcasterImageview.imageTintList = null
+                Glide.with(viewBinding.fragmentProgramInfoBroadcasterImageview)
                     .load(userIcon)
                     .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
-                    .into(fragment_program_info_broadcaster_imageview)
+                    .into(viewBinding.fragmentProgramInfoBroadcasterImageview)
             }
 
             // コミュ
@@ -216,23 +219,22 @@ class ProgramInfoFragment : Fragment() {
             if (community.has("level")) {
                 communityLevel = community.getInt("level")
             }
-            fragment_program_info_community_name.text = "${getString(R.string.community_name)} : $communityName"
-            fragment_program_info_community_level.text = "${getString(R.string.community_level)} : $communityLevel"
+            viewBinding.fragmentProgramInfoCommunityNameTextView.text = "${getString(R.string.community_name)} : $communityName"
+            viewBinding.fragmentProgramInfoCommunityLevelTextView.text = "${getString(R.string.community_level)} : $communityLevel"
             // コミュアイコン
-            fragment_program_info_community_imageview.imageTintList = null
-            Glide.with(fragment_program_info_community_imageview)
+            viewBinding.fragmentProgramInfoCommunityImageView.imageTintList = null
+            Glide.with(viewBinding.fragmentProgramInfoCommunityImageView)
                 .load(communityThumb)
                 .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
-                .into(fragment_program_info_community_imageview)
+                .into(viewBinding.fragmentProgramInfoCommunityImageView)
 
             // コミュフォロー中？
             val isCommunityFollow =
                 jsonObject.getJSONObject("socialGroup").getBoolean("isFollowed")
             if (isCommunityFollow) {
                 // 押せないように
-                fragment_program_info_community_follow_button.isEnabled = false
-                fragment_program_info_community_follow_button.text =
-                    getString(R.string.followed)
+                viewBinding.fragmentProgramInfoCommunityFollowButton.isEnabled = false
+                viewBinding.fragmentProgramInfoCommunityFollowButton.text = getString(R.string.followed)
             }
 
             //たぐ
@@ -241,7 +243,7 @@ class ProgramInfoFragment : Fragment() {
             val tagsList = tag.getJSONArray("list")
             if (tagsList.length() != 0) {
                 activity?.runOnUiThread {
-                    fragment_program_info_tag_linearlayout.removeAllViews()
+                    viewBinding.fragmentProgramInfoTagLinearLayout.removeAllViews()
                     for (i in 0 until tagsList.length()) {
                         val tag = tagsList.getJSONObject(i)
                         val text = tag.getString("text")
@@ -256,14 +258,14 @@ class ProgramInfoFragment : Fragment() {
                             val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
                             startActivity(intent)
                         }
-                        fragment_program_info_tag_linearlayout.addView(button)
+                        viewBinding.fragmentProgramInfoTagLinearLayout.addView(button)
                     }
                 }
             }
 
             // タグが変更できない場合はボタンをグレーアウトする
             if (isTagNotEditable) {
-                fragment_program_info_tag_add_button.apply {
+                viewBinding.fragmentProgramInfoTagAddButton.apply {
                     activity?.runOnUiThread {
                         isEnabled = false
                         text = getString(R.string.not_tag_editable)
@@ -281,13 +283,9 @@ class ProgramInfoFragment : Fragment() {
              * */
             val canTSReserve = jsonObject.has("programTimeshift") && jsonObject.has("programTimeshiftWatch")
             activity?.runOnUiThread {
-                if (fragment_program_info_timeshift_button == null) {
-                    return@runOnUiThread
-                }
-                fragment_program_info_timeshift_button.isEnabled = canTSReserve
+                viewBinding.fragmentProgramInfoTimeshiftButton.isEnabled = canTSReserve
                 if (!canTSReserve) {
-                    fragment_program_info_timeshift_button.text =
-                        getString(R.string.disabled_ts_reservation)
+                    viewBinding.fragmentProgramInfoTimeshiftButton.text = getString(R.string.disabled_ts_reservation)
                 }
             }
 
@@ -297,17 +295,17 @@ class ProgramInfoFragment : Fragment() {
             val konomiTagList = jsonObject.getJSONObject("programBroadcaster").getJSONArray("konomiTags")
             if (konomiTagList.length() == 0) {
                 // 未設定であることを教える
-                fragment_program_info_konomi_tag_empty.isVisible = true
+                viewBinding.fragmentProgramInfoKonomiTagEmpty.isVisible = true
             } else {
                 // JSONパース
-                for (i in 0 until konomiTagList.length()){
+                for (i in 0 until konomiTagList.length()) {
                     val tagText = konomiTagList.getJSONObject(i).getString("text")
                     //ボタン作成
-                    val button = MaterialButton(requireContext(),null).apply {
+                    val button = MaterialButton(requireContext(), null).apply {
                         text = tagText
                         isAllCaps = false
                     }
-                    fragment_program_info_konomi_tag_linear_layout.addView(button)
+                    viewBinding.fragmentProgramInfoKonomiTagLinearLayout.addView(button)
                 }
             }
 
@@ -318,7 +316,7 @@ class ProgramInfoFragment : Fragment() {
     // タグを取得する関数
     fun coroutineGetTag() {
         activity?.runOnUiThread {
-            fragment_program_info_swipe.isRefreshing = true
+            viewBinding.fragmentProgramInfoSwipe.isRefreshing = true
         }
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             showToast("${getString(R.string.error)}\n${throwable}")
@@ -337,7 +335,7 @@ class ProgramInfoFragment : Fragment() {
             }
             // タグをUIに反映させる
             // 全部消す
-            fragment_program_info_tag_linearlayout.removeAllViews()
+            viewBinding.fragmentProgramInfoTagLinearLayout.removeAllViews()
             list.forEach {
                 val tag = it.tagName
                 //ボタン作成
@@ -350,9 +348,9 @@ class ProgramInfoFragment : Fragment() {
                     val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
                     startActivity(intent)
                 }
-                fragment_program_info_tag_linearlayout.addView(button)
+                viewBinding.fragmentProgramInfoTagLinearLayout.addView(button)
             }
-            fragment_program_info_swipe.isRefreshing = false
+            viewBinding.fragmentProgramInfoSwipe.isRefreshing = false
         }
     }
 

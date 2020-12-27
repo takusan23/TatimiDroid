@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
@@ -13,8 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
-import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_nicovideo_comment.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoCommentBinding
 
 
 /**
@@ -39,8 +39,11 @@ class NicoVideoCommentFragment : Fragment() {
         requireParentFragment() as NicoVideoFragment
     }
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoCommentBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_comment, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -54,7 +57,7 @@ class NicoVideoCommentFragment : Fragment() {
         }
 
         // スクロールボタン。追従するぞい
-        dev_nicovideo_comment_fragment_following_button.setOnClickListener {
+        viewBinding.fragmentNicovideoCommentFollowingButton.setOnClickListener {
             // Fragmentはクソ！
             devNicoVideoFragment.apply {
                 // スクロール
@@ -71,7 +74,7 @@ class NicoVideoCommentFragment : Fragment() {
      * @param commentList RecyclerViewに表示させる中身の配列
      * */
     fun initRecyclerView(commentList: ArrayList<CommentJSONParse>) {
-        activity_nicovideo_recyclerview.apply {
+        viewBinding.fragmentNicovideoCommentRecyclerView.apply {
             recyclerViewList = commentList
             setHasFixedSize(true)
             val mLayoutManager = LinearLayoutManager(context)
@@ -128,8 +131,7 @@ class NicoVideoCommentFragment : Fragment() {
         }
         // Nullチェック
         val devNicoVideoCommentFragment = this
-        if (devNicoVideoCommentFragment.view?.findViewById<RecyclerView>(R.id.activity_nicovideo_recyclerview) != null) {
-            val recyclerView = devNicoVideoCommentFragment.activity_nicovideo_recyclerview
+        viewBinding.fragmentNicovideoCommentRecyclerView.apply {
             val list = devNicoVideoCommentFragment.recyclerViewList
             // findを使って条件に合うコメントのはじめの位置を取得する。ここでは 今の時間から一秒引いた時間 と同じか大きいくて最初の値。
             var currentPosCommentFirst = list.indexOfFirst { commentJSONParse -> commentJSONParse.vpos.toInt() >= milliSec / 10 }
@@ -137,7 +139,7 @@ class NicoVideoCommentFragment : Fragment() {
             val visibleCount = getVisibleCommentList()?.size ?: 0
             currentPosCommentFirst -= visibleCount
             // スクロール
-            (recyclerView?.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(currentPosCommentFirst, 0)
+            (this.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(currentPosCommentFirst, 0)
         }
     }
 
@@ -148,7 +150,7 @@ class NicoVideoCommentFragment : Fragment() {
      * */
     fun getCommentListVisibleLastItemComment(): CommentJSONParse? {
         // RecyclerView初期化してない時はnull
-        return recyclerViewList[(activity_nicovideo_recyclerview.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()]
+        return recyclerViewList[(viewBinding.fragmentNicovideoCommentRecyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()]
     }
 
     /**
@@ -165,19 +167,13 @@ class NicoVideoCommentFragment : Fragment() {
      * @param visible 表示する場合はtrue。非表示にする場合はfalse
      * */
     fun setFollowingButtonVisibility(visible: Boolean) {
-        dev_nicovideo_comment_fragment_following_button?.apply {
-            visibility = if (visible) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
-        }
+        viewBinding.fragmentNicovideoCommentFollowingButton.isVisible = visible
     }
 
     /** LayoutManager取得。書くのめんどくさくなったので */
     private fun getRecyclerViewLayoutManager(): LinearLayoutManager? {
-        if (activity_nicovideo_recyclerview.layoutManager !is LinearLayoutManager) return null
-        return activity_nicovideo_recyclerview.layoutManager as LinearLayoutManager
+        if (viewBinding.fragmentNicovideoCommentRecyclerView.layoutManager !is LinearLayoutManager) return null
+        return viewBinding.fragmentNicovideoCommentRecyclerView.layoutManager as LinearLayoutManager
     }
 
     /**

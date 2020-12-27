@@ -11,16 +11,20 @@ import android.widget.TextView
 import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
-import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_quality.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoQualityBinding
 import org.json.JSONArray
 import org.json.JSONObject
 
+/**
+ * ニコ動の画質変更BottomFragment
+ * */
 class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentNicovideoQualityBinding.inflate(layoutInflater) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_nicovideo_quality, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -76,7 +80,7 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                         setTextColor(Color.parseColor("#0d46a0"))
                     }
                 }
-                bottom_fragment_nicovideo_quality_linearlayout.addView(textView)
+                viewBinding.bottomFragmentNicovideoQualityLinearLayout.addView(textView)
             }
         } else {
             // video.smileInfo.qualityIdsパース
@@ -98,7 +102,7 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                         this@NicoVideoQualityBottomFragment.dismiss()
                     }
                 }
-                bottom_fragment_nicovideo_quality_linearlayout.addView(textView)
+                viewBinding.bottomFragmentNicovideoQualityLinearLayout.addView(textView)
             }
         }
     }

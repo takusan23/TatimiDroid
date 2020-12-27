@@ -12,14 +12,14 @@
             android:layout_height="wrap_content">
 
         <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/fragment_nicovideo_post_recyclerview"
+                android:id="@+id/fragment_nicovideo_post_recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scrollbars="vertical" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <TextView
-            android:id="@+id/fragment_nicovideo_post_private_message"
+            android:id="@+id/fragment_nicovideo_post_private_message_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -17,7 +16,7 @@ import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
-import kotlinx.android.synthetic.main.dialog_watchmode_layout.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentWatchmodeBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,32 +25,21 @@ import kotlinx.coroutines.withContext
 /**
  * 視聴モード選択（コメント投稿モードなど）
  * */
-class DialogWatchModeBottomFragment : BottomSheetDialogFragment() {
+class WatchModeBottomFragment : BottomSheetDialogFragment() {
 
-    /*
-    * findViewById卒業できない
-    * */
-    lateinit var commentViewerModeButton: Button
-    lateinit var commentPostModeButton: Button
-    lateinit var nicocasModeButton: Button
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentWatchmodeBinding.inflate(layoutInflater) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.dialog_watchmode_layout, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        commentViewerModeButton = view.findViewById(R.id.dialog_watchmode_comment_viewer_mode_button)
-        commentPostModeButton = view.findViewById(R.id.dialog_watchmode_comment_post_mode_button)
-        nicocasModeButton = view.findViewById(R.id.dialog_watchmode_nicocas_comment_mode_button)
-
         //ダークモード
         val darkModeSupport = DarkModeSupport(requireContext())
-        dialog_watchmode_parent_linearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
-
+        viewBinding.dialogWatchmodeParentLinearLayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
         getProgram()
-
     }
 
     /**
@@ -76,7 +64,7 @@ class DialogWatchModeBottomFragment : BottomSheetDialogFragment() {
             if (!nicoHTMLResponse.isSuccessful) {
                 // 失敗時は落とす
                 Toast.makeText(context, "${getString(R.string.error)}\n${nicoHTMLResponse.code}", Toast.LENGTH_SHORT).show()
-                this@DialogWatchModeBottomFragment.dismiss()
+                this@WatchModeBottomFragment.dismiss()
                 return@launch
             }
             // JSON取り出し
@@ -119,7 +107,7 @@ class DialogWatchModeBottomFragment : BottomSheetDialogFragment() {
                 //生放送中！
                 //コメントビューワーモード
                 //コメント投稿機能、視聴継続メッセージ送信機能なし
-                commentViewerModeButton.setOnClickListener {
+                viewBinding.bottomFragmentWatchModeCommentViewerModeButton.setOnClickListener {
                     // Fragment設置
                     val commentFragment = CommentFragment()
                     val bundle = Bundle()
@@ -128,12 +116,12 @@ class DialogWatchModeBottomFragment : BottomSheetDialogFragment() {
                     bundle.putBoolean("isOfficial", isOfficial)
                     commentFragment.arguments = bundle
                     (requireActivity() as MainActivity).setPlayer(commentFragment, liveId)
-                    this@DialogWatchModeBottomFragment.dismiss()
+                    this@WatchModeBottomFragment.dismiss()
                 }
 
                 //コメント投稿モード
                 //書き込める
-                commentPostModeButton.setOnClickListener {
+                viewBinding.bottomFragmentWatchModeCommentPostModeButton.setOnClickListener {
                     //画面移動
                     val commentFragment = CommentFragment()
                     val bundle = Bundle()
@@ -142,12 +130,12 @@ class DialogWatchModeBottomFragment : BottomSheetDialogFragment() {
                     bundle.putBoolean("isOfficial", isOfficial)
                     commentFragment.arguments = bundle
                     (requireActivity() as MainActivity).setPlayer(commentFragment, liveId)
-                    this@DialogWatchModeBottomFragment.dismiss()
+                    this@WatchModeBottomFragment.dismiss()
                 }
 
                 //nicocas式コメント投稿モード
                 //nicocasのAPIでコメント投稿を行う
-                nicocasModeButton.setOnClickListener {
+                viewBinding.bottomFragmentWatchModeNicocasCommentModeButton.setOnClickListener {
                     //画面移動
                     val commentFragment = CommentFragment()
                     val bundle = Bundle()
@@ -156,7 +144,7 @@ class DialogWatchModeBottomFragment : BottomSheetDialogFragment() {
                     bundle.putBoolean("isOfficial", isOfficial)
                     commentFragment.arguments = bundle
                     (requireActivity() as MainActivity).setPlayer(commentFragment, liveId)
-                    this@DialogWatchModeBottomFragment.dismiss()
+                    this@WatchModeBottomFragment.dismiss()
                 }
             } else if (!canWatchLive) {
                 //フォロワー限定番組だった

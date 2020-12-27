@@ -14,7 +14,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAddMyListAdapter
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_fragment_nicovideo_mylist.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoAddMylistBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,8 +36,11 @@ class NicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
     // スマホ版マイリストAPI
     private val spMyListAPI = NicoVideoSPMyListAPI()
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentNicovideoAddMylistBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_nicovideo_mylist, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -78,7 +81,7 @@ class NicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
     }
 
     fun initRecyclerView() {
-        bottom_fragment_nicovideo_mylist_recyclerview.apply {
+        viewBinding.bottomFragmentNicovideoMylistRecyclerView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             nicoVideoAddMyListAdapter = NicoVideoAddMyListAdapter(recyclerViewList)

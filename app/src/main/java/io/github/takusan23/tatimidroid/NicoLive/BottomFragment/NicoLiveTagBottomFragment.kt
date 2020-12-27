@@ -15,7 +15,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.TagRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.ProgramInfoFragment
 import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.bottom_fragment_tags.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentTagsBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,8 +37,11 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
     var liveId = ""
     var tagToken = ""
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentTagsBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_tags, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -52,7 +55,7 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
         // タグ編集に使うトークン
         tagToken = arguments?.getString("tagToken", "") ?: ""
 
-        bottom_fragment_tag_recyclerview.apply {
+        viewBinding.bottomFragmentTagRecyclerView.apply {
             setHasFixedSize(true)
             val mLayoutManager = LinearLayoutManager(context)
             layoutManager = mLayoutManager
@@ -67,7 +70,7 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
             this.bottomFragment = this@NicoLiveTagBottomFragment
         }
 
-        bottom_fragment_tag_add_button.setOnClickListener {
+        viewBinding.bottomFragmentTagAddButton.setOnClickListener {
             // エラー
             val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
                 activity?.runOnUiThread {
@@ -77,7 +80,7 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
             // タグ追加
             lifecycleScope.launch(errorHandler) {
                 val nicoLiveTagAPI = NicoLiveTagAPI()
-                val tokenText = bottom_fragment_tag_edittext.text.toString()
+                val tokenText = viewBinding.bottomFragmentTagEditText.text.toString()
                 // タグ追加API叩く
                 val response = nicoLiveTagAPI.addTag(liveId, user_session, tagToken, tokenText)
                 if (!response.isSuccessful) {
@@ -124,12 +127,12 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
         }
     }
 
-    fun parseTagSize(json: String?) {
+    private fun parseTagSize(json: String?) {
         val jsonObject = JSONObject(json)
         val data = jsonObject.getJSONObject("data")
         val userTagCount = data.getInt("userTagCount")
         val userTagMax = data.getInt("userTagMax")
-        bottom_fragment_tag_textview.text = "タグ件数：$userTagCount/$userTagMax"
+        viewBinding.bottomFragmentTagTextview.text = "タグ件数：$userTagCount/$userTagMax"
     }
 
 }

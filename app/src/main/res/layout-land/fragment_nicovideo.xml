@@ -9,7 +9,7 @@
     <!-- こっちに制約（app:layout_constraintBottomなんとか～）みたいなのは書かなくていいらしい。 -->
     <!-- Sceneの方に制約を書く（初期状態含め） -->
     <androidx.constraintlayout.motion.widget.MotionLayout
-            android:id="@+id/fragment_nicovideo_motionlayout"
+            android:id="@+id/fragment_nicovideo_motion_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
@@ -23,7 +23,7 @@
 
         <!-- 映像 -->
         <SurfaceView
-                android:id="@+id/fragment_nicovideo_surfaceview"
+                android:id="@+id/fragment_nicovideo_surface_view"
                 android:layout_width="0dp"
                 android:layout_height="250dp"
                 android:elevation="5dp" />

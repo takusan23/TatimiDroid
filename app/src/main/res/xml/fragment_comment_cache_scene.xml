@@ -4,7 +4,7 @@
 
     <ConstraintSet android:id="@+id/start">
         <Constraint
-                android:id="@+id/fragment_cache_fab"
+                android:id="@+id/fragment_nicovideo_cache_fab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
@@ -13,19 +13,19 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
         <Constraint
-                android:id="@+id/fragment_cache_menu_cardview"
+                android:id="@+id/fragment_nicovideo_cache_menu_cardview"
                 android:layout_width="wrap_content"
                 android:layout_height="1dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:visibility="invisible"
-                app:layout_constraintBottom_toTopOf="@+id/fragment_cache_fab"
+                app:layout_constraintBottom_toTopOf="@+id/fragment_nicovideo_cache_fab"
                 app:layout_constraintEnd_toEndOf="parent" />
     </ConstraintSet>
 
     <ConstraintSet android:id="@+id/end">
         <Constraint
-                android:id="@+id/fragment_cache_fab"
+                android:id="@+id/fragment_nicovideo_cache_fab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
@@ -34,13 +34,13 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
         <Constraint
-                android:id="@+id/fragment_cache_menu_cardview"
+                android:id="@+id/fragment_nicovideo_cache_menu_cardview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:visibility="visible"
-                app:layout_constraintBottom_toTopOf="@+id/fragment_cache_fab"
+                app:layout_constraintBottom_toTopOf="@+id/fragment_nicovideo_cache_fab"
                 app:layout_constraintEnd_toEndOf="parent" />
     </ConstraintSet>
 
@@ -48,6 +48,6 @@
             app:constraintSetEnd="@id/end"
             app:constraintSetStart="@+id/start"
             app:duration="300">
-        <OnClick app:targetId="@id/fragment_cache_fab" />
+        <OnClick app:targetId="@id/fragment_nicovideo_cache_fab" />
     </Transition>
 </MotionScene>

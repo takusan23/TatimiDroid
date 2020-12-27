@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -25,7 +26,7 @@ import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.ContentShare
-import kotlinx.android.synthetic.main.bottom_fragment_program_menu.*
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentProgramMenuBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,11 +52,14 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     private var liveId = ""
     private var userSession = ""
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { BottomFragmentProgramMenuBinding.inflate(layoutInflater) }
+
     // 共有
     private val contentShare = ContentShare(this)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.bottom_fragment_program_menu, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -109,9 +113,9 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     private fun initFloatingCommentViewer() {
         // Android 10 以降 でなお 放送中の番組の場合
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && nicoLiveHTML.status == "ON_AIR") {
-            bottom_fragment_program_info_floaing_comment_viewer.visibility = View.VISIBLE
+            viewBinding.bottomFragmentProgramInfoFloaingCommentViewerTextView.visibility = View.VISIBLE
         }
-        bottom_fragment_program_info_floaing_comment_viewer.setOnClickListener {
+        viewBinding.bottomFragmentProgramInfoFloaingCommentViewerTextView.setOnClickListener {
             // フローティングコメビュ起動
             FloatingCommentViewer.showBubbles(requireContext(), liveId, "comment_post", nicoLiveHTML.programTitle, nicoLiveHTML.thumb)
         }
@@ -124,29 +128,28 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     private fun initAutoAdmission() {
         // 放送中以外で表示
         if (nicoLiveHTML.status != "ON_AIR") {
-            bottom_fragment_program_info_auto_admission_more.visibility = View.VISIBLE
+            viewBinding.bottomFragmentProgramInfoAutoAdmissionMoreTextView.visibility = View.VISIBLE
         }
         // 予約枠自動入場ボタン表示・非表示
-        bottom_fragment_program_info_auto_admission_more.setOnClickListener {
-            bottom_fragment_program_info_auto_admission_linearlayout.apply {
-                if (this.visibility == View.GONE) {
-                    this.visibility = View.VISIBLE
-                    bottom_fragment_program_info_auto_admission_more.setCompoundDrawablesWithIntrinsicBounds(context?.getDrawable(R.drawable.ic_expand_less_black_24dp), null, null, null)
+        viewBinding.bottomFragmentProgramInfoAutoAdmissionMoreTextView.setOnClickListener {
+            viewBinding.bottomFragmentProgramInfoAutoAdmissionMoreTextView.apply {
+                if (isVisible) {
+                    setCompoundDrawablesWithIntrinsicBounds(context?.getDrawable(R.drawable.ic_expand_less_black_24dp), null, null, null)
                 } else {
-                    this.visibility = View.GONE
-                    bottom_fragment_program_info_auto_admission_more.setCompoundDrawablesWithIntrinsicBounds(context?.getDrawable(R.drawable.ic_expand_more_24px), null, null, null)
+                    setCompoundDrawablesWithIntrinsicBounds(context?.getDrawable(R.drawable.ic_expand_more_24px), null, null, null)
                 }
+                isVisible = !isVisible
             }
         }
         // 予約枠自動入場
-        bottom_fragment_program_info_auto_admission_official_app.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_OFFICIAL_APP) }
-        bottom_fragment_program_info_auto_admission_tatimidroid_app.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_TATIMIDROID_APP) }
-        bottom_fragment_program_info_auto_admission_popup.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_POPUP) }
-        bottom_fragment_program_info_auto_admission_background.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_BACKGROUND) }
+        viewBinding.bottomFragmentProgramInfoAutoAdmissionOfficialAppTextView.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_OFFICIAL_APP) }
+        viewBinding.bottomFragmentProgramInfoAutoAdmissionTatimidroidAppTextView.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_TATIMIDROID_APP) }
+        viewBinding.bottomFragmentProgramInfoAutoAdmissionPopupTextView.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_POPUP) }
+        viewBinding.bottomFragmentProgramInfoAutoAdmissionBackgroundTextView.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_BACKGROUND) }
 
         // Android 10だとバッググラウンドからActivity開けないので塞ぎ
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            bottom_fragment_program_info_auto_admission_tatimidroid_app.visibility = View.GONE
+            viewBinding.bottomFragmentProgramInfoAutoAdmissionTatimidroidAppTextView.isVisible = false
         }
     }
 
@@ -185,7 +188,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
             } else {
                 // 登録済みなら削除できるように
-                Snackbar.make(bottom_fragment_program_info_auto_admission_official_app, R.string.already_added, Snackbar.LENGTH_SHORT).apply {
+                Snackbar.make(viewBinding.bottomFragmentProgramInfoAutoAdmissionOfficialAppTextView, R.string.already_added, Snackbar.LENGTH_SHORT).apply {
                     setAction(R.string.delete) {
                         deleteAutoAdmissionDB()
                         dismiss()
@@ -217,7 +220,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
     private fun initTSButton() {
         val timeShiftAPI = NicoLiveTimeShiftAPI()
-        bottom_fragment_program_info_timeshift.setOnClickListener {
+        viewBinding.bottomFragmentProgramInfoTimeshiftTextView.setOnClickListener {
             // エラー時
             val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
                 showToast("${getString(R.string.error)}\n${throwable}")
@@ -232,7 +235,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
                     // 失敗時。500エラーは登録済み
                     // 削除するか？Snackbar出す
                     withContext(Dispatchers.Main) {
-                        Snackbar.make(bottom_fragment_program_info_timeshift, R.string.timeshift_reserved, Snackbar.LENGTH_SHORT).setAction(R.string.timeshift_delete_reservation_button) {
+                        Snackbar.make(viewBinding.bottomFragmentProgramInfoTimeshiftTextView, R.string.timeshift_reserved, Snackbar.LENGTH_SHORT).setAction(R.string.timeshift_delete_reservation_button) {
                             lifecycleScope.launch {
                                 // TS削除API叩く
                                 val deleteTS = timeShiftAPI.deleteTimeShift(liveId, userSession)
@@ -250,16 +253,14 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun initCopyButton() {
-        bottom_fragment_program_info_community_copy.setOnClickListener {
-            val clipboardManager =
-                context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipboardManager =
+            context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        viewBinding.bottomFragmentProgramInfoCommunityCopyTextView.setOnClickListener {
             clipboardManager.setPrimaryClip(ClipData.newPlainText("communityid", nicoLiveHTML.communityId))
             //コピーしました！
             Toast.makeText(context, "${getString(R.string.copy_communityid)} : ${nicoLiveHTML.communityId}", Toast.LENGTH_SHORT).show()
         }
-        bottom_fragment_program_info_id_copy.setOnClickListener {
-            val clipboardManager =
-                context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        viewBinding.bottomFragmentProgramInfoIdCopyTextView.setOnClickListener {
             clipboardManager.setPrimaryClip(ClipData.newPlainText("liveid", liveId))
             //コピーしました！
             Toast.makeText(context, "${getString(R.string.copy_program_id)} : $liveId", Toast.LENGTH_SHORT).show()
@@ -267,13 +268,13 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun initShareButton() {
-        bottom_fragment_program_info_share.setOnClickListener {
-            contentShare.shareContent(liveId,nicoLiveHTML.programTitle,null)
+        viewBinding.bottomFragmentProgramInfoShareTextView.setOnClickListener {
+            contentShare.shareContent(liveId, nicoLiveHTML.programTitle, null)
         }
     }
 
     private fun initCalendarButton() {
-        bottom_fragment_program_info_calendar.setOnClickListener {
+        viewBinding.bottomFragmentProgramInfoAddCalendarTextView.setOnClickListener {
             val intent = Intent(Intent.ACTION_INSERT).apply {
                 data = CalendarContract.Events.CONTENT_URI
                 putExtra(CalendarContract.Events.TITLE, nicoLiveHTML.programTitle)
@@ -300,30 +301,30 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     /** データ取得し終わったらUI更新 */
     private fun applyUI() {
         if (isAdded) {
-            bottom_fragment_program_info_title.text = nicoLiveHTML.programTitle
-            bottom_fragment_program_info_id.text = nicoLiveHTML.liveId
+            viewBinding.bottomFragmentProgramInfoTitleTextView.text = nicoLiveHTML.programTitle
+            viewBinding.bottomFragmentProgramInfoIdTextView.text = nicoLiveHTML.liveId
             // 時間
             val formattedStartTime =
                 nicoLiveHTML.iso8601ToFormat(nicoLiveHTML.programOpenTime)
             val formattedEndTime =
                 nicoLiveHTML.iso8601ToFormat(nicoLiveHTML.programEndTime)
-            bottom_fragment_program_info_time.text = "開場時刻：$formattedStartTime\n終了時刻：$formattedEndTime"
+            viewBinding.bottomFragmentProgramInfoTimeTextView.text = "開場時刻：$formattedStartTime\n終了時刻：$formattedEndTime"
             // 項目表示
-            bottom_fragment_program_info_buttons_linearlayout.visibility = View.VISIBLE
+            viewBinding.bottomFragmentProgramInfoButtonsLinearlayout.isVisible = true
         }
     }
 
     private fun initLiveServiceButton() {
         // 放送中以外なら非表示
         if (nicoLiveHTML.status != "ON_AIR") {
-            bottom_fragment_program_info_popup.visibility = View.GONE
-            bottom_fragment_program_info_background.visibility = View.GONE
+            viewBinding.bottomFragmentProgramInfoPopupTextView.isVisible = true
+            viewBinding.bottomFragmentProgramInfoBackgroundTextView.visibility = View.GONE
         }
-        bottom_fragment_program_info_popup.setOnClickListener {
+        viewBinding.bottomFragmentProgramInfoPopupTextView.setOnClickListener {
             // ポップアップ再生
             startLivePlayService(context = context, mode = "popup", liveId = liveId, isCommentPost = true, isNicocasMode = false)
         }
-        bottom_fragment_program_info_background.setOnClickListener {
+        viewBinding.bottomFragmentProgramInfoBackgroundTextView.setOnClickListener {
             // バッググラウンド再生
             startLivePlayService(context = context, mode = "background", liveId = liveId, isCommentPost = true, isNicocasMode = false)
         }

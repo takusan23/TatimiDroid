@@ -10,8 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
-import io.github.takusan23.tatimidroid.R
-import kotlinx.android.synthetic.main.fragment_nicovideo_recommend.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoRecommendBinding
 
 /**
  * 関連動画を表示するFragment
@@ -20,8 +19,11 @@ class NicoVideoRecommendFragment : Fragment() {
 
     private lateinit var nicoVideoListAdapter: NicoVideoListAdapter
 
+    /** findViewById駆逐 */
+    private val viewBinding by lazy { FragmentNicovideoRecommendBinding.inflate(layoutInflater) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_nicovideo_recommend, container, false)
+        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -36,7 +38,7 @@ class NicoVideoRecommendFragment : Fragment() {
     }
 
     fun initRecyclerView(list: ArrayList<NicoVideoData>) {
-        fragment_nicovideo_recommend_recyclerview.apply {
+        viewBinding.fragmentNicovideoRecommendRecyclerView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             nicoVideoListAdapter = NicoVideoListAdapter(list)
