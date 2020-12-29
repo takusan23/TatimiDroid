@@ -18,7 +18,7 @@ import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
+import io.github.takusan23.tatimidroid.NicoVideo.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
@@ -107,7 +107,7 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : Re
                 when (playType) {
                     "default" -> {
                         // 画面遷移
-                        val nicoVideoFragment = NicoVideoFragment()
+                        val nicoVideoFragment = JCNicoVideoFragment()
                         val bundle = Bundle()
                         bundle.putString("id", data.videoId)
                         bundle.putBoolean("cache", data.isCache)

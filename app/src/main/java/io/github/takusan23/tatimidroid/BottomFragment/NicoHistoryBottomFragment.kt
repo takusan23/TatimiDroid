@@ -122,6 +122,7 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
             val mLayoutManager = LinearLayoutManager(context)
             layoutManager = mLayoutManager
             nicoHistoryAdapter = NicoHistoryAdapter(recyclerViewList)
+            nicoHistoryAdapter.editText = editText
             adapter = nicoHistoryAdapter
         }
         nicoHistoryAdapter.bottomSheetDialogFragment = this

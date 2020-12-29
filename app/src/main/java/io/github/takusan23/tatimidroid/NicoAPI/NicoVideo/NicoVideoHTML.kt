@@ -841,8 +841,10 @@ class NicoVideoHTML {
 
     /**
      * 終了時に呼んで
+     *
+     * もし動画連続再生を実装した場合、動画が切り替わる度にこの関数を呼んでください。
      * */
-    fun destory() {
+    fun destroy() {
         heartBeatTimer.cancel()
     }
 

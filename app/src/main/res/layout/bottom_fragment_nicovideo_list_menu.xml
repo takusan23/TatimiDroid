@@ -9,9 +9,9 @@
             android:id="@+id/bottom_fragment_nicovideo_list_menu_title_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="5dp"
             android:text="動画タイトル"
             android:textSize="18sp"
-            android:padding="5dp"
             android:textStyle="bold" />
 
     <TextView

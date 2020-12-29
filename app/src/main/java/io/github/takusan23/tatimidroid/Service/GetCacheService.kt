@@ -180,7 +180,7 @@ class GetCacheService : Service() {
                         nicoVideoCache.deleteCache(videoId)
                     }
                     // 取得完了したら呼ぶ
-                    nicoVideoHTML.destory()
+                    nicoVideoHTML.destroy()
                     nicoVideoCache.destroy()
                     // 終了済みリスト
                     cacheGuttedList.add(videoId)
@@ -196,7 +196,7 @@ class GetCacheService : Service() {
             } else {
                 showToast(getString(R.string.encryption_not_download))
                 // 取得完了したら呼ばれる。
-                nicoVideoHTML.destory()
+                nicoVideoHTML.destroy()
                 nicoVideoCache.destroy()
                 // 次の要素へ
                 if (position + 1 < cacheList.size) {

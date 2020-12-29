@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.Tool
 
 import android.content.Context
+import android.graphics.Insets
 import android.graphics.Point
 import android.os.Build
 import android.util.Size
@@ -45,7 +46,7 @@ object DisplaySizeTool {
     /**
      * 従来の方法で画面の大きさ取得するやつ
      * */
-    private fun getDisplaySizeOldAPI(context: Context?): Point {
+    fun getDisplaySizeOldAPI(context: Context?): Point {
         // まどまねーじゃー
         val windowManager = context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         // 従来の方法で
@@ -64,18 +65,12 @@ object DisplaySizeTool {
         // まどまねーじゃー
         val windowManager = context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val metrics = windowManager.currentWindowMetrics
-        // なにしてるかわからん
         val windowInsets = metrics.windowInsets
-        var insets = windowInsets.getInsets(WindowInsets.Type.navigationBars())
-        windowInsets.getInsets(WindowInsets.Type.navigationBars())
-
-        // ノッチ領域を含める場合はここの数行をコメントアウト。display#getRealSize()のと同じ
-        val cutout = windowInsets.displayCutout
-        if (cutout != null) {
-            val cutoutSafeInsets = android.graphics.Insets.of(cutout.safeInsetLeft, cutout.safeInsetTop, cutout.safeInsetRight, cutout.safeInsetBottom)
-            insets = android.graphics.Insets.max(insets, cutoutSafeInsets)
+        // なにしてるかわからん
+        var insets = windowInsets.getInsets(WindowInsets.Type.systemBars())
+        windowInsets.displayCutout?.run {
+            insets = Insets.max(insets, Insets.of(safeInsetLeft, safeInsetTop, safeInsetRight, safeInsetBottom))
         }
-
         val insetsWidth = insets.right + insets.left
         val insetsHeight = insets.top + insets.bottom
         // Display#getHeight()と同じようになる

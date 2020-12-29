@@ -164,7 +164,8 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     // ポップアップ再生、バッググラウンド再生ボタン初期化
     private fun playServiceButton() {
         viewBinding.bottomFragmentNicovideoListMenuPopupTextView.setOnClickListener {
-            startVideoPlayService(context = context, mode = "popup", videoId = nicoVideoData.videoId, isCache = isCache)
+            val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
+            startVideoPlayService(context = context, mode = "popup", videoId = nicoVideoData.videoId, isCache = isCache, playlist = videoList)
         }
         viewBinding.bottomFragmentNicovideoListMenuBackgroundTextView.setOnClickListener {
             startVideoPlayService(context = context, mode = "background", videoId = nicoVideoData.videoId, isCache = isCache)
@@ -464,7 +465,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        nicoVideoHTML.destory()
+        nicoVideoHTML.destroy()
         mediaBrowserCompat.disconnect()
     }
 

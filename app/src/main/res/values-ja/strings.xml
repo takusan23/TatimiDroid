@@ -507,7 +507,7 @@
     <string name="video_count">作品数</string>
     <string name="reverse">逆順</string>
     <string name="shuffle">シャッフル</string>
-    <string name="playlist_button">連続再生（ベータ）</string>
+    <string name="playlist_button">連続再生</string>
     <string name="cache_background_play">連続バッググラウンド再生</string>
     <string name="nico_version_history">ニコニコ動画の変遷</string>
     <string name="setting_nicolive_mobile_data_quality_default">通常再生</string>

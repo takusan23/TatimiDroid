@@ -206,6 +206,14 @@ class MainActivity : AppCompatActivity() {
      * @param tag Fragmentを探すときのタグ。いまんところこのタグでFragmentを探してるコードはないはず
      * */
     fun setPlayer(fragment: Fragment, tag: String) {
+        // とりまFragment終了させる
+        val findFragment = supportFragmentManager.findFragmentById(R.id.main_activity_fragment_layout)
+        if (findFragment != null) {
+            supportFragmentManager
+                .beginTransaction()
+                .remove(findFragment)
+                .commit()
+        }
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.main_activity_fragment_layout, fragment, tag)

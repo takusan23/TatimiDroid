@@ -37,7 +37,7 @@ import org.json.JSONObject
  * @param videoId 動画ID。連続再生の[videoList]が指定されている場合はnullに出来ます。また、連続再生時にこの値に動画IDを入れるとその動画から再生を始めるようにします。
  * @param isCache キャッシュで再生するか。ただし最終的には[isOfflinePlay]がtrueの時キャッシュ利用再生になります。連続再生の[videoList]が指定されている場合はnullに出来ます。
  * @param isEco エコノミー再生ならtrue。なお、キャッシュを優先的に利用する設定等でキャッシュ再生になっている場合があるので[isOfflinePlay]を使ってください。なお連続再生時はすべての動画をエコノミーで再生します。
- * @param useInternet キャッシュが有っても強制的にインターネットを経由して取得する場合はtrue。なお連続再生時ではすべての動画をインターネット経由で取得します。
+ * @param useInternet キャッシュが有っても強制的にインターネットを経由して取得する場合はtrue。
  * @param videoList 連続再生するなら配列を入れてね。nullでもいい
  * */
 class NicoVideoViewModel(application: Application, videoId: String? = null, isCache: Boolean? = null, val isEco: Boolean, val useInternet: Boolean, startFullScreen: Boolean, val videoList: ArrayList<NicoVideoData>?) : AndroidViewModel(application) {
@@ -553,7 +553,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** ViewModel終了時 */
     override fun onCleared() {
         super.onCleared()
-        nicoVideoHTML.destory()
+        nicoVideoHTML.destroy()
     }
 
 }

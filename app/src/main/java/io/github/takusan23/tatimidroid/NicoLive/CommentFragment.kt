@@ -475,7 +475,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
         // 統計情報表示
         viewBinding.commentFragmentStatisticsShow?.setOnClickListener {
-            viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible = !viewBinding.commentFragmentControl.playerNicoliveControlMain.isVisible
+            viewBinding.playerNicoliveControlInfoMain.isVisible = !viewBinding.playerNicoliveControlInfoMain.isVisible
         }
         // 横画面なら常に表示
         if (!viewModel.isFullScreenMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {

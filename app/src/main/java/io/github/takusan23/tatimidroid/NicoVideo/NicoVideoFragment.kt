@@ -691,14 +691,26 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
         // ポップアップ/バッググラウンドなど
         viewBinding.fragmentNicovideoControlInclude.playerControlPopup.setOnClickListener {
+            // 連続再生
+            val playlist = if (viewModel.isPlayListMode) {
+                viewModel.videoList
+            } else {
+                null
+            }
             // ポップアップ再生
-            startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
+            startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, playlist = playlist)
             // Activity落とす
             finishFragment()
         }
         viewBinding.fragmentNicovideoControlInclude.playerControlBackground.setOnClickListener {
+            // 連続再生
+            val playlist = if (viewModel.isPlayListMode) {
+                viewModel.videoList
+            } else {
+                null
+            }
             // バッググラウンド再生
-            startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
+            startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, playlist = playlist)
             // Activity落とす
             finishFragment()
         }

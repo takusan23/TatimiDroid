@@ -118,7 +118,7 @@ class CommentViewFragment : Fragment() {
      * @param visible 表示する場合はtrue。非表示にする場合はfalse
      * */
     fun setFollowingButtonVisibility(visible: Boolean) {
-        viewBinding.fragmentCommentFollowingButton.isVisible = !viewBinding.fragmentCommentFollowingButton.isVisible
+        viewBinding.fragmentCommentFollowingButton.isVisible = visible
     }
 
 }

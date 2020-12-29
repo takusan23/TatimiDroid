@@ -34,6 +34,7 @@ import com.google.android.exoplayer2.video.VideoListener
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
@@ -45,6 +46,7 @@ import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import io.github.takusan23.tatimidroid.databinding.OverlayVideoPlayerLayoutBinding
 import kotlinx.coroutines.*
 import org.json.JSONObject
+import java.io.Serializable
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
@@ -63,6 +65,7 @@ import kotlin.concurrent.timerTask
  * seek           |Long   |シークする場合は値（ms）を入れてね。
  * video_quality  |String |画質指定したい場合は入れてね。
  * audio_quality  |String |音質指定したい場合は入れてね。
+ * playlist       |Serialize([NicoVideoData])の配列| 連続再生する場合。連続再生の場合、video_idの動画から再生を始めます
  * */
 class NicoVideoPlayService : Service() {
 
@@ -80,40 +83,49 @@ class NicoVideoPlayService : Service() {
     private lateinit var exoPlayer: SimpleExoPlayer
     private lateinit var commentCanvas: CommentCanvas
 
-    // 動画視聴からコメント取得、ハートビート処理まで
-    val nicoVideoHTML = NicoVideoHTML()
+    /** ニコ動のデータ取得からハートビートまで */
+    private val nicoVideoHTML = NicoVideoHTML()
 
-    // 視聴モード
+    /** 視聴モード */
     var playMode = "popup"
 
-    // 再生に使うやつ
-    var isCache = false
-    var contentUrl = ""
-    var nicoHistory = ""
-    lateinit var jsonObject: JSONObject
-    var seekTimer = Timer()
-    var isTouchingSeekBar = false // サイズ変更シークバー操作中ならtrue
+    /** 連続再生リスト */
+    private val playlist = arrayListOf<NicoVideoData>()
 
-    // session_apiのレスポンス
-    lateinit var sessionAPIJSONObject: JSONObject
+    /** 連続再生かどうか */
+    private val isPlayList: Boolean
+        get() {
+            return playlist.isNotEmpty()
+        }
 
-    // 動画情報とか
-    var userSession = ""
-    var videoId = ""
-    var videoTitle = ""
-    var seekMs = 0L
-    var commentList = arrayListOf<CommentJSONParse>() // コメント配列
+    /** 連続再生で現在の位置 */
+    private var currentPlaylistPos = 0
+
+    /** 現在の動画ID */
+    private var currentVideoId = ""
+
+    /** 現在の動画タイトル */
+    private var currentVideoTitle = ""
+
+    /** 現在キャッシュで再生しているかどうか */
+    private var isCurrentVideoCache = false
+
+    /** コメント配列 */
+    private var currentVideoCommentList = arrayListOf<CommentJSONParse>()
+
+    /** シークする場合 */
+    private var seekMs = 0L
+
+    /** シークバーを動かすタイマー */
+    private var seekTimer = Timer()
+
+    /** シークバー操作中ならtrue */
+    private var isTouchingSeekBar = false
 
     // アスペクト比（横 / 縦）。なんか21:9並のほっそ長い動画があるっぽい？
     // 4:3 = 1.3 / 16:9 = 1.7
-    var aspect = 1.7
-    lateinit var popupLayoutParams: WindowManager.LayoutParams
-
-    // 再生時間を適用したらtrue。一度だけ動くように
-    var isRotationProgressSuccessful = false
-
-    // キャッシュ取得用
-    lateinit var nicoVideoCache: NicoVideoCache
+    private var aspect = 1.7
+    private lateinit var popupLayoutParams: WindowManager.LayoutParams
 
     // コメント描画改善。drawComment()関数でのみ使う（0秒に投稿されたコメントが重複して表示される対策）
     private var drewedList = arrayListOf<String>() // 描画したコメントのNoが入る配列。一秒ごとにクリアされる
@@ -130,7 +142,6 @@ class NicoVideoPlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         prefSetting = PreferenceManager.getDefaultSharedPreferences(this)
-        userSession = prefSetting.getString("user_session", "") ?: ""
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         showNotification(getString(R.string.loading))
@@ -139,42 +150,141 @@ class NicoVideoPlayService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // 受け取り
         playMode = intent?.getStringExtra("mode") ?: "popup"
-        videoId = intent?.getStringExtra("video_id") ?: ""
-        isCache = intent?.getBooleanExtra("is_cache", false) ?: false
+        val videoId = intent?.getStringExtra("video_id") ?: ""
+        val isCache = intent?.getBooleanExtra("is_cache", false) ?: false
         seekMs = intent?.getLongExtra("seek", 0L) ?: 0L
         // 画質が指定されている場合
         startVideoQuality = intent?.getStringExtra("video_quality")
         startAudioQuality = intent?.getStringExtra("audio_quality")
-        nicoVideoCache = NicoVideoCache(this)
-        if (isCache) {
-            // キャッシュ再生
-            cachePlay()
-        } else {
-            // データ取得など
-            coroutine()
+
+        // 連続再生？
+        if (intent?.getSerializableExtra("playlist") != null) {
+            playlist.addAll(intent.getSerializableExtra("playlist") as ArrayList<NicoVideoData>)
         }
+
+        // ポップアップ再生ならプレイヤーを用意しておく
+        if (isPopupPlay()) {
+            initPlayerUI()
+        }
+
+        if (playlist.isNotEmpty()) {
+            // 連続再生。まず位置特定
+            currentPlaylistPos = playlist.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == videoId }
+            val playlistStartId = playlist[currentPlaylistPos].videoId
+            val playlistStartCanUseCache = playlist[currentPlaylistPos].isCache // キャッシュ再生が使えるか
+            if (playlistStartCanUseCache) {
+                // キャッシュ再生
+                cachePlay(playlistStartId)
+            } else {
+                // データ取得など
+                coroutine(playlistStartId)
+            }
+        } else {
+            // 通常
+            if (isCache) {
+                // キャッシュ再生
+                cachePlay(videoId)
+            } else {
+                // データ取得など
+                coroutine(videoId)
+            }
+        }
+
         initBroadcast()
         return START_NOT_STICKY
     }
 
-    // データ取得など
-    private fun coroutine() {
+    /**
+     * 次の動画へ
+     * 連続再生([playlist]に値が入ってる)じゃないと動きません
+     * */
+    private fun nextPlaylistVideo() {
+        if (playlist.isEmpty()) return
+        // いったんハートビート切る
+        nicoVideoHTML.destroy()
+        // あとしまつ
+        if (::exoPlayer.isInitialized) {
+            exoPlayer.release()
+        }
+        // 連続再生時のみ利用可能
+        val nextVideoPos = if (currentPlaylistPos + 1 < playlist.size) {
+            // 次の動画がある
+            currentPlaylistPos + 1
+        } else {
+            // 最初の動画にする
+            0
+        }
+        val videoData = playlist[nextVideoPos]
+        // 次の動画に合わせる
+        currentPlaylistPos = nextVideoPos
+        if (videoData.isCache) {
+            // キャッシュ再生
+            cachePlay(videoData.videoId)
+        } else {
+            // データ取得など
+            coroutine(videoData.videoId)
+        }
+    }
+
+    /**
+     * 前の動画へ
+     * */
+    private fun prevPlaylistVideo() {
+        if (playlist.isEmpty()) return
+        // いったんハートビート切る
+        nicoVideoHTML.destroy()
+        // あとしまつ
+        if (::exoPlayer.isInitialized) {
+            exoPlayer.release()
+        }
+        // 連続再生時のみ利用可能
+        val prevVideoPos = if (currentPlaylistPos - 1 >= 0) {
+            // 次の動画がある
+            currentPlaylistPos - 1
+        } else {
+            // 最初の動画にする
+            playlist.size - 1
+        }
+        val videoData = playlist[prevVideoPos]
+        // 次の動画に合わせる
+        currentPlaylistPos = prevVideoPos
+        if (videoData.isCache) {
+            // キャッシュ再生
+            cachePlay(videoData.videoId)
+        } else {
+            // データ取得など
+            coroutine(videoData.videoId)
+        }
+    }
+
+
+    /**
+     * インターネットから動画を取得して再生する
+     * @param videoId 動画ID
+     * */
+    private fun coroutine(videoId: String) {
+        isCurrentVideoCache = false
+        currentVideoId = videoId
+
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             showToast("${getString(R.string.error)}\n${throwable}")
         }
 
         GlobalScope.launch(errorHandler) {
+            // 動画URL
+            var contentUrl = ""
+
             // ログインしないならそもそもuserSessionの値を空にすれば！？
             val userSession = if (isLoginMode(this@NicoVideoPlayService)) {
-                this@NicoVideoPlayService.userSession
+                prefSetting.getString("user_session", "")!!
             } else {
                 ""
             }
             val response = nicoVideoHTML.getHTML(videoId, userSession, "")
-            nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
+            val nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
             val responseString = response.body?.string()
-            jsonObject = nicoVideoHTML.parseJSON(responseString)
+            val jsonObject = nicoVideoHTML.parseJSON(responseString)
             // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
             if (nicoVideoHTML.isDMCServer(jsonObject)) {
                 // 公式アニメは暗号化されてて見れないので落とす
@@ -194,11 +304,10 @@ class NicoVideoPlayService : Service() {
                     nicoVideoHTML.callSessionAPI(jsonObject)
                 }
                 if (sessionAPIResponse != null) {
-                    sessionAPIJSONObject = sessionAPIResponse
                     // 動画URL
-                    contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
+                    contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIResponse)
                     // ハートビート処理。これしないと切られる。
-                    nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSONObject)
+                    nicoVideoHTML.heartBeat(jsonObject, sessionAPIResponse)
                 }
             } else {
                 // Smileサーバー。動画URL取得。自動or低画質は最初の視聴ページHTMLのURLのうしろに「?eco=1」をつければ低画質が送られてくる
@@ -207,19 +316,30 @@ class NicoVideoPlayService : Service() {
             // コメント取得
             val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject)
             if (commentJSON != null) {
-                commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
+                currentVideoCommentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
             }
             // タイトル
-            videoTitle = jsonObject.getJSONObject("video").getString("title")
-            Handler(Looper.getMainLooper()).post {
+            currentVideoTitle = jsonObject.getJSONObject("video").getString("title")
+            withContext(Dispatchers.Main) {
                 // ExoPlayer
-                initVideoPlayer(contentUrl, nicoHistory)
+                initVideoPlayer(false, contentUrl, nicoHistory)
+                // プレイヤーにセット
+                setPlayerUI(currentVideoId, currentVideoTitle)
+                // インターネットなので
+                showNetworkType(false)
             }
         }
     }
 
-    // キャッシュ再生
-    private fun cachePlay() {
+    /**
+     * キャッシュを利用して動画を再生
+     * @param videoId 動画ID
+     * */
+    private fun cachePlay(videoId: String) {
+        val nicoVideoCache = NicoVideoCache(this)
+        isCurrentVideoCache = true
+        currentVideoId = videoId
+
         // コメントファイルがxmlならActivity終了
         val xmlCommentJSON = XMLCommentJSON(this)
         if (xmlCommentJSON.commentXmlFilePath(videoId) != null && !xmlCommentJSON.commentJSONFileExists(videoId)) {
@@ -229,7 +349,7 @@ class NicoVideoPlayService : Service() {
             return
         } else {
             // タイトル
-            videoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+            currentVideoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
                 JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video").getString("title")
             } else {
                 // 動画ファイルの名前
@@ -239,26 +359,31 @@ class NicoVideoPlayService : Service() {
                 // 動画のファイル名取得
                 val videoFileName = nicoVideoCache.getCacheFolderVideoFileName(videoId)
                 if (videoFileName != null) {
-                    contentUrl = "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
-                    Handler(Looper.getMainLooper()).post {
-                        // ExoPlayer
-                        initVideoPlayer(contentUrl, "")
-                    }
+                    val contentUrl = "${nicoVideoCache.getCacheFolderPath()}/$videoId/$videoFileName"
                     // コメント取得
                     val commentJSON = nicoVideoCache.getCacheFolderVideoCommentText(videoId)
-                    commentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
+                    currentVideoCommentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON, videoId))
+                    withContext(Dispatchers.Main) {
+                        // ExoPlayer
+                        initVideoPlayer(true, contentUrl, "")
+                        // プレイヤーにセット
+                        setPlayerUI(currentVideoId, currentVideoTitle)
+                        // キャッシュなので
+                        showNetworkType(true)
+                    }
                 } else {
-                    // 動画が見つからなかった
+                    // 動画が見つからなかった。
                     showToast(getString(R.string.not_found_video))
                     stopSelf()
                     return@launch
                 }
+
             }
         }
     }
 
     // ExoPlayer初期化
-    private fun initVideoPlayer(contentUrl: String, nicoHistory: String) {
+    private fun initVideoPlayer(isCache: Boolean, contentUrl: String, nicoHistory: String) {
         exoPlayer = SimpleExoPlayer.Builder(this).build()
         // キャッシュ再生と分ける
         if (isCache) {
@@ -274,21 +399,16 @@ class NicoVideoPlayService : Service() {
             exoPlayer.setMediaSource(videoSource)
         }
         exoPlayer.prepare()
+        // シーク
+        // exoPlayer.seekTo(seekMs)
         // 自動再生
         exoPlayer.playWhenReady = true
         exoPlayer.addListener(object : Player.EventListener {
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                super.onPlayerStateChanged(playWhenReady, playbackState)
-                if (!isRotationProgressSuccessful) {
-                    // 一度だけ実行するように。画面回転時に再生時間を引き継ぐ
-                    exoPlayer.seekTo(seekMs)
-                    isRotationProgressSuccessful = true
-                }
+
+            override fun onPlaybackStateChanged(state: Int) {
+                super.onPlaybackStateChanged(state)
+                // ポップアップのみ
                 if (isPopupPlay()) {
-                    // 初期化してなければ落とす
-                    if (!::viewBinding.isInitialized) {
-                        return
-                    }
                     // シークの最大値設定。
                     val videoLengthFormattedTime = DateUtils.formatElapsedTime(exoPlayer.duration / 1000L)
                     viewBinding.overlayVideoControlInclude.playerControlDuration.text = videoLengthFormattedTime
@@ -308,15 +428,26 @@ class NicoVideoPlayService : Service() {
                             isTouchingSeekBar = false
                         }
                     })
-                    // 動画のアイコン入れ替え
-                    val drawable = if (exoPlayer.playWhenReady) {
-                        getDrawable(R.drawable.ic_pause_black_24dp)
-                    } else {
-                        getDrawable(R.drawable.ic_play_arrow_24px)
-                    }
-                    viewBinding.overlayVideoControlInclude.playerControlPause.setImageDrawable(drawable)
+                }
+
+                // 再生終了。次の動画
+                if (state == Player.STATE_ENDED && exoPlayer.playWhenReady) {
+                    // 動画おわった。連続再生時なら次の曲へ
+                    nextPlaylistVideo()
                 }
             }
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                super.onPlayWhenReadyChanged(playWhenReady, reason)
+                // 動画のアイコン入れ替え
+                val drawable = if (exoPlayer.playWhenReady) {
+                    getDrawable(R.drawable.ic_pause_black_24dp)
+                } else {
+                    getDrawable(R.drawable.ic_play_arrow_24px)
+                }
+                viewBinding.overlayVideoControlInclude.playerControlPause.setImageDrawable(drawable)
+            }
+
         })
 
         // アスペクトひ
@@ -340,212 +471,243 @@ class NicoVideoPlayService : Service() {
             }
         })
 
-
         // MediaSession。通知もう一階出せばなんか表示されるようになった。Androidむずかちい
-        showNotification(videoTitle)
+        showNotification(currentVideoTitle)
         initMediaSession()
+    }
 
-        // ポップアップ再生ならView用意
-        if (isPopupPlay()) {
-            // 権限なければ落とす
-            if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    !Settings.canDrawOverlays(this)
-                } else {
-                    false
-                }
-            ) {
-                return
+    /** プレイヤーのUIを追加する */
+    private fun initPlayerUI() {
+        // 権限なければ落とす
+        if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                !Settings.canDrawOverlays(this)
+            } else {
+                false
             }
-            // 画面の半分を利用するように
-            val width = DisplaySizeTool.getDisplayWidth(this) / 2
-            // レイアウト読み込み
-            val layoutInflater = LayoutInflater.from(this)
-            popupLayoutParams = getParams(width)
-            viewBinding = OverlayVideoPlayerLayoutBinding.inflate(layoutInflater)
-            // 表示
-            windowManager.addView(viewBinding.root, popupLayoutParams)
-            commentCanvas = viewBinding.overlayVideoCommentCanvas
-            commentCanvas.isPopupView = true
-            // SurfaceViewセット
-            exoPlayer.setVideoSurfaceView(viewBinding.overlayVideoSurfaceview)
-
-            // 使わないボタンを消す
-            viewBinding.overlayVideoControlInclude.apply {
-                playerControlPopup.isVisible = false
-                playerControlBackground.isVisible = false
-            }
-            // 番組名、ID設定
-            viewBinding.overlayVideoControlInclude.apply {
-                playerControlTitle.text = videoTitle
-                playerControlId.text = videoId
-            }
-
-            // 再生方法
-            val playingIconDrawable = when {
-                isCache -> getDrawable(R.drawable.ic_folder_open_black_24dp)
-                else -> InternetConnectionCheck.getConnectionTypeDrawable(this)
-            }
-            viewBinding.overlayVideoControlInclude.playerControlVideoNetwork.setImageDrawable(playingIconDrawable)
-
-            // 閉じる
-            viewBinding.overlayVideoControlInclude.playerControlClose.isVisible = true
-            viewBinding.overlayVideoControlInclude.playerControlClose.setOnClickListener {
-                stopSelf()
-            }
-
-            // リピートするか
-            if (prefSetting.getBoolean("nicovideo_repeat_on", true)) {
-                exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-                viewBinding.overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
-            }
-
-            // ミュート・ミュート解除
-            viewBinding.overlayVideoControlInclude.playerControlMute.isVisible = true
-            viewBinding.overlayVideoControlInclude.playerControlMute.setOnClickListener {
-                if (::exoPlayer.isInitialized) {
-                    exoPlayer.apply {
-                        //音が０のとき
-                        if (volume == 0f) {
-                            volume = 1f
-                            viewBinding.overlayVideoControlInclude.playerControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
-                        } else {
-                            volume = 0f
-                            viewBinding.overlayVideoControlInclude.playerControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
-                        }
-                    }
-                }
-            }
-
-            // UI表示
-            var job: Job? = null
-            viewBinding.root.setOnClickListener {
-                viewBinding.overlayVideoControlInclude.playerControlMain.isVisible = !viewBinding.overlayVideoControlInclude.playerControlMain.isVisible
-                job?.cancel()
-                job = GlobalScope.launch(Dispatchers.Main) {
-                    delay(3000)
-                    viewBinding.overlayVideoControlInclude.playerControlMain.isVisible = false
-                }
-            }
-
-            // ピンチイン、ピンチアウトでズームできるようにする
-            val scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
-                override fun onScaleBegin(p0: ScaleGestureDetector?): Boolean {
-                    return true
-                }
-
-                override fun onScaleEnd(p0: ScaleGestureDetector?) {
-
-                }
-
-                override fun onScale(p0: ScaleGestureDetector?): Boolean {
-                    // ピンチイン/アウト中。
-                    if (p0 == null) return true
-                    // なんかうまくいくコード
-                    popupLayoutParams.width = (popupLayoutParams.width * p0.scaleFactor).toInt()
-                    // 縦の大きさは計算で出す（widthの時と同じようにやるとアスペクト比が崩れる。）
-                    popupLayoutParams.height = if (aspect == 1.7) {
-                        (popupLayoutParams.width / 16) * 9 // 16:9
-                    } else {
-                        (popupLayoutParams.width / 4) * 3 // 4:3
-                    }
-                    // 更新
-                    windowManager.updateViewLayout(viewBinding.root, popupLayoutParams)
-                    // 大きさを保持しておく
-                    prefSetting.edit {
-                        putInt("nicovideo_popup_height", popupLayoutParams.height)
-                        putInt("nicovideo_popup_width", popupLayoutParams.width)
-                    }
-                    return true
-                }
-            })
-
-            // 移動
-            viewBinding.root.setOnTouchListener { view, motionEvent ->
-                // タップした位置を取得する
-                val x = motionEvent.rawX.toInt()
-                val y = motionEvent.rawY.toInt()
-                // ついに直感的なズームが！？
-                scaleGestureDetector.onTouchEvent(motionEvent)
-                // 移動できるように
-                when (motionEvent.action) {
-                    // Viewを移動させてるときに呼ばれる
-                    MotionEvent.ACTION_MOVE -> {
-                        // 中心からの座標を計算する
-                        val centerX = x - (DisplaySizeTool.getDisplayWidth(this) / 2)
-                        val centerY = y - (DisplaySizeTool.getDisplayHeight(this) / 2)
-
-                        // オーバーレイ表示領域の座標を移動させる
-                        popupLayoutParams.x = centerX
-                        popupLayoutParams.y = centerY
-
-                        // 移動した分を更新する
-                        windowManager.updateViewLayout(view, popupLayoutParams)
-
-                        // サイズを保存しておく
-                        prefSetting.edit {
-                            putInt("nicovideo_popup_x_pos", popupLayoutParams.x)
-                            putInt("nicovideo_popup_y_pos", popupLayoutParams.y)
-                        }
-                        return@setOnTouchListener true // setOnclickListenerが呼ばれてしまうため true 入れる
-                    }
-                }
-                return@setOnTouchListener false
-            }
-
-            //アプリ起動
-            viewBinding.overlayVideoControlInclude.playerControlFullscreen.setOnClickListener {
-                stopSelf()
-                // アプリ起動
-                val intent = Intent(this, MainActivity::class.java)
-                intent.putExtra("id", videoId)
-                intent.putExtra("cache", isCache)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(intent)
-            }
-
-            // コントローラー
-            viewBinding.overlayVideoControlInclude.playerControlNext.setOnClickListener {
-                // 進める
-                exoPlayer.seekTo(exoPlayer.currentPosition + 5000L)
-            }
-            viewBinding.overlayVideoControlInclude.playerControlPrev.setOnClickListener {
-                // 戻す
-                exoPlayer.seekTo(exoPlayer.currentPosition - 5000L)
-            }
-            viewBinding.overlayVideoControlInclude.playerControlPause.setOnClickListener {
-                // 一時停止
-                exoPlayer.playWhenReady = !exoPlayer.playWhenReady
-                // コメント止める
-                commentCanvas.isPause = !exoPlayer.playWhenReady
-            }
-
-            // リピート再生
-            viewBinding.overlayVideoControlInclude.playerControlRepeat.setOnClickListener {
-                when (exoPlayer.repeatMode) {
-                    Player.REPEAT_MODE_OFF -> {
-                        // リピート無効時
-                        exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-                        viewBinding.overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
-                        prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
-                    }
-                    Player.REPEAT_MODE_ONE -> {
-                        // リピート有効時
-                        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                        viewBinding.overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_black_24dp))
-                        prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
-                    }
-                }
-            }
-
-            // シーク用に毎秒動くタイマー
-            seekTimer.schedule(timerTask {
-                if (exoPlayer.isPlaying) {
-                    setProgress()
-                    drawComment()
-                }
-            }, 100, 100)
-
+        ) {
+            showToast("権限がありませんでした。「他のアプリの上に重ねて表示」権限をください。")
+            return
         }
+        // 画面の半分を利用するように
+        val width = DisplaySizeTool.getDisplayWidth(this) / 2
+        // レイアウト読み込み
+        val layoutInflater = LayoutInflater.from(this)
+        popupLayoutParams = getParams(width)
+        viewBinding = OverlayVideoPlayerLayoutBinding.inflate(layoutInflater)
+        // 表示
+        windowManager.addView(viewBinding.root, popupLayoutParams)
+        commentCanvas = viewBinding.overlayVideoCommentCanvas
+        commentCanvas.isPopupView = true
+    }
+
+    /**
+     * キャッシュ再生かどうかをUIに反映させる。
+     * @param isCache キャッシュ再生ならtrue
+     * */
+    private fun showNetworkType(isCache: Boolean) {
+        // 再生方法
+        val playingIconDrawable = when {
+            isCache -> getDrawable(R.drawable.ic_folder_open_black_24dp)
+            else -> InternetConnectionCheck.getConnectionTypeDrawable(this)
+        }
+        viewBinding.overlayVideoControlInclude.playerControlVideoNetwork.setImageDrawable(playingIconDrawable)
+    }
+
+    /** プレイヤーの動画情報等を更新する */
+    private fun setPlayerUI(videoId: String, videoTitle: String) {
+        // SurfaceViewセット
+        exoPlayer.setVideoSurfaceView(viewBinding.overlayVideoSurfaceview)
+
+        // 使わないボタンを消す
+        viewBinding.overlayVideoControlInclude.apply {
+            playerControlPopup.isVisible = false
+            playerControlBackground.isVisible = false
+        }
+        // 番組名、ID設定
+        viewBinding.overlayVideoControlInclude.apply {
+            playerControlTitle.text = videoTitle
+            playerControlId.text = videoId
+        }
+
+        // 閉じる
+        viewBinding.overlayVideoControlInclude.playerControlClose.isVisible = true
+        viewBinding.overlayVideoControlInclude.playerControlClose.setOnClickListener {
+            stopSelf()
+        }
+
+        // リピートするか
+        if (prefSetting.getBoolean("nicovideo_repeat_on", true)) {
+            exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+            viewBinding.overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
+        }
+
+        // ミュート・ミュート解除
+        viewBinding.overlayVideoControlInclude.playerControlMute.isVisible = true
+        viewBinding.overlayVideoControlInclude.playerControlMute.setOnClickListener {
+            if (::exoPlayer.isInitialized) {
+                exoPlayer.apply {
+                    //音が０のとき
+                    if (volume == 0f) {
+                        volume = 1f
+                        viewBinding.overlayVideoControlInclude.playerControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
+                    } else {
+                        volume = 0f
+                        viewBinding.overlayVideoControlInclude.playerControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
+                    }
+                }
+            }
+        }
+
+        // UI表示
+        var job: Job? = null
+        viewBinding.root.setOnClickListener {
+            viewBinding.overlayVideoControlInclude.playerControlMain.isVisible = !viewBinding.overlayVideoControlInclude.playerControlMain.isVisible
+            job?.cancel()
+            job = GlobalScope.launch(Dispatchers.Main) {
+                delay(3000)
+                viewBinding.overlayVideoControlInclude.playerControlMain.isVisible = false
+            }
+        }
+
+        // ピンチイン、ピンチアウトでズームできるようにする
+        val scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
+            override fun onScaleBegin(p0: ScaleGestureDetector?): Boolean {
+                return true
+            }
+
+            override fun onScaleEnd(p0: ScaleGestureDetector?) {
+
+            }
+
+            override fun onScale(p0: ScaleGestureDetector?): Boolean {
+                // ピンチイン/アウト中。
+                if (p0 == null) return true
+                // なんかうまくいくコード
+                popupLayoutParams.width = (popupLayoutParams.width * p0.scaleFactor).toInt()
+                // 縦の大きさは計算で出す（widthの時と同じようにやるとアスペクト比が崩れる。）
+                popupLayoutParams.height = if (aspect == 1.7) {
+                    (popupLayoutParams.width / 16) * 9 // 16:9
+                } else {
+                    (popupLayoutParams.width / 4) * 3 // 4:3
+                }
+                // 更新
+                windowManager.updateViewLayout(viewBinding.root, popupLayoutParams)
+                // 大きさを保持しておく
+                prefSetting.edit {
+                    putInt("nicovideo_popup_height", popupLayoutParams.height)
+                    putInt("nicovideo_popup_width", popupLayoutParams.width)
+                }
+                return true
+            }
+        })
+
+        // 移動
+        viewBinding.root.setOnTouchListener { view, motionEvent ->
+            // タップした位置を取得する
+            val x = motionEvent.rawX.toInt()
+            val y = motionEvent.rawY.toInt()
+            // ついに直感的なズームが！？
+            scaleGestureDetector.onTouchEvent(motionEvent)
+            // 移動できるように
+            when (motionEvent.action) {
+                // Viewを移動させてるときに呼ばれる
+                MotionEvent.ACTION_MOVE -> {
+                    // 中心からの座標を計算する
+                    val centerX = x - (DisplaySizeTool.getDisplayWidth(this) / 2)
+                    val centerY = y - (DisplaySizeTool.getDisplayHeight(this) / 2)
+
+                    // オーバーレイ表示領域の座標を移動させる
+                    popupLayoutParams.x = centerX
+                    popupLayoutParams.y = centerY
+
+                    // 移動した分を更新する
+                    windowManager.updateViewLayout(view, popupLayoutParams)
+
+                    // サイズを保存しておく
+                    prefSetting.edit {
+                        putInt("nicovideo_popup_x_pos", popupLayoutParams.x)
+                        putInt("nicovideo_popup_y_pos", popupLayoutParams.y)
+                    }
+                    return@setOnTouchListener true // setOnclickListenerが呼ばれてしまうため true 入れる
+                }
+            }
+            return@setOnTouchListener false
+        }
+
+        //アプリ起動
+        viewBinding.overlayVideoControlInclude.playerControlFullscreen.setOnClickListener {
+            stopSelf()
+            // アプリ起動
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("id", videoId)
+            intent.putExtra("cache", isCurrentVideoCache)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+        }
+
+        // 連続再生とアイコン変える
+        val nextIcon = if (isPlayList) getDrawable(R.drawable.ic_skip_next_black_24dp) else getDrawable(R.drawable.ic_redo_black_24dp)
+        val prevIcon = if (isPlayList) getDrawable(R.drawable.ic_skip_previous_black_24dp) else getDrawable(R.drawable.ic_undo_black_24dp)
+        viewBinding.overlayVideoControlInclude.playerControlNext.setImageDrawable(nextIcon)
+        viewBinding.overlayVideoControlInclude.playerControlPrev.setImageDrawable(prevIcon)
+
+        // スキップ秒数
+        val skipValueMs = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000
+        // コントローラー
+        viewBinding.overlayVideoControlInclude.playerControlNext.setOnClickListener {
+            if (isPlayList) {
+                // 次の動画
+                nextPlaylistVideo()
+            } else {
+                // 進める
+                exoPlayer.seekTo(exoPlayer.currentPosition + skipValueMs)
+            }
+        }
+        viewBinding.overlayVideoControlInclude.playerControlPrev.setOnClickListener {
+            if (isPlayList) {
+                // 前の動画
+                prevPlaylistVideo()
+            } else {
+                // 戻す
+                exoPlayer.seekTo(exoPlayer.currentPosition - skipValueMs)
+            }
+        }
+
+        viewBinding.overlayVideoControlInclude.playerControlPause.setOnClickListener {
+            // 一時停止
+            exoPlayer.playWhenReady = !exoPlayer.playWhenReady
+            // コメント止める
+            commentCanvas.isPause = !exoPlayer.playWhenReady
+        }
+
+        // リピート再生
+        viewBinding.overlayVideoControlInclude.playerControlRepeat.setOnClickListener {
+            when (exoPlayer.repeatMode) {
+                Player.REPEAT_MODE_OFF -> {
+                    // リピート無効時
+                    exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                    viewBinding.overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
+                    prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
+                }
+                Player.REPEAT_MODE_ONE -> {
+                    // リピート有効時
+                    exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+                    viewBinding.overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_black_24dp))
+                    prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
+                }
+            }
+        }
+
+        // シーク用に毎秒動くタイマー
+        seekTimer.cancel()
+        seekTimer = Timer()
+        seekTimer.schedule(timerTask {
+            if (exoPlayer.isPlaying) {
+                setProgress()
+                initDrawComment()
+            }
+        }, 100, 100)
+
     }
 
     // サイズ変更をCommentCanvasに反映させる
@@ -559,15 +721,17 @@ class NicoVideoPlayService : Service() {
         })
     }
 
-    // コメント描画あああ
-    private fun drawComment() {
+    /**
+     * コメントを流す関数。定期的に呼んでください。
+     * */
+    private fun initDrawComment() {
         val currentPosition = exoPlayer.contentPosition / 100L
         if (tmpPosition != exoPlayer.contentPosition / 1000) {
             drewedList.clear()
             tmpPosition = currentPosition
         }
         GlobalScope.launch {
-            val drawList = commentList.filter { commentJSONParse ->
+            val drawList = currentVideoCommentList.filter { commentJSONParse ->
                 (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
             }
             drawList.forEach {
@@ -673,10 +837,10 @@ class NicoVideoPlayService : Service() {
         mediaSessionCompat = MediaSessionCompat(this, "nicovideo")
         // メタデータ
         val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
-            putString(MediaMetadataCompat.METADATA_KEY_TITLE, "$videoTitle / $videoId")
-            putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, videoId)
-            putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, videoTitle)
-            putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, videoTitle)
+            putString(MediaMetadataCompat.METADATA_KEY_TITLE, "$currentVideoTitle / $currentVideoId")
+            putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, currentVideoId)
+            putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentVideoTitle)
+            putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, currentVideoTitle)
             putString(MediaMetadataCompat.METADATA_KEY_ARTIST, mode)
         }.build()
         mediaSessionCompat.apply {
@@ -772,9 +936,9 @@ class NicoVideoPlayService : Service() {
                 release()
             }
         }
-        nicoVideoHTML.destory()
-        nicoVideoCache.destroy()
-        exoPlayer.release()
+        if (::exoPlayer.isInitialized) {
+            exoPlayer.release()
+        }
         if (::viewBinding.isInitialized) {
             windowManager.removeView(viewBinding.root)
         }
@@ -798,10 +962,11 @@ class NicoVideoPlayService : Service() {
  * @param videoId 動画ID
  * @param isCache キャッシュ再生ならtrue
  * @param seek シークするなら値を入れてね。省略可能。
+ * @param playlist 連続再生を利用する場合は[NicoVideoData]の配列を入れてください。
  * @param videoQuality 画質を指定する場合は入れてね。無くてもいいよ。キャッシュ再生の時は使わない。例：「archive_h264_4000kbps_1080p」
  * @param audioQuality 音質を指定する場合は入れてね。無くてもいいよ。キャッシュ再生の時は使わない。例：「archive_aac_192kbps」
  * */
-fun startVideoPlayService(context: Context?, mode: String, videoId: String, isCache: Boolean, seek: Long = 0L, videoQuality: String? = null, audioQuality: String? = null) {
+fun startVideoPlayService(context: Context?, mode: String, videoId: String, isCache: Boolean, seek: Long = 0L, videoQuality: String? = null, audioQuality: String? = null, playlist: ArrayList<NicoVideoData>? = null) {
     // ポップアップ再生の権限あるか
     if (mode == "popup") {
         if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -822,6 +987,18 @@ fun startVideoPlayService(context: Context?, mode: String, videoId: String, isCa
         putExtra("video_id", videoId)
         putExtra("is_cache", isCache)
         putExtra("seek", seek)
+        // 連続再生？
+        if (playlist != null) {
+            val nicoVideoCache = NicoVideoCache(context)
+            putExtra("playlist", playlist.filter { nicoVideoData ->
+                if (nicoVideoData.isCache) {
+                    // 動画ファイルが存在してるもののみ取り出す。コメントのみ流すモードは未実装
+                    nicoVideoCache.hasCacheVideoFile(nicoVideoData.videoId)
+                } else {
+                    true
+                }
+            } as Serializable)
+        }
         // 画質入れる。
         if (videoQuality != null && audioQuality != null) {
             putExtra("video_quality", videoQuality)
