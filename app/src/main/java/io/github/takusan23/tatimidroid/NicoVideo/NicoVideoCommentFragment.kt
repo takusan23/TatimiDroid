@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.NicoVideo
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -80,15 +79,6 @@ class NicoVideoCommentFragment : Fragment() {
             viewBinding.fragmentNicovideoCommentCloseImageView.setOnClickListener {
                 // 最小化
                 viewModel.commentListBottomSheetLiveData.postValue(BottomSheetBehavior.STATE_HIDDEN)
-            }
-            // RecyclerViewを操作している間はミニプレイヤーのドラッグを無効化する
-            viewBinding.fragmentNicovideoCommentRecyclerView.setOnTouchListener { v, event ->
-                if (event.action == MotionEvent.ACTION_DOWN) {
-                    (requireParentFragment() as JCNicoVideoFragment).setDraggable(false)
-                } else {
-                    (requireParentFragment() as JCNicoVideoFragment).setDraggable(true)
-                }
-                false
             }
         }
 

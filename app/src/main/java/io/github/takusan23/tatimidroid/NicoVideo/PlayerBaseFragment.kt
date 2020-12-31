@@ -128,6 +128,14 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     }
 
     /**
+     * プレイヤーのサイズ変更（ドラッグ操作）をプレイヤー範囲に限定するかどうか
+     * @param isPlayerOnly trueで限定する
+     * */
+    fun setDraggableAreaPlayerOnly(isPlayerOnly:Boolean){
+        bottomSheetPlayerBehavior.isDraggableAreaPlayerOnly=isPlayerOnly
+    }
+
+    /**
      * SnackBarを表示する関数。Elevationを設定しないと表示されない
      * @param message めっせーじ
      * @param click Snackbarのボタンを押した時

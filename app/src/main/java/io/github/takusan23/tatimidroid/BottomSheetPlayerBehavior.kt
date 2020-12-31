@@ -38,6 +38,15 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
 
     }
 
+    /** プレイヤーのサイズ変更（ドラッグ操作）をプレイヤー範囲に限定するかどうか */
+    var isDraggableAreaPlayerOnly = false
+
+    /** [isDraggableAreaPlayerOnly]のときに使う */
+    private var draggablePlayerView: View? = null
+
+    /** [isDraggableAreaPlayerOnly]のときに使う */
+    private var draggableBottomSheetView: View? = null
+
     /** ミニプレイヤー時の幅。大きさが変わったらその都度入れて */
     var currentMiniPlayerWidth = 0
 
@@ -64,6 +73,8 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
      * @param playerView プレイヤーのView
      * */
     fun init(videoHeight: Int, bottomSheetView: View, playerView: View) {
+        draggablePlayerView = playerView
+        draggableBottomSheetView = bottomSheetView
 
         // 最小値
         val videoWidth = (videoHeight / 9) * 16
@@ -161,7 +172,18 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     override fun onTouchEvent(parent: CoordinatorLayout, child: T, event: MotionEvent): Boolean {
         // プレイヤーを触っているときのみタッチイベントを渡す。translateXの値変えてもタッチは何故か行くので制御
         // ちなみにchild.leftは0を返す
-        val isTouchingSwipeTargetView = event.x > child.x
+        val isTouchingSwipeTargetView = if (!isDraggableAreaPlayerOnly) {
+            event.x > child.x
+        } else {
+            // 操作ターゲットをプレイヤーに限定
+            event.x > currentMiniPlayerXPos
+                    && event.x < currentMiniPlayerXPos + draggablePlayerView!!.width
+                    && event.y > draggableBottomSheetView!!.y
+                    && event.y < draggableBottomSheetView!!.y + draggablePlayerView!!.height
+        }
+
+        println("あれ？ $isDraggableAreaPlayerOnly $isTouchingSwipeTargetView")
+
         // もしくは進行中なら操作を許可
         val isProgress = progress < 1f && progress > 0f
 

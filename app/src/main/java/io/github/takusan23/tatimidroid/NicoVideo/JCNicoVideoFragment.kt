@@ -220,6 +220,10 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
             }
         }
+        // コメント一覧操作時はプレイヤーのミニプレイヤー化操作をプレイヤーの範囲内に限定する
+        viewModel.commentListBottomSheetLiveData.observe(viewLifecycleOwner) { state ->
+            setDraggableAreaPlayerOnly(state != BottomSheetBehavior.STATE_HIDDEN)
+        }
     }
 
     /** UIに動画情報を反映させる */
@@ -434,7 +438,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
                 if (isLeft) {
                     viewModel.playerSetSeekMs.postValue((viewModel.playerSetSeekMs.value ?: 0) - seekValue * 1000)
-                }else{
+                } else {
                     viewModel.playerSetSeekMs.postValue((viewModel.playerSetSeekMs.value ?: 0) + seekValue * 1000)
                 }
             }
