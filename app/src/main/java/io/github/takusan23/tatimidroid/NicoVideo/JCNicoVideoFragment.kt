@@ -93,12 +93,12 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         setTimer()
 
         // 動画情報Fragment設置
-        setNicoVideoDetailFragment()
+        setNicoVideoFragment()
 
     }
 
-    /** [JCNicoVideoDetailFragment]を設置する */
-    private fun setNicoVideoDetailFragment() {
+    /** [JCNicoVideoInfoFragment]を設置する */
+    private fun setNicoVideoFragment() {
         childFragmentManager.beginTransaction().replace(fragmentHostFrameLayout.id, JCNicoVideoDetailFragment()).commit()
     }
 

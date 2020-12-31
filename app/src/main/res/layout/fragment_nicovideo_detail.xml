@@ -12,17 +12,16 @@
             android:background="#fff"
             android:layout_height="match_parent" />
 
-<!--
-    &lt;!&ndash; コメント一覧Fragmentを置く &ndash;&gt;
+    <!-- コメント一覧Fragmentを置く -->
     <FrameLayout
             android:id="@+id/fragment_nicovideo_detail_comment_fragment_frame_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#fff"
             android:orientation="vertical"
-            app:behavior_peekHeight="200dp"
+            app:behavior_peekHeight="100dp"
+            app:behavior_hideable="true"
             app:layout_behavior="@string/bottom_sheet_behavior" />
--->
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

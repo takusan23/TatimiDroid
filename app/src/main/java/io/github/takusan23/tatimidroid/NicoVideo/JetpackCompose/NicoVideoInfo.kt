@@ -334,7 +334,7 @@ fun NicoVideoTagCard(tagDataList: ArrayList<NicoLiveTagDataClass>, tagClick: (Ni
 }
 
 /**
- * コメント一覧表示BottomSheet。Jetpack Compose結構揃ってる
+ * コメント一覧表示BottomSheet。Jetpack Compose結構揃ってる。なお現状めっちゃ落ちるので使ってない。バージョン上がったら使いたい。
  *
  * 注意 このレイアウトを最上位にしてその他は[content]の中に書いてください。
  * */
@@ -376,26 +376,29 @@ fun NicoVideoCommentBottomSheet(commentList: ArrayList<CommentJSONParse>, commen
         content = {
             // モーダル以外のレイアウト
             content()
-            // BottomSheetを表示するためのFab
-            // 右下にするために
-            Column(
-                verticalArrangement = Arrangement.Bottom,
-                horizontalAlignment = Alignment.End,
-                modifier = Modifier.fillMaxHeight().fillMaxWidth(),
-            ) {
-                // コメント表示Fabを出す
-                FloatingActionButton(modifier = Modifier.padding(16.dp),
-                    onClick = {
-                        // おしたらBottomSheet表示
-                        bottomSheetState.show()
-                    }) {
-                    Icon(imageVector = Icons.Outlined.Comment)
-                }
-            }
         }
     )
+}
 
-
+/** BottomSheet表示用FAB */
+@Composable
+fun BottomSheetFab(fabClick: () -> Unit) {
+    // BottomSheetを表示するためのFab
+    // 右下にするために
+    Column(
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.End,
+        modifier = Modifier.fillMaxHeight().fillMaxWidth(),
+    ) {
+        // コメント表示Fabを出す
+        FloatingActionButton(modifier = Modifier.padding(16.dp),
+            onClick = {
+                // 押した時
+                fabClick()
+            }) {
+            Icon(imageVector = Icons.Outlined.Comment)
+        }
+    }
 }
 
 /*

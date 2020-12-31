@@ -5,6 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoDetailBinding
 
 /**
@@ -14,6 +17,9 @@ class JCNicoVideoDetailFragment : Fragment() {
 
     /** レイアウト。Fragmentを置くだけなんだけどね */
     private val nicovideoDetailBinding by lazy { FragmentNicovideoDetailBinding.inflate(layoutInflater) }
+
+    /** ViewModel */
+    private val viewModel by viewModels<NicoVideoViewModel>({ requireParentFragment() })
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return nicovideoDetailBinding.root
@@ -26,7 +32,17 @@ class JCNicoVideoDetailFragment : Fragment() {
         parentFragmentManager.beginTransaction().replace(nicovideoDetailBinding.fragmentNicovideoDetailInfoFragmentFrameLayout.id, JCNicoVideoInfoFragment()).commit()
 
         // コメント一覧Fragment設置。
-      //  parentFragmentManager.beginTransaction().replace(nicovideoDetailBinding.fragmentNicovideoDetailCommentFragmentFrameLayout.id, NicoVideoCommentFragment()).commit()
+        parentFragmentManager.beginTransaction().replace(nicovideoDetailBinding.fragmentNicovideoDetailCommentFragmentFrameLayout.id, NicoVideoCommentFragment()).commit()
+
+        // コメント一覧展開など
+        val bottomSheet = BottomSheetBehavior.from(nicovideoDetailBinding.fragmentNicovideoDetailCommentFragmentFrameLayout)
+        viewModel.commentListBottomSheetLiveData.observe(viewLifecycleOwner) { isShow ->
+            bottomSheet.state = if (isShow) {
+                BottomSheetBehavior.STATE_EXPANDED
+            } else {
+                BottomSheetBehavior.STATE_HIDDEN
+            }
+        }
 
     }
 

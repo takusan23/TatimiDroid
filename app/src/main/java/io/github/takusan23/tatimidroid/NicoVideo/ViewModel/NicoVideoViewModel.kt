@@ -192,6 +192,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** 動画の高さ。同じくExoPlayerで取得して入れておいて */
     var videoHeight = 9
 
+    /** コメント一覧表示してくれ～LiveData */
+    val commentListBottomSheetLiveData = MutableLiveData(false)
+
     init {
 
         // 最初の動画。連続再生と分岐
