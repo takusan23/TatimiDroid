@@ -93,13 +93,13 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         setTimer()
 
         // 動画情報Fragment設置
-        setNicoVideoInfoFragment()
+        setNicoVideoDetailFragment()
 
     }
 
-    /** [JCNicoVideoInfoFragment]を設置する */
-    private fun setNicoVideoInfoFragment() {
-        childFragmentManager.beginTransaction().replace(fragmentHostFrameLayout.id, JCNicoVideoInfoFragment()).commit()
+    /** [JCNicoVideoDetailFragment]を設置する */
+    private fun setNicoVideoDetailFragment() {
+        childFragmentManager.beginTransaction().replace(fragmentHostFrameLayout.id, JCNicoVideoDetailFragment()).commit()
     }
 
     /** コメントと経過時間を定期的に更新していく */

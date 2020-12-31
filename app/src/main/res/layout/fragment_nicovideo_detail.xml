@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/fragment_nicovideo_detail_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <!-- 動画情報Fragmentを置く -->
+    <FrameLayout
+            android:id="@+id/fragment_nicovideo_detail_info_fragment_frame_layout"
+            android:layout_width="match_parent"
+            android:background="#fff"
+            android:layout_height="match_parent" />
+
+<!--
+    &lt;!&ndash; コメント一覧Fragmentを置く &ndash;&gt;
+    <FrameLayout
+            android:id="@+id/fragment_nicovideo_detail_comment_fragment_frame_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#fff"
+            android:orientation="vertical"
+            app:behavior_peekHeight="200dp"
+            app:layout_behavior="@string/bottom_sheet_behavior" />
+-->
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

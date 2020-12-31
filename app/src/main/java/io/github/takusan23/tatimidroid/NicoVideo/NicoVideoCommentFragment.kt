@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,6 +16,8 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoCommentBinding
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 /**
@@ -34,10 +37,6 @@ class NicoVideoCommentFragment : Fragment() {
      * */
     var isAutoScroll = true
 
-    /** [NicoVideoFragment]。このFragmentが置いてあるFragment。ViewPager2の引数Fragmentにしたら[requireParentFragment]使えるようになった。*/
-    private val devNicoVideoFragment by lazy {
-        requireParentFragment() as NicoVideoFragment
-    }
 
     /** findViewById駆逐 */
     private val viewBinding by lazy { FragmentNicovideoCommentBinding.inflate(layoutInflater) }
@@ -58,15 +57,21 @@ class NicoVideoCommentFragment : Fragment() {
 
         // スクロールボタン。追従するぞい
         viewBinding.fragmentNicovideoCommentFollowingButton.setOnClickListener {
-            // Fragmentはクソ！
-            devNicoVideoFragment.apply {
+            // スクロール
+            scroll(viewModel.playerCurrentPositionMs)
+            // Visibilityゴーン。誰もカルロス・ゴーンの話しなくなったな
+            setFollowingButtonVisibility(false)
+            isAutoScroll = true
+        }
+
+        lifecycleScope.launch {
+            while (true) {
+                delay(1000)
                 // スクロール
-                scroll(viewModel.playerCurrentPositionMs)
-                // Visibilityゴーン。誰もカルロス・ゴーンの話しなくなったな
-                setFollowingButtonVisibility(false)
-                isAutoScroll = true
+                setScrollFollowButton(viewModel.playerCurrentPositionMs)
             }
         }
+
     }
 
     /**
@@ -80,7 +85,7 @@ class NicoVideoCommentFragment : Fragment() {
             val mLayoutManager = LinearLayoutManager(context)
             layoutManager = mLayoutManager
             // Adapter用意。実は第二引数渡さなくても動いたりする（ニコるできなくなるけど）
-            nicoVideoAdapter = NicoVideoAdapter(commentList, devNicoVideoFragment)
+            nicoVideoAdapter = NicoVideoAdapter(commentList, null)
             adapter = nicoVideoAdapter
             //区切り線いれる
             val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)

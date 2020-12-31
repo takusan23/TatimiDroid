@@ -29,10 +29,10 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:background="#80000000"
-            app:layout_constraintBottom_toBottomOf="@id/include_nicovideo_player_surface_view"
-            app:layout_constraintEnd_toEndOf="@id/include_nicovideo_player_surface_view"
-            app:layout_constraintStart_toStartOf="@id/include_nicovideo_player_surface_view"
-            app:layout_constraintTop_toTopOf="@id/include_nicovideo_player_surface_view" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
             android:id="@+id/include_nicovideo_player_close_image_view"

@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose
 import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -21,11 +22,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
+import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.*
@@ -327,6 +331,71 @@ fun NicoVideoTagCard(tagDataList: ArrayList<NicoLiveTagDataClass>, tagClick: (Ni
             }
         )
     }
+}
+
+/**
+ * コメント一覧表示BottomSheet。Jetpack Compose結構揃ってる
+ *
+ * 注意 このレイアウトを最上位にしてその他は[content]の中に書いてください。
+ * */
+@ExperimentalMaterialApi
+@Composable
+fun NicoVideoCommentBottomSheet(commentList: ArrayList<CommentJSONParse>, commentClick: (CommentJSONParse) -> Unit, content: @Composable () -> Unit) {
+    // BottomSheetを表示させるかどうか
+    val bottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.HalfExpanded)
+
+    ModalBottomSheetLayout(
+        sheetState = bottomSheetState,
+        sheetElevation = 10.dp,
+        sheetShape = RoundedCornerShape(10.dp, 10.dp, 0.dp, 0.dp),
+        sheetContent = {
+            LazyColumn(content = {
+                this.item {
+                    Column {
+                        // コメントBottomSheetだよー
+                        Row(
+                            modifier = Modifier.padding(10.dp)
+                        ) {
+                            Icon(imageVector = Icons.Outlined.Comment)
+                            Text(text = stringResource(id = R.string.comment))
+                        }
+                        // コメント一覧。AndroidViewで既存のRecyclerViewを使い回す。
+                        AndroidView(viewBlock = { context ->
+                            RecyclerView(context).apply {
+                                setHasFixedSize(true)
+                                layoutManager = LinearLayoutManager(context)
+                                adapter = NicoVideoAdapter(commentList)
+                                val itemDecoration = DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
+                                addItemDecoration(itemDecoration)
+                            }
+                        })
+                    }
+                }
+            })
+        },
+        content = {
+            // モーダル以外のレイアウト
+            content()
+            // BottomSheetを表示するためのFab
+            // 右下にするために
+            Column(
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.fillMaxHeight().fillMaxWidth(),
+            ) {
+                // コメント表示Fabを出す
+                FloatingActionButton(modifier = Modifier.padding(16.dp),
+                    onClick = {
+                        // おしたらBottomSheet表示
+                        bottomSheetState.show()
+                    }) {
+                    Icon(imageVector = Icons.Outlined.Comment)
+                }
+            }
+        }
+    )
+
+
 }
 
 /*

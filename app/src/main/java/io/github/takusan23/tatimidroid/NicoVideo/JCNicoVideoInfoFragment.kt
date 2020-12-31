@@ -35,7 +35,7 @@ class JCNicoVideoInfoFragment : Fragment() {
             setContent {
                 MaterialTheme(
                     // ダークモード。動的にテーマ変更できるようになるんか？
-                    colors = if (isDarkMode(AmbientContext.current)) DarkColors else LightColors
+                    colors = if (isDarkMode(AmbientContext.current)) DarkColors else LightColors,
                 ) {
                     Surface {
 
@@ -59,54 +59,72 @@ class JCNicoVideoInfoFragment : Fragment() {
                             val userData = viewModel.userDataLiveData.observeAsState()
                             // タグ一覧
                             val tagList = viewModel.tagListLiveData.observeAsState()
+                            // コメント一覧
+                            val commentList = viewModel.commentList.observeAsState()
 
-                            // スクロールできるやつ
-                            ScrollableColumn {
-                                if (data.value != null) {
-                                    // 動画情報表示Card
-                                    NicoVideoInfoCard(
-                                        nicoVideoData = data.value,
-                                        isLiked = isLiked,
-                                        scaffoldState = state,
-                                        description = descroption.value,
-                                        postLike = {
-                                            // いいね登録
-                                            NicoVideoLikeBottomFragment().show(parentFragmentManager, "like")
-                                        },
-                                        postRemoveLike = {
-                                            // いいね解除
-                                            viewModel.removeLike()
-                                        },
-                                        descriptionClick = { link, type ->
-                                            // 押した時
 
+                            // コメント一覧表示Compose
+                            if (commentList.value != null) {
+
+                                // コメント表示BottomSheet
+                                NicoVideoCommentBottomSheet(
+                                    commentList = commentList.value!!,
+                                    commentClick = { commentData -> },
+                                    content = {
+
+                                        // スクロールできるやつ
+                                        ScrollableColumn {
+                                            if (data.value != null) {
+                                                // 動画情報表示Card
+                                                NicoVideoInfoCard(
+                                                    nicoVideoData = data.value,
+                                                    isLiked = isLiked,
+                                                    scaffoldState = state,
+                                                    description = descroption.value,
+                                                    postLike = {
+                                                        // いいね登録
+                                                        NicoVideoLikeBottomFragment().show(parentFragmentManager, "like")
+                                                    },
+                                                    postRemoveLike = {
+                                                        // いいね解除
+                                                        viewModel.removeLike()
+                                                    },
+                                                    descriptionClick = { link, type ->
+                                                        // 押した時
+
+                                                    }
+                                                )
+                                            }
+                                            // タグ
+                                            if (tagList.value != null) {
+                                                NicoVideoTagCard(
+                                                    tagDataList = tagList.value!!,
+                                                    tagClick = { data ->
+
+                                                    }
+                                                )
+                                            }
+                                            // ユーザー情報
+                                            if (userData.value != null) {
+                                                NicoVideoUserCard(
+                                                    userData = userData.value!!,
+                                                    userOpenClick = {
+
+                                                    }
+                                                )
+                                            }
+                                            // 関連動画表示Card
+                                            if (recommendList.value != null) {
+                                                NicoVideoRecommendCard(recommendList.value!!)
+                                            }
                                         }
-                                    )
-                                }
-                                // タグ
-                                if (tagList.value != null) {
-                                    NicoVideoTagCard(
-                                        tagDataList = tagList.value!!,
-                                        tagClick = { data ->
 
-                                        }
-                                    )
-                                }
-                                // ユーザー情報
-                                if (userData.value != null) {
-                                    NicoVideoUserCard(
-                                        userData = userData.value!!,
-                                        userOpenClick = {
-
-                                        }
-                                    )
-                                }
-                                // 関連動画表示Card
-                                if (recommendList.value != null) {
-                                    NicoVideoRecommendCard(recommendList.value!!)
-                                }
+                                    }
+                                )
                             }
+
                         }
+
 
                         // Snackbar表示。使い方合ってんのかはしらんけど
                         viewModel.likeThanksMessageLiveData.observe(viewLifecycleOwner) {
