@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import io.github.takusan23.tatimidroid.Adapter.Parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
@@ -75,9 +76,6 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** キャッシュまとめ */
     val nicoVideoCache = NicoVideoCache(context)
 
-    /** ニコるくんAPI */
-    val nicoruAPI = NicoruAPI()
-
     /** Smileサーバーの動画を再生するのに使う */
     var nicoHistory = ""
 
@@ -128,11 +126,6 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
 
     /** 関連動画配列。なんで個々にあるのかは不明 */
     val recommendList = MutableLiveData<ArrayList<NicoVideoData>>()
-
-    /** ニコるくんAPI叩く時に使う。どうにかしたい。 */
-    var isPremium = false
-    var threadId = ""
-    var userId = ""
 
     /** 現在再生中の位置 */
     var currentPosition = 0L
@@ -192,8 +185,11 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** 動画の高さ。同じくExoPlayerで取得して入れておいて */
     var videoHeight = 9
 
-    /** コメント一覧表示してくれ～LiveData */
-    val commentListBottomSheetLiveData = MutableLiveData(false)
+    /** コメント一覧表示してくれ～LiveData。[BottomSheetBehavior.STATE_COLLAPSED]系が入る。 */
+    val commentListBottomSheetLiveData = MutableLiveData(BottomSheetBehavior.STATE_HIDDEN)
+
+    /** ニコるくんAPI */
+    var nicoruAPI: NicoruAPI? = null
 
     init {
 
@@ -425,7 +421,17 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             // 関連動画
             launch { getRecommend() }
             // ニコるくん
-            launch { initNicoru() }
+            if (nicoVideoHTML.isPremium(jsonObject)) {
+                launch {
+                    nicoruAPI = NicoruAPI(
+                        userSession = userSession,
+                        threadId = nicoVideoHTML.getThreadId(jsonObject),
+                        isPremium = nicoVideoHTML.isPremium(jsonObject),
+                        userId = nicoVideoHTML.getUserId(jsonObject)
+                    )
+                    nicoruAPI?.init()
+                }
+            }
         }
     }
 
@@ -478,25 +484,6 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         // パース
         withContext(Dispatchers.Default) {
             recommendList.postValue(nicoVideoRecommendAPI.parseVideoRecommend(recommendAPIResponse.body?.string()))
-        }
-    }
-
-    /** ニコるくんのための準備 */
-    private suspend fun initNicoru() = withContext(Dispatchers.Default) {
-        // ニコるくん
-        isPremium = nicoVideoHTML.isPremium(nicoVideoJSON.value!!)
-        threadId = nicoVideoHTML.getThreadId(nicoVideoJSON.value!!)
-        userId = nicoVideoHTML.getUserId(nicoVideoJSON.value!!)
-        if (isPremium) {
-            val nicoruResponse = nicoruAPI.getNicoruKey(userSession, threadId)
-            if (!nicoruResponse.isSuccessful) {
-                showToast("${getString(R.string.error)}\n${nicoruResponse.code}")
-                return@withContext
-            }
-            // nicoruKey!!!
-            withContext(Dispatchers.Default) {
-                nicoruAPI.parseNicoruKey(nicoruResponse.body?.string())
-            }
         }
     }
 

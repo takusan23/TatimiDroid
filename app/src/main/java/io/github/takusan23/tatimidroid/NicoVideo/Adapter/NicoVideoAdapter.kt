@@ -12,14 +12,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.BottomFragment.CommentLockonBottomFragment
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.KotehanDBInit
 import io.github.takusan23.tatimidroid.Tool.CustomFont
@@ -31,9 +32,12 @@ import java.util.*
 
 /**
  * ニコ動のコメント表示Adapter
- * @param nicoVideoFragment ニコるくんとコテハンで使う。ニコるくん/コテハンがいらないならnullでおーけー
+ * @param isOffline trueにするとニコるくん押せなくします
+ * @param arrayListArrayAdapter コメント配列
+ * @param fragmentManager BottomFragmentを表示する際に使う
+ * @param nicoruAPI ニコるくんAPIのために
  * */
-class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONParse>, private val nicoVideoFragment: NicoVideoFragment? = null) : RecyclerView.Adapter<NicoVideoAdapter.ViewHolder>() {
+class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONParse>, private val fragmentManager: FragmentManager, private val isOffline: Boolean, private val nicoruAPI: NicoruAPI?) : RecyclerView.Adapter<NicoVideoAdapter.ViewHolder>() {
 
     lateinit var prefSetting: SharedPreferences
     lateinit var font: CustomFont
@@ -119,7 +123,7 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
 
         // 一般会員にはニコる提供されてないのでニコる数だけ表示
         // あとDevNicoVideoFragmentはがめんスワイプしてたらなんか落ちたので
-        val nicoruCount = if (!isShowNicoruButton && nicoVideoFragment == null && item.nicoru > 0) {
+        val nicoruCount = if (!isShowNicoruButton && item.nicoru > 0) {
             "| ニコる ${item.nicoru} "
         } else {
             ""
@@ -141,44 +145,26 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             bundle.putLong("current_pos", item.vpos.toLong())
             val commentLockonBottomFragment = CommentLockonBottomFragment()
             commentLockonBottomFragment.arguments = bundle
-            if (nicoVideoFragment != null) {
-                commentLockonBottomFragment.show(nicoVideoFragment.childFragmentManager, "comment_menu")
-            }
+            commentLockonBottomFragment.show(fragmentManager, "comment_menu")
         }
 
-        // ニコれるように
-        if (nicoVideoFragment != null) {
+        // ニコる押したとき
+        holder.nicoruButton.setOnClickListener {
+            postNicoru(context, holder, item)
+        }
 
-            // JSON
-            val jsonObject = nicoVideoFragment.viewModel.nicoVideoJSON.value
-
-            // オフライン再生かどうか
-            val isOfflinePlay = nicoVideoFragment.viewModel.isOfflinePlay
-
-            // プレ垢かどうが
-            val isPremium = if (jsonObject != null) {
-                NicoVideoHTML().isPremium(jsonObject)
-            } else {
-                false
-            }
-
-            // ニコる押したとき
-            holder.nicoruButton.setOnClickListener {
-                postNicoru(context, holder, item)
-            }
-
-            // プレ垢はニコるくんつける
-            if (isPremium && isShowNicoruButton) {
-                holder.nicoruButton.isVisible = true
-                // ただしキャッシュ再生時は押せなくする
-                if (isOfflinePlay.value == true) {
-                    holder.nicoruButton.apply {
-                        isClickable = false
-                        isEnabled = false
-                    }
+        // プレ垢はニコるくんつける
+        if (nicoruAPI?.isPremium == true && isShowNicoruButton) {
+            holder.nicoruButton.isVisible = true
+            // ただしキャッシュ再生時は押せなくする
+            if (isOffline) {
+                holder.nicoruButton.apply {
+                    isClickable = false
+                    isEnabled = false
                 }
             }
         }
+
     }
 
     /**
@@ -209,61 +195,67 @@ class NicoVideoAdapter(private val arrayListArrayAdapter: ArrayList<CommentJSONP
             showToast(context, "${context.getString(R.string.error)}\n${throwable}")
         }
         GlobalScope.launch(errorHandler) {
-            nicoVideoFragment?.apply {
-                val nicoruAPI = nicoVideoFragment.viewModel.nicoruAPI
-                // JSON
-                val userSession = prefSetting.getString("user_session", "") ?: return@apply
-                if (viewModel.isPremium) {
-                    val nicoruKey = nicoruAPI.nicoruKey
-                    val responseNicoru = nicoruAPI.postNicoru(userSession, viewModel.threadId, viewModel.userId, item.commentNo, item.comment, "${item.date}.${item.dateUsec}", nicoruKey)
-                    if (!responseNicoru.isSuccessful) {
-                        // 失敗時
-                        showToast(context, "${context?.getString(R.string.error)}\n${responseNicoru.code}")
-                        return@launch
-                    }
-                    val responseString = responseNicoru.body?.string()
-                    // 成功したか
-                    val jsonObject = JSONArray(responseString).getJSONObject(0)
-                    val status = nicoruAPI.nicoruResultStatus(jsonObject)
-                    when (status) {
-                        0 -> {
-                            // ニコれた
-                            item.nicoru = nicoruAPI.nicoruResultNicoruCount(jsonObject)
-                            val nicoruId = nicoruAPI.nicoruResultId(jsonObject)
-                            showSnackbar("${getString(R.string.nicoru_ok)}：${item.nicoru}\n${item.comment}", getString(R.string.nicoru_delete)) {
-                                // 取り消しAPI叩く
-                                lifecycleScope.launch {
-                                    val deleteResponse = nicoruAPI.deleteNicoru(userSession, nicoruId)
-                                    if (deleteResponse.isSuccessful) {
-                                        this@NicoVideoAdapter.showToast(context, getString(R.string.nicoru_delete_ok))
-                                    } else {
-                                        this@NicoVideoAdapter.showToast(context, "${getString(R.string.error)}${deleteResponse.code}")
-                                    }
+            val userSession = prefSetting.getString("user_session", "")!!
+
+            if (nicoruAPI?.isPremium == true) {
+                val responseNicoru = nicoruAPI.postNicoru(item.commentNo, item.comment, "${item.date}.${item.dateUsec}")
+                if (!responseNicoru.isSuccessful) {
+                    // 失敗時
+                    showToast(context, "${context.getString(R.string.error)}\n${responseNicoru.code}")
+                    return@launch
+                }
+                val responseString = responseNicoru.body?.string()
+                // 成功したか
+                val jsonObject = JSONArray(responseString).getJSONObject(0)
+                val status = nicoruAPI.nicoruResultStatus(jsonObject)
+                when (status) {
+                    0 -> {
+                        // ニコれた
+                        item.nicoru = nicoruAPI.nicoruResultNicoruCount(jsonObject)
+                        val nicoruId = nicoruAPI.nicoruResultId(jsonObject)
+                        showSnackbar(holder.commentTextView, "${context.getString(R.string.nicoru_ok)}：${item.nicoru}\n${item.comment}", context.getString(R.string.nicoru_delete)) {
+                            // 取り消しAPI叩く
+                            GlobalScope.launch(Dispatchers.Default) {
+                                val deleteResponse = nicoruAPI.deleteNicoru(userSession, nicoruId)
+                                if (deleteResponse.isSuccessful) {
+                                    this@NicoVideoAdapter.showToast(context, context.getString(R.string.nicoru_delete_ok))
+                                } else {
+                                    this@NicoVideoAdapter.showToast(context, "${context.getString(R.string.error)}${deleteResponse.code}")
                                 }
                             }
-                            // ニコるボタンに再適用
-                            holder.nicoruButton.post {
-                                holder.nicoruButton.text = item.nicoru.toString()
-                            }
                         }
-                        2 -> {
-                            // nicoruKey失効。
-                            lifecycleScope.launch {
-                                // 再取得
-                                nicoruAPI.getNicoruKey(userSession, viewModel.threadId)
-                                postNicoru(context, holder, item)
-                            }
-                        }
-                        else -> {
-                            this@NicoVideoAdapter.showToast(context, getString(R.string.nicoru_error))
+                        // ニコるボタンに再適用
+                        holder.nicoruButton.post {
+                            holder.nicoruButton.text = item.nicoru.toString()
                         }
                     }
-                } else {
-                    showToast(context, "プレ垢限定です")
+                    2 -> {
+                        // nicoruKey失効。
+                        GlobalScope.launch(Dispatchers.Default) {
+                            // 再取得
+                            nicoruAPI.init()
+                            postNicoru(context, holder, item)
+                        }
+                    }
+                    else -> {
+                        this@NicoVideoAdapter.showToast(context, context.getString(R.string.nicoru_error))
+                    }
                 }
             }
         }
     }
+
+
+    /** Snackbarを表示する */
+    private fun showSnackbar(view: View, message: String, action: String, click: () -> Unit) {
+        Snackbar.make(view, message, Snackbar.LENGTH_SHORT).apply {
+            setAction(action) {
+                click()
+            }
+            getView().elevation = 30f // なんかBottomSheetから見えない
+        }.show()
+    }
+
 
     /**
      * 時間表記をきれいにする関数

@@ -12,21 +12,33 @@ import org.json.JSONObject
 /**
  * ニコるくんAPI。金稼ぎに走ってしまったニコるくんなんて言ってはいけない。
  * nicoru_result.statusが2ならnicorukey切れてる。4ならすでに追加済み。
+ *
+ * @param userSession ユーザーセッション
+ * @param threadId js-initial-watch-dataのdata-api-dataのthread.ids.defaultの値
+ * @param userId ユーザーID
+ * @param isPremium 現状trueなはず
  * */
-class NicoruAPI {
+class NicoruAPI(val userSession: String, val threadId: String, val isPremium: Boolean, val userId: String) {
 
     /** シングルトンなOkHttpClient */
     private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     // nicoruKey
-    var nicoruKey = ""
+    var nicoruKey: String? = null
+
+    /** NicoruKeyを取得するために最初に呼んでおいてください。 */
+    suspend fun init() = withContext(Dispatchers.Default) {
+        // NicoruKey取得しておく
+        val response = getNicoruKey()
+        parseNicoruKey(response.body?.string())
+    }
 
     /**
      * ニコるときに使う「nicorukey」を取得する。コルーチンです。
      * @param userSession ユーザーセッション
      * @param threadId js-initial-watch-dataのdata-api-dataのthread.ids.defaultの値
      * */
-    suspend fun getNicoruKey(userSession: String, threadId: String) = withContext(Dispatchers.IO) {
+    private suspend fun getNicoruKey() = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             url("https://nvapi.nicovideo.jp/v1/nicorukey?language=0&threadId=$threadId")
             header("User-Agent", "TatimiDroid;@takusan_23")
@@ -44,7 +56,7 @@ class NicoruAPI {
      * @param responseString getNicoruKey()のレスポンス
      * @return nicoruKeyに値が入る
      * */
-    suspend fun parseNicoruKey(responseString: String?) = withContext(Dispatchers.Default) {
+    private suspend fun parseNicoruKey(responseString: String?) = withContext(Dispatchers.Default) {
         val jsonObject = JSONObject(responseString)
         nicoruKey = jsonObject.getJSONObject("data").getString("nicorukey")
     }
@@ -52,15 +64,11 @@ class NicoruAPI {
     /**
      * ニコるを送信する。コルーチンです。
      * すでにニコってても200が帰ってくる模様。
-     * @param userSession ユーザーセッション
-     * @param threadId js-initial-watch-dataのdata-api-dataのthread.ids.defaultの値
-     * @param userId ユーザーID
      * @param id コメントID
      * @param commentText コメントの内容
      * @param postDate コメントの投稿時間（UnixTime）。決してニコった時間ではない。
-     * @param nicoruKey getNicoruKey()で取得した値。
      * */
-    suspend fun postNicoru(userSession: String, threadId: String, userId: String, id: String, commentText: String, postDate: String, nicoruKey: String) = withContext(Dispatchers.IO) {
+    suspend fun postNicoru(id: String, commentText: String, postDate: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             // POSTするJSON
             val postData = JSONArray().apply {
@@ -68,7 +76,7 @@ class NicoruAPI {
                     this.put("nicoru", JSONObject().apply {
                         put("thread", threadId)
                         put("user_id", userId)
-                        put("premium", 1)
+                        put("premium", if (isPremium) 1 else 0)
                         put("fork", 0)
                         put("language", 0)
                         put("id", id)

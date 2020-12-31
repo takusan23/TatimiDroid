@@ -36,15 +36,9 @@ class JCNicoVideoDetailFragment : Fragment() {
 
         // コメント一覧展開など
         val bottomSheet = BottomSheetBehavior.from(nicovideoDetailBinding.fragmentNicovideoDetailCommentFragmentFrameLayout)
-        viewModel.commentListBottomSheetLiveData.observe(viewLifecycleOwner) { isShow ->
-            bottomSheet.state = if (isShow) {
-                BottomSheetBehavior.STATE_EXPANDED
-            } else {
-                BottomSheetBehavior.STATE_HIDDEN
-            }
+        viewModel.commentListBottomSheetLiveData.observe(viewLifecycleOwner) { state ->
+            bottomSheet.state = state
         }
 
     }
-
-
 }

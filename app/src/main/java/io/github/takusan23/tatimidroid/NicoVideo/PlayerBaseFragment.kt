@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.BottomSheetPlayerBehavior
 import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
 import io.github.takusan23.tatimidroid.R
@@ -63,6 +64,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
                 onBottomSheetProgress(slideOffset)
             }
         })
+
         // 遅延で表示
         lifecycleScope.launch {
             delay(100)
@@ -115,6 +117,29 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** 画面が横かどうかを返す。横ならtrue */
     fun isLandscape(): Boolean {
         return requireActivity().resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    }
+
+    /**
+     * ドラッグを有効/無効にする
+     * @param isDraggable ドラッグ禁止はfalse
+     * */
+    fun setDraggable(isDraggable: Boolean) {
+        bottomSheetPlayerBehavior.isDraggable = isDraggable
+    }
+
+    /**
+     * SnackBarを表示する関数。Elevationを設定しないと表示されない
+     * @param message めっせーじ
+     * @param click Snackbarのボタンを押した時
+     * @param action Snackbarのボタンの本文
+     * */
+    fun showSnackBar(message: String, action: String, click: () -> Unit) {
+        Snackbar.make(fragmentPlayerFrameLayout, message, Snackbar.LENGTH_SHORT).apply {
+            setAction(action) {
+                click()
+            }
+            view.elevation = 30f
+        }.show()
     }
 
     /**

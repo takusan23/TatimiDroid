@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.NicoVideo
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -12,6 +13,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
@@ -37,6 +39,8 @@ class NicoVideoCommentFragment : Fragment() {
      * */
     var isAutoScroll = true
 
+    /** ViewModel */
+    val viewModel: NicoVideoViewModel by viewModels({ requireParentFragment() })
 
     /** findViewById駆逐 */
     private val viewBinding by lazy { FragmentNicovideoCommentBinding.inflate(layoutInflater) }
@@ -49,8 +53,6 @@ class NicoVideoCommentFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // コメント監視
-        val viewModel: NicoVideoViewModel by viewModels({ requireParentFragment() })
-
         viewModel.commentList.observe(viewLifecycleOwner) { list ->
             initRecyclerView(list)
         }
@@ -76,7 +78,17 @@ class NicoVideoCommentFragment : Fragment() {
         if (requireParentFragment() is JCNicoVideoFragment) {
             viewBinding.fragmentNicovideoCommentBarLinearLayout.isVisible = true
             viewBinding.fragmentNicovideoCommentCloseImageView.setOnClickListener {
-                viewModel.commentListBottomSheetLiveData.postValue(false)
+                // 最小化
+                viewModel.commentListBottomSheetLiveData.postValue(BottomSheetBehavior.STATE_HIDDEN)
+            }
+            // RecyclerViewを操作している間はミニプレイヤーのドラッグを無効化する
+            viewBinding.fragmentNicovideoCommentRecyclerView.setOnTouchListener { v, event ->
+                if (event.action == MotionEvent.ACTION_DOWN) {
+                    (requireParentFragment() as JCNicoVideoFragment).setDraggable(false)
+                } else {
+                    (requireParentFragment() as JCNicoVideoFragment).setDraggable(true)
+                }
+                false
             }
         }
 
@@ -92,8 +104,8 @@ class NicoVideoCommentFragment : Fragment() {
             setHasFixedSize(true)
             val mLayoutManager = LinearLayoutManager(context)
             layoutManager = mLayoutManager
-            // Adapter用意。実は第二引数渡さなくても動いたりする（ニコるできなくなるけど）
-            nicoVideoAdapter = NicoVideoAdapter(commentList, null)
+            // Adapter用意。
+            nicoVideoAdapter = NicoVideoAdapter(commentList, parentFragmentManager, viewModel.isOfflinePlay.value ?: false, viewModel.nicoruAPI)
             adapter = nicoVideoAdapter
             //区切り線いれる
             val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)

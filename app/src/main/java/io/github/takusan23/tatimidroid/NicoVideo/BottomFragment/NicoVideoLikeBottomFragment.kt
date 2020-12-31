@@ -31,8 +31,6 @@ class NicoVideoLikeBottomFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        println(requireParentFragment())
-
         // メッセージ
         viewBinding.bottomFragmentNicovideoLikeDescriptionTextView.text = HtmlCompat.fromHtml(
             """

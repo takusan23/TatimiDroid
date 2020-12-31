@@ -29,7 +29,6 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
-import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.*
@@ -334,6 +333,8 @@ fun NicoVideoTagCard(tagDataList: ArrayList<NicoLiveTagDataClass>, tagClick: (Ni
 }
 
 /**
+ * Adapterにわたす引数が足りてない。から使う時気をつけて
+ *
  * コメント一覧表示BottomSheet。Jetpack Compose結構揃ってる。なお現状めっちゃ落ちるので使ってない。バージョン上がったら使いたい。
  *
  * 注意 このレイアウトを最上位にしてその他は[content]の中に書いてください。
@@ -364,7 +365,7 @@ fun NicoVideoCommentBottomSheet(commentList: ArrayList<CommentJSONParse>, commen
                             RecyclerView(context).apply {
                                 setHasFixedSize(true)
                                 layoutManager = LinearLayoutManager(context)
-                                adapter = NicoVideoAdapter(commentList)
+                                // adapter = NicoVideoAdapter(commentList)
                                 val itemDecoration = DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
                                 addItemDecoration(itemDecoration)
                             }

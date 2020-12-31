@@ -27,6 +27,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.CustomFont
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.InternetConnectionCheck
+import io.github.takusan23.tatimidroid.Tool.setOnDoubleClickListener
 import io.github.takusan23.tatimidroid.databinding.IncludeNicovideoPlayerBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -59,7 +60,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     private var isTouchSeekBar = false
 
     /** ViewModel。データ取得など */
-    private val viewModel by lazy {
+    val viewModel by lazy {
         // 動画ID
         val videoId = arguments?.getString("id")
         // キャッシュ再生
@@ -253,6 +254,10 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // 準備と再生
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
+
+        // 一回だけ動いてほしいのでフラグ
+        var isFirst = true
+
         exoPlayer.addListener(object : Player.EventListener {
 
             override fun onPlaybackStateChanged(state: Int) {
@@ -263,36 +268,38 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 viewModel.playerDurationMs.postValue(exoPlayer.duration)
                 // プログレスバー
                 nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.apply {
-                    if (visibility == View.VISIBLE) {
-                        visibility = View.INVISIBLE
+                    visibility = if (visibility == View.VISIBLE) {
+                        View.INVISIBLE
                     } else {
-                        visibility = View.VISIBLE
+                        View.VISIBLE
                     }
                 }
                 // 動画おわった。連続再生時なら次の曲へ
                 if (state == Player.STATE_ENDED && exoPlayer.playWhenReady) {
                     viewModel.nextVideo()
                 }
-/*
-                if (!isRotationProgressSuccessful) {
-                    // 一度だけ実行するように。画面回転前の時間を適用する
-                    isRotationProgressSuccessful = true
+                if (isFirst) {
+                    isFirst = false
                     // 前回見た位置から再生
                     viewModel.playerSetSeekMs.postValue(viewModel.currentPosition)
                     if (exoPlayer.currentPosition == 0L) {
                         // 画面回転時に２回目以降表示されると邪魔なので制御
-                        val progress = prefSetting.getLong("progress_$videoId", 0)
-                        if (progress != 0L && isCache) {
-                            Snackbar.make(viewBinding.fragmentNicovideoSurfaceView, "${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", Snackbar.LENGTH_LONG).apply {
-                                setAction(R.string.play) {
-                                    viewModel.playerSetSeekMs.postValue(progress)
-                                }
-                                show()
+                        val progress = prefSetting.getLong("progress_${viewModel.playingVideoId.value}", 0)
+                        if (progress != 0L && viewModel.isOfflinePlay.value == true) {
+                            // 継承元に実装あり
+                            showSnackBar("${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", getString(R.string.play)) {
+                                viewModel.playerSetSeekMs.postValue(progress)
                             }
                         }
                     }
+                    // プレイヤー展開
+                    toDefaultPlayer()
+                    // コメント一覧も表示
+                    lifecycleScope.launch {
+                        delay(500)
+                        viewModel.commentListBottomSheetLiveData.postValue(BottomSheetBehavior.STATE_EXPANDED)
+                    }
                 }
-*/
             }
 
         })
@@ -419,11 +426,30 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 viewModel.playerSetSeekMs.postValue((seekBar?.progress ?: 0) * 1000L)
             }
         })
+        // ダブルタップ
+        nicovideoPlayerUIBinding.root.setOnDoubleClickListener { motionEvent, isDoubleClick ->
+            if (motionEvent != null && isDoubleClick) {
+                val isLeft = motionEvent.x <= nicovideoPlayerUIBinding.root.width / 2
+                // どれだけシークするの？
+                val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
+                if (isLeft) {
+                    viewModel.playerSetSeekMs.postValue((viewModel.playerSetSeekMs.value ?: 0) - seekValue * 1000)
+                }else{
+                    viewModel.playerSetSeekMs.postValue((viewModel.playerSetSeekMs.value ?: 0) + seekValue * 1000)
+                }
+            }
+        }
     }
 
     override fun onPause() {
         super.onPause()
         viewModel.playerIsPlaying.value = false
+        // キャッシュ再生の場合は位置を保存する
+        if (viewModel.isOfflinePlay.value == true) {
+            prefSetting.edit {
+                putLong("progress_${viewModel.playingVideoId.value}", viewModel.playerCurrentPositionMs)
+            }
+        }
     }
 
     override fun onDestroy() {

@@ -130,9 +130,7 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                         playerView.updateLayoutParams<LinearLayout.LayoutParams> {
                             width = videoWidth + (maxTransitionX * slideOffset).toInt() / 4 // なんか4で割るとうまくいく
                             height = (width / 16) * 9
-
                             // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
-                            println("${bottomSheetView.height} ${DisplaySizeTool.getDisplayHeight(context)}  ${DisplaySizeTool.getDisplaySizeOldAPI(context).y}")
                             // とりあえず最大時にかけるマージン計算
                             val maxTopMargin = (DisplaySizeTool.getDisplaySizeOldAPI(context).y - playerView.height) / 2
                             // そして現在かけるべきマージンを計算

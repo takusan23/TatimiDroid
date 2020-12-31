@@ -22,7 +22,9 @@ import io.github.takusan23.tatimidroid.NicoAPI.User.UserAPI
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
@@ -109,11 +111,12 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         val fragment = requireParentFragment()
         when (fragment) {
             is CommentFragment -> {
+                val nicoLiveViewModel by viewModels<NicoLiveViewModel>({ fragment })
                 // 生放送
-                recyclerViewList = fragment.viewModel.commentList.filter { commentJSONParse -> if (commentJSONParse != null) commentJSONParse.userId == userId else false } as ArrayList<CommentJSONParse>
+                recyclerViewList = nicoLiveViewModel.commentList.filter { commentJSONParse -> if (commentJSONParse != null) commentJSONParse.userId == userId else false } as ArrayList<CommentJSONParse>
                 lifecycleScope.launch {
                     // コメントが届いたら反映させる。コルーチンすごいね
-                    fragment.viewModel.commentReceiveLiveData.observe(viewLifecycleOwner) { comment ->
+                    nicoLiveViewModel.commentReceiveLiveData.observe(viewLifecycleOwner) { comment ->
                         if (comment.userId == userId && !recyclerViewList.contains(comment)) {
                             recyclerViewList.add(0, comment)
                             viewBinding.bottomFragmentCommentMenuRecyclerView.adapter?.notifyDataSetChanged()
@@ -127,11 +130,16 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 recyclerViewList = fragment.viewModel.rawCommentList.filter { commentJSONParse -> commentJSONParse.userId == userId } as ArrayList<CommentJSONParse>
                 isNicoVideoFragment = true
             }
+            is JCNicoVideoFragment -> {
+                val nicoLiveViewModel by viewModels<NicoVideoViewModel>({ fragment })
+                recyclerViewList = nicoLiveViewModel.rawCommentList.filter { commentJSONParse -> commentJSONParse.userId == userId } as ArrayList<CommentJSONParse>
+                isNicoVideoFragment = true
+            }
         }
 
         // RecyclerView
-        when {
-            fragment is CommentFragment -> {
+        when (fragment) {
+            is CommentFragment -> {
                 // 生放送
                 viewBinding.bottomFragmentCommentMenuRecyclerView.apply {
                     setHasFixedSize(true)
@@ -143,12 +151,34 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                     addItemDecoration(itemDecoration)
                 }
             }
-            fragment is NicoVideoFragment -> {
+            is NicoVideoFragment -> {
                 // 動画
                 viewBinding.bottomFragmentCommentMenuRecyclerView.apply {
                     setHasFixedSize(true)
                     layoutManager = LinearLayoutManager(context)
-                    val nicoVideoAdapter = NicoVideoAdapter(recyclerViewList, fragment)
+                    val nicoVideoAdapter = NicoVideoAdapter(
+                        arrayListArrayAdapter = recyclerViewList,
+                        fragmentManager = fragment.childFragmentManager,
+                        isOffline = fragment.viewModel.isOfflinePlay.value ?: false,
+                        nicoruAPI = fragment.viewModel.nicoruAPI
+                    )
+                    adapter = nicoVideoAdapter
+                    //区切り線いれる
+                    val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+                    addItemDecoration(itemDecoration)
+                }
+            }
+            is JCNicoVideoFragment->{
+                // 動画
+                viewBinding.bottomFragmentCommentMenuRecyclerView.apply {
+                    setHasFixedSize(true)
+                    layoutManager = LinearLayoutManager(context)
+                    val nicoVideoAdapter = NicoVideoAdapter(
+                        arrayListArrayAdapter = recyclerViewList,
+                        fragmentManager = fragment.childFragmentManager,
+                        isOffline = fragment.viewModel.isOfflinePlay.value ?: false,
+                        nicoruAPI = fragment.viewModel.nicoruAPI
+                    )
                     adapter = nicoVideoAdapter
                     //区切り線いれる
                     val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)

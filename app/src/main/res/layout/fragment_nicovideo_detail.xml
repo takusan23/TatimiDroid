@@ -20,8 +20,8 @@
             android:background="#fff"
             android:orientation="vertical"
             app:behavior_hideable="true"
+            android:elevation="10dp"
             app:behavior_peekHeight="200dp"
             app:layout_behavior="@string/bottom_sheet_behavior" />
-
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
