@@ -72,6 +72,14 @@ class NicoVideoCommentFragment : Fragment() {
             }
         }
 
+        // Jetpack Compose版の場合はTextView表示
+        if (requireParentFragment() is JCNicoVideoFragment) {
+            viewBinding.fragmentNicovideoCommentBarLinearLayout.isVisible = true
+            viewBinding.fragmentNicovideoCommentCloseImageView.setOnClickListener {
+                viewModel.commentListBottomSheetLiveData.postValue(false)
+            }
+        }
+
     }
 
     /**

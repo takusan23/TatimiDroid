@@ -9,8 +9,8 @@
     <FrameLayout
             android:id="@+id/fragment_nicovideo_detail_info_fragment_frame_layout"
             android:layout_width="match_parent"
-            android:background="#fff"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:background="#fff" />
 
     <!-- コメント一覧Fragmentを置く -->
     <FrameLayout
@@ -19,8 +19,8 @@
             android:layout_height="match_parent"
             android:background="#fff"
             android:orientation="vertical"
-            app:behavior_peekHeight="100dp"
             app:behavior_hideable="true"
+            app:behavior_peekHeight="200dp"
             app:layout_behavior="@string/bottom_sheet_behavior" />
 
 
