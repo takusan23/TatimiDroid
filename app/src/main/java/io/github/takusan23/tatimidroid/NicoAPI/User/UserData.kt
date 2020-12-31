@@ -14,6 +14,8 @@ import java.io.Serializable
  * @param isFollowing フォロー中？
  * @param currentLevel 現在のレベル
  * @param largeIcon アイコンのURL
+ * @param isNotAPICallVer APIを叩かずに取得した場合はtrue。どういうことかって言うと動画視聴ページから取得するとフォロー人数とかは取れない。そのため。[nickName]と[userId]、[largeIcon]は取得できるはず
+ * @param isChannel チャンネルの場合はtrue。[isNotAPICallVer]もtrueになると思う。
  * */
 data class UserData(
     val description: String,
@@ -26,4 +28,6 @@ data class UserData(
     val isFollowing: Boolean,
     val currentLevel: Int,
     val largeIcon: String,
+    val isNotAPICallVer: Boolean = false,
+    val isChannel: Boolean = false,
 ) : Serializable

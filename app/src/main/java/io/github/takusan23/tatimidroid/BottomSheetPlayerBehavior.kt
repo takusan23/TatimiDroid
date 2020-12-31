@@ -54,6 +54,7 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     /** 現在の進捗 */
     var progress = 0f
 
+
     /**
      * スワイプの処理等、めんどいのはこっちでやる
      *

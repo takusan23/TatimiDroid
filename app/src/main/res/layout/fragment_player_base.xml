@@ -20,6 +20,7 @@
         <FrameLayout
                 android:id="@+id/fragment_player_base_player_frame_layout"
                 android:layout_width="match_parent"
+                android:background="#000"
                 android:layout_height="250dp">
 
         </FrameLayout>

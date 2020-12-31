@@ -54,4 +54,12 @@ https://play.google.com/store/apps/details?id=io.github.takusan23.tatimidroid&hl
 初回起動時はログイン画面が表示されるので、ログインしてください。  
 ログインで利用したメアド、パスワードは端末内にのみ保存され、ニコニコに再ログインが必要になったときのみ使われます。
 
+# 開発者向け？
+
+## わたしのAndroid Studio
+
+Canary版Android Studio。Jetpack Composeを使っているんで
+
+Android Studio Arctic Fox | 2020.3.1 Canary 3
+
 まあ後でまた書く

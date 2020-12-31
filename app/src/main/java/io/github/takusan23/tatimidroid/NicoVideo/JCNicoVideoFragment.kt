@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.SeekBar
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -24,12 +25,14 @@ import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoView
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.CustomFont
+import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.InternetConnectionCheck
 import io.github.takusan23.tatimidroid.databinding.IncludeNicovideoPlayerBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /**
  * 開発中のニコ動クライアント（？）
@@ -89,7 +92,14 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // コメント動かす
         setTimer()
 
+        // 動画情報Fragment設置
+        setNicoVideoInfoFragment()
 
+    }
+
+    /** [JCNicoVideoInfoFragment]を設置する */
+    private fun setNicoVideoInfoFragment() {
+        childFragmentManager.beginTransaction().replace(fragmentHostFrameLayout.id, JCNicoVideoInfoFragment()).commit()
     }
 
     /** コメントと経過時間を定期的に更新していく */
@@ -292,13 +302,48 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 super.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio)
                 // DMCのJSONからも幅とかは取れるけどキャッシュ再生でJSONがない場合をサポートしたいため
                 if (isAdded) { // コールバックなのでこの時点でもう無いかもしれない
-                    // aspectRatioFix(width, height)
+                    viewModel.apply {
+                        videoHeight = height
+                        videoWidth = width
+                    }
+                    aspectRatioFix(width, height)
                 }
             }
         })
 
         // プログレスバー動かす。View.GONEだとなんかレイアウト一瞬バグる
         nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.VISIBLE
+    }
+
+    override fun onBottomSheetProgress(progress: Float) {
+        super.onBottomSheetProgress(progress)
+        aspectRatioFix(viewModel.videoWidth, viewModel.videoHeight)
+    }
+
+    /**
+     * アスペクト比を治す。サイズ変更の度によぶ必要あり。
+     * @param height 動画の高さ
+     * @param width 動画の幅
+     * */
+    private fun aspectRatioFix(videoWidth: Int, videoHeight: Int) {
+        val displayWidth = DisplaySizeTool.getDisplayWidth(requireContext())
+        if (isLandscape()) {
+            // 横
+            val playerWidth = displayWidth / 2
+            val playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(videoWidth, videoHeight, playerWidth).roundToInt()
+            nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
+                width = playerWidth
+                height = playerHeight
+            }
+        } else {
+            // 縦
+            val playerHeight = fragmentPlayerFrameLayout.height
+            val playerWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(videoWidth, videoHeight, playerHeight).roundToInt()
+            nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
+                width = playerWidth
+                height = playerHeight
+            }
+        }
     }
 
     /** コメントキャンバスへフォントを適用 */
@@ -317,7 +362,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         val hideJob = Job()
         nicovideoPlayerUIBinding.root.setOnClickListener {
             hideJob.cancelChildren()
-            // ConstraintLayoutのGroup機能でまとめてVisibility変更
+            // ConstraintLayoutのGroup機能でまとめてVisibility変更。
             nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = if (nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility == View.VISIBLE) {
                 View.INVISIBLE
             } else {

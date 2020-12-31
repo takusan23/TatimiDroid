@@ -4,33 +4,25 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.text.HtmlCompat
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoInfoFragment
-import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoLikeBinding
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * いいね♡するBottomFragment。初見わからんから説明文付き。
  * 普及したら消します。
- * 欲しい物
- * video_id  | String | 動画ID。DevNicoVideoFragmentを探すのにも使う。
+ *
+ * [io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel]を利用するので、[JKNicoVideoFragment]が親のFragmentである必要があります。
  * */
 class NicoVideoLikeBottomFragment : BottomSheetDialogFragment() {
 
-    // requireParentFragment() が普通に動いたわ。parentFragmentManagerのときはNicoVideoFragment。childFragmentManagerのときはNicoVideoInfoFragmentになる
-    private val nicoVideoFragment by lazy { requireParentFragment() as NicoVideoFragment }
-    private val nicoVideoInfoFragment by lazy { (nicoVideoFragment.viewPagerAdapter.fragmentList[2] as NicoVideoInfoFragment) }
-
     /** findViewById駆逐 */
     private val viewBinding by lazy { BottomFragmentNicovideoLikeBinding.inflate(layoutInflater) }
+
+    /** [io.github.takusan23.tatimidroid.NicoVideo.JCNicoVideoFragment]のViewModel */
+    private val viewModel by viewModels<NicoVideoViewModel>({ requireParentFragment() })
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return viewBinding.root
@@ -38,6 +30,8 @@ class NicoVideoLikeBottomFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        println(requireParentFragment())
 
         // メッセージ
         viewBinding.bottomFragmentNicovideoLikeDescriptionTextView.text = HtmlCompat.fromHtml(
@@ -54,22 +48,15 @@ class NicoVideoLikeBottomFragment : BottomSheetDialogFragment() {
 
         // Like押した
         viewBinding.bottomFragmentNicovideoLikeButton.setOnClickListener {
-            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-                showToast("${getString(R.string.error)}\n${throwable}") // エラーのときはToast出すなど
-            }
-            // API叩く
-            lifecycleScope.launch(errorHandler) {
-                nicoVideoInfoFragment.sendLike(true)
-                withContext(Dispatchers.Main) {
-                    dismiss() // 閉じる
-                }
-            }
+            // いいね登録
+            viewModel.postLike()
         }
-    }
 
-    private fun showToast(message: String) {
-        activity?.runOnUiThread {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        // いいねできたら消す
+        viewModel.isLikedLiveData.observe(viewLifecycleOwner) { isLiked ->
+            if (isLiked) {
+                dismiss()
+            }
         }
     }
 

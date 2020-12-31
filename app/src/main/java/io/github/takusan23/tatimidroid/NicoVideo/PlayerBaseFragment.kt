@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoVideo
 
+import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -28,12 +29,12 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     private val viewBinding by lazy { FragmentPlayerBaseBinding.inflate(layoutInflater) }
 
     /** BottomSheetをコード上で操作するために */
-    private val bottomSheetPlayerBehavior by lazy { BottomSheetPlayerBehavior.from(viewBinding.fragmentPlayerBaseFragmentParentLinearLayout) }
+    val bottomSheetPlayerBehavior by lazy { BottomSheetPlayerBehavior.from(viewBinding.fragmentPlayerBaseFragmentParentLinearLayout) }
 
     /** Fragmentを置くFrameLayout */
     val fragmentHostFrameLayout by lazy { viewBinding.fragmentPlayerBaseFragmentFrameLayout }
 
-    /** プレイヤー部分におくFrameLayout */
+    /** プレイヤー部分におくFrameLayout。背景暗黒にしてます。 */
     val fragmentPlayerFrameLayout by lazy { viewBinding.fragmentPlayerBasePlayerFrameLayout }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -59,7 +60,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
             }
 
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
-
+                onBottomSheetProgress(slideOffset)
             }
         })
         // 遅延で表示
@@ -111,12 +112,24 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         parentFragmentManager.beginTransaction().remove(this).commit()
     }
 
+    /** 画面が横かどうかを返す。横ならtrue */
+    fun isLandscape(): Boolean {
+        return requireActivity().resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    }
+
     /**
      * BottomSheetの状態が変わったら呼ばれる関数。オーバーライドして使って
      * @param state [BottomSheetBehavior.state]の値
      * @param isMiniPlayer [isMiniPlayerMode]の値
      * */
     open fun onBottomSheetStateChane(state: Int, isMiniPlayer: Boolean) {
+
+    }
+
+    /**
+     * BottomSheet操作中に呼ばれる
+     * */
+    open fun onBottomSheetProgress(progress: Float) {
 
     }
 

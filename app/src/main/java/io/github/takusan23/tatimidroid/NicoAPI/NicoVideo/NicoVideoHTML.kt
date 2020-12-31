@@ -1,7 +1,9 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.*
 import okhttp3.Call
@@ -757,6 +759,80 @@ class NicoVideoHTML {
     }
 
     /**
+     * [parseJSON]からユーザー情報を取り出してデータクラスに詰めて返す関数
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * */
+    fun parseUserData(jsonObject: JSONObject): UserData {
+        return if (isOfficial(jsonObject)) {
+            // 公式
+            val ownerObject = jsonObject.getJSONObject("channel")
+            val userId = ownerObject.getString("id")
+            val nickname = ownerObject.getString("name")
+            val iconURL = "https://secure-dcdn.cdn.nimg.jp/comch/channel-icon/128x128/ch$userId.jpg"
+            UserData(
+                description = "",
+                isPremium = false,
+                niconicoVersion = "",
+                followeeCount = -1,
+                followerCount = -1,
+                userId = userId.toInt(),
+                nickName = nickname,
+                isFollowing = false,
+                currentLevel = 0,
+                largeIcon = iconURL,
+                isNotAPICallVer = true,
+                isChannel = true,
+            )
+        } else {
+            // ユーザー
+            val ownerObject = jsonObject.getJSONObject("owner")
+            val userId = ownerObject.getString("id")
+            val nickname = ownerObject.getString("nickname")
+            val iconURL = ownerObject.getString("iconURL")
+            UserData(
+                description = "",
+                isPremium = false,
+                niconicoVersion = "",
+                followeeCount = -1,
+                followerCount = -1,
+                userId = userId.toInt(),
+                nickName = nickname,
+                isFollowing = false,
+                currentLevel = 0,
+                largeIcon = iconURL,
+                isNotAPICallVer = true,
+            )
+        }
+    }
+
+    /**
+     * [parseJSON]からタグJSONをさがしてデータクラスに入れて配列で返す関数
+     *
+     * 多分生放送のJSON解析コードは使えない。
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * @return [NicoLiveTagDataClass]の配列
+     * */
+    fun parseTagDataList(jsonObject: JSONObject): ArrayList<NicoLiveTagDataClass> {
+        val tagDataClass = arrayListOf<NicoLiveTagDataClass>()
+        val tagArray = jsonObject.getJSONArray("tags")
+        for (i in 0 until tagArray.length()) {
+            val tagObject = tagArray.getJSONObject(i)
+            val tagName = tagObject.getString("name")
+            val isNicopediaExists = tagObject.getBoolean("isDictionaryExists")
+            val isLocked = tagObject.getBoolean("isLocked")
+            tagDataClass.add(NicoLiveTagDataClass(
+                tagName = tagName,
+                isLocked = isLocked,
+                type = "",
+                isDeletable = !isLocked,
+                hasNicoPedia = isNicopediaExists,
+                nicoPediaUrl = "https://dic.nicovideo.jp/a/$tagName"
+            ))
+        }
+        return tagDataClass
+    }
+
+    /**
      * いいね済みかどうかを取得する。
      * @param jsonObject js-initial-watch-dataのdata-api-dataの値
      * */
@@ -799,7 +875,6 @@ class NicoVideoHTML {
             null
         }
     }
-
 
     /**
      * 動画の高さに合わせた画面の高さを返す関数。アスペクト比を考える

@@ -43,7 +43,7 @@ class NicoLikeAPI {
      * いいね♡
      * APIのレスポンスJSONをパースする関数。なんとなくコルーチン
      * @param responseString [postLike]のレスポンスぼでー
-     * @return お礼メッセージ。未設定の場合はnullが帰ってくるから気をつけて。例：sm37252062
+     * @return お礼メッセージ。未設定の場合は「文字列の"null"」が帰ってくるから気をつけて。例：sm37252062
      * */
     suspend fun parseLike(responseString: String?) = withContext(Dispatchers.Default) {
         val jsonObject = JSONObject(responseString)

@@ -8,7 +8,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass
  * @param type "category"？
  * @param isDeletable 消せるか。
  * @param hasNicoPedia 二コ百あってもfalseじゃね？
- * @param nicoPediaUrl 二コ百URL。相対URL
+ * @param nicoPediaUrl 二コ百URL。
  * */
 data class NicoLiveTagDataClass(
     val tagName: String,

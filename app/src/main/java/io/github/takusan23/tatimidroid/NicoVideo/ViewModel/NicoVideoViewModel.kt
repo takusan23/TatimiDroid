@@ -10,11 +10,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Adapter.Parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoLikeAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
+import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
@@ -99,6 +102,21 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** 動画情報LiveData */
     val nicoVideoData = MutableLiveData<NicoVideoData>()
 
+    /** 動画説明文LiveData */
+    val nicoVideoDescriptionLiveData = MutableLiveData<String>()
+
+    /** いいね済みかどうか。キャッシュ再生では使えない。 */
+    val isLikedLiveData = MutableLiveData(false)
+
+    /** いいねしたときのお礼メッセージを送信するLiveData */
+    val likeThanksMessageLiveData = MutableLiveData<String>()
+
+    /** ユーザー情報LiveData */
+    val userDataLiveData = MutableLiveData<UserData>()
+
+    /** タグ送信LiveData */
+    val tagListLiveData = MutableLiveData<ArrayList<NicoLiveTagDataClass>>()
+
     /** コメントAPIの結果。 */
     var rawCommentList = arrayListOf<CommentJSONParse>()
 
@@ -167,6 +185,12 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
 
     /** [isNotPlayVideoMode]がtrueのときにコルーチンを使うのでそれ */
     private val notVideoPlayModeCoroutineContext = Job()
+
+    /** 動画の幅。ExoPlayerで取得して入れておいて */
+    var videoWidth = 16
+
+    /** 動画の高さ。同じくExoPlayerで取得して入れておいて */
+    var videoHeight = 9
 
     init {
 
@@ -262,6 +286,12 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                     val jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
                     nicoVideoJSON.postValue(jsonObject)
                     nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay.value ?: false))
+                    // 動画説明文
+                    nicoVideoDescriptionLiveData.postValue(jsonObject.getJSONObject("video").getString("description"))
+                    // ユーザー情報LiveData
+                    userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
+                    // タグLiveData
+                    tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
                 }
 
                 // コメントが有るか
@@ -318,6 +348,15 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                 nicoVideoHTML.parseJSON(response.body?.string())
             }
             nicoVideoJSON.postValue(jsonObject)
+            // 動画説明文
+            nicoVideoDescriptionLiveData.postValue(jsonObject.getJSONObject("video").getString("description"))
+            // いいね済みかどうか
+            isLikedLiveData.postValue(nicoVideoHTML.isLiked(jsonObject))
+            // ユーザー情報LiveData
+            userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
+            // タグLiveData
+            tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
+
             isDMCServer = nicoVideoHTML.isDMCServer(jsonObject)
             // DMC鯖ならハートビート処理が必要なので。でもほぼDMC鯖からの配信じゃない？
             if (isDMCServer) {
@@ -528,6 +567,66 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             // 動画情報を見つける
             val videoData = videoList.find { nicoVideoData -> nicoVideoData.videoId == videoId } ?: return
             load(videoData.videoId, videoData.isCache, isEco, useInternet)
+        }
+    }
+
+    /**
+     * いいねする関数
+     * 結果はLiveDataへ送信されます
+     * */
+    fun postLike() {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            throwable.printStackTrace()
+            showToast("${getString(R.string.error)}\n${throwable}")
+        }
+        // HTML取得
+        viewModelScope.launch(errorHandler) {
+            val likeAPI = NicoLikeAPI()
+            val likeResponse = withContext(Dispatchers.IO) {
+                // いいね なのか いいね解除 なのか
+                likeAPI.postLike(userSession, playingVideoId.value!!)
+            }
+            if (!likeResponse.isSuccessful) {
+                showToast("${getString(R.string.error)}\n${likeResponse.code}")
+                return@launch
+            }
+            // いいね登録
+            val thanksMessage = withContext(Dispatchers.Default) {
+                // お礼メッセージパース
+                likeAPI.parseLike(likeResponse.body?.string())
+            }
+            // 文字列 "null" の可能性
+            val message = if (thanksMessage == "null") getString(R.string.like_ok) else thanksMessage
+            likeThanksMessageLiveData.postValue(message)
+            // 登録した
+            isLikedLiveData.postValue(true)
+        }
+    }
+
+    /**
+     * いいねを解除する関数
+     * 結果はLiveDataでわかります。
+     * */
+    fun removeLike() {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            throwable.printStackTrace()
+            showToast("${getString(R.string.error)}\n${throwable}")
+        }
+        // HTML取得
+        viewModelScope.launch(errorHandler) {
+            val likeAPI = NicoLikeAPI()
+            val likeResponse = withContext(Dispatchers.IO) {
+                // いいね なのか いいね解除 なのか
+                likeAPI.deleteLike(userSession, playingVideoId.value!!)
+            }
+            if (!likeResponse.isSuccessful) {
+                showToast("${getString(R.string.error)}\n${likeResponse.code}")
+                return@launch
+            }
+            // 解除した
+            isLikedLiveData.postValue(false)
         }
     }
 
