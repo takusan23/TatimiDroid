@@ -12,7 +12,6 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
@@ -70,15 +69,6 @@ class NicoVideoCommentFragment : Fragment() {
                 delay(1000)
                 // スクロール
                 setScrollFollowButton(viewModel.playerCurrentPositionMs)
-            }
-        }
-
-        // Jetpack Compose版の場合はTextView表示
-        if (requireParentFragment() is JCNicoVideoFragment) {
-            viewBinding.fragmentNicovideoCommentBarLinearLayout.isVisible = true
-            viewBinding.fragmentNicovideoCommentCloseImageView.setOnClickListener {
-                // 最小化
-                viewModel.commentListBottomSheetLiveData.postValue(BottomSheetBehavior.STATE_HIDDEN)
             }
         }
 

@@ -8,7 +8,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import io.github.takusan23.tatimidroid.Adapter.Parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
@@ -185,8 +184,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** 動画の高さ。同じくExoPlayerで取得して入れておいて */
     var videoHeight = 9
 
-    /** コメント一覧表示してくれ～LiveData。[BottomSheetBehavior.STATE_COLLAPSED]系が入る。 */
-    val commentListBottomSheetLiveData = MutableLiveData(BottomSheetBehavior.STATE_HIDDEN)
+    /** コメント一覧表示してくれ～LiveData */
+    val commentListShowLiveData = MutableLiveData(false)
 
     /** ニコるくんAPI */
     var nicoruAPI: NicoruAPI? = null

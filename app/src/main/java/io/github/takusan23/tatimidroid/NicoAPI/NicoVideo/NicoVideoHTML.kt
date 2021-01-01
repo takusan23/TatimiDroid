@@ -761,8 +761,9 @@ class NicoVideoHTML {
     /**
      * [parseJSON]からユーザー情報を取り出してデータクラスに詰めて返す関数
      * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * @return ニコニコ動画、アカウント消しても動画は残る。のでアカウント情報が取れない場合はnullになります。
      * */
-    fun parseUserData(jsonObject: JSONObject): UserData {
+    fun parseUserData(jsonObject: JSONObject): UserData? {
         return if (isOfficial(jsonObject)) {
             // 公式
             val ownerObject = jsonObject.getJSONObject("channel")
@@ -783,7 +784,7 @@ class NicoVideoHTML {
                 isNotAPICallVer = true,
                 isChannel = true,
             )
-        } else {
+        } else if (!jsonObject.isNull("owner")) {
             // ユーザー
             val ownerObject = jsonObject.getJSONObject("owner")
             val userId = ownerObject.getString("id")
@@ -802,6 +803,8 @@ class NicoVideoHTML {
                 largeIcon = iconURL,
                 isNotAPICallVer = true,
             )
+        } else {
+            null
         }
     }
 

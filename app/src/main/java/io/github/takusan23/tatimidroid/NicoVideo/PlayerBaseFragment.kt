@@ -87,7 +87,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
 
     /** ミニプレイヤー状態かどうかを返す */
     override fun isMiniPlayerMode(): Boolean {
-        return bottomSheetPlayerBehavior.state == BottomSheetBehavior.STATE_COLLAPSED
+        return bottomSheetPlayerBehavior.isMiniPlayerMode()
     }
 
     /** ミニプレイヤーモードへ */
@@ -131,8 +131,9 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
      * プレイヤーのサイズ変更（ドラッグ操作）をプレイヤー範囲に限定するかどうか
      * @param isPlayerOnly trueで限定する
      * */
-    fun setDraggableAreaPlayerOnly(isPlayerOnly:Boolean){
-        bottomSheetPlayerBehavior.isDraggableAreaPlayerOnly=isPlayerOnly
+    @Deprecated("多分動かない")
+    fun setDraggableAreaPlayerOnly(isPlayerOnly: Boolean) {
+        bottomSheetPlayerBehavior.isDraggableAreaPlayerOnly = isPlayerOnly
     }
 
     /**

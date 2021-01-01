@@ -12,7 +12,6 @@ import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.*
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
@@ -46,6 +45,19 @@ class JCNicoVideoInfoFragment : Fragment() {
 
                         Scaffold(
                             scaffoldState = state,
+                            floatingActionButton = {
+/*
+                                // コメント表示Fabを出す
+                                FloatingActionButton(
+                                    onClick = {
+                                        // 押した時
+                                        viewModel.commentListBottomSheetLiveData.postValue(BottomSheetBehavior.STATE_EXPANDED)
+                                    })
+                                {
+                                    Icon(imageVector = Icons.Outlined.Comment)
+                                }
+*/
+                            }
                         ) {
 
                             // LiveDataをJetpack Composeで利用できるように
@@ -107,10 +119,6 @@ class JCNicoVideoInfoFragment : Fragment() {
                                     NicoVideoRecommendCard(recommendList.value!!)
                                 }
                             }
-                            // コメント一覧モーダル表示
-                            BottomSheetFab(fabClick = {
-                                viewModel.commentListBottomSheetLiveData.postValue(BottomSheetBehavior.STATE_EXPANDED)
-                            })
                         }
 
 

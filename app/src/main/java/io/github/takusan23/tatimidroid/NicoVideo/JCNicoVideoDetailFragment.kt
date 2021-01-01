@@ -6,8 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+import io.github.takusan23.droppopalert.DropPopAlert
+import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoDetailBinding
 
 /**
@@ -34,10 +36,26 @@ class JCNicoVideoDetailFragment : Fragment() {
         // コメント一覧Fragment設置。
         parentFragmentManager.beginTransaction().replace(nicovideoDetailBinding.fragmentNicovideoDetailCommentFragmentFrameLayout.id, NicoVideoCommentFragment()).commit()
 
+        // コメント表示FAB
+        nicovideoDetailBinding.fragmentNicovideoDetailInfoFragmentFab.setOnClickListener {
+            viewModel.commentListShowLiveData.postValue(!viewModel.commentListShowLiveData.value!!)
+        }
+
         // コメント一覧展開など
-        val bottomSheet = BottomSheetBehavior.from(nicovideoDetailBinding.fragmentNicovideoDetailCommentFragmentFrameLayout)
-        viewModel.commentListBottomSheetLiveData.observe(viewLifecycleOwner) { state ->
-            bottomSheet.state = state
+        viewModel.commentListShowLiveData.observe(viewLifecycleOwner) { isShow ->
+            // FABのアイコン変更
+            nicovideoDetailBinding.fragmentNicovideoDetailInfoFragmentFab.setImageDrawable(if (isShow) {
+                requireContext().getDrawable(R.drawable.ic_outline_info_24px)
+            } else {
+                requireContext().getDrawable(R.drawable.ic_outline_comment_24px)
+            })
+            // アニメーション？自作ライブラリ
+            val dropPopAlert = nicovideoDetailBinding.fragmentNicovideoDetailCommentFragmentFrameLayout.toDropPopAlert()
+            if (isShow) {
+                dropPopAlert.showAlert(DropPopAlert.ALERT_UP)
+            } else {
+                dropPopAlert.hideAlert(DropPopAlert.ALERT_UP)
+            }
         }
 
     }

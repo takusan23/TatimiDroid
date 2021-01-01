@@ -286,7 +286,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         }
         viewBinding.bottomFragmentCommentMenuNicovideoSeekButton.setOnClickListener {
             // こっから再生できるようにする
-            if (fragment is NicoVideoFragment) {
+            if (fragment is NicoVideoFragment || fragment is JCNicoVideoFragment) {
                 // LiveData経由でExoPlayerを操作
                 val viewModel by viewModels<NicoVideoViewModel>({ fragment })
                 viewModel.playerSetSeekMs.postValue(currentPos * 10)

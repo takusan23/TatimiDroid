@@ -220,10 +220,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
             }
         }
-        // コメント一覧操作時はプレイヤーのミニプレイヤー化操作をプレイヤーの範囲内に限定する
-        viewModel.commentListBottomSheetLiveData.observe(viewLifecycleOwner) { state ->
-            setDraggableAreaPlayerOnly(state != BottomSheetBehavior.STATE_HIDDEN)
-        }
     }
 
     /** UIに動画情報を反映させる */
@@ -300,8 +296,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                     toDefaultPlayer()
                     // コメント一覧も表示
                     lifecycleScope.launch {
-                        delay(500)
-                        viewModel.commentListBottomSheetLiveData.postValue(BottomSheetBehavior.STATE_EXPANDED)
+                        delay(1000)
+                        viewModel.commentListShowLiveData.postValue(true)
                     }
                 }
             }
@@ -337,6 +333,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
      * @param width 動画の幅
      * */
     private fun aspectRatioFix(videoWidth: Int, videoHeight: Int) {
+        if (!isAdded) return
         val displayWidth = DisplaySizeTool.getDisplayWidth(requireContext())
         if (isLandscape()) {
             // 横

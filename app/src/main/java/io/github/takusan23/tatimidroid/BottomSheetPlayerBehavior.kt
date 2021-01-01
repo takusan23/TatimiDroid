@@ -39,6 +39,7 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     }
 
     /** プレイヤーのサイズ変更（ドラッグ操作）をプレイヤー範囲に限定するかどうか */
+    @Deprecated("多分動かない。将来的に消す")
     var isDraggableAreaPlayerOnly = false
 
     /** [isDraggableAreaPlayerOnly]のときに使う */
@@ -162,11 +163,16 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                     currentMiniPlayerXPos = bottomSheetView.translationX
 
                 }
-
             }
         })
     }
 
+    /** ミニプレイヤー状態かどうかを返す */
+    fun isMiniPlayerMode(): Boolean {
+        return state == STATE_COLLAPSED
+    }
+
+    /** 横画面かどうか */
     private fun isLandScape() = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     override fun onTouchEvent(parent: CoordinatorLayout, child: T, event: MotionEvent): Boolean {
@@ -181,16 +187,12 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                     && event.y > draggableBottomSheetView!!.y
                     && event.y < draggableBottomSheetView!!.y + draggablePlayerView!!.height
         }
-
-        println("あれ？ $isDraggableAreaPlayerOnly $isTouchingSwipeTargetView")
-
         // もしくは進行中なら操作を許可
         val isProgress = progress < 1f && progress > 0f
-
         return if (isTouchingSwipeTargetView || isProgress) {
             super.onTouchEvent(parent, child, event)
         } else {
-            false
+            false // タッチイベントを他に回す。動画一覧RecyclerViewのスクロールなどで消費
         }
     }
 
