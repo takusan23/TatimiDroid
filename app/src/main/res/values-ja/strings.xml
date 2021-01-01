@@ -492,7 +492,7 @@
     <string name="torikesu">取り消す</string>
     <string name="like_ok">いいねしました！</string>
     <string name="mylist_added">すでに登録済みです</string>
-    <string name="atodemiru_add">あとでみる（とりあえずマイリスト）へ追加</string>
+    <string name="add_atodemiru">あとでみる（とりあえずマイリスト）へ追加</string>
     <string name="atodemiru_ok">あとで見るに追加しました</string>
     <string name="zyuuhuku_hide">重複を表示しない</string>
     <string name="yourpost">私です！</string>

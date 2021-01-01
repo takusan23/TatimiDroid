@@ -33,6 +33,7 @@ interface MainActivityPlayerFragmentInterface {
      * 戻るボタンを押した時に呼ばれる関数
      * なおMainActivity終了はFragmentが取れなくなったら。
      * */
+    @Deprecated("onBackPressedDispatcherが使える")
     fun onBackButtonPress()
 
     /**

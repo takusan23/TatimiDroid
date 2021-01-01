@@ -23,6 +23,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.motion.widget.MotionLayout
@@ -404,6 +405,22 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     }
                     // 複数行対応Var
                     viewBinding.commentFragmentCommentCanvas.postCommentAsciiArt(asciiArtComment, commentJSONParse)
+                }
+            }
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            // コメントのみの表示の際はFragment終了
+            if (viewModel.isCommentOnlyMode) {
+                finishFragment()
+            } else {
+                viewBinding.commentFragmentMotionLayout.apply {
+                    if (currentState == R.id.comment_fragment_transition_end) {
+                        // 終了へ
+                        transitionToState(R.id.comment_fragment_transition_finish)
+                    } else {
+                        transitionToState(R.id.comment_fragment_transition_end)
+                    }
                 }
             }
         }
@@ -1503,19 +1520,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /** 戻るキー押しったとき */
     override fun onBackButtonPress() {
-        // コメントのみの表示の際はFragment終了
-        if (viewModel.isCommentOnlyMode) {
-            finishFragment()
-        } else {
-            viewBinding.commentFragmentMotionLayout.apply {
-                if (currentState == R.id.comment_fragment_transition_end) {
-                    // 終了へ
-                    transitionToState(R.id.comment_fragment_transition_finish)
-                } else {
-                    transitionToState(R.id.comment_fragment_transition_end)
-                }
-            }
-        }
+
     }
 
     /** ミニプレイヤーで再生していればtrueを返す */

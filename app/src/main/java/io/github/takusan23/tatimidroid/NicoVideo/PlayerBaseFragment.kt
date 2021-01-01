@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -65,10 +66,19 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
             }
         })
 
-        // 遅延で表示
+        // 遅延で表示。ぴょこって
         lifecycleScope.launch {
             delay(100)
             bottomSheetPlayerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+
+        // バックキーのイベント
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            if (!isMiniPlayerMode()) {
+                toMiniPlayer()
+            } else {
+                isEnabled = false
+            }
         }
     }
 
@@ -82,7 +92,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
 
     /** バックボタン押した時呼ばれる */
     override fun onBackButtonPress() {
-        // bottomSheetPlayerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+
     }
 
     /** ミニプレイヤー状態かどうかを返す */

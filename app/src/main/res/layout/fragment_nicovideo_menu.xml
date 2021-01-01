@@ -109,7 +109,7 @@
                             android:id="@+id/fragment_nicovideo_menu_atodemiru_button"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/atodemiru_add" />
+                            android:text="@string/add_atodemiru" />
 
                     <Button
                             android:id="@+id/fragment_nicovideo_menu_quality_button"

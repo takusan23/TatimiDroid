@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.SeekBar
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -21,9 +22,11 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.JCNivoVideoMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.CustomFont
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.InternetConnectionCheck
@@ -376,6 +379,11 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             } else {
                 View.VISIBLE
             }
+            // ちょっと強引
+            if (isMiniPlayerMode()) {
+                // ConstraintLayoutのGroup機能でまとめてVisibility変更。
+                nicovideoPlayerUIBinding.includeNicovideoPlayerMiniPlayerGroup.visibility = View.INVISIBLE
+            }
             // 遅延させて
             lifecycleScope.launch(hideJob) {
                 delay(3000)
@@ -438,6 +446,49 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 } else {
                     viewModel.playerSetSeekMs.postValue((viewModel.playerSetSeekMs.value ?: 0) + seekValue * 1000)
                 }
+            }
+        }
+        // メニュー展開
+        nicovideoPlayerUIBinding.includeNicovideoPlayerMenuButton.setOnClickListener {
+            val menuFragment = JCNivoVideoMenuBottomFragment()
+            menuFragment.show(childFragmentManager, "menu")
+        }
+        // コメントキャンバス非表示
+        nicovideoPlayerUIBinding.includeNicovideoPlayerCommentHideImageView.setOnClickListener {
+            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.apply {
+                isVisible = !isVisible
+            }
+        }
+        // ポップアップ再生
+        nicovideoPlayerUIBinding.includeNicovideoPlayerPopupImageView.setOnClickListener {
+            if (viewModel.playingVideoId.value != null) {
+                startVideoPlayService(
+                    context = requireContext(),
+                    mode = "popup",
+                    videoId = viewModel.playingVideoId.value!!,
+                    isCache = viewModel.isOfflinePlay.value!!,
+                    seek = 0L,
+                    videoQuality = viewModel.currentVideoQuality,
+                    audioQuality = viewModel.currentAudioQuality,
+                    playlist = viewModel.videoList
+                )
+                finishFragment()
+            }
+        }
+        // バックグラウンド再生
+        nicovideoPlayerUIBinding.includeNicovideoPlayerBackgroundImageView.setOnClickListener {
+            if (viewModel.playingVideoId.value != null) {
+                startVideoPlayService(
+                    context = requireContext(),
+                    mode = "background",
+                    videoId = viewModel.playingVideoId.value!!,
+                    isCache = viewModel.isOfflinePlay.value!!,
+                    seek = 0L,
+                    videoQuality = viewModel.currentVideoQuality,
+                    audioQuality = viewModel.currentAudioQuality,
+                    playlist = viewModel.videoList
+                )
+                finishFragment()
             }
         }
     }

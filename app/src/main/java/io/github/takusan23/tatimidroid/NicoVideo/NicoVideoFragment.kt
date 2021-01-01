@@ -14,6 +14,7 @@ import android.text.format.DateUtils
 import android.view.*
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.annotation.RequiresApi
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.edit
@@ -258,6 +259,21 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // アスペクト比直す。とりあえず16:9で
         aspectRatioFix(16, 9)
 
+        // 戻るキー押した時
+        requireActivity().onBackPressedDispatcher.addCallback(this){
+            // コメントのみの表示の際はFragment終了
+            if (viewModel.isCommentOnlyMode) {
+                finishFragment()
+            } else {
+                viewBinding.fragmentNicovideoMotionLayout.apply {
+                    if (currentState == R.id.fragment_nicovideo_transition_end) {
+                        transitionToState(R.id.fragment_nicovideo_transition_finish)
+                    } else {
+                        transitionToState(R.id.fragment_nicovideo_transition_end)
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1010,18 +1026,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
     /** 戻るキー押した時 */
     override fun onBackButtonPress() {
         // コメントのみの表示の際は何もしない
-        // コメントのみの表示の際はFragment終了
-        if (viewModel.isCommentOnlyMode) {
-            finishFragment()
-        } else {
-            viewBinding.fragmentNicovideoMotionLayout.apply {
-                if (currentState == R.id.fragment_nicovideo_transition_end) {
-                    transitionToState(R.id.fragment_nicovideo_transition_finish)
-                } else {
-                    transitionToState(R.id.fragment_nicovideo_transition_end)
-                }
-            }
-        }
     }
 
     /** ミニプレイヤーかどうか。なんかnullの時がある？ */

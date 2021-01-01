@@ -121,7 +121,6 @@ class JCNicoVideoInfoFragment : Fragment() {
                             }
                         }
 
-
                         // Snackbar表示。使い方合ってんのかはしらんけど
                         viewModel.likeThanksMessageLiveData.observe(viewLifecycleOwner) {
                             scope.launch {
