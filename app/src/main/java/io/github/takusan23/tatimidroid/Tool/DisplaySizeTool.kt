@@ -46,7 +46,7 @@ object DisplaySizeTool {
     /**
      * 従来の方法で画面の大きさ取得するやつ
      * */
-    fun getDisplaySizeOldAPI(context: Context?): Point {
+    private fun getDisplaySizeOldAPI(context: Context?): Point {
         // まどまねーじゃー
         val windowManager = context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         // 従来の方法で

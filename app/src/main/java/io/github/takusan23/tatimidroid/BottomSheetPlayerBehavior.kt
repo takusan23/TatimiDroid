@@ -84,7 +84,7 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
         // 画面の幅
         val displayWidth = DisplaySizeTool.getDisplayWidth(context)
 
-        /** ミニプレイヤーの幅を引いた値 */
+        /** 画面の幅からミニプレイヤーの幅を引いた値 */
         val maxTransitionX = (displayWidth - videoWidth).toFloat()
 
         bottomSheetView.translationX = maxTransitionX
@@ -144,9 +144,16 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
 
                     // プレイヤーのサイズも変更
                     if (isLandScape()) {
+                        // 展開時のプレイヤーとミニプレイヤーとの差分を出す。どれぐらい掛ければ展開時のサイズになるのか
+                        val sabun = (displayWidth / 2f) / videoWidth
                         playerView.updateLayoutParams<LinearLayout.LayoutParams> {
-                            val portlateWidth = videoWidth + (maxTransitionX * slideOffset).toInt()
-                            width = portlateWidth / 2
+                            /**
+                             * ミニプレイヤー時のサイズ + （(ミニプレイヤーサイズ - 展開時のサイズ) * 進捗）
+                             * sabun - 1f のところで (ミニプレイヤーサイズ - 展開時のサイズ)の大きさを出してる
+                             * 最初にミニプレイヤーのサイズを足さないとミニプレイヤー消滅する
+                             * */
+                            val calcWidth = videoWidth + ((videoWidth * (sabun - 1f)) * slideOffset)
+                            width = calcWidth.roundToInt()
                             height = (width / 16) * 9
                             // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
                             // とりあえず最大時にかけるマージン計算
