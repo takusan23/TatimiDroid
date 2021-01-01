@@ -33,8 +33,11 @@ fun NicoVideoCommentHideMenu(
             modifier = Modifier.padding(5.dp)
         ) {
             Icon(imageVector = Icons.Outlined.Comment)
-            Text(text = "コメント非表示設定")
+            Text(text = stringResource(id = R.string.nicovideo_menu_comment_hide))
         }
+        // 区切り線
+        Divider()
+        // 3ds排除
         Row(
             modifier = Modifier.padding(5.dp),
         ) {
@@ -49,6 +52,7 @@ fun NicoVideoCommentHideMenu(
                 },
             )
         }
+        // かんたんコメント排除
         Row(
             modifier = Modifier.padding(5.dp),
         ) {
@@ -83,6 +87,8 @@ fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
             Icon(imageVector = Icons.Outlined.Folder)
             Text(text = stringResource(id = R.string.mylist))
         }
+        // 区切り線
+        Divider()
         // マイリスト追加
         TextButton(
             onClick = { addMylist() },
@@ -121,7 +127,7 @@ fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
 /**
  * その他のメニュー。画質変更とかスキップ秒数変更とか画面回転とか
  *
- * @param qualityChane 画質変更ボタン押した時
+ * @param qualityChange 画質変更ボタン押した時
  * @param screenRotation 画面回転ボタン押した時
  * @param openBrowser ブラウザで開くボタンを押した時
  * @param ngList NG一覧ボタンを押した時
@@ -130,7 +136,8 @@ fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
  * */
 @Composable
 fun NicoVideoOtherButtonMenu(
-    qualityChane: () -> Unit,
+    qualityChange: () -> Unit,
+    copyVideoId: () -> Unit,
     screenRotation: () -> Unit,
     openBrowser: () -> Unit,
     ngList: () -> Unit,
@@ -146,9 +153,11 @@ fun NicoVideoOtherButtonMenu(
             Icon(imageVector = Icons.Outlined.Menu)
             Text(text = stringResource(id = R.string.menu))
         }
+        // 区切り線
+        Divider()
         // 画質変更
         TextButton(
-            onClick = { },
+            onClick = { qualityChange() },
         )
         {
             Row(
@@ -162,9 +171,24 @@ fun NicoVideoOtherButtonMenu(
                 )
             }
         }
-        // 画面回転
+        // 動画IDコピー
         TextButton(
-            onClick = { },
+            onClick = { copyVideoId() },
+        )
+        {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Icon(imageVector = Icons.Outlined.ContentCopy)
+                Text(
+                    text = stringResource(id = R.string.video_id_copy),
+                    modifier = Modifier.weight(1f).padding(5.dp),
+                )
+            }
+        } // 画面回転
+        TextButton(
+            onClick = { screenRotation() },
         )
         {
             Row(
@@ -180,7 +204,7 @@ fun NicoVideoOtherButtonMenu(
         }
         // ブラウザで開く
         TextButton(
-            onClick = { },
+            onClick = { openBrowser() },
         )
         {
             Row(
@@ -196,7 +220,7 @@ fun NicoVideoOtherButtonMenu(
         }
         // NG一覧
         TextButton(
-            onClick = { },
+            onClick = { ngList() },
         )
         {
             Row(
@@ -212,7 +236,7 @@ fun NicoVideoOtherButtonMenu(
         }
         // コテハン
         TextButton(
-            onClick = { },
+            onClick = { kotehanList() },
         )
         {
             Row(
@@ -228,7 +252,7 @@ fun NicoVideoOtherButtonMenu(
         }
         // スキップ秒数
         TextButton(
-            onClick = { },
+            onClick = { skipSetting() },
         )
         {
             Row(
@@ -249,10 +273,16 @@ fun NicoVideoOtherButtonMenu(
  * キャッシュ取得ボタン
  *
  * @param cacheGet キャッシュ取得ボタン押した時
+ * @param cacheGetEco キャッシュ取得ボタン（エコノミー）押した時
+ * @param isCachePlay キャッシュ再生の場合はtrueにすることで動画情報を更新するボタンを表示します。ですがtrueの場合は前述のボタンを表示しません。
+ * @param cacheUpdate キャッシュの動画情報更新ボタンを押した時
  * */
 @Composable
 fun NicoVideoCacheMenu(
     cacheGet: () -> Unit,
+    cacheGetEco: () -> Unit,
+    isCachePlay: Boolean,
+    cacheUpdate: () -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(10.dp).fillMaxWidth(),
@@ -263,28 +293,65 @@ fun NicoVideoCacheMenu(
             Icon(imageVector = Icons.Outlined.Folder)
             Text(text = stringResource(id = R.string.cache))
         }
-        // 取得ボタン
-        TextButton(
-            onClick = { cacheGet() },
-        )
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(imageVector = Icons.Outlined.Folder)
-                Text(
-                    text = stringResource(id = R.string.get_cache),
-                    modifier = Modifier.weight(1f).padding(5.dp),
-                )
+        // 区切り線
+        Divider()
+        // キャッシュ再生 か それ以外
+        if (isCachePlay) {
+            // 情報更新ボタン表示
+            TextButton(onClick = { cacheUpdate() }) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Icon(imageVector = Icons.Outlined.Refresh)
+                    Text(
+                        text = stringResource(id = R.string.get_cache_re_get),
+                        modifier = Modifier.weight(1f).padding(5.dp),
+                    )
+                }
+            }
+        } else {
+            // 取得ボタン
+            TextButton(onClick = { cacheGet() }) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Icon(imageVector = Icons.Outlined.Folder)
+                    Text(
+                        text = stringResource(id = R.string.get_cache),
+                        modifier = Modifier.weight(1f).padding(5.dp),
+                    )
+                }
+            }
+            // 取得ボタン（エコノミー）
+            TextButton(onClick = { cacheGetEco() }) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Icon(imageVector = Icons.Outlined.Folder)
+                    Text(
+                        text = stringResource(id = R.string.get_cache_eco),
+                        modifier = Modifier.weight(1f).padding(5.dp),
+                    )
+                }
             }
         }
     }
 }
 
-/** 共有 */
+/**
+ * 共有
+ *
+ * @param share 共有ボタン押した時
+ * @param shareAttachImg 画像つき共有ボタン押した時
+ * */
 @Composable
-fun NicoVideoShareMenu() {
+fun NicoVideoShareMenu(
+    share: () -> Unit,
+    shareAttachImg: () -> Unit,
+) {
     Column(
         modifier = Modifier.padding(10.dp).fillMaxWidth(),
     ) {
@@ -294,12 +361,29 @@ fun NicoVideoShareMenu() {
             Icon(imageVector = Icons.Outlined.Share)
             Text(text = stringResource(id = R.string.share))
         }
+        // 区切り線
+        Divider()
+        // 共有
         Row {
-            TextButton(onClick = { }) {
-                Text(text = stringResource(id = R.string.share))
+            TextButton(
+                modifier = Modifier.weight(1f),
+                onClick = { share() },
+            ) {
+                Icon(imageVector = Icons.Outlined.Share)
+                Text(
+                    text = stringResource(id = R.string.share),
+                    modifier = Modifier.padding(5.dp),
+                )
             }
-            TextButton(onClick = { }) {
-                Text(text = stringResource(id = R.string.share_attach_image))
+            TextButton(
+                modifier = Modifier.weight(1f),
+                onClick = { shareAttachImg() },
+            ) {
+                Icon(imageVector = Icons.Outlined.Share)
+                Text(
+                    text = stringResource(id = R.string.share_attach_image),
+                    modifier = Modifier.padding(5.dp),
+                )
             }
         }
     }
@@ -325,6 +409,9 @@ fun NicoVideoVolumeMenu(
             Icon(imageVector = Icons.Outlined.VolumeUp)
             Text(text = stringResource(id = R.string.volume))
         }
+        // 区切り線
+        Divider()
+        // 音量調整スライダー
         Slider(
             value = volume,
             onValueChange = {

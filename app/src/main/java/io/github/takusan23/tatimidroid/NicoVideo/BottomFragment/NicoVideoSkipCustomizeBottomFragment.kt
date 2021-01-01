@@ -14,7 +14,6 @@ import io.github.takusan23.tatimidroid.databinding.BottomFragmentSkipCustomizeBi
 
 /**
  * 押したときのスキップ秒数を変更できるやつ
- * | video_id    |String | 動画ID。Fragmentを探すために使います。
  * */
 class NicoVideoSkipCustomizeBottomFragment : BottomSheetDialogFragment() {
 

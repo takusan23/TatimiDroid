@@ -32,19 +32,19 @@ import kotlin.coroutines.suspendCoroutine
  *
  * @param fragment Activity Result API を利用するために必要
  * */
-class ContentShare(val fragment: Fragment) {
+class ContentShare(private val fragment: Fragment) {
 
     /** 保存する画像のBitmap */
-    var playerViewBitmap: Bitmap? = null
+    private var playerViewBitmap: Bitmap? = null
 
     /** 共有時につける文字列 */
-    var message: String? = null
+    private var message: String? = null
 
     /** 番組ID / 動画ID */
-    var contentId: String? = null
+    private var contentId: String? = null
 
     /** タイトル */
-    var contentName: String? = null
+    private var contentName: String? = null
 
 
     // 保存する。Activity Result APIを使って

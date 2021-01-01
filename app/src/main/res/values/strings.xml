@@ -547,4 +547,5 @@
     <string name="nicovideo_account_remove_follow_message">Can I unfollow you?</string>
     <string name="nicovideo_account_follow">Follow</string>
     <string name="nicovideo_account_remove_follow">Unfollow</string>
+    <string name="nicovideo_menu_comment_hide">Comment hiding setting</string>
 </resources>

@@ -19,15 +19,20 @@
 
         <FrameLayout
                 android:id="@+id/fragment_player_base_player_frame_layout"
-                android:layout_width="500dp"
-                android:layout_height="250dp">
+                android:layout_width="400dp"
+                android:layout_height="250dp"
+                android:background="#000"
+                android:clickable="true"
+                android:focusable="true">
 
         </FrameLayout>
 
         <FrameLayout
                 android:id="@+id/fragment_player_base_fragment_frame_layout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true">
 
         </FrameLayout>
     </LinearLayout>

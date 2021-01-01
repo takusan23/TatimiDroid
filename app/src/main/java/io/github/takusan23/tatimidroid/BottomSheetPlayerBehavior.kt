@@ -84,7 +84,7 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
         // 画面の幅
         val displayWidth = DisplaySizeTool.getDisplayWidth(context)
 
-        // ミニプレイヤーの幅を引いた値
+        /** ミニプレイヤーの幅を引いた値 */
         val maxTransitionX = (displayWidth - videoWidth).toFloat()
 
         bottomSheetView.translationX = maxTransitionX
@@ -106,9 +106,14 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                     STATE_EXPANDED -> {
                         // 展開時のプレイヤーの大きさ
                         if (isLandScape()) {
-                            playerView.updateLayoutParams {
+                            playerView.updateLayoutParams<LinearLayout.LayoutParams> {
                                 width = displayWidth / 2
                                 height = (width / 16) * 9
+                                // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
+                                // とりあえず最大時にかけるマージン計算
+                                val maxTopMargin = (DisplaySizeTool.getDisplayHeight(context) - height) / 2
+                                // そして現在かけるべきマージンを計算
+                                topMargin = maxTopMargin
                             }
                         } else {
                             playerView.updateLayoutParams {
@@ -140,11 +145,12 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                     // プレイヤーのサイズも変更
                     if (isLandScape()) {
                         playerView.updateLayoutParams<LinearLayout.LayoutParams> {
-                            width = videoWidth + (maxTransitionX * slideOffset).toInt() / 4 // なんか4で割るとうまくいく
+                            val portlateWidth = videoWidth + (maxTransitionX * slideOffset).toInt()
+                            width = portlateWidth / 2
                             height = (width / 16) * 9
                             // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
                             // とりあえず最大時にかけるマージン計算
-                            val maxTopMargin = (DisplaySizeTool.getDisplaySizeOldAPI(context).y - playerView.height) / 2
+                            val maxTopMargin = (DisplaySizeTool.getDisplayHeight(context) - height) / 2
                             // そして現在かけるべきマージンを計算
                             val currentTopMargin = maxTopMargin * slideOffset
                             topMargin = currentTopMargin.roundToInt()

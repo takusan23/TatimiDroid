@@ -11,11 +11,8 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Adapter.Parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoLikeAPI
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoRecommendAPI
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoruAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
@@ -52,7 +49,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     private val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
     /** ニコニコのログイン情報。ユーザーセッション */
-    private val userSession = prefSetting.getString("user_session", "") ?: ""
+    val userSession = prefSetting.getString("user_session", "") ?: ""
 
     /** 再生中の動画ID。動画変更の検知は[isOfflinePlay]をObserveしたほうが良いと思う（[playingVideoId]→[isOfflinePlay]の順番でLiveData通知が行く） */
     var playingVideoId = MutableLiveData<String>()
@@ -174,6 +171,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
 
     /** 動画の時間を通知するLiveData。ミリ秒 */
     val playerDurationMs = MutableLiveData<Long>()
+
+    /** 音量調整をLiveData経由で行う。1fまで */
+    val volumeControlLiveData = MutableLiveData<Float>()
 
     /** [isNotPlayVideoMode]がtrueのときにコルーチンを使うのでそれ */
     private val notVideoPlayModeCoroutineContext = Job()
@@ -618,6 +618,40 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             isLikedLiveData.postValue(false)
         }
     }
+
+    /** あとでみるに追加する。マイリスト追加は[io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment]を参照 */
+    fun addAtodemiruList() {
+        // あとで見るに追加する
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            showToast("${getString(R.string.error)}\n${throwable}")
+        }
+        viewModelScope.launch(errorHandler) {
+            // あとで見る追加APIを叩く
+            val spMyListAPI = NicoVideoSPMyListAPI()
+            val atodemiruResponse = spMyListAPI.addAtodemiruListVideo(userSession, playingVideoId.value!!)
+            if (!atodemiruResponse.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${atodemiruResponse.code}")
+                return@launch
+            }
+            // 成功したか
+            when (atodemiruResponse.code) {
+                201 -> {
+                    // 成功時
+                    showToast(getString(R.string.atodemiru_ok))
+                }
+                200 -> {
+                    // すでに追加済み
+                    showToast(getString(R.string.already_added))
+                }
+                else -> {
+                    // えらー
+                    showToast(getString(R.string.error))
+                }
+            }
+        }
+    }
+
 
     /**
      * SnackBar表示関数。予めFragmentでLiveDataをオブザーバーでつなげておいてね

@@ -9,14 +9,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoQualityBinding
 import org.json.JSONArray
-import org.json.JSONObject
 
 /**
  * ニコ動の画質変更BottomFragment
+ *
+ * ViewModelを使ってやり取りしている
  * */
 class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
 
@@ -30,21 +32,25 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val devNicoVideoFragment = requireParentFragment() as NicoVideoFragment
+        // ViewModelでデータ受け取る
+        val viewModel by viewModels<NicoVideoViewModel>({ requireParentFragment() })
 
         // データ受け取り
         // dmcInfo(DMCサーバー)かsmileInfo（Smileサーバー）か
-        val isDmcInfo = arguments?.getBoolean("is_dmc") ?: true
+        val isDmc = viewModel.isDMCServer
         // video.dmcInfo.qualityかvideo.smileInfo.qualityIdsの値。
-        val qualityList = arguments?.getString("quality")
+        val qualityJSONObject = if(isDmc){
+            viewModel.nicoVideoJSON.value!!.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality")
+        }else{
+            viewModel.nicoVideoJSON.value!!.getJSONObject("video").getJSONObject("smileInfo").getJSONObject("qualityIds")
+        }
         // 選択中の画質
-        val selectQuality = arguments?.getString("select")
+        val selectQuality = viewModel.currentVideoQuality
 
-        if (isDmcInfo) {
+        if (isDmc) {
             // video.dmcInfo.qualityのJSONパース
-            val jsonObject = JSONObject(qualityList)
-            val videoQualityJSONArray = jsonObject.getJSONArray("videos")
-            val audioQualityJSONArray = jsonObject.getJSONArray("audios")
+            val videoQualityJSONArray = qualityJSONObject.getJSONArray("videos")
+            val audioQualityJSONArray = qualityJSONObject.getJSONArray("audios")
             // 音声は一番いいやつ？
             val audioId = audioQualityJSONArray.getJSONObject(0).getString("id")
             for (i in 0 until videoQualityJSONArray.length()) {
@@ -62,10 +68,7 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                     setPadding(10, 10, 10, 10)
                     setOnClickListener {
                         // 画質変更して再リクエスト
-                        // 今の再生時間控える
-                        devNicoVideoFragment.apply {
-                            viewModel.coroutine(false, id, audioId)
-                        }
+                        viewModel.coroutine(false, id, audioId)
                         this@NicoVideoQualityBottomFragment.dismiss()
                     }
                     /**
@@ -85,7 +88,7 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
         } else {
             // video.smileInfo.qualityIdsパース
             // smileサーバーの動画は自動か低画質しかない？
-            val jsonObject = JSONArray(qualityList)
+            val jsonObject = JSONArray(qualityJSONObject)
             for (i in 0 until jsonObject.length()) {
                 val name = jsonObject.getString(i)
                 // TextView
@@ -96,9 +99,7 @@ class NicoVideoQualityBottomFragment : BottomSheetDialogFragment() {
                     setOnClickListener {
                         // 画質変更して再リクエスト
                         // 今の再生時間控える
-                        devNicoVideoFragment.apply {
-                            viewModel.coroutine(false, "", "", name == "low")
-                        }
+                        viewModel.coroutine(false, "", "", name == "low")
                         this@NicoVideoQualityBottomFragment.dismiss()
                     }
                 }

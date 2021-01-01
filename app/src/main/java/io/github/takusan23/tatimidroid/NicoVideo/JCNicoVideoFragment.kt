@@ -27,8 +27,8 @@ import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoView
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
+import io.github.takusan23.tatimidroid.Tool.ContentShare
 import io.github.takusan23.tatimidroid.Tool.CustomFont
-import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.InternetConnectionCheck
 import io.github.takusan23.tatimidroid.Tool.setOnDoubleClickListener
 import io.github.takusan23.tatimidroid.databinding.IncludeNicovideoPlayerBinding
@@ -61,6 +61,9 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
 
     /** シーク操作中かどうか */
     private var isTouchSeekBar = false
+
+    /** 共有 */
+    val contentShare = ContentShare(this)
 
     /** ViewModel。データ取得など */
     val viewModel by lazy {
@@ -223,6 +226,10 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
             }
         }
+        // 音量調整
+        viewModel.volumeControlLiveData.observe(viewLifecycleOwner) { volume ->
+            exoPlayer.volume = volume
+        }
     }
 
     /** UIに動画情報を反映させる */
@@ -271,7 +278,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 viewModel.playerDurationMs.postValue(exoPlayer.duration)
                 // プログレスバー
                 nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.apply {
-                    visibility = if (visibility == View.VISIBLE) {
+                    visibility = if (state == Player.STATE_READY) {
                         View.INVISIBLE
                     } else {
                         View.VISIBLE
@@ -337,23 +344,11 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
      * */
     private fun aspectRatioFix(videoWidth: Int, videoHeight: Int) {
         if (!isAdded) return
-        val displayWidth = DisplaySizeTool.getDisplayWidth(requireContext())
-        if (isLandscape()) {
-            // 横
-            val playerWidth = displayWidth / 2
-            val playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(videoWidth, videoHeight, playerWidth).roundToInt()
-            nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
-                width = playerWidth
-                height = playerHeight
-            }
-        } else {
-            // 縦
-            val playerHeight = fragmentPlayerFrameLayout.height
-            val playerWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(videoWidth, videoHeight, playerHeight).roundToInt()
-            nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
-                width = playerWidth
-                height = playerHeight
-            }
+        val playerHeight = fragmentPlayerFrameLayout.height
+        val playerWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(videoWidth, videoHeight, playerHeight).roundToInt()
+        nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
+            width = playerWidth
+            height = playerHeight
         }
     }
 
@@ -491,6 +486,18 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 finishFragment()
             }
         }
+    }
+
+    /** 画像つき共有をする */
+    fun showShareSheetMediaAttach() {
+        // 親のFragment取得
+        contentShare.shareContentAttachPicture(nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView, nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas, viewModel.playingVideoId.value, viewModel.nicoVideoData.value?.title)
+    }
+
+    /** 共有する */
+    fun showShareSheet() {
+        // 親のFragment取得
+        contentShare.shareContent(viewModel.playingVideoId.value, viewModel.nicoVideoData.value?.title)
     }
 
     override fun onPause() {
