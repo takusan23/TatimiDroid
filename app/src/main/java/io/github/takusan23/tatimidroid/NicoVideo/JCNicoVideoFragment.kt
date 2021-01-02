@@ -20,9 +20,10 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.droppopalert.DropPopAlert
+import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.JCNivoVideoMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
@@ -100,13 +101,35 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         setTimer()
 
         // 動画情報Fragment設置
-        setNicoVideoFragment()
+        setFragment()
 
     }
 
-    /** [JCNicoVideoInfoFragment]を設置する */
-    private fun setNicoVideoFragment() {
-        childFragmentManager.beginTransaction().replace(fragmentHostFrameLayout.id, JCNicoVideoDetailFragment()).commit()
+    /** [JCNicoVideoInfoFragment] / [NicoVideoCommentFragment] を設置する */
+    private fun setFragment() {
+        // 動画情報Fragment、コメントFragment設置
+        childFragmentManager.beginTransaction().replace(fragmentHostFrameLayout.id, JCNicoVideoInfoFragment()).commit()
+        childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, NicoVideoCommentFragment()).commit()
+        // Fab押した時
+        fragmentCommentFab.setOnClickListener {
+            // コメント一覧 展開/格納
+            viewModel.commentListShowLiveData.postValue(!viewModel.commentListShowLiveData.value!!)
+        }
+        // コメント一覧展開など
+        viewModel.commentListShowLiveData.observe(viewLifecycleOwner) { isShow ->
+            fragmentCommentFab.setImageDrawable(if (isShow) {
+                requireContext().getDrawable(R.drawable.ic_outline_info_24px)
+            } else {
+                requireContext().getDrawable(R.drawable.ic_outline_comment_24px)
+            })
+            // アニメーション？自作ライブラリ
+            val dropPopAlert = fragmentCommentHostFrameLayout.toDropPopAlert()
+            if (isShow) {
+                dropPopAlert.showAlert(DropPopAlert.ALERT_UP)
+            } else {
+                dropPopAlert.hideAlert(DropPopAlert.ALERT_UP)
+            }
+        }
     }
 
     /** コメントと経過時間を定期的に更新していく */
@@ -442,11 +465,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                     viewModel.playerSetSeekMs.postValue((viewModel.playerSetSeekMs.value ?: 0) + seekValue * 1000)
                 }
             }
-        }
-        // メニュー展開
-        nicovideoPlayerUIBinding.includeNicovideoPlayerMenuButton.setOnClickListener {
-            val menuFragment = JCNivoVideoMenuBottomFragment()
-            menuFragment.show(childFragmentManager, "menu")
         }
         // コメントキャンバス非表示
         nicovideoPlayerUIBinding.includeNicovideoPlayerCommentHideImageView.setOnClickListener {

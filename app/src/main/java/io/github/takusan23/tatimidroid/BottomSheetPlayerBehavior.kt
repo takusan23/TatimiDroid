@@ -39,7 +39,6 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     }
 
     /** プレイヤーのサイズ変更（ドラッグ操作）をプレイヤー範囲に限定するかどうか */
-    @Deprecated("多分動かない。将来的に消す")
     var isDraggableAreaPlayerOnly = false
 
     /** [isDraggableAreaPlayerOnly]のときに使う */
@@ -188,11 +187,38 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     /** 横画面かどうか */
     private fun isLandScape() = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
+    /**
+     * プレイヤー部分のタッチが検出できない(おそらくクリックイベント追加したから)のでViewGroup特権を発動
+     * [onTouchEvent]が拾えなくてもViewGroupならこの方法が使える。
+     *
+     * [isDraggableAreaPlayerOnly]の判定で利用。
+     * */
+    override fun onInterceptTouchEvent(parent: CoordinatorLayout, child: T, event: MotionEvent): Boolean {
+        // ちなみにchild.leftは0を返す
+        val isTouchingSwipeTargetView = if (!isDraggableAreaPlayerOnly) {
+            event.x > currentMiniPlayerXPos
+                    && event.x < currentMiniPlayerXPos + draggablePlayerView!!.width
+        } else {
+            // 操作ターゲットをプレイヤーに限定
+            event.x > currentMiniPlayerXPos
+                    && event.x < currentMiniPlayerXPos + draggablePlayerView!!.width
+                    && event.y > draggableBottomSheetView!!.y
+                    && event.y < draggableBottomSheetView!!.y + draggablePlayerView!!.height
+        }
+
+        // 展開時 + ドラッグ範囲限定 + いま指がプレイヤーに触れている 場合はプレイヤーをミニプレイヤーにできる
+        isDraggable = if (!isMiniPlayerMode() && isDraggableAreaPlayerOnly && isTouchingSwipeTargetView) {
+            true
+        } else isMiniPlayerMode() // そうじゃなくてもミニプレイヤー時は操作可能に
+        return super.onInterceptTouchEvent(parent, child, event)
+    }
+
     override fun onTouchEvent(parent: CoordinatorLayout, child: T, event: MotionEvent): Boolean {
         // プレイヤーを触っているときのみタッチイベントを渡す。translateXの値変えてもタッチは何故か行くので制御
         // ちなみにchild.leftは0を返す
         val isTouchingSwipeTargetView = if (!isDraggableAreaPlayerOnly) {
-            event.x > child.x
+            event.x > currentMiniPlayerXPos
+                    && event.x < currentMiniPlayerXPos + draggablePlayerView!!.width
         } else {
             // 操作ターゲットをプレイヤーに限定
             event.x > currentMiniPlayerXPos

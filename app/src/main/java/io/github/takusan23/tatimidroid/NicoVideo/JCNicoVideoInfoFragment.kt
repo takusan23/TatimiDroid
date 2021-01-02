@@ -21,6 +21,8 @@ import kotlinx.coroutines.launch
 /**
  * 動画情報Fragment。Jetpack Composeでレイアウトを作っている。Jetpack Composeたのし～～～。なんで動いてんのかよく知らんけど
  *
+ * [io.github.takusan23.tatimidroid.BottomSheetPlayerBehavior.isDraggableAreaPlayerOnly]がtrueじゃないとうまくスクロールできない。
+ *
  * [JCNicoVideoFragment]のViewModelを利用している。
  * */
 class JCNicoVideoInfoFragment : Fragment() {
@@ -43,19 +45,18 @@ class JCNicoVideoInfoFragment : Fragment() {
                         val state = rememberScaffoldState()
                         val scope = rememberCoroutineScope()
 
+                        // コメント一覧表示中かどうか
+                        val isShowCommentList = viewModel.commentListShowLiveData.observeAsState(initial = false)
+
                         Scaffold(
                             scaffoldState = state,
                             floatingActionButton = {
 /*
-                                // コメント表示Fabを出す
-                                FloatingActionButton(
-                                    onClick = {
-                                        // 押した時
-                                        viewModel.commentListBottomSheetLiveData.postValue(BottomSheetBehavior.STATE_EXPANDED)
-                                    })
-                                {
-                                    Icon(imageVector = Icons.Outlined.Comment)
-                                }
+                                // コメント一覧表示Fab
+                                NicoVideoCommentListFab(
+                                    isShowCommentList = isShowCommentList.value,
+                                    click = { viewModel.commentListShowLiveData.postValue(!isShowCommentList.value) }
+                                )
 */
                             }
                         ) {
@@ -114,6 +115,10 @@ class JCNicoVideoInfoFragment : Fragment() {
                                         }
                                     )
                                 }
+
+                                // メニューカード。長いのでまとめた
+                                NicoVideoMenuScreen(requireParentFragment())
+
                                 // 関連動画表示Card
                                 if (recommendList.value != null) {
                                     NicoVideoRecommendCard(recommendList.value!!)
@@ -133,10 +138,5 @@ class JCNicoVideoInfoFragment : Fragment() {
             }
         }
     }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-    }
-
 
 }

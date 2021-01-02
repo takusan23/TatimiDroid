@@ -39,13 +39,13 @@ import kotlinx.coroutines.launch
  * */
 
 /** [NicoVideoInfoCard]とかの親のCardに指定するModifier */
-private val parentCardModifier = Modifier.padding(5.dp)
+val parentCardModifier = Modifier.padding(5.dp)
 
 /** [NicoVideoInfoCard]とかの親のCardに指定する丸み */
-private val parentCardShape = RoundedCornerShape(3.dp)
+val parentCardShape = RoundedCornerShape(3.dp)
 
 /** [NicoVideoInfoCard]とかの親のCardに指定するElevation */
-private val parentCardElevation = 3.dp
+val parentCardElevation = 3.dp
 
 /**
  * 動画説明、タイトルCard
@@ -329,6 +329,29 @@ fun NicoVideoTagCard(tagDataList: ArrayList<NicoLiveTagDataClass>, tagClick: (Ni
                 }
             }
         )
+    }
+}
+
+/**
+ * コメント一覧表示用Fabです
+ *
+ * @param isShowCommentList コメント一覧表示中かどうか。trueで表示中
+ * @param click Fab押した時
+ * */
+@Composable
+fun NicoVideoCommentListFab(
+    isShowCommentList: Boolean,
+    click: () -> Unit,
+) {
+    // コメント表示Fabを出す
+    FloatingActionButton(
+        elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 20.dp),
+        onClick = {
+            // 押した時
+            click()
+        })
+    {
+        Icon(imageVector = if (isShowCommentList) Icons.Outlined.Info else Icons.Outlined.Comment)
     }
 }
 

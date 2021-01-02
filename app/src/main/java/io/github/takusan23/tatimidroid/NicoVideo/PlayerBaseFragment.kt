@@ -39,6 +39,12 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** プレイヤー部分におくFrameLayout。背景暗黒にしてます。 */
     val fragmentPlayerFrameLayout by lazy { viewBinding.fragmentPlayerBasePlayerFrameLayout }
 
+    /** コメントFragmentを置くためのFrameLayout */
+    val fragmentCommentHostFrameLayout by lazy { viewBinding.fragmentPlayerCommentFragmentFrameLayout }
+
+    /** コメント一覧表示用Fab */
+    val fragmentCommentFab by lazy { viewBinding.fragmentPlayerCommentShowFab }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return viewBinding.root
     }
@@ -65,6 +71,8 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
                 onBottomSheetProgress(slideOffset)
             }
         })
+        // プレイヤー以外で動かさないように
+        setDraggableAreaPlayerOnly(true)
 
         // 遅延で表示。ぴょこって
         lifecycleScope.launch {
@@ -141,7 +149,6 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
      * プレイヤーのサイズ変更（ドラッグ操作）をプレイヤー範囲に限定するかどうか
      * @param isPlayerOnly trueで限定する
      * */
-    @Deprecated("多分動かない")
     fun setDraggableAreaPlayerOnly(isPlayerOnly: Boolean) {
         bottomSheetPlayerBehavior.isDraggableAreaPlayerOnly = isPlayerOnly
     }

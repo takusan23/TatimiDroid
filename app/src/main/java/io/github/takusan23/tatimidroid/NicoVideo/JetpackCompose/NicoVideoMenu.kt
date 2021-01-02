@@ -7,9 +7,96 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.takusan23.tatimidroid.R
+
+/**
+ * メニューのタブの部分だけ
+ *
+ * マイリスト登録とかメニューとか？
+ *
+ * @param selectedIndex 選択中の位置。
+ * @param tabClick Tabを押した時。引数はタブの位置
+ * */
+@Composable
+fun NicoVideoMenuTab(
+    selectedIndex: Int,
+    tabClick: (Int) -> Unit,
+) {
+    ScrollableTabRow(
+        modifier = Modifier.padding(10.dp),
+        selectedTabIndex = selectedIndex,
+        backgroundColor = Color.Transparent,
+    ) {
+        TabPadding(
+            index = 0,
+            tabName = stringResource(id = R.string.mylist),
+            tabIcon = Icons.Outlined.Folder,
+            selectedIndex = selectedIndex,
+            tabClick = { tabClick(0) }
+        )
+        TabPadding(
+            index = 1,
+            tabName = stringResource(id = R.string.nicovideo_menu_comment_hide),
+            tabIcon = Icons.Outlined.Comment,
+            selectedIndex = selectedIndex,
+            tabClick = { tabClick(1) }
+        )
+        TabPadding(
+            index = 2,
+            tabName = stringResource(id = R.string.menu),
+            tabIcon = Icons.Outlined.Menu,
+            selectedIndex = selectedIndex,
+            tabClick = { tabClick(2) }
+        )
+        TabPadding(
+            index = 3,
+            tabName = stringResource(id = R.string.share),
+            tabIcon = Icons.Outlined.Share,
+            selectedIndex = selectedIndex,
+            tabClick = { tabClick(3) }
+        )
+        TabPadding(
+            index = 4,
+            tabName = stringResource(id = R.string.cache),
+            tabIcon = Icons.Outlined.Folder,
+            selectedIndex = selectedIndex,
+            tabClick = { tabClick(4) }
+        )
+        TabPadding(
+            index = 5,
+            tabName = stringResource(id = R.string.volume),
+            tabIcon = Icons.Outlined.VolumeUp,
+            selectedIndex = selectedIndex,
+            tabClick = { tabClick(5) }
+        )
+    }
+}
+
+/**
+ * タブレイアウトの一つ一つのTab。
+ * @param index 何個目のTabかどうか
+ * @param tabIcon アイコン
+ * @param tabName 名前
+ * @param selectedIndex 現在選択中のタブの位置
+ * @param tabClick タブを押した時
+ * */
+@Composable
+fun TabPadding(index:Int, tabName: String, tabIcon: ImageVector, selectedIndex: Int, tabClick: (Int) -> Unit) {
+    Tab(
+        modifier = Modifier.padding(5.dp),
+        selected = selectedIndex == index,
+        onClick = {
+            tabClick(index)
+        }
+    ) {
+        Icon(imageVector = tabIcon)
+        Text(text = tabName)
+    }
+}
 
 /**
  * 3DS、かんたんこめんと排除スイッチをおいてる。
@@ -29,14 +116,6 @@ fun NicoVideoCommentHideMenu(
     Column(
         modifier = Modifier.padding(10.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(5.dp)
-        ) {
-            Icon(imageVector = Icons.Outlined.Comment)
-            Text(text = stringResource(id = R.string.nicovideo_menu_comment_hide))
-        }
-        // 区切り線
-        Divider()
         // 3ds排除
         Row(
             modifier = Modifier.padding(5.dp),
@@ -81,14 +160,6 @@ fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
     Column(
         modifier = Modifier.padding(10.dp).fillMaxWidth(),
     ) {
-        Row(
-            modifier = Modifier.padding(5.dp),
-        ) {
-            Icon(imageVector = Icons.Outlined.Folder)
-            Text(text = stringResource(id = R.string.mylist))
-        }
-        // 区切り線
-        Divider()
         // マイリスト追加
         TextButton(
             onClick = { addMylist() },
@@ -147,14 +218,6 @@ fun NicoVideoOtherButtonMenu(
     Column(
         modifier = Modifier.padding(10.dp).fillMaxWidth(),
     ) {
-        Row(
-            modifier = Modifier.padding(5.dp),
-        ) {
-            Icon(imageVector = Icons.Outlined.Menu)
-            Text(text = stringResource(id = R.string.menu))
-        }
-        // 区切り線
-        Divider()
         // 画質変更
         TextButton(
             onClick = { qualityChange() },
@@ -287,14 +350,6 @@ fun NicoVideoCacheMenu(
     Column(
         modifier = Modifier.padding(10.dp).fillMaxWidth(),
     ) {
-        Row(
-            modifier = Modifier.padding(5.dp),
-        ) {
-            Icon(imageVector = Icons.Outlined.Folder)
-            Text(text = stringResource(id = R.string.cache))
-        }
-        // 区切り線
-        Divider()
         // キャッシュ再生 か それ以外
         if (isCachePlay) {
             // 情報更新ボタン表示
@@ -355,14 +410,6 @@ fun NicoVideoShareMenu(
     Column(
         modifier = Modifier.padding(10.dp).fillMaxWidth(),
     ) {
-        Row(
-            modifier = Modifier.padding(5.dp),
-        ) {
-            Icon(imageVector = Icons.Outlined.Share)
-            Text(text = stringResource(id = R.string.share))
-        }
-        // 区切り線
-        Divider()
         // 共有
         Row {
             TextButton(
@@ -403,14 +450,6 @@ fun NicoVideoVolumeMenu(
     Column(
         modifier = Modifier.padding(10.dp).fillMaxWidth(),
     ) {
-        Row(
-            modifier = Modifier.padding(5.dp),
-        ) {
-            Icon(imageVector = Icons.Outlined.VolumeUp)
-            Text(text = stringResource(id = R.string.volume))
-        }
-        // 区切り線
-        Divider()
         // 音量調整スライダー
         Slider(
             value = volume,
