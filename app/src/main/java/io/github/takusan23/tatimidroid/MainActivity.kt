@@ -222,12 +222,19 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Fragmentを置く。戻るキーに対応させる場合は第二引数にnull以外を入れてね
+     *
+     * @param fragment おくFragment
+     * @param backstack null以外を入れるとFragmentを積み上げます（履歴に入れる。戻るキー対応）
+     * @param forceAdd 同じFragmentでも強制的に置き換える場合はtrue
      * */
-    fun setFragment(fragment: Fragment, backstack: String? = null) {
+    fun setFragment(fragment: Fragment, backstack: String? = null, forceAdd: Boolean = false) {
         // 同じFragmentの場合はやらない（例：生放送開いてるのにもう一回生放送開いたときは何もしない）
         val findFragment = supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
         if (findFragment != null && findFragment.javaClass == fragment.javaClass) {
-            return // Fragmentはすでに設置済みなので
+            if (!forceAdd) {
+                // Fragmentはすでに設置済みなので
+                return
+            }
         }
         // Fragmentセット
         supportFragmentManager.beginTransaction().apply {

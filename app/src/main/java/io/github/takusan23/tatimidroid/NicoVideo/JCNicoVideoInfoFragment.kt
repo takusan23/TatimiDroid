@@ -12,8 +12,10 @@ import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.*
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import kotlinx.coroutines.launch
@@ -44,9 +46,6 @@ class JCNicoVideoInfoFragment : Fragment() {
                         // Snackbar表示で使う
                         val state = rememberScaffoldState()
                         val scope = rememberCoroutineScope()
-
-                        // コメント一覧表示中かどうか
-                        val isShowCommentList = viewModel.commentListShowLiveData.observeAsState(initial = false)
 
                         Scaffold(
                             scaffoldState = state,
@@ -102,7 +101,8 @@ class JCNicoVideoInfoFragment : Fragment() {
                                     NicoVideoTagCard(
                                         tagDataList = tagList.value!!,
                                         tagClick = { data ->
-
+                                            // タグ押した時
+                                            setTagSearchFragment(data.tagName)
                                         }
                                     )
                                 }
@@ -111,7 +111,7 @@ class JCNicoVideoInfoFragment : Fragment() {
                                     NicoVideoUserCard(
                                         userData = userData.value!!,
                                         userOpenClick = {
-
+                                            setAccountFragment(userData.value!!.userId.toString())
                                         }
                                     )
                                 }
@@ -137,6 +137,43 @@ class JCNicoVideoInfoFragment : Fragment() {
                 }
             }
         }
+    }
+
+    /**
+     * アカウント情報Fragmentを表示
+     * */
+    private fun setAccountFragment(userId: String) {
+        val accountFragment = NicoAccountFragment().apply {
+            arguments= Bundle().apply {
+                putString("userId",userId)
+            }
+        }
+        setFragment(accountFragment,"account")
+    }
+
+    /**
+     * タグの検索をするFragmentを表示する
+     * */
+    private fun setTagSearchFragment(tag: String) {
+        val searchFragment = NicoVideoSearchFragment().apply {
+            arguments = Bundle().apply {
+                putString("search", tag)
+            }
+        }
+        setFragment(searchFragment, "tag_search")
+    }
+
+    /**
+     * Fragmentを置く関数
+     *
+     * @param fragment 置くFragment
+     * @param backstack Fragmentを積み上げる場合は適当な値を入れて
+     * */
+    private fun setFragment(fragment: Fragment, backstack: String) {
+        // Fragment設置
+        (requireActivity() as MainActivity).setFragment(fragment, backstack, true)
+        // ミニプレイヤー化
+        viewModel.isMiniPlayerMode.postValue(true)
     }
 
 }

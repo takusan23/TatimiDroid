@@ -100,7 +100,7 @@ fun NicoVideoInfoCard(
                     imageVector = Icons.Outlined.EventAvailable
                 )
                 Text(
-                    text = "投稿日：${toFormatTime(nicoVideoData?.date ?: 0L)}",
+                    text = "${stringResource(id = R.string.post_date)}：${toFormatTime(nicoVideoData?.date ?: 0L)}",
                 )
             }
             Row {

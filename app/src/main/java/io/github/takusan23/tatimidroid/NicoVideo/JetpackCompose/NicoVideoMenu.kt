@@ -27,7 +27,6 @@ fun NicoVideoMenuTab(
     tabClick: (Int) -> Unit,
 ) {
     ScrollableTabRow(
-        modifier = Modifier.padding(10.dp),
         selectedTabIndex = selectedIndex,
         backgroundColor = Color.Transparent,
     ) {
