@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoSeriesData
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.*
@@ -874,6 +875,23 @@ class NicoVideoHTML {
     fun getSeriesTitle(jsonObject: JSONObject): String? {
         return if (!jsonObject.isNull("series")) {
             jsonObject.getJSONObject("series").getString("title")
+        } else {
+            null
+        }
+    }
+
+    /**
+     * シリーズが設定されている場合はシリーズのデータクラスに詰めて返す。未設定ならnull
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * @return [NicoVideoSeriesData]。でもitemsCountはJSON解析では取れないので-1が返ります。
+     * */
+    suspend fun getSeriesData(jsonObject: JSONObject): NicoVideoSeriesData? = withContext(Dispatchers.Default) {
+        if (!jsonObject.isNull("series")) {
+            val seriesJSON = jsonObject.getJSONObject("series")
+            val title = seriesJSON.getString("title")
+            val seriesThumb = seriesJSON.getString("thumbnailUrl")
+            val seriesId = seriesJSON.getInt("id").toString()
+            NicoVideoSeriesData(title = title, seriesId = seriesId, itemsCount = -1, thumbUrl = seriesThumb)
         } else {
             null
         }

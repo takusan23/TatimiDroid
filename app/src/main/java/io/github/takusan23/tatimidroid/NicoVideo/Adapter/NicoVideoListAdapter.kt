@@ -111,6 +111,7 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : Re
                         val bundle = Bundle()
                         bundle.putString("id", data.videoId)
                         bundle.putBoolean("cache", data.isCache)
+                        bundle.putSerializable("video_list",nicoVideoDataList)
                         nicoVideoFragment.arguments = bundle
                         (context as MainActivity).setPlayer(nicoVideoFragment, data.videoId)
                     }

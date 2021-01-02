@@ -19,7 +19,6 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.MainActivity
@@ -48,6 +47,7 @@ import kotlin.math.roundToInt
  * eco          |   エコノミー再生するなら（?eco=1）true
  * internet     |   キャッシュ有っても強制的にインターネットを利用する場合はtrue
  * fullscreen   |   最初から全画面で再生する場合は true。
+ * video_list   |   連続再生する場合は[NicoVideoData]の配列を[Bundle.putSerializable]使って入れてね
  * */
 class JCNicoVideoFragment : PlayerBaseFragment() {
 
@@ -180,7 +180,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
         // SnackBarを表示しろメッセージを受け取る
         viewModel.snackbarLiveData.observe(viewLifecycleOwner) {
-            Snackbar.make(nicovideoPlayerUIBinding.root, it, Snackbar.LENGTH_SHORT).show()
+            showSnackBar(it, null, null)
         }
         // 動画情報
         viewModel.nicoVideoData.observe(viewLifecycleOwner) { nicoVideoData ->
@@ -253,6 +253,16 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         viewModel.volumeControlLiveData.observe(viewLifecycleOwner) { volume ->
             exoPlayer.volume = volume
         }
+        // 次の動画、前の動画
+        viewModel.isPlayListMode.observe(viewLifecycleOwner) { isPlaylist ->
+            val prevIcon = if (isPlaylist) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
+            val nextIcon = if (isPlaylist) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
+            nicovideoPlayerUIBinding.includeNicovideoPlayerPrevImageView.setImageDrawable(prevIcon)
+            nicovideoPlayerUIBinding.includeNicovideoPlayerNextImageView.setImageDrawable(nextIcon)
+        }
+        // 押した時
+        nicovideoPlayerUIBinding.includeNicovideoPlayerPrevImageView.setOnClickListener { viewModel.nextVideo() }
+        nicovideoPlayerUIBinding.includeNicovideoPlayerNextImageView.setOnClickListener { viewModel.prevVideo() }
     }
 
     /** UIに動画情報を反映させる */
@@ -483,7 +493,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                     seek = 0L,
                     videoQuality = viewModel.currentVideoQuality,
                     audioQuality = viewModel.currentAudioQuality,
-                    playlist = viewModel.videoList
+                    playlist = viewModel.playlistLiveData.value
                 )
                 finishFragment()
             }
@@ -499,7 +509,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                     seek = 0L,
                     videoQuality = viewModel.currentVideoQuality,
                     audioQuality = viewModel.currentAudioQuality,
-                    playlist = viewModel.videoList
+                    playlist = viewModel.playlistLiveData.value
                 )
                 finishFragment()
             }

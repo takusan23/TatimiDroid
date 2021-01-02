@@ -548,4 +548,5 @@
     <string name="nicovideo_account_follow">フォロー</string>
     <string name="nicovideo_account_remove_follow">フォロー解除</string>
     <string name="nicovideo_menu_comment_hide">コメント非表示設定</string>
+    <string name="nicovideo_playlist_start">連続再生を開始</string>
 </resources>

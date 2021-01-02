@@ -183,7 +183,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // 動画変更時にやることリスト
             initViewPager(viewModel.dynamicAddFragmentList)
             viewBinding.fragmentNicovideoCommentCanvas.clearCommentList()
-            viewBinding.fragmentNicovideoControlInclude.playerControlPlaylist.isVisible = viewModel.isPlayListMode
+            viewBinding.fragmentNicovideoControlInclude.playerControlPlaylist.isVisible = viewModel.isPlayListMode.value!!
         }
 
 
@@ -260,7 +260,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         aspectRatioFix(16, 9)
 
         // 戻るキー押した時
-        requireActivity().onBackPressedDispatcher.addCallback(this){
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
             // コメントのみの表示の際はFragment終了
             if (viewModel.isCommentOnlyMode) {
                 finishFragment()
@@ -678,8 +678,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             viewModel.playerIsPlaying.postValue(!viewModel.playerIsPlaying.value!!)
         }
         // 連続再生とそれ以外でアイコン変更
-        val playListModePrevIcon = if (viewModel.isPlayListMode) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
-        val playListModeNextIcon = if (viewModel.isPlayListMode) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
+        val playListModePrevIcon = if (viewModel.isPlayListMode.value!!) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
+        val playListModeNextIcon = if (viewModel.isPlayListMode.value!!) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
         viewBinding.fragmentNicovideoControlInclude.playerControlPrev.setImageDrawable(playListModePrevIcon)
         viewBinding.fragmentNicovideoControlInclude.playerControlNext.setImageDrawable(playListModeNextIcon)
         viewBinding.fragmentNicovideoControlInclude.playerControlPrev.setOnClickListener {
@@ -708,8 +708,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // ポップアップ/バッググラウンドなど
         viewBinding.fragmentNicovideoControlInclude.playerControlPopup.setOnClickListener {
             // 連続再生
-            val playlist = if (viewModel.isPlayListMode) {
-                viewModel.videoList
+            val playlist = if (viewModel.isPlayListMode.value!!) {
+                viewModel.playlistLiveData.value
             } else {
                 null
             }
@@ -720,8 +720,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
         viewBinding.fragmentNicovideoControlInclude.playerControlBackground.setOnClickListener {
             // 連続再生
-            val playlist = if (viewModel.isPlayListMode) {
-                viewModel.videoList
+            val playlist = if (viewModel.isPlayListMode.value!!) {
+                viewModel.playlistLiveData.value
             } else {
                 null
             }
@@ -837,7 +837,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             view.isClickable = !isMiniPlayerMode
             view.isEnabled = !isMiniPlayerMode
         }
-        viewBinding.fragmentNicovideoControlInclude.playerControlPlaylist.isVisible = !isMiniPlayerMode && viewModel.isPlayListMode
+        viewBinding.fragmentNicovideoControlInclude.playerControlPlaylist.isVisible = !isMiniPlayerMode && viewModel.isPlayListMode.value!!
     }
 
     // Progress表示

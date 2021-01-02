@@ -13,6 +13,7 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoSeriesData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
@@ -38,9 +39,9 @@ import org.json.JSONObject
  * @param isCache キャッシュで再生するか。ただし最終的には[isOfflinePlay]がtrueの時キャッシュ利用再生になります。連続再生の[videoList]が指定されている場合はnullに出来ます。
  * @param isEco エコノミー再生ならtrue。なお、キャッシュを優先的に利用する設定等でキャッシュ再生になっている場合があるので[isOfflinePlay]を使ってください。なお連続再生時はすべての動画をエコノミーで再生します。
  * @param useInternet キャッシュが有っても強制的にインターネットを経由して取得する場合はtrue。
- * @param videoList 連続再生するなら配列を入れてね。nullでもいい
+ * @param videoList 連続再生するなら配列を入れてね。nullでもいい。動画一覧が必要な場合は[playlistLiveData]があるのでこっちを利用してください（ViewModel生成後に連続再生に切り替えられるように）。
  * */
-class NicoVideoViewModel(application: Application, videoId: String? = null, isCache: Boolean? = null, val isEco: Boolean, val useInternet: Boolean, startFullScreen: Boolean, val videoList: ArrayList<NicoVideoData>?) : AndroidViewModel(application) {
+class NicoVideoViewModel(application: Application, videoId: String? = null, isCache: Boolean? = null, val isEco: Boolean, val useInternet: Boolean, startFullScreen: Boolean, private val videoList: ArrayList<NicoVideoData>?) : AndroidViewModel(application) {
 
     /** Context */
     private val context = getApplication<Application>().applicationContext
@@ -132,14 +133,17 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** ミニプレイヤーかどうか */
     var isMiniPlayerMode = MutableLiveData(false)
 
-    /** 連続再生かどうか。連続再生ならtrue */
-    val isPlayListMode = videoList != null
+    /** 連続再生かどうか。連続再生ならtrue。なお、後から連続再生に切り替える機能をつけたいのでLiveDataになっています。*/
+    val isPlayListMode = MutableLiveData(videoList != null)
 
     /** 連続再生時に、再生中の動画が[videoList]から見てどこの位置にあるかが入っている */
     val playListCurrentPosition = MutableLiveData(0)
 
     /** 連続再生時に逆順再生が有効になっているか。trueなら逆順 */
     val isReversed = MutableLiveData(false)
+
+    /** 連続再生プレイリストLiveData。並び順変わった時なども通知が行く。[videoList]じゃなくてこっちを利用してください。 */
+    val playlistLiveData = MutableLiveData(videoList)
 
     /** 連続再生の最初の並び順が入っている */
     val originVideoSortList = videoList?.map { nicoVideoData -> nicoVideoData.videoId }
@@ -190,11 +194,15 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** ニコるくんAPI */
     var nicoruAPI: NicoruAPI? = null
 
+    /** シリーズが設定されていればシリーズの情報が入ってくる */
+    val seriesDataLiveData = MutableLiveData<NicoVideoSeriesData>()
+
     init {
 
         // 最初の動画。連続再生と分岐
-        if (isPlayListMode) {
-            val videoData = videoList!![0]
+        if (isPlayListMode.value == true) {
+            val videoList = playlistLiveData.value!!
+            val videoData = videoList[0]
             val startVideoId = videoId ?: videoData.videoId
             // 指定した動画がキャッシュ再生かどうか
             val startVideoIdCanCachePlay = videoList.find { nicoVideoData -> nicoVideoData.videoId == startVideoId }?.isCache ?: false
@@ -225,8 +233,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
 
         // 動画ID変更を通知
         playingVideoId.value = videoId
-        if (videoList != null) {
-            playListCurrentPosition.value = videoList.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == videoId }
+        if (playlistLiveData.value != null) {
+            playListCurrentPosition.value = playlistLiveData.value!!.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == videoId }
         }
         // どの方法で再生するか
         // キャッシュを優先的に使う設定有効？
@@ -290,6 +298,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                     userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
                     // タグLiveData
                     tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
+                    // シリーズが設定されていればシリーズ情報を返す
+                    seriesDataLiveData.postValue(nicoVideoHTML.getSeriesData(jsonObject))
                 }
 
                 // コメントが有るか
@@ -354,7 +364,6 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
             // タグLiveData
             tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
-
             isDMCServer = nicoVideoHTML.isDMCServer(jsonObject)
             // DMC鯖ならハートビート処理が必要なので。でもほぼDMC鯖からの配信じゃない？
             if (isDMCServer) {
@@ -431,6 +440,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                     nicoruAPI?.init()
                 }
             }
+            // シリーズが設定されていればシリーズ情報を返す
+            seriesDataLiveData.postValue(nicoVideoHTML.getSeriesData(jsonObject))
         }
     }
 
@@ -533,29 +544,52 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         }
     }
 
-    /** 連続再生時に次の動画に行く関数 */
+    /** 連続再生時に次の動画に行く関数。連続再生じゃない場合は何も起きません。 */
     fun nextVideo() {
-        if (isPlayListMode && videoList != null) {
+        if (playlistLiveData.value != null && isPlayListMode.value == true) {
             // 連続再生時のみ利用可能
             val currentPos = playListCurrentPosition.value ?: return
-            val nextVideoPos = if (currentPos + 1 < videoList.size) {
+            val nextVideoPos = if (currentPos + 1 < playlistLiveData.value!!.size) {
                 // 次の動画がある
                 currentPos + 1
             } else {
                 // 最初の動画にする
                 0
             }
-            val videoData = videoList[nextVideoPos]
+            val videoData = playlistLiveData.value!![nextVideoPos]
             load(videoData.videoId, videoData.isCache, isEco, useInternet)
+            // 0に戻す
+            playerSetSeekMs.postValue(0)
+        }
+    }
+
+    /** 連続再生で前の動画に戻る関数。連続再生じゃない場合は何も起きません。 */
+    fun prevVideo() {
+        // 連続再生時のみ利用可能
+        if (playlistLiveData.value != null && isPlayListMode.value == true) {
+            val currentPos = playListCurrentPosition.value ?: return
+            val prevVideoPos = if (currentPos - 1 >= 0) {
+                // 次の動画がある
+                currentPos - 1
+            } else {
+                // 最初の動画にする
+                playlistLiveData.value!!.size - 1
+            }
+            val videoData = playlistLiveData.value!![prevVideoPos]
+            load(videoData.videoId, videoData.isCache, isEco, useInternet)
+            // 0に戻す
+            playerSetSeekMs.postValue(0)
         }
     }
 
     /** 連続再生時に動画IDを指定して切り替える関数 */
     fun playlistGoto(videoId: String) {
-        if (isPlayListMode && videoList != null) {
+        if (playlistLiveData.value != null && isPlayListMode.value == true) {
             // 動画情報を見つける
-            val videoData = videoList.find { nicoVideoData -> nicoVideoData.videoId == videoId } ?: return
+            val videoData = videoList!!.find { nicoVideoData -> nicoVideoData.videoId == videoId } ?: return
             load(videoData.videoId, videoData.isCache, isEco, useInternet)
+            // 0に戻す
+            playerSetSeekMs.postValue(0)
         }
     }
 
@@ -649,6 +683,92 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                     showToast(getString(R.string.error))
                 }
             }
+        }
+    }
+
+    /**
+     * 連続再生で順番を逆にするかどうか
+     * @param isReverse 逆にする場合はtrue。戻すならfalse
+     * */
+    fun setPlaylistReverse() {
+        if (playlistLiveData.value != null && isPlayListMode.value == true) {
+            val videoList = playlistLiveData.value ?: return
+            val videoListTemp = ArrayList(videoList)
+            videoList.clear()
+            videoList.addAll(videoListTemp.reversed())
+            // LiveData送信
+            playlistLiveData.postValue(videoList)
+        }
+    }
+
+    /**
+     * 連続再生でシャッフルを有効にするかどうか
+     * @param isShuffle シャッフルを有効にするならtrue。そうじゃなければfalse
+     * */
+    fun setPlaylistShuffle(isShuffle: Boolean) {
+        if (playlistLiveData.value != null && isPlayListMode.value == true) {
+            val videoList = playlistLiveData.value ?: return
+            if (isShuffle) {
+                // シャッフル
+                val videoListTemp = ArrayList(videoList)
+                videoList.clear()
+                videoList.addAll(videoListTemp.shuffled())
+            } else {
+                // シャッフル戻す。このために video_id_list が必要だったんですね
+                val idList = originVideoSortList ?: return
+
+                /** [List.sortedWith]と[Comparator]を使うことで、JavaScriptの` list.sort(function(a,b){ return a - b } `みたいな２つ比べてソートができる。 */
+                val videoListTemp = ArrayList(videoList)
+                videoList.clear()
+                videoList.addAll(videoListTemp.sortedWith { a, b -> idList.indexOf(a.videoId) - idList.indexOf(b.videoId) }) // Kotlin 1.4で更に書きやすくなった
+            }
+            // LiveData送信
+            playlistLiveData.postValue(videoList)
+        }
+    }
+
+    /**
+     * 連続再生を有効にする。ViewModel生成後でも連続再生に切り替えができます。
+     *
+     * @param nicoVideoDataList 連続再生リスト
+     * */
+    fun startPlaylist(nicoVideoDataList: ArrayList<NicoVideoData>) {
+        playlistLiveData.value?.apply {
+            clear()
+            addAll(nicoVideoDataList)
+        }
+        isPlayListMode.postValue(true)
+        // 現在再生中の動画がどこの位置なのか
+        val index = nicoVideoDataList.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == playingVideoId.value!! }
+        if (index != -1) {
+            playListCurrentPosition.postValue(index)
+        }
+    }
+
+    /**
+     * 指定したシリーズを連続再生に追加する
+     * @param seriesId シリーズID
+     * */
+    fun addSeriesPlaylist(seriesId: String) {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            throwable.printStackTrace()
+            showToast("${getString(R.string.error)}\n${throwable}")
+        }
+        // HTML取得
+        viewModelScope.launch(errorHandler) {
+            val seriesAPI = NicoVideoSeriesAPI()
+            val videoList = withContext(Dispatchers.Default) {
+                val response = seriesAPI.getSeriesVideoList(userSession, seriesId)
+                if (!response.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                    return@withContext null
+                }
+                return@withContext seriesAPI.parseSeriesVideoList(response.body?.string())
+            } ?: return@launch
+            // プレイリストに追加
+            startPlaylist(videoList)
         }
     }
 

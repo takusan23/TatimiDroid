@@ -39,7 +39,7 @@ class NicoVideoPlayListBottomFragment : BottomSheetDialogFragment() {
 
 
         // データ受け取り
-        viewModel.videoList?.also { videoList ->
+        viewModel.playlistLiveData.value?.also { videoList ->
             // RecyclerViewセット
             playlistAdapter = NicoVideoPlayListAdapter(videoList, viewModel)
             playlistAdapter.nicoVideoPlayListBottomFragment = this
@@ -105,7 +105,7 @@ class NicoVideoPlayListBottomFragment : BottomSheetDialogFragment() {
     private fun scrollPlayingItem() {
         val layoutManager = viewBinding.bottomFragmentNicovideoPlaylistRecyclerView.layoutManager as LinearLayoutManager
         // 位置を特定
-        val pos = viewModel.videoList?.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == viewModel.playingVideoId.value } ?: 0
+        val pos = viewModel.playlistLiveData.value?.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == viewModel.playingVideoId.value } ?: 0
         layoutManager.scrollToPosition(pos)
     }
 

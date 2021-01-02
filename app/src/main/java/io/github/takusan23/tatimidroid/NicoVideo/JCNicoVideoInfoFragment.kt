@@ -6,8 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ScrollableColumn
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.ComposeView
@@ -77,58 +80,108 @@ class JCNicoVideoInfoFragment : Fragment() {
                             val userData = viewModel.userDataLiveData.observeAsState()
                             // タグ一覧
                             val tagList = viewModel.tagListLiveData.observeAsState()
+                            // シリーズ
+                            val seriesLiveData = viewModel.seriesDataLiveData.observeAsState()
 
-                            // スクロールできるやつ
-                            ScrollableColumn {
-                                if (data.value != null) {
-                                    // 動画情報表示Card
-                                    NicoVideoInfoCard(
-                                        nicoVideoData = data.value,
-                                        isLiked = isLiked,
-                                        scaffoldState = state,
-                                        description = descroption.value,
-                                        postLike = {
-                                            // いいね登録
-                                            NicoVideoLikeBottomFragment().show(parentFragmentManager, "like")
+                            // 連続再生
+                            val playlist = viewModel.playlistLiveData.observeAsState()
+                            // 連続再生で現在再生中
+                            val playingVideoId = viewModel.playingVideoId.observeAsState(initial = "")
+                            // 連続再生、シャッフル有効？
+                            val isShuffleMode = viewModel.isShuffled.observeAsState(initial = false)
+                            // 連続再生、逆順？
+                            val isReverseMode = viewModel.isReversed.observeAsState(initial = false)
+
+                            Column {
+
+                                // 連続再生
+                                val isPlaylistShow = remember { mutableStateOf(false) }
+                                if (playlist.value != null) {
+                                    NicoVideoPlayList(
+                                        isShowList = isPlaylistShow.value,
+                                        playingVideoId = playingVideoId.value,
+                                        videoList = playlist.value!!,
+                                        showButtonClick = { isPlaylistShow.value = !isPlaylistShow.value },
+                                        videoClick = { videoId -> viewModel.playlistGoto(videoId) },
+                                        isReverse = isReverseMode.value,
+                                        isShuffle = isShuffleMode.value,
+                                        reverseClick = {
+                                            viewModel.isReversed.postValue(!isReverseMode.value)
+                                            viewModel.setPlaylistReverse()
                                         },
-                                        postRemoveLike = {
-                                            // いいね解除
-                                            viewModel.removeLike()
-                                        },
-                                        descriptionClick = { link, type ->
-                                            // 押した時
-                                            descriptionClick(type, link)
-                                        }
-                                    )
-                                }
-                                // タグ
-                                if (tagList.value != null) {
-                                    NicoVideoTagCard(
-                                        tagDataList = tagList.value!!,
-                                        tagClick = { data ->
-                                            // タグ押した時
-                                            setTagSearchFragment(data.tagName)
-                                        }
-                                    )
-                                }
-                                // ユーザー情報
-                                if (userData.value != null) {
-                                    NicoVideoUserCard(
-                                        userData = userData.value!!,
-                                        userOpenClick = {
-                                            setAccountFragment(userData.value!!.userId.toString())
+                                        shuffleClick = {
+                                            viewModel.setPlaylistShuffle(viewModel.isShuffled.value!!)
+                                            viewModel.isShuffled.postValue(!isShuffleMode.value)
                                         }
                                     )
                                 }
 
-                                // メニューカード。長いのでまとめた
-                                NicoVideoMenuScreen(requireParentFragment())
+                                // スクロールできるやつ
+                                ScrollableColumn {
+                                    if (data.value != null) {
+                                        // 動画情報表示Card
+                                        NicoVideoInfoCard(
+                                            nicoVideoData = data.value,
+                                            isLiked = isLiked,
+                                            isOffline = viewModel.isOfflinePlay.value ?: false,
+                                            scaffoldState = state,
+                                            description = descroption.value,
+                                            postLike = {
+                                                // いいね登録
+                                                NicoVideoLikeBottomFragment().show(parentFragmentManager, "like")
+                                            },
+                                            postRemoveLike = {
+                                                // いいね解除
+                                                viewModel.removeLike()
+                                            },
+                                            descriptionClick = { link, type ->
+                                                // 押した時
+                                                descriptionClick(type, link)
+                                            }
+                                        )
+                                    }
 
-                                // 関連動画表示Card
-                                if (recommendList.value != null) {
-                                    NicoVideoRecommendCard(recommendList.value!!)
+                                    // シリーズ
+                                    if (seriesLiveData.value != null) {
+                                        NicoVideoSeriesCard(
+                                            nicoVideoSeriesData = seriesLiveData.value!!,
+                                            startSeriesPlay = {
+                                                // シリーズ連続再生押した時
+                                                viewModel.addSeriesPlaylist(seriesId = seriesLiveData.value!!.seriesId)
+                                            }
+                                        )
+                                    }
+
+                                    // タグ
+                                    if (tagList.value != null) {
+                                        NicoVideoTagCard(
+                                            tagDataList = tagList.value!!,
+                                            tagClick = { data ->
+                                                // タグ押した時
+                                                setTagSearchFragment(data.tagName)
+                                            }
+                                        )
+                                    }
+                                    // ユーザー情報
+                                    if (userData.value != null) {
+                                        NicoVideoUserCard(
+                                            userData = userData.value!!,
+                                            userOpenClick = {
+                                                setAccountFragment(userData.value!!.userId.toString())
+                                            }
+                                        )
+                                    }
+
+                                    // メニューカード。長いのでまとめた
+                                    NicoVideoMenuScreen(requireParentFragment())
+
+                                    // 関連動画表示Card
+                                    if (recommendList.value != null) {
+                                        NicoVideoRecommendCard(recommendList.value!!)
+                                    }
                                 }
                             }
+
                         }
 
                         // Snackbar表示。使い方合ってんのかはしらんけど

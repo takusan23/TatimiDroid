@@ -154,17 +154,20 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     }
 
     /**
-     * SnackBarを表示する関数。Elevationを設定しないと表示されない
+     * SnackBarを表示する関数。
      * @param message めっせーじ
      * @param click Snackbarのボタンを押した時
      * @param action Snackbarのボタンの本文
      * */
-    fun showSnackBar(message: String, action: String, click: () -> Unit) {
+    fun showSnackBar(message: String, action: String?, click: (() -> Unit)?) {
         Snackbar.make(fragmentPlayerFrameLayout, message, Snackbar.LENGTH_SHORT).apply {
-            setAction(action) {
-                click()
+            if (action != null) {
+                setAction(action) {
+                    click?.invoke()
+                }
             }
-            view.elevation = 30f
+            anchorView = fragmentCommentFab
+            //view.elevation = 30f
         }.show()
     }
 
