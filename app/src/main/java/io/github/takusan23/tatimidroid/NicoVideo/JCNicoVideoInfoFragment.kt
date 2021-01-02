@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoVideo
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,13 +11,17 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.*
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
+import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
+import io.github.takusan23.tatimidroid.Tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import kotlinx.coroutines.launch
 
@@ -92,7 +97,7 @@ class JCNicoVideoInfoFragment : Fragment() {
                                         },
                                         descriptionClick = { link, type ->
                                             // 押した時
-
+                                            descriptionClick(type, link)
                                         }
                                     )
                                 }
@@ -140,15 +145,81 @@ class JCNicoVideoInfoFragment : Fragment() {
     }
 
     /**
+     * 動画説明文押したときに呼ばれる
+     *
+     * @param link [io.github.takusan23.tatimidroid.Tool.NicoVideoDescriptionText.DESCRIPTION_TYPE_NICOVIDEO] 参照
+     * @param type [io.github.takusan23.tatimidroid.Tool.NicoVideoDescriptionText.DESCRIPTION_TYPE_NICOVIDEO] など
+     * */
+    private fun descriptionClick(type: String, link: String) {
+        when (type) {
+            NicoVideoDescriptionText.DESCRIPTION_TYPE_URL -> {
+                val intent = Intent(Intent.ACTION_VIEW, link.toUri())
+                startActivity(intent)
+            }
+            NicoVideoDescriptionText.DESCRIPTION_TYPE_SEEK -> {
+                viewModel.playerSetSeekMs.postValue(link.toLong())
+            }
+            NicoVideoDescriptionText.DESCRIPTION_TYPE_SERIES -> {
+                setSeriesFragment(link)
+            }
+            NicoVideoDescriptionText.DESCRIPTION_TYPE_MYLIST -> {
+                setMylistFragment(link)
+            }
+            NicoVideoDescriptionText.DESCRIPTION_TYPE_NICOVIDEO -> {
+                setNicoVideoFragment(link)
+            }
+        }
+    }
+
+    /**
+     * 動画再生Fragment設置
+     * @param videoId 動画ID
+     * */
+    private fun setNicoVideoFragment(videoId: String) {
+        val nicoVideoFragment = JCNicoVideoFragment()
+        val bundle = Bundle()
+        bundle.putString("id", videoId)
+        nicoVideoFragment.arguments = bundle
+        (requireActivity() as? MainActivity)?.setPlayer(nicoVideoFragment, videoId)
+    }
+
+    /**
+     * マイリストFragmentを設置
+     * @param mylistId マイリストID
+     * */
+    private fun setMylistFragment(mylistId: String) {
+        val myListFragment = NicoVideoMyListListFragment().apply {
+            arguments = Bundle().apply {
+                putString("mylist_id", mylistId)
+            }
+        }
+        setFragment(myListFragment, "mylist")
+    }
+
+    /**
+     * シリーズFragmentを設置
+     * @param seriesId
+     * */
+    private fun setSeriesFragment(seriesId: String) {
+        val seriesFragment = NicoVideoSeriesFragment().apply {
+            arguments = Bundle().apply {
+                putString("series_id", seriesId)
+            }
+        }
+        setFragment(seriesFragment, "series")
+    }
+
+    /**
      * アカウント情報Fragmentを表示
+     * @param userId ゆーざーID
      * */
     private fun setAccountFragment(userId: String) {
         val accountFragment = NicoAccountFragment().apply {
-            arguments= Bundle().apply {
-                putString("userId",userId)
+            arguments = Bundle().apply {
+                putString("userId", userId)
             }
         }
-        setFragment(accountFragment,"account")
+        setFragment(accountFragment, "account")
     }
 
     /**
