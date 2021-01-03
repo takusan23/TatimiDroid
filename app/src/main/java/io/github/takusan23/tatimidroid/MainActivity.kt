@@ -462,12 +462,7 @@ class MainActivity : AppCompatActivity() {
             nicoVideoIdMatcher.find() -> {
                 // 動画ID
                 val videoId = nicoVideoIdMatcher.group()
-                val nicoVideoFragment = NicoVideoFragment()
-                val bundle = Bundle()
-                bundle.putString("id", videoId)
-                bundle.putBoolean("cache", false)
-                nicoVideoFragment.arguments = bundle
-                setPlayer(nicoVideoFragment, videoId)
+                setNicovideoFragment(videoId = videoId)
             }
             else -> {
                 Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()

@@ -59,6 +59,10 @@ class NicoVideoMyListViewModel(application: Application, val userId: String? = n
                 spMyListAPI.getMyListList(userSession, userId)
             }
             val myListItems = spMyListAPI.parseMyListList(response.body?.string(), userId == null)
+            // 並び替え
+            if (prefSetting.getBoolean("setting_nicovideo_mylist_sort_itemcount", false)) {
+                myListItems.sortByDescending { myListData -> myListData.itemsCount }
+            }
             // 自分の場合は先頭にとりあえずマイリスト追加する
             if (userId == null) {
                 // とりあえずマイリスト追加

@@ -75,6 +75,17 @@
                     android:text="@string/add_atodemiru" />
 
             <TextView
+                    android:id="@+id/bottom_fragment_nicovideo_list_menu_commment_only"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_outline_comment_24px"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10dp"
+                    android:text="@string/comment_list_only" />
+
+            <TextView
                     android:id="@+id/bottom_fragment_nicovideo_list_menu_playlist_background_text_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -84,7 +95,8 @@
                     android:foreground="?android:attr/selectableItemBackground"
                     android:padding="10dp"
                     android:text="@string/cache_background_play"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
             <TextView
                     android:id="@+id/bottom_fragment_nicovideo_list_menu_playlist_text_view"

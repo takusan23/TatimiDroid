@@ -33,7 +33,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     private val viewBinding by lazy { FragmentPlayerBaseBinding.inflate(layoutInflater) }
 
     /** BottomSheetをコード上で操作するために */
-    val bottomSheetPlayerBehavior by lazy { BottomSheetPlayerBehavior.from(viewBinding.fragmentPlayerBaseFragmentParentLinearLayout) }
+    private val bottomSheetPlayerBehavior by lazy { BottomSheetPlayerBehavior.from(viewBinding.fragmentPlayerBaseFragmentParentLinearLayout) }
 
     /** Fragmentを置くFrameLayout */
     val fragmentHostFrameLayout by lazy { viewBinding.fragmentPlayerBaseFragmentFrameLayout }
@@ -56,7 +56,6 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         super.onViewCreated(view, savedInstanceState)
         // BottomSheet初期化
         bottomSheetPlayerBehavior.init(450, viewBinding.fragmentPlayerBaseFragmentParentLinearLayout, viewBinding.fragmentPlayerBasePlayerFrameLayout)
-        bottomSheetPlayerBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         // ダークモード対策
         viewBinding.fragmentPlayerBaseFragmentParentLinearLayout.background = ColorDrawable(getThemeColor(context))
         // コールバック
@@ -76,12 +75,6 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         // プレイヤー以外で動かさないように
         setDraggableAreaPlayerOnly(true)
 
-        // 遅延で表示。ぴょこって
-        lifecycleScope.launch {
-            delay(100)
-            bottomSheetPlayerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-        }
-
         // バックキーのイベント
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             if (!isMiniPlayerMode()) {
@@ -89,6 +82,16 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
             } else {
                 isEnabled = false
             }
+        }
+    }
+
+    /** ミニプレイヤー登場のアニメーションをする場合は呼んでね。一回だけとか */
+    fun miniPlayerAnimation() {
+        bottomSheetPlayerBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        // 遅延で表示。ぴょこって
+        lifecycleScope.launch {
+            delay(100)
+            bottomSheetPlayerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
     }
 

@@ -143,7 +143,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     val isReversed = MutableLiveData(false)
 
     /** 連続再生プレイリストLiveData。並び順変わった時なども通知が行く。[videoList]じゃなくてこっちを利用してください。 */
-    val playlistLiveData = MutableLiveData(_videoList)
+    val playlistLiveData = MutableLiveData(arrayListOf<NicoVideoData>())
 
     /** 連続再生の最初の並び順が入っている */
     val originVideoSortList = _videoList?.map { nicoVideoData -> nicoVideoData.videoId }
@@ -158,7 +158,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     val isNotPlayVideoMode = MutableLiveData<Boolean>(false)
 
     /** プレイヤーの再生状態を通知するLiveData。これ経由で一時停止等を操作する。trueで再生 */
-    val playerIsPlaying = MutableLiveData(false)
+    val playerIsPlaying = MutableLiveData(true)
 
     /**
      * 現在の再生位置。LiveDataではないので定期的に値を入れてください。ミリ秒
@@ -200,19 +200,13 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** コメント一覧を自動で展開しない設定かどうか */
     val isAutoCommentListShowOff = prefSetting.getBoolean("setting_nicovideo_jc_comment_auto_show_off", true)
 
+    /** 初回判定用フラグ */
+    var isFirst = true
+
     init {
 
-        // 最初の動画。連続再生と分岐
-        if (isPlayListMode.value == true) {
-            val videoList = playlistLiveData.value!!
-            val videoData = videoList[0]
-            val startVideoId = videoId ?: videoData.videoId
-            // 指定した動画がキャッシュ再生かどうか
-            val startVideoIdCanCachePlay = videoList.find { nicoVideoData -> nicoVideoData.videoId == startVideoId }?.isCache ?: false
-            load(startVideoId, startVideoIdCanCachePlay, isEco, useInternet)
-        } else {
-            load(videoId!!, isCache!!, isEco, useInternet)
-        }
+        // 最初の動画。
+        load(videoId!!, isCache!!, isEco, useInternet)
 
         // NGデータベースを監視する
         viewModelScope.launch {
@@ -220,6 +214,13 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                 ngList = it
                 // コメントフィルター通す
                 commentFilter()
+            }
+        }
+
+        // 連続再生？
+        viewModelScope.launch {
+            if (_videoList != null) {
+                startPlaylist(_videoList)
             }
         }
 
@@ -319,10 +320,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                         if (isNotPlayVideoMode.value == true) {
                             initNotPlayVideoMode()
                         }
-
                     }
                 }
-
             }
         }
     }
@@ -551,7 +550,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     fun nextVideo() {
         if (playlistLiveData.value != null && isPlayListMode.value == true) {
             // 連続再生時のみ利用可能
-            val currentPos = playListCurrentPosition.value ?: return
+            val currentPos = playlistLiveData.value!!.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == playingVideoId.value }
             val nextVideoPos = if (currentPos + 1 < playlistLiveData.value!!.size) {
                 // 次の動画がある
                 currentPos + 1
@@ -570,7 +569,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     fun prevVideo() {
         // 連続再生時のみ利用可能
         if (playlistLiveData.value != null && isPlayListMode.value == true) {
-            val currentPos = playListCurrentPosition.value ?: return
+            val currentPos = playlistLiveData.value!!.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == playingVideoId.value }
             val prevVideoPos = if (currentPos - 1 >= 0) {
                 // 次の動画がある
                 currentPos - 1
@@ -691,7 +690,6 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
 
     /**
      * 連続再生で順番を逆にするかどうか
-     * @param isReverse 逆にする場合はtrue。戻すならfalse
      * */
     fun setPlaylistReverse() {
         if (playlistLiveData.value != null && isPlayListMode.value == true) {
@@ -746,7 +744,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         }
         isPlayListMode.postValue(true)
         // 現在再生中の動画がどこの位置なのか
-        val index = nicoVideoDataList.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == playingVideoId.value!! }
+        val index = playlistLiveData.value!!.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == playingVideoId.value!! }
         if (index != -1) {
             playListCurrentPosition.postValue(index)
         }

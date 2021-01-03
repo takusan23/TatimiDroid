@@ -20,13 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.text.HtmlCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -222,15 +223,8 @@ fun NicoVideoLikeButton(isLiked: State<Boolean>, scaffoldState: ScaffoldState, p
             scope.launch {
                 if (isLiked.value) {
                     // 登録済みなら
-                    val click = scaffoldState.snackbarHostState.showSnackbar(
-                        message = removeMessage,
-                        actionLabel = torikesu,
-                        duration = SnackbarDuration.Short,
-                    )
-                    if (click == SnackbarResult.ActionPerformed) {
-                        // Snackbarのボタン押した時
-                        postRemoveLike()
-                    }
+                    // Snackbarのボタン押した時
+                    postRemoveLike()
                 } else {
                     postLike()
                 }
@@ -267,6 +261,7 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
             AndroidView(viewBlock = { context ->
                 RecyclerView(context).apply {
                     setHasFixedSize(true)
+                    isNestedScrollingEnabled = false // これしないと関連動画スクロールした状態でミニプレイヤーに遷移できない
                     layoutManager = LinearLayoutManager(context)
                     adapter = NicoVideoListAdapter(nicoVideoDataList)
                 }
@@ -418,10 +413,13 @@ fun NicoVideoPlayList(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_tatimidroid_list_icon_black),
-                    modifier = Modifier.padding(5.dp),
-                )
+                val icon = AmbientContext.current.getDrawable(R.drawable.ic_tatimidroid_list_icon_black)?.toBitmap()?.asImageBitmap()
+                if (icon != null) {
+                    Icon(
+                        bitmap = icon,
+                        modifier = Modifier.padding(5.dp),
+                    )
+                }
                 Text(
                     text = stringResource(id = R.string.playlist_button),
                     modifier = Modifier.weight(1f),

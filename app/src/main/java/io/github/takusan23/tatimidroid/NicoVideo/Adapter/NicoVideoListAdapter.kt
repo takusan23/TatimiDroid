@@ -18,7 +18,7 @@ import com.bumptech.glide.request.RequestOptions
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.AnniversaryDate

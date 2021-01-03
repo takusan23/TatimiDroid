@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoVideo.VideoList
+package io.github.takusan23.tatimidroid.NicoVideo.BottomFragment
 
 import android.content.*
 import android.graphics.Color
@@ -25,7 +25,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
-import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNivoVideoCommentListHostFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoMyListListViewModel
 import io.github.takusan23.tatimidroid.R
@@ -122,8 +122,24 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
             // 連続再生
             initPlayListPlayButton()
+
+            // コメント一覧のみを表示する
+            initCommentListButton()
         }
 
+    }
+
+    private fun initCommentListButton() {
+        // コメント一覧のみを表示する
+        viewBinding.bottomFragmentNicovideoListMenuCommmentOnly.setOnClickListener {
+            val commentListHostFragment = JCNivoVideoCommentListHostFragment().apply {
+                arguments = Bundle().apply {
+                    putString("id", videoId)
+                }
+            }
+            (requireActivity() as? MainActivity)?.setFragment(commentListHostFragment, "comment_list")
+            dismiss()
+        }
     }
 
     private fun initPlayListPlayButton() {

@@ -14,7 +14,7 @@ import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoRepo.NicoRepoDataClass
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.R
 import java.text.SimpleDateFormat
 

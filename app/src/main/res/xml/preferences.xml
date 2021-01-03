@@ -72,7 +72,7 @@
         <Preference android:summary="@string/setting_nicovideo_jc_description" />
 
         <SwitchPreference
-                android:defaultValue="false"
+                android:defaultValue="true"
                 android:icon="@drawable/ic_outline_block_24px"
                 android:key="setting_nicovideo_jc_disable"
                 android:summary="@string/setting_nicovideo_jc_disable_description"

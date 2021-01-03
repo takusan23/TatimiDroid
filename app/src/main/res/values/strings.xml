@@ -550,9 +550,10 @@
     <string name="nicovideo_menu_comment_hide">Comment hiding setting</string>
     <string name="nicovideo_playlist_start">Start continuous playback</string>
     <string name="setting_nicovideo_jc_disable_title">Revert to old UI</string>
-    <string name="setting_nicovideo_jc_disable_description">If possible, get used to the new UI.</string>
+    <string name="setting_nicovideo_jc_disable_description">Since the display is broken on old Android, it is enabled by default.</string>
     <string name="setting_nicovideo_jc_comment_auto_show_off_title">Do not automatically display the comment list during playback</string>
     <string name="setting_nicovideo_jc_comment_auto_show_off_description">If you disable it, the comment list will be displayed automatically.</string>
     <string name="setting_nicovideo_jc_title">Nico Nico Douga New UI Settings</string>
     <string name="setting_nicovideo_jc_description">I wrote about half of it in Jetpack Compose because of the trend. The way to exit is to swipe down again.</string>
+    <string name="comment_list_only">Show only comment list</string>
 </resources>

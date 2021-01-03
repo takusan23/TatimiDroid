@@ -115,6 +115,7 @@ class NicoVideoMyListListViewModel(application: Application, private val myListI
             10 -> nicoVideoDataListRaw.sortByDescending { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
             11 -> nicoVideoDataListRaw.sortBy { nicoVideoData -> nicoVideoData.mylistCount.toInt() }
         }
+        nicoVideoDataListLiveData.postValue(nicoVideoDataListRaw)
     }
 
     /** Context.getStringを短く */

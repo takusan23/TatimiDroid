@@ -550,9 +550,10 @@
     <string name="nicovideo_menu_comment_hide">コメント非表示設定</string>
     <string name="nicovideo_playlist_start">連続再生を開始</string>
     <string name="setting_nicovideo_jc_disable_title">旧UIに戻す</string>
-    <string name="setting_nicovideo_jc_disable_description">できれば新UIに慣れてほしい。</string>
+    <string name="setting_nicovideo_jc_disable_description">古いAndroidでは表示が崩れるのでデフォで有効になってます。</string>
     <string name="setting_nicovideo_jc_comment_auto_show_off_title">再生時に自動でコメント一覧を表示しない</string>
     <string name="setting_nicovideo_jc_comment_auto_show_off_description">無効にすると自動でコメント一覧が表示されます。</string>
     <string name="setting_nicovideo_jc_title">ニコニコ動画 新UI 設定</string>
     <string name="setting_nicovideo_jc_description">流行りに乗って半分くらいJetpack Composeで書いた。終了方法はもう一回下にスワイプです。</string>
+    <string name="comment_list_only">コメント一覧のみを表示</string>
 </resources>

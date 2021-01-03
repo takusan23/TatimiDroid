@@ -24,9 +24,9 @@ import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFr
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
-import kotlinx.coroutines.launch
 
 /**
  * 動画情報Fragment。Jetpack Composeでレイアウトを作っている。Jetpack Composeたのし～～～。なんで動いてんのかよく知らんけど
@@ -132,6 +132,7 @@ class JCNicoVideoInfoFragment : Fragment() {
                                             },
                                             postRemoveLike = {
                                                 // いいね解除
+                                                removeLike()
                                                 viewModel.removeLike()
                                             },
                                             descriptionClick = { link, type ->
@@ -184,16 +185,36 @@ class JCNicoVideoInfoFragment : Fragment() {
 
                         }
 
-                        // Snackbar表示。使い方合ってんのかはしらんけど
-                        viewModel.likeThanksMessageLiveData.observe(viewLifecycleOwner) {
-                            scope.launch {
-                                state.snackbarHostState.showSnackbar(message = it, actionLabel = null, duration = SnackbarDuration.Indefinite)
-                            }
-                        }
-
                     }
                 }
             }
+        }
+    }
+
+    private fun removeLike() {
+        // どうにかしたい
+        val view = (requireParentFragment() as? JCNicoVideoFragment)?.fragmentCommentFab
+        if (view != null) {
+            com.google.android.material.snackbar.Snackbar.make(view, getString(R.string.unlike), com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE).apply {
+                setAction(getString(R.string.torikesu)) {
+                    viewModel.removeLike()
+                }
+                anchorView = view
+            }.show()
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Snackbar表示。使い方合ってんのかはしらんけど
+        viewModel.likeThanksMessageLiveData.observe(viewLifecycleOwner) {
+            com.google.android.material.snackbar.Snackbar.make(view, it, com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE).apply {
+                setAction(getString(R.string.close)) {
+                    dismiss()
+                }
+                anchorView = (requireParentFragment() as? JCNicoVideoFragment)?.fragmentCommentFab
+            }.show()
         }
     }
 

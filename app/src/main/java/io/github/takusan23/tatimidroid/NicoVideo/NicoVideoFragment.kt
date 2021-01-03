@@ -128,10 +128,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // ダークモード
         initDarkmode()
 
-        // センサーによる画面回転
-        if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
-            RotationSensor(requireActivity(), lifecycle)
-        }
+        // ExoPlayer初期化
+        initExoPlayer()
 
         // 動画ID
         val videoId = arguments?.getString("id")
@@ -377,6 +375,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // 準備と再生
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
+    }
+
+    /** ExoPlayerを初期化する */
+    private fun initExoPlayer(){
         exoPlayer.addListener(object : Player.EventListener {
 
             override fun onPlaybackStateChanged(state: Int) {
@@ -431,9 +433,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         initVideoProgressBar()
     }
 
-    /**
-     * 動画のプログレスバーを動かす
-     * */
+    /** 動画のプログレスバーを動かす */
     private fun initVideoProgressBar() {
         var tempTime = 0L
         // コルーチンでらくらく定期実行
@@ -683,8 +683,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         viewBinding.fragmentNicovideoControlInclude.playerControlPrev.setImageDrawable(playListModePrevIcon)
         viewBinding.fragmentNicovideoControlInclude.playerControlNext.setImageDrawable(playListModeNextIcon)
         viewBinding.fragmentNicovideoControlInclude.playerControlPrev.setOnClickListener {
-            // 動画の最初へ
-            viewModel.playerSetSeekMs.postValue(0)
+            // 前の動画へ
+            viewModel.prevVideo()
         }
         viewBinding.fragmentNicovideoControlInclude.playerControlNext.setOnClickListener {
             // 次の動画へ
