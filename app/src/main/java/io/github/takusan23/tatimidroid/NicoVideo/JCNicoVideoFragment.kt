@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.SeekBar
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.ViewModelProvider
@@ -40,6 +41,8 @@ import kotlin.math.roundToInt
 
 /**
  * 開発中のニコ動クライアント（？）
+ *
+ * 一部の関数は[PlayerBaseFragment]の方に書いてあるのでなかったらそっちも見に行ってね
  *
  * id           |   動画ID。必須
  * --- 任意 ---
@@ -78,15 +81,12 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         val useInternet = arguments?.getBoolean("internet") ?: false
         // 全画面で開始
         val isStartFullScreen = arguments?.getBoolean("fullscreen") ?: false
-        // 連続再生？
-        val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
         // ViewModel用意
-        ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList)).get(NicoVideoViewModel::class.java)
+        ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, null)).get(NicoVideoViewModel::class.java)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
 
         // プレイヤー追加など
         setPlayerUI()
@@ -103,6 +103,19 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // 動画情報Fragment設置
         setFragment()
 
+        // 連続再生セット
+        setPlaylist()
+
+    }
+
+    private fun setPlaylist() {
+        lifecycleScope.launch {
+            // 連続再生？
+            val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
+            if (videoList != null) {
+                viewModel.startPlaylist(videoList)
+            }
+        }
     }
 
     /** [JCNicoVideoInfoFragment] / [NicoVideoCommentFragment] を設置する */
@@ -263,6 +276,18 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // 押した時
         nicovideoPlayerUIBinding.includeNicovideoPlayerPrevImageView.setOnClickListener { viewModel.nextVideo() }
         nicovideoPlayerUIBinding.includeNicovideoPlayerNextImageView.setOnClickListener { viewModel.prevVideo() }
+        // 全画面UI
+        nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setOnClickListener {
+            if (viewModel.isFullScreenMode) {
+                setDefaultScreen()
+            } else {
+                setFullScreen()
+            }
+        }
+        // 全画面モードなら
+        if (viewModel.isFullScreenMode) {
+            setFullScreen()
+        }
     }
 
     /** UIに動画情報を反映させる */
@@ -340,7 +365,10 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                     // コメント一覧も表示
                     lifecycleScope.launch {
                         delay(1000)
-                        viewModel.commentListShowLiveData.postValue(true)
+                        if (!viewModel.isFullScreenMode) {
+                            // フルスクリーン時は操作しない
+                            viewModel.commentListShowLiveData.postValue(true)
+                        }
                     }
                 }
             }
@@ -377,11 +405,13 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
      * */
     private fun aspectRatioFix(videoWidth: Int, videoHeight: Int) {
         if (!isAdded) return
-        val playerHeight = fragmentPlayerFrameLayout.height
-        val playerWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(videoWidth, videoHeight, playerHeight).roundToInt()
-        nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
-            width = playerWidth
-            height = playerHeight
+        fragmentPlayerFrameLayout.doOnLayout {
+            val playerHeight = fragmentPlayerFrameLayout.height
+            val playerWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(videoWidth, videoHeight, playerHeight).roundToInt()
+            nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
+                width = playerWidth
+                height = playerHeight
+            }
         }
     }
 
@@ -514,6 +544,30 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 finishFragment()
             }
         }
+    }
+
+    /**
+     * 全画面UIへ切り替える
+     * */
+    private fun setFullScreen() {
+        viewModel.isFullScreenMode = true
+        nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
+        // コメント / 動画情報Fragmentを非表示にする
+        toFullScreen()
+        // アスペクト比治すなど
+        aspectRatioFix(viewModel.videoWidth, viewModel.videoHeight)
+    }
+
+    /**
+     * 全画面UIを戻す
+     * */
+    private fun setDefaultScreen() {
+        viewModel.isFullScreenMode = false
+        nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
+        // コメント / 動画情報Fragmentを表示にする
+        toDefaultScreen()
+        // アスペクト比治すなど
+        aspectRatioFix(viewModel.videoWidth, viewModel.videoHeight)
     }
 
     /** 画像つき共有をする */

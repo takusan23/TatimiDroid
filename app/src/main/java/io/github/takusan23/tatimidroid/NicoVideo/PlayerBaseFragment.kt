@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoVideo
 
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
@@ -15,6 +16,7 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.BottomSheetPlayerBehavior
 import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.SystemBarVisibility
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.databinding.FragmentPlayerBaseBinding
 import kotlinx.coroutines.delay
@@ -169,6 +171,34 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
             anchorView = fragmentCommentFab
             //view.elevation = 30f
         }.show()
+    }
+
+    /**
+     * 全画面プレイヤーへ切り替える。アスペクト比の調整などは各自やってな
+     *
+     * ステータスバーも非表示にする。画面も横に倒す。
+     * */
+    fun toFullScreen() {
+        // 横画面にする。SENSOR版なので右に倒しても左に倒してもおｋだよ？
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        // ステータスバー隠す
+        SystemBarVisibility.hideSystemBar(requireActivity().window)
+        // BottomSheet側も全画面に切り替える
+        bottomSheetPlayerBehavior.toFullScreen()
+    }
+
+    /**
+     * 全画面から通常画面へ。アスペクト比の調整などは各自やってな
+     *
+     * ステータスバーを表示、画面はセンサー次第
+     * */
+    fun toDefaultScreen() {
+        // センサーの思いのままに
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+        // ステータスバー表示
+        SystemBarVisibility.showSystemBar(requireActivity().window)
+        // BottomSheet側も全画面を無効にする
+        bottomSheetPlayerBehavior.toDefaultScreen()
     }
 
     /**

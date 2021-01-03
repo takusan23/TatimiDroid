@@ -41,7 +41,7 @@ import org.json.JSONObject
  * @param useInternet キャッシュが有っても強制的にインターネットを経由して取得する場合はtrue。
  * @param videoList 連続再生するなら配列を入れてね。nullでもいい。動画一覧が必要な場合は[playlistLiveData]があるのでこっちを利用してください（ViewModel生成後に連続再生に切り替えられるように）。
  * */
-class NicoVideoViewModel(application: Application, videoId: String? = null, isCache: Boolean? = null, val isEco: Boolean, val useInternet: Boolean, startFullScreen: Boolean, private val videoList: ArrayList<NicoVideoData>?) : AndroidViewModel(application) {
+class NicoVideoViewModel(application: Application, videoId: String? = null, isCache: Boolean? = null, val isEco: Boolean, val useInternet: Boolean, startFullScreen: Boolean, private val _videoList: ArrayList<NicoVideoData>?) : AndroidViewModel(application) {
 
     /** Context */
     private val context = getApplication<Application>().applicationContext
@@ -134,7 +134,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     var isMiniPlayerMode = MutableLiveData(false)
 
     /** 連続再生かどうか。連続再生ならtrue。なお、後から連続再生に切り替える機能をつけたいのでLiveDataになっています。*/
-    val isPlayListMode = MutableLiveData(videoList != null)
+    val isPlayListMode = MutableLiveData(_videoList != null)
 
     /** 連続再生時に、再生中の動画が[videoList]から見てどこの位置にあるかが入っている */
     val playListCurrentPosition = MutableLiveData(0)
@@ -143,10 +143,10 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     val isReversed = MutableLiveData(false)
 
     /** 連続再生プレイリストLiveData。並び順変わった時なども通知が行く。[videoList]じゃなくてこっちを利用してください。 */
-    val playlistLiveData = MutableLiveData(videoList)
+    val playlistLiveData = MutableLiveData(_videoList)
 
     /** 連続再生の最初の並び順が入っている */
-    val originVideoSortList = videoList?.map { nicoVideoData -> nicoVideoData.videoId }
+    val originVideoSortList = _videoList?.map { nicoVideoData -> nicoVideoData.videoId }
 
     /** 連続再生時にシャッフル再生が有効になってるか。trueならシャッフル再生 */
     val isShuffled = MutableLiveData(false)
@@ -586,7 +586,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     fun playlistGoto(videoId: String) {
         if (playlistLiveData.value != null && isPlayListMode.value == true) {
             // 動画情報を見つける
-            val videoData = videoList!!.find { nicoVideoData -> nicoVideoData.videoId == videoId } ?: return
+            val videoData = playlistLiveData.value!!.find { nicoVideoData -> nicoVideoData.videoId == videoId } ?: return
             load(videoData.videoId, videoData.isCache, isEco, useInternet)
             // 0に戻す
             playerSetSeekMs.postValue(0)
@@ -733,7 +733,11 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
      * @param nicoVideoDataList 連続再生リスト
      * */
     fun startPlaylist(nicoVideoDataList: ArrayList<NicoVideoData>) {
-        playlistLiveData.value?.apply {
+        // nullの場合は配列作成
+        if (playlistLiveData.value == null) {
+            playlistLiveData.value = arrayListOf()
+        }
+        playlistLiveData.value!!.apply {
             clear()
             addAll(nicoVideoDataList)
         }

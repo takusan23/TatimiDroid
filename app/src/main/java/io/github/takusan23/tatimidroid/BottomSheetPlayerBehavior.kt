@@ -63,6 +63,13 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     /** 現在の進捗 */
     var progress = 0f
 
+    /**
+     * 全画面モードかどうか
+     *
+     * [toFullScreen]とかで自動で設定される。
+     * */
+    private var isFullScreenMode = false
+
 
     /**
      * スワイプの処理等、めんどいのはこっちでやる
@@ -105,14 +112,24 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                     STATE_EXPANDED -> {
                         // 展開時のプレイヤーの大きさ
                         if (isLandScape()) {
-                            playerView.updateLayoutParams<LinearLayout.LayoutParams> {
-                                width = displayWidth / 2
-                                height = (width / 16) * 9
-                                // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
-                                // とりあえず最大時にかけるマージン計算
-                                val maxTopMargin = (DisplaySizeTool.getDisplayHeight(context) - height) / 2
-                                // そして現在かけるべきマージンを計算
-                                topMargin = maxTopMargin
+                            if (isFullScreenMode) {
+                                // 全画面
+                                playerView.updateLayoutParams<LinearLayout.LayoutParams> {
+                                    width = displayWidth
+                                    height = DisplaySizeTool.getDisplayHeight(context)
+                                    topMargin = 0
+                                }
+                            } else {
+                                // そうじゃない（機械翻訳並感）
+                                playerView.updateLayoutParams<LinearLayout.LayoutParams> {
+                                    width = displayWidth / 2
+                                    height = (width / 16) * 9
+                                    // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
+                                    // とりあえず最大時にかけるマージン計算
+                                    val maxTopMargin = (DisplaySizeTool.getDisplayHeight(context) - height) / 2
+                                    // そして現在かけるべきマージンを計算
+                                    topMargin = maxTopMargin
+                                }
                             }
                         } else {
                             playerView.updateLayoutParams {
@@ -143,25 +160,35 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
 
                     // プレイヤーのサイズも変更
                     if (isLandScape()) {
-                        // 展開時のプレイヤーとミニプレイヤーとの差分を出す。どれぐらい掛ければ展開時のサイズになるのか
-                        val sabun = (displayWidth / 2f) / videoWidth
-                        playerView.updateLayoutParams<LinearLayout.LayoutParams> {
-                            /**
-                             * ミニプレイヤー時のサイズ + （(ミニプレイヤーサイズ - 展開時のサイズ) * 進捗）
-                             * sabun - 1f のところで (ミニプレイヤーサイズ - 展開時のサイズ)の大きさを出してる
-                             * 最初にミニプレイヤーのサイズを足さないとミニプレイヤー消滅する
-                             * */
-                            val calcWidth = videoWidth + ((videoWidth * (sabun - 1f)) * slideOffset)
-                            width = calcWidth.roundToInt()
-                            height = (width / 16) * 9
-                            // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
-                            // とりあえず最大時にかけるマージン計算
-                            val maxTopMargin = (DisplaySizeTool.getDisplayHeight(context) - height) / 2
-                            // そして現在かけるべきマージンを計算
-                            val currentTopMargin = maxTopMargin * slideOffset
-                            topMargin = currentTopMargin.roundToInt()
+                        if (isFullScreenMode) {
+                            // フルスクリーン時
+                            // 展開時のプレイヤーとミニプレイヤーとの差分を出す。引き算
+                            val sabun = displayWidth - videoWidth
+                            playerView.updateLayoutParams<LinearLayout.LayoutParams> {
+                                val calcWidth = videoWidth + (sabun * slideOffset)
+                                width = calcWidth.roundToInt()
+                                height = (width / 16) * 9
+                            }
+                        } else {
+                            // 展開時のプレイヤーとミニプレイヤーとの差分を出す。どれぐらい掛ければ展開時のサイズになるのか
+                            val sabun = (displayWidth / 2f) - videoWidth
+                            playerView.updateLayoutParams<LinearLayout.LayoutParams> {
+                                /**
+                                 * ミニプレイヤー時のサイズ + （(ミニプレイヤーサイズ - 展開時のサイズ) * 進捗）
+                                 * sabun - 1f のところで (ミニプレイヤーサイズ - 展開時のサイズ)の大きさを出してる
+                                 * 最初にミニプレイヤーのサイズを足さないとミニプレイヤー消滅する
+                                 * */
+                                val calcWidth = videoWidth + (sabun * slideOffset)
+                                width = calcWidth.roundToInt()
+                                height = (width / 16) * 9
+                                // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
+                                // とりあえず最大時にかけるマージン計算
+                                val maxTopMargin = (DisplaySizeTool.getDisplayHeight(context) - height) / 2
+                                // そして現在かけるべきマージンを計算
+                                val currentTopMargin = maxTopMargin * slideOffset
+                                topMargin = currentTopMargin.roundToInt()
+                            }
                         }
-
                     } else {
                         playerView.updateLayoutParams {
                             width = videoWidth + (maxTransitionX * slideOffset).toInt()
@@ -232,6 +259,45 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
             super.onTouchEvent(parent, child, event)
         } else {
             false // タッチイベントを他に回す。動画一覧RecyclerViewのスクロールなどで消費
+        }
+    }
+
+    /**
+     * フルスクリーンへ遷移する
+     *
+     * 再生画面（[draggablePlayerView]）の幅を画面いっぱいにして、マージンを解除してるだけ
+     *
+     * 横画面である必要があります。
+     * */
+    fun toFullScreen() {
+        isFullScreenMode = true
+        draggablePlayerView?.updateLayoutParams<LinearLayout.LayoutParams> {
+            // 幅を治す
+            width = DisplaySizeTool.getDisplayWidth(context)
+            height = DisplaySizeTool.getDisplayHeight(context)
+            // マージン解除
+            topMargin = 0
+        }
+    }
+
+    /**
+     * フルスクリーンを解除する
+     *
+     * 再生画面（[draggablePlayerView]）の幅を画面の半分の値にして、マージンを設定してるだけ
+     *
+     * 横画面である必要があります。
+     * */
+    fun toDefaultScreen() {
+        isFullScreenMode = false
+        draggablePlayerView?.updateLayoutParams<LinearLayout.LayoutParams> {
+            // 幅を治す
+            width = DisplaySizeTool.getDisplayWidth(context) / 2
+            height = (width / 16) * 9
+            // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
+            if (isLandScape()) {
+                val maxTopMargin = (DisplaySizeTool.getDisplayHeight(context) - height) / 2
+                topMargin = maxTopMargin
+            }
         }
     }
 
