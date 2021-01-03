@@ -236,11 +236,7 @@ class NicoVideoInfoFragment : Fragment() {
                         if (id != null) {
                             Snackbar.make(button, "${getString(R.string.find_video_id)} : $id", Snackbar.LENGTH_SHORT).apply {
                                 setAction(R.string.play) {
-                                    val nicoVideoFragment = NicoVideoFragment()
-                                    val bundle = Bundle()
-                                    bundle.putString("id", id)
-                                    nicoVideoFragment.arguments = bundle
-                                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, id)
+                                    (requireActivity() as? MainActivity)?.setNicovideoFragment(videoId = videoId)
                                 }
                                 show()
                             }
@@ -437,12 +433,7 @@ class NicoVideoInfoFragment : Fragment() {
             span.setSpan(object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     // 再生画面表示
-                    val nicoVideoFragment = NicoVideoFragment()
-                    val bundle = Bundle()
-                    bundle.putString("id", id)
-                    bundle.putBoolean("cache", false)
-                    nicoVideoFragment.arguments = bundle
-                    (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, id)
+                    (requireActivity() as? MainActivity)?.setNicovideoFragment(videoId = videoId,isCache = false)
                 }
             }, mather.start(), mather.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }

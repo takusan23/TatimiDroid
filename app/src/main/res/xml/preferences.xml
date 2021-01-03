@@ -67,6 +67,25 @@
                 android:title="@string/setting_rotation_sensor_title" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/setting_nicovideo_jc_title">
+
+        <Preference android:summary="@string/setting_nicovideo_jc_description" />
+
+        <SwitchPreference
+                android:defaultValue="false"
+                android:icon="@drawable/ic_outline_block_24px"
+                android:key="setting_nicovideo_jc_disable"
+                android:summary="@string/setting_nicovideo_jc_disable_description"
+                android:title="@string/setting_nicovideo_jc_disable_title" />
+
+        <SwitchPreference
+                android:defaultValue="true"
+                android:icon="@drawable/ic_vertical_align_top_black_24dp"
+                android:key="setting_nicovideo_jc_comment_auto_show_off"
+                android:summary="@string/setting_nicovideo_jc_comment_auto_show_off_description"
+                android:title="@string/setting_nicovideo_jc_comment_auto_show_off_title" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/video">
 
         <SwitchPreference

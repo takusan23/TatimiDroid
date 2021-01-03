@@ -23,9 +23,11 @@ import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.Fragment.LoginFragment
 import io.github.takusan23.tatimidroid.Fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
@@ -197,6 +199,37 @@ class MainActivity : AppCompatActivity() {
                 setPlayer(videoFragment, videoId)
             }
         }
+    }
+
+    /**
+     * ニコ動の再生Fragmentを置く関数
+     *
+     * @param videoId 動画ID、sm157とか。きしめええええええええええん
+     * @param isCache キャッシュ再生ならtrue
+     * @param useInternet キャッシュが有っても強制的にインターネットから取得する場合はtrue
+     * @param isEco エコノミーで取得する場合はtrue
+     * @param startFullScreen 全画面で再生する場合はtrue
+     * @param _videoList 連続再生が決定している場合は[NicoVideoData]の配列を入れてください。なおFragment生成後でも連続再生が可能です。
+     * */
+    fun setNicovideoFragment(videoId: String, isCache: Boolean? = null, isEco: Boolean? = null, useInternet: Boolean? = null, startFullScreen: Boolean? = null, _videoList: ArrayList<NicoVideoData>? = null) {
+        val fragment: Fragment = if (prefSetting.getBoolean("setting_nicovideo_jc_disable", false)) {
+            // 旧UI
+            NicoVideoFragment()
+        } else {
+            // 新UI
+            JCNicoVideoFragment()
+        }
+        fragment.apply {
+            arguments = Bundle().apply {
+                putString("id", videoId)
+                isCache?.let { putBoolean("cache", it) }
+                isEco?.let { putBoolean("eco", it) }
+                useInternet?.let { putBoolean("internet", it) }
+                startFullScreen?.let { putBoolean("fullscreen", it) }
+                _videoList?.let { putSerializable("video_list", _videoList) }
+            }
+        }
+        setPlayer(fragment, videoId)
     }
 
     /**

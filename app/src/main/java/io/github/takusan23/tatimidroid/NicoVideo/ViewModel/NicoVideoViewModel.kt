@@ -197,6 +197,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** シリーズが設定されていればシリーズの情報が入ってくる */
     val seriesDataLiveData = MutableLiveData<NicoVideoSeriesData>()
 
+    /** コメント一覧を自動で展開しない設定かどうか */
+    val isAutoCommentListShowOff = prefSetting.getBoolean("setting_nicovideo_jc_comment_auto_show_off", true)
+
     init {
 
         // 最初の動画。連続再生と分岐

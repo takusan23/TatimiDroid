@@ -14,7 +14,6 @@ import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoRepo.NicoRepoDataClass
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.R
 import java.text.SimpleDateFormat
@@ -92,11 +91,7 @@ class NicoRepoAdapter(val list: ArrayList<NicoRepoDataClass>) : RecyclerView.Ada
             cardView.setOnClickListener {
                 if (item.isVideo) {
                     // 動画
-                    val nicoVideoFragment = NicoVideoFragment()
-                    val bundle = Bundle()
-                    bundle.putString("id", item.contentId)
-                    nicoVideoFragment.arguments = bundle
-                    (context as MainActivity).setPlayer(nicoVideoFragment, item.contentId)
+                    (context as? MainActivity)?.setNicovideoFragment(videoId = item.contentId)
                 } else {
                     // 生放送
                     val commentFragment = CommentFragment()

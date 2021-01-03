@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoVideo
+package io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose
 
 import android.content.Intent
 import android.os.Bundle
@@ -19,7 +19,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeBottomFragment
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.*
+import io.github.takusan23.tatimidroid.NicoVideo.NicoAccountFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
@@ -229,11 +229,7 @@ class JCNicoVideoInfoFragment : Fragment() {
      * @param videoId 動画ID
      * */
     private fun setNicoVideoFragment(videoId: String) {
-        val nicoVideoFragment = JCNicoVideoFragment()
-        val bundle = Bundle()
-        bundle.putString("id", videoId)
-        nicoVideoFragment.arguments = bundle
-        (requireActivity() as? MainActivity)?.setPlayer(nicoVideoFragment, videoId)
+        (requireActivity() as? MainActivity)?.setNicovideoFragment(videoId)
     }
 
     /**

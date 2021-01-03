@@ -21,7 +21,6 @@ import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheFilterBottomFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
@@ -77,11 +76,7 @@ class NicoVideoCacheFragment : Fragment() {
         viewBinding.fragmentNicovideoCacheMenuPlaylistTextview.setOnClickListener {
             // 連続再生
             if (viewModel.recyclerViewList.value != null) {
-                val nicoVideoFragment = NicoVideoFragment()
-                nicoVideoFragment.arguments = Bundle().apply {
-                    putSerializable("video_list", viewModel.recyclerViewList.value) // BundleでNicoVideoListAdapterから渡してもらった
-                }
-                (requireActivity() as MainActivity).setPlayer(nicoVideoFragment, viewModel.recyclerViewList.value?.get(0)?.videoId ?: "")
+                (requireActivity() as? MainActivity)?.setNicovideoFragment(videoId = viewModel.recyclerViewList.value!![0].videoId, _videoList = viewModel.recyclerViewList.value)
             }
             // メニュー閉じる
             viewBinding.fragmentNicovideoCacheCardMotionLayout.transitionToStart()

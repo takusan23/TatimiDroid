@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoVideo
+package io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose
 
 import android.os.Bundle
 import android.text.format.DateUtils
@@ -24,6 +24,8 @@ import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentFragment
+import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
@@ -365,8 +367,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                     // コメント一覧も表示
                     lifecycleScope.launch {
                         delay(1000)
-                        if (!viewModel.isFullScreenMode) {
-                            // フルスクリーン時は操作しない
+                        if (!viewModel.isFullScreenMode && !viewModel.isAutoCommentListShowOff) {
+                            // フルスクリーン時 もしくは 自動で展開しない場合 は操作しない
                             viewModel.commentListShowLiveData.postValue(true)
                         }
                     }

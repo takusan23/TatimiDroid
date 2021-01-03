@@ -24,7 +24,7 @@ import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottom
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.JCNicoVideoFragment
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
@@ -168,7 +168,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                     addItemDecoration(itemDecoration)
                 }
             }
-            is JCNicoVideoFragment->{
+            is JCNicoVideoFragment ->{
                 // 動画
                 viewBinding.bottomFragmentCommentMenuRecyclerView.apply {
                     setHasFixedSize(true)
