@@ -172,8 +172,14 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
     // ポップアップ再生、バッググラウンド再生ボタン初期化
     private fun playServiceButton() {
+        // 連続再生を利用するか。trueで利用
+        val isDefaultPlaylistMode = prefSetting.getBoolean("setting_nicovideo_default_playlist_mode", true)
+        val videoList = if (isDefaultPlaylistMode) {
+            arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
+        } else {
+            null
+        }
         viewBinding.bottomFragmentNicovideoListMenuPopupTextView.setOnClickListener {
-            val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
             startVideoPlayService(context = context, mode = "popup", videoId = nicoVideoData.videoId, isCache = isCache, playlist = videoList)
         }
         viewBinding.bottomFragmentNicovideoListMenuBackgroundTextView.setOnClickListener {

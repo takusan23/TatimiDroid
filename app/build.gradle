@@ -13,7 +13,7 @@ android {
         minSdkVersion 22
         targetSdkVersion 30
         versionCode 79
-        versionName "13.0.0"
+        versionName "13.0.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
