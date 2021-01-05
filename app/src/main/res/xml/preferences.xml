@@ -74,7 +74,7 @@
         <SwitchPreference
                 android:defaultValue="true"
                 android:icon="@drawable/ic_outline_block_24px"
-                android:key="setting_nicovideo_jc_disable"
+                android:key="setting_nicovideo_use_old_ui"
                 android:summary="@string/setting_nicovideo_jc_disable_description"
                 android:title="@string/setting_nicovideo_jc_disable_title" />
 

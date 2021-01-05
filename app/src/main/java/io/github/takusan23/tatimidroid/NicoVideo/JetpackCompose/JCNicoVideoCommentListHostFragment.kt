@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose
 
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoCommentOnlyBinding
 
 /**
@@ -31,6 +33,8 @@ class JCNicoVideoCommentListHostFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         initViewModel()
+
+        viewBinding.fragmentNicovideoCommentOnlyParentFrameLayout.background = ColorDrawable(getThemeColor(requireContext()))
 
         // コメント一覧Fragment設置
         childFragmentManager

@@ -215,7 +215,7 @@ class MainActivity : AppCompatActivity() {
     fun setNicovideoFragment(videoId: String, isCache: Boolean? = null, isEco: Boolean? = null, useInternet: Boolean? = null, startFullScreen: Boolean? = null, _videoList: ArrayList<NicoVideoData>? = null) {
         val fragment: Fragment = when {
             prefSetting.getBoolean("setting_nicovideo_comment_only", false) -> JCNicoVideoCommentListHostFragment()// コメントのみ表示
-            prefSetting.getBoolean("setting_nicovideo_jc_disable", false) -> NicoVideoFragment() // 旧UI。JetpackCompose、 Android 7 以前で表示が乱れる
+            prefSetting.getBoolean("setting_nicovideo_use_old_ui", true) -> NicoVideoFragment() // 旧UI。JetpackCompose、 Android 7 以前で表示が乱れる
             else -> JCNicoVideoFragment() // Jetpack Compose 利用版
         }
         fragment.apply {

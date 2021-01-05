@@ -83,7 +83,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // 全画面で開始
         val isStartFullScreen = arguments?.getBoolean("fullscreen") ?: false
         // 連続再生
-        val videoList=arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
+        val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
         // ViewModel用意
         ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList)).get(NicoVideoViewModel::class.java)
     }
@@ -383,17 +383,15 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         exoPlayer.addListener(object : Player.EventListener {
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
-                // 再生
-                viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
                 // 動画時間をセットする
                 viewModel.playerDurationMs.postValue(exoPlayer.duration)
+                // 再生
+                viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
                 // プログレスバー
-                nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.apply {
-                    visibility = if (state == Player.STATE_READY) {
-                        View.INVISIBLE
-                    } else {
-                        View.VISIBLE
-                    }
+                if (state == Player.STATE_READY) {
+                    nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.INVISIBLE
+                } else {
+                    nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.VISIBLE
                 }
                 // 動画おわった。連続再生時なら次の曲へ
                 if (state == Player.STATE_ENDED && exoPlayer.playWhenReady) {
