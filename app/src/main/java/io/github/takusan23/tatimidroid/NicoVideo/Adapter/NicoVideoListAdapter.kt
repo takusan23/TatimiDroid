@@ -103,10 +103,18 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : Re
 
                 // 再生方法
                 val playType = prefSetting.getString("setting_play_type_video", "default") ?: "default"
+
+                // 連続再生を利用するか。trueで利用
+                val isDefaultPlaylistMode = prefSetting.getBoolean("setting_nicovideo_default_playlist_mode", true)
+
                 when (playType) {
                     "default" -> {
                         // 画面遷移
-                        (context as? MainActivity)?.setNicovideoFragment(videoId = data.videoId, isCache = data.isCache, _videoList = nicoVideoDataList)
+                        (context as? MainActivity)?.setNicovideoFragment(
+                            videoId = data.videoId,
+                            isCache = data.isCache,
+                            _videoList = if (isDefaultPlaylistMode) nicoVideoDataList else null
+                        )
                     }
                     "popup" -> {
                         startVideoPlayService(context = context, mode = "popup", videoId = data.videoId, isCache = data.isCache)

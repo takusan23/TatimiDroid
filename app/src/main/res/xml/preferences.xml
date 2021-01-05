@@ -137,6 +137,13 @@
                 android:title="@string/setting_show_nicoru_button_title" />
 
         <SwitchPreference
+                android:defaultValue="true"
+                android:icon="@drawable/ic_tatimidroid_list_icon_black"
+                android:key="setting_nicovideo_default_playlist_mode"
+                android:summary="@string/setting_nicovideo_default_playlist_mode_description"
+                android:title="@string/setting_nicovideo_default_playlist_mode_title" />
+
+        <SwitchPreference
                 android:defaultValue="false"
                 android:icon="@drawable/ic_skip_previous_black_24dp"
                 android:key="setting_cache_background_play_prev_button"

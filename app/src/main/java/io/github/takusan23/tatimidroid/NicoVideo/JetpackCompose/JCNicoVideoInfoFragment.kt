@@ -85,6 +85,8 @@ class JCNicoVideoInfoFragment : Fragment() {
 
                             // 連続再生
                             val playlist = viewModel.playlistLiveData.observeAsState()
+                            // 連続再生？
+                            val isPlaylistMode = viewModel.isPlayListMode.observeAsState(initial = false)
                             // 連続再生で現在再生中
                             val playingVideoId = viewModel.playingVideoId.observeAsState(initial = "")
                             // 連続再生、シャッフル有効？
@@ -96,7 +98,7 @@ class JCNicoVideoInfoFragment : Fragment() {
 
                                 // 連続再生
                                 val isPlaylistShow = remember { mutableStateOf(false) }
-                                if (playlist.value != null) {
+                                if (isPlaylistMode.value) {
                                     NicoVideoPlayList(
                                         isShowList = isPlaylistShow.value,
                                         playingVideoId = playingVideoId.value,
@@ -213,6 +215,7 @@ class JCNicoVideoInfoFragment : Fragment() {
                 setAction(getString(R.string.close)) {
                     dismiss()
                 }
+                view.elevation = 30f
                 anchorView = (requireParentFragment() as? JCNicoVideoFragment)?.fragmentCommentFab
             }.show()
         }

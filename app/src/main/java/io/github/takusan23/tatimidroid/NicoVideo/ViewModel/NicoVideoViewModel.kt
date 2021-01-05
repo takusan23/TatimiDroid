@@ -39,7 +39,7 @@ import org.json.JSONObject
  * @param isCache キャッシュで再生するか。ただし最終的には[isOfflinePlay]がtrueの時キャッシュ利用再生になります。連続再生の[videoList]が指定されている場合はnullに出来ます。
  * @param isEco エコノミー再生ならtrue。なお、キャッシュを優先的に利用する設定等でキャッシュ再生になっている場合があるので[isOfflinePlay]を使ってください。なお連続再生時はすべての動画をエコノミーで再生します。
  * @param useInternet キャッシュが有っても強制的にインターネットを経由して取得する場合はtrue。
- * @param videoList 連続再生するなら配列を入れてね。nullでもいい。動画一覧が必要な場合は[playlistLiveData]があるのでこっちを利用してください（ViewModel生成後に連続再生に切り替えられるように）。
+ * @param _videoList 連続再生するなら配列を入れてね。nullでもいい。動画一覧が必要な場合は[playlistLiveData]があるのでこっちを利用してください（ViewModel生成後に連続再生に切り替えられるように）。
  * */
 class NicoVideoViewModel(application: Application, videoId: String? = null, isCache: Boolean? = null, val isEco: Boolean, val useInternet: Boolean, startFullScreen: Boolean, private val _videoList: ArrayList<NicoVideoData>?) : AndroidViewModel(application) {
 
@@ -134,7 +134,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     var isMiniPlayerMode = MutableLiveData(false)
 
     /** 連続再生かどうか。連続再生ならtrue。なお、後から連続再生に切り替える機能をつけたいのでLiveDataになっています。*/
-    val isPlayListMode = MutableLiveData(_videoList != null)
+    val isPlayListMode = MutableLiveData(false)
 
     /** 連続再生時に、再生中の動画が[videoList]から見てどこの位置にあるかが入っている */
     val playListCurrentPosition = MutableLiveData(0)
@@ -146,7 +146,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     val playlistLiveData = MutableLiveData(arrayListOf<NicoVideoData>())
 
     /** 連続再生の最初の並び順が入っている */
-    val originVideoSortList = _videoList?.map { nicoVideoData -> nicoVideoData.videoId }
+    val originVideoSortList = arrayListOf<String>()
 
     /** 連続再生時にシャッフル再生が有効になってるか。trueならシャッフル再生 */
     val isShuffled = MutableLiveData(false)
@@ -217,8 +217,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             }
         }
 
-        // 連続再生？
         viewModelScope.launch {
+            // 連続再生？
             if (_videoList != null) {
                 startPlaylist(_videoList)
             }
@@ -743,6 +743,11 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             addAll(nicoVideoDataList)
         }
         isPlayListMode.postValue(true)
+        // ソート前の並び順を控える
+        originVideoSortList.apply {
+            clear()
+            addAll(playlistLiveData.value!!.map { nicoVideoData -> nicoVideoData.videoId })
+        }
         // 現在再生中の動画がどこの位置なのか
         val index = playlistLiveData.value!!.indexOfFirst { nicoVideoData -> nicoVideoData.videoId == playingVideoId.value!! }
         if (index != -1) {

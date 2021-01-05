@@ -60,7 +60,7 @@ class NicoLiveRanking {
             val beginAt = jsonObject.getString("beginAt")
             // val endAt = jsonObject.getString("endAt")
             val communityName = jsonObject.getString("socialGroupName")
-            val liveNow = jsonObject.getString("liveCycle") //放送中か？
+            val liveNow = jsonObject.getString("status") //放送中か？
             val rank = jsonObject.getString("rank")
             val thum = jsonObject.getString("thumbnailUrl")
             // データクラス

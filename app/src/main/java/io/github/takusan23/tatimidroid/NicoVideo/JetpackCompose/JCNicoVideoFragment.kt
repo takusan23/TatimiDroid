@@ -82,8 +82,10 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         val useInternet = arguments?.getBoolean("internet") ?: false
         // 全画面で開始
         val isStartFullScreen = arguments?.getBoolean("fullscreen") ?: false
+        // 連続再生
+        val videoList=arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
         // ViewModel用意
-        ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, null)).get(NicoVideoViewModel::class.java)
+        ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList)).get(NicoVideoViewModel::class.java)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -107,9 +109,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // 動画情報Fragment設置
         setFragment()
 
-        // 連続再生セット
-        setPlaylist()
-
         // スリープにしない
         caffeine()
 
@@ -129,16 +128,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     /** スリープにしないを解除する */
     private fun caffeineUnlock() {
         requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-    }
-
-    private fun setPlaylist() {
-        lifecycleScope.launch {
-            // 連続再生？
-            val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
-            if (videoList != null) {
-                viewModel.startPlaylist(videoList)
-            }
-        }
     }
 
     /** [JCNicoVideoInfoFragment] / [NicoVideoCommentFragment] を設置する */
@@ -207,7 +196,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             nicovideoPlayerUIBinding.includeNicovideoPlayerCloseImageView.setImageDrawable(getCurrentStateIcon())
             // 画面回転前がミニプレイヤーだったらミニプレイヤーにする
             if (isMiniPlayerMode) {
-                 toMiniPlayer() // これ直したい
+                toMiniPlayer() // これ直したい
             }
         }
         // Activity終了などのメッセージ受け取り
@@ -231,7 +220,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
         // 動画再生 or 動画なしモード
         if (viewModel.isCommentOnlyMode) {
-            // setCommentOnlyMode(true)
+            /** コメントのみは [JCNicoVideoCommentListHostFragment] にあります。 */
         } else {
             // 動画再生
             viewModel.contentUrl.observe(viewLifecycleOwner) { contentUrl ->
@@ -364,8 +353,11 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                         val progress = prefSetting.getLong("progress_${viewModel.playingVideoId.value}", 0)
                         if (progress != 0L && viewModel.isOfflinePlay.value == true) {
                             // 継承元に実装あり
-                            showSnackBar("${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", getString(R.string.play)) {
-                                viewModel.playerSetSeekMs.postValue(progress)
+                            lifecycleScope.launch {
+                                delay(500)
+                                showSnackBar("${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", getString(R.string.play)) {
+                                    viewModel.playerSetSeekMs.postValue(progress)
+                                }
                             }
                         }
                     }

@@ -27,6 +27,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoCommentListHostFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
@@ -212,12 +213,10 @@ class MainActivity : AppCompatActivity() {
      * @param _videoList 連続再生が決定している場合は[NicoVideoData]の配列を入れてください。なおFragment生成後でも連続再生が可能です。
      * */
     fun setNicovideoFragment(videoId: String, isCache: Boolean? = null, isEco: Boolean? = null, useInternet: Boolean? = null, startFullScreen: Boolean? = null, _videoList: ArrayList<NicoVideoData>? = null) {
-        val fragment: Fragment = if (prefSetting.getBoolean("setting_nicovideo_jc_disable", false)) {
-            // 旧UI
-            NicoVideoFragment()
-        } else {
-            // 新UI
-            JCNicoVideoFragment()
+        val fragment: Fragment = when {
+            prefSetting.getBoolean("setting_nicovideo_comment_only", false) -> JCNicoVideoCommentListHostFragment()// コメントのみ表示
+            prefSetting.getBoolean("setting_nicovideo_jc_disable", false) -> NicoVideoFragment() // 旧UI。JetpackCompose、 Android 7 以前で表示が乱れる
+            else -> JCNicoVideoFragment() // Jetpack Compose 利用版
         }
         fragment.apply {
             arguments = Bundle().apply {

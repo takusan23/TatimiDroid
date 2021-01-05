@@ -60,11 +60,12 @@ https://play.google.com/store/apps/details?id=io.github.takusan23.tatimidroid&hl
 
 Canary版Android Studio。Jetpack Composeを使っているんで
 
+Android Studio Arctic Fox | 2020.3.1 Canary 3
+
 ## ビルドまで進めない
 
 - `Invalid Gradle JDK configuration found. Open Gradle Settings`
     - `.idea`フォルダを消してみてください
 
-Android Studio Arctic Fox | 2020.3.1 Canary 3
 
 まあ後でまた書く

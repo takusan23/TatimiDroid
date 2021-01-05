@@ -556,4 +556,6 @@
     <string name="setting_nicovideo_jc_title">Nico Nico Douga New UI Settings</string>
     <string name="setting_nicovideo_jc_description">I wrote about half of it in Jetpack Compose because of the trend. The way to exit is to swipe down again.</string>
     <string name="comment_list_only">Show only comment list</string>
+    <string name="setting_nicovideo_default_playlist_mode_title">Use continuous playback by default</string>
+    <string name="setting_nicovideo_default_playlist_mode_description">Even if it is disabled, continuous playback can be started by selecting continuous playback from each menu in the video list.</string>
 </resources>

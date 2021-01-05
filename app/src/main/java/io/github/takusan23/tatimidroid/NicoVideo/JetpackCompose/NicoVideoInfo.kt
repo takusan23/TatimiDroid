@@ -475,7 +475,9 @@ fun NicoVideoPlayList(
                 scope.launch {
                     // 位置を特定
                     val index = videoList.indexOfFirst { it.videoId == playingVideoId }
-                    state.snapToItemIndex(index)
+                    if (index != -1) {
+                        state.snapToItemIndex(index)
+                    }
                 }
                 // RecyclerViewみたいに画面外は描画しないやつ
                 LazyColumn(

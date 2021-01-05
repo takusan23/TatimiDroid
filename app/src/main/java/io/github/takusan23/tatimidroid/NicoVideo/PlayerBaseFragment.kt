@@ -172,7 +172,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
                 }
             }
             anchorView = fragmentCommentFab
-            //view.elevation = 30f
+            view.elevation = 30f
         }.show()
     }
 
