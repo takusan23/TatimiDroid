@@ -228,7 +228,11 @@ class MainActivity : AppCompatActivity() {
                 _videoList?.let { putSerializable("video_list", _videoList) }
             }
         }
-        setPlayer(fragment, videoId)
+        if (fragment is JCNicoVideoCommentListHostFragment) {
+            setFragment(fragment, "comment_list")
+        } else {
+            setPlayer(fragment, videoId)
+        }
     }
 
     /**

@@ -6,5 +6,6 @@
     <FrameLayout
             android:id="@+id/fragment_nicovideo_comment_only_parent_frame_layout"
             android:layout_width="match_parent"
+            android:background="#fff"
             android:layout_height="match_parent" />
 </FrameLayout>
