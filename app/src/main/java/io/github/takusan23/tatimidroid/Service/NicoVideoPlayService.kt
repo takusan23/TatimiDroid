@@ -78,10 +78,12 @@ class NicoVideoPlayService : Service() {
     private lateinit var broadcastReceiver: BroadcastReceiver
     private lateinit var mediaSessionCompat: MediaSessionCompat
 
-    // View
-    private lateinit var viewBinding: OverlayVideoPlayerLayoutBinding
+    // 再生するやつ
     private lateinit var exoPlayer: SimpleExoPlayer
-    private lateinit var commentCanvas: CommentCanvas
+
+    /** これらはポップアップ再生時のみ初期化されます。ので lateinit ではなくnull許容 */
+    private var viewBinding: OverlayVideoPlayerLayoutBinding? = null
+    private var commentCanvas: CommentCanvas? = null
 
     /** ニコ動のデータ取得からハートビートまで */
     private val nicoVideoHTML = NicoVideoHTML()
@@ -204,13 +206,13 @@ class NicoVideoPlayService : Service() {
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
                 // ポップアップのみ
-                if (isPopupPlay()) {
+                viewBinding?.apply {
                     // シークの最大値設定。
                     val videoLengthFormattedTime = DateUtils.formatElapsedTime(exoPlayer.duration / 1000L)
-                    viewBinding.overlayVideoControlInclude.playerControlDuration.text = videoLengthFormattedTime
-                    viewBinding.overlayVideoControlInclude.playerControlSeek.max = (exoPlayer.duration / 1000L).toInt()
+                    overlayVideoControlInclude.playerControlDuration.text = videoLengthFormattedTime
+                    overlayVideoControlInclude.playerControlSeek.max = (exoPlayer.duration / 1000L).toInt()
                     // 動画のシーク
-                    viewBinding.overlayVideoControlInclude.playerControlSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    overlayVideoControlInclude.playerControlSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                         override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                         }
 
@@ -225,7 +227,7 @@ class NicoVideoPlayService : Service() {
                         }
                     })
                     // ローディング
-                    viewBinding.overlayVideoLoadingProgressBar.isVisible = !(state == Player.STATE_READY)
+                    overlayVideoLoadingProgressBar.isVisible = !(state == Player.STATE_READY)
                 }
                 // 再生終了。次の動画
                 if (state == Player.STATE_ENDED && exoPlayer.playWhenReady) {
@@ -237,12 +239,14 @@ class NicoVideoPlayService : Service() {
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
                 super.onPlayWhenReadyChanged(playWhenReady, reason)
                 // 動画のアイコン入れ替え
-                val drawable = if (exoPlayer.playWhenReady) {
-                    getDrawable(R.drawable.ic_pause_black_24dp)
-                } else {
-                    getDrawable(R.drawable.ic_play_arrow_24px)
+                viewBinding?.apply {
+                    val drawable = if (exoPlayer.playWhenReady) {
+                        getDrawable(R.drawable.ic_pause_black_24dp)
+                    } else {
+                        getDrawable(R.drawable.ic_play_arrow_24px)
+                    }
+                    overlayVideoControlInclude.playerControlPause.setImageDrawable(drawable)
                 }
-                viewBinding.overlayVideoControlInclude.playerControlPause.setImageDrawable(drawable)
             }
 
         })
@@ -250,19 +254,21 @@ class NicoVideoPlayService : Service() {
         exoPlayer.addVideoListener(object : VideoListener {
             override fun onVideoSizeChanged(width: Int, height: Int, unappliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
                 super.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio)
-                // アスペクト比が4:3か16:9か
-                // 4:3 = 1.333... 16:9 = 1.777..
-                val calc = width.toFloat() / height.toFloat()
-                // 小数点第二位を捨てる
-                aspect = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
-                popupLayoutParams = getParams(prefSetting.getInt("nicovideo_popup_width", if (aspect == 1.3) 480 else 640)) // なければ 640 (4:3動画なら480)
-                windowManager.updateViewLayout(viewBinding.root, popupLayoutParams)
-                applyCommentCanvas()
-                // 位置が保存されていれば適用
-                if (prefSetting.getInt("nicovideo_popup_x_pos", 0) != 0) {
-                    popupLayoutParams.x = prefSetting.getInt("nicovideo_popup_x_pos", 0)
-                    popupLayoutParams.y = prefSetting.getInt("nicovideo_popup_y_pos", 0)
-                    windowManager.updateViewLayout(viewBinding.root, popupLayoutParams)
+                viewBinding?.apply {
+                    // アスペクト比が4:3か16:9か
+                    // 4:3 = 1.333... 16:9 = 1.777..
+                    val calc = width.toFloat() / height.toFloat()
+                    // 小数点第二位を捨てる
+                    aspect = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
+                    popupLayoutParams = getParams(prefSetting.getInt("nicovideo_popup_width", if (aspect == 1.3) 480 else 640)) // なければ 640 (4:3動画なら480)
+                    windowManager.updateViewLayout(root, popupLayoutParams)
+                    applyCommentCanvas()
+                    // 位置が保存されていれば適用
+                    if (prefSetting.getInt("nicovideo_popup_x_pos", 0) != 0) {
+                        popupLayoutParams.x = prefSetting.getInt("nicovideo_popup_x_pos", 0)
+                        popupLayoutParams.y = prefSetting.getInt("nicovideo_popup_y_pos", 0)
+                        windowManager.updateViewLayout(root, popupLayoutParams)
+                    }
                 }
             }
         })
@@ -278,7 +284,7 @@ class NicoVideoPlayService : Service() {
         nicoVideoHTML.destroy()
         // あとしまつ
         if (::exoPlayer.isInitialized) {
-           // exoPlayer.release()
+            // exoPlayer.release()
         }
         // 連続再生時のみ利用可能
         val nextVideoPos = if (currentPlaylistPos + 1 < playlist.size) {
@@ -397,10 +403,12 @@ class NicoVideoPlayService : Service() {
             withContext(Dispatchers.Main) {
                 // ExoPlayer
                 playExoPlayer(false, contentUrl, nicoHistory)
-                // プレイヤーにセット
-                setPlayerUI(currentVideoId, currentVideoTitle)
-                // インターネットなので
-                showNetworkType(false)
+                if (isPopupPlay()) {
+                    // プレイヤーにセット
+                    setPlayerUI(currentVideoId, currentVideoTitle)
+                    // インターネットなので
+                    showNetworkType(false)
+                }
             }
         }
     }
@@ -440,10 +448,12 @@ class NicoVideoPlayService : Service() {
                     withContext(Dispatchers.Main) {
                         // ExoPlayer
                         playExoPlayer(true, contentUrl, "")
-                        // プレイヤーにセット
-                        setPlayerUI(currentVideoId, currentVideoTitle)
-                        // キャッシュなので
-                        showNetworkType(true)
+                        if (isPopupPlay()) {
+                            // プレイヤーにセット
+                            setPlayerUI(currentVideoId, currentVideoTitle)
+                            // キャッシュなので
+                            showNetworkType(true)
+                        }
                     }
                 } else {
                     // 動画が見つからなかった。
@@ -498,10 +508,12 @@ class NicoVideoPlayService : Service() {
         val layoutInflater = LayoutInflater.from(this)
         popupLayoutParams = getParams(width)
         viewBinding = OverlayVideoPlayerLayoutBinding.inflate(layoutInflater)
-        // 表示
-        windowManager.addView(viewBinding.root, popupLayoutParams)
-        commentCanvas = viewBinding.overlayVideoCommentCanvas
-        commentCanvas.isPopupView = true
+        viewBinding?.apply {
+            // 表示
+            windowManager.addView(root, popupLayoutParams)
+            commentCanvas = overlayVideoCommentCanvas
+            commentCanvas?.isPopupView = true
+        }
     }
 
     /**
@@ -514,213 +526,217 @@ class NicoVideoPlayService : Service() {
             isCache -> getDrawable(R.drawable.ic_folder_open_black_24dp)
             else -> InternetConnectionCheck.getConnectionTypeDrawable(this)
         }
-        viewBinding.overlayVideoControlInclude.playerControlVideoNetwork.setImageDrawable(playingIconDrawable)
+        viewBinding?.overlayVideoControlInclude?.playerControlVideoNetwork?.setImageDrawable(playingIconDrawable)
     }
 
     /** プレイヤーの動画情報等を更新する */
     private fun setPlayerUI(videoId: String, videoTitle: String) {
-        // SurfaceViewセット
-        exoPlayer.setVideoSurfaceView(viewBinding.overlayVideoSurfaceview)
+        // UIないとか論外
+        viewBinding?.apply {
+            // SurfaceViewセット
+            exoPlayer.setVideoSurfaceView(overlayVideoSurfaceview)
 
-        // 使わないボタンを消す
-        viewBinding.overlayVideoControlInclude.apply {
-            playerControlPopup.isVisible = false
-            playerControlBackground.isVisible = false
-        }
-        // 番組名、ID設定
-        viewBinding.overlayVideoControlInclude.apply {
-            playerControlTitle.text = videoTitle
-            playerControlId.text = videoId
-        }
+            // 使わないボタンを消す
+            overlayVideoControlInclude.apply {
+                playerControlPopup.isVisible = false
+                playerControlBackground.isVisible = false
+            }
+            // 番組名、ID設定
+            overlayVideoControlInclude.apply {
+                playerControlTitle.text = videoTitle
+                playerControlId.text = videoId
+            }
 
-        // 閉じる
-        viewBinding.overlayVideoControlInclude.playerControlClose.isVisible = true
-        viewBinding.overlayVideoControlInclude.playerControlClose.setOnClickListener {
-            stopSelf()
-        }
+            // 閉じる
+            overlayVideoControlInclude.playerControlClose.isVisible = true
+            overlayVideoControlInclude.playerControlClose.setOnClickListener {
+                stopSelf()
+            }
 
-        // リピートするか
-        if (prefSetting.getBoolean("nicovideo_repeat_on", true)) {
-            exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-            viewBinding.overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
-        }
+            // リピートするか
+            if (prefSetting.getBoolean("nicovideo_repeat_on", true)) {
+                exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
+            }
 
-        // ミュート・ミュート解除
-        viewBinding.overlayVideoControlInclude.playerControlMute.isVisible = true
-        viewBinding.overlayVideoControlInclude.playerControlMute.setOnClickListener {
-            if (::exoPlayer.isInitialized) {
-                exoPlayer.apply {
-                    //音が０のとき
-                    if (volume == 0f) {
-                        volume = 1f
-                        viewBinding.overlayVideoControlInclude.playerControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
+            // ミュート・ミュート解除
+            overlayVideoControlInclude.playerControlMute.isVisible = true
+            overlayVideoControlInclude.playerControlMute.setOnClickListener {
+                if (::exoPlayer.isInitialized) {
+                    exoPlayer.apply {
+                        //音が０のとき
+                        if (volume == 0f) {
+                            volume = 1f
+                            overlayVideoControlInclude.playerControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
+                        } else {
+                            volume = 0f
+                            overlayVideoControlInclude.playerControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
+                        }
+                    }
+                }
+            }
+
+            // UI表示
+            var job: Job? = null
+            root.setOnClickListener {
+                overlayVideoControlInclude.playerControlMain.isVisible = !overlayVideoControlInclude.playerControlMain.isVisible
+                job?.cancel()
+                job = GlobalScope.launch(Dispatchers.Main) {
+                    delay(3000)
+                    overlayVideoControlInclude.playerControlMain.isVisible = false
+                }
+            }
+
+            // ピンチイン、ピンチアウトでズームできるようにする
+            val scaleGestureDetector = ScaleGestureDetector(this@NicoVideoPlayService, object : ScaleGestureDetector.OnScaleGestureListener {
+                override fun onScaleBegin(p0: ScaleGestureDetector?): Boolean {
+                    return true
+                }
+
+                override fun onScaleEnd(p0: ScaleGestureDetector?) {
+
+                }
+
+                override fun onScale(p0: ScaleGestureDetector?): Boolean {
+                    // ピンチイン/アウト中。
+                    if (p0 == null) return true
+                    // なんかうまくいくコード
+                    popupLayoutParams.width = (popupLayoutParams.width * p0.scaleFactor).toInt()
+                    // 縦の大きさは計算で出す（widthの時と同じようにやるとアスペクト比が崩れる。）
+                    popupLayoutParams.height = if (aspect == 1.7) {
+                        (popupLayoutParams.width / 16) * 9 // 16:9
                     } else {
-                        volume = 0f
-                        viewBinding.overlayVideoControlInclude.playerControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
+                        (popupLayoutParams.width / 4) * 3 // 4:3
                     }
-                }
-            }
-        }
-
-        // UI表示
-        var job: Job? = null
-        viewBinding.root.setOnClickListener {
-            viewBinding.overlayVideoControlInclude.playerControlMain.isVisible = !viewBinding.overlayVideoControlInclude.playerControlMain.isVisible
-            job?.cancel()
-            job = GlobalScope.launch(Dispatchers.Main) {
-                delay(3000)
-                viewBinding.overlayVideoControlInclude.playerControlMain.isVisible = false
-            }
-        }
-
-        // ピンチイン、ピンチアウトでズームできるようにする
-        val scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
-            override fun onScaleBegin(p0: ScaleGestureDetector?): Boolean {
-                return true
-            }
-
-            override fun onScaleEnd(p0: ScaleGestureDetector?) {
-
-            }
-
-            override fun onScale(p0: ScaleGestureDetector?): Boolean {
-                // ピンチイン/アウト中。
-                if (p0 == null) return true
-                // なんかうまくいくコード
-                popupLayoutParams.width = (popupLayoutParams.width * p0.scaleFactor).toInt()
-                // 縦の大きさは計算で出す（widthの時と同じようにやるとアスペクト比が崩れる。）
-                popupLayoutParams.height = if (aspect == 1.7) {
-                    (popupLayoutParams.width / 16) * 9 // 16:9
-                } else {
-                    (popupLayoutParams.width / 4) * 3 // 4:3
-                }
-                // 更新
-                windowManager.updateViewLayout(viewBinding.root, popupLayoutParams)
-                // 大きさを保持しておく
-                prefSetting.edit {
-                    putInt("nicovideo_popup_height", popupLayoutParams.height)
-                    putInt("nicovideo_popup_width", popupLayoutParams.width)
-                }
-                return true
-            }
-        })
-
-        // 移動
-        viewBinding.root.setOnTouchListener { view, motionEvent ->
-            // タップした位置を取得する
-            val x = motionEvent.rawX.toInt()
-            val y = motionEvent.rawY.toInt()
-            // ついに直感的なズームが！？
-            scaleGestureDetector.onTouchEvent(motionEvent)
-            // 移動できるように
-            when (motionEvent.action) {
-                // Viewを移動させてるときに呼ばれる
-                MotionEvent.ACTION_MOVE -> {
-                    // 中心からの座標を計算する
-                    val centerX = x - (DisplaySizeTool.getDisplayWidth(this) / 2)
-                    val centerY = y - (DisplaySizeTool.getDisplayHeight(this) / 2)
-
-                    // オーバーレイ表示領域の座標を移動させる
-                    popupLayoutParams.x = centerX
-                    popupLayoutParams.y = centerY
-
-                    // 移動した分を更新する
-                    windowManager.updateViewLayout(view, popupLayoutParams)
-
-                    // サイズを保存しておく
+                    // 更新
+                    windowManager.updateViewLayout(root, popupLayoutParams)
+                    // 大きさを保持しておく
                     prefSetting.edit {
-                        putInt("nicovideo_popup_x_pos", popupLayoutParams.x)
-                        putInt("nicovideo_popup_y_pos", popupLayoutParams.y)
+                        putInt("nicovideo_popup_height", popupLayoutParams.height)
+                        putInt("nicovideo_popup_width", popupLayoutParams.width)
                     }
-                    return@setOnTouchListener true // setOnclickListenerが呼ばれてしまうため true 入れる
+                    return true
+                }
+            })
+
+            // 移動
+            root.setOnTouchListener { view, motionEvent ->
+                // タップした位置を取得する
+                val x = motionEvent.rawX.toInt()
+                val y = motionEvent.rawY.toInt()
+                // ついに直感的なズームが！？
+                scaleGestureDetector.onTouchEvent(motionEvent)
+                // 移動できるように
+                when (motionEvent.action) {
+                    // Viewを移動させてるときに呼ばれる
+                    MotionEvent.ACTION_MOVE -> {
+                        // 中心からの座標を計算する
+                        val centerX = x - (DisplaySizeTool.getDisplayWidth(this@NicoVideoPlayService) / 2)
+                        val centerY = y - (DisplaySizeTool.getDisplayHeight(this@NicoVideoPlayService) / 2)
+
+                        // オーバーレイ表示領域の座標を移動させる
+                        popupLayoutParams.x = centerX
+                        popupLayoutParams.y = centerY
+
+                        // 移動した分を更新する
+                        windowManager.updateViewLayout(view, popupLayoutParams)
+
+                        // サイズを保存しておく
+                        prefSetting.edit {
+                            putInt("nicovideo_popup_x_pos", popupLayoutParams.x)
+                            putInt("nicovideo_popup_y_pos", popupLayoutParams.y)
+                        }
+                        return@setOnTouchListener true // setOnclickListenerが呼ばれてしまうため true 入れる
+                    }
+                }
+                return@setOnTouchListener false
+            }
+
+            //アプリ起動
+            overlayVideoControlInclude.playerControlFullscreen.setOnClickListener {
+                stopSelf()
+                // アプリ起動
+                val intent = Intent(this@NicoVideoPlayService, MainActivity::class.java)
+                intent.putExtra("id", videoId)
+                intent.putExtra("cache", isCurrentVideoCache)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+            }
+
+            // 連続再生とアイコン変える
+            val nextIcon = if (isPlayList) getDrawable(R.drawable.ic_skip_next_black_24dp) else getDrawable(R.drawable.ic_redo_black_24dp)
+            val prevIcon = if (isPlayList) getDrawable(R.drawable.ic_skip_previous_black_24dp) else getDrawable(R.drawable.ic_undo_black_24dp)
+            overlayVideoControlInclude.playerControlNext.setImageDrawable(nextIcon)
+            overlayVideoControlInclude.playerControlPrev.setImageDrawable(prevIcon)
+
+            // スキップ秒数
+            val skipValueMs = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000
+            // コントローラー
+            overlayVideoControlInclude.playerControlNext.setOnClickListener {
+                if (isPlayList) {
+                    // 次の動画
+                    nextPlaylistVideo()
+                } else {
+                    // 進める
+                    exoPlayer.seekTo(exoPlayer.currentPosition + skipValueMs)
                 }
             }
-            return@setOnTouchListener false
-        }
-
-        //アプリ起動
-        viewBinding.overlayVideoControlInclude.playerControlFullscreen.setOnClickListener {
-            stopSelf()
-            // アプリ起動
-            val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("id", videoId)
-            intent.putExtra("cache", isCurrentVideoCache)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-        }
-
-        // 連続再生とアイコン変える
-        val nextIcon = if (isPlayList) getDrawable(R.drawable.ic_skip_next_black_24dp) else getDrawable(R.drawable.ic_redo_black_24dp)
-        val prevIcon = if (isPlayList) getDrawable(R.drawable.ic_skip_previous_black_24dp) else getDrawable(R.drawable.ic_undo_black_24dp)
-        viewBinding.overlayVideoControlInclude.playerControlNext.setImageDrawable(nextIcon)
-        viewBinding.overlayVideoControlInclude.playerControlPrev.setImageDrawable(prevIcon)
-
-        // スキップ秒数
-        val skipValueMs = (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000
-        // コントローラー
-        viewBinding.overlayVideoControlInclude.playerControlNext.setOnClickListener {
-            if (isPlayList) {
-                // 次の動画
-                nextPlaylistVideo()
-            } else {
-                // 進める
-                exoPlayer.seekTo(exoPlayer.currentPosition + skipValueMs)
-            }
-        }
-        viewBinding.overlayVideoControlInclude.playerControlPrev.setOnClickListener {
-            if (isPlayList) {
-                // 前の動画
-                prevPlaylistVideo()
-            } else {
-                // 戻す
-                exoPlayer.seekTo(exoPlayer.currentPosition - skipValueMs)
-            }
-        }
-
-        viewBinding.overlayVideoControlInclude.playerControlPause.setOnClickListener {
-            // 一時停止
-            exoPlayer.playWhenReady = !exoPlayer.playWhenReady
-            // コメント止める
-            commentCanvas.isPause = !exoPlayer.playWhenReady
-        }
-
-        // リピート再生
-        viewBinding.overlayVideoControlInclude.playerControlRepeat.setOnClickListener {
-            when (exoPlayer.repeatMode) {
-                Player.REPEAT_MODE_OFF -> {
-                    // リピート無効時
-                    exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-                    viewBinding.overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
-                    prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
-                }
-                Player.REPEAT_MODE_ONE -> {
-                    // リピート有効時
-                    exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                    viewBinding.overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_black_24dp))
-                    prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
+            overlayVideoControlInclude.playerControlPrev.setOnClickListener {
+                if (isPlayList) {
+                    // 前の動画
+                    prevPlaylistVideo()
+                } else {
+                    // 戻す
+                    exoPlayer.seekTo(exoPlayer.currentPosition - skipValueMs)
                 }
             }
-        }
 
-        // シーク用に毎秒動くタイマー
-        seekTimer.cancel()
-        seekTimer = Timer()
-        seekTimer.schedule(timerTask {
-            if (exoPlayer.isPlaying) {
-                setProgress()
-                initDrawComment()
+            overlayVideoControlInclude.playerControlPause.setOnClickListener {
+                // 一時停止
+                exoPlayer.playWhenReady = !exoPlayer.playWhenReady
+                // コメント止める
+                commentCanvas?.isPause = !exoPlayer.playWhenReady
             }
-        }, 100, 100)
 
+            // リピート再生
+            overlayVideoControlInclude.playerControlRepeat.setOnClickListener {
+                when (exoPlayer.repeatMode) {
+                    Player.REPEAT_MODE_OFF -> {
+                        // リピート無効時
+                        exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                        overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_one_24px))
+                        prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
+                    }
+                    Player.REPEAT_MODE_ONE -> {
+                        // リピート有効時
+                        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
+                        overlayVideoControlInclude.playerControlRepeat.setImageDrawable(getDrawable(R.drawable.ic_repeat_black_24dp))
+                        prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
+                    }
+                }
+            }
+
+            // シーク用に毎秒動くタイマー
+            seekTimer.cancel()
+            seekTimer = Timer()
+            seekTimer.schedule(timerTask {
+                if (exoPlayer.isPlaying) {
+                    setProgress()
+                    initDrawComment()
+                }
+            }, 100, 100)
+        }
     }
 
     // サイズ変更をCommentCanvasに反映させる
     private fun applyCommentCanvas() {
-        commentCanvas.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+        commentCanvas?.viewTreeObserver?.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 // 高さ更新
-                commentCanvas.finalHeight = commentCanvas.height
-                commentCanvas.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                if (commentCanvas != null) {
+                    commentCanvas!!.finalHeight = commentCanvas!!.height
+                    commentCanvas!!.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                }
             }
         })
     }
@@ -729,41 +745,43 @@ class NicoVideoPlayService : Service() {
      * コメントを流す関数。定期的に呼んでください。
      * */
     private fun initDrawComment() {
-        val currentPosition = exoPlayer.contentPosition / 100L
-        if (tmpPosition != exoPlayer.contentPosition / 1000) {
-            drewedList.clear()
-            tmpPosition = currentPosition
-        }
-        GlobalScope.launch {
-            val drawList = currentVideoCommentList.filter { commentJSONParse ->
-                (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
+        if (commentCanvas != null) {
+            val currentPosition = exoPlayer.contentPosition / 100L
+            if (tmpPosition != exoPlayer.contentPosition / 1000) {
+                drewedList.clear()
+                tmpPosition = currentPosition
             }
-            drawList.forEach {
-                // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
-                val isAddable = drewedList.none { id -> it.commentNo == id || it.vpos == id } // 条件に合わなければtrue
-                if (isAddable) {
-                    val commentNo = if (it.commentNo == "-1" || it.commentNo.isEmpty()) {
-                        // vposで代替
-                        it.vpos
-                    } else {
-                        it.commentNo
-                    }
-                    drewedList.add(commentNo)
-                    if (!it.comment.contains("\n")) {
-                        // SingleLine
-                        commentCanvas.post {
-                            commentCanvas.postComment(it.comment, it)
-                        }
-                    } else {
-                        // 複数行？
-                        val asciiArtComment = if (it.mail.contains("shita")) {
-                            it.comment.split("\n").reversed() // 下コメントだけ逆順にする
+            GlobalScope.launch {
+                val drawList = currentVideoCommentList.filter { commentJSONParse ->
+                    (commentJSONParse.vpos.toLong() / 10L) == (currentPosition)
+                }
+                drawList.forEach {
+                    // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
+                    val isAddable = drewedList.none { id -> it.commentNo == id || it.vpos == id } // 条件に合わなければtrue
+                    if (isAddable) {
+                        val commentNo = if (it.commentNo == "-1" || it.commentNo.isEmpty()) {
+                            // vposで代替
+                            it.vpos
                         } else {
-                            it.comment.split("\n")
+                            it.commentNo
                         }
-                        for (line in asciiArtComment) {
-                            commentCanvas.post {
-                                commentCanvas.postComment(line, it, true)
+                        drewedList.add(commentNo)
+                        if (!it.comment.contains("\n")) {
+                            // SingleLine
+                            commentCanvas!!.post {
+                                commentCanvas!!.postComment(it.comment, it)
+                            }
+                        } else {
+                            // 複数行？
+                            val asciiArtComment = if (it.mail.contains("shita")) {
+                                it.comment.split("\n").reversed() // 下コメントだけ逆順にする
+                            } else {
+                                it.comment.split("\n")
+                            }
+                            for (line in asciiArtComment) {
+                                commentCanvas!!.post {
+                                    commentCanvas!!.postComment(line, it, true)
+                                }
                             }
                         }
                     }
@@ -776,9 +794,9 @@ class NicoVideoPlayService : Service() {
     private fun setProgress() {
         Handler(Looper.getMainLooper()).post {
             if (!isTouchingSeekBar) {
-                viewBinding.overlayVideoControlInclude.playerControlSeek.progress = (exoPlayer.currentPosition / 1000L).toInt()
+                viewBinding?.overlayVideoControlInclude?.playerControlSeek?.progress = (exoPlayer.currentPosition / 1000L).toInt()
                 val formattedTime = DateUtils.formatElapsedTime(exoPlayer.currentPosition / 1000L)
-                viewBinding.overlayVideoControlInclude.playerControlCurrent.text = formattedTime
+                viewBinding?.overlayVideoControlInclude?.playerControlCurrent?.text = formattedTime
             }
         }
     }
@@ -917,7 +935,7 @@ class NicoVideoPlayService : Service() {
                     "video_popup_fix_size" -> {
                         // ポップアップの大きさを治す
                         popupLayoutParams = getParams(800) // 大きさを初期化
-                        windowManager.updateViewLayout(viewBinding.root, popupLayoutParams)
+                        windowManager.updateViewLayout(viewBinding?.root, popupLayoutParams)
                         // 大きさを保持しておく
                         prefSetting.edit {
                             putInt("nicovideo_popup_height", popupLayoutParams.height)
@@ -943,8 +961,8 @@ class NicoVideoPlayService : Service() {
         if (::exoPlayer.isInitialized) {
             exoPlayer.release()
         }
-        if (::viewBinding.isInitialized) {
-            windowManager.removeView(viewBinding.root)
+        if (viewBinding != null) {
+            windowManager.removeView(viewBinding!!.root)
         }
         seekTimer.cancel()
     }

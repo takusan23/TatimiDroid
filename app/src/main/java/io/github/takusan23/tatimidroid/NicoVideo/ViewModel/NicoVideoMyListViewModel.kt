@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -27,7 +28,7 @@ class NicoVideoMyListViewModel(application: Application, val userId: String? = n
     private val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
     /** ニコニコのログイン情報。ユーザーセッション */
-    private val userSession = prefSetting.getString("user_session", "") ?: ""
+    private var userSession = prefSetting.getString("user_session", "") ?: ""
 
     /** マイリスト一覧を送信するLiveData */
     val myListDataLiveData = MutableLiveData<ArrayList<NicoVideoSPMyListAPI.MyListData>>()
@@ -49,7 +50,6 @@ class NicoVideoMyListViewModel(application: Application, val userId: String? = n
         }
         viewModelScope.launch(errorHandler + Dispatchers.IO) {
             loadingLiveData.postValue(true)
-
             val spMyListAPI = NicoVideoSPMyListAPI()
             val response = if (userId == null) {
                 // 自分
@@ -57,6 +57,23 @@ class NicoVideoMyListViewModel(application: Application, val userId: String? = n
             } else {
                 // 他の人
                 spMyListAPI.getMyListList(userSession, userId)
+            }
+            // 再ログイン必須
+            if (response.headers["x-niconico-id"] == null) {
+                // ログインする
+                val login = NicoLogin.secureNicoLogin(context)
+                // ログインした
+                if (login != null) {
+                    userSession = login
+                    showToast(getString(R.string.re_login_successful))
+                    // 再試行
+                    getMyListList()
+                    return@launch
+                }
+            } else if (!response.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${response.code}")
+                return@launch
             }
             val myListItems = spMyListAPI.parseMyListList(response.body?.string(), userId == null)
             // 並び替え
