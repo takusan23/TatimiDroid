@@ -15,6 +15,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.*
 import android.widget.FrameLayout
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
@@ -77,10 +78,12 @@ class NicoLivePlayService : Service() {
     /** コメントサーバー接続など */
     val nicoLiveComment = NicoLiveComment()
 
-    // View
-    private lateinit var viewBinding: OverlayPlayerLayoutBinding
+    // 生放送再生するやつ
     private lateinit var popupExoPlayer: SimpleExoPlayer
-    private lateinit var commentCanvas: CommentCanvas
+
+    // View
+    private var viewBinding: OverlayPlayerLayoutBinding? = null
+    private var commentCanvas: CommentCanvas? = null
 
     // 番組情報関係
     var liveId = "" // 生放送IDじゃなくてちゃんねるIDの可能性も有る
@@ -257,12 +260,12 @@ class NicoLivePlayService : Service() {
         Handler(Looper.getMainLooper()).post {
             if (commentJSONParse.origin != "C") {
                 // 初期化してないときは落とす
-                if (!::commentCanvas.isInitialized) {
+                if (commentCanvas == null) {
                     return@post
                 }
                 // 豆先輩とか
                 if (!commentJSONParse.comment.contains("\n")) {
-                    commentCanvas.postComment(commentJSONParse.comment, commentJSONParse)
+                    commentCanvas!!.postComment(commentJSONParse.comment, commentJSONParse)
                 } else {
                     // https://stackoverflow.com/questions/6756975/draw-multi-line-text-to-canvas
                     // 豆先輩！！！！！！！！！！！！！！！！！！
@@ -274,7 +277,7 @@ class NicoLivePlayService : Service() {
                         commentJSONParse.comment.split("\n")
                     }
                     for (line in asciiArtComment) {
-                        commentCanvas.postComment(line, commentJSONParse, true)
+                        commentCanvas!!.postComment(line, commentJSONParse, true)
                     }
                 }
             }
@@ -333,9 +336,9 @@ class NicoLivePlayService : Service() {
                         // 再生準備
                         popupExoPlayer.setMediaSource(hlsMediaSource)
                         popupExoPlayer.prepare()
-                        if (::viewBinding.isInitialized) {
+                        if (viewBinding != null) {
                             //SurfaceViewセット
-                            popupExoPlayer.setVideoSurfaceView(viewBinding.overlaySurfaceview)
+                            popupExoPlayer.setVideoSurfaceView(viewBinding!!.overlaySurfaceview)
                         }
                         //再生
                         popupExoPlayer.playWhenReady = true
@@ -397,165 +400,205 @@ class NicoLivePlayService : Service() {
             )
         }
         viewBinding = OverlayPlayerLayoutBinding.inflate(layoutInflater)
-        // 表示
-        windowManager.addView(viewBinding.root, params)
-        commentCanvas = viewBinding.overlayCommentCanvas
-        commentCanvas.isPopupView = true
 
-        if (isNicoJK()) {
-            // ニコニコ実況の場合はSurfaceView非表示
-            viewBinding.overlaySurfaceview.visibility = View.GONE
-            // 半透明
-            (viewBinding.overlaySurfaceview.parent as FrameLayout).setBackgroundColor(Color.parseColor("#1A000000"))
-            // ミュートボタン塞ぐ
-            viewBinding.overlayControlInclude.playerNicoliveControlMute.visibility = View.GONE
-        }
+        viewBinding?.apply {
+            // 表示
+            windowManager.addView(root, params)
+            commentCanvas = overlayCommentCanvas
+            commentCanvas!!.isPopupView = true
 
-        // 番組名、ID設定
-        viewBinding.root.apply {
-            viewBinding.overlayControlInclude.playerNicoliveControlTitle.text = programTitle
-            viewBinding.overlayControlInclude.playerNicoliveControlId.text = liveId
-        }
-
-        // 使わないボタンを消す
-        viewBinding.apply {
-            overlayControlInclude.playerNicoliveControlPopup.isVisible = false
-            overlayControlInclude.playerNicoliveControlBackground.isVisible = false
-            overlayControlInclude.playerNicoliveControlVideoNetwork.isVisible = false
-        }
-
-        // SurfaceViewセット
-        if (::popupExoPlayer.isInitialized) {
-            popupExoPlayer.setVideoSurfaceView(viewBinding.overlaySurfaceview)
-        }
-
-        //閉じる
-        viewBinding.overlayControlInclude.playerNicoliveControlClose.isVisible = true
-        viewBinding.overlayControlInclude.playerNicoliveControlClose.setOnClickListener {
-            stopSelf()
-        }
-
-        //アプリ起動
-        viewBinding.overlayControlInclude.playerNicoliveControlFullscreen.setOnClickListener {
-            stopSelf()
-            // モード選ぶ
-            val mode = when {
-                isCommentPOSTMode -> "comment_post"
-                isNicoCasMode -> "nicocas"
-                else -> "comment_viewer"
+            if (isNicoJK()) {
+                // ニコニコ実況の場合はSurfaceView非表示
+                overlaySurfaceview.visibility = View.GONE
+                // 半透明
+                setPopupPlayerAlpha(20)
+                // ミュートボタン塞ぐ
+                overlayControlInclude.playerNicoliveControlMute.visibility = View.GONE
+                // 実況だけ透明度設定ができるように
+                overlayControlInclude.playerNicoliveControlAlphaSlideImageView.isVisible = true
             }
-            // アプリ起動
-            val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("liveId", liveId)
-            intent.putExtra("watch_mode", mode)
-            intent.putExtra("isOfficial", nicoLiveHTML.isOfficial)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-        }
 
-        //ミュート・ミュート解除
-        viewBinding.overlayControlInclude.playerNicoliveControlMute.isVisible = true
-        viewBinding.overlayControlInclude.playerNicoliveControlMute.setOnClickListener {
+            // 番組名、ID設定
+            root.apply {
+                overlayControlInclude.playerNicoliveControlTitle.text = programTitle
+                overlayControlInclude.playerNicoliveControlId.text = liveId
+            }
+
+            // 使わないボタンを消す
+            apply {
+                overlayControlInclude.playerNicoliveControlPopup.isVisible = false
+                overlayControlInclude.playerNicoliveControlBackground.isVisible = false
+                overlayControlInclude.playerNicoliveControlVideoNetwork.isVisible = false
+            }
+
+            // SurfaceViewセット
             if (::popupExoPlayer.isInitialized) {
-                popupExoPlayer.apply {
-                    //音が０のとき
-                    if (volume == 0f) {
-                        volume = 1f
-                        viewBinding.overlayControlInclude.playerNicoliveControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
-                    } else {
-                        volume = 0f
-                        viewBinding.overlayControlInclude.playerNicoliveControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
+                popupExoPlayer.setVideoSurfaceView(overlaySurfaceview)
+            }
+
+            //閉じる
+            overlayControlInclude.playerNicoliveControlClose.isVisible = true
+            overlayControlInclude.playerNicoliveControlClose.setOnClickListener {
+                stopSelf()
+            }
+
+            //アプリ起動
+            overlayControlInclude.playerNicoliveControlFullscreen.setOnClickListener {
+                stopSelf()
+                // モード選ぶ
+                val mode = when {
+                    isCommentPOSTMode -> "comment_post"
+                    isNicoCasMode -> "nicocas"
+                    else -> "comment_viewer"
+                }
+                // アプリ起動
+                val intent = Intent(this@NicoLivePlayService, MainActivity::class.java)
+                intent.putExtra("liveId", liveId)
+                intent.putExtra("watch_mode", mode)
+                intent.putExtra("isOfficial", nicoLiveHTML.isOfficial)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+            }
+
+            //ミュート・ミュート解除
+            overlayControlInclude.playerNicoliveControlMute.isVisible = true
+            overlayControlInclude.playerNicoliveControlMute.setOnClickListener {
+                if (::popupExoPlayer.isInitialized) {
+                    popupExoPlayer.apply {
+                        //音が０のとき
+                        if (volume == 0f) {
+                            volume = 1f
+                            overlayControlInclude.playerNicoliveControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_up_24px))
+                        } else {
+                            volume = 0f
+                            overlayControlInclude.playerNicoliveControlMute.setImageDrawable(getDrawable(R.drawable.ic_volume_off_24px))
+                        }
                     }
                 }
             }
-        }
 
-        // ピンチイン、ピンチアウトでズームなど
-        // ピンチイン、ピンチアウトって単語、スマホ黎明期みたいで懐かしいな
-        val scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
-            override fun onScaleBegin(p0: ScaleGestureDetector?): Boolean {
-                return true
+            // 透明度設定ボタン表示
+            overlayControlInclude.playerNicoliveControlAlphaSlideImageView.setOnClickListener {
+                overlayControlInclude.playerNicoliveControlAlphaSeekBar.isVisible = !overlayControlInclude.playerNicoliveControlAlphaSeekBar.isVisible
             }
-
-            override fun onScaleEnd(p0: ScaleGestureDetector?) {
-
-            }
-
-            override fun onScale(p0: ScaleGestureDetector?): Boolean {
-                // ズーム操作中
-                if (p0 == null) return true
-                // なんかうまくいくコード
-                params.width = (params.width * p0.scaleFactor).toInt()
-                // アスペクト比が(頭)おかCなるので計算で出す。(16対9なので)
-                params.height = (params.width / 16) * 9
-                // 更新
-                windowManager.updateViewLayout(viewBinding.root, params)
-                // 大きさを保持しておく
-                prefSetting.edit {
-                    putInt("nicolive_popup_width", params.width)
-                    putInt("nicolive_popup_height", params.height)
+            // 透明度Seekbar
+            overlayControlInclude.playerNicoliveControlAlphaSeekBar.progress = 100
+            overlayControlInclude.playerNicoliveControlAlphaSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    setPopupPlayerAlpha(progress)
                 }
-                return true
-            }
-        })
-        // 移動
-        viewBinding.root.setOnTouchListener { view, motionEvent ->
-            // タップした位置を取得する
-            val x = motionEvent.rawX.toInt()
-            val y = motionEvent.rawY.toInt()
-            // ピンチイン、ピンチアウト対応
-            scaleGestureDetector.onTouchEvent(motionEvent)
-            when (motionEvent.action) {
-                // Viewを移動させてるときに呼ばれる
-                MotionEvent.ACTION_MOVE -> {
-                    // オーバーレイ表示領域の座標を移動させる
-                    params.x = x - (DisplaySizeTool.getDisplayWidth(this) / 2)
-                    params.y = y - (DisplaySizeTool.getDisplayHeight(this) / 2)
-                    // 移動した分を更新する
-                    windowManager.updateViewLayout(view, params)
-                    // 位置保存
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                }
+            })
+
+            // ピンチイン、ピンチアウトでズームなど
+            // ピンチイン、ピンチアウトって単語、スマホ黎明期みたいで懐かしいな
+            val scaleGestureDetector = ScaleGestureDetector(this@NicoLivePlayService, object : ScaleGestureDetector.OnScaleGestureListener {
+                override fun onScaleBegin(p0: ScaleGestureDetector?): Boolean {
+                    return true
+                }
+
+                override fun onScaleEnd(p0: ScaleGestureDetector?) {
+
+                }
+
+                override fun onScale(p0: ScaleGestureDetector?): Boolean {
+                    // ズーム操作中
+                    if (p0 == null) return true
+                    // なんかうまくいくコード
+                    params.width = (params.width * p0.scaleFactor).toInt()
+                    // アスペクト比が(頭)おかCなるので計算で出す。(16対9なので)
+                    params.height = (params.width / 16) * 9
+                    // 更新
+                    windowManager.updateViewLayout(root, params)
+                    // 大きさを保持しておく
                     prefSetting.edit {
-                        putInt("nicolive_popup_x_pos", params.x)
-                        putInt("nicolive_popup_y_pos", params.y)
+                        putInt("nicolive_popup_width", params.width)
+                        putInt("nicolive_popup_height", params.height)
                     }
-                    return@setOnTouchListener true // ここのtrue意味あるんかな
+                    return true
+                }
+            })
+            // 移動
+            root.setOnTouchListener { view, motionEvent ->
+                // タップした位置を取得する
+                val x = motionEvent.rawX.toInt()
+                val y = motionEvent.rawY.toInt()
+                // ピンチイン、ピンチアウト対応
+                scaleGestureDetector.onTouchEvent(motionEvent)
+                when (motionEvent.action) {
+                    // Viewを移動させてるときに呼ばれる
+                    MotionEvent.ACTION_MOVE -> {
+                        // オーバーレイ表示領域の座標を移動させる
+                        params.x = x - (DisplaySizeTool.getDisplayWidth(this@NicoLivePlayService) / 2)
+                        params.y = y - (DisplaySizeTool.getDisplayHeight(this@NicoLivePlayService) / 2)
+                        // 移動した分を更新する
+                        windowManager.updateViewLayout(view, params)
+                        // 位置保存
+                        prefSetting.edit {
+                            putInt("nicolive_popup_x_pos", params.x)
+                            putInt("nicolive_popup_y_pos", params.y)
+                        }
+                        return@setOnTouchListener true // ここのtrue意味あるんかな
+                    }
+                }
+                return@setOnTouchListener false
+            }
+
+            //ボタン表示
+            var job: Job? = null
+            root.setOnClickListener {
+                // ktxで表示/非表示を短く書こう！
+                overlayControlInclude.playerNicoliveControlMain.isVisible = !overlayControlInclude.playerNicoliveControlMain.isVisible
+                job?.cancel()
+                job = GlobalScope.launch(Dispatchers.Main) {
+                    // 一定期間で消えるように
+                    delay(3000)
+                    overlayControlInclude.playerNicoliveControlMain.isVisible = false
                 }
             }
-            return@setOnTouchListener false
-        }
 
-        //ボタン表示
-        var job: Job? = null
-        viewBinding.root.setOnClickListener {
-            // ktxで表示/非表示を短く書こう！
-            viewBinding.overlayControlInclude.playerNicoliveControlMain.isVisible = !viewBinding.overlayControlInclude.playerNicoliveControlMain.isVisible
-            job?.cancel()
-            job = GlobalScope.launch(Dispatchers.Main) {
-                // 一定期間で消えるように
-                delay(3000)
-                viewBinding.overlayControlInclude.playerNicoliveControlMain.isVisible = false
+            overlayControlInclude.playerNicoliveControlSend.isVisible = true
+            overlayControlInclude.playerNicoliveControlSend.setOnClickListener {
+                showNotification(programTitle)
+            }
+
+            // サイズが保存されていれば適用
+            if (prefSetting.getInt("nicolive_popup_width", 0) != 0) {
+                params.width = prefSetting.getInt("nicolive_popup_width", width)
+                params.height = prefSetting.getInt("nicolive_popup_height", height)
+                windowManager.updateViewLayout(root, params)
+            }
+
+            // 位置が保存されていれば適用
+            if (prefSetting.getInt("nicolive_popup_x_pos", 0) != 0) {
+                params.x = prefSetting.getInt("nicolive_popup_x_pos", 0)
+                params.y = prefSetting.getInt("nicolive_popup_y_pos", 0)
+                windowManager.updateViewLayout(root, params)
             }
         }
+    }
 
-        viewBinding.overlayControlInclude.playerNicoliveControlSend.isVisible = true
-        viewBinding.overlayControlInclude.playerNicoliveControlSend.setOnClickListener {
-            showNotification(programTitle)
+    /**
+     * ポップアップ再生の透明度を設定する。
+     * @param progress 透明度。0から100まで
+     * */
+    private fun setPopupPlayerAlpha(progress: Int) {
+        viewBinding?.apply {
+            // 10進数を16進数へ。カラーコードの先頭に透明度としてつける
+            val hexAlpha = String.format("%02X", 0xFF and (progress * 2.55).toInt())
+            val colorCode = "#${hexAlpha}000000"
+            (overlaySurfaceview.parent as FrameLayout).setBackgroundColor(Color.parseColor(colorCode))
+            overlayControlInclude.playerNicoliveControlAlphaSeekBar.post {
+                overlayControlInclude.playerNicoliveControlAlphaSeekBar.progress = progress
+            }
         }
-
-        // サイズが保存されていれば適用
-        if (prefSetting.getInt("nicolive_popup_width", 0) != 0) {
-            params.width = prefSetting.getInt("nicolive_popup_width", width)
-            params.height = prefSetting.getInt("nicolive_popup_height", height)
-            windowManager.updateViewLayout(viewBinding.root, params)
-        }
-
-        // 位置が保存されていれば適用
-        if (prefSetting.getInt("nicolive_popup_x_pos", 0) != 0) {
-            params.x = prefSetting.getInt("nicolive_popup_x_pos", 0)
-            params.y = prefSetting.getInt("nicolive_popup_y_pos", 0)
-            windowManager.updateViewLayout(viewBinding.root, params)
-        }
-
     }
 
     /** ニコニコチャンネルになったニコニコ実況かどうかを返す。新ニコニコ実況ならtrue */
@@ -693,15 +736,17 @@ class NicoLivePlayService : Service() {
                     }
                     "video_popup_fix_size" -> {
                         // ポップアップの大きさを治す
-                        val params = viewBinding.root.layoutParams
-                        params.width = 800
-                        params.height = (params.width / 16) * 9
-                        // 更新
-                        windowManager.updateViewLayout(viewBinding.root, params)
-                        // 大きさを保持しておく
-                        prefSetting.edit {
-                            putInt("nicolive_popup_width", params.width)
-                            putInt("nicolive_popup_height", params.height)
+                        if (viewBinding != null) {
+                            val params = viewBinding!!.root.layoutParams
+                            params.width = 800
+                            params.height = (params.width / 16) * 9
+                            // 更新
+                            windowManager.updateViewLayout(viewBinding!!.root, params)
+                            // 大きさを保持しておく
+                            prefSetting.edit {
+                                putInt("nicolive_popup_width", params.width)
+                                putInt("nicolive_popup_height", params.height)
+                            }
                         }
                     }
                 }
@@ -713,8 +758,8 @@ class NicoLivePlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(broadcastReceiver)
-        if (::viewBinding.isInitialized) {
-            windowManager.removeView(viewBinding.root)
+        if (viewBinding != null) {
+            windowManager.removeView(viewBinding!!.root)
         }
         if (::popupExoPlayer.isInitialized) {
             popupExoPlayer.release()

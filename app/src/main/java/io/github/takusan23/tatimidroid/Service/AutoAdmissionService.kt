@@ -110,7 +110,7 @@ class AutoAdmissionService : Service() {
         return START_NOT_STICKY
     }
 
-    fun showAutoAdmissionNotification(liveid: String, programName: String, app: String, calendar: Calendar) {
+    private fun showAutoAdmissionNotification(liveid: String, programName: String, app: String, calendar: Calendar) {
         notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         // OreoかNougatか
@@ -163,7 +163,7 @@ class AutoAdmissionService : Service() {
         }
     }
 
-    fun showForegroundNotification() {
+    private fun showForegroundNotification() {
         var programList = ""
         // データベースへ
         GlobalScope.launch(Dispatchers.Main) {
@@ -193,7 +193,6 @@ class AutoAdmissionService : Service() {
             //予約無い時
             if (programList.isEmpty()) {
                 programList = getString(R.string.auto_admission_empty)
-                // 無いので落とす。stopSelf()は使えなかった
                 stopForeground(true)
                 return@launch
             }

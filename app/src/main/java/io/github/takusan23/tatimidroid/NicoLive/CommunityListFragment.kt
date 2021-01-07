@@ -116,14 +116,6 @@ class CommunityListFragment : Fragment() {
             GAME_PLAYING -> getProgramFromNicoNamaGame(NicoLiveGameProgram.NICONAMA_GAME_PLAYING)
             ADMISSION -> {
                 getAutoAdmissionList()
-                //Service再起動
-                val intent = Intent(context, AutoAdmissionService::class.java)
-                context?.stopService(intent)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context?.startForegroundService(intent)
-                } else {
-                    context?.startService(intent)
-                }
             }
             CHUMOKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.FORCUS_PROGRAM)
             YOYAKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.POPULAR_BEFORE_OPEN_BROADCAST_STATUS_PROGRAM)
@@ -347,6 +339,17 @@ class CommunityListFragment : Fragment() {
                         item.add(data.startTime)
                         item.add(data.lanchApp)
                         autoAdmissionRecyclerViewList.add(item)
+                    }
+                }
+                // 予約がある場合のみService起動
+                if(autoAdmissionList.isNotEmpty()){
+                    //Service再起動
+                    val intent = Intent(context, AutoAdmissionService::class.java)
+                    context?.stopService(intent)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context?.startForegroundService(intent)
+                    } else {
+                        context?.startService(intent)
                     }
                 }
             }

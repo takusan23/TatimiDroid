@@ -1,4 +1,5 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/player_nicolive_control_parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -15,7 +16,7 @@
             android:orientation="vertical">
 
         <LinearLayout
-                android:id="@+id/player_nicolive_control_buttons"
+                android:id="@+id/player_nicolive_control_buttons_linear_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
@@ -56,6 +57,16 @@
                         android:textColor="#ffffff"
                         android:textSize="12sp" />
             </LinearLayout>
+
+            <ImageView
+                    android:id="@+id/player_nicolive_control_alpha_slide_image_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_outline_format_color_fill_24px"
+                    android:tint="#ffffff"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
             <ImageView
                     android:id="@+id/player_nicolive_control_video_network"
@@ -126,6 +137,14 @@
                     android:tint="#ffffff"
                     android:visibility="gone" />
         </LinearLayout>
+
+        <SeekBar
+                android:id="@+id/player_nicolive_control_alpha_seek_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
         <LinearLayout
                 android:layout_width="match_parent"
