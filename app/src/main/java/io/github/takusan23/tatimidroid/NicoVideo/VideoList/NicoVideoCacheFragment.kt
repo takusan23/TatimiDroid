@@ -23,7 +23,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Service.BackgroundPlaylistCachePlayService
+import io.github.takusan23.tatimidroid.Service.NicoVideoPlayMediaBrowserService
 import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoCacheBinding
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
@@ -88,11 +88,10 @@ class NicoVideoCacheFragment : Fragment() {
                 connectMediaSession()
                 // このActivityに関連付けられたMediaSessionControllerを取得
                 val controller = MediaControllerCompat.getMediaController(requireActivity())
-                // 最後に再生した曲を なければ配列の最初。それもなければ再生しない
-                val videoId = prefSetting.getString("cache_last_play_video_id", null) ?: viewModel.recyclerViewList.value?.first()?.videoId
-                if (videoId != null) {
-                    controller.transportControls.playFromMediaId(videoId, null)
-                }
+                // 動画の配列を渡す
+                controller.transportControls.prepareFromMediaId("", Bundle().apply {
+                    putSerializable("video_list", viewModel.cacheVideoList.value)
+                })
                 viewBinding.fragmentNicovideoCacheCardMotionLayout.transitionToStart()
             }
         }
@@ -100,7 +99,7 @@ class NicoVideoCacheFragment : Fragment() {
     }
 
     /**
-     * バックグラウンド連続再生のMediaBrowserService（音楽再生サービス）（[BackgroundPlaylistCachePlayService]）へ接続する関数
+     * バックグラウンド連続再生のMediaBrowserService（音楽再生サービス）（[NicoVideoPlayMediaBrowserService]）へ接続する関数
      * コルーチンで使えるようにした。
      * */
     private suspend fun connectMediaSession() = suspendCoroutine<Unit> {
@@ -116,7 +115,7 @@ class NicoVideoCacheFragment : Fragment() {
                 }
             }
         }
-        mediaBrowser = MediaBrowserCompat(requireContext(), ComponentName(requireContext(), BackgroundPlaylistCachePlayService::class.java), callback, null)
+        mediaBrowser = MediaBrowserCompat(requireContext(), ComponentName(requireContext(), NicoVideoPlayMediaBrowserService::class.java), callback, null)
         // 忘れてた
         mediaBrowser?.connect()
     }

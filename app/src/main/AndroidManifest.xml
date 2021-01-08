@@ -64,6 +64,16 @@
             </intent-filter>
         </receiver>
 
+        <service
+            android:name=".Service.NicoVideoPlayMediaBrowserService"
+            android:enabled="true"
+            android:exported="true"
+            android:label="@string/cache_background_play">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
         <service android:name=".Service.CommentGetService" />
 
         <activity android:name=".MainActivity">
