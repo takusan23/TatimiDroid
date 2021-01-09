@@ -378,7 +378,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
     }
 
     /** ExoPlayerを初期化する */
-    private fun initExoPlayer(){
+    private fun initExoPlayer() {
         exoPlayer.addListener(object : Player.EventListener {
 
             override fun onPlaybackStateChanged(state: Int) {
@@ -989,7 +989,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
     override fun onPause() {
         super.onPause()
 
-        viewModel.playerIsPlaying.postValue(false)
+        viewModel.playerIsPlaying.value = false
         (requireActivity() as MainActivity).setVisibilityBottomNav()
 
         // コントローラー表示

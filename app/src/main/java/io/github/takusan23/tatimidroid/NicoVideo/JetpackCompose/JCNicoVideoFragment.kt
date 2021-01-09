@@ -144,11 +144,13 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
         // コメント一覧展開など
         viewModel.commentListShowLiveData.observe(viewLifecycleOwner) { isShow ->
-            fragmentCommentFab.setImageDrawable(if (isShow) {
-                requireContext().getDrawable(R.drawable.ic_outline_info_24px)
-            } else {
-                requireContext().getDrawable(R.drawable.ic_outline_comment_24px)
-            })
+            fragmentCommentFab.setImageDrawable(
+                if (isShow) {
+                    requireContext().getDrawable(R.drawable.ic_outline_info_24px)
+                } else {
+                    requireContext().getDrawable(R.drawable.ic_outline_comment_24px)
+                }
+            )
             // アニメーション？自作ライブラリ
             val dropPopAlert = fragmentCommentHostFrameLayout.toDropPopAlert()
             if (isShow) {
@@ -388,7 +390,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 // 再生
                 viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
                 // プログレスバー
-                if (state == Player.STATE_READY) {
+                if (state == Player.STATE_READY || state == Player.STATE_ENDED) {
                     nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.INVISIBLE
                 } else {
                     nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.VISIBLE
