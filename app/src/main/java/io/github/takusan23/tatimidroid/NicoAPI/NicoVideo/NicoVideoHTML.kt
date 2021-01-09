@@ -105,7 +105,8 @@ class NicoVideoHTML {
             commentCount = jsonObject.getJSONObject("thread").getString("commentCount"),
             mylistCount = videoObject.getString("mylistCount"),
             isToriaezuMylist = false,
-            duration = videoObject.getLong("duration")
+            duration = videoObject.getLong("duration"),
+            uploaderName = getUploaderName(jsonObject)
         )
     }
 

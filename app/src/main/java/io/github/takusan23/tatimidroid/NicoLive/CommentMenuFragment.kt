@@ -226,15 +226,15 @@ class CommentMenuFragment : Fragment() {
             viewModel.isNotReceiveLive.postValue(!viewModel.isNotReceiveLive.value!!)
         }
 
-        // コメント一行モード on/off
-        viewBinding.fragmentCommentFragmentMenuCommentHiddenSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+        // ユーザーID非表示モード
+        viewBinding.fragmentCommentFragmentMenuCommentSettingHiddenIdSwtich.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit {
                 putBoolean("setting_id_hidden", isChecked)
                 apply()
             }
         }
 
-        // ユーザーID非表示モード
+        // コメント一行モード on/off
         viewBinding.fragmentCommentFragmentMenuSettingOneLineSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             prefSetting.edit {
                 putBoolean("setting_one_line", isChecked)

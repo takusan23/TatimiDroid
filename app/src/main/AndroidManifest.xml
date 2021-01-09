@@ -46,7 +46,9 @@
         <service android:name=".Service.AutoAdmissionService" />
         <service android:name=".Service.NicoLivePlayService" />
         <service android:name=".Service.NicoVideoPlayService" />
-        <service android:name=".Service.GetCacheService" /> <!-- キャッシュ連続再生用サービス -->
+        <!-- キャッシュ連続再生用サービス -->
+        <service android:name=".Service.GetCacheService" />
+
         <service
                 android:name=".Service.BackgroundPlaylistCachePlayService"
                 android:enabled="true"
@@ -57,22 +59,13 @@
             </intent-filter>
         </service>
 
+
         <!-- これ書かないと通知から操作一生こない -->
         <receiver android:name="androidx.media.session.MediaButtonReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
-
-        <service
-            android:name=".Service.NicoVideoPlayMediaBrowserService"
-            android:enabled="true"
-            android:exported="true"
-            android:label="@string/cache_background_play">
-            <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserService" />
-            </intent-filter>
-        </service>
 
         <service android:name=".Service.CommentGetService" />
 
