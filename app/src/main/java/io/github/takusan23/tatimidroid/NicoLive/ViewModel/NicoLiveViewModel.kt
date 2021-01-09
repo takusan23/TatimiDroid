@@ -125,7 +125,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     var qualityListJSONArray = JSONArray()
 
     /** HLSアドレス */
-    val hlsAddress = MutableLiveData<String>()
+    val hlsAddressLiveData = MutableLiveData<String>()
 
     /** 番組終了時刻。こっちはUnixTime。UI（Fragment）で使うこと無いしLiveDataじゃなくていっか！ */
     var programEndUnixTime = 0L
@@ -162,6 +162,12 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
      * ななはらでも3分で2MBぐらい？
      * */
     var isNotReceiveLive = MutableLiveData(false)
+
+    /** コメント一覧表示してくれ～LiveData */
+    val commentListShowLiveData = MutableLiveData(false)
+
+    /** コメント一覧を自動で展開しない設定かどうか */
+    val isAutoCommentListShowOff = prefSetting.getBoolean("setting_nicovideo_jc_comment_auto_show_off", true)
 
     init {
         // 匿名でコメントを投稿する場合
@@ -435,7 +441,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             when (command) {
                 "stream" -> {
                     // HLSアドレス取得
-                    hlsAddress.postValue(nicoLiveHTML.getHlsAddress(message))
+                    hlsAddressLiveData.postValue(nicoLiveHTML.getHlsAddress(message))
                     // 画質一覧と今の画質
                     currentQuality = nicoLiveHTML.getCurrentQuality(message)
                     // 選択可能な画質

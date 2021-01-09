@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -16,6 +18,7 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.BottomSheetPlayerBehavior
 import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.SystemBarVisibility
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.databinding.FragmentPlayerBaseBinding
@@ -54,8 +57,13 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** View表示時 */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // BottomSheet初期化
-        bottomSheetPlayerBehavior.init(450, viewBinding.fragmentPlayerBaseFragmentParentLinearLayout, viewBinding.fragmentPlayerBasePlayerFrameLayout)
+        // BottomSheet初期化。画面の半分ぐらい
+        val width = DisplaySizeTool.getDisplayWidth(requireContext())
+        bottomSheetPlayerBehavior.init(
+            videoWidth = if (isLandscape()) width / 3 else width / 2,
+            bottomSheetView = viewBinding.fragmentPlayerBaseFragmentParentLinearLayout,
+            playerView = viewBinding.fragmentPlayerBasePlayerFrameLayout
+        )
         // ダークモード対策
         viewBinding.fragmentPlayerBaseFragmentParentLinearLayout.background = ColorDrawable(getThemeColor(context))
         // コールバック
@@ -83,6 +91,16 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
                 isEnabled = false
             }
         }
+    }
+
+    /** スリープにしない */
+    fun caffeine() {
+        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    /** スリープにしないを解除する */
+    fun caffeineUnlock() {
+        requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     /** ミニプレイヤー登場のアニメーションをする場合は呼んでね。一回だけとか */
@@ -171,6 +189,8 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
                     click?.invoke()
                 }
             }
+            val textView = view.findViewById(R.id.snackbar_text) as TextView
+            textView.maxLines = 5 // 複数行
             anchorView = fragmentCommentFab
             view.elevation = 30f
         }.show()

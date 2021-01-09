@@ -13,7 +13,6 @@ import com.bumptech.glide.Glide
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoRepo.NicoRepoDataClass
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
-import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.R
 import java.text.SimpleDateFormat
@@ -93,14 +92,7 @@ class NicoRepoAdapter(val list: ArrayList<NicoRepoDataClass>) : RecyclerView.Ada
                     // 動画
                     (context as? MainActivity)?.setNicovideoFragment(videoId = item.contentId)
                 } else {
-                    // 生放送
-                    val commentFragment = CommentFragment()
-                    // LiveID詰める
-                    val bundle = Bundle()
-                    bundle.putString("liveId", item.contentId)
-                    bundle.putString("watch_mode", "comment_post")
-                    commentFragment.arguments = bundle
-                    (context as MainActivity).setPlayer(commentFragment, item.contentId)
+                    (context as? MainActivity)?.setNicoliveFragment(item.contentId, "comment_post", false)
                 }
             }
         }

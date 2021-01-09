@@ -236,7 +236,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // ステータスバー透明化＋タイトルバー非表示＋ノッチ領域にも侵略。関数名にAndがつくことはあんまりない
         hideStatusBarAndSetFullScreen()
         // なんかxmlが効かないので
-        MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_audio_only_textview, View.GONE)
+        MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.include_nicolive_player_audio_only_text_view, View.GONE)
 
         // ログイン情報がなければ終了
         if (prefSetting.getString("mail", "")?.contains("") != false) {
@@ -368,7 +368,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
 
         // HLSアドレス取得
-        viewModel.hlsAddress.observe(viewLifecycleOwner) { address ->
+        viewModel.hlsAddressLiveData.observe(viewLifecycleOwner) { address ->
             if (viewModel.isCommentOnlyMode) {
                 setCommentOnlyMode(true)
             } else {
@@ -912,7 +912,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun setPlayVideoView() {
 
         // ExoPlayer作り直す
-        val hlsAddress = viewModel.hlsAddress.value ?: return
+        val hlsAddress = viewModel.hlsAddressLiveData.value ?: return
         exoPlayer.release()
         exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
 
@@ -926,12 +926,12 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
             // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
             if (viewModel.currentQuality == "audio_high") {
-                MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_audio_only_textview, View.VISIBLE)
+                MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.include_nicolive_player_audio_only_text_view, View.VISIBLE)
                 MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_surface_view, View.VISIBLE)
                 viewBinding.commentFragmentSurfaceView.background = ColorDrawable(Color.BLACK)
             } else {
-                MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_audio_only_textview, View.GONE)
-                MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.comment_fragment_audio_only_textview, View.GONE)
+                MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.include_nicolive_player_audio_only_text_view, View.GONE)
+                MotionLayoutTool.setMotionLayoutViewVisible(viewBinding.commentFragmentMotionLayout, R.id.include_nicolive_player_audio_only_text_view, View.GONE)
                 viewBinding.commentFragmentSurfaceView.background = null
             }
 
@@ -1159,7 +1159,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     override fun onStart() {
         super.onStart()
         //再生部分を作り直す
-        if (viewModel.hlsAddress.value?.isNotEmpty() == true && !viewModel.isCommentOnlyMode) {
+        if (viewModel.hlsAddressLiveData.value?.isNotEmpty() == true && !viewModel.isCommentOnlyMode) {
             setPlayVideoView()
         }
     }

@@ -26,6 +26,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveFragment
 import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoCommentListHostFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoFragment
@@ -233,6 +234,34 @@ class MainActivity : AppCompatActivity() {
         } else {
             setPlayer(fragment, videoId)
         }
+    }
+
+    /**
+     * ニコ生の再生Fragmentを置く関数。設定を呼んでJetpack Compose版と分岐させます。
+     *
+     * ちなみに (requireActivity() as? MainActivity)でnull許容な形にしている理由ですが、MainActivity以外で落ちないようにするだけ。多分意味ない！
+     *
+     * @param liveId 生放送ID
+     * @param isOfficial 公式どうか。わかるなら入れてくれ
+     * @param watchMode 視聴モード。以下のどれか。将来的には comment_post だけにしたい。
+     * - comment_viewer (コメント投稿無し)
+     * - comment_post (デフォルト)
+     * - nicocas (コメント投稿にnicocasAPIを利用。てかこれまだ使えるの？)
+     * */
+    fun setNicoliveFragment(liveId: String, watchMode: String = "comment_post", isOfficial: Boolean? = null) {
+        val fragment: Fragment = when {
+            // prefSetting.getBoolean("setting_nicovideo_comment_only", false) -> JCNicoVideoCommentListHostFragment()// コメントのみ表示
+            prefSetting.getBoolean("setting_nicovideo_use_old_ui", true) -> CommentFragment() // 旧UI。JetpackCompose、 Android 7 以前で表示が乱れる
+            else -> JCNicoLiveFragment() // Jetpack Compose 利用版
+        }
+        fragment.apply {
+            arguments = Bundle().apply {
+                putString("liveId", liveId)
+                putString("watch_mode", watchMode)
+                isOfficial?.let { putBoolean("isOfficial", it) }
+            }
+        }
+        setPlayer(fragment, liveId)
     }
 
     /**

@@ -28,7 +28,7 @@
 
         <!-- 音声のみ -->
         <TextView
-                android:id="@+id/comment_fragment_audio_only_textview"
+                android:id="@+id/include_nicolive_player_audio_only_text_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"

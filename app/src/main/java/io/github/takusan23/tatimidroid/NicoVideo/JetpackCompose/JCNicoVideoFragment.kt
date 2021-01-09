@@ -4,7 +4,6 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.format.DateUtils
 import android.view.View
-import android.view.WindowManager
 import android.widget.SeekBar
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -118,16 +117,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             miniPlayerAnimation()
         }
 
-    }
-
-    /** スリープにしない */
-    private fun caffeine() {
-        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-    }
-
-    /** スリープにしないを解除する */
-    private fun caffeineUnlock() {
-        requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     /** [JCNicoVideoInfoFragment] / [NicoVideoCommentFragment] を設置する */

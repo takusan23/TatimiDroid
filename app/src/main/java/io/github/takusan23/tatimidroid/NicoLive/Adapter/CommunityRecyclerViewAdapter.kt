@@ -24,9 +24,8 @@ import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.button.MaterialButton
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
-import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeTextColor
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
@@ -166,34 +165,13 @@ class CommunityRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<NicoLive
             val context = itemHolder.watchModeComeCas.context
             val mainActivity = context as MainActivity
             watchModeComeView.setOnClickListener {
-                val commentFragment = CommentFragment()
-                // LiveID詰める
-                val bundle = Bundle()
-                bundle.putString("liveId", nicoLiveProgramData.programId)
-                bundle.putString("watch_mode", "comment_viewer")
-                bundle.putBoolean("isOfficial", nicoLiveProgramData.isOfficial)
-                commentFragment.arguments = bundle
-                mainActivity.setPlayer(commentFragment, nicoLiveProgramData.programId)
+                mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "comment_viewer", nicoLiveProgramData.isOfficial)
             }
             watchModeComePost.setOnClickListener {
-                val commentFragment = CommentFragment()
-                // LiveID詰める
-                val bundle = Bundle()
-                bundle.putString("liveId", nicoLiveProgramData.programId)
-                bundle.putString("watch_mode", "comment_post")
-                bundle.putBoolean("isOfficial", nicoLiveProgramData.isOfficial)
-                commentFragment.arguments = bundle
-                mainActivity.setPlayer(commentFragment, nicoLiveProgramData.programId)
+                mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "comment_post", nicoLiveProgramData.isOfficial)
             }
             watchModeComeCas.setOnClickListener {
-                val commentFragment = CommentFragment()
-                // LiveID詰める
-                val bundle = Bundle()
-                bundle.putString("liveId", nicoLiveProgramData.programId)
-                bundle.putString("watch_mode", "nicocas")
-                bundle.putBoolean("isOfficial", nicoLiveProgramData.isOfficial)
-                commentFragment.arguments = bundle
-                mainActivity.setPlayer(commentFragment, nicoLiveProgramData.programId)
+                mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "nicocas", nicoLiveProgramData.isOfficial)
             }
             watchModeDesc.setOnClickListener {
                 //ダイアログ

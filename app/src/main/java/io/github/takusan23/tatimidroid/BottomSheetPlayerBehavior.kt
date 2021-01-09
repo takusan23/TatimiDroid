@@ -79,12 +79,12 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
      * @param bottomSheetView BottomSheetを設定したView
      * @param playerView プレイヤーのView
      * */
-    fun init(videoHeight: Int, bottomSheetView: View, playerView: View) {
+    fun init(videoWidth: Int, bottomSheetView: View, playerView: View) {
         draggablePlayerView = playerView
         draggableBottomSheetView = bottomSheetView
 
         // 最小値
-        val videoWidth = (videoHeight / 9) * 16
+        val videoHeight = (videoWidth / 16) * 9
         peekHeight = videoHeight
 
         // 画面の幅
@@ -300,6 +300,5 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
             }
         }
     }
-
 
 }

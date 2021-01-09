@@ -12,7 +12,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
-import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
@@ -109,13 +108,7 @@ class WatchModeBottomFragment : BottomSheetDialogFragment() {
                 //コメント投稿機能、視聴継続メッセージ送信機能なし
                 viewBinding.bottomFragmentWatchModeCommentViewerModeButton.setOnClickListener {
                     // Fragment設置
-                    val commentFragment = CommentFragment()
-                    val bundle = Bundle()
-                    bundle.putString("liveId", liveId)
-                    bundle.putString("watch_mode", "comment_viewer")
-                    bundle.putBoolean("isOfficial", isOfficial)
-                    commentFragment.arguments = bundle
-                    (requireActivity() as MainActivity).setPlayer(commentFragment, liveId)
+                    (requireActivity() as? MainActivity)?.setNicoliveFragment(liveId, "comment_viewer", isOfficial)
                     this@WatchModeBottomFragment.dismiss()
                 }
 
@@ -123,13 +116,7 @@ class WatchModeBottomFragment : BottomSheetDialogFragment() {
                 //書き込める
                 viewBinding.bottomFragmentWatchModeCommentPostModeButton.setOnClickListener {
                     //画面移動
-                    val commentFragment = CommentFragment()
-                    val bundle = Bundle()
-                    bundle.putString("liveId", liveId)
-                    bundle.putString("watch_mode", "comment_post")
-                    bundle.putBoolean("isOfficial", isOfficial)
-                    commentFragment.arguments = bundle
-                    (requireActivity() as MainActivity).setPlayer(commentFragment, liveId)
+                    (requireActivity() as? MainActivity)?.setNicoliveFragment(liveId, "comment_post", isOfficial)
                     this@WatchModeBottomFragment.dismiss()
                 }
 
@@ -137,13 +124,7 @@ class WatchModeBottomFragment : BottomSheetDialogFragment() {
                 //nicocasのAPIでコメント投稿を行う
                 viewBinding.bottomFragmentWatchModeNicocasCommentModeButton.setOnClickListener {
                     //画面移動
-                    val commentFragment = CommentFragment()
-                    val bundle = Bundle()
-                    bundle.putString("liveId", liveId)
-                    bundle.putString("watch_mode", "nicocas")
-                    bundle.putBoolean("isOfficial", isOfficial)
-                    commentFragment.arguments = bundle
-                    (requireActivity() as MainActivity).setPlayer(commentFragment, liveId)
+                    (requireActivity() as? MainActivity)?.setNicoliveFragment(liveId, "nicocas", isOfficial)
                     this@WatchModeBottomFragment.dismiss()
                 }
             } else if (!canWatchLive) {
