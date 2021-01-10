@@ -45,6 +45,9 @@ import io.github.takusan23.tatimidroid.R
  * @param onSizeValueChange 大きさが変わったら呼ばれる
  * @param onColorValueChange 色が変わったら呼ばれる
  * @param onTokumeiChange いやよ、生IDが切り替わったら呼ばれる。trueで匿名
+ * @param position コメントの位置
+ * @param size コメントの大きさ
+ * @param color コメントの色
  * */
 @ExperimentalAnimationApi
 @Composable
@@ -59,6 +62,9 @@ fun NicoLiveCommentInputButton(
     changeEnterToSend: Boolean = true,
     isHideCommentInputLayout: Boolean = false,
     onHideCommentInputLayoutChange: (Boolean) -> Unit = {},
+    position: String,
+    size: String,
+    color: String,
     onPosValueChange: (String) -> Unit,
     onSizeValueChange: (String) -> Unit,
     onColorValueChange: (String) -> Unit,
@@ -93,6 +99,9 @@ fun NicoLiveCommentInputButton(
                 onSizeValueChange = onSizeValueChange,
                 is184 = is184,
                 onTokumeiChange = onTokumeiChange,
+                color = color,
+                position = position,
+                size = size,
             )
         }
         // コメント投稿欄
@@ -170,6 +179,9 @@ fun NicoLiveCommentInputButton(
  * @param isPremium プレミアム会員かどうか。trueにするとプレ垢限定色を使うことができます
  * （というかカラーコードがそのまま使えるようになる方が有能だったりする）
  * @param is184 匿名で投稿するか。
+ * @param position コメントの位置
+ * @param size コメントの大きさ
+ * @param color コメントの色
  * @param onPosValueChange 固定位置が変わったら呼ばれる
  * @param onSizeValueChange 大きさが変わったら呼ばれる
  * @param onColorValueChange 色が変わったら呼ばれる
@@ -179,6 +191,9 @@ fun NicoLiveCommentInputButton(
 fun NicoLiveCommentCommandPanel(
     isPremium: Boolean = true,
     is184: Boolean = true,
+    position: String,
+    size: String,
+    color: String,
     onPosValueChange: (String) -> Unit,
     onSizeValueChange: (String) -> Unit,
     onColorValueChange: (String) -> Unit,
@@ -193,11 +208,11 @@ fun NicoLiveCommentCommandPanel(
     // ボタンのアウトラインの色
     val buttonOutlineColor = BorderStroke(1.dp, Color.White)
     // どの位置にしたか
-    val selectPos = remember { mutableStateOf("ue") }
+    val selectPos = remember { mutableStateOf(position) }
     // どの大きさにしたか
-    val selectSize = remember { mutableStateOf("medium") }
+    val selectSize = remember { mutableStateOf(size) }
     // どの色押したかどうか
-    val selectColor = remember { mutableStateOf("#ffffff") }
+    val selectColor = remember { mutableStateOf(color) }
     // 引数の関数たちをよぶ
     onPosValueChange(selectPos.value)
     onSizeValueChange(selectSize.value)
@@ -305,7 +320,7 @@ fun NicoLiveCommentCommandPanel(
                 inactiveColor = Color.White,
                 activeColor = Color.White,
                 textStyle = TextStyle(Color.White),
-                label = { Text(text = stringResource(id = R.string.size)) },
+                label = { Text(text = stringResource(id = R.string.position)) },
                 onValueChange = { selectPos.value = it }
             )
             OutlinedTextField(
@@ -316,7 +331,7 @@ fun NicoLiveCommentCommandPanel(
                 inactiveColor = Color.White,
                 activeColor = Color.White,
                 textStyle = TextStyle(Color.White),
-                label = { Text(text = stringResource(id = R.string.position)) },
+                label = { Text(text = stringResource(id = R.string.size)) },
                 onValueChange = { selectSize.value = it }
             )
             OutlinedTextField(

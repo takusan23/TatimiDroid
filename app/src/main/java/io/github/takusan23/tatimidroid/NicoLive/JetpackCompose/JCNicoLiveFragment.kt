@@ -120,11 +120,11 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 // 匿名で投稿するか
                 val isTokumeiPost = remember { mutableStateOf(viewModel.nicoLiveHTML.isPostTokumeiComment) }
                 // 文字の大きさ
-                var commentSize = "medium"
+                val commentSize = remember { mutableStateOf("medium") }
                 // 文字の位置
-                var commentPos = "naka"
+                val commentPos = remember { mutableStateOf("naka") }
                 // 文字の色
-                var commentColor = "white"
+                val commentColor = remember { mutableStateOf("white") }
 
                 NicoLiveCommentInputButton(
                     onClick = {
@@ -136,13 +136,16 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                     onPostClick = {
                         // コメント投稿
                         scope.launch {
-                            viewModel.sendComment(commentPostText.value, commentColor, commentSize, commentPos, false)
+                            viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value, false)
                             commentPostText.value = "" // クリアに
                         }
                     },
-                    onPosValueChange = { commentPos = it },
-                    onSizeValueChange = { commentSize = it },
-                    onColorValueChange = { commentColor = it },
+                    position = commentPos.value,
+                    size = commentSize.value,
+                    color = commentColor.value,
+                    onPosValueChange = { commentPos.value = it },
+                    onSizeValueChange = { commentSize.value = it },
+                    onColorValueChange = { commentColor.value = it },
                     is184 = isTokumeiPost.value,
                     onTokumeiChange = {
                         // 匿名、生ID切り替わった時
