@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.app.ShareCompat
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
@@ -112,24 +113,42 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             setContent {
                 // コメント展開するかどうか
                 val isComment = viewModel.commentListShowLiveData.observeAsState(initial = false)
-                // コメント本文
-                val commentPostText = remember { mutableStateOf("") }
                 // コルーチン
                 val scope = rememberCoroutineScope()
+                // コメント本文
+                val commentPostText = remember { mutableStateOf("") }
+                // 匿名で投稿するか
+                val isTokumeiPost = remember { mutableStateOf(viewModel.nicoLiveHTML.isPostTokumeiComment) }
+                // 文字の大きさ
+                var commentSize = "medium"
+                // 文字の位置
+                var commentPos = "naka"
+                // 文字の色
+                var commentColor = "white"
+
                 NicoLiveCommentInputButton(
-                    click = {
+                    onClick = {
                         viewModel.commentListShowLiveData.postValue(!isComment.value)
                     },
                     isComment = isComment.value,
                     comment = commentPostText.value,
                     commentChange = { commentPostText.value = it },
-                    postClick = {
+                    onPostClick = {
                         // コメント投稿
                         scope.launch {
-                            viewModel.sendComment(commentPostText.value)
-                            // クリアに
-                            commentPostText.value = ""
+                            viewModel.sendComment(commentPostText.value, commentColor, commentSize, commentPos, false)
+                            commentPostText.value = "" // クリアに
                         }
+                    },
+                    onPosValueChange = { commentPos = it },
+                    onSizeValueChange = { commentSize = it },
+                    onColorValueChange = { commentColor = it },
+                    is184 = isTokumeiPost.value,
+                    onTokumeiChange = {
+                        // 匿名、生ID切り替わった時
+                        isTokumeiPost.value = !isTokumeiPost.value
+                        prefSetting.edit { putBoolean("nicolive_post_tokumei", it) }
+                        viewModel.nicoLiveHTML.isPostTokumeiComment = it
                     },
                 )
             }
