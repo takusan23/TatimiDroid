@@ -29,8 +29,7 @@ class CommentViewFragment : Fragment() {
     private lateinit var stringArena: String
 
     // CommentFragmentとそれのViewModel
-    val commentFragment by lazy { requireParentFragment() as CommentFragment }
-    val viewModel by viewModels<NicoLiveViewModel>({ commentFragment })
+    val viewModel by viewModels<NicoLiveViewModel>({ requireParentFragment() })
 
     /** findViewById駆逐 */
     private val viewBinding by lazy { FragmentCommentviewBinding.inflate(layoutInflater) }
@@ -48,7 +47,7 @@ class CommentViewFragment : Fragment() {
             // RecyclerView初期化
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
-            commentRecyclerViewAdapter = CommentRecyclerViewAdapter(viewModel.commentList, commentFragment)
+            commentRecyclerViewAdapter = CommentRecyclerViewAdapter(viewModel.commentList, requireParentFragment())
             adapter = commentRecyclerViewAdapter
             itemAnimator = null
             //区切り線いれる

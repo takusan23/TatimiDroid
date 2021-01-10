@@ -20,6 +20,8 @@ import kotlin.math.roundToInt
  * ちなみに[View.setTranslationX]で横方向にずらすことで実装してる
  *
  * 別の作戦
+ *
+ * (visibility変更がだるいから作り変えてるけど、これもVisibility変える時一瞬おかしくなるな。FrameLayoutとかで囲っておいたViewは大丈夫っぽい)
  * */
 class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: AttributeSet) : BottomSheetBehavior<T>() {
 

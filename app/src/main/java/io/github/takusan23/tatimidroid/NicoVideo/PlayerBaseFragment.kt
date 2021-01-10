@@ -47,8 +47,8 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** コメントFragmentを置くためのFrameLayout */
     val fragmentCommentHostFrameLayout by lazy { viewBinding.fragmentPlayerCommentFragmentFrameLayout }
 
-    /** コメント一覧表示用Fab */
-    val fragmentCommentFab by lazy { viewBinding.fragmentPlayerCommentShowFab }
+    /** Fabを置くなりしてください。下にあるComposeView。Jetpack Composeで書けます */
+    val bottomComposeView by lazy { viewBinding.fragmentPlayerBottomComposeView }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return viewBinding.root
@@ -191,7 +191,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
             }
             val textView = view.findViewById(R.id.snackbar_text) as TextView
             textView.maxLines = 5 // 複数行
-            anchorView = fragmentCommentFab
+            anchorView = bottomComposeView
             view.elevation = 30f
         }.show()
     }

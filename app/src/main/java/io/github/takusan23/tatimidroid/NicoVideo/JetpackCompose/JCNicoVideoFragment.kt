@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.format.DateUtils
 import android.view.View
 import android.widget.SeekBar
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.view.doOnLayout
@@ -126,20 +127,20 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, NicoVideoCommentFragment()).commit()
         // ダークモード
         fragmentCommentHostFrameLayout.background = ColorDrawable(getThemeColor(requireContext()))
-        // Fab押した時
-        fragmentCommentFab.setOnClickListener {
-            // コメント一覧 展開/格納
-            viewModel.commentListShowLiveData.postValue(!viewModel.commentListShowLiveData.value!!)
+        // コメント一覧展開ボタンを設置する
+        bottomComposeView.apply {
+            setContent {
+                val isComment = viewModel.commentListShowLiveData.observeAsState(initial = false)
+                NicoVideoCommentButton(
+                    click = {
+                        viewModel.commentListShowLiveData.postValue(!isComment.value)
+                    },
+                    isComment = isComment.value
+                )
+            }
         }
         // コメント一覧展開など
         viewModel.commentListShowLiveData.observe(viewLifecycleOwner) { isShow ->
-            fragmentCommentFab.setImageDrawable(
-                if (isShow) {
-                    requireContext().getDrawable(R.drawable.ic_outline_info_24px)
-                } else {
-                    requireContext().getDrawable(R.drawable.ic_outline_comment_24px)
-                }
-            )
             // アニメーション？自作ライブラリ
             val dropPopAlert = fragmentCommentHostFrameLayout.toDropPopAlert()
             if (isShow) {

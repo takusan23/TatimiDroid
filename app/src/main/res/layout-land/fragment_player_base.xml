@@ -1,62 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <LinearLayout
-            android:id="@+id/fragment_player_base_fragment_parent_linear_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#fff"
-            android:clickable="true"
-            android:elevation="10dp"
-            android:focusable="true"
-            android:orientation="horizontal"
-            app:behavior_hideable="true"
-            app:behavior_peekHeight="100dp"
-            app:layout_behavior="io.github.takusan23.tatimidroid.BottomSheetPlayerBehavior">
+        android:id="@+id/fragment_player_base_fragment_parent_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#fff"
+        android:clickable="true"
+        android:elevation="10dp"
+        android:focusable="true"
+        android:orientation="horizontal"
+        app:behavior_hideable="true"
+        app:behavior_peekHeight="100dp"
+        app:layout_behavior="io.github.takusan23.tatimidroid.BottomSheetPlayerBehavior">
 
         <!-- ぷれいやーぶぶんの -->
         <FrameLayout
-                android:id="@+id/fragment_player_base_player_frame_layout"
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:background="#000"
-                android:clickable="true"
-                android:focusable="true" />
+            android:id="@+id/fragment_player_base_player_frame_layout"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:background="#000"
+            android:clickable="true"
+            android:focusable="true" />
 
         <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
             <!-- 動画情報とかをおくFragment -->
             <FrameLayout
-                    android:id="@+id/fragment_player_base_fragment_frame_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="#fff"
-                    android:clickable="true"
-                    android:focusable="true" />
+                android:id="@+id/fragment_player_base_fragment_frame_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#fff"
+                android:clickable="true"
+                android:focusable="true" />
 
             <!-- コメント一覧を重ねるためのFragment -->
             <FrameLayout
-                    android:id="@+id/fragment_player_comment_fragment_frame_layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="#fff"
-                    android:clickable="true"
-                    android:focusable="true" />
+                android:id="@+id/fragment_player_comment_fragment_frame_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#fff"
+                android:clickable="true"
+                android:focusable="true" />
 
-            <!-- コメント一覧展開Fab -->
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fragment_player_comment_show_fab"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end|bottom"
-                    android:layout_margin="16dp"
-                    android:src="@drawable/ic_outline_comment_24px"
-                    app:backgroundTint="@color/colorAccent" />
+            <!-- 動画/生放送のコメント展開ボタン。Jetpack Composeで作る！ -->
+            <androidx.compose.ui.platform.ComposeView
+                android:id="@+id/fragment_player_bottom_compose_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end" />
         </FrameLayout>
 
     </LinearLayout>

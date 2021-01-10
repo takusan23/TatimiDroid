@@ -4,6 +4,13 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
@@ -16,27 +23,30 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.button.MaterialButton
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
+import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.DropPopAlertMotionLayoutFix
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
+import io.github.takusan23.tatimidroid.NicoLive.CommentViewFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
-import io.github.takusan23.tatimidroid.Tool.ContentShare
-import io.github.takusan23.tatimidroid.Tool.CustomFont
-import io.github.takusan23.tatimidroid.Tool.InternetConnectionCheck
-import io.github.takusan23.tatimidroid.Tool.RotationSensor
+import io.github.takusan23.tatimidroid.Tool.*
+import io.github.takusan23.tatimidroid.databinding.IncludeNicoliveEnquateBinding
 import io.github.takusan23.tatimidroid.databinding.IncludeNicolivePlayerBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 /**
- * 番組詳細をJetpack Composeで作る。新UI
+ * ニコ生再生Fragment。一部Jetpack Composeで作る。新UI
  *
  * 一部の関数は[PlayerBaseFragment]に実装しています
  *
@@ -65,6 +75,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         ViewModelProvider(this, NicoLiveViewModelFactory(requireActivity().application, liveId, true)).get(NicoLiveViewModel::class.java)
     }
 
+    @ExperimentalAnimationApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -77,8 +88,71 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // LiveData監視
         setLiveData()
 
+        // Fragment設置
+        setFragment()
+
+        // コメント送信用UI（Jetpack Compose）設定
+        setCommentPostUI()
+
         // スリープにしない
         caffeine()
+
+        // アニメーション
+        if (viewModel.isFirst) {
+            viewModel.isFirst = false
+            miniPlayerAnimation()
+        }
+    }
+
+    /** Jetpack Composeで作成したコメント投稿UIを追加する */
+    @ExperimentalAnimationApi
+    private fun setCommentPostUI() {
+        // コメント一覧展開ボタンを設置する
+        bottomComposeView.apply {
+            setContent {
+                // コメント展開するかどうか
+                val isComment = viewModel.commentListShowLiveData.observeAsState(initial = false)
+                // コメント本文
+                val commentPostText = remember { mutableStateOf("") }
+                // コルーチン
+                val scope = rememberCoroutineScope()
+                NicoLiveCommentInputButton(
+                    click = {
+                        viewModel.commentListShowLiveData.postValue(!isComment.value)
+                    },
+                    isComment = isComment.value,
+                    comment = commentPostText.value,
+                    commentChange = { commentPostText.value = it },
+                    postClick = {
+                        // コメント投稿
+                        scope.launch {
+                            viewModel.sendComment(commentPostText.value)
+                            // クリアに
+                            commentPostText.value = ""
+                        }
+                    },
+                )
+            }
+        }
+    }
+
+    /** Fragment設置 */
+    private fun setFragment() {
+        // 動画情報Fragment、コメントFragment設置
+        childFragmentManager.beginTransaction().replace(fragmentHostFrameLayout.id, JCNicoLiveInfoFragment()).commit()
+        childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, CommentViewFragment()).commit()
+        // ダークモード
+        fragmentCommentHostFrameLayout.background = ColorDrawable(getThemeColor(requireContext()))
+        // コメント一覧Fragmentを表示するかどうかのやつ
+        viewModel.commentListShowLiveData.observe(viewLifecycleOwner) { isShow ->
+            // アニメーション？自作ライブラリ
+            val dropPopAlert = fragmentCommentHostFrameLayout.toDropPopAlert()
+            if (isShow) {
+                dropPopAlert.showAlert(DropPopAlert.ALERT_UP)
+            } else {
+                dropPopAlert.hideAlert(DropPopAlert.ALERT_UP)
+            }
+        }
     }
 
     /** LiveData監視 */
@@ -109,7 +183,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // 新ニコニコ実況の番組と発覚した場合
         viewModel.isNicoJKLiveData.observe(viewLifecycleOwner) { nicoJKId ->
             // バックグラウンド再生無いので非表示
-            nicolivePlayerUIBinding.includeNicolivePlayerBackgroundImageView.isVisible = false
+//            nicolivePlayerUIBinding.includeNicolivePlayerBackgroundImageView.isVisible = false
             // 映像を受信しない。
             showSnackBar(getString(R.string.nicolive_jk_not_live_receive), null, null)
             // 映像を受信しないモードをtrueへ
@@ -128,11 +202,17 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
         // うんこめ
         viewModel.unneiCommentLiveData.observe(viewLifecycleOwner) { unnkome ->
-
+            showInfoOrUNEIComment(CommentJSONParse(unnkome, getString(R.string.room_integration), viewModel.liveIdOrCommunityId).comment)
         }
         // あんけーと
-        viewModel.enquateLiveData.observe(viewLifecycleOwner) { enquateMessage ->
-
+        viewModel.startEnquateLiveData.observe(viewLifecycleOwner) { enquateList ->
+            setStartEnquateLayout(enquateList)
+        }
+        viewModel.openEnquateLiveData.observe(viewLifecycleOwner) { perList ->
+            setResultEnquateLayout(perList)
+        }
+        viewModel.stopEnquateLiveData.observe(viewLifecycleOwner) { stop ->
+            nicolivePlayerUIBinding.includeNicolivePlayerEnquateFrameLayout.removeAllViews()
         }
         // 統計情報
         viewModel.statisticsLiveData.observe(viewLifecycleOwner) { statistics ->
@@ -177,24 +257,160 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.postCommentAsciiArt(asciiArtComment, commentJSONParse)
             }
         }
-        // コメント一覧Fragmentを表示するかどうかのやつ
-        viewModel.commentListShowLiveData.observe(viewLifecycleOwner) { isShow ->
-            fragmentCommentFab.setImageDrawable(
-                if (isShow) {
-                    requireContext().getDrawable(R.drawable.ic_outline_info_24px)
-                } else {
-                    requireContext().getDrawable(R.drawable.ic_outline_comment_24px)
+
+    }
+
+    /** アンケート開票のUIをセットする */
+    private fun setResultEnquateLayout(perList: List<String>) {
+        // 選択肢：パーセンテージのPairを作成する
+        if (viewModel.startEnquateLiveData.value != null) {
+            // 選択肢
+            val enquateList = viewModel.startEnquateLiveData.value!!.drop(1)
+            // Pair作成 + Button作成
+            val buttonList = perList.mapIndexed { index, percent ->
+                MaterialButton(requireContext()).apply {
+                    // テキスト
+                    text = "${enquateList[index]}\n$percent"
+                    // Paddingとか
+                    val linearLayoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT
+                    )
+                    linearLayoutParams.weight = 1F
+                    linearLayoutParams.setMargins(10, 10, 10, 10)
+                    layoutParams = linearLayoutParams
                 }
-            )
-            // アニメーション？自作ライブラリ
-            val dropPopAlert = fragmentCommentHostFrameLayout.toDropPopAlert()
-            if (isShow) {
-                dropPopAlert.showAlert(DropPopAlert.ALERT_UP)
-            } else {
-                dropPopAlert.hideAlert(DropPopAlert.ALERT_UP)
+            }
+            // アンケ用レイアウト読み込み
+            val nicoliveEnquateLayout = IncludeNicoliveEnquateBinding.inflate(layoutInflater)
+            nicolivePlayerUIBinding.includeNicolivePlayerEnquateFrameLayout.removeAllViews()
+            nicolivePlayerUIBinding.includeNicolivePlayerEnquateFrameLayout.addView(nicoliveEnquateLayout.root)
+            nicoliveEnquateLayout.enquateTitle.text = enquateList[0] // 0番目はアンケタイトル
+            // ボタン配置
+            buttonList.forEachIndexed { index, materialButton ->
+                when {
+                    index in 0..2 -> nicoliveEnquateLayout.enquateLinearlayout1.addView(materialButton)
+                    index in 3..5 -> nicoliveEnquateLayout.enquateLinearlayout1.addView(materialButton)
+                    index in 6..8 -> nicoliveEnquateLayout.enquateLinearlayout1.addView(materialButton)
+                }
+            }
+            // アンケ結果共有Snackbar
+            val shareText = perList.mapIndexed { index, percent -> "${enquateList[index]}\n$percent" }.joinToString(separator = "\n")
+            showSnackBar(getString(R.string.enquate_result), getString(R.string.share)) {
+                ShareCompat.IntentBuilder.from(requireActivity()).apply {
+                    setChooserTitle(viewModel.startEnquateLiveData.value!![0])
+                    setSubject(shareText)
+                    setText(shareText)
+                    setType("text/plain")
+                }.startChooser()
             }
         }
     }
+
+    /** アンケート開始のUIをセットする。引数の配列は0番目がタイトル、それ以降がアンケートの選択肢 */
+    private fun setStartEnquateLayout(enquateList: List<String>) {
+        // 何回目か教えてくれるmapIndexed
+        val buttonList = enquateList
+            .drop(1)
+            .mapIndexed { i, enquate ->
+                MaterialButton(requireContext()).apply {
+                    // テキスト
+                    text = enquate
+                    // Paddingとか
+                    val linearLayoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT
+                    )
+                    linearLayoutParams.weight = 1F
+                    linearLayoutParams.setMargins(10, 10, 10, 10)
+                    layoutParams = linearLayoutParams
+                    setOnClickListener {
+                        // 投票
+                        viewModel.enquatePOST(i - 1)
+                        // アンケ画面消す
+                        nicolivePlayerUIBinding.includeNicolivePlayerEnquateFrameLayout.removeAllViews()
+                        // Snackbar
+                        showSnackBar("${getString(R.string.enquate)}：$enquate", null, null)
+                    }
+                }
+            }
+        // アンケ用レイアウト読み込み
+        val nicoliveEnquateLayout = IncludeNicoliveEnquateBinding.inflate(layoutInflater)
+        nicolivePlayerUIBinding.includeNicolivePlayerEnquateFrameLayout.removeAllViews()
+        nicolivePlayerUIBinding.includeNicolivePlayerEnquateFrameLayout.addView(nicoliveEnquateLayout.root)
+        nicoliveEnquateLayout.enquateTitle.text = enquateList[0] // 0番目はアンケタイトル
+        // ボタン配置
+        buttonList.forEachIndexed { index, materialButton ->
+            when {
+                index in 0..2 -> nicoliveEnquateLayout.enquateLinearlayout1.addView(materialButton)
+                index in 3..5 -> nicoliveEnquateLayout.enquateLinearlayout1.addView(materialButton)
+                index in 6..8 -> nicoliveEnquateLayout.enquateLinearlayout1.addView(materialButton)
+            }
+        }
+    }
+
+
+    /**
+     * Info（ニコニ広告、ランクイン等）と、運営コメントを表示する関数
+     * */
+    private fun showInfoOrUNEIComment(comment: String) {
+        nicolivePlayerUIBinding.root.doOnLayout {
+            val isNicoad = comment.contains("/nicoad")
+            val isInfo = comment.contains("/info")
+            val isUadPoint = comment.contains("/uadpoint")
+            val isSpi = comment.contains("/spi")
+            val isGift = comment.contains("/gift")
+            // エモーション。いらない
+            val isHideEmotion = prefSetting.getBoolean("setting_nicolive_hide_emotion", false)
+            val isEmotion = comment.contains("/emotion")
+            // アニメーション
+            val infoAnim = nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.toDropPopAlert() // 自作ライブラリ
+            val uneiAnim = nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.toDropPopAlert()
+            when {
+                isInfo || isUadPoint -> {
+                    // info
+                    val message = comment.replace("/info \\d+ ".toRegex(), "")
+                    nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
+                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                }
+                isNicoad -> {
+                    // 広告
+                    val json = JSONObject(comment.replace("/nicoad ", ""))
+                    val message = json.getString("message")
+                    nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
+                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                }
+                isSpi -> {
+                    // ニコニコ新市場
+                    val message = comment.replace("/spi ", "")
+                    nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
+                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                }
+                isGift -> {
+                    // 投げ銭。スペース区切り配列
+                    val list = comment.replace("/gift ", "").split(" ")
+                    val userName = list[2]
+                    val giftPoint = list[3]
+                    val giftName = list[5]
+                    val message = "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
+                    nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
+                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                }
+                isEmotion && !isHideEmotion -> {
+                    // エモーション
+                    val message = comment.replace("/emotion ", "エモーション：")
+                    nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
+                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                }
+                else -> {
+                    // 生主コメント表示
+                    nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.text = comment
+                    uneiAnim.alert(DropPopAlertMotionLayoutFix.ALERT_DROP)
+                }
+            }
+        }
+    }
+
 
     override fun onBottomSheetProgress(progress: Float) {
         super.onBottomSheetProgress(progress)
@@ -209,10 +425,10 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
         // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
         if (viewModel.currentQuality == "audio_high") {
-            nicolivePlayerUIBinding.includeNicolivePlayerAudioOnlyTextView.isVisible = true
+            nicolivePlayerUIBinding.includeNicolivePlayerAudioOnlyTextView.visibility = View.VISIBLE
             nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.background = ColorDrawable(Color.BLACK)
         } else {
-            nicolivePlayerUIBinding.includeNicolivePlayerAudioOnlyTextView.isVisible = false
+            nicolivePlayerUIBinding.includeNicolivePlayerAudioOnlyTextView.visibility = View.INVISIBLE
             nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.background = null
         }
         // アスペクト比治す

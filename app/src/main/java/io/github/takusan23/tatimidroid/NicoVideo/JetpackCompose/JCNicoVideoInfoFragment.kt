@@ -195,7 +195,7 @@ class JCNicoVideoInfoFragment : Fragment() {
 
     private fun removeLike() {
         // どうにかしたい
-        val view = (requireParentFragment() as? JCNicoVideoFragment)?.fragmentCommentFab
+        val view = (requireParentFragment() as? JCNicoVideoFragment)?.bottomComposeView
         if (view != null) {
             com.google.android.material.snackbar.Snackbar.make(view, getString(R.string.unlike), com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE).apply {
                 setAction(getString(R.string.torikesu)) {
@@ -216,7 +216,7 @@ class JCNicoVideoInfoFragment : Fragment() {
                     dismiss()
                 }
                 view.elevation = 30f
-                anchorView = (requireParentFragment() as? JCNicoVideoFragment)?.fragmentCommentFab
+                anchorView = (requireParentFragment() as? JCNicoVideoFragment)?.bottomComposeView
             }.show()
         }
     }

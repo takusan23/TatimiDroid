@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -32,7 +33,7 @@ import java.util.*
  * @param commentList 表示するコメント
  * @param commentFragment ViewModel取得したりBottomFragment表示させる時に使う
  * */
-class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>, private val commentFragment: CommentFragment) : RecyclerView.Adapter<CommentRecyclerViewAdapter.ViewHolder>() {
+class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>, private val commentFragment: Fragment) : RecyclerView.Adapter<CommentRecyclerViewAdapter.ViewHolder>() {
 
     //UserIDの配列。初コメを太字表示する
     private val userList = arrayListOf<String>()

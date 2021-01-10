@@ -22,11 +22,12 @@ import io.github.takusan23.tatimidroid.NicoAPI.User.UserAPI
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
-import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
@@ -114,14 +115,25 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                 val nicoLiveViewModel by viewModels<NicoLiveViewModel>({ fragment })
                 // 生放送
                 recyclerViewList = nicoLiveViewModel.commentList.filter { commentJSONParse -> if (commentJSONParse != null) commentJSONParse.userId == userId else false } as ArrayList<CommentJSONParse>
-                lifecycleScope.launch {
-                    // コメントが届いたら反映させる。コルーチンすごいね
-                    nicoLiveViewModel.commentReceiveLiveData.observe(viewLifecycleOwner) { comment ->
-                        if (comment.userId == userId && !recyclerViewList.contains(comment)) {
-                            recyclerViewList.add(0, comment)
-                            viewBinding.bottomFragmentCommentMenuRecyclerView.adapter?.notifyDataSetChanged()
-                            showInfo()
-                        }
+                // コメントが届いたら反映させる。
+                nicoLiveViewModel.commentReceiveLiveData.observe(viewLifecycleOwner) { comment ->
+                    if (comment.userId == userId && !recyclerViewList.contains(comment)) {
+                        recyclerViewList.add(0, comment)
+                        viewBinding.bottomFragmentCommentMenuRecyclerView.adapter?.notifyDataSetChanged()
+                        showInfo()
+                    }
+                }
+            }
+            is JCNicoLiveFragment -> {
+                val nicoLiveViewModel by viewModels<NicoLiveViewModel>({ fragment })
+                // 生放送
+                recyclerViewList = nicoLiveViewModel.commentList.filter { commentJSONParse -> if (commentJSONParse != null) commentJSONParse.userId == userId else false } as ArrayList<CommentJSONParse>
+                // コメントが届いたら反映させる。
+                nicoLiveViewModel.commentReceiveLiveData.observe(viewLifecycleOwner) { comment ->
+                    if (comment.userId == userId && !recyclerViewList.contains(comment)) {
+                        recyclerViewList.add(0, comment)
+                        viewBinding.bottomFragmentCommentMenuRecyclerView.adapter?.notifyDataSetChanged()
+                        showInfo()
                     }
                 }
             }
@@ -151,6 +163,18 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                     addItemDecoration(itemDecoration)
                 }
             }
+            is JCNicoLiveFragment -> {
+                // 生放送
+                viewBinding.bottomFragmentCommentMenuRecyclerView.apply {
+                    setHasFixedSize(true)
+                    layoutManager = LinearLayoutManager(context)
+                    val commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList, fragment)
+                    adapter = commentRecyclerViewAdapter
+                    //区切り線いれる
+                    val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+                    addItemDecoration(itemDecoration)
+                }
+            }
             is NicoVideoFragment -> {
                 // 動画
                 viewBinding.bottomFragmentCommentMenuRecyclerView.apply {
@@ -168,7 +192,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
                     addItemDecoration(itemDecoration)
                 }
             }
-            is JCNicoVideoFragment ->{
+            is JCNicoVideoFragment -> {
                 // 動画
                 viewBinding.bottomFragmentCommentMenuRecyclerView.apply {
                     setHasFixedSize(true)

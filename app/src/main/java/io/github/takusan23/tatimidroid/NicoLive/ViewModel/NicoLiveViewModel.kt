@@ -88,6 +88,15 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** アンケートがあったら表示するLiveData。 */
     val enquateLiveData = MutableLiveData<String>()
 
+    /** アンケートが開始されたら呼ばれるLiveData */
+    val startEnquateLiveData = MutableLiveData<List<String>>()
+
+    /** アンケートの開票LiveData */
+    val openEnquateLiveData = MutableLiveData<List<String>>()
+
+    /** アンケート終了LiveData */
+    val stopEnquateLiveData = MutableLiveData<String>()
+
     /** 来場者、コメント数等の来場者数を送るLiveData */
     val statisticsLiveData = MutableLiveData<StatisticsDataClass>()
 
@@ -168,6 +177,9 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
 
     /** コメント一覧を自動で展開しない設定かどうか */
     val isAutoCommentListShowOff = prefSetting.getBoolean("setting_nicovideo_jc_comment_auto_show_off", true)
+
+    /** 初回判定用フラグ。初回のみぴょこってプレイヤーが出てくるあれをやるために */
+    var isFirst = true
 
     init {
         // 匿名でコメントを投稿する場合
@@ -587,6 +599,23 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 comment.contains("/vote") -> {
                     // アンケート
                     enquateLiveData.postValue(comment)
+                }
+                comment.contains("/vote start") -> {
+                    // アンケート開始
+                    startEnquateLiveData.postValue(comment.replace("/vote start", "").split(" "))
+                }
+                comment.contains("/vote showresult per") -> {
+                    // アンケート開票。％に変換する
+                    openEnquateLiveData.postValue(
+                        comment.replace("/vote showresult per", "")
+                            .split(" ")
+                            // 176 を 17.6% って表記するためのコード。１桁増やして（9%以下とき対応できないため）２桁消す
+                            .map { per -> "${(per.toFloat() * 10) / 100}%" }
+                    )
+                }
+                comment.contains("/vote stop") -> {
+                    // アンケート終了
+                    stopEnquateLiveData.postValue("/vote stop")
                 }
                 comment.contains("/disconnect") -> {
                     // disconnect受け取ったらSnackBar表示
