@@ -9,12 +9,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.NicoAPI.Community.CommunityAPI
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommentServerData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommunityOrChannelData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
@@ -72,6 +75,18 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
 
     /** 番組情報 */
     val nicoLiveProgramData = MutableLiveData<NicoLiveProgramData>()
+
+    /** 番組の説明送信LiveData */
+    val nicoLiveProgramDescriptionLiveData = MutableLiveData<String>()
+
+    /** 生主の情報送信LiveData */
+    val nicoLiveUserDataLiveData = MutableLiveData<UserData>()
+
+    /** コミュ情報送信LiveData */
+    val nicoLiveCommunityOrChannelDataLiveData = MutableLiveData<CommunityOrChannelData>()
+
+    /** コミュフォロー中かどうかLiveData */
+    val isCommunityOrChannelFollowLiveData = MutableLiveData<Boolean>()
 
     /** コメントを送るLiveData。ただ配列に入れる処理はこっちが担当するので、コメントが来た時に処理したい場合はどうぞ（RecyclerView更新など） */
     val commentReceiveLiveData = MutableLiveData<CommentJSONParse>()
@@ -215,6 +230,12 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             communityId = nicoLiveHTML.communityId
             thumbnailURL = nicoLiveHTML.thumb
             nicoLiveProgramData.postValue(nicoLiveHTML.getProgramData(jsonObject))
+            nicoLiveProgramDescriptionLiveData.postValue(nicoLiveHTML.getProgramDescription(jsonObject))
+            nicoLiveUserDataLiveData.postValue(nicoLiveHTML.getUserData(jsonObject))
+            nicoLiveHTML.getCommunityOrChannelData(jsonObject).apply {
+                nicoLiveCommunityOrChannelDataLiveData.postValue(this)
+                isCommunityOrChannelFollowLiveData.postValue(isFollow)
+            }
             // 履歴に追加
             launch { insertDB() }
             // WebSocketへ接続
@@ -745,6 +766,43 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             }
         }
         livePageResponse.body?.string()
+    }
+
+    /**
+     * コミュをフォローする
+     * @param communityId コミュID
+     * */
+    fun requestCommunityFollow(communityId: String) {
+        val communityAPI = CommunityAPI()
+        viewModelScope.launch(Dispatchers.Main) {
+            val response = communityAPI.requestCommunityFollow(userSession, communityId)
+            if (!response.isSuccessful) {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${response.code}")
+                return@launch
+            } else {
+                // 成功時
+                isCommunityOrChannelFollowLiveData.postValue(true)
+            }
+        }
+    }
+
+    /**
+     * コミュのフォローを解除する
+     * @param communityId コミュID
+     * */
+    fun requestRemoveCommunityFollow(communityId: String) {
+        val communityAPI = CommunityAPI()
+        viewModelScope.launch(Dispatchers.Main) {
+            val response = communityAPI.requestRemoveCommunityFollow(userSession, communityId)
+            if (response.isSuccessful) {
+                // 成功時
+                isCommunityOrChannelFollowLiveData.postValue(false)
+            } else {
+                // 失敗時
+                showToast("${getString(R.string.error)}\n${response.code}")
+            }
+        }
     }
 
     /** Toast表示関数 */

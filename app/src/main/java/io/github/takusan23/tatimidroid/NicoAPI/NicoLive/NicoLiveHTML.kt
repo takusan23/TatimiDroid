@@ -2,9 +2,11 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import android.os.Handler
 import android.os.Looper
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommunityOrChannelData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ScheduleDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -177,6 +179,66 @@ class NicoLiveHTML {
     fun getProgramData(nicoLiveJSON: JSONObject): NicoLiveProgramData {
         initNicoLiveData(nicoLiveJSON)
         return NicoLiveProgramData(programTitle, communityName, programOpenTime.toString(), programEndTime.toString(), liveId, supplierName, status, thumb, isOfficial)
+    }
+
+    /**
+     * 番組説明文を取得する
+     * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
+     * @return 番組説明文。HTMLです
+     * */
+    fun getProgramDescription(nicoLiveJSON: JSONObject): String {
+        return nicoLiveJSON.getJSONObject("program").getString("description")
+    }
+
+    /**
+     * 生主の情報を取得する。なおユーザー番組でのみ利用可能です。公式/チャンネルの場合はnullを返します
+     * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
+     * @return [UserData.isNotAPICallVer]がtrueのため、一分のデータが有りません。アカウント名、ID、アイコンはあります
+     * */
+    fun getUserData(nicoLiveJSON: JSONObject): UserData? {
+        val supplier = nicoLiveJSON.getJSONObject("program").getJSONObject("supplier")
+        // 存在しない場合はnullを返す
+        if (!supplier.has("accountType")) return null
+        val isPremium = supplier.getString("accountType") == "premium"
+        val icon = supplier.getJSONObject("icons").getString("uri150x150")
+        val level = supplier.getInt("level")
+        val name = supplier.getString("name")
+        val userId = supplier.getString("programProviderId")
+        return UserData(
+            description = "",
+            isPremium = isPremium,
+            niconicoVersion = "",
+            followeeCount = -1,
+            followerCount = -1,
+            userId = userId.toInt(),
+            nickName = name,
+            isFollowing = false,
+            currentLevel = level,
+            largeIcon = icon,
+            isNotAPICallVer = true
+        )
+    }
+
+    /**
+     * コミュニティー、チャンネルの情報を取得する
+     * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
+     * */
+    fun getCommunityOrChannelData(nicoLiveJSON: JSONObject): CommunityOrChannelData {
+        val socialGroup = nicoLiveJSON.getJSONObject("socialGroup")
+        val isFollow = socialGroup.getBoolean("isFollowed")
+        val name = socialGroup.getString("name")
+        val id = socialGroup.getString("id")
+        val description = socialGroup.getString("description")
+        val icon = socialGroup.getString("thumbnailImageUrl")
+        val isChannel = socialGroup.getString("type") == "channel"
+        return CommunityOrChannelData(
+            id = id,
+            name = name,
+            description = description,
+            isFollow = isFollow,
+            icon = icon,
+            isChannel = isChannel
+        )
     }
 
     /**

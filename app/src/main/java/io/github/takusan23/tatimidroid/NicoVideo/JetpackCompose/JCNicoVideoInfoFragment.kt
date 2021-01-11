@@ -124,19 +124,20 @@ class JCNicoVideoInfoFragment : Fragment() {
                                         // 動画情報表示Card
                                         NicoVideoInfoCard(
                                             nicoVideoData = data.value,
-                                            isLiked = isLiked,
+                                            isLiked = isLiked.value,
+                                            onLikeClick = {
+                                                if (isLiked.value) {
+                                                    // いいね解除
+                                                    removeLike()
+                                                    viewModel.removeLike()
+                                                } else {
+                                                    // いいね登録
+                                                    NicoVideoLikeBottomFragment().show(parentFragmentManager, "like")
+                                                }
+                                            },
                                             isOffline = viewModel.isOfflinePlay.value ?: false,
                                             scaffoldState = state,
                                             description = descroption.value,
-                                            postLike = {
-                                                // いいね登録
-                                                NicoVideoLikeBottomFragment().show(parentFragmentManager, "like")
-                                            },
-                                            postRemoveLike = {
-                                                // いいね解除
-                                                removeLike()
-                                                viewModel.removeLike()
-                                            },
                                             descriptionClick = { link, type ->
                                                 // 押した時
                                                 descriptionClick(type, link)
@@ -169,7 +170,7 @@ class JCNicoVideoInfoFragment : Fragment() {
                                     if (userData.value != null) {
                                         NicoVideoUserCard(
                                             userData = userData.value!!,
-                                            userOpenClick = {
+                                            onUserOpenClick = {
                                                 setAccountFragment(userData.value!!.userId.toString())
                                             }
                                         )

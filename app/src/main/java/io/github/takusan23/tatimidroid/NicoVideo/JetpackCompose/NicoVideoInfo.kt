@@ -14,7 +14,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,11 +57,10 @@ val parentCardElevation = 3.dp
 /**
  * 動画説明、タイトルCard
  * @param nicoVideoData ニコ動データクラス。
- * @param isLiked いいねしたかどうか。LiveDataの変更を検知する形になってるはず（[androidx.lifecycle.LiveData.observeAsState]）
+ * @param isLiked いいねしたかどうか。
  * @param isOffline キャッシュ再生用。trueにするといいねボタンを非表示にします。
  * @param description 動画説明文
- * @param postLike いいね押した時
- * @param postRemoveLike いいね解除押した時
+ * @param onLikeClick いいね押したときに呼ばっる
  * @param scaffoldState Snackbar表示で使う。[_root_ide_package_.androidx.compose.material.Scaffold]を使おう
  * @param descriptionClick 動画説明文のリンクを押した時。[NicoVideoDescriptionText.DESCRIPTION_TYPE_MYLIST]等参照
  * */
@@ -70,12 +68,11 @@ val parentCardElevation = 3.dp
 @Composable
 fun NicoVideoInfoCard(
     nicoVideoData: NicoVideoData?,
-    isLiked: State<Boolean>,
+    isLiked: Boolean,
+    onLikeClick: () -> Unit,
     isOffline: Boolean,
     scaffoldState: ScaffoldState,
     description: String,
-    postLike: () -> Unit,
-    postRemoveLike: () -> Unit,
     descriptionClick: (id: String, type: String) -> Unit,
 ) {
     // 動画説明文表示状態
@@ -147,16 +144,12 @@ fun NicoVideoInfoCard(
                 if (!isOffline) {
                     NicoVideoLikeButton(
                         isLiked = isLiked,
+                        onLikeClick = onLikeClick,
                         scaffoldState = scaffoldState,
-                        postLike = postLike,
-                        postRemoveLike = postRemoveLike
                     )
                 }
-                // 展開ボタン
-                IconButton(onClick = {
-                    // 動画説明文の表示を切り替える
-                    expanded = !expanded
-                }) {
+                // 展開ボタン。動画説明文の表示を切り替える
+                IconButton(onClick = { expanded = !expanded }) {
                     // アイコンコード一行で召喚できる。Node.jsのnpmのmdiみたいだな！
                     Icon(imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore)
                 }
@@ -201,16 +194,19 @@ fun NicoVideoInfoCard(
 
 /**
  * いいねボタン。長いので切り出した
- * @param isLiked いいね済みかどうか。LiveData経由でいいねの状態は更新されるはずです。[androidx.lifecycle.LiveData.observeAsState]
- * @param postLike いいねを押したときに呼ばれる。
- * @param postRemoveLike いいね解除のときに呼ばれる
+ * @param isLiked いいね済みかどうか。
+ * @param onLikeClick いいねを押したら呼ばれる
  * @param scaffoldState Snackbar表示の際に使う。
  * [_root_ide_package_.androidx.compose.material.rememberScaffoldState()]をインスタンス化して[_root_ide_package_.androidx.compose.material.Scaffold() {}]
  * で指定したのを利用してください。
  * */
 @ExperimentalMaterialApi
 @Composable
-fun NicoVideoLikeButton(isLiked: State<Boolean>, scaffoldState: ScaffoldState, postLike: () -> Unit, postRemoveLike: () -> Unit) {
+fun NicoVideoLikeButton(
+    isLiked: Boolean,
+    onLikeClick: () -> Unit,
+    scaffoldState: ScaffoldState,
+) {
     // Snackbar表示で使うコルーチンスコープ
     val scope = rememberCoroutineScope()
     // リソース取得
@@ -219,19 +215,9 @@ fun NicoVideoLikeButton(isLiked: State<Boolean>, scaffoldState: ScaffoldState, p
     // いいねボタン
     OutlinedButton(
         shape = RoundedCornerShape(20.dp), // 丸み
-        onClick = {
-            scope.launch {
-                if (isLiked.value) {
-                    // 登録済みなら
-                    // Snackbarのボタン押した時
-                    postRemoveLike()
-                } else {
-                    postLike()
-                }
-            }
-        },
+        onClick = { onLikeClick() },
     ) {
-        Text(text = if (isLiked.value) stringResource(id = R.string.liked) else stringResource(id = R.string.like))
+        Text(text = if (isLiked) stringResource(id = R.string.liked) else stringResource(id = R.string.like))
         Icon(imageVector = Icons.Outlined.FavoriteBorder)
     }
 }
@@ -273,10 +259,10 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
 /**
  * ユーザー情報Card
  * @param userData ユーザー情報データクラス
- * @param userOpenClick ユーザー情報詳細ボタン押した時に呼ばれる
+ * @param onUserOpenClick ユーザー情報詳細ボタン押した時に呼ばれる
  * */
 @Composable
-fun NicoVideoUserCard(userData: UserData, userOpenClick: () -> Unit) {
+fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
     Card(
         modifier = parentCardModifier,
         shape = parentCardShape,
@@ -295,10 +281,12 @@ fun NicoVideoUserCard(userData: UserData, userOpenClick: () -> Unit) {
             }
             Text(
                 text = userData.nickName,
-                modifier = Modifier.weight(1f).padding(5.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp)
             )
             OutlinedButton(onClick = {
-                userOpenClick()
+                onUserOpenClick()
             }) {
                 Icon(imageVector = Icons.Outlined.OpenInBrowser)
             }
@@ -370,13 +358,17 @@ fun NicoVideoSeriesCard(
                     // ちいさめ
                     Image(
                         bitmap = bitmap.asImageBitmap(),
-                        modifier = Modifier.height(40.dp).clip(RoundedCornerShape(5.dp))
+                        modifier = Modifier
+                            .height(40.dp)
+                            .clip(RoundedCornerShape(5.dp))
                     )
                 }
                 // タイトル
                 Text(
                     text = nicoVideoSeriesData.title,
-                    modifier = Modifier.weight(1f).padding(5.dp)
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp)
                 )
                 // 一覧表示
                 OutlinedButton(onClick = { startSeriesPlay() }) {
@@ -493,13 +485,18 @@ fun NicoVideoPlayList(
                                 if (bitmap != null) {
                                     Image(
                                         bitmap = bitmap.asImageBitmap(),
-                                        modifier = Modifier.height(60.dp).width(110.dp).padding(5.dp)
+                                        modifier = Modifier
+                                            .height(60.dp)
+                                            .width(110.dp)
+                                            .padding(5.dp)
                                     )
                                 }
                                 Text(
                                     text = data.title,
                                     maxLines = 2,
-                                    modifier = Modifier.weight(1f).padding(5.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(5.dp),
                                 )
                                 // 再生
                                 IconButton(onClick = {
@@ -609,7 +606,9 @@ fun BottomSheetFab(fabClick: () -> Unit) {
     Column(
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.End,
-        modifier = Modifier.fillMaxHeight().fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth(),
     ) {
         // コメント表示Fabを出す
         FloatingActionButton(modifier = Modifier.padding(16.dp),

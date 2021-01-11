@@ -433,7 +433,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
     }
 
-
     override fun onBottomSheetProgress(progress: Float) {
         super.onBottomSheetProgress(progress)
         aspectRatioFix()
@@ -642,7 +641,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             viewModel.isMiniPlayerMode.value = isMiniPlayerMode()
         }
     }
-
 
     override fun onDestroy() {
         super.onDestroy()

@@ -4,6 +4,12 @@ import java.io.Serializable
 
 /**
  * 番組一覧で表示するRecyclerViewに渡すデータクラス
+ *
+ * @param title タイトル
+ * @param programId 番組ID
+ * @param
+ * @param beginAt UnixTime。何故か文字列だけどLongに変換してどうぞ。ミリ秒ではなく秒です。
+ * @param endAt UnixTime。これもLongに変換できると思う。ミリ秒ではなく秒。
  * */
 data class NicoLiveProgramData(
     val title: String,

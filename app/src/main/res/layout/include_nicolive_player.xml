@@ -136,7 +136,9 @@
         app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_black_view"
         tools:visibility="visible" />
 
-    <SeekBar
+    <!--
+
+        <SeekBar
         android:id="@+id/include_nicolive_player_seek_bar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -144,6 +146,8 @@
         app:layout_constraintBottom_toBottomOf="@+id/include_nicolive_player_black_view"
         app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_duration_text_view"
         app:layout_constraintStart_toEndOf="@+id/include_nicolive_player_current_time_text_view" />
+
+    -->
 
     <TextView
         android:id="@+id/include_nicolive_player_current_time_text_view"
@@ -215,12 +219,12 @@
         android:id="@+id/include_nicolive_player_control_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="include_nicolive_player_duration_text_view,include_nicolive_player_black_view,include_nicolive_player_title_text_view,include_nicolive_player_close_image_view,include_nicolive_player_video_id_text_view,include_nicolive_player_current_time_text_view,include_nicolive_player_seek_bar,include_nicolive_player_network_image_view,include_nicolive_player_popup_image_view,include_nicolive_player_background_image_view,include_nicolive_player_comment_hide_image_view,include_nicovideo_full_screen_image_view" />
+        app:constraint_referenced_ids="include_nicolive_player_duration_text_view,include_nicolive_player_black_view,include_nicolive_player_title_text_view,include_nicolive_player_close_image_view,include_nicolive_player_video_id_text_view,include_nicolive_player_current_time_text_view,include_nicolive_player_network_image_view,include_nicolive_player_popup_image_view,include_nicolive_player_background_image_view,include_nicolive_player_comment_hide_image_view,include_nicovideo_full_screen_image_view" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/include_nicolive_player_mini_player_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="include_nicolive_player_network_image_view,include_nicolive_player_duration_text_view,include_nicolive_player_seek_bar,include_nicolive_player_popup_image_view,include_nicolive_player_background_image_view,include_nicolive_player_comment_hide_image_view,include_nicovideo_full_screen_image_view" />
+        app:constraint_referenced_ids="include_nicolive_player_network_image_view,include_nicolive_player_duration_text_view,include_nicolive_player_popup_image_view,include_nicolive_player_background_image_view,include_nicolive_player_comment_hide_image_view,include_nicovideo_full_screen_image_view" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
