@@ -11,10 +11,7 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.Community.CommunityAPI
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommentServerData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommunityOrChannelData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
@@ -87,6 +84,12 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
 
     /** コミュフォロー中かどうかLiveData */
     val isCommunityOrChannelFollowLiveData = MutableLiveData<Boolean>()
+
+    /** タグ配列を送信するLiveData */
+    val nicoLiveTagDataListLiveData = MutableLiveData<ArrayList<NicoLiveTagDataClass>>()
+
+    /** タグが編集可能かどうか */
+    val isEditableTag = MutableLiveData<Boolean>()
 
     /** コメントを送るLiveData。ただ配列に入れる処理はこっちが担当するので、コメントが来た時に処理したい場合はどうぞ（RecyclerView更新など） */
     val commentReceiveLiveData = MutableLiveData<CommentJSONParse>()
@@ -220,7 +223,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
         }
         // ニコ生
         viewModelScope.launch(errorHandler + Dispatchers.Default) {
-            // 情報取得
+            // 情報取得。UIスレッドではないのでLiveDataはpostValue()を使おう
             val html = getNicoLiveHTML()
             val jsonObject = nicoLiveHTML.nicoLiveHTMLtoJSONObject(html)
             nicoLiveJSON.postValue(jsonObject)
@@ -232,6 +235,8 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             nicoLiveProgramData.postValue(nicoLiveHTML.getProgramData(jsonObject))
             nicoLiveProgramDescriptionLiveData.postValue(nicoLiveHTML.getProgramDescription(jsonObject))
             nicoLiveUserDataLiveData.postValue(nicoLiveHTML.getUserData(jsonObject))
+            nicoLiveTagDataListLiveData.postValue(nicoLiveHTML.getTagList(jsonObject))
+            isEditableTag.postValue(nicoLiveHTML.isEditableTag(jsonObject))
             nicoLiveHTML.getCommunityOrChannelData(jsonObject).apply {
                 nicoLiveCommunityOrChannelDataLiveData.postValue(this)
                 isCommunityOrChannelFollowLiveData.postValue(isFollow)

@@ -16,6 +16,7 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveTagBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.LightColors
@@ -50,6 +51,10 @@ class JCNicoLiveInfoFragment : Fragment() {
                     val communityOrChannelData = viewModel.nicoLiveCommunityOrChannelDataLiveData.observeAsState()
                     // コミュ、チャンネルフォロー中か
                     val isCommunityOrChannelFollow = viewModel.isCommunityOrChannelFollowLiveData.observeAsState(initial = false)
+                    // タグ
+                    val tagDataList = viewModel.nicoLiveTagDataListLiveData.observeAsState()
+                    // タグが編集可能かどうか
+                    val isEditableTag = viewModel.isEditableTag.observeAsState()
 
                     Surface {
                         Scaffold {
@@ -86,6 +91,15 @@ class JCNicoLiveInfoFragment : Fragment() {
                                         }
                                     )
                                 }
+                                // タグ
+                                if (tagDataList.value != null && isEditableTag.value != null) {
+                                    NicoLiveTagCard(
+                                        list = tagDataList.value!!,
+                                        onTagClick = { },
+                                        isEditable = isEditableTag.value!!,
+                                        onEditClick = {showTagEditBottomFragment()}
+                                    )
+                                }
                             }
                         }
                     }
@@ -103,6 +117,13 @@ class JCNicoLiveInfoFragment : Fragment() {
             } else {
                 viewModel.snackbarLiveData.postValue(getString(R.string.nicolive_account_remove_follow_successful))
             }
+        }
+    }
+
+    /** タグ編集画面を出す */
+    private fun showTagEditBottomFragment() {
+        val tagBottomFragment = NicoLiveTagBottomFragment().apply {
+
         }
     }
 

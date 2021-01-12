@@ -297,10 +297,10 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
 /**
  * タグ一覧表示Card
  * @param tagDataList [NicoLiveTagDataClass]配列
- * @param tagClick 押したときに呼ばれる。
+ * @param onTagClick 押したときに呼ばれる。
  * */
 @Composable
-fun NicoVideoTagCard(tagDataList: ArrayList<NicoLiveTagDataClass>, tagClick: (NicoLiveTagDataClass) -> Unit) {
+fun NicoVideoTagCard(tagDataList: ArrayList<NicoLiveTagDataClass>, onTagClick: (NicoLiveTagDataClass) -> Unit) {
     Card(
         modifier = parentCardModifier,
         shape = parentCardShape,
@@ -314,7 +314,7 @@ fun NicoVideoTagCard(tagDataList: ArrayList<NicoLiveTagDataClass>, tagClick: (Ni
                     OutlinedButton(
                         modifier = Modifier.padding(3.dp),
                         onClick = {
-                            tagClick(data)
+                            onTagClick(data)
                         },
                     ) {
                         Icon(imageVector = Icons.Outlined.LocalOffer)

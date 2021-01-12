@@ -2,10 +2,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
 import android.os.Handler
 import android.os.Looper
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommunityOrChannelData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.ScheduleDataClass
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.StatisticsDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.*
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +22,7 @@ import java.io.IOException
 import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 
 /**
@@ -239,6 +237,46 @@ class NicoLiveHTML {
             icon = icon,
             isChannel = isChannel
         )
+    }
+
+    /**
+     * タグを取得する。
+     * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
+     * */
+    fun getTagList(nicoLiveJSON: JSONObject): ArrayList<NicoLiveTagDataClass> {
+        val tag = nicoLiveJSON.getJSONObject("program").getJSONObject("tag")
+        val tagsList = tag.getJSONArray("list")
+        val resultTagDataList = arrayListOf<NicoLiveTagDataClass>()
+        for (i in 0 until tagsList.length()) {
+            val tagItem = tagsList.getJSONObject(i)
+            val name = tagItem.getString("text")
+            val isDeletable = tagItem.getBoolean("isDeletable")
+            val isLocked = tagItem.getBoolean("isLocked")
+            val type = tagItem.getString("type")
+            val isNicopedia = tagItem.getBoolean("existsNicopediaArticle")
+            val nicopediaURL = tagItem.getString("nicopediaArticlePageUrl")
+            resultTagDataList.add(
+                NicoLiveTagDataClass(
+                    tagName = name,
+                    isLocked = isLocked,
+                    type = type,
+                    isDeletable = isDeletable,
+                    hasNicoPedia = isNicopedia,
+                    nicoPediaUrl = nicopediaURL
+                )
+            )
+        }
+        return resultTagDataList
+    }
+
+    /**
+     * タグが編集可能かどうか。JSONには「ロックが掛かってない」って表現だけどわからんので反転させた
+     * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
+     * @return trueでタグ編集ボタンを出せばいいと思う
+     * */
+    fun isEditableTag(nicoLiveJSON: JSONObject): Boolean {
+        val tag = nicoLiveJSON.getJSONObject("program").getJSONObject("tag")
+        return !tag.getBoolean("isLocked") // タグ編集が可能か？
     }
 
     /**

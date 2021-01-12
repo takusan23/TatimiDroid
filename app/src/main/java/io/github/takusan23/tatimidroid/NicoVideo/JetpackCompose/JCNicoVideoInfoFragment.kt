@@ -160,7 +160,7 @@ class JCNicoVideoInfoFragment : Fragment() {
                                     if (tagList.value != null) {
                                         NicoVideoTagCard(
                                             tagDataList = tagList.value!!,
-                                            tagClick = { data ->
+                                            onTagClick = { data ->
                                                 // タグ押した時
                                                 setTagSearchFragment(data.tagName)
                                             }

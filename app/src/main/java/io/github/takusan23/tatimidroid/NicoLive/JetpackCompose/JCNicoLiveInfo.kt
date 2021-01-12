@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.NicoLive.JetpackCompose
 import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -20,6 +21,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommunityOrChannelData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.getBitmapCompose
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardElevation
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardModifier
@@ -185,4 +187,54 @@ fun NicoLiveCommunityCard(
     }
 }
 
-
+/**
+ * タグ表示Card。動画とは互換性がない（データクラスが違うの）
+ * @param list [NicoLiveTagDataClass]の配列
+ * @param onTagClick タグを押した時
+ * @param
+ * */
+@Composable
+fun NicoLiveTagCard(
+    list: ArrayList<NicoLiveTagDataClass>,
+    onTagClick: (NicoLiveTagDataClass) -> Unit,
+    isEditable: Boolean,
+    onEditClick: () -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Card(
+            modifier = parentCardModifier.weight(1f),
+            shape = parentCardShape,
+            elevation = parentCardElevation,
+        ) {
+            // 横方向スクロール。LazyRowでRecyclerViewみたいに画面外は描画しない
+            LazyRow(
+                modifier = Modifier.padding(3.dp),
+                content = {
+                    this.item {
+                        // 編集ボタン
+                        if (isEditable) {
+                            Button(
+                                modifier = Modifier.padding(3.dp),
+                                onClick = { onEditClick() }
+                            ) {
+                                Icon(imageVector = Icons.Outlined.Edit)
+                                Text(text = stringResource(id = R.string.tag_edit))
+                            }
+                        }
+                    }
+                    this.items(list) { data ->
+                        OutlinedButton(
+                            modifier = Modifier.padding(3.dp),
+                            onClick = {
+                                onTagClick(data)
+                            },
+                        ) {
+                            Icon(imageVector = Icons.Outlined.LocalOffer)
+                            Text(text = data.tagName)
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
