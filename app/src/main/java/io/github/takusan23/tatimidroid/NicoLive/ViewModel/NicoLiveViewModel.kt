@@ -92,6 +92,9 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** タグが編集可能かどうか */
     val isEditableTag = MutableLiveData<Boolean>()
 
+    /** 好みタグの文字列配列LiveData */
+    val nicoLiveKonomiTagListLiveData = MutableLiveData<ArrayList<String>>()
+
     /** コメントを送るLiveData。ただ配列に入れる処理はこっちが担当するので、コメントが来た時に処理したい場合はどうぞ（RecyclerView更新など） */
     val commentReceiveLiveData = MutableLiveData<CommentJSONParse>()
 
@@ -238,6 +241,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             nicoLiveUserDataLiveData.postValue(nicoLiveHTML.getUserData(jsonObject))
             nicoLiveTagDataListLiveData.postValue(nicoLiveHTML.getTagList(jsonObject))
             isEditableTag.postValue(nicoLiveHTML.isEditableTag(jsonObject))
+            nicoLiveKonomiTagListLiveData.postValue(nicoLiveHTML.getKonomiTagList(jsonObject))
             nicoLiveHTML.getCommunityOrChannelData(jsonObject).apply {
                 nicoLiveCommunityOrChannelDataLiveData.postValue(this)
                 isCommunityOrChannelFollowLiveData.postValue(isFollow)

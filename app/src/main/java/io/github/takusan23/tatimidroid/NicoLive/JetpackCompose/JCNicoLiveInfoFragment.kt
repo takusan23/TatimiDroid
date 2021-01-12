@@ -55,6 +55,8 @@ class JCNicoLiveInfoFragment : Fragment() {
                     val tagDataList = viewModel.nicoLiveTagDataListLiveData.observeAsState()
                     // タグが編集可能かどうか
                     val isEditableTag = viewModel.isEditableTag.observeAsState()
+                    // 好みタグ
+                    val konomiTagList = viewModel.nicoLiveKonomiTagListLiveData.observeAsState(initial = arrayListOf())
 
                     Surface {
                         Scaffold {
@@ -100,6 +102,8 @@ class JCNicoLiveInfoFragment : Fragment() {
                                         onEditClick = { showTagEditBottomFragment() }
                                     )
                                 }
+                                // 好みタグ
+                                NicoLiveKonomiCard(konomiTagList = konomiTagList.value)
                             }
                         }
                     }

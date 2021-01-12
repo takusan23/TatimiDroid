@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -200,41 +201,79 @@ fun NicoLiveTagCard(
     isEditable: Boolean,
     onEditClick: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Card(
-            modifier = parentCardModifier.weight(1f),
-            shape = parentCardShape,
-            elevation = parentCardElevation,
-        ) {
-            // 横方向スクロール。LazyRowでRecyclerViewみたいに画面外は描画しない
-            LazyRow(
-                modifier = Modifier.padding(3.dp),
-                content = {
-                    this.item {
-                        // 編集ボタン
-                        if (isEditable) {
-                            Button(
-                                modifier = Modifier.padding(3.dp),
-                                onClick = { onEditClick() }
-                            ) {
-                                Icon(imageVector = Icons.Outlined.Edit)
-                                Text(text = stringResource(id = R.string.tag_edit))
-                            }
-                        }
-                    }
-                    this.items(list) { data ->
-                        OutlinedButton(
+    Card(
+        modifier = parentCardModifier,
+        shape = parentCardShape,
+        elevation = parentCardElevation,
+    ) {
+        // 横方向スクロール。LazyRowでRecyclerViewみたいに画面外は描画しない
+        LazyRow(
+            modifier = Modifier.padding(3.dp),
+            content = {
+                this.item {
+                    // 編集ボタン
+                    if (isEditable) {
+                        Button(
                             modifier = Modifier.padding(3.dp),
-                            onClick = {
-                                onTagClick(data)
-                            },
+                            onClick = { onEditClick() }
                         ) {
-                            Icon(imageVector = Icons.Outlined.LocalOffer)
-                            Text(text = data.tagName)
+                            Icon(imageVector = Icons.Outlined.Edit)
+                            Text(text = stringResource(id = R.string.tag_edit))
                         }
                     }
                 }
-            )
+                this.items(list) { data ->
+                    OutlinedButton(
+                        modifier = Modifier.padding(3.dp),
+                        onClick = {
+                            onTagClick(data)
+                        },
+                    ) {
+                        Icon(imageVector = Icons.Outlined.LocalOffer)
+                        Text(text = data.tagName)
+                    }
+                }
+            }
+        )
+    }
+}
+
+/**
+ * 好みタグ表示Card。いまいちよくわからん機能
+ *
+ * @param konomiTagList 好みタグの文字列配列。いまんところ文字列の配列でいいや（そもそもこの機能いる？）
+ * */
+@Composable
+fun NicoLiveKonomiCard(
+    konomiTagList: ArrayList<String>
+) {
+    Card(
+        modifier = parentCardModifier,
+        shape = parentCardShape,
+        elevation = parentCardElevation,
+    ) {
+        Column {
+            Row(
+                modifier = Modifier.padding(5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(imageVector = Icons.Outlined.FavoriteBorder)
+                Text(text = stringResource(id = R.string.konomi_tag))
+            }
+            Divider(modifier = Modifier.padding(5.dp))
+            // 0件の場合
+            if (konomiTagList.isEmpty()) {
+                Text(
+                    text = stringResource(id = R.string.konomi_tag_empty),
+                    modifier = Modifier.padding(3.dp),
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                konomiTagList.forEach { text ->
+                    Text(text = text, modifier = Modifier.padding(10.dp))
+                    Divider()
+                }
+            }
         }
     }
 }

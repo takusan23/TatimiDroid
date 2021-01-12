@@ -280,6 +280,20 @@ class NicoLiveHTML {
     }
 
     /**
+     * 好みタグを取得する。文字列配列
+     * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
+     * */
+    fun getKonomiTagList(nicoLiveJSON: JSONObject): ArrayList<String> {
+        val konomi = nicoLiveJSON.getJSONObject("programBroadcaster").getJSONArray("konomiTags")
+        val result = arrayListOf<String>()
+        for (i in 0 until konomi.length()){
+            val text = konomi.getJSONObject(i).getString("text")
+            result.add(text)
+        }
+        return result
+    }
+
+    /**
      * ログインが有効かどうか。
      * @param response [getNicoLiveHTML]の戻り値
      * @return x-niconico-idがあればtrue。なければ（ログインが切れていれば）false
