@@ -5,39 +5,32 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
-import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveTagBottomFragment
+import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.util.*
 
-/** タグ編集で使う一覧表示Adapter */
-class TagRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<NicoLiveTagDataClass>) : RecyclerView.Adapter<TagRecyclerViewAdapter.ViewHolder>() {
-
-    lateinit var bottomFragment: NicoLiveTagBottomFragment
-    var liveId = ""
-    var tagToken = ""
-    var user_session = ""
+/**
+ * タグ編集で使う一覧表示Adapter
+ *
+ * @param nicoLiveTagDataList タグ配列
+ * @param nicoLiveViewModel タグを削除するときに、削除関数がViewModel側に書いてあるので
+ * */
+class TagRecyclerViewAdapter(private val nicoLiveTagDataList: ArrayList<NicoLiveTagDataClass>, private val nicoLiveViewModel: NicoLiveViewModel) : RecyclerView.Adapter<TagRecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.adapter_tag_layout, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_tag_layout, parent, false)
         return ViewHolder(view)
     }
 
     override fun getItemCount(): Int {
-        return arrayListArrayAdapter.size
+        return nicoLiveTagDataList.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
-        val item = arrayListArrayAdapter[position]
-        val context = holder.textView.context
+        val item = nicoLiveTagDataList[position]
 
         val tagName = item.tagName
         val isLocked = item.isLocked
@@ -55,20 +48,7 @@ class TagRecyclerViewAdapter(private val arrayListArrayAdapter: ArrayList<NicoLi
 
         // 削除ボタン
         holder.deleteButton.setOnClickListener {
-            val tagAPI = NicoLiveTagAPI()
-            GlobalScope.launch(Dispatchers.Main) {
-                val response = tagAPI.deleteTag(liveId, user_session, tagName)
-                if (response.isSuccessful) {
-                    Toast.makeText(context, "削除しました。$tagName", Toast.LENGTH_SHORT).show()
-                    bottomFragment.apply {
-                        // 再読み込み
-                        tagCoroutine()
-                        programFragment.coroutineGetTag()
-                    }
-                } else {
-                    Toast.makeText(context, "${context?.getString(R.string.error)}\n${response.code}", Toast.LENGTH_SHORT).show()
-                }
-            }
+            nicoLiveViewModel.deleteTag(tagName)
         }
 
     }

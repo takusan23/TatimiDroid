@@ -61,10 +61,9 @@ class NicoLiveTagAPI {
      * タグを追加する。コルーチン
      * @param liveId 番組ID
      * @param userSession ユーザーセッション
-     * @param token タグ操作トークン
      * @param tagName 追加するタグの名前
      * */
-    suspend fun addTag(liveId: String, userSession: String, token: String, tagName: String) = withContext(Dispatchers.IO) {
+    suspend fun addTag(liveId: String, userSession: String, tagName: String) = withContext(Dispatchers.IO) {
         // なんかAPI変わってトークンが要らなくなってJSONで送信するように
         val sendJSON = JSONObject().apply {
             put("tag", tagName)

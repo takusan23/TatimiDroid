@@ -14,6 +14,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
@@ -806,6 +807,63 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             } else {
                 // 失敗時
                 showToast("${getString(R.string.error)}\n${response.code}")
+            }
+        }
+    }
+
+    /** タグ一覧を取得する。結果はLiveDataへ... */
+    fun getTagList() {
+        viewModelScope.launch {
+            val tagAPI = NicoLiveTagAPI()
+            // 番組情報取得済みかどうか
+            if (nicoLiveProgramData.value != null) {
+                val response = tagAPI.getTags(nicoLiveProgramData.value!!.programId, userSession)
+                if (!response.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                    return@launch
+                }
+                val tagList = withContext(Dispatchers.Default) { tagAPI.parseTags(response.body?.string()) }
+                // LiveData送信
+                nicoLiveTagDataListLiveData.postValue(tagList)
+            }
+        }
+    }
+
+    /** タグを追加する */
+    fun addTag(tagName: String) {
+        viewModelScope.launch {
+            val tagAPI = NicoLiveTagAPI()
+            // 番組情報取得済みかどうか
+            if (nicoLiveProgramData.value != null) {
+                // 追加APIを叩く
+                val response = tagAPI.addTag(nicoLiveProgramData.value!!.programId, userSession, tagName)
+                if (!response.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                    return@launch
+                }
+                // 再取得
+                getTagList()
+            }
+        }
+    }
+
+    /** タグを削除する */
+    fun deleteTag(tagName: String) {
+        viewModelScope.launch {
+            val tagAPI = NicoLiveTagAPI()
+            // 番組情報取得済みかどうか
+            if (nicoLiveProgramData.value != null) {
+                // 削除APIを叩く
+                val response = tagAPI.deleteTag(nicoLiveProgramData.value!!.programId, userSession, tagName)
+                if (!response.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                    return@launch
+                }
+                // 再取得
+                getTagList()
             }
         }
     }

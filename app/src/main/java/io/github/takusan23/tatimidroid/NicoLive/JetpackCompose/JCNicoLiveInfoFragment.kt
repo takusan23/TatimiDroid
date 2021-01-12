@@ -97,7 +97,7 @@ class JCNicoLiveInfoFragment : Fragment() {
                                         list = tagDataList.value!!,
                                         onTagClick = { },
                                         isEditable = isEditableTag.value!!,
-                                        onEditClick = {showTagEditBottomFragment()}
+                                        onEditClick = { showTagEditBottomFragment() }
                                     )
                                 }
                             }
@@ -122,9 +122,7 @@ class JCNicoLiveInfoFragment : Fragment() {
 
     /** タグ編集画面を出す */
     private fun showTagEditBottomFragment() {
-        val tagBottomFragment = NicoLiveTagBottomFragment().apply {
-
-        }
+        NicoLiveTagBottomFragment().show(parentFragmentManager, "edit_tag")
     }
 
     /**

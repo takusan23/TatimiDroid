@@ -20,13 +20,11 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserAPI
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveTagBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveProgramInfoBinding
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -101,13 +99,7 @@ class ProgramInfoFragment : Fragment() {
         // タグ編集
         viewBinding.fragmentProgramInfoTagAddButton.setOnClickListener {
             val nicoLiveTagBottomFragment = NicoLiveTagBottomFragment()
-            val bundle = Bundle().apply {
-                putString("liveId", liveId)
-                putString("tagToken", tagToken)
-            }
-            nicoLiveTagBottomFragment.arguments = bundle
-            nicoLiveTagBottomFragment.programFragment = this@ProgramInfoFragment
-            nicoLiveTagBottomFragment.show(childFragmentManager, "bottom_tag")
+            nicoLiveTagBottomFragment.show(parentFragmentManager, "bottom_tag")
         }
 
         // TS予約
@@ -146,7 +138,27 @@ class ProgramInfoFragment : Fragment() {
 
         // 引っ張ったらタグ更新
         viewBinding.fragmentProgramInfoSwipe.setOnRefreshListener {
-            coroutineGetTag()
+            viewModel.getTagList()
+        }
+
+        // タグ一覧監視
+        viewModel.nicoLiveTagDataListLiveData.observe(viewLifecycleOwner) { list ->
+            // 全部消す
+            viewBinding.fragmentProgramInfoTagLinearLayout.removeAllViews()
+            list.forEach {
+                val tag = it.tagName
+                //ボタン作成
+                val button = MaterialButton(requireContext()).apply {
+                    text = tag
+                    isAllCaps = false
+                }
+                val nicopediaUrl = it.nicoPediaUrl
+                button.setOnClickListener {
+                    val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
+                    startActivity(intent)
+                }
+                viewBinding.fragmentProgramInfoTagLinearLayout.addView(button)
+            }
         }
 
     }
@@ -309,48 +321,6 @@ class ProgramInfoFragment : Fragment() {
                 }
             }
 
-        }
-    }
-
-
-    // タグを取得する関数
-    fun coroutineGetTag() {
-        activity?.runOnUiThread {
-            viewBinding.fragmentProgramInfoSwipe.isRefreshing = true
-        }
-        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            showToast("${getString(R.string.error)}\n${throwable}")
-        }
-        lifecycleScope.launch(errorHandler) {
-            val nicoLiveTagAPI = NicoLiveTagAPI()
-            val response = nicoLiveTagAPI.getTags(liveId, usersession)
-            if (!response.isSuccessful) {
-                // 失敗時
-                showToast("${getString(R.string.error)}\n${response.code}")
-                return@launch
-            }
-            // パース
-            val list = withContext(Dispatchers.Default) {
-                nicoLiveTagAPI.parseTags(response.body?.string())
-            }
-            // タグをUIに反映させる
-            // 全部消す
-            viewBinding.fragmentProgramInfoTagLinearLayout.removeAllViews()
-            list.forEach {
-                val tag = it.tagName
-                //ボタン作成
-                val button = MaterialButton(requireContext()).apply {
-                    text = tag
-                    isAllCaps = false
-                }
-                val nicopediaUrl = it.nicoPediaUrl
-                button.setOnClickListener {
-                    val intent = Intent(Intent.ACTION_VIEW, nicopediaUrl.toUri())
-                    startActivity(intent)
-                }
-                viewBinding.fragmentProgramInfoTagLinearLayout.addView(button)
-            }
-            viewBinding.fragmentProgramInfoSwipe.isRefreshing = false
         }
     }
 
