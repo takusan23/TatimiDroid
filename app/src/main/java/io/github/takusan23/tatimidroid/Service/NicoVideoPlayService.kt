@@ -657,7 +657,7 @@ class NicoVideoPlayService : Service() {
                 stopSelf()
                 // アプリ起動
                 val intent = Intent(this@NicoVideoPlayService, MainActivity::class.java)
-                intent.putExtra("id", videoId)
+                intent.putExtra("videoId", videoId)
                 intent.putExtra("cache", isCurrentVideoCache)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)

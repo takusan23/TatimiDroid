@@ -60,7 +60,53 @@ https://play.google.com/store/apps/details?id=io.github.takusan23.tatimidroid&hl
 
 Canary版Android Studio。Jetpack Composeを使っているんで
 
-Android Studio Arctic Fox | 2020.3.1 Canary 3
+Android Studio Arctic Fox | 2020.3.1 Canary 4
+
+## たちみどろいどのIntent
+Intentという仕組みを利用することでたちみどろいどを他アプリから起動できます。
+MainActivityを指したIntentを飛ばしてください。
+
+### 生放送ID / 動画ID を指定して起動
+
+`Intent`に`putExtra()`で値を渡すことで生放送、動画の再生画面を開くことが可能です。
+
+|           |                                                    |
+|-----------|----------------------------------------------------|
+| `liveId`  | 生放送を開く場合は生放送IDかコミュIDかチャンネルID |
+| `videoId` | 動画を開く場合は動画ID                             |
+
+以下は最古のきしめんを開く例
+
+```kotlin
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        // たちみどろいどのMainActivityを起動させる
+        val intent = Intent()
+        intent.setClassName("io.github.takusan23.tatimidroid", "io.github.takusan23.tatimidroid.MainActivity")
+        intent.putExtra("videoId", "sm157")
+        startActivity(intent)
+    }
+}
+```
+
+生放送の場合は`liveId`にすればいいです
+
+```kotlin
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        // たちみどろいどのMainActivityを起動させる
+        val intent = Intent()
+        intent.setClassName("io.github.takusan23.tatimidroid", "io.github.takusan23.tatimidroid.MainActivity")
+        intent.putExtra("liveId", "ch2646436") // ニコニコ実況。NHK総合
+        startActivity(intent)
+    }
+}
+```
+
 
 ## ビルドまで進めない
 

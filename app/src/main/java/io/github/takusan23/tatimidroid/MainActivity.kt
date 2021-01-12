@@ -63,7 +63,7 @@ import kotlinx.coroutines.withContext
  * ```
  *
  * 生放送、動画再生画面を起動する方法
- * putExtra()にliveIdかidをつけることで起動できます。
+ * putExtra()の第一引数に「liveId」か「videoId」をつけ、第二引数には各IDをセットすることで起動できます。
  * その他の値もIntentに入れてくれれば、Fragmentに詰めて設置します。
  *
  * */
@@ -185,20 +185,14 @@ class MainActivity : AppCompatActivity() {
     private fun launchPlayer() {
         intent?.apply {
             val liveId = getStringExtra("liveId")
-            val videoId = getStringExtra("id")
+            val videoId = getStringExtra("videoId")
             if (!liveId.isNullOrEmpty()) {
                 // 生放送 か 実況
-                val commentFragment = CommentFragment().apply {
-                    arguments = intent.extras
-                }
-                setPlayer(commentFragment, liveId)
+                setNicoliveFragment(liveId)
             }
             if (!videoId.isNullOrEmpty()) {
                 // 動画
-                val videoFragment = NicoVideoFragment().apply {
-                    arguments = intent.extras
-                }
-                setPlayer(videoFragment, videoId)
+                setNicovideoFragment(videoId)
             }
         }
     }
@@ -397,7 +391,7 @@ class MainActivity : AppCompatActivity() {
 
     //共有から起動した場合
     private fun lunchShareIntent() {
-        if (Intent.ACTION_SEND.equals(intent.action)) {
+        if (Intent.ACTION_SEND == intent.action) {
             val extras = intent.extras
             // URL
             val url = extras?.getCharSequence(Intent.EXTRA_TEXT) ?: ""
