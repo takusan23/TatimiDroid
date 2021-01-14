@@ -173,14 +173,14 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
                     NicoVideoCommentHideMenu(
                         is3DSHide = isHide3DS.value,
                         isKandanCommentHide = isHideKantanComment.value,
-                        dsSwitchChange = {
+                        onDsSwitchChange = {
                             isHide3DS.value = !isHide3DS.value
                             // Preferenceに反映
                             prefSetting.edit { putBoolean("nicovideo_comment_3ds_hidden", isHide3DS.value) }
                             // コメント更新
                             scope.launch { viewModel.commentFilter() }
                         },
-                        kantanCommentSwitchChange = {
+                        onKantanCommentSwitchChange = {
                             isHideKantanComment.value = !isHideKantanComment.value
                             // Preferenceに反映
                             prefSetting.edit { putBoolean("nicovideo_comment_kantan_comment_hidden", isHideKantanComment.value) }
@@ -191,13 +191,13 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
                 }
                 2 -> {
                     NicoVideoOtherButtonMenu(
-                        qualityChange = { showQualityBottomSheet() },
-                        copyVideoId = { copyVideoId() },
-                        screenRotation = { setScreenRotation() },
-                        openBrowser = { openWatchPage() },
-                        ngList = { launchNGListActivity() },
-                        kotehanList = { launchKotehanListActivity() },
-                        skipSetting = { showSkipSettingBottomFragment() }
+                        onQualityChange = { showQualityBottomSheet() },
+                        onCopyVideoId = { copyVideoId() },
+                        onScreenRotation = { setScreenRotation() },
+                        onOpenBrowser = { openWatchPage() },
+                        onNgList = { launchNGListActivity() },
+                        onKotehanList = { launchKotehanListActivity() },
+                        onSkipSetting = { showSkipSettingBottomFragment() }
                     )
                 }
                 3 -> {

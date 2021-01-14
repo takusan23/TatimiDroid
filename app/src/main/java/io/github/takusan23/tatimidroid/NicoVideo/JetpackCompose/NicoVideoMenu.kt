@@ -8,9 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import io.github.takusan23.tatimidroid.JetpackCompose.TabPadding
 import io.github.takusan23.tatimidroid.R
 
 /**
@@ -75,50 +75,25 @@ fun NicoVideoMenuTab(
     }
 }
 
-/**
- * タブレイアウトの一つ一つのTab。
- * @param index 何個目のTabかどうか
- * @param tabIcon アイコン
- * @param tabName 名前
- * @param selectedIndex 現在選択中のタブの位置
- * @param tabClick タブを押した時
- * */
-@Composable
-fun TabPadding(index:Int, tabName: String, tabIcon: ImageVector, selectedIndex: Int, tabClick: (Int) -> Unit) {
-    Tab(
-        modifier = Modifier.padding(5.dp),
-        selected = selectedIndex == index,
-        onClick = {
-            tabClick(index)
-        }
-    ) {
-        Icon(imageVector = tabIcon)
-        Text(text = tabName)
-    }
-}
 
 /**
  * 3DS、かんたんこめんと排除スイッチをおいてる。
  *
  * @param is3DSHide 3DSを排除するか
  * @param isKandanCommentHide かんたんコメントを排除するか
- * @param dsSwitchChange 3DS排除スイッチを切り替えたときに呼ばれる
- * @param kantanCommentSwitchChange かんたんコメント排除スイッチを切り替えたときに呼ばれる
+ * @param onDsSwitchChange 3DS排除スイッチを切り替えたときに呼ばれる
+ * @param onKantanCommentSwitchChange かんたんコメント排除スイッチを切り替えたときに呼ばれる
  * */
 @Composable
 fun NicoVideoCommentHideMenu(
     is3DSHide: Boolean,
     isKandanCommentHide: Boolean,
-    dsSwitchChange: (Boolean) -> Unit,
-    kantanCommentSwitchChange: (Boolean) -> Unit,
+    onDsSwitchChange: (Boolean) -> Unit,
+    onKantanCommentSwitchChange: (Boolean) -> Unit,
 ) {
-    Column(
-        modifier = Modifier.padding(10.dp)
-    ) {
+    Column(modifier = Modifier.padding(10.dp)) {
         // 3ds排除
-        Row(
-            modifier = Modifier.padding(5.dp),
-        ) {
+        Row(modifier = Modifier.padding(5.dp)) {
             Text(
                 text = stringResource(id = R.string.nicovideo_setting_hide_device_3ds),
                 modifier = Modifier.weight(1f),
@@ -126,14 +101,12 @@ fun NicoVideoCommentHideMenu(
             Switch(
                 checked = is3DSHide,
                 onCheckedChange = {
-                    dsSwitchChange(it)
+                    onDsSwitchChange(it)
                 },
             )
         }
         // かんたんコメント排除
-        Row(
-            modifier = Modifier.padding(5.dp),
-        ) {
+        Row(modifier = Modifier.padding(5.dp)) {
             Text(
                 text = stringResource(id = R.string.nicovideo_setting_hide_kantan_comment),
                 modifier = Modifier.weight(1f),
@@ -141,7 +114,7 @@ fun NicoVideoCommentHideMenu(
             Switch(
                 checked = isKandanCommentHide,
                 onCheckedChange = {
-                    kantanCommentSwitchChange(it)
+                    onKantanCommentSwitchChange(it)
                 },
             )
         }
@@ -157,7 +130,9 @@ fun NicoVideoCommentHideMenu(
 @Composable
 fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
     Column(
-        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
     ) {
         // マイリスト追加
         TextButton(
@@ -171,7 +146,9 @@ fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
                 Icon(imageVector = Icons.Outlined.Folder)
                 Text(
                     text = stringResource(id = R.string.add_mylist),
-                    modifier = Modifier.weight(1f).padding(5.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                 )
             }
         }
@@ -187,7 +164,9 @@ fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
                 Icon(imageVector = Icons.Outlined.Folder)
                 Text(
                     text = stringResource(id = R.string.add_atodemiru),
-                    modifier = Modifier.weight(1f).padding(5.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                 )
             }
         }
@@ -197,30 +176,30 @@ fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
 /**
  * その他のメニュー。画質変更とかスキップ秒数変更とか画面回転とか
  *
- * @param qualityChange 画質変更ボタン押した時
- * @param screenRotation 画面回転ボタン押した時
- * @param openBrowser ブラウザで開くボタンを押した時
- * @param ngList NG一覧ボタンを押した時
- * @param kotehanList コテハン一覧ボタンを押した時
- * @param skipSetting スキップ秒数変更ボタン押した時
+ * @param onQualityChange 画質変更ボタン押した時
+ * @param onScreenRotation 画面回転ボタン押した時
+ * @param onOpenBrowser ブラウザで開くボタンを押した時
+ * @param onNgList NG一覧ボタンを押した時
+ * @param onKotehanList コテハン一覧ボタンを押した時
+ * @param onSkipSetting スキップ秒数変更ボタン押した時
  * */
 @Composable
 fun NicoVideoOtherButtonMenu(
-    qualityChange: () -> Unit,
-    copyVideoId: () -> Unit,
-    screenRotation: () -> Unit,
-    openBrowser: () -> Unit,
-    ngList: () -> Unit,
-    kotehanList: () -> Unit,
-    skipSetting: () -> Unit,
+    onQualityChange: () -> Unit,
+    onCopyVideoId: () -> Unit,
+    onScreenRotation: () -> Unit,
+    onOpenBrowser: () -> Unit,
+    onNgList: () -> Unit,
+    onKotehanList: () -> Unit,
+    onSkipSetting: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
     ) {
         // 画質変更
-        TextButton(
-            onClick = { qualityChange() },
-        )
+        TextButton(onClick = { onQualityChange() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -229,29 +208,14 @@ fun NicoVideoOtherButtonMenu(
                 Icon(imageVector = Icons.Outlined.PhotoFilter)
                 Text(
                     text = stringResource(id = R.string.quality),
-                    modifier = Modifier.weight(1f).padding(5.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                 )
             }
         }
-        // 動画IDコピー
-        TextButton(
-            onClick = { copyVideoId() },
-        )
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(imageVector = Icons.Outlined.ContentCopy)
-                Text(
-                    text = stringResource(id = R.string.video_id_copy),
-                    modifier = Modifier.weight(1f).padding(5.dp),
-                )
-            }
-        } // 画面回転
-        TextButton(
-            onClick = { screenRotation() },
-        )
+        // 画面回転
+        TextButton(onClick = { onScreenRotation() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -260,14 +224,30 @@ fun NicoVideoOtherButtonMenu(
                 Icon(imageVector = Icons.Outlined.ScreenRotation)
                 Text(
                     text = stringResource(id = R.string.landscape_portrait),
-                    modifier = Modifier.weight(1f).padding(5.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
+                )
+            }
+        }
+        // 動画IDコピー
+        TextButton(onClick = { onCopyVideoId() })
+        {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Icon(imageVector = Icons.Outlined.ContentCopy)
+                Text(
+                    text = stringResource(id = R.string.video_id_copy),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                 )
             }
         }
         // ブラウザで開く
-        TextButton(
-            onClick = { openBrowser() },
-        )
+        TextButton(onClick = { onOpenBrowser() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -276,14 +256,14 @@ fun NicoVideoOtherButtonMenu(
                 Icon(imageVector = Icons.Outlined.OpenInBrowser)
                 Text(
                     text = stringResource(id = R.string.open_browser),
-                    modifier = Modifier.weight(1f).padding(5.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                 )
             }
         }
         // NG一覧
-        TextButton(
-            onClick = { ngList() },
-        )
+        TextButton(onClick = { onNgList() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -292,14 +272,14 @@ fun NicoVideoOtherButtonMenu(
                 Icon(imageVector = Icons.Outlined.Block)
                 Text(
                     text = stringResource(id = R.string.ng_list),
-                    modifier = Modifier.weight(1f).padding(5.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                 )
             }
         }
         // コテハン
-        TextButton(
-            onClick = { kotehanList() },
-        )
+        TextButton(onClick = { onKotehanList() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -308,14 +288,14 @@ fun NicoVideoOtherButtonMenu(
                 Icon(imageVector = Icons.Outlined.AccountBox)
                 Text(
                     text = stringResource(id = R.string.kotehan_list),
-                    modifier = Modifier.weight(1f).padding(5.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                 )
             }
         }
         // スキップ秒数
-        TextButton(
-            onClick = { skipSetting() },
-        )
+        TextButton(onClick = { onSkipSetting() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -324,7 +304,9 @@ fun NicoVideoOtherButtonMenu(
                 Icon(imageVector = Icons.Outlined.Redo)
                 Text(
                     text = stringResource(id = R.string.skip_setting),
-                    modifier = Modifier.weight(1f).padding(5.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                 )
             }
         }
@@ -347,7 +329,9 @@ fun NicoVideoCacheMenu(
     cacheUpdate: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
     ) {
         // キャッシュ再生 か それ以外
         if (isCachePlay) {
@@ -360,7 +344,9 @@ fun NicoVideoCacheMenu(
                     Icon(imageVector = Icons.Outlined.Refresh)
                     Text(
                         text = stringResource(id = R.string.get_cache_re_get),
-                        modifier = Modifier.weight(1f).padding(5.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                     )
                 }
             }
@@ -374,7 +360,9 @@ fun NicoVideoCacheMenu(
                     Icon(imageVector = Icons.Outlined.Folder)
                     Text(
                         text = stringResource(id = R.string.get_cache),
-                        modifier = Modifier.weight(1f).padding(5.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                     )
                 }
             }
@@ -387,7 +375,9 @@ fun NicoVideoCacheMenu(
                     Icon(imageVector = Icons.Outlined.Folder)
                     Text(
                         text = stringResource(id = R.string.get_cache_eco),
-                        modifier = Modifier.weight(1f).padding(5.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                     )
                 }
             }
@@ -407,7 +397,9 @@ fun NicoVideoShareMenu(
     shareAttachImg: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
     ) {
         // 共有
         Row {
@@ -447,7 +439,9 @@ fun NicoVideoVolumeMenu(
     volumeChange: (Float) -> Unit,
 ) {
     Column(
-        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
     ) {
         // 音量調整スライダー
         Slider(
