@@ -6,12 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ScrollableColumn
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -104,22 +108,16 @@ class JCNicoLiveInfoFragment : Fragment() {
                                 }
                                 // 好みタグ
                                 NicoLiveKonomiCard(konomiTagList = konomiTagList.value)
+
+                                // メニュー
+                                NicoLiveMenuScreen(requireParentFragment())
+
+                                // スペース
+                                Spacer(modifier = Modifier.height(100.dp))
                             }
                         }
                     }
                 }
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        // コミュフォローの結果をSnackBarで表示など
-        viewModel.isCommunityOrChannelFollowLiveData.observe(viewLifecycleOwner) { isFollow ->
-            if (isFollow) {
-                viewModel.snackbarLiveData.postValue(getString(R.string.nicolive_account_follow_successful))
-            } else {
-                viewModel.snackbarLiveData.postValue(getString(R.string.nicolive_account_remove_follow_successful))
             }
         }
     }

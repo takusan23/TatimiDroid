@@ -211,7 +211,7 @@ class CommentMenuFragment : Fragment() {
 
         //匿名非表示
         viewBinding.fragmentCommentFragmentMenuIyayoHiddenSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
-            viewModel.isTokumeiHide = isChecked
+            viewModel.isHideTokumei.value = isChecked
         }
 
         // 低遅延
@@ -410,7 +410,7 @@ class CommentMenuFragment : Fragment() {
         //匿名で投稿するか
         viewBinding.fragmentCommentFragmentMenuIyayoCommentSwitch.isChecked = viewModel.nicoLiveHTML.isPostTokumeiComment
         //匿名コメントを非表示にするか
-        viewBinding.fragmentCommentFragmentMenuIyayoHiddenSwitch.isChecked = viewModel.isTokumeiHide
+        viewBinding.fragmentCommentFragmentMenuIyayoHiddenSwitch.isChecked = viewModel.isHideTokumei.value ?: false
         //低遅延モードの有効無効
         viewBinding.fragmentCommentFragmentMenuLowLatencySwitch.isChecked = prefSetting.getBoolean("nicolive_low_latency", true)
         // コメント一行もーど

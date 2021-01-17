@@ -165,10 +165,13 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     private var isNotFirstEntyouKenti = false
 
     /** 運営コメントを消すときはtrue */
-    var hideInfoUnnkome = false
+    var isHideInfoUnnkome = MutableLiveData(false)
 
     /** 匿名コメントを表示しない場合はtrue */
-    var isTokumeiHide = false
+    var isHideTokumei = MutableLiveData(false)
+
+    /** エモーションを表示しない場合はtrue */
+    val isHideEmotion = MutableLiveData(prefSetting.getBoolean("setting_nicolive_hide_emotion", false))
 
     /** NGコメント配列。Room+Flowで監視する */
     var ngCommentList = listOf<String>()
@@ -653,15 +656,15 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                     snackbarLiveData.postValue(getString(R.string.program_disconnect))
                 }
             }
-            if (!hideInfoUnnkome) {
-                //運営コメント
+            if (isHideInfoUnnkome.value == true) {
+                // 運営コメント非表示時
                 if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
                     unneiCommentLiveData.postValue(comment)
                 }
             }
         }
         // 匿名コメント落とすモード
-        if (isTokumeiHide && commentJSONParse.mail.contains("184")) {
+        if (isHideTokumei.value == true && commentJSONParse.mail.contains("184")) {
             return
         }
         // NGユーザー/コメントの場合は配列に追加しない
@@ -793,6 +796,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             } else {
                 // 成功時
                 isCommunityOrChannelFollowLiveData.postValue(true)
+                snackbarLiveData.postValue(getString(R.string.nicolive_account_follow_successful))
             }
         }
     }
@@ -808,6 +812,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             if (response.isSuccessful) {
                 // 成功時
                 isCommunityOrChannelFollowLiveData.postValue(false)
+                snackbarLiveData.postValue(getString(R.string.nicolive_account_remove_follow_successful))
             } else {
                 // 失敗時
                 showToast("${getString(R.string.error)}\n${response.code}")

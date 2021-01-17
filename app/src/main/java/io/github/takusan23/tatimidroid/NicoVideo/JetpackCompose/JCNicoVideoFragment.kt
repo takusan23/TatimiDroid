@@ -468,6 +468,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             else -> InternetConnectionCheck.getConnectionTypeDrawable(requireContext())
         }
         nicovideoPlayerUIBinding.includeNicovideoPlayerNetworkImageView.setImageDrawable(playingTypeDrawable)
+        nicovideoPlayerUIBinding.includeNicovideoPlayerNetworkImageView.setOnClickListener { showNetworkTypeMessage() }
         // ミニプレイヤー切り替えボタン
         nicovideoPlayerUIBinding.includeNicovideoPlayerCloseImageView.setOnClickListener {
             if (isMiniPlayerMode()) {

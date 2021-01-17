@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -19,6 +20,7 @@ import io.github.takusan23.tatimidroid.BottomSheetPlayerBehavior
 import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
+import io.github.takusan23.tatimidroid.Tool.InternetConnectionCheck
 import io.github.takusan23.tatimidroid.Tool.SystemBarVisibility
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.databinding.FragmentPlayerBaseBinding
@@ -223,6 +225,16 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         // BottomSheet側も全画面を無効にする
         bottomSheetPlayerBehavior.toDefaultScreen()
     }
+
+    /**
+     * インターネット接続の種類をトーストで表示する。
+     * Wi-FiならWi-Fi。LTE/4Gならモバイルデータみたいな
+     * */
+    fun showNetworkTypeMessage() {
+        val message = InternetConnectionCheck.createNetworkMessage(requireContext())
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
 
     /**
      * BottomSheetの状態が変わったら呼ばれる関数。オーバーライドして使って

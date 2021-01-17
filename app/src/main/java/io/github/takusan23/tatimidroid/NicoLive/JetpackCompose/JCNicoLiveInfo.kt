@@ -265,7 +265,7 @@ fun NicoLiveKonomiCard(
             if (konomiTagList.isEmpty()) {
                 Text(
                     text = stringResource(id = R.string.konomi_tag_empty),
-                    modifier = Modifier.padding(3.dp),
+                    modifier = Modifier.padding(10.dp),
                     textAlign = TextAlign.Center
                 )
             } else {

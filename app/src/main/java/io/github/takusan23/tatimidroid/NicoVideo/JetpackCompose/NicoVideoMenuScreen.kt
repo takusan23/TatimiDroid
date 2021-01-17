@@ -51,6 +51,9 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
     /** Context */
     val context = AmbientContext.current
 
+    // Preference
+    val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+
     /** マイリスト追加BottomFragmentを表示する */
     fun showAddMylistBottomFragment() {
         val addMylistBottomFragment = NicoVideoAddMylistBottomFragment()
@@ -146,8 +149,6 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
 
             // コルーチン
             val scope = rememberCoroutineScope()
-            // Preference
-            val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
             // タブの選択位置
             val selectIndex = remember { mutableStateOf(0) }
 

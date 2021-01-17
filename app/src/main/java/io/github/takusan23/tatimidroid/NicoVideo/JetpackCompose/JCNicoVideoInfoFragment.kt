@@ -7,13 +7,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -183,11 +187,12 @@ class JCNicoVideoInfoFragment : Fragment() {
                                     if (recommendList.value != null) {
                                         NicoVideoRecommendCard(recommendList.value!!)
                                     }
+
+                                    // スペース
+                                    Spacer(modifier = Modifier.height(100.dp))
                                 }
                             }
-
                         }
-
                     }
                 }
             }

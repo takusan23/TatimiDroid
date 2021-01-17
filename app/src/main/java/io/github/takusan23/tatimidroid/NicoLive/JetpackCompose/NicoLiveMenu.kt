@@ -22,7 +22,7 @@ import io.github.takusan23.tatimidroid.R
  * @param tabClick タブを押したとき
  * */
 @Composable
-fun NicoLiveTab(
+fun NicoLiveMenuTab(
     selectedIndex: Int,
     tabClick: (Int) -> Unit,
 ) {
@@ -92,15 +92,15 @@ fun NicoLiveTab(
 @Composable
 fun NicoLiveSwitchMenu(
     isHideUNEIComment: Boolean,
-    onSwitchHideUNEIComment: () -> Unit,
+    onSwitchHideUNEIComment: (Boolean) -> Unit,
     isHideEmotion: Boolean,
-    onSwitchHideEmotion: () -> Unit,
+    onSwitchHideEmotion: (Boolean) -> Unit,
     isHideTokumeiComment: Boolean,
-    onSwitchHideTokumeiComment: () -> Unit,
+    onSwitchHideTokumeiComment: (Boolean) -> Unit,
     isLowLatency: Boolean,
-    onSwitchLowLatency: () -> Unit,
+    onSwitchLowLatency: (Boolean) -> Unit,
     isNotReceiveLive: Boolean,
-    onSwitchNotReceiveLive: () -> Unit,
+    onSwitchNotReceiveLive: (Boolean) -> Unit,
 ) {
     Column(modifier = Modifier.padding(10.dp)) {
         // 運コメ非表示
@@ -111,7 +111,7 @@ fun NicoLiveSwitchMenu(
             )
             Switch(
                 checked = isHideUNEIComment,
-                onCheckedChange = { onSwitchHideUNEIComment() },
+                onCheckedChange = { onSwitchHideUNEIComment(it) },
             )
         }
         // エモーション非表示
@@ -122,7 +122,7 @@ fun NicoLiveSwitchMenu(
             )
             Switch(
                 checked = isHideEmotion,
-                onCheckedChange = { onSwitchHideEmotion() },
+                onCheckedChange = { onSwitchHideEmotion(it) },
             )
         }
         // エモーション非表示
@@ -133,7 +133,7 @@ fun NicoLiveSwitchMenu(
             )
             Switch(
                 checked = isHideTokumeiComment,
-                onCheckedChange = { onSwitchHideTokumeiComment() },
+                onCheckedChange = { onSwitchHideTokumeiComment(it) },
             )
         }
         // 低遅延モード
@@ -144,7 +144,7 @@ fun NicoLiveSwitchMenu(
             )
             Switch(
                 checked = isLowLatency,
-                onCheckedChange = { onSwitchLowLatency() },
+                onCheckedChange = { onSwitchLowLatency(it) },
             )
         }
         // 映像の受信をやめる
@@ -155,7 +155,7 @@ fun NicoLiveSwitchMenu(
             )
             Switch(
                 checked = isNotReceiveLive,
-                onCheckedChange = { onSwitchNotReceiveLive() },
+                onCheckedChange = { onSwitchNotReceiveLive(it) },
             )
         }
     }
@@ -171,10 +171,10 @@ fun NicoLiveSwitchMenu(
  * */
 @Composable
 fun NicoLiveCommentViewerMenu(
-    isHideUserId:Boolean,
-    onSwitchHideUserId:()->Unit,
-    isCommentOneLine:Boolean,
-    onSwitchCommentOneLine:()->Unit,
+    isHideUserId: Boolean,
+    onSwitchHideUserId: (Boolean) -> Unit,
+    isCommentOneLine: Boolean,
+    onSwitchCommentOneLine: (Boolean) -> Unit,
 ) {
     Column(modifier = Modifier.padding(10.dp)) {
         // IDを非表示にする
@@ -185,7 +185,7 @@ fun NicoLiveCommentViewerMenu(
             )
             Switch(
                 checked = isHideUserId,
-                onCheckedChange = { onSwitchHideUserId() },
+                onCheckedChange = { onSwitchHideUserId(it) },
             )
         }
         // コメントの最大行を一行に制限
@@ -196,7 +196,7 @@ fun NicoLiveCommentViewerMenu(
             )
             Switch(
                 checked = isCommentOneLine,
-                onCheckedChange = { onSwitchCommentOneLine() },
+                onCheckedChange = { onSwitchCommentOneLine(it) },
             )
         }
     }
@@ -231,8 +231,7 @@ fun NicoLiveButtonMenu(
             .fillMaxWidth()
     ) {
         // 画質変更
-        TextButton(onClick = { onClickQualityChange() })
-        {
+        TextButton(onClick = { onClickQualityChange() }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -247,8 +246,7 @@ fun NicoLiveButtonMenu(
             }
         }
         // ホーム画面に追加
-       TextButton(onClick = { onClickHomeScreenPin() })
-        {
+        TextButton(onClick = { onClickHomeScreenPin() }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -263,8 +261,7 @@ fun NicoLiveButtonMenu(
             }
         }
         // 画面回転
-        TextButton(onClick = { onClickScreenRotation() })
-        {
+        TextButton(onClick = { onClickScreenRotation() }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -279,8 +276,7 @@ fun NicoLiveButtonMenu(
             }
         }
         // 番組IDコピー
-        TextButton(onClick = { onClickCopyProgramId() })
-        {
+        TextButton(onClick = { onClickCopyProgramId() }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -295,8 +291,7 @@ fun NicoLiveButtonMenu(
             }
         }
         // コミュIDコピー
-        TextButton(onClick = { onClickCopyCommunityId() })
-        {
+        TextButton(onClick = { onClickCopyCommunityId() }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -311,8 +306,7 @@ fun NicoLiveButtonMenu(
             }
         }
         // ブラウザで開く
-        TextButton(onClick = { onClickOpenBrowser() })
-        {
+        TextButton(onClick = { onClickOpenBrowser() }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -327,8 +321,7 @@ fun NicoLiveButtonMenu(
             }
         }
         // NG一覧
-        TextButton(onClick = { onClickNGList() })
-        {
+        TextButton(onClick = { onClickNGList() }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -343,8 +336,7 @@ fun NicoLiveButtonMenu(
             }
         }
         // コテハン
-        TextButton(onClick = { onClickKotehanList() })
-        {
+        TextButton(onClick = { onClickKotehanList() }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -361,11 +353,48 @@ fun NicoLiveButtonMenu(
     }
 }
 
+/**
+ * ニコ生ゲームを遊ぶために再生画面の上にWebViewを重ねるか
+ *
+ * @param isNicoNamaGame ニコ生ゲームが有効かどうか
+ * @param onSwitchNicoNamaGame ニコ生ゲーム有効スイッチ切り替えた時
+ * */
+@Composable
+fun NicoLiveNicoNamaGameCard(
+    isNicoNamaGame: Boolean,
+    onSwitchNicoNamaGame: (Boolean) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
+    ) {
+        Row(modifier = Modifier.padding(10.dp)) {
+            Icon(imageVector = Icons.Outlined.Info)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = stringResource(id = R.string.nico_nama_game_description))
+                Text(text = stringResource(id = R.string.nico_nama_game_engineers))
+            }
+        }
+        Divider()
+        Row(modifier = Modifier.padding(10.dp)) {
+            Text(
+                text = stringResource(id = R.string.play_nico_nama_game),
+                modifier = Modifier.weight(1f)
+            )
+            Switch(
+                checked = isNicoNamaGame,
+                onCheckedChange = { onSwitchNicoNamaGame(it) }
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 fun NicoLiveMenuPreview() {
     ScrollableColumn() {
-        NicoLiveTab(selectedIndex = 0, tabClick = { /*TODO*/ })
+        NicoLiveMenuTab(selectedIndex = 0, tabClick = { /*TODO*/ })
         NicoLiveSwitchMenu(isHideUNEIComment = false, onSwitchHideUNEIComment = { /*TODO*/ }, isHideEmotion = false, onSwitchHideEmotion = { /*TODO*/ }, isHideTokumeiComment = false, onSwitchHideTokumeiComment = { /*TODO*/ }, isLowLatency = false, onSwitchLowLatency = { /*TODO*/ }, isNotReceiveLive = false, onSwitchNotReceiveLive = { /*TODO*/ })
         NicoLiveButtonMenu(onClickQualityChange = { /*TODO*/ }, onClickScreenRotation = { /*TODO*/ }, onClickCopyProgramId = { /*TODO*/ }, onClickCopyCommunityId = { /*TODO*/ }, onClickOpenBrowser = { /*TODO*/ }, onClickNGList = { /*TODO*/ }, onClickKotehanList = { /*TODO*/ }, onClickHomeScreenPin = { /*TODO*/ })
         NicoLiveCommentViewerMenu(isHideUserId = false, onSwitchHideUserId = { /*TODO*/ }, isCommentOneLine = false, onSwitchCommentOneLine = { /*TODO*/ })

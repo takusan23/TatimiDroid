@@ -577,6 +577,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // プレイヤー右上のアイコンにWi-Fiアイコンがあるけどあれ、どの方法で再生してるかだから。キャッシュならフォルダーになる
         val playingTypeDrawable = InternetConnectionCheck.getConnectionTypeDrawable(requireContext())
         nicolivePlayerUIBinding.includeNicolivePlayerNetworkImageView.setImageDrawable(playingTypeDrawable)
+        nicolivePlayerUIBinding.includeNicolivePlayerNetworkImageView.setOnClickListener { showNetworkTypeMessage() }
         // ミニプレイヤー切り替えボタン
         nicolivePlayerUIBinding.includeNicolivePlayerCloseImageView.setOnClickListener {
             if (isMiniPlayerMode()) {

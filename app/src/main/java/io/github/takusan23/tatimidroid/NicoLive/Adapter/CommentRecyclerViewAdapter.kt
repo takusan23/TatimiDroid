@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.NicoLive.Adapter
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -11,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -37,11 +39,16 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>, p
 
     //UserIDの配列。初コメを太字表示する
     private val userList = arrayListOf<String>()
-    private lateinit var font: CustomFont
     private lateinit var prefSetting: SharedPreferences
 
     /** コテハン。[setKotehanDBChangeObserve]で自動更新してる */
     private val kotehanMap = mutableMapOf<String, String>()
+
+    /** 最初のTextViewの色 */
+    private var defaultTextViewColor: ColorStateList? = null
+
+    /** フォント設定 */
+    private var font: CustomFont? = null
 
     /** [CommentFragment]のViewModel */
     private val commentFragmentViewModel by commentFragment.viewModels<NicoLiveViewModel>({ commentFragment })
@@ -57,7 +64,11 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>, p
         prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
         // 一度だけ
-        if (!::font.isInitialized) {
+        if (defaultTextViewColor == null) {
+            defaultTextViewColor = holder.commentTextView.textColors
+        }
+        // 一度だけ
+        if (font == null) {
             font = CustomFont(context)
             setKotehanDBChangeObserve(context)
         }
@@ -165,23 +176,32 @@ class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>, p
         //ID非表示
         if (prefSetting.getBoolean("setting_id_hidden", false)) {
             //非表示
-            holder.roomNameTextView.visibility = View.GONE
+            holder.roomNameTextView.isVisible = false
             //部屋の色をつける設定有効時はコメントのTextViewに色を付ける
             if (prefSetting.getBoolean("setting_room_color", true)) {
                 holder.commentTextView.setTextColor(getRoomColor(commentJSONParse.roomName, context))
+            } else {
+                holder.commentTextView.setTextColor(defaultTextViewColor)
             }
+        } else {
+            holder.roomNameTextView.isVisible = true
+            holder.commentTextView.setTextColor(defaultTextViewColor)
         }
         //一行表示とか
         if (prefSetting.getBoolean("setting_one_line", false)) {
             holder.commentTextView.maxLines = 1
+        } else {
+            holder.commentTextView.maxLines = Int.MAX_VALUE
         }
 
         // ユーザーの設定したフォントサイズ
-        holder.commentTextView.textSize = font.commentFontSize
-        holder.roomNameTextView.textSize = font.userIdFontSize
-        // ユーザーの設定したフォント
-        font.setTextViewFont(holder.commentTextView)
-        font.setTextViewFont(holder.roomNameTextView)
+        font?.apply {
+            holder.commentTextView.textSize = commentFontSize
+            holder.roomNameTextView.textSize = userIdFontSize
+            // ユーザーの設定したフォント
+            setTextViewFont(holder.commentTextView)
+            setTextViewFont(holder.roomNameTextView)
+        }
 
     }
 
