@@ -133,7 +133,6 @@ class JCNicoVideoInfoFragment : Fragment() {
                                                 if (isLiked.value) {
                                                     // いいね解除
                                                     removeLike()
-                                                    viewModel.removeLike()
                                                 } else {
                                                     // いいね登録
                                                     NicoVideoLikeBottomFragment().show(parentFragmentManager, "like")
@@ -201,14 +200,8 @@ class JCNicoVideoInfoFragment : Fragment() {
 
     private fun removeLike() {
         // どうにかしたい
-        val view = (requireParentFragment() as? JCNicoVideoFragment)?.bottomComposeView
-        if (view != null) {
-            com.google.android.material.snackbar.Snackbar.make(view, getString(R.string.unlike), com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE).apply {
-                setAction(getString(R.string.torikesu)) {
-                    viewModel.removeLike()
-                }
-                anchorView = view
-            }.show()
+        (requireParentFragment() as? JCNicoVideoFragment)?.showSnackBar(getString(R.string.unlike), getString(R.string.torikesu)) {
+            viewModel.removeLike()
         }
     }
 
@@ -217,13 +210,16 @@ class JCNicoVideoInfoFragment : Fragment() {
 
         // Snackbar表示。使い方合ってんのかはしらんけど
         viewModel.likeThanksMessageLiveData.observe(viewLifecycleOwner) {
-            com.google.android.material.snackbar.Snackbar.make(view, it, com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE).apply {
-                setAction(getString(R.string.close)) {
-                    dismiss()
-                }
-                view.elevation = 30f
-                anchorView = (requireParentFragment() as? JCNicoVideoFragment)?.bottomComposeView
-            }.show()
+            val anchor = (requireParentFragment() as? JCNicoVideoFragment)?.bottomComposeView
+            if (anchor != null) {
+                com.google.android.material.snackbar.Snackbar.make(anchor, it, com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE).also { bar ->
+                    bar.setAction(getString(R.string.close)) {
+                        bar.dismiss()
+                    }
+                    bar.anchorView = anchor
+                    bar.view.elevation = 30f
+                }.show()
+            }
         }
     }
 

@@ -535,7 +535,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                     mode = "popup",
                     videoId = viewModel.playingVideoId.value!!,
                     isCache = viewModel.isOfflinePlay.value!!,
-                    seek = 0L,
+                    seek = viewModel.currentPosition,
                     videoQuality = viewModel.currentVideoQuality,
                     audioQuality = viewModel.currentAudioQuality,
                     playlist = viewModel.playlistLiveData.value
@@ -551,7 +551,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                     mode = "background",
                     videoId = viewModel.playingVideoId.value!!,
                     isCache = viewModel.isOfflinePlay.value!!,
-                    seek = 0L,
+                    seek = viewModel.currentPosition,
                     videoQuality = viewModel.currentVideoQuality,
                     audioQuality = viewModel.currentAudioQuality,
                     playlist = viewModel.playlistLiveData.value

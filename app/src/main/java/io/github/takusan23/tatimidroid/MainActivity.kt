@@ -26,12 +26,14 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveFragment
 import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoCommentListHostFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.databinding.ActivityMainBinding
@@ -195,20 +197,14 @@ class MainActivity : AppCompatActivity() {
     private fun launchPlayer() {
         intent?.apply {
             val liveId = getStringExtra("liveId")
-            val videoId = getStringExtra("id")
+            val videoId = getStringExtra("videoId")
             if (!liveId.isNullOrEmpty()) {
                 // 生放送 か 実況
-                val commentFragment = CommentFragment().apply {
-                    arguments = intent.extras
-                }
-                setPlayer(commentFragment, liveId)
+                setNicoliveFragment(liveId)
             }
             if (!videoId.isNullOrEmpty()) {
                 // 動画
-                val videoFragment = NicoVideoFragment().apply {
-                    arguments = intent.extras
-                }
-                setPlayer(videoFragment, videoId)
+                setNicovideoFragment(videoId)
             }
         }
     }
@@ -244,6 +240,34 @@ class MainActivity : AppCompatActivity() {
         } else {
             setPlayer(fragment, videoId)
         }
+    }
+
+    /**
+     * ニコ生の再生Fragmentを置く関数。設定を呼んでJetpack Compose版と分岐させます。
+     *
+     * ちなみに (requireActivity() as? MainActivity)でnull許容な形にしている理由ですが、MainActivity以外で落ちないようにするだけ。多分意味ない！
+     *
+     * @param liveId 生放送ID
+     * @param isOfficial 公式どうか。わかるなら入れてくれ
+     * @param watchMode 視聴モード。以下のどれか。将来的には comment_post だけにしたい。
+     * - comment_viewer (コメント投稿無し)
+     * - comment_post (デフォルト)
+     * - nicocas (コメント投稿にnicocasAPIを利用。てかこれまだ使えるの？)
+     * */
+    fun setNicoliveFragment(liveId: String, watchMode: String = "comment_post", isOfficial: Boolean? = null) {
+        val fragment: Fragment = when {
+            // prefSetting.getBoolean("setting_nicovideo_comment_only", false) -> JCNicoVideoCommentListHostFragment()// コメントのみ表示
+            prefSetting.getBoolean("setting_nicovideo_use_old_ui", true) -> CommentFragment() // 旧UI。JetpackCompose、 Android 7 以前で表示が乱れる
+            else -> JCNicoLiveFragment() // Jetpack Compose 利用版
+        }
+        fragment.apply {
+            arguments = Bundle().apply {
+                putString("liveId", liveId)
+                putString("watch_mode", watchMode)
+                isOfficial?.let { putBoolean("isOfficial", it) }
+            }
+        }
+        setPlayer(fragment, liveId)
     }
 
     /**
@@ -379,7 +403,7 @@ class MainActivity : AppCompatActivity() {
 
     //共有から起動した場合
     private fun lunchShareIntent() {
-        if (Intent.ACTION_SEND.equals(intent.action)) {
+        if (Intent.ACTION_SEND == intent.action) {
             val extras = intent.extras
             // URL
             val url = extras?.getCharSequence(Intent.EXTRA_TEXT) ?: ""
@@ -510,15 +534,23 @@ class MainActivity : AppCompatActivity() {
         // Fragment取得
         supportFragmentManager.findFragmentById(R.id.main_activity_fragment_layout).apply {
             when (this) {
+                // 生放送
                 is CommentFragment -> {
-                    // 生放送
                     when {
                         isLeaveAppPopup -> startPopupPlay()
                         isLeaveAppBackground -> startBackgroundPlay()
                     }
                 }
+                is JCNicoLiveFragment -> {
+                    viewModel.nicoLiveProgramData.value?.apply {
+                        when {
+                            isLeaveAppPopup -> startLivePlayService(context = context, mode = "popup", liveId = programId, isCommentPost = true, isNicocasMode = false, isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment, startQuality = viewModel.currentQuality)
+                            isLeaveAppBackground -> startLivePlayService(context = context, mode = "background", liveId = programId, isCommentPost = true, isNicocasMode = false, isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment, startQuality = viewModel.currentQuality)
+                        }
+                    }
+                }
+                // 動画
                 is NicoVideoFragment -> {
-                    // 動画
                     when {
                         isLeaveAppPopup -> startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, seek = viewModel.currentPosition)
                         isLeaveAppBackground -> startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, seek = viewModel.currentPosition)
@@ -526,7 +558,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 is JCNicoVideoFragment -> {
                     viewModel.nicoVideoData.value?.apply {
-                        // 動画
                         when {
                             isLeaveAppPopup -> startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, seek = viewModel.currentPosition)
                             isLeaveAppBackground -> startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, seek = viewModel.currentPosition)
@@ -536,5 +567,4 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 }

@@ -184,8 +184,8 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
      * @param click Snackbarのボタンを押した時
      * @param action Snackbarのボタンの本文
      * */
-    fun showSnackBar(message: String, action: String?, click: (() -> Unit)?) {
-        Snackbar.make(fragmentPlayerFrameLayout, message, Snackbar.LENGTH_SHORT).apply {
+    fun showSnackBar(message: String, action: String?, click: (() -> Unit)?): Snackbar {
+        val snackbar = Snackbar.make(fragmentPlayerFrameLayout, message, Snackbar.LENGTH_SHORT).apply {
             if (action != null) {
                 setAction(action) {
                     click?.invoke()
@@ -195,7 +195,9 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
             textView.maxLines = 5 // 複数行
             anchorView = bottomComposeView
             view.elevation = 30f
-        }.show()
+        }
+        snackbar.show()
+        return snackbar
     }
 
     /**

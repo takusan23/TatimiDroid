@@ -66,6 +66,8 @@ Android Studio Arctic Fox | 2020.3.1 Canary 4
 Intentという仕組みを利用することでたちみどろいどを他アプリから起動できます。
 MainActivityを指したIntentを飛ばしてください。
 
+バージョン 13.0.4 から使えると思います
+
 ### 生放送ID / 動画ID を指定して起動
 
 `Intent`に`putExtra()`で値を渡すことで生放送、動画の再生画面を開くことが可能です。
