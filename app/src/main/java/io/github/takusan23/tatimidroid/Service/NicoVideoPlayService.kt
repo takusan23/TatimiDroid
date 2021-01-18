@@ -482,7 +482,7 @@ class NicoVideoPlayService : Service() {
         }
         exoPlayer.prepare()
         // シーク
-        // exoPlayer.seekTo(seekMs)
+        exoPlayer.seekTo(seekMs)
         // 自動再生
         exoPlayer.playWhenReady = true
         // MediaSession。通知もう一階出せばなんか表示されるようになった。Androidむずかちい
@@ -917,10 +917,7 @@ class NicoVideoPlayService : Service() {
         startForeground(NOTIFICAION_ID, programNotification.build())
     }
 
-    /**
-     * ブロードキャスト初期化。
-     * Direct Replyの返信を受け取ったりするため
-     * */
+    /** ブロードキャスト初期化 */
     private fun initBroadcast() {
         val intentFilter = IntentFilter()
         intentFilter.addAction("video_popup_close")

@@ -384,8 +384,6 @@
                 android:key="setting_leave_popup"
                 android:summary="@string/leave_popup_description"
                 android:title="@string/popup_player" />
-
-
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/deprecated">
