@@ -714,7 +714,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 null
             }
             // ポップアップ再生
-            startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, playlist = playlist)
+            startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, playlist = playlist, seek = viewModel.currentPosition)
             // Activity落とす
             finishFragment()
         }
@@ -726,12 +726,12 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 null
             }
             // バッググラウンド再生
-            startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, playlist = playlist)
+            startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, playlist = playlist, seek = viewModel.currentPosition)
             // Activity落とす
             finishFragment()
         }
 
-        // MotionLayoutのコールバック
+        // MotioLayoutのコールバック
         viewBinding.fragmentNicovideoMotionLayout.addTransitionListener(object : MotionLayout.TransitionListener {
             override fun onTransitionStarted(p0: MotionLayout?, p1: Int, p2: Int) {
 
