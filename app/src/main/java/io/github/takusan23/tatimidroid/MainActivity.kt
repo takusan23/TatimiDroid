@@ -61,9 +61,20 @@ import kotlinx.coroutines.withContext
  * startActivity(intent)
  * ```
  *
- * 生放送、動画再生画面を起動する方法
- * putExtra()にliveIdかidをつけることで起動できます。
+ * ■ 生放送、動画再生画面を起動する方法
+ *
+ * putExtra()の第一引数に「liveId」か「videoId」をつけ、第二引数には各IDをセットすることで起動できます。
+ *
  * その他の値もIntentに入れてくれれば、Fragmentに詰めて設置します。
+ *
+ * 他アプリから たちみどろいど で きしめん を再生する例
+ *
+ * ```kotlin
+ * val intent = Intent()
+ * intent.setClassName("io.github.takusan23.tatimidroid", "io.github.takusan23.tatimidroid.MainActivity")
+ * intent.putExtra("videoId", "sm157")
+ * startActivity(intent)
+ * ```
  *
  * */
 class MainActivity : AppCompatActivity() {
