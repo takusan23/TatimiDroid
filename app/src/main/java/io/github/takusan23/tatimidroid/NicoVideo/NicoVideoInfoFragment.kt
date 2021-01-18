@@ -433,7 +433,7 @@ class NicoVideoInfoFragment : Fragment() {
             span.setSpan(object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     // 再生画面表示
-                    (requireActivity() as? MainActivity)?.setNicovideoFragment(videoId = videoId,isCache = false)
+                    (requireActivity() as? MainActivity)?.setNicovideoFragment(videoId = id, isCache = false)
                 }
             }, mather.start(), mather.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }

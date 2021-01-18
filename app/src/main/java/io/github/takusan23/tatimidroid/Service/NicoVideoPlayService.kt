@@ -978,7 +978,7 @@ class NicoVideoPlayService : Service() {
 }
 
 /**
- * ポップアップ再生、バッググラウンド再生サービス起動用関数。internal fun なのでどっからでも呼べると思う？
+ * ポップアップ再生、バッググラウンド再生サービス起動用関数。トップレベル関数 なのでどっからでも呼べると思う？
  * @param mode "popup"（ポップアップ再生）か"background"（バッググラウンド再生）
  * @param context Context
  * @param videoId 動画ID

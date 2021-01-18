@@ -33,6 +33,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoFragm
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.databinding.ActivityMainBinding
@@ -522,18 +523,34 @@ class MainActivity : AppCompatActivity() {
         // Fragment取得
         supportFragmentManager.findFragmentById(R.id.main_activity_fragment_layout).apply {
             when (this) {
+                // 生放送
                 is CommentFragment -> {
-                    // 生放送
                     when {
                         isLeaveAppPopup -> startPopupPlay()
                         isLeaveAppBackground -> startBackgroundPlay()
                     }
                 }
+                is JCNicoLiveFragment -> {
+                    viewModel.nicoLiveProgramData.value?.apply {
+                        when {
+                            isLeaveAppPopup -> startLivePlayService(context = context, mode = "popup", liveId = programId, isCommentPost = true, isNicocasMode = false, isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment, startQuality = viewModel.currentQuality)
+                            isLeaveAppBackground -> startLivePlayService(context = context, mode = "background", liveId = programId, isCommentPost = true, isNicocasMode = false, isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment, startQuality = viewModel.currentQuality)
+                        }
+                    }
+                }
+                // 動画
                 is NicoVideoFragment -> {
-                    // 動画
                     when {
                         isLeaveAppPopup -> startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
                         isLeaveAppBackground -> startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
+                    }
+                }
+                is JCNicoVideoFragment -> {
+                    viewModel.nicoVideoData.value?.apply {
+                        when {
+                            isLeaveAppPopup -> startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
+                            isLeaveAppBackground -> startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality)
+                        }
                     }
                 }
             }

@@ -71,7 +71,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     val contentShare = ContentShare(this)
 
     /** ViewModel初期化。ネットワークとかUI関係ないやつはこっちに書いていきます。 */
-    private val viewModel by lazy {
+    val viewModel by lazy {
         val liveId = arguments?.getString("liveId")!!
         ViewModelProvider(this, NicoLiveViewModelFactory(requireActivity().application, liveId, true)).get(NicoLiveViewModel::class.java)
     }
