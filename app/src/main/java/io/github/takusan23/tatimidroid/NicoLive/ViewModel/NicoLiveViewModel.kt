@@ -494,7 +494,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                     qualityListJSONArray = nicoLiveHTML.getQualityListJSONArray(message)
                     // 二回目以降画質変更を通知する
                     if (isNotFirstQualityMessage) {
-                        changeQualityLiveData.postValue(nicoLiveHTML.getQualityListJSONArray(message).toString())
+                        changeQualityLiveData.postValue(nicoLiveHTML.getCurrentQuality(message))
                     }
                     isNotFirstQualityMessage = true
                 }

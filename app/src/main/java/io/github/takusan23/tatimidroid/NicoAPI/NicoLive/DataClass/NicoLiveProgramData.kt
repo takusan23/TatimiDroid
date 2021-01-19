@@ -7,7 +7,11 @@ import java.io.Serializable
  *
  * @param title タイトル
  * @param programId 番組ID
- * @param
+ * @param broadCaster 放送者
+ * @param communityName コミュ名
+ * @param isOfficial 公式かどうか
+ * @param lifeCycle ON_AIR が放送中
+ * @param thum サムネ
  * @param beginAt UnixTime。何故か文字列だけどLongに変換してどうぞ。ミリ秒ではなく秒です。
  * @param endAt UnixTime。これもLongに変換できると思う。ミリ秒ではなく秒。
  * */
