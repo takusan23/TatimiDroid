@@ -345,6 +345,23 @@ fun NicoLiveCommentCommandPanel(
                 label = { Text(text = stringResource(id = R.string.color)) },
                 onValueChange = { selectColor.value = it }
             )
+            // リセットボタン
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .padding(2.dp),
+                onClick = {
+                    // 初期値に戻す
+                    selectSize.value = "medium"
+                    selectPos.value = "naka"
+                    selectColor.value = "white"
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Backspace,
+                    tint = Color.White
+                )
+            }
         }
         // 匿名切り替えスイッチ
         Row(

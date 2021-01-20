@@ -52,6 +52,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.GoogleCast.GoogleCast
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoLivePagerAdapter
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
@@ -300,17 +301,12 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             isOfficial = data.isOfficial
             initViewPager()
             // コントローラも
-            initController(data.title)
+            initController(data)
             googleCast.apply {
                 programTitle = data.title
                 programSubTitle = data.programId
                 programThumbnail = data.thum
             }
-        }
-
-        // getPlayerStatus
-        viewModel.roomNameAndChairIdLiveData.observe(viewLifecycleOwner) { message ->
-            viewBinding.commentFragmentControl.playerNicoliveControlId.text = message
         }
 
         // 新ニコニコ実況の番組と発覚した場合
@@ -455,7 +451,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     }
 
     /** コントローラーを初期化する。HTML取得後にやると良さそう */
-    private fun initController(programTitle: String) {
+    private fun initController(data: NicoLiveProgramData) {
         // クリックイベントを通過させない
         val job = Job()
         // 最小化するとかしないとか
@@ -474,7 +470,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
         }
         // 番組情報
-        viewBinding.commentFragmentControl.playerNicoliveControlTitle.text = programTitle
+        viewBinding.commentFragmentControl.playerNicoliveControlTitle.text = data.title
+        viewBinding.commentFragmentControl.playerNicoliveControlId.text = data.programId
         // Marqueeを有効にするにはフォーカスをあてないといけない？。<marquee>とかWeb黎明期感ある（その時代の人じゃないけど）
         viewBinding.commentFragmentControl.playerNicoliveControlTitle.isSelected = true
         // 全画面/ポップアップ/バッググラウンド

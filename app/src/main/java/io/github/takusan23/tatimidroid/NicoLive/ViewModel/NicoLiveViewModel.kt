@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.collect
 import okhttp3.internal.toLongOrDefault
 import org.json.JSONArray
 import org.json.JSONObject
-import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -121,9 +120,6 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
 
     /** 来場者、コメント数等の来場者数を送るLiveData */
     val statisticsLiveData = MutableLiveData<StatisticsDataClass>()
-
-    /** 部屋の名前と座席番号をつなげた文字列。getplayerstatusもデータクラスとかにしたい（とか言ってる間にgetPlayerStatus使えなくなりそう（使えなくてもノーダメだけど）） */
-    val roomNameAndChairIdLiveData = MutableLiveData<String>()
 
     /** 一分間にコメントした人数（ユニークユーザー数ってやつ。同じIDは１として数える）。 */
     val activeCommentPostUserLiveData = MutableLiveData<String>()
@@ -254,7 +250,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             // WebSocketへ接続
             connectWebSocket(jsonObject)
             // getPlayerStatus叩く
-            launch { getPlayerStatus() }
+            // launch { getPlayerStatus() }
             // コメント人数を定期的に数える
             activeUserClear()
             // 経過時間
@@ -293,28 +289,6 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
         val nicoJKId = nicoLiveHTML.getNicoJKIdFromChannelId(nicoLiveHTML.communityId)
         if (nicoJKId != null) {
             isNicoJKLiveData.postValue(nicoJKId)
-        }
-    }
-
-    /** 座席番号と部屋の名前取得 */
-    private suspend fun getPlayerStatus() = withContext(Dispatchers.IO) {
-        // getPlayerStatus叩いて座席番号取得
-        val getPlayerStatusResponse = nicoLiveHTML.getPlayerStatus(nicoLiveHTML.liveId, userSession)
-        if (getPlayerStatusResponse.isSuccessful) {
-            // なおステータスコード200でも中身がgetPlayerStatusのものかどうかはまだわからないので、、、
-            val document =
-                Jsoup.parse(getPlayerStatusResponse.body?.string())
-            // 番組開始直後（開始数秒でアクセス）すると何故か視聴ページにリダイレクト（302）されるのでチェック
-            val hasGetPlayerStatusTag = document.getElementsByTag("getplayerstatus ").isNotEmpty()
-            // 番組が終わっててもレスポンスは200を返すのでチェック
-            if (hasGetPlayerStatusTag && document.getElementsByTag("getplayerstatus ")[0].attr("status") == "ok") {
-                val roomName = document.getElementsByTag("room_label")[0].text() // 部屋名
-                val chairNo = document.getElementsByTag("room_seetno")[0].text() // 座席番号
-                roomNameAndChairIdLiveData.postValue("${nicoLiveHTML.liveId} - $roomName - $chairNo")
-            } else {
-                // getPlayerStatus取得失敗時
-                snackbarLiveData.postValue(getString(R.string.error_getplayserstatus))
-            }
         }
     }
 

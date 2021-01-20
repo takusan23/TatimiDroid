@@ -120,25 +120,6 @@ class NicoLiveHTML {
     }
 
     /**
-     * getPlayerStatusを叩く
-     * @param liveId 生放送ID
-     * @param userSession ユーザーセッション
-     * @return OkhttpのResponse
-     * */
-    suspend fun getPlayerStatus(liveId: String, userSession: String?) = withContext(Dispatchers.IO) {
-        val url = "https://live.nicovideo.jp/api/getplayerstatus/$liveId"
-        val request = Request.Builder().apply {
-            get()
-            url(url)
-            addHeader("User-Agent", "TatimiDroid;@takusan_23")
-            addHeader("Cookie", "user_session=$userSession")
-
-        }.build()
-        val response = okHttpClient.newCall(request).execute()
-        response
-    }
-
-    /**
      * 動画情報などをセットする。コメント投稿もこれを呼ばないと使えないので呼んでね。
      * 視聴セッション接続前に呼ぶと忘れないで済む
      * @param jsonObject nicoLiveHTMLtoJSONObject()の値
@@ -286,7 +267,7 @@ class NicoLiveHTML {
     fun getKonomiTagList(nicoLiveJSON: JSONObject): ArrayList<String> {
         val konomi = nicoLiveJSON.getJSONObject("programBroadcaster").getJSONArray("konomiTags")
         val result = arrayListOf<String>()
-        for (i in 0 until konomi.length()){
+        for (i in 0 until konomi.length()) {
             val text = konomi.getJSONObject(i).getString("text")
             result.add(text)
         }
