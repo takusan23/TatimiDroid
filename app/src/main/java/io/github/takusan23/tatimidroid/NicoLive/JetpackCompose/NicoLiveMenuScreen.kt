@@ -206,6 +206,20 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
         }
     }
 
+
+    /** 画像つき共有をする */
+    fun showShereSheetMediaAttach() {
+        // 親のFragment取得
+        (parentFragment as? JCNicoLiveFragment)?.showShareSheetMediaAttach()
+    }
+
+    /** 共有する */
+    fun showShareSheet() {
+        // 親のFragment取得
+        (parentFragment as? JCNicoLiveFragment)?.showShareSheet()
+    }
+
+
     /**
      * こっからレイアウト
      * ----------------------------
@@ -281,8 +295,8 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
                 }
                 3 -> {
                     NicoVideoShareMenu(
-                        share = { /*TODO*/ },
-                        shareAttachImg = { /*TODO*/ }
+                        share = { showShareSheet() },
+                        shareAttachImg = { showShereSheetMediaAttach() }
                     )
                 }
                 4 -> {

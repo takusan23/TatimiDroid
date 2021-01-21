@@ -643,6 +643,25 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
     }
 
+    /** 画像つき共有を行う */
+    fun showShareSheetMediaAttach() {
+        viewModel.nicoLiveProgramData.value?.apply {
+            contentShare.shareContentAttachPicture(
+                playerView = nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView,
+                commentCanvas = nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas,
+                programId = programId,
+                programName = title
+            )
+        }
+    }
+
+    /** テキストのみ共有を行う */
+    fun showShareSheet() {
+        viewModel.nicoLiveProgramData.value?.apply {
+            contentShare.shareContent(programId, title)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         exoPlayer.release()
