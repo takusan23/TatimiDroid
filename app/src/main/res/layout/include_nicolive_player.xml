@@ -211,9 +211,16 @@
         app:layout_constraintBottom_toBottomOf="@+id/include_nicolive_player_black_view"
         app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_black_view"
         app:layout_constraintStart_toStartOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_black_view">
+        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_black_view" />
 
-    </FrameLayout>
+    <FrameLayout
+        android:id="@+id/include_nicolive_player_webview_frame_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="@+id/include_nicolive_player_black_view"
+        app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_black_view"
+        app:layout_constraintStart_toStartOf="@+id/include_nicolive_player_black_view"
+        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_black_view" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/include_nicolive_player_control_group"

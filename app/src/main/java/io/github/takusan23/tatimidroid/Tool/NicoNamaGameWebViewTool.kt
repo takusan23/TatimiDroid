@@ -69,7 +69,7 @@ object NicoNamaGameWebViewTool {
                         loadUrl("javascript:(function(){document.getElementsByTagName('video')[0].parentNode.remove()})()")
                         // 背景を透明に
                         loadUrl("javascript:(function(){document.getElementsByClassName('___player-display___35bAr')[0].style.backgroundColor = 'transparent' })()")
-                        loadUrl("javascript:(function(){document.getElementsByClassName('___watch-page___th_ha ___ga-ns-watch-page___pYeNv ___page___1G6yH')[0].style.backgroundColor = 'transparent' })()")
+                        loadUrl("javascript:(function(){document.getElementsByClassName('___watch-page___2883Z ___ga-ns-watch-page___1i9u1 ___page___1G6yH')[0].style.backgroundColor = 'transparent' })()")
                     }
                     // 新市場の位置を変える
                     loadUrl("javascript:(function(){var ichiba = document.getElementsByClassName('___ichiba-counter-section___2B9Wc')[0]; ichiba.parentElement.parentElement.parentElement.parentElement.appendChild(ichiba)})()")

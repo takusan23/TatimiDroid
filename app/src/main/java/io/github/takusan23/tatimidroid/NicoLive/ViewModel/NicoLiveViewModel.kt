@@ -199,6 +199,12 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** コメント一覧を自動で展開しない設定かどうか */
     val isAutoCommentListShowOff = prefSetting.getBoolean("setting_nicovideo_jc_comment_auto_show_off", true)
 
+    /** ExoPlayerの音量を持っておくLiveData */
+    val exoplayerVolumeLiveData = MutableLiveData(1f)
+
+    /** ニコ生WebViewを表示中か */
+    val isUseNicoNamaWebView = MutableLiveData(false)
+
     /** 初回判定用フラグ。初回のみぴょこってプレイヤーが出てくるあれをやるために */
     var isFirst = true
 

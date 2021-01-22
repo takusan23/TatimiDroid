@@ -282,6 +282,7 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
                     )
                 }
                 2 -> {
+                    // コメビュメニュー
                     NicoLiveButtonMenu(
                         onClickQualityChange = { openQualityChangeBottomFragment() },
                         onClickScreenRotation = { rotateScreen() },
@@ -294,21 +295,26 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
                     )
                 }
                 3 -> {
+                    // 共有メニュー
                     NicoVideoShareMenu(
                         share = { showShareSheet() },
                         shareAttachImg = { showShereSheetMediaAttach() }
                     )
                 }
                 4 -> {
+                    // 音量調整。ちなみにAndroidの音量調整ではなく動画再生ライブラリ側で音量調整している。
+                    val volumeLiveData = viewModel.exoplayerVolumeLiveData.observeAsState(initial = 1f)
                     NicoVideoVolumeMenu(
-                        volume = 1f,
-                        volumeChange = { /*TODO*/ }
+                        volume = volumeLiveData.value,
+                        volumeChange = { volume -> viewModel.exoplayerVolumeLiveData.postValue(volume) }
                     )
                 }
                 5 -> {
+                    // ニコ生ゲーム用WebView。
+                    val isUseNicoNamaWebView = viewModel.isUseNicoNamaWebView.observeAsState(initial = false)
                     NicoLiveNicoNamaGameCard(
-                        isNicoNamaGame = false,
-                        onSwitchNicoNamaGame = { /*TODO*/ }
+                        isNicoNamaGame = isUseNicoNamaWebView.value,
+                        onSwitchNicoNamaGame = { isUse -> viewModel.isUseNicoNamaWebView.postValue(isUse) }
                     )
                 }
             }

@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
+import android.webkit.WebView
 import android.widget.LinearLayout
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.livedata.observeAsState
@@ -256,6 +257,17 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         viewModel.hlsAddressLiveData.observe(viewLifecycleOwner) { address ->
             playExoPlayer(address)
         }
+        // 音量調整LiveData
+        viewModel.exoplayerVolumeLiveData.observe(viewLifecycleOwner) { volume ->
+            exoPlayer.volume = volume
+        }
+        viewModel.isUseNicoNamaWebView.observe(viewLifecycleOwner) {
+            if (it) {
+                setNicoNamaWebView()
+            } else {
+                removeNicoNamaWebView()
+            }
+        }
         // 画質変更
         viewModel.changeQualityLiveData.observe(viewLifecycleOwner) { quality ->
             showSnackBar("${getString(R.string.successful_quality)}\n→${quality}", null, null)
@@ -279,7 +291,20 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.postCommentAsciiArt(asciiArtComment, commentJSONParse)
             }
         }
+    }
 
+    /** ニコ生WebViewを削除 */
+    private fun removeNicoNamaWebView() {
+        nicolivePlayerUIBinding.includeNicolivePlayerWebviewFrameLayout.removeAllViews()
+    }
+
+    /** ニコ生WebViewを用意 */
+    private fun setNicoNamaWebView() {
+        if (viewModel.nicoLiveProgramData.value != null) {
+            val webView = WebView(requireContext())
+            NicoNamaGameWebViewTool.init(webView, viewModel.nicoLiveProgramData.value!!.programId, false)
+            nicolivePlayerUIBinding.includeNicolivePlayerWebviewFrameLayout.addView(webView)
+        }
     }
 
     /** アンケート開票のUIをセットする */
