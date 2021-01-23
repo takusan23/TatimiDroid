@@ -205,6 +205,12 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** ニコ生WebViewを表示中か */
     val isUseNicoNamaWebView = MutableLiveData(false)
 
+    /** コメントの受信で部屋統合（PC版とかスマホ版と同じコメント鯖）のコメントを取得するか */
+    val isReceiveArenaCommentLiveData = MutableLiveData(true)
+
+    /** コメントの受信で流量制限（溢れたコメント鯖）のコメントを取得するか */
+    val isReceiveLimitCommentLiveData = MutableLiveData(true)
+
     /** 初回判定用フラグ。初回のみぴょこってプレイヤーが出てくるあれをやるために */
     var isFirst = true
 
@@ -607,8 +613,11 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
     private fun receiveCommentFun(comment: String, roomName: String, isHistoryComment: Boolean) {
         // JSONぱーす
         val commentJSONParse = CommentJSONParse(comment, roomName, nicoLiveHTML.liveId)
+        // どっちの部屋のコメントかどうか。trueで部屋統合
+        val isArenaComment = roomName != getString(R.string.room_limit)
+
         // アンケートや運コメを表示させる。
-        if (roomName != getString(R.string.room_limit)) {
+        if (isArenaComment) {
             when {
                 comment.contains("/vote") -> {
                     // アンケート

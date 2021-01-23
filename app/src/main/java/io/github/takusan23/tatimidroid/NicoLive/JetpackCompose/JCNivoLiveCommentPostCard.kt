@@ -38,7 +38,7 @@ import io.github.takusan23.tatimidroid.R
  * @param commentChange コメントInputに変更が入ったときに呼ばれる
  * @param is184 匿名で投稿する場合はtrue。もしfalseになった場合はテキストボックスのヒントにに生IDで投稿されるという旨が表示されます。
  * @param onPostClick 投稿ボタン押した時
- * @param changeEnterToSend Enterキーを送信キーに変更するか。
+ * @param isMultiLine 複数行コメントを送信する場合はtrue。falseの場合はEnterキーを送信キーに変更します。
  * @param isHideCommentInputLayout コメント入力テキストボックス非表示にするかどうか
  * @param onHideCommentInputLayoutChange コメント入力テキストボックスの表示が切り替わったら呼ばれる
  * @param onPosValueChange 固定位置が変わったら呼ばれる
@@ -48,6 +48,7 @@ import io.github.takusan23.tatimidroid.R
  * @param position コメントの位置
  * @param size コメントの大きさ
  * @param color コメントの色
+ * @param onChangeMultiLine 複数行での投稿を有効にした場合は呼ばれる
  * */
 @ExperimentalAnimationApi
 @Composable
@@ -59,7 +60,7 @@ fun NicoLiveCommentInputButton(
     comment: String,
     commentChange: (String) -> Unit,
     onPostClick: () -> Unit,
-    changeEnterToSend: Boolean = true,
+    isMultiLine: Boolean,
     isHideCommentInputLayout: Boolean = false,
     onHideCommentInputLayoutChange: (Boolean) -> Unit = {},
     position: String,
@@ -94,14 +95,14 @@ fun NicoLiveCommentInputButton(
         if (isShowCommandPanel.value && !isHideCommentLayout.value) {
             NicoLiveCommentCommandPanel(
                 isPremium = isPremium,
-                onColorValueChange = onColorValueChange,
-                onPosValueChange = onPosValueChange,
-                onSizeValueChange = onSizeValueChange,
                 is184 = is184,
-                onTokumeiChange = onTokumeiChange,
-                color = color,
                 position = position,
                 size = size,
+                color = color,
+                onPosValueChange = onPosValueChange,
+                onSizeValueChange = onSizeValueChange,
+                onColorValueChange = onColorValueChange,
+                onTokumeiChange = onTokumeiChange
             )
         }
         // コメント投稿欄
@@ -110,9 +111,7 @@ fun NicoLiveCommentInputButton(
             verticalAlignment = Alignment.CenterVertically, // 真ん中にする
         ) {
             // コメント投稿エリア収納
-            IconButton(onClick = {
-                isHideCommentLayout.value = !isHideCommentLayout.value
-            }) {
+            IconButton(onClick = { isHideCommentLayout.value = !isHideCommentLayout.value }) {
                 Icon(
                     imageVector = if (isHideCommentLayout.value) Icons.Outlined.Create else Icons.Outlined.KeyboardArrowRight,
                     tint = Color.White,
@@ -145,7 +144,8 @@ fun NicoLiveCommentInputButton(
                     activeColor = Color.White,
                     inactiveColor = Color.White,
                     textStyle = TextStyle(Color.White),
-                    keyboardOptions = if (changeEnterToSend) KeyboardOptions(imeAction = ImeAction.Send) else KeyboardOptions.Default,
+                    // 複数行投稿が無効な場合はEnterキーを送信、そうじゃない場合は改行へ
+                    keyboardOptions = if (!isMultiLine) KeyboardOptions(imeAction = ImeAction.Send) else KeyboardOptions.Default,
                     onImeActionPerformed = { imeAction, softwareKeyboardController ->
                         if (imeAction == ImeAction.Send) {
                             // 送信！

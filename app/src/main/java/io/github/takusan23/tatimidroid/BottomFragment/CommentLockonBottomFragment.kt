@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserAPI
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
@@ -27,6 +28,7 @@ import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoFragment
+import io.github.takusan23.tatimidroid.NicoVideo.NicoAccountFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
@@ -326,8 +328,12 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
 
     /** ユーザーページを開く */
     private fun openUserPage(userId: String) {
-        val intent = Intent(Intent.ACTION_VIEW, "https://www.nicovideo.jp/user/$userId".toUri())
-        startActivity(intent)
+        val accountFragment = NicoAccountFragment().apply {
+            arguments = Bundle().apply {
+                putString("userId", userId)
+            }
+        }
+        (requireActivity() as? MainActivity)?.setFragment(accountFragment, "account")
     }
 
     /** ユーザー名取得。非同期処理 */
@@ -335,7 +341,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         // API叩く
         val user = withContext(Dispatchers.IO) {
             val user = UserAPI()
-            val response = user.getUserData(userId, userSession)
+            val response = user.getUserData(userSession, userId)
             if (!response.isSuccessful) return@withContext null
             user.parseUserData(response.body?.string())
         }

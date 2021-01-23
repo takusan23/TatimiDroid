@@ -32,7 +32,6 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DropPopAlertMotionLayoutFix
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.NicoLive.CommentViewFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
@@ -126,11 +125,11 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 val commentPos = remember { mutableStateOf("naka") }
                 // 文字の色
                 val commentColor = remember { mutableStateOf("white") }
+                // 複数行コメントを許可している場合はtrue。falseならEnterキーでコメント送信
+                val isAcceptMultiLineComment = !prefSetting.getBoolean("setting_enter_post", true)
 
                 NicoLiveCommentInputButton(
-                    onClick = {
-                        viewModel.commentListShowLiveData.postValue(!isComment.value)
-                    },
+                    onClick = { viewModel.commentListShowLiveData.postValue(!isComment.value) },
                     isComment = isComment.value,
                     comment = commentPostText.value,
                     commentChange = { commentPostText.value = it },
@@ -154,6 +153,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                         prefSetting.edit { putBoolean("nicolive_post_tokumei", it) }
                         viewModel.nicoLiveHTML.isPostTokumeiComment = it
                     },
+                    isMultiLine = isAcceptMultiLineComment,
                 )
             }
         }
@@ -163,7 +163,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     private fun setFragment() {
         // 動画情報Fragment、コメントFragment設置
         childFragmentManager.beginTransaction().replace(fragmentHostFrameLayout.id, JCNicoLiveInfoFragment()).commit()
-        childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, CommentViewFragment()).commit()
+        childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, JCNicoLiveCommentListFragment()).commit()
         // ダークモード
         fragmentCommentHostFrameLayout.background = ColorDrawable(getThemeColor(requireContext()))
         // コメント一覧Fragmentを表示するかどうかのやつ
