@@ -13,6 +13,7 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoHTMLSeriesData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoSeriesData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
@@ -197,6 +198,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** シリーズが設定されていればシリーズの情報が入ってくる */
     val seriesDataLiveData = MutableLiveData<NicoVideoSeriesData>()
 
+    /** シリーズが設定されていればシリーズの情報が入ってくる */
+    val seriesHTMLDataLiveData = MutableLiveData<NicoVideoHTMLSeriesData>()
+
     /** コメント一覧を自動で展開しない設定かどうか */
     val isAutoCommentListShowOff = prefSetting.getBoolean("setting_nicovideo_jc_comment_auto_show_off", true)
 
@@ -232,6 +236,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
      * */
     fun load(videoId: String, isCache: Boolean, isEco: Boolean, useInternet: Boolean) {
         onCleared()
+        playerSetSeekMs.postValue(0)
         notVideoPlayModeCoroutineContext.cancelChildren()
         playerCurrentPositionMs = 0
 
@@ -304,6 +309,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                     tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
                     // シリーズが設定されていればシリーズ情報を返す
                     seriesDataLiveData.postValue(nicoVideoHTML.getSeriesData(jsonObject))
+                    // シリーズのJSON解析してデータクラスにする
+                    seriesHTMLDataLiveData.postValue(nicoVideoHTML.getSeriesHTMLData(jsonObject))
                 }
 
                 // コメントが有るか
@@ -444,6 +451,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             }
             // シリーズが設定されていればシリーズ情報を返す
             seriesDataLiveData.postValue(nicoVideoHTML.getSeriesData(jsonObject))
+            // シリーズのJSON解析してデータクラスにする
+            seriesHTMLDataLiveData.postValue(nicoVideoHTML.getSeriesHTMLData(jsonObject))
         }
     }
 
@@ -560,8 +569,6 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             }
             val videoData = playlistLiveData.value!![nextVideoPos]
             load(videoData.videoId, videoData.isCache, isEco, useInternet)
-            // 0に戻す
-            playerSetSeekMs.postValue(0)
         }
     }
 
@@ -579,8 +586,6 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             }
             val videoData = playlistLiveData.value!![prevVideoPos]
             load(videoData.videoId, videoData.isCache, isEco, useInternet)
-            // 0に戻す
-            playerSetSeekMs.postValue(0)
         }
     }
 
@@ -590,8 +595,6 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             // 動画情報を見つける
             val videoData = playlistLiveData.value!!.find { nicoVideoData -> nicoVideoData.videoId == videoId } ?: return
             load(videoData.videoId, videoData.isCache, isEco, useInternet)
-            // 0に戻す
-            playerSetSeekMs.postValue(0)
         }
     }
 

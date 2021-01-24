@@ -34,7 +34,7 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoSeriesData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoHTMLSeriesData
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
@@ -75,8 +75,9 @@ fun NicoVideoInfoCard(
     description: String,
     descriptionClick: (id: String, type: String) -> Unit,
 ) {
+
     // 動画説明文表示状態
-    var expanded by remember { mutableStateOf(false) }
+    val expanded = remember { mutableStateOf(false) }
 
     Card(
         modifier = parentCardModifier,
@@ -145,13 +146,12 @@ fun NicoVideoInfoCard(
                     NicoVideoLikeButton(
                         isLiked = isLiked,
                         onLikeClick = onLikeClick,
-                        scaffoldState = scaffoldState,
                     )
                 }
                 // 展開ボタン。動画説明文の表示を切り替える
-                IconButton(onClick = { expanded = !expanded }) {
-                    // アイコンコード一行で召喚できる。Node.jsのnpmのmdiみたいだな！
-                    Icon(imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore)
+                IconButton(onClick = { expanded.value = !expanded.value }) {
+                    // アイコンコード一行で召喚できる。npmのmdiみたいだな！
+                    Icon(imageVector = if (expanded.value) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore)
                 }
             }
 
@@ -174,7 +174,7 @@ fun NicoVideoInfoCard(
             }
 
             // 詳細表示
-            if (expanded) {
+            if (expanded.value) {
                 Column {
                     // 区切り線
                     Divider(modifier = Modifier.padding(5.dp))
@@ -205,20 +205,20 @@ fun NicoVideoInfoCard(
 fun NicoVideoLikeButton(
     isLiked: Boolean,
     onLikeClick: () -> Unit,
-    scaffoldState: ScaffoldState,
 ) {
-    // Snackbar表示で使うコルーチンスコープ
-    val scope = rememberCoroutineScope()
-    // リソース取得
-    val removeMessage = stringResource(id = R.string.unlike)
-    val torikesu = stringResource(id = R.string.torikesu)
+    // ピンク色
+    val pinkColor = Color(android.graphics.Color.parseColor("#F69896"))
+
     // いいねボタン
     OutlinedButton(
         shape = RoundedCornerShape(20.dp), // 丸み
         onClick = { onLikeClick() },
     ) {
         Text(text = if (isLiked) stringResource(id = R.string.liked) else stringResource(id = R.string.like))
-        Icon(imageVector = Icons.Outlined.FavoriteBorder)
+        Icon(
+            imageVector = if (isLiked) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
+            tint = if (isLiked) pinkColor else AmbientContentColor.current.copy(alpha = AmbientContentAlpha.current)
+        )
     }
 }
 
@@ -329,31 +329,41 @@ fun NicoVideoTagCard(tagDataList: ArrayList<NicoLiveTagDataClass>, onTagClick: (
 /**
  * シリーズが設定されてる場合は表示する
  *
- * @param nicoVideoSeriesData シリーズ情報データクラス
- * @param startSeriesPlay 連続再生押した時
+ * @param nicoVideoHTMLSeriesData シリーズ情報データクラス。次の動画とかを表示するため
+ * @param onClickStartSeriesPlay 連続再生押した時
+ * @param onClickFirstVideoPlay シリーズの最初の動画を再生するボタンを押した時
+ * @param onClickNextVideoPlay 次の動画を再生するボタンを押した時
+ * @param onClickPrevVideoPlay 前の動画を再生するボタンを押した時
  * */
 @Composable
 fun NicoVideoSeriesCard(
-    nicoVideoSeriesData: NicoVideoSeriesData,
-    startSeriesPlay: () -> Unit,
+    nicoVideoHTMLSeriesData: NicoVideoHTMLSeriesData,
+    onClickStartSeriesPlay: () -> Unit,
+    onClickFirstVideoPlay: (NicoVideoData) -> Unit,
+    onClickNextVideoPlay: (NicoVideoData) -> Unit,
+    onClickPrevVideoPlay: (NicoVideoData) -> Unit,
 ) {
+
+    /**
+     * シリーズメニュー表示状態
+     *
+     * 本当は引数に出すべきなんだけど、なんか引数にすると全部のUIに更新が行ってしまう
+     * */
+    val expanded = remember { mutableStateOf(false) }
+
     Card(
         modifier = parentCardModifier,
         shape = parentCardShape,
         elevation = parentCardElevation,
     ) {
-        Column(
-            modifier = Modifier.padding(10.dp),
-        ) {
+        Column(modifier = Modifier.padding(10.dp)) {
             Row {
                 Icon(imageVector = Icons.Outlined.Folder)
                 Text(text = stringResource(id = R.string.series))
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 // さむね
-                val bitmap = getBitmapCompose(url = nicoVideoSeriesData.thumbUrl)
+                val bitmap = getBitmapCompose(url = nicoVideoHTMLSeriesData.seriesData.thumbUrl)
                 if (bitmap != null) {
                     // ちいさめ
                     Image(
@@ -365,15 +375,46 @@ fun NicoVideoSeriesCard(
                 }
                 // タイトル
                 Text(
-                    text = nicoVideoSeriesData.title,
+                    text = nicoVideoHTMLSeriesData.seriesData.title,
                     modifier = Modifier
                         .weight(1f)
                         .padding(5.dp)
                 )
                 // 一覧表示
-                OutlinedButton(onClick = { startSeriesPlay() }) {
-                    Icon(imageVector = Icons.Outlined.PlayArrow)
-                    Text(text = stringResource(id = R.string.nicovideo_playlist_start))
+                IconButton(onClick = { expanded.value = !expanded.value }) {
+                    Icon(imageVector = if (expanded.value) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore)
+                }
+            }
+            if (expanded.value) {
+                Column {
+                    // 区切り
+                    Divider()
+                    // 連続再生開始などのメニュー
+                    TextButton(onClick = { onClickStartSeriesPlay() }) {
+                        Icon(imageVector = Icons.Outlined.PlayArrow)
+                        Text(text = stringResource(id = R.string.nicovideo_playlist_start), modifier = Modifier.weight(1f))
+                    }
+                    // 最初から再生
+                    if (nicoVideoHTMLSeriesData.firstVideoData != null) {
+                        TextButton(onClick = { onClickFirstVideoPlay(nicoVideoHTMLSeriesData.firstVideoData) }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(imageVector = Icons.Outlined.Filter1)
+                            Text(text = "最初から再生\n${nicoVideoHTMLSeriesData.firstVideoData.title}", modifier = Modifier.weight(1f))
+                        }
+                    }
+                    // 次の動画
+                    if (nicoVideoHTMLSeriesData.nextVideoData != null) {
+                        TextButton(onClick = { onClickNextVideoPlay(nicoVideoHTMLSeriesData.nextVideoData) }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(imageVector = Icons.Outlined.ArrowForward)
+                            Text(text = "次の動画\n${nicoVideoHTMLSeriesData.nextVideoData.title}", modifier = Modifier.weight(1f))
+                        }
+                    }
+                    // 前の動画
+                    if (nicoVideoHTMLSeriesData.prevVideoData != null) {
+                        TextButton(onClick = { onClickPrevVideoPlay(nicoVideoHTMLSeriesData.prevVideoData) }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(imageVector = Icons.Outlined.ArrowBack)
+                            Text(text = "前の動画\n${nicoVideoHTMLSeriesData.prevVideoData.title}", modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
             }
         }
@@ -395,6 +436,9 @@ fun NicoVideoPlayList(
     isShuffle: Boolean,
     shuffleClick: () -> Unit,
 ) {
+    // 表示中かどうか
+    val isPlaylistShow = remember { mutableStateOf(false) }
+
     // 選択中
     val playingColor = colorResource(id = R.color.colorAccent)
     // 影をつけるため？
@@ -416,13 +460,13 @@ fun NicoVideoPlayList(
                     text = stringResource(id = R.string.playlist_button),
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = { showButtonClick() }) {
+                IconButton(onClick = { isPlaylistShow.value = !isPlaylistShow.value }) {
                     Icon(
-                        imageVector = if (isShowList) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore
+                        imageVector = if (isPlaylistShow.value) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore
                     )
                 }
             }
-            if (isShowList) {
+            if (isPlaylistShow.value) {
                 // シャッフルとか
                 ScrollableRow {
                     // 動画時間

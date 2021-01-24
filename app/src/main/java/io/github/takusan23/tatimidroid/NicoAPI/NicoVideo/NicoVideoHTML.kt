@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoHTMLSeriesData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoSeriesData
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
@@ -825,14 +826,16 @@ class NicoVideoHTML {
             val tagName = tagObject.getString("name")
             val isNicopediaExists = tagObject.getBoolean("isDictionaryExists")
             val isLocked = tagObject.getBoolean("isLocked")
-            tagDataClass.add(NicoLiveTagDataClass(
-                tagName = tagName,
-                isLocked = isLocked,
-                type = "",
-                isDeletable = !isLocked,
-                hasNicoPedia = isNicopediaExists,
-                nicoPediaUrl = "https://dic.nicovideo.jp/a/$tagName"
-            ))
+            tagDataClass.add(
+                NicoLiveTagDataClass(
+                    tagName = tagName,
+                    isLocked = isLocked,
+                    type = "",
+                    isDeletable = !isLocked,
+                    hasNicoPedia = isNicopediaExists,
+                    nicoPediaUrl = "https://dic.nicovideo.jp/a/$tagName"
+                )
+            )
         }
         return tagDataClass
     }
@@ -896,6 +899,79 @@ class NicoVideoHTML {
         } else {
             null
         }
+    }
+
+    /**
+     * ニコ動の視聴ページ内にあるシリーズのJSONオブジェクトをパースして、データクラスに入れる関数
+     *
+     * シリーズ最初の動画、次の動画、最後の動画の情報が入っています。
+     *
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * */
+    suspend fun getSeriesHTMLData(jsonObject: JSONObject) = withContext(Dispatchers.Default) {
+        return@withContext if (!jsonObject.isNull("series")) {
+            val seriesJSON = jsonObject.getJSONObject("series")
+            // シリーズのデータクラス
+            val seriesData = getSeriesData(jsonObject)!!
+            // 次の動画の情報
+            val nextVideoData = if (seriesJSON.isNull("nextVideo")) {
+                null
+            } else {
+                parseSeriesVideoData(seriesJSON.getJSONObject("nextVideo"))
+            }
+            // 前の動画の情報
+            val prevVideoData = if (seriesJSON.isNull("prevVideo")) {
+                null
+            } else {
+                parseSeriesVideoData(seriesJSON.getJSONObject("prevVideo"))
+            }
+            // 最初の動画
+            val firstVideoData = if (seriesJSON.isNull("firstVideo")) {
+                null
+            } else {
+                parseSeriesVideoData(seriesJSON.getJSONObject("firstVideo"))
+            }
+            // まとめてデータクラスへ
+            NicoVideoHTMLSeriesData(seriesData, firstVideoData, nextVideoData, prevVideoData)
+        } else {
+            null
+        }
+    }
+
+    /**
+     * シリーズの次、前、最初の動画のJSONオブジェクトをパースする
+     *
+     * @param jsonObject js-initial-watch-dataのdata-api-data の series.firstVideo などの値
+     * @return [NicoVideoData]
+     * */
+    private suspend fun parseSeriesVideoData(jsonObject: JSONObject) = withContext(Dispatchers.Default) {
+        val videoId = jsonObject.getString("id")
+        val title = jsonObject.getString("title")
+        val thumb = jsonObject.getJSONObject("thumbnail").getString("largeUrl")
+        val registerAt = jsonObject.getString("registeredAt")
+        val viewObject = jsonObject.getJSONObject("count")
+        val viewCount = viewObject.getInt("view")
+        val commentCount = viewObject.getInt("comment")
+        val mylistCount = viewObject.getInt("mylist")
+        val duration = jsonObject.getInt("duration")
+        return@withContext NicoVideoData(
+            isCache = false,
+            isMylist = false,
+            title = title,
+            videoId = videoId,
+            thum = thumb,
+            date = seriesRegisterAtToUnixTime(registerAt),
+            viewCount = viewCount.toString(),
+            commentCount = commentCount.toString(),
+            mylistCount = mylistCount.toString(),
+            duration = duration.toLong()
+        )
+    }
+
+    // UnixTimeへ変換
+    private fun seriesRegisterAtToUnixTime(time: String): Long {
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+        return simpleDateFormat.parse(time).time
     }
 
     /**

@@ -84,8 +84,11 @@ class JCNicoVideoInfoFragment : Fragment() {
                             val userData = viewModel.userDataLiveData.observeAsState()
                             // タグ一覧
                             val tagList = viewModel.tagListLiveData.observeAsState()
+
                             // シリーズ
-                            val seriesLiveData = viewModel.seriesDataLiveData.observeAsState()
+                            val seriesDataLiveData = viewModel.seriesDataLiveData.observeAsState()
+                            // シリーズ
+                            val seriesHTMLLiveData = viewModel.seriesHTMLDataLiveData.observeAsState()
 
                             // 連続再生
                             val playlist = viewModel.playlistLiveData.observeAsState()
@@ -124,6 +127,7 @@ class JCNicoVideoInfoFragment : Fragment() {
 
                                 // スクロールできるやつ
                                 ScrollableColumn {
+
                                     if (data.value != null) {
                                         // 動画情報表示Card
                                         NicoVideoInfoCard(
@@ -149,13 +153,17 @@ class JCNicoVideoInfoFragment : Fragment() {
                                     }
 
                                     // シリーズ
-                                    if (seriesLiveData.value != null) {
+                                    if (seriesHTMLLiveData.value != null) {
                                         NicoVideoSeriesCard(
-                                            nicoVideoSeriesData = seriesLiveData.value!!,
-                                            startSeriesPlay = {
+                                            nicoVideoHTMLSeriesData = seriesHTMLLiveData.value!!,
+                                            onClickStartSeriesPlay = {
                                                 // シリーズ連続再生押した時
-                                                viewModel.addSeriesPlaylist(seriesId = seriesLiveData.value!!.seriesId)
-                                            }
+                                                viewModel.addSeriesPlaylist(seriesId = seriesDataLiveData.value!!.seriesId)
+                                            },
+                                            // 後３つはそれぞれ動画再生関数を呼ぶ
+                                            onClickFirstVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
+                                            onClickNextVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
+                                            onClickPrevVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) }
                                         )
                                     }
 
@@ -169,6 +177,7 @@ class JCNicoVideoInfoFragment : Fragment() {
                                             }
                                         )
                                     }
+
                                     // ユーザー情報
                                     if (userData.value != null) {
                                         NicoVideoUserCard(
