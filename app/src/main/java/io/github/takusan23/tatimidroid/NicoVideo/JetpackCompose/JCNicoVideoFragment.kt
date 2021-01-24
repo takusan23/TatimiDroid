@@ -126,7 +126,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         childFragmentManager.beginTransaction().replace(fragmentHostFrameLayout.id, JCNicoVideoInfoFragment()).commit()
         childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, NicoVideoCommentFragment()).commit()
         // ダークモード
-        fragmentCommentHostFrameLayout.background = ColorDrawable(getThemeColor(requireContext()))
+        fragmentCommentLinearLayout.background = ColorDrawable(getThemeColor(requireContext()))
         // コメント一覧展開ボタンを設置する
         bottomComposeView.apply {
             setContent {
@@ -142,7 +142,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // コメント一覧展開など
         viewModel.commentListShowLiveData.observe(viewLifecycleOwner) { isShow ->
             // アニメーション？自作ライブラリ
-            val dropPopAlert = fragmentCommentHostFrameLayout.toDropPopAlert()
+            val dropPopAlert = fragmentCommentLinearLayout.toDropPopAlert()
             if (isShow) {
                 dropPopAlert.showAlert(DropPopAlert.ALERT_UP)
             } else {

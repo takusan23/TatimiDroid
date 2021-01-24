@@ -33,7 +33,7 @@ import java.util.*
 /**
  * CommentJSONParse配列を使う
  * @param commentList 表示するコメント
- * @param commentFragment ViewModel取得したりBottomFragment表示させる時に使う
+ * @param commentFragment ViewModel取得したりBottomFragment表示させる時に使う。[CommentFragment] or [io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveFragment]
  * */
 class CommentRecyclerViewAdapter(val commentList: ArrayList<CommentJSONParse>, private val commentFragment: Fragment) : RecyclerView.Adapter<CommentRecyclerViewAdapter.ViewHolder>() {
 

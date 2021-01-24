@@ -32,6 +32,8 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.DropPopAlertMotionLayoutFix
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
+import io.github.takusan23.tatimidroid.NicoLive.CommentRoomFragment
+import io.github.takusan23.tatimidroid.NicoLive.CommentViewFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
@@ -94,6 +96,9 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
 
         // コメント送信用UI（Jetpack Compose）設定
         setCommentPostUI()
+
+        // 累計来場者、コメント投稿数、アクテイブ人数表示UI設定
+        setStatisticsUI()
 
         // スリープにしない
         caffeine()
@@ -159,17 +164,47 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
     }
 
+    private fun setStatisticsUI() {
+        // 累計情報。来場者、コメント数などを表示するCompose
+        fragmentCommentHostTopComposeView.apply {
+            setContent {
+                // 統計情報LiveData
+                val statisticsLiveData = viewModel.statisticsLiveData.observeAsState()
+                // アクティブ人数
+                val activeCountLiveData = viewModel.activeCommentPostUserLiveData.observeAsState()
+
+                NicoLiveStatisticsUI(
+                    allViewer = statisticsLiveData.value?.viewers ?: 0,
+                    allCommentCount = statisticsLiveData.value?.comments ?: 0,
+                    activeCountText = activeCountLiveData.value ?: "計測中",
+                    onClickRoomChange = {
+                        // Fragment切り替え
+                        val toFragment = when (childFragmentManager.findFragmentById(fragmentCommentHostFrameLayout.id)) {
+                            is CommentRoomFragment -> CommentViewFragment()
+                            else -> CommentRoomFragment()
+                        }
+                        childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, toFragment).commit()
+                    },
+                    onClickActiveCalc = {
+                        // アクティブ人数計算
+                        viewModel.calcToukei(true)
+                    }
+                )
+            }
+        }
+    }
+
     /** Fragment設置 */
     private fun setFragment() {
         // 動画情報Fragment、コメントFragment設置
         childFragmentManager.beginTransaction().replace(fragmentHostFrameLayout.id, JCNicoLiveInfoFragment()).commit()
-        childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, JCNicoLiveCommentListFragment()).commit()
+        childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, CommentViewFragment()).commit()
         // ダークモード
-        fragmentCommentHostFrameLayout.background = ColorDrawable(getThemeColor(requireContext()))
+        fragmentCommentLinearLayout.background = ColorDrawable(getThemeColor(requireContext()))
         // コメント一覧Fragmentを表示するかどうかのやつ
         viewModel.commentListShowLiveData.observe(viewLifecycleOwner) { isShow ->
             // アニメーション？自作ライブラリ
-            val dropPopAlert = fragmentCommentHostFrameLayout.toDropPopAlert()
+            val dropPopAlert = fragmentCommentLinearLayout.toDropPopAlert()
             if (isShow) {
                 dropPopAlert.showAlert(DropPopAlert.ALERT_UP)
             } else {

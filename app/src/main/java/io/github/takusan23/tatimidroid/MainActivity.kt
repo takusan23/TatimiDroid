@@ -113,11 +113,18 @@ class MainActivity : AppCompatActivity() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(1234)
 
-        // 共有から起動した
-        lunchShareIntent()
+        /**
+         * 共有から起動した
+         *
+         * ただし、画面回転した場合は動かさない
+         * */
+        if (savedInstanceState == null) {
+            lunchShareIntent()
 
-        // 生放送/動画画面
-        launchPlayer()
+            // AppShortcutから起動した際
+            launchPlayer()
+        }
+
 
         // 新しいUIの説明表示
         initNewUIDescription()
@@ -193,7 +200,11 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    /** MainActivityのIntentに情報を詰めることにより、[setPlayer]を代わりに設置する関数 */
+    /**
+     * MainActivityのIntentに情報を詰めることにより、[setPlayer]を代わりに設置する関数
+     *
+     * ただし、画面回転後に呼んではいけない
+     * */
     private fun launchPlayer() {
         intent?.apply {
             val liveId = getStringExtra("liveId")
@@ -401,7 +412,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //共有から起動した場合
+    /**
+     * 共有から起動した場合
+     *
+     * ただし、画面回転のときは呼んではいけません。
+     * */
     private fun lunchShareIntent() {
         if (Intent.ACTION_SEND == intent.action) {
             val extras = intent.extras

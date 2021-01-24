@@ -52,6 +52,15 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** Fabを置くなりしてください。下にあるComposeView。Jetpack Composeで書けます */
     val bottomComposeView by lazy { viewBinding.fragmentPlayerBottomComposeView }
 
+    /** コメント表示Fragmentの上にComposeViewがあります。ここに生放送の場合は累計情報などを置くことができます */
+    val fragmentCommentHostTopComposeView by lazy { viewBinding.fragmentPlayerCommentPanelComposeView }
+
+    /** [fragmentHostFrameLayout]と[fragmentCommentHostTopComposeView]がおいてある[androidx.coordinatorlayout.widget.CoordinatorLayout] */
+    val fragmentCommentLinearLayout by lazy { viewBinding.fragmentPlayerCommentViewGroup }
+
+    /** コメント一覧スクロール時に見え隠れするやつ */
+    private val fragmentCommentHostAppbar by lazy { viewBinding.fragmentPlayerCommentPanelComposeViewParentAppBarLayout }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return viewBinding.root
     }
@@ -68,6 +77,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         )
         // ダークモード対策
         viewBinding.fragmentPlayerBaseFragmentParentLinearLayout.background = ColorDrawable(getThemeColor(context))
+        fragmentCommentHostAppbar.background = ColorDrawable(getThemeColor(context))
         // コールバック
         bottomSheetPlayerBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {

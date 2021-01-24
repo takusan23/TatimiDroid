@@ -12,6 +12,8 @@ import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import io.github.takusan23.droppopalert.DropPopAlert
+import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
@@ -116,8 +118,18 @@ class CommentViewFragment : Fragment() {
      * コメント追いかけるボタンを表示、非表示する関数
      * @param visible 表示する場合はtrue。非表示にする場合はfalse
      * */
-    fun setFollowingButtonVisibility(visible: Boolean) {
-        viewBinding.fragmentCommentFollowingButton.isVisible = visible
+    private fun setFollowingButtonVisibility(visible: Boolean) {
+        viewBinding.fragmentCommentFollowingButton.apply {
+            if (isVisible != visible) {
+                // 違うときのみ動作
+                // ちなみに利用しているライブラリはこれ→https://github.com/takusan23/DropPopAlert
+                if (visible) {
+                    viewBinding.fragmentCommentFollowingButton.toDropPopAlert().showAlert(DropPopAlert.ALERT_DROP)
+                } else {
+                    viewBinding.fragmentCommentFollowingButton.toDropPopAlert().hideAlert(DropPopAlert.ALERT_DROP)
+                }
+            }
+        }
     }
 
 }

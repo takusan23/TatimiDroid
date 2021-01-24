@@ -22,8 +22,7 @@ import io.github.takusan23.tatimidroid.databinding.FragmentCommentRoomBinding
 class CommentRoomFragment : Fragment() {
 
     // CommentFragmentとそれのViewModel
-    val commentFragment by lazy { requireParentFragment() as CommentFragment }
-    val viewModel by viewModels<NicoLiveViewModel>({ commentFragment })
+    val viewModel by viewModels<NicoLiveViewModel>({ requireParentFragment() })
 
     /** コメント配列 */
     var recyclerViewList = arrayListOf<CommentJSONParse>()
@@ -130,7 +129,7 @@ class CommentRoomFragment : Fragment() {
         viewBinding.commentRoomRecyclerView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
-            commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList, commentFragment)
+            commentRecyclerViewAdapter = CommentRecyclerViewAdapter(recyclerViewList, requireParentFragment())
             adapter = commentRecyclerViewAdapter
             itemAnimator = null
             //区切り線いれる
