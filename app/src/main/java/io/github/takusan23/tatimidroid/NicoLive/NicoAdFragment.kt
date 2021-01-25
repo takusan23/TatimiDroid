@@ -7,25 +7,20 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoAdAPI
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.GiftRecyclerViewAdapter
+import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoAdHistoryAdapter
+import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoAdRankingAdapter
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveNicoadBinding
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.*
-import org.json.JSONObject
-import java.io.IOException
 
 /**
  * ニコニ広告Fragment
+ *
  * */
 class NicoAdFragment : Fragment() {
 
@@ -35,8 +30,14 @@ class NicoAdFragment : Fragment() {
     /** ギフト表示RecyclerViewAdapter */
     val giftRecyclerViewAdapter = GiftRecyclerViewAdapter(recyclerViewList)
 
-    val viewModel by viewModels<NicoLiveViewModel>({ requireParentFragment() })
-    val liveId by lazy { viewModel.nicoLiveHTML.liveId }
+    /** ニコニ広告ランキング表示Adapter */
+    private val nicoAdRankingAdapter = NicoAdRankingAdapter(arrayListOf())
+
+    /** ニコニ広告履歴表示Adapter */
+    private val nicoAdHistoryAdapter = NicoAdHistoryAdapter(arrayListOf())
+
+    /** ニコニ広告APIを叩くコードはViewModelに書いてある */
+    private val viewModel by viewModels<NicoLiveViewModel>({ requireParentFragment() })
 
     /** findViewById駆逐 */
     private val viewBinding by lazy { FragmentNicoliveNicoadBinding.inflate(layoutInflater) }
@@ -51,18 +52,42 @@ class NicoAdFragment : Fragment() {
         viewBinding.fragmentNicoLiveNicoadRecyclerView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = giftRecyclerViewAdapter
+            // 区切り線いれる
+            val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+            addItemDecoration(itemDecoration)
         }
-
-        //貢献度ランキング
-        getNicoAdRanking()
-
-        // 情報取得
-        getNicoAd()
 
         viewBinding.fragmentNicoLiveTabLayout.setBackgroundColor(getThemeColor(context))
 
-        //TabLayout
+        // APIを叩く
+        if (viewModel.nicoAdLiveData.value == null) {
+            viewModel.getNicoAd()
+            viewModel.getNicoAdHistory()
+            viewModel.getNicoAdRanking()
+        }
+
+        // トータルポイント取得
+        viewModel.nicoAdLiveData.observe(viewLifecycleOwner) { data ->
+            // UIに反映
+            viewBinding.fragmentNicoLiveGiftTotalPointTextView.text = "${data.totalPoint}pt"
+            viewBinding.fragmentNicoLiveGiftActivePointTextView.text = "${data.activePoint}pt"
+        }
+
+        // データをセット
+        viewModel.nicoAdRankingLiveData.observe(viewLifecycleOwner) {
+            nicoAdRankingAdapter.rankingList.clear()
+            nicoAdRankingAdapter.rankingList.addAll(it)
+            // 最初の画面はランキングだと思うのでセット
+            viewBinding.fragmentNicoLiveNicoadRecyclerView.adapter = nicoAdRankingAdapter
+            viewBinding.fragmentNicoLiveNicoadRecyclerView.adapter?.notifyDataSetChanged()
+        }
+
+        viewModel.nicoAdHistoryLiveData.observe(viewLifecycleOwner) {
+            nicoAdHistoryAdapter.nicoAdHistoryList.clear()
+            nicoAdHistoryAdapter.nicoAdHistoryList.addAll(it)
+        }
+
+        // TabLayout
         viewBinding.fragmentNicoLiveTabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
 
@@ -75,123 +100,17 @@ class NicoAdFragment : Fragment() {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 when (tab?.text) {
                     getString(R.string.nico_ad_history) -> {
-                        getNicoAdHistory()
+                        viewBinding.fragmentNicoLiveNicoadRecyclerView.adapter = nicoAdHistoryAdapter
                     }
                     getString(R.string.nico_ad_ranking) -> {
-                        getNicoAdRanking()
+                        viewBinding.fragmentNicoLiveNicoadRecyclerView.adapter = nicoAdRankingAdapter
                     }
                 }
-            }
-
-        })
-    }
-
-    private fun getNicoAd() {
-        // えらー
-        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            showToast("${getString(R.string.error)}\n${throwable}")
-        }
-        lifecycleScope.launch(errorHandler) {
-            // API叩く
-            val nicoAd = NicoAdAPI().getNicoAd(liveId)
-            if (!nicoAd.isSuccessful) {
-                showToast("${getString(R.string.error)}\n${nicoAd.code}")
-            }
-            withContext(Dispatchers.Default) {
-                // JSONパース
-                val jsonObject = JSONObject(nicoAd.body?.string())
-                val data = jsonObject.getJSONObject("data")
-                val totalPoint = data.getInt("totalPoint")
-                val activePoint = data.getInt("activePoint")
-                withContext(Dispatchers.Main) {
-                    // UIに反映
-                    viewBinding.fragmentNicoLiveGiftTotalPointTextView.text = "${getString(R.string.nicoad_total)}：${totalPoint}pt"
-                    viewBinding.fragmentNicoLiveGiftActivePointTextView.text = "${getString(R.string.nicoad_active)}：${activePoint}pt"
-                }
-            }
-        }
-    }
-
-    //貢献度ランキング
-    fun getNicoAdRanking() {
-        recyclerViewList.clear()
-        val request = Request.Builder()
-            .url("https://api.nicoad.nicovideo.jp/v1/contents/live/${liveId}/ranking/contribution?limit=100")
-            .get()
-            .build()
-        val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                showToast(getString(R.string.error))
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    val response_string = response.body?.string()
-                    val jsonObject = JSONObject(response_string)
-                    val rankingArray = jsonObject.getJSONObject("data").getJSONArray("ranking")
-                    for (i in 0..(rankingArray.length() - 1)) {
-                        val jsonObject = rankingArray.getJSONObject(i)
-                        val advertiserName = jsonObject.getString("advertiserName")
-                        val totalContribution = jsonObject.getString("totalContribution")
-                        val rank = jsonObject.getString("rank")
-                        //RecyclerView追加
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(rank)
-                        item.add("${advertiserName} : ${totalContribution}")
-                        recyclerViewList.add(item)
-                    }
-                    //更新
-                    activity?.runOnUiThread {
-                        giftRecyclerViewAdapter.notifyDataSetChanged()
-                    }
-                } else {
-                    showToast("${getString(R.string.error)}\n${response.code}")
-                }
+                viewBinding.fragmentNicoLiveNicoadRecyclerView.adapter?.notifyDataSetChanged()
             }
         })
     }
 
-    //広告履歴
-    fun getNicoAdHistory() {
-        recyclerViewList.clear()
-        val request = Request.Builder()
-            .url("https://api.nicoad.nicovideo.jp/v2/contents/live/${liveId}/histories?limit=15")
-            .get()
-            .build()
-        val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                showToast(getString(R.string.error))
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    val response_string = response.body?.string()
-                    val jsonObject = JSONObject(response_string)
-                    val rankingArray = jsonObject.getJSONObject("data").getJSONArray("histories")
-                    for (i in 0..(rankingArray.length() - 1)) {
-                        val jsonObject = rankingArray.getJSONObject(i)
-                        val advertiserName = jsonObject.getString("advertiserName")
-                        val point = jsonObject.getString("adPoint")
-                        //RecyclerView追加
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(advertiserName)
-                        item.add(point)
-                        recyclerViewList.add(item)
-                    }
-                    //更新
-                    activity?.runOnUiThread {
-                        giftRecyclerViewAdapter.notifyDataSetChanged()
-                    }
-                } else {
-                    showToast("${getString(R.string.error)}\n${response.code}")
-                }
-            }
-        })
-    }
 
     fun showToast(message: String) {
         activity?.runOnUiThread {

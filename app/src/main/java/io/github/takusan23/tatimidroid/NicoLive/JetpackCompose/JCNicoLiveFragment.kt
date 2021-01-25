@@ -227,7 +227,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // Activity終了などのメッセージ受け取り
         viewModel.messageLiveData.observe(viewLifecycleOwner) {
             when (it) {
-                getString(R.string.encryption_video_not_play) -> finishFragment()
+                "finish" -> finishFragment()
             }
         }
         // SnackBarを表示しろメッセージを受け取る

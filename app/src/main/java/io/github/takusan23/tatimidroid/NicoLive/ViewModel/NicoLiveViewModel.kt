@@ -11,6 +11,10 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.Community.CommunityAPI
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
+import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdHistoryUserData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdRankingUserData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
@@ -132,6 +136,15 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
 
     /** 画質が切り替わったら飛ばすLiveData。多分JSON配列 */
     val changeQualityLiveData = MutableLiveData<String>()
+
+    /** ニコニ広告のデータを送るLiveData。だたし、これは[getNicoAd]を呼ばないと送信されない */
+    val nicoAdLiveData = MutableLiveData<NicoAdData>()
+
+    /** ニコニ広告の貢献者のデータを送るLiveData。だたし、これは[getNicoAdRanking]を呼ばないと送信されない */
+    val nicoAdRankingLiveData = MutableLiveData<ArrayList<NicoAdRankingUserData>>()
+
+    /** ニコニ広告の宣伝者履歴のデータを送るLiveData。だたし、これは[getNicoAdHistory]を呼ばないと送信されない */
+    val nicoAdHistoryLiveData = MutableLiveData<ArrayList<NicoAdHistoryUserData>>()
 
     /** [changeQualityLiveData]で二回目から使うので制御用 */
     private var isNotFirstQualityMessage = false
@@ -856,6 +869,72 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 }
                 // 再取得
                 getTagList()
+            }
+        }
+    }
+
+    /**
+     * ニコニ広告APIを叩く。
+     * 結果は[nicoAdLiveData]へ送信されます
+     * */
+    fun getNicoAd() {
+        viewModelScope.launch {
+            val nicoAdAPI = NicoAdAPI()
+            // 番組情報取得済みかどうか
+            if (nicoLiveProgramData.value != null) {
+                val response = nicoAdAPI.getNicoAd(userSession, nicoLiveProgramData.value!!.programId, NicoAdAPI.NICOAD_API_LIVE)
+                if (!response.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                    return@launch
+                }
+                // 結果を送信
+                val data = withContext(Dispatchers.Default) { nicoAdAPI.parseNicoAd(response.body?.string()) }
+                nicoAdLiveData.postValue(data)
+            }
+        }
+    }
+
+    /**
+     * ニコニ広告の貢献度APIを叩く。
+     * 結果は[nicoAdRankingLiveData]へ送信されます
+     * */
+    fun getNicoAdRanking() {
+        viewModelScope.launch {
+            val nicoAdAPI = NicoAdAPI()
+            // 番組情報取得済みかどうか
+            if (nicoLiveProgramData.value != null) {
+                val response = nicoAdAPI.getNicoAdRanking(userSession, nicoLiveProgramData.value!!.programId, NicoAdAPI.NICOAD_API_LIVE)
+                if (!response.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                    return@launch
+                }
+                // 結果を送信
+                val data = withContext(Dispatchers.Default) { nicoAdAPI.parseNicoAdRanking(response.body?.string()) }
+                nicoAdRankingLiveData.postValue(data)
+            }
+        }
+    }
+
+    /**
+     * ニコニ広告の貢献者履歴APIを叩く
+     * 結果は[nicoAdHistoryLiveData]へ送信されます
+     * */
+    fun getNicoAdHistory() {
+        viewModelScope.launch {
+            val nicoAdAPI = NicoAdAPI()
+            // 番組情報取得済みかどうか
+            if (nicoLiveProgramData.value != null) {
+                val response = nicoAdAPI.getNicoAdHistory(userSession, nicoLiveProgramData.value!!.programId, NicoAdAPI.NICOAD_API_LIVE)
+                if (!response.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${response.code}")
+                    return@launch
+                }
+                // 結果を送信
+                val data = withContext(Dispatchers.Default) { nicoAdAPI.parseNicoAdHistory(response.body?.string()) }
+                nicoAdHistoryLiveData.postValue(data)
             }
         }
     }

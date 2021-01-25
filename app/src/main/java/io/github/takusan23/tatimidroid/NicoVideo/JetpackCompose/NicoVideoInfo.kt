@@ -398,21 +398,21 @@ fun NicoVideoSeriesCard(
                     if (nicoVideoHTMLSeriesData.firstVideoData != null) {
                         TextButton(onClick = { onClickFirstVideoPlay(nicoVideoHTMLSeriesData.firstVideoData) }, modifier = Modifier.fillMaxWidth()) {
                             Icon(imageVector = Icons.Outlined.Filter1)
-                            Text(text = "最初から再生\n${nicoVideoHTMLSeriesData.firstVideoData.title}", modifier = Modifier.weight(1f))
+                            Text(text = "${stringResource(id = R.string.nicovideo_series_first_video)}\n${nicoVideoHTMLSeriesData.firstVideoData.title}", modifier = Modifier.weight(1f))
                         }
                     }
                     // 次の動画
                     if (nicoVideoHTMLSeriesData.nextVideoData != null) {
                         TextButton(onClick = { onClickNextVideoPlay(nicoVideoHTMLSeriesData.nextVideoData) }, modifier = Modifier.fillMaxWidth()) {
                             Icon(imageVector = Icons.Outlined.ArrowForward)
-                            Text(text = "次の動画\n${nicoVideoHTMLSeriesData.nextVideoData.title}", modifier = Modifier.weight(1f))
+                            Text(text = "${stringResource(id = R.string.nicovideo_series_next_video)}\n${nicoVideoHTMLSeriesData.nextVideoData.title}", modifier = Modifier.weight(1f))
                         }
                     }
                     // 前の動画
                     if (nicoVideoHTMLSeriesData.prevVideoData != null) {
                         TextButton(onClick = { onClickPrevVideoPlay(nicoVideoHTMLSeriesData.prevVideoData) }, modifier = Modifier.fillMaxWidth()) {
                             Icon(imageVector = Icons.Outlined.ArrowBack)
-                            Text(text = "前の動画\n${nicoVideoHTMLSeriesData.prevVideoData.title}", modifier = Modifier.weight(1f))
+                            Text(text = "${stringResource(id = R.string.nicovideo_series_prev_video)}\n${nicoVideoHTMLSeriesData.prevVideoData.title}", modifier = Modifier.weight(1f))
                         }
                     }
                 }

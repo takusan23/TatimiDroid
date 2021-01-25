@@ -562,4 +562,7 @@
     <string name="nicolive_end_time">End time</string>
     <string name="nicolive_account_follow_successful">Followed</string>
     <string name="nicolive_account_remove_follow_successful">Unfollowed</string>
+    <string name="nicovideo_series_first_video">Play the first video</string>
+    <string name="nicovideo_series_prev_video">Previous video</string>
+    <string name="nicovideo_series_next_video">Next video</string>
 </resources>

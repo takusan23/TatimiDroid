@@ -1,57 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10sp">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10sp">
 
         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_margin="5sp"
-                android:orientation="vertical">
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="10dp">
 
-            <TextView
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nicoad_active" />
+
+                <TextView
                     android:id="@+id/fragment_nico_live_gift_active_point_text_view"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:gravity="end"
                     android:text=""
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
-            <TextView
-                    android:id="@+id/fragment_nico_live_gift_total_point_text_view"
-                    android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="@string/nicoad_total" />
+
+                <TextView
+                    android:id="@+id/fragment_nico_live_gift_total_point_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
                     android:text=""
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
         </LinearLayout>
+
     </androidx.cardview.widget.CardView>
 
     <com.google.android.material.tabs.TabLayout
-            android:id="@+id/fragment_nico_live_tab_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        android:id="@+id/fragment_nico_live_tab_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
         <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/nico_ad_ranking" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nico_ad_ranking" />
 
         <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/nico_ad_history" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nico_ad_history" />
 
     </com.google.android.material.tabs.TabLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/fragment_nico_live_nicoad_recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        android:id="@+id/fragment_nico_live_nicoad_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     </androidx.recyclerview.widget.RecyclerView>
 

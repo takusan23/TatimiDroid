@@ -562,4 +562,7 @@
     <string name="nicolive_end_time">終了時刻</string>
     <string name="nicolive_account_follow_successful">フォローしました</string>
     <string name="nicolive_account_remove_follow_successful">フォロー解除しました</string>
+    <string name="nicovideo_series_first_video">最初の動画</string>
+    <string name="nicovideo_series_prev_video">前の動画</string>
+    <string name="nicovideo_series_next_video">次の動画</string>
 </resources>
