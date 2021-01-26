@@ -53,11 +53,13 @@ class NicoAdAPI {
         val contentTitle = dataObject.getString("title")
         val totalPoint = dataObject.getInt("totalPoint")
         val activePoint = dataObject.getInt("activePoint")
+        val thumbnailUrl = dataObject.getString("thumbnailUrl")
         return@withContext NicoAdData(
             contentId = contentId,
             contentTitle = contentTitle,
             totalPoint = totalPoint,
-            activePoint = activePoint
+            activePoint = activePoint,
+            thumbnailUrl = thumbnailUrl
         )
     }
 

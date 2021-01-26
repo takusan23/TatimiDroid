@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import java.util.*
@@ -14,10 +14,10 @@ import java.util.*
 /**
  * タグ編集で使う一覧表示Adapter
  *
- * @param nicoLiveTagDataList タグ配列
+ * @param nicoTagItemDataList タグ配列
  * @param nicoLiveViewModel タグを削除するときに、削除関数がViewModel側に書いてあるので
  * */
-class TagRecyclerViewAdapter(private val nicoLiveTagDataList: ArrayList<NicoLiveTagDataClass>, private val nicoLiveViewModel: NicoLiveViewModel) : RecyclerView.Adapter<TagRecyclerViewAdapter.ViewHolder>() {
+class TagRecyclerViewAdapter(private val nicoTagItemDataList: ArrayList<NicoTagItemData>, private val nicoLiveViewModel: NicoLiveViewModel) : RecyclerView.Adapter<TagRecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_tag_layout, parent, false)
@@ -25,12 +25,12 @@ class TagRecyclerViewAdapter(private val nicoLiveTagDataList: ArrayList<NicoLive
     }
 
     override fun getItemCount(): Int {
-        return nicoLiveTagDataList.size
+        return nicoTagItemDataList.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
-        val item = nicoLiveTagDataList[position]
+        val item = nicoTagItemDataList[position]
 
         val tagName = item.tagName
         val isLocked = item.isLocked

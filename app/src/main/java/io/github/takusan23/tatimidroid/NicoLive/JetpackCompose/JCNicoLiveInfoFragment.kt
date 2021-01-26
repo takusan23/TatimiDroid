@@ -20,6 +20,7 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.NicoAd.NicoAdBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveTagBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
@@ -56,11 +57,11 @@ class JCNicoLiveInfoFragment : Fragment() {
                     // コミュ、チャンネルフォロー中か
                     val isCommunityOrChannelFollow = viewModel.isCommunityOrChannelFollowLiveData.observeAsState(initial = false)
                     // タグ
-                    val tagDataList = viewModel.nicoLiveTagDataListLiveData.observeAsState()
-                    // タグが編集可能かどうか
-                    val isEditableTag = viewModel.isEditableTag.observeAsState()
+                    val tagData = viewModel.nicoLiveTagDataListLiveData.observeAsState()
                     // 好みタグ
                     val konomiTagList = viewModel.nicoLiveKonomiTagListLiveData.observeAsState(initial = arrayListOf())
+                    // 統計情報LiveData
+                    val statisticsLiveData = viewModel.statisticsLiveData.observeAsState()
 
                     Surface {
                         Scaffold {
@@ -98,12 +99,12 @@ class JCNicoLiveInfoFragment : Fragment() {
                                     )
                                 }
                                 // タグ
-                                if (tagDataList.value != null && isEditableTag.value != null) {
+                                if (tagData.value != null) {
                                     NicoLiveTagCard(
-                                        list = tagDataList.value!!,
+                                        list = tagData.value!!.tagList,
                                         onTagClick = { },
-                                        isEditable = isEditableTag.value!!,
-                                        onEditClick = { showTagEditBottomFragment() }
+                                        isEditable = !tagData.value!!.isLocked,
+                                        onClickEditButton = { showTagEditBottomFragment() }
                                     )
                                 }
                                 // 好みタグ
@@ -111,6 +112,14 @@ class JCNicoLiveInfoFragment : Fragment() {
 
                                 // メニュー
                                 NicoLiveMenuScreen(requireParentFragment())
+
+                                // ニコニ広告
+                                if (statisticsLiveData.value != null) {
+                                    NicoLiveNicoAdCard(
+                                        totalNicoAdPoint = statisticsLiveData.value!!.adPoints,
+                                        onClickNicoAdOpen = { showNicoAdBottomFragment() }
+                                    )
+                                }
 
                                 // スペース
                                 Spacer(modifier = Modifier.height(100.dp))
@@ -120,6 +129,15 @@ class JCNicoLiveInfoFragment : Fragment() {
                 }
             }
         }
+    }
+
+    /** ニコニ広告BottomFragmentを表示させる */
+    private fun showNicoAdBottomFragment() {
+        NicoAdBottomFragment().apply {
+            arguments = Bundle().apply {
+                putString("content_id", viewModel.nicoLiveProgramData.value?.programId)
+            }
+        }.show(parentFragmentManager, "nicoad")
     }
 
     /** タグ編集画面を出す */

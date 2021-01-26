@@ -10,7 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Adapter.Parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoHTMLSeriesData
@@ -111,7 +111,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     val userDataLiveData = MutableLiveData<UserData>()
 
     /** タグ送信LiveData */
-    val tagListLiveData = MutableLiveData<ArrayList<NicoLiveTagDataClass>>()
+    val tagListLiveData = MutableLiveData<ArrayList<NicoTagItemData>>()
 
     /** コメントAPIの結果。 */
     var rawCommentList = arrayListOf<CommentJSONParse>()

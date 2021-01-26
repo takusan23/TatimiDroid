@@ -22,7 +22,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommunityOrChannelData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.getBitmapCompose
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardElevation
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardModifier
@@ -190,19 +190,20 @@ fun NicoLiveCommunityCard(
 
 /**
  * タグ表示Card。動画とは互換性がない（データクラスが違うの）
- * @param list [NicoLiveTagDataClass]の配列
+ * @param list [NicoTagItemData]の配列
  * @param onTagClick タグを押した時
- * @param
+ * @param isEditable 編集可能かどうか。falseで編集ボタンを非表示にします。
+ * @param onClickEditButton 編集ボタンを押した時
  * */
 @Composable
 fun NicoLiveTagCard(
-    list: ArrayList<NicoLiveTagDataClass>,
-    onTagClick: (NicoLiveTagDataClass) -> Unit,
+    list: ArrayList<NicoTagItemData>,
+    onTagClick: (NicoTagItemData) -> Unit,
     isEditable: Boolean,
-    onEditClick: () -> Unit,
+    onClickEditButton: () -> Unit,
 ) {
     Card(
-        modifier = parentCardModifier,
+        modifier = parentCardModifier.fillMaxWidth(),
         shape = parentCardShape,
         elevation = parentCardElevation,
     ) {
@@ -215,7 +216,7 @@ fun NicoLiveTagCard(
                     if (isEditable) {
                         Button(
                             modifier = Modifier.padding(3.dp),
-                            onClick = { onEditClick() }
+                            onClick = { onClickEditButton() }
                         ) {
                             Icon(imageVector = Icons.Outlined.Edit)
                             Text(text = stringResource(id = R.string.tag_edit))
@@ -273,6 +274,49 @@ fun NicoLiveKonomiCard(
                     Text(text = text, modifier = Modifier.padding(10.dp))
                     Divider()
                 }
+            }
+        }
+    }
+}
+
+/**
+ * ニコニ広告のポイントを表示するCard
+ *
+ * @param totalNicoAdPoint 広告ポイント
+ * @param onClickNicoAdOpen ニコニ広告画面に遷移するボタンを押した時
+ * */
+@Composable
+fun NicoLiveNicoAdCard(
+    totalNicoAdPoint: Int,
+    onClickNicoAdOpen:()->Unit,
+) {
+    Card(
+        modifier = parentCardModifier,
+        shape = parentCardShape,
+        elevation = parentCardElevation,
+    ) {
+        Column {
+            Row(
+                modifier = Modifier.padding(5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(imageVector = Icons.Outlined.Money)
+                Text(text = stringResource(id = R.string.nicoads))
+            }
+            Divider(modifier = Modifier.padding(5.dp))
+            Text(
+                modifier = Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth(),
+                text = "$totalNicoAdPoint pt",
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp,
+            )
+            TextButton(onClick = { onClickNicoAdOpen()}, modifier = Modifier
+                .align(Alignment.End)
+                .padding(5.dp)) {
+                Icon(imageVector = Icons.Outlined.ArrowForward)
+                Text(text = stringResource(id = R.string.show_nicoad))
             }
         }
     }

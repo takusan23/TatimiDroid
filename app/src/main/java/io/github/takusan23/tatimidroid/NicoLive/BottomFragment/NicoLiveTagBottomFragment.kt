@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.TagRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.databinding.BottomFragmentTagsBinding
@@ -22,7 +22,7 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
    private val viewModel by viewModels<NicoLiveViewModel>({ requireParentFragment() })
 
    // RecyclerView
-   private var recyclerViewList = arrayListOf<NicoLiveTagDataClass>()
+   private var recyclerViewList = arrayListOf<NicoTagItemData>()
    private val tagRecyclerViewAdapter by lazy { TagRecyclerViewAdapter(recyclerViewList, viewModel) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -42,7 +42,7 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
         // データを監視
         viewModel.nicoLiveTagDataListLiveData.observe(viewLifecycleOwner) { list ->
             recyclerViewList.clear()
-            recyclerViewList.addAll(list)
+            recyclerViewList.addAll(list.tagList)
             tagRecyclerViewAdapter.notifyDataSetChanged()
         }
 

@@ -22,7 +22,6 @@ import java.io.IOException
 import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 
 /**
@@ -224,10 +223,11 @@ class NicoLiveHTML {
      * タグを取得する。
      * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
      * */
-    fun getTagList(nicoLiveJSON: JSONObject): ArrayList<NicoLiveTagDataClass> {
+    fun getTagList(nicoLiveJSON: JSONObject): NicoLiveTagData {
         val tag = nicoLiveJSON.getJSONObject("program").getJSONObject("tag")
+        val isLocked = tag.getBoolean("isLocked")
         val tagsList = tag.getJSONArray("list")
-        val resultTagDataList = arrayListOf<NicoLiveTagDataClass>()
+        val resultTagDataList = arrayListOf<NicoTagItemData>()
         for (i in 0 until tagsList.length()) {
             val tagItem = tagsList.getJSONObject(i)
             val name = tagItem.getString("text")
@@ -237,7 +237,7 @@ class NicoLiveHTML {
             val isNicopedia = tagItem.getBoolean("existsNicopediaArticle")
             val nicopediaURL = tagItem.getString("nicopediaArticlePageUrl")
             resultTagDataList.add(
-                NicoLiveTagDataClass(
+                NicoTagItemData(
                     tagName = name,
                     isLocked = isLocked,
                     type = type,
@@ -247,17 +247,7 @@ class NicoLiveHTML {
                 )
             )
         }
-        return resultTagDataList
-    }
-
-    /**
-     * タグが編集可能かどうか。JSONには「ロックが掛かってない」って表現だけどわからんので反転させた
-     * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
-     * @return trueでタグ編集ボタンを出せばいいと思う
-     * */
-    fun isEditableTag(nicoLiveJSON: JSONObject): Boolean {
-        val tag = nicoLiveJSON.getJSONObject("program").getJSONObject("tag")
-        return !tag.getBoolean("isLocked") // タグ編集が可能か？
+        return NicoLiveTagData(isLocked, resultTagDataList)
     }
 
     /**

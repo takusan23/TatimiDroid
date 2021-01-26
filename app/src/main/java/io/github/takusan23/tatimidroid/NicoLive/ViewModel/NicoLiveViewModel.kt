@@ -90,10 +90,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     val isCommunityOrChannelFollowLiveData = MutableLiveData<Boolean>()
 
     /** タグ配列を送信するLiveData */
-    val nicoLiveTagDataListLiveData = MutableLiveData<ArrayList<NicoLiveTagDataClass>>()
-
-    /** タグが編集可能かどうか */
-    val isEditableTag = MutableLiveData<Boolean>()
+    val nicoLiveTagDataListLiveData = MutableLiveData<NicoLiveTagData>()
 
     /** 好みタグの文字列配列LiveData */
     val nicoLiveKonomiTagListLiveData = MutableLiveData<ArrayList<String>>()
@@ -258,7 +255,6 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             nicoLiveProgramDescriptionLiveData.postValue(nicoLiveHTML.getProgramDescription(jsonObject))
             nicoLiveUserDataLiveData.postValue(nicoLiveHTML.getUserData(jsonObject))
             nicoLiveTagDataListLiveData.postValue(nicoLiveHTML.getTagList(jsonObject))
-            isEditableTag.postValue(nicoLiveHTML.isEditableTag(jsonObject))
             nicoLiveKonomiTagListLiveData.postValue(nicoLiveHTML.getKonomiTagList(jsonObject))
             nicoLiveHTML.getCommunityOrChannelData(jsonObject).apply {
                 nicoLiveCommunityOrChannelDataLiveData.postValue(this)

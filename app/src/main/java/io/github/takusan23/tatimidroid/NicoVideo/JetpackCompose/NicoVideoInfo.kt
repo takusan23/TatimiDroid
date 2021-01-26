@@ -32,7 +32,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoHTMLSeriesData
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
@@ -296,11 +296,11 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
 
 /**
  * タグ一覧表示Card
- * @param tagDataList [NicoLiveTagDataClass]配列
+ * @param tagItemDataList [NicoTagItemData]配列
  * @param onTagClick 押したときに呼ばれる。
  * */
 @Composable
-fun NicoVideoTagCard(tagDataList: ArrayList<NicoLiveTagDataClass>, onTagClick: (NicoLiveTagDataClass) -> Unit) {
+fun NicoVideoTagCard(tagItemDataList: ArrayList<NicoTagItemData>, onTagClick: (NicoTagItemData) -> Unit) {
     Card(
         modifier = parentCardModifier,
         shape = parentCardShape,
@@ -310,7 +310,7 @@ fun NicoVideoTagCard(tagDataList: ArrayList<NicoLiveTagDataClass>, onTagClick: (
         LazyRow(
             modifier = Modifier.padding(3.dp),
             content = {
-                this.items(tagDataList) { data ->
+                this.items(tagItemDataList) { data ->
                     OutlinedButton(
                         modifier = Modifier.padding(3.dp),
                         onClick = {

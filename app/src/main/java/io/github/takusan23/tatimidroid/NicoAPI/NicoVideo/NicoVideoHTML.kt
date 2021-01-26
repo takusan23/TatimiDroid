@@ -1,7 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoHTMLSeriesData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoSeriesData
@@ -816,10 +816,10 @@ class NicoVideoHTML {
      *
      * 多分生放送のJSON解析コードは使えない。
      * @param jsonObject js-initial-watch-dataのdata-api-dataの値
-     * @return [NicoLiveTagDataClass]の配列
+     * @return [NicoTagItemData]の配列
      * */
-    fun parseTagDataList(jsonObject: JSONObject): ArrayList<NicoLiveTagDataClass> {
-        val tagDataClass = arrayListOf<NicoLiveTagDataClass>()
+    fun parseTagDataList(jsonObject: JSONObject): ArrayList<NicoTagItemData> {
+        val tagDataClass = arrayListOf<NicoTagItemData>()
         val tagArray = jsonObject.getJSONArray("tags")
         for (i in 0 until tagArray.length()) {
             val tagObject = tagArray.getJSONObject(i)
@@ -827,7 +827,7 @@ class NicoVideoHTML {
             val isNicopediaExists = tagObject.getBoolean("isDictionaryExists")
             val isLocked = tagObject.getBoolean("isLocked")
             tagDataClass.add(
-                NicoLiveTagDataClass(
+                NicoTagItemData(
                     tagName = tagName,
                     isLocked = isLocked,
                     type = "",

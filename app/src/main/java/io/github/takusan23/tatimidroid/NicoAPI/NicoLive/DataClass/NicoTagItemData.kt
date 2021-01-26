@@ -3,6 +3,8 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass
 /**
  * タグAPI叩いたときに帰ってくるJSON解析結果を入れるデータクラス
  *
+ * 動画でも使ってる
+ *
  * @param tagName タグ名
  * @param isLocked ロックされてる場合。[type]が"category"の時はtrue？
  * @param type "category"？
@@ -10,7 +12,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass
  * @param hasNicoPedia 二コ百あってもfalseじゃね？
  * @param nicoPediaUrl 二コ百URL。
  * */
-data class NicoLiveTagDataClass(
+data class NicoTagItemData(
     val tagName: String,
     val isLocked: Boolean,
     val type: String,

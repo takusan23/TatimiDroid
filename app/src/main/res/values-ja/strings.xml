@@ -565,4 +565,5 @@
     <string name="nicovideo_series_first_video">最初の動画</string>
     <string name="nicovideo_series_prev_video">前の動画</string>
     <string name="nicovideo_series_next_video">次の動画</string>
+    <string name="show_nicoad">ニコニ広告画面へ</string>
 </resources>

@@ -142,10 +142,10 @@ class ProgramInfoFragment : Fragment() {
         }
 
         // タグ一覧監視
-        viewModel.nicoLiveTagDataListLiveData.observe(viewLifecycleOwner) { list ->
+        viewModel.nicoLiveTagDataListLiveData.observe(viewLifecycleOwner) { data ->
             // 全部消す
             viewBinding.fragmentProgramInfoTagLinearLayout.removeAllViews()
-            list.forEach {
+            data.tagList.forEach {
                 val tag = it.tagName
                 //ボタン作成
                 val button = MaterialButton(requireContext()).apply {

@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagDataClass
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveTagData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,8 +32,7 @@ class NicoLiveTagAPI {
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()
-        val response = okHttpClient.newCall(request).execute()
-        response
+        okHttpClient.newCall(request).execute()
     }
 
     /**
@@ -41,8 +41,12 @@ class NicoLiveTagAPI {
      * @return NicoLiveTagItemDataの配列
      * */
     suspend fun parseTags(responseString: String?) = withContext(Dispatchers.Default) {
-        val list = arrayListOf<NicoLiveTagDataClass>()
-        val tags = JSONObject(responseString).getJSONObject("data").getJSONArray("tags")
+        val jsonObject = JSONObject(responseString).getJSONObject("data")
+        // タグ編集可能か
+        val isLocked = jsonObject.getBoolean("isLocked")
+        // タグ配列
+        val tags = jsonObject.getJSONArray("tags")
+        val list = arrayListOf<NicoTagItemData>()
         for (i in 0 until tags.length()) {
             val tagObject = tags.getJSONObject(i)
             val title = tagObject.getString("tag")
@@ -51,10 +55,10 @@ class NicoLiveTagAPI {
             val isDeletable = tagObject.getBoolean("isDeletable")
             val hasNicoPedia = tagObject.getBoolean("hasNicopedia")
             val nicoPediaUrl = tagObject.getString("nicopediaUrl")
-            val data = NicoLiveTagDataClass(title, isLocked, type, isDeletable, hasNicoPedia, nicoPediaUrl)
+            val data = NicoTagItemData(title, isLocked, type, isDeletable, hasNicoPedia, nicoPediaUrl)
             list.add(data)
         }
-        list
+        NicoLiveTagData(isLocked, list)
     }
 
     /**
