@@ -113,10 +113,11 @@ class JCNicoLiveInfoFragment : Fragment() {
                                 // メニュー
                                 NicoLiveMenuScreen(requireParentFragment())
 
-                                // ニコニ広告
                                 if (statisticsLiveData.value != null) {
-                                    NicoLiveNicoAdCard(
+                                    // ニコニ広告 投げ銭
+                                    NicoLivePointCard(
                                         totalNicoAdPoint = statisticsLiveData.value!!.adPoints,
+                                        totalGiftPoint = statisticsLiveData.value!!.giftPoints,
                                         onClickNicoAdOpen = { showNicoAdBottomFragment() }
                                     )
                                 }
@@ -129,6 +130,11 @@ class JCNicoLiveInfoFragment : Fragment() {
                 }
             }
         }
+    }
+
+    /** 投げ銭のBottomFragment表示 */
+    private fun shotGiftBottomFragment() {
+
     }
 
     /** ニコニ広告BottomFragmentを表示させる */

@@ -280,15 +280,17 @@ fun NicoLiveKonomiCard(
 }
 
 /**
- * ニコニ広告のポイントを表示するCard
+ * ニコニ広告 / 投げ銭のポイントを表示するCard
  *
  * @param totalNicoAdPoint 広告ポイント
+ * @param totalGiftPoint 投げ銭ポイント
  * @param onClickNicoAdOpen ニコニ広告画面に遷移するボタンを押した時
  * */
 @Composable
-fun NicoLiveNicoAdCard(
+fun NicoLivePointCard(
     totalNicoAdPoint: Int,
-    onClickNicoAdOpen:()->Unit,
+    totalGiftPoint: Int,
+    onClickNicoAdOpen: () -> Unit,
 ) {
     Card(
         modifier = parentCardModifier,
@@ -296,28 +298,56 @@ fun NicoLiveNicoAdCard(
         elevation = parentCardElevation,
     ) {
         Column {
+            // ニコニ広告、投げ銭を表示
             Row(
-                modifier = Modifier.padding(5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(imageVector = Icons.Outlined.Money)
-                Text(text = stringResource(id = R.string.nicoads))
-            }
-            Divider(modifier = Modifier.padding(5.dp))
-            Text(
                 modifier = Modifier
                     .padding(5.dp)
                     .fillMaxWidth(),
-                text = "$totalNicoAdPoint pt",
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp,
-            )
-            TextButton(onClick = { onClickNicoAdOpen()}, modifier = Modifier
-                .align(Alignment.End)
-                .padding(5.dp)) {
-                Icon(imageVector = Icons.Outlined.ArrowForward)
-                Text(text = stringResource(id = R.string.show_nicoad))
+            ) {
+                // ニコニ広告
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.padding(5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(imageVector = Icons.Outlined.Money)
+                        Text(text = stringResource(id = R.string.nicoads))
+                    }
+                    Divider()
+                    Text(
+                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(5.dp),
+                        text = "$totalNicoAdPoint pt",
+                        textAlign = TextAlign.Center,
+                        fontSize = 20.sp,
+                    )
+                    TextButton(
+                        onClick = { onClickNicoAdOpen() },
+                        modifier = Modifier
+                            .align(Alignment.End)
+                    ) {
+                        Icon(imageVector = Icons.Outlined.ArrowForward)
+                        Text(text = stringResource(id = R.string.show_nicoad))
+                    }
+                }
+                // 投げ銭
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.padding(5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(imageVector = Icons.Outlined.CardGiftcard)
+                        Text(text = stringResource(id = R.string.gift))
+                    }
+                    Divider()
+                    Text(
+                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(5.dp),
+                        text = "$totalGiftPoint pt",
+                        textAlign = TextAlign.Center,
+                        fontSize = 20.sp,
+                    )
+                }
             }
         }
     }
 }
+

@@ -72,7 +72,7 @@ class NicoRepoAPIX {
     /**
      * [NicoLiveProgramData]の配列へ変換する
      * */
-    fun toProgramDataList(nicoRepoDataClassList: ArrayList<NicoRepoDataClass>): List<NicoLiveProgramData> {
+    fun toProgramDataList(nicoRepoDataClassList: List<NicoRepoDataClass>): List<NicoLiveProgramData> {
         return nicoRepoDataClassList.map { nicoRepoDataClass ->
             NicoLiveProgramData(nicoRepoDataClass.title, nicoRepoDataClass.accountName, nicoRepoDataClass.date.toString(), nicoRepoDataClass.date.toString(), nicoRepoDataClass.contentId, nicoRepoDataClass.accountName, "ON_AIR", nicoRepoDataClass.thumbUrl)
         }

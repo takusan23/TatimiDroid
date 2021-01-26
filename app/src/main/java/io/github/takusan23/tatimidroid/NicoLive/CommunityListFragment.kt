@@ -275,7 +275,7 @@ class CommunityListFragment : Fragment() {
                     response.isSuccessful -> {
                         // 成功時
                         withContext(Dispatchers.Default) {
-                            val followProgram = nicoRepoAPI.parseNicoRepoResponse(response.body?.string())
+                            val followProgram = nicoRepoAPI.parseNicoRepoResponse(response.body?.string()).filter { nicoRepoDataClass -> !nicoRepoDataClass.isVideo }
                             nicoRepoAPI.toProgramDataList(followProgram).forEach {
                                 recyclerViewList.add(it)
                             }
