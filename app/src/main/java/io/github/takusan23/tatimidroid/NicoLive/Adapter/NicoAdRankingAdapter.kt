@@ -29,7 +29,7 @@ class NicoAdRankingAdapter(val rankingList: ArrayList<NicoAdRankingUserData>) : 
             val data = rankingList[position]
 
             rankTextView.text = "${data.rank}位"
-            nameTextView.text = data.advertiserName
+            nameTextView.text = "${data.advertiserName} さん"
             pointTextView.text = "${data.totalContribution}貢"
         }
     }

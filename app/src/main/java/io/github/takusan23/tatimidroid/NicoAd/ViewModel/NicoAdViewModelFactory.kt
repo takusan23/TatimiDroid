@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.NicoAd
+package io.github.takusan23.tatimidroid.NicoAd.ViewModel
 
 import android.app.Application
 import androidx.lifecycle.ViewModel

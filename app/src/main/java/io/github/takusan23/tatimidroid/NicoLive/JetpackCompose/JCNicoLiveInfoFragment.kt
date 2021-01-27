@@ -21,6 +21,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAd.NicoAdBottomFragment
+import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveGiftBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveTagBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
@@ -118,7 +119,8 @@ class JCNicoLiveInfoFragment : Fragment() {
                                     NicoLivePointCard(
                                         totalNicoAdPoint = statisticsLiveData.value!!.adPoints,
                                         totalGiftPoint = statisticsLiveData.value!!.giftPoints,
-                                        onClickNicoAdOpen = { showNicoAdBottomFragment() }
+                                        onClickNicoAdOpen = { showNicoAdBottomFragment() },
+                                        onClickGiftOpen = { showGiftBottomFragment() }
                                     )
                                 }
 
@@ -133,8 +135,12 @@ class JCNicoLiveInfoFragment : Fragment() {
     }
 
     /** 投げ銭のBottomFragment表示 */
-    private fun shotGiftBottomFragment() {
-
+    private fun showGiftBottomFragment() {
+        NicoLiveGiftBottomFragment().apply {
+            arguments = Bundle().apply {
+                putString("live_id", viewModel.nicoLiveProgramData.value?.programId)
+            }
+        }.show(parentFragmentManager, "gift")
     }
 
     /** ニコニ広告BottomFragmentを表示させる */

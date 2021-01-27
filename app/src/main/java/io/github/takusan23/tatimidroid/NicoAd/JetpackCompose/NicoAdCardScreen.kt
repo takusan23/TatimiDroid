@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.takusan23.tatimidroid.NicoAd.NicoAdViewModel
+import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModel
 
 /**
  * [io.github.takusan23.tatimidroid.NicoAd.NicoAdBottomFragment]で表示しているCompose

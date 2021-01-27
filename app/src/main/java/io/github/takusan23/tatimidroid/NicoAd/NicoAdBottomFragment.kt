@@ -8,6 +8,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoAd.JetpackCompose.NicoAdScreen
+import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModel
+import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModelFactory
 
 /**
  * ニコニ広告の履歴とか貢献度を表示するBottomFragment
@@ -21,7 +23,7 @@ class NicoAdBottomFragment : BottomSheetDialogFragment() {
     /** 動画、生放送ID */
     private val contentId by lazy { requireArguments().getString("content_id")!! }
 
-    /** ViewModel */
+    /** ViewModel。APIを叩くコードなどはこっち */
     private val viewModel by lazy {
         ViewModelProvider(this, NicoAdViewModelFactory(requireActivity().application, contentId)).get(NicoAdViewModel::class.java)
     }

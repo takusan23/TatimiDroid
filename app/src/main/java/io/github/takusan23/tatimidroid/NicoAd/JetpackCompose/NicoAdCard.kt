@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,7 @@ import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoAdHistoryAdapter
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoAdRankingAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.getBitmapCompose
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.isDarkMode
 
 /**
  * ニコニ広告の累計ポイント、期間中ポイントを表示する
@@ -111,6 +113,8 @@ fun NicoAdTop(nicoAdData: NicoAdData) {
 
 /**
  * ニコニ広告のランキング一覧表示
+ *
+ * @param nicoAdRankingUserList ニコニ広告のランキングユーザー配列
  * */
 @Composable
 fun NicoAdRankingList(nicoAdRankingUserList: ArrayList<NicoAdRankingUserData>) {
@@ -129,6 +133,8 @@ fun NicoAdRankingList(nicoAdRankingUserList: ArrayList<NicoAdRankingUserData>) {
 
 /**
  * ニコニ広告の履歴一覧表示
+ *
+ * @param nicoAdHistoryUserList ニコニ広告のユーザー履歴配列
  * */
 @Composable
 fun NicoAdHistoryList(nicoAdHistoryUserList: ArrayList<NicoAdHistoryUserData>) {
@@ -147,6 +153,9 @@ fun NicoAdHistoryList(nicoAdHistoryUserList: ArrayList<NicoAdHistoryUserData>) {
 
 /**
  * ニコニ広告の貢献度ランキング、履歴選択用タブレイアウト
+ *
+ * @param selectTabIndex 現座選択中のタブのいち
+ * @param onClickTabItem タブを押した時
  * */
 @Composable
 fun NicoAdTabMenu(
@@ -154,7 +163,7 @@ fun NicoAdTabMenu(
     onClickTabItem: (Int) -> Unit,
 ) {
     TabRow(
-        backgroundColor = Color.Transparent,
+        backgroundColor = if (isDarkMode(AmbientContext.current)) Color.Black else Color.White,
         selectedTabIndex = selectTabIndex
     ) {
         TabPadding(

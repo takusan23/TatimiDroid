@@ -9,9 +9,9 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass
  * @param itemName 投げたアイテムの名前
  * @param itemThumbUrl 投げたアイテムの画像
  * */
-data class NicoLiveGiftHistoryData(
+data class NicoLiveGiftHistoryUserData(
     val advertiserName: String,
-    val userId: Int,
+    val userId: Int?,
     val adPoint: Int,
     val itemName: String,
     val itemThumbUrl: String,

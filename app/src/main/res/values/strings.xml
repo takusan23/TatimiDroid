@@ -566,4 +566,6 @@
     <string name="nicovideo_series_prev_video">Previous video</string>
     <string name="nicovideo_series_next_video">Next video</string>
     <string name="show_nicoad">To niconico advertisement screen</string>
+    <string name="show_gift">To the gift screen</string>
+    <string name="total">Total</string>
 </resources>

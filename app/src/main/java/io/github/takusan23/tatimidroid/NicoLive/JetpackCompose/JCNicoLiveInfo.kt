@@ -285,12 +285,14 @@ fun NicoLiveKonomiCard(
  * @param totalNicoAdPoint 広告ポイント
  * @param totalGiftPoint 投げ銭ポイント
  * @param onClickNicoAdOpen ニコニ広告画面に遷移するボタンを押した時
+ * @param onClickGiftOpen 投げ銭画面に遷移するボタンを押した時
  * */
 @Composable
 fun NicoLivePointCard(
     totalNicoAdPoint: Int,
     totalGiftPoint: Int,
     onClickNicoAdOpen: () -> Unit,
+    onClickGiftOpen: () -> Unit,
 ) {
     Card(
         modifier = parentCardModifier,
@@ -315,7 +317,9 @@ fun NicoLivePointCard(
                     }
                     Divider()
                     Text(
-                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(5.dp),
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(5.dp),
                         text = "$totalNicoAdPoint pt",
                         textAlign = TextAlign.Center,
                         fontSize = 20.sp,
@@ -340,11 +344,21 @@ fun NicoLivePointCard(
                     }
                     Divider()
                     Text(
-                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(5.dp),
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(5.dp),
                         text = "$totalGiftPoint pt",
                         textAlign = TextAlign.Center,
                         fontSize = 20.sp,
                     )
+                    TextButton(
+                        onClick = { onClickGiftOpen() },
+                        modifier = Modifier
+                            .align(Alignment.End)
+                    ) {
+                        Icon(imageVector = Icons.Outlined.ArrowForward)
+                        Text(text = stringResource(id = R.string.show_gift))
+                    }
                 }
             }
         }

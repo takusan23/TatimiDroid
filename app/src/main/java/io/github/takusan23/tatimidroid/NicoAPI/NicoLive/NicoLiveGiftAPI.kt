@@ -1,7 +1,8 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveGiftHistoryData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveGiftRankingData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveGiftHistoryUserData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveGiftItemData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveGiftRankingUserData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,6 +19,9 @@ class NicoLiveGiftAPI {
 
     /**
      * ギフトランキングAPIを叩く
+     *
+     * @param liveId 番組ID
+     * @param userSession ユーザーセッション
      * */
     suspend fun getGiftRanking(userSession: String, liveId: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
@@ -36,17 +40,19 @@ class NicoLiveGiftAPI {
      * */
     suspend fun parseGiftRanking(responseString: String?) = withContext(Dispatchers.Default) {
         // 返す配列
-        val resultList = arrayListOf<NicoLiveGiftRankingData>()
+        val resultList = arrayListOf<NicoLiveGiftRankingUserData>()
         val jsonObject = JSONObject(responseString)
         val rankingJSONArray = jsonObject.getJSONObject("data").getJSONArray("ranking")
         for (i in 0 until rankingJSONArray.length()) {
             val rankingJSONObject = rankingJSONArray.getJSONObject(i)
-            val userId = rankingJSONObject.getInt("userId")
+            val userId = if (rankingJSONObject.has("userId")) {
+                rankingJSONObject.getInt("userId")
+            } else null
             val advertiserName = rankingJSONObject.getString("advertiserName")
             val totalContribution = rankingJSONObject.getInt("totalContribution")
             val rank = rankingJSONObject.getInt("rank")
             resultList.add(
-                NicoLiveGiftRankingData(
+                NicoLiveGiftRankingUserData(
                     userId = userId,
                     advertiserName = advertiserName,
                     totalContribution = totalContribution,
@@ -59,6 +65,9 @@ class NicoLiveGiftAPI {
 
     /**
      * ギフト履歴APIを叩く
+     *
+     * @param liveId 番組ID
+     * @param userSession ユーザーセッション
      * */
     suspend fun getGiftHistory(userSession: String, liveId: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
@@ -77,19 +86,21 @@ class NicoLiveGiftAPI {
      * */
     suspend fun parseGiftHistory(responseString: String?) = withContext(Dispatchers.Default) {
         // 返す配列
-        val resultList = arrayListOf<NicoLiveGiftHistoryData>()
+        val resultList = arrayListOf<NicoLiveGiftHistoryUserData>()
         val jsonObject = JSONObject(responseString)
         val historyJSONArray = jsonObject.getJSONObject("data").getJSONArray("histories")
         for (i in 0 until historyJSONArray.length()) {
             val historyJSONObject = historyJSONArray.getJSONObject(i)
             val advertiserName = historyJSONObject.getString("advertiserName")
-            val userId = historyJSONObject.getInt("userId")
+            val userId = if (historyJSONObject.has("userId")) {
+                historyJSONObject.getInt("userId")
+            } else null
             val adPoint = historyJSONObject.getInt("adPoint")
             val itemObject = historyJSONObject.getJSONObject("item")
             val itemName = itemObject.getString("name")
             val itemThumbUrl = itemObject.getString("thumbnailUrl")
             resultList.add(
-                NicoLiveGiftHistoryData(
+                NicoLiveGiftHistoryUserData(
                     advertiserName = advertiserName,
                     userId = userId,
                     adPoint = adPoint,
@@ -101,4 +112,74 @@ class NicoLiveGiftAPI {
         resultList
     }
 
+    /**
+     * 投げ銭のトータルポイントを返すAPIを叩く
+     *
+     * @param liveId 番組ID
+     * @param userSession ユーザーセッション
+     * */
+    suspend fun getGiftTotalPoint(userSession: String, liveId: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("https://api.nicoad.nicovideo.jp/v1/contents/nage_agv/$liveId/totalGiftPoint")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$userSession")
+            get()
+        }.build()
+        okHttpClient.newCall(request).execute()
+    }
+
+    /**
+     * [getGiftTotalPoint]をパースする関数
+     *
+     * @param responseString レスポンスボディー
+     * */
+    suspend fun parseGiftTotalPoint(responseString: String?) = withContext(Dispatchers.Default) {
+        val jsonObject = JSONObject(responseString)
+        val totalPoint = jsonObject.getJSONObject("data").getInt("totalPoint")
+        totalPoint
+    }
+
+    /**
+     * 投げ銭で投げられたアイテムを取得するAPIを叩く
+     *
+     * @param liveId 番組ID
+     * @param userSession ユーザーセッション
+     * */
+    suspend fun getGiftItemList(userSession: String, liveId: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("https://api.nicoad.nicovideo.jp/v1/nagenico/nage_agv/$liveId/totalsoldcounts")
+            header("User-Agent", "TatimiDroid;@takusan_23")
+            header("Cookie", "user_session=$userSession")
+            get()
+        }.build()
+        okHttpClient.newCall(request).execute()
+    }
+
+    /**
+     * [getGiftItemList]をパースする関数
+     *
+     * @param responseString レスポンスボディー
+     * */
+    suspend fun parseGiftItemList(responseString: String?) = withContext(Dispatchers.Default) {
+        // 返す配列
+        val resultList = arrayListOf<NicoLiveGiftItemData>()
+        val jsonObject = JSONObject(responseString)
+        val itemJSONArray = jsonObject.getJSONObject("data").getJSONArray("totalSoldCounts")
+        for (i in 0 until itemJSONArray.length()) {
+            val itemJSONObject = itemJSONArray.getJSONObject(i)
+            val itemId = itemJSONObject.getString("itemId")
+            val itemName = itemJSONObject.getString("itemName")
+            val thumbnailUrl = itemJSONObject.getString("thumbnailUrl")
+            val totalSoldCount = itemJSONObject.getInt("totalSoldCount")
+            resultList.add(
+                NicoLiveGiftItemData(
+                    itemId = itemId,
+                    itemName = itemName,
+                    thumbnailUrl = thumbnailUrl,
+                    totalSoldCount = totalSoldCount
+                )
+            )
+        }
+        resultList
+    }
 }

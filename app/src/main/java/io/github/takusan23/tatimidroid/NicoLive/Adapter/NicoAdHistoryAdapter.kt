@@ -26,7 +26,7 @@ class NicoAdHistoryAdapter(val nicoAdHistoryList: ArrayList<NicoAdHistoryUserDat
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.apply {
             val data = nicoAdHistoryList[position]
-            nameTextView.text = "${data.advertiserName}：${data.contribution}"
+            nameTextView.text = "${data.advertiserName} さん：${data.contribution}"
             messageTextView.text = data.message
         }
     }
