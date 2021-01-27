@@ -124,11 +124,11 @@ fun NicoVideoCommentHideMenu(
 /**
  * マイリスト追加ボタン
  *
- * @param addMylist マイリスト追加ボタンを押した時
- * @param addAtodemiru あとでみる追加ボタンを押した時
+ * @param onClickAddMylist マイリスト追加ボタンを押した時
+ * @param onClickAddAtodemiru あとでみる追加ボタンを押した時
  * */
 @Composable
-fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
+fun NicoVideoMylistsMenu(onClickAddMylist: () -> Unit, onClickAddAtodemiru: () -> Unit) {
     Column(
         modifier = Modifier
             .padding(10.dp)
@@ -136,7 +136,7 @@ fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
     ) {
         // マイリスト追加
         TextButton(
-            onClick = { addMylist() },
+            onClick = { onClickAddMylist() },
         )
         {
             Row(
@@ -154,7 +154,7 @@ fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
         }
         // あとでみる（旧：とりあえずマイリスト）
         TextButton(
-            onClick = { addAtodemiru() },
+            onClick = { onClickAddAtodemiru() },
         )
         {
             Row(
@@ -176,22 +176,24 @@ fun NicoVideoMylistsMenu(addMylist: () -> Unit, addAtodemiru: () -> Unit) {
 /**
  * その他のメニュー。画質変更とかスキップ秒数変更とか画面回転とか
  *
- * @param onQualityChange 画質変更ボタン押した時
- * @param onScreenRotation 画面回転ボタン押した時
- * @param onOpenBrowser ブラウザで開くボタンを押した時
- * @param onNgList NG一覧ボタンを押した時
- * @param onKotehanList コテハン一覧ボタンを押した時
- * @param onSkipSetting スキップ秒数変更ボタン押した時
+ * @param onClickQualityChange 画質変更ボタン押した時
+ * @param onClickScreenRotation 画面回転ボタン押した時
+ * @param onClickOpenBrowser ブラウザで開くボタンを押した時
+ * @param onClickNgList NG一覧ボタンを押した時
+ * @param onClickKotehanList コテハン一覧ボタンを押した時
+ * @param onClickSkipSetting スキップ秒数変更ボタン押した時
+ * @param
  * */
 @Composable
 fun NicoVideoOtherButtonMenu(
-    onQualityChange: () -> Unit,
-    onCopyVideoId: () -> Unit,
-    onScreenRotation: () -> Unit,
-    onOpenBrowser: () -> Unit,
-    onNgList: () -> Unit,
-    onKotehanList: () -> Unit,
-    onSkipSetting: () -> Unit,
+    onClickQualityChange: () -> Unit,
+    onClickCopyVideoId: () -> Unit,
+    onClickScreenRotation: () -> Unit,
+    onClickOpenBrowser: () -> Unit,
+    onClickNgList: () -> Unit,
+    onClickKotehanList: () -> Unit,
+    onClickSkipSetting: () -> Unit,
+    onClickShowNicoAd: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -199,7 +201,7 @@ fun NicoVideoOtherButtonMenu(
             .fillMaxWidth(),
     ) {
         // 画質変更
-        TextButton(onClick = { onQualityChange() })
+        TextButton(onClick = { onClickQualityChange() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -214,8 +216,24 @@ fun NicoVideoOtherButtonMenu(
                 )
             }
         }
+        // ニコニ広告
+        TextButton(onClick = { onClickShowNicoAd() })
+        {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Icon(imageVector = Icons.Outlined.Money)
+                Text(
+                    text = stringResource(id = R.string.nicoads),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
+                )
+            }
+        }
         // 画面回転
-        TextButton(onClick = { onScreenRotation() })
+        TextButton(onClick = { onClickScreenRotation() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -231,7 +249,7 @@ fun NicoVideoOtherButtonMenu(
             }
         }
         // 動画IDコピー
-        TextButton(onClick = { onCopyVideoId() })
+        TextButton(onClick = { onClickCopyVideoId() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -247,7 +265,7 @@ fun NicoVideoOtherButtonMenu(
             }
         }
         // ブラウザで開く
-        TextButton(onClick = { onOpenBrowser() })
+        TextButton(onClick = { onClickOpenBrowser() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -263,7 +281,7 @@ fun NicoVideoOtherButtonMenu(
             }
         }
         // NG一覧
-        TextButton(onClick = { onNgList() })
+        TextButton(onClick = { onClickNgList() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -279,7 +297,7 @@ fun NicoVideoOtherButtonMenu(
             }
         }
         // コテハン
-        TextButton(onClick = { onKotehanList() })
+        TextButton(onClick = { onClickKotehanList() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -295,7 +313,7 @@ fun NicoVideoOtherButtonMenu(
             }
         }
         // スキップ秒数
-        TextButton(onClick = { onSkipSetting() })
+        TextButton(onClick = { onClickSkipSetting() })
         {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -316,17 +334,17 @@ fun NicoVideoOtherButtonMenu(
 /**
  * キャッシュ取得ボタン
  *
- * @param cacheGet キャッシュ取得ボタン押した時
- * @param cacheGetEco キャッシュ取得ボタン（エコノミー）押した時
+ * @param onClickCacheGet キャッシュ取得ボタン押した時
+ * @param onClickCacheGetEco キャッシュ取得ボタン（エコノミー）押した時
  * @param isCachePlay キャッシュ再生の場合はtrueにすることで動画情報を更新するボタンを表示します。ですがtrueの場合は前述のボタンを表示しません。
- * @param cacheUpdate キャッシュの動画情報更新ボタンを押した時
+ * @param onClickCacheUpdate キャッシュの動画情報更新ボタンを押した時
  * */
 @Composable
 fun NicoVideoCacheMenu(
-    cacheGet: () -> Unit,
-    cacheGetEco: () -> Unit,
+    onClickCacheGet: () -> Unit,
+    onClickCacheGetEco: () -> Unit,
     isCachePlay: Boolean,
-    cacheUpdate: () -> Unit,
+    onClickCacheUpdate: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -336,7 +354,7 @@ fun NicoVideoCacheMenu(
         // キャッシュ再生 か それ以外
         if (isCachePlay) {
             // 情報更新ボタン表示
-            TextButton(onClick = { cacheUpdate() }) {
+            TextButton(onClick = { onClickCacheUpdate() }) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
@@ -352,7 +370,7 @@ fun NicoVideoCacheMenu(
             }
         } else {
             // 取得ボタン
-            TextButton(onClick = { cacheGet() }) {
+            TextButton(onClick = { onClickCacheGet() }) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
@@ -367,7 +385,7 @@ fun NicoVideoCacheMenu(
                 }
             }
             // 取得ボタン（エコノミー）
-            TextButton(onClick = { cacheGetEco() }) {
+            TextButton(onClick = { onClickCacheGetEco() }) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
@@ -388,13 +406,13 @@ fun NicoVideoCacheMenu(
 /**
  * 共有
  *
- * @param share 共有ボタン押した時
- * @param shareAttachImg 画像つき共有ボタン押した時
+ * @param onClickShare 共有ボタン押した時
+ * @param onClickShareAttachImg 画像つき共有ボタン押した時
  * */
 @Composable
 fun NicoVideoShareMenu(
-    share: () -> Unit,
-    shareAttachImg: () -> Unit,
+    onClickShare: () -> Unit,
+    onClickShareAttachImg: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -405,7 +423,7 @@ fun NicoVideoShareMenu(
         Row {
             TextButton(
                 modifier = Modifier.weight(1f),
-                onClick = { share() },
+                onClick = { onClickShare() },
             ) {
                 Icon(imageVector = Icons.Outlined.Share)
                 Text(
@@ -415,7 +433,7 @@ fun NicoVideoShareMenu(
             }
             TextButton(
                 modifier = Modifier.weight(1f),
-                onClick = { shareAttachImg() },
+                onClick = { onClickShareAttachImg() },
             ) {
                 Icon(imageVector = Icons.Outlined.Share)
                 Text(

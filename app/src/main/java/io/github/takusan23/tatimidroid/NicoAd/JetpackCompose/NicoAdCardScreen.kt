@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAd.JetpackCompose
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,7 +10,10 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdAPI
 import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModel
 
 /**
@@ -23,6 +27,8 @@ fun NicoAdScreen(viewModel: NicoAdViewModel) {
     val nicoAdRankingLiveData = viewModel.nicoAdRankingLiveData.observeAsState()
     // ニコニ広告履歴データ
     val nicoAdHistoryLiveData = viewModel.nicoAdHistoryLiveData.observeAsState()
+    // Context
+    val context = AmbientContext.current
 
     Column {
         // タイトル、累計ポイント、アクティブポイント表示
@@ -32,7 +38,14 @@ fun NicoAdScreen(viewModel: NicoAdViewModel) {
                 elevation = 5.dp,
                 shape = RoundedCornerShape(3.dp)
             ) {
-                NicoAdTop(nicoAdData = nicoAdDataLiveData.value!!)
+                NicoAdTop(
+                    nicoAdData = nicoAdDataLiveData.value!!,
+                    onClickOpenBrowser = {
+                        // ブラウザ起動
+                        val intent = Intent(Intent.ACTION_VIEW, NicoAdAPI.generateURL(nicoAdDataLiveData.value!!.contentId).toUri())
+                        context.startActivity(intent)
+                    }
+                )
             }
         }
         // タブとランキング、履歴表示

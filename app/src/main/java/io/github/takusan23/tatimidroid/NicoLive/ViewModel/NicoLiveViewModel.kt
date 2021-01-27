@@ -11,14 +11,11 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoAPI.Community.CommunityAPI
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
-import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdAPI
-import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdHistoryUserData
-import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdRankingUserData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveComment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTagAPI
+import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.KotehanDBEntity
@@ -134,14 +131,8 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** 画質が切り替わったら飛ばすLiveData。多分JSON配列 */
     val changeQualityLiveData = MutableLiveData<String>()
 
-    /** ニコニ広告のデータを送るLiveData。だたし、これは[getNicoAd]を呼ばないと送信されない */
-    val nicoAdLiveData = MutableLiveData<NicoAdData>()
-
-    /** ニコニ広告の貢献者のデータを送るLiveData。だたし、これは[getNicoAdRanking]を呼ばないと送信されない */
-    val nicoAdRankingLiveData = MutableLiveData<ArrayList<NicoAdRankingUserData>>()
-
-    /** ニコニ広告の宣伝者履歴のデータを送るLiveData。だたし、これは[getNicoAdHistory]を呼ばないと送信されない */
-    val nicoAdHistoryLiveData = MutableLiveData<ArrayList<NicoAdHistoryUserData>>()
+    /** タイムシフト予約済みかどうか。なんですけど、API叩くまでは fasle です */
+    val isTimeShiftRegisteredLiveData = MutableLiveData(false)
 
     /** [changeQualityLiveData]で二回目から使うので制御用 */
     private var isNotFirstQualityMessage = false
@@ -870,67 +861,53 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
     }
 
     /**
-     * ニコニ広告APIを叩く。
-     * 結果は[nicoAdLiveData]へ送信されます
+     * タイムシフト予約を行うAPIを叩く
+     * 結果は[isTimeShiftRegisteredLiveData]へ送信されます。
      * */
-    fun getNicoAd() {
-        viewModelScope.launch {
-            val nicoAdAPI = NicoAdAPI()
-            // 番組情報取得済みかどうか
+    fun registerTimeShift() {
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            // エラー時
+            showToast("${getString(R.string.error)}\n${throwable}")
+        }
+        viewModelScope.launch(errorHandler) {
+            val timeShiftAPI = NicoLiveTimeShiftAPI()
+            // 番組情報取得済みか
             if (nicoLiveProgramData.value != null) {
-                val response = nicoAdAPI.getNicoAd(userSession, nicoLiveProgramData.value!!.programId, NicoAdAPI.NICOAD_API_LIVE)
-                if (!response.isSuccessful) {
-                    // 失敗時
-                    showToast("${getString(R.string.error)}\n${response.code}")
-                    return@launch
+                val liveId = nicoLiveProgramData.value!!.programId
+                val response = timeShiftAPI.registerTimeShift(liveId, userSession)
+                // 登録済みかどうか。登録済みの場合はステータスコードが500になる
+                val isRegistered = response.code == 500 || response.isSuccessful
+                // LiveDataへ
+                isTimeShiftRegisteredLiveData.postValue(isRegistered)
+                if (response.code == 500) {
+                    // 予約済みだったよメッセージ
+                    snackbarLiveData.postValue(getString(R.string.timeshift_reserved))
+                } else if (response.isSuccessful) {
+                    // 予約成功したよメッセージ
+                    snackbarLiveData.postValue(getString(R.string.timeshift_reservation_successful))
                 }
-                // 結果を送信
-                val data = withContext(Dispatchers.Default) { nicoAdAPI.parseNicoAd(response.body?.string()) }
-                nicoAdLiveData.postValue(data)
             }
         }
     }
 
     /**
-     * ニコニ広告の貢献度APIを叩く。
-     * 結果は[nicoAdRankingLiveData]へ送信されます
+     * タイムシフト予約を解除するAPIを叩く
+     * 結果は[isTimeShiftRegisteredLiveData]へ送信されます。
      * */
-    fun getNicoAdRanking() {
-        viewModelScope.launch {
-            val nicoAdAPI = NicoAdAPI()
-            // 番組情報取得済みかどうか
-            if (nicoLiveProgramData.value != null) {
-                val response = nicoAdAPI.getNicoAdRanking(userSession, nicoLiveProgramData.value!!.programId, NicoAdAPI.NICOAD_API_LIVE)
-                if (!response.isSuccessful) {
-                    // 失敗時
-                    showToast("${getString(R.string.error)}\n${response.code}")
-                    return@launch
-                }
-                // 結果を送信
-                val data = withContext(Dispatchers.Default) { nicoAdAPI.parseNicoAdRanking(response.body?.string()) }
-                nicoAdRankingLiveData.postValue(data)
-            }
+    fun unRegisterTimeShift() {
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            // エラー時
+            showToast("${getString(R.string.error)}\n${throwable}")
         }
-    }
-
-    /**
-     * ニコニ広告の貢献者履歴APIを叩く
-     * 結果は[nicoAdHistoryLiveData]へ送信されます
-     * */
-    fun getNicoAdHistory() {
-        viewModelScope.launch {
-            val nicoAdAPI = NicoAdAPI()
-            // 番組情報取得済みかどうか
+        viewModelScope.launch(errorHandler) {
+            val timeShiftAPI = NicoLiveTimeShiftAPI()
             if (nicoLiveProgramData.value != null) {
-                val response = nicoAdAPI.getNicoAdHistory(userSession, nicoLiveProgramData.value!!.programId, NicoAdAPI.NICOAD_API_LIVE)
-                if (!response.isSuccessful) {
-                    // 失敗時
-                    showToast("${getString(R.string.error)}\n${response.code}")
-                    return@launch
-                }
-                // 結果を送信
-                val data = withContext(Dispatchers.Default) { nicoAdAPI.parseNicoAdHistory(response.body?.string()) }
-                nicoAdHistoryLiveData.postValue(data)
+                val liveId = nicoLiveProgramData.value!!.programId
+                val response = timeShiftAPI.deleteTimeShift(liveId, userSession)
+                // LiveData送信
+                snackbarLiveData.postValue(getString(R.string.timeshift_delete_reservation_successful))
+                // 成功したらfalseをLiveDataへ送信する
+                isTimeShiftRegisteredLiveData.postValue(!response.isSuccessful)
             }
         }
     }

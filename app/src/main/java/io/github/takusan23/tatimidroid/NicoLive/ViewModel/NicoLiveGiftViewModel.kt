@@ -51,7 +51,7 @@ class NicoLiveGiftViewModel(application: Application, val liveId: String) : Andr
     }
 
     /**
-     * 投げ銭APIを叩く
+     * 投げ銭API一式を叩く
      * */
     fun getGiftData() {
         getGiftRanking()

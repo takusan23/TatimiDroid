@@ -12,6 +12,8 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.github.takusan23.droppopalert.DropPopAlert
+import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
@@ -172,7 +174,15 @@ class NicoVideoCommentFragment : Fragment() {
      * @param visible 表示する場合はtrue。非表示にする場合はfalse
      * */
     fun setFollowingButtonVisibility(visible: Boolean) {
-        viewBinding.fragmentNicovideoCommentFollowingButton.isVisible = visible
+        // 現在と違うときのみ
+        if (viewBinding.fragmentNicovideoCommentFollowingButton.isVisible != visible) {
+            // 自作ライブラリ
+            if (visible) {
+                viewBinding.fragmentNicovideoCommentFollowingButton.toDropPopAlert().showAlert(DropPopAlert.ALERT_DROP)
+            } else {
+                viewBinding.fragmentNicovideoCommentFollowingButton.toDropPopAlert().hideAlert(DropPopAlert.ALERT_DROP)
+            }
+        }
     }
 
     /** LayoutManager取得。書くのめんどくさくなったので */

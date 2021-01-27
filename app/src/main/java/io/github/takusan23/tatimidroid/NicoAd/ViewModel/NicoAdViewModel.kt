@@ -57,7 +57,7 @@ class NicoAdViewModel(application: Application, val contentId: String) : Android
     }
 
     /**
-     * ニコニ広告のAPIを叩く
+     * ニコニ広告API一式叩く
      * */
     fun getNicoAd() {
         getNicoAdData()

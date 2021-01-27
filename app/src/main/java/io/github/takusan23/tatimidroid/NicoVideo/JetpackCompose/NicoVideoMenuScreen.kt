@@ -23,6 +23,7 @@ import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
+import io.github.takusan23.tatimidroid.NicoAd.NicoAdBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoQualityBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoSkipCustomizeBottomFragment
@@ -114,6 +115,15 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
         openBrowser("https://nico.ms/$videoId")
     }
 
+    /** ニコニ広告のBottomFragmentを開く */
+    fun showNicoAdBottomFragment() {
+        NicoAdBottomFragment().apply {
+            arguments = Bundle().apply {
+                putString("content_id", viewModel.playingVideoId.value)
+            }
+        }.show(fragmentManager, "nicoad")
+    }
+
     /** NG一覧を開く */
     fun launchNGListActivity() {
         val intent = Intent(context, NGListActivity::class.java)
@@ -162,9 +172,9 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
                 0 -> {
                     NicoVideoMylistsMenu(
                         // マイリスト追加
-                        addMylist = { showAddMylistBottomFragment() },
+                        onClickAddMylist = { showAddMylistBottomFragment() },
                         // あとでみる追加
-                        addAtodemiru = { viewModel.addAtodemiruList() })
+                        onClickAddAtodemiru = { viewModel.addAtodemiruList() })
                 }
                 1 -> {
                     // 設定読み出し
@@ -192,27 +202,28 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
                 }
                 2 -> {
                     NicoVideoOtherButtonMenu(
-                        onQualityChange = { showQualityBottomSheet() },
-                        onCopyVideoId = { copyVideoId() },
-                        onScreenRotation = { setScreenRotation() },
-                        onOpenBrowser = { openWatchPage() },
-                        onNgList = { launchNGListActivity() },
-                        onKotehanList = { launchKotehanListActivity() },
-                        onSkipSetting = { showSkipSettingBottomFragment() }
+                        onClickQualityChange = { showQualityBottomSheet() },
+                        onClickCopyVideoId = { copyVideoId() },
+                        onClickScreenRotation = { setScreenRotation() },
+                        onClickOpenBrowser = { openWatchPage() },
+                        onClickNgList = { launchNGListActivity() },
+                        onClickKotehanList = { launchKotehanListActivity() },
+                        onClickSkipSetting = { showSkipSettingBottomFragment() },
+                        onClickShowNicoAd = { showNicoAdBottomFragment() }
                     )
                 }
                 3 -> {
                     NicoVideoShareMenu(
-                        share = { showShareSheet() },
-                        shareAttachImg = { showShereSheetMediaAttach() },
+                        onClickShare = { showShareSheet() },
+                        onClickShareAttachImg = { showShereSheetMediaAttach() },
                     )
                 }
                 4 -> {
                     NicoVideoCacheMenu(
                         isCachePlay = viewModel.isOfflinePlay.value ?: false,
-                        cacheGet = { startCacheService(context, viewModel.playingVideoId.value!!, false) }, // 取得
-                        cacheGetEco = { startCacheService(context, viewModel.playingVideoId.value!!, true) }, // エコノミーで取得
-                        cacheUpdate = { viewModel.nicoVideoCache.getReGetVideoInfoComment(viewModel.playingVideoId.value!!, viewModel.userSession, context) }, // 再取得
+                        onClickCacheGet = { startCacheService(context, viewModel.playingVideoId.value!!, false) }, // 取得
+                        onClickCacheGetEco = { startCacheService(context, viewModel.playingVideoId.value!!, true) }, // エコノミーで取得
+                        onClickCacheUpdate = { viewModel.nicoVideoCache.getReGetVideoInfoComment(viewModel.playingVideoId.value!!, viewModel.userSession, context) }, // 再取得
                     )
                 }
                 5 -> {

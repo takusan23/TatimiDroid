@@ -219,7 +219,6 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
         (parentFragment as? JCNicoLiveFragment)?.showShareSheet()
     }
 
-
     /**
      * こっからレイアウト
      * ----------------------------
@@ -291,14 +290,14 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
                         onClickOpenBrowser = { openBrowser() },
                         onClickNGList = { openNGListActivity() },
                         onClickKotehanList = { openKotehanListActivity() },
-                        onClickHomeScreenPin = { createHomeScreenShortcut() }
+                        onClickHomeScreenPin = { createHomeScreenShortcut() },
                     )
                 }
                 3 -> {
                     // 共有メニュー
                     NicoVideoShareMenu(
-                        share = { showShareSheet() },
-                        shareAttachImg = { showShereSheetMediaAttach() }
+                        onClickShare = { showShareSheet() },
+                        onClickShareAttachImg = { showShereSheetMediaAttach() }
                     )
                 }
                 4 -> {

@@ -2,11 +2,10 @@ package io.github.takusan23.tatimidroid.NicoAd.JetpackCompose
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Divider
-import androidx.compose.material.TabRow
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.OpenInBrowser
 import androidx.compose.material.icons.outlined.SignalCellularAlt
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,9 +35,13 @@ import io.github.takusan23.tatimidroid.Tool.isDarkMode
  * ニコニ広告の累計ポイント、期間中ポイントを表示する
  *
  * @param nicoAdData ニコニ広告のデータ
+ * @param onClickOpenBrowser ブラウザで開くボタンを押した時
  * */
 @Composable
-fun NicoAdTop(nicoAdData: NicoAdData) {
+fun NicoAdTop(
+    nicoAdData: NicoAdData,
+    onClickOpenBrowser: () -> Unit
+) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             // 画像
@@ -106,6 +109,10 @@ fun NicoAdTop(nicoAdData: NicoAdData) {
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center
                 )
+            }
+            // ブラウザ起動ボタン
+            IconButton(onClick = { onClickOpenBrowser() }) {
+                Icon(imageVector = Icons.Outlined.OpenInBrowser)
             }
         }
     }

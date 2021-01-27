@@ -19,6 +19,19 @@ class NicoAdAPI {
 
         /** [getNicoAd]の第３引数に入れる値。動画のニコニ広告を取得する場合はこれを入れてください */
         val NICOAD_API_VIDEO = "video"
+
+
+        /**
+         * ニコニ広告ページを開くURLを生成する
+         * @param contentId 動画IDか番組ID
+         * @return URL。開くとニコニ広告ページに行ける
+         * */
+        fun generateURL(contentId: String): String {
+            // 生放送か動画か
+            val type = if (contentId.contains("lv")) "live" else "video"
+            return "https://nicoad.nicovideo.jp/$type/publish/$contentId"
+        }
+
     }
 
     /** シングルトンなOkHttpClient */

@@ -1,16 +1,19 @@
 package io.github.takusan23.tatimidroid.NicoLive
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayout
+import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdAPI
 import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModel
 import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModelFactory
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoAdHistoryAdapter
@@ -59,7 +62,17 @@ class NicoAdFragment : Fragment() {
             addItemDecoration(itemDecoration)
         }
 
-        viewBinding.fragmentNicoLiveTabLayout.setBackgroundColor(getThemeColor(context))
+        viewBinding.fragmentNicoLiveNicoadTabLayout.setBackgroundColor(getThemeColor(context))
+
+        // 更新ボタン
+        viewBinding.fragmentNicoLiveNicoadUpdateImageView.setOnClickListener {
+            viewModel.getNicoAd()
+        }
+
+        // ブラウザ起動
+        viewBinding.fragmentNicoLiveNicoadOpenBrowserImageView.setOnClickListener {
+            openBrowser()
+        }
 
         // トータルポイント取得
         viewModel.nicoAdDataLiveData.observe(viewLifecycleOwner) { data ->
@@ -84,7 +97,7 @@ class NicoAdFragment : Fragment() {
         }
 
         // TabLayout
-        viewBinding.fragmentNicoLiveTabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+        viewBinding.fragmentNicoLiveNicoadTabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
 
             }
@@ -105,6 +118,12 @@ class NicoAdFragment : Fragment() {
                 viewBinding.fragmentNicoLiveNicoadRecyclerView.adapter?.notifyDataSetChanged()
             }
         })
+    }
+
+    /** ブラウザを起動する */
+    private fun openBrowser() {
+        val intent = Intent(Intent.ACTION_VIEW, NicoAdAPI.generateURL(liveId).toUri())
+        startActivity(intent)
     }
 
 

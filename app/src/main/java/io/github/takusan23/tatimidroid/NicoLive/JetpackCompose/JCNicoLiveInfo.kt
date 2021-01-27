@@ -34,11 +34,15 @@ import io.github.takusan23.tatimidroid.Tool.toFormatTime
  * 番組情報を表示するCard
  * @param nicoLiveProgramData 番組情報データクラス
  * @param programDescription 番組説明文
+ * @param isRegisteredTimeShift タイムシフト予約済みかどうか
+ * @param onClickTimeShift タイムシフト予約ボタンを押した時
  * */
 @Composable
 fun NicoLiveInfoCard(
     nicoLiveProgramData: NicoLiveProgramData,
-    programDescription: String
+    programDescription: String,
+    isRegisteredTimeShift: Boolean,
+    onClickTimeShift: () -> Unit,
 ) {
     // 動画説明文表示状態
     var expanded by remember { mutableStateOf(false) }
@@ -88,6 +92,11 @@ fun NicoLiveInfoCard(
                         style = TextStyle(fontSize = 12.sp),
                     )
                 }
+                // タイムシフト予約ボタン
+                TimeShiftRegisterButton(
+                    isRegisteredTimeShift = isRegisteredTimeShift,
+                    onClickTimeShift = onClickTimeShift
+                )
                 // 展開ボタン。動画説明文の表示を切り替える
                 IconButton(onClick = { expanded = !expanded }) {
                     // アイコンコード一行で召喚できる。Node.jsのnpmのmdiみたいだな！
@@ -109,6 +118,27 @@ fun NicoLiveInfoCard(
                 }
             }
         }
+    }
+}
+
+/**
+ * タイムシフト予約ボタン
+ *
+ * @param isRegisteredTimeShift タイムシフト予約済みかどうか
+ * @param onClickTimeShift タイムシフト予約ボタン押した時
+ * */
+@Composable
+fun TimeShiftRegisterButton(
+    isRegisteredTimeShift: Boolean,
+    onClickTimeShift: () -> Unit
+) {
+    // いいねボタン
+    OutlinedButton(
+        shape = RoundedCornerShape(20.dp), // 丸み
+        onClick = { onClickTimeShift() },
+    ) {
+        Icon(imageVector = Icons.Outlined.History)
+        Text(text = if (isRegisteredTimeShift) stringResource(id = R.string.nicolive_time_shift_un_register_short) else stringResource(id = R.string.nicolive_time_shift_register_short))
     }
 }
 

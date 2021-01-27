@@ -60,6 +60,11 @@ class GiftFragment : Fragment() {
 
         viewBinding.fragmentNicoliveGiftTabLayout.setBackgroundColor(getThemeColor(context))
 
+        // 更新ボタン
+        viewBinding.fragmentNicoliveGiftUpdateImageView.setOnClickListener {
+            viewModel.getGiftData()
+        }
+
         // 合計ポイントを受け取る
         viewModel.nicoLiveGiftTotalPointLiveData.observe(viewLifecycleOwner) { totalPoint ->
             viewBinding.fragmentNicoliveGiftTotalPointTextView.text = "${getString(R.string.total)}：$totalPoint pt"

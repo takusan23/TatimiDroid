@@ -63,6 +63,8 @@ class JCNicoLiveInfoFragment : Fragment() {
                     val konomiTagList = viewModel.nicoLiveKonomiTagListLiveData.observeAsState(initial = arrayListOf())
                     // 統計情報LiveData
                     val statisticsLiveData = viewModel.statisticsLiveData.observeAsState()
+                    // タイムシフト予約済みかどうか（なお予約済みかどうかはAPIを叩くまでわからん）
+                    val isRegisteredTimeShift = viewModel.isTimeShiftRegisteredLiveData.observeAsState(initial = false)
 
                     Surface {
                         Scaffold {
@@ -71,7 +73,9 @@ class JCNicoLiveInfoFragment : Fragment() {
                                 if (programData.value != null && description.value != null) {
                                     NicoLiveInfoCard(
                                         nicoLiveProgramData = programData.value!!,
-                                        programDescription = description.value!!
+                                        programDescription = description.value!!,
+                                        isRegisteredTimeShift = isRegisteredTimeShift.value,
+                                        onClickTimeShift = { registerTimeShift() },
                                     )
                                 }
                                 // ユーザー情報。ニコ動用のがそのまま使えた
@@ -203,6 +207,22 @@ class JCNicoLiveInfoFragment : Fragment() {
     private fun requestRemoveCommunityFollow(communityId: String) {
         (requireParentFragment() as? JCNicoLiveFragment)?.showSnackBar(getString(R.string.nicovideo_account_remove_follow_message), getString(R.string.nicovideo_account_remove_follow)) {
             viewModel.requestRemoveCommunityFollow(communityId)
+        }
+    }
+
+    /** TS予約、解除を行う関数 */
+    fun registerTimeShift() {
+        val isRegisteredTS = viewModel.isTimeShiftRegisteredLiveData.value ?: false
+        val message = if (isRegisteredTS) getString(R.string.nicolive_time_shift_un_register_message) else getString(R.string.nicolive_time_shift_register_message)
+        val action = if (isRegisteredTS) getString(R.string.nicolive_time_shift_un_register_short) else getString(R.string.nicolive_time_shift_register_short)
+        (requireParentFragment() as JCNicoLiveFragment).showSnackBar(message, action) {
+            if (isRegisteredTS) {
+                // 登録解除APIを叩く
+                viewModel.unRegisterTimeShift()
+            } else {
+                // 登録APIを叩く
+                viewModel.registerTimeShift()
+            }
         }
     }
 

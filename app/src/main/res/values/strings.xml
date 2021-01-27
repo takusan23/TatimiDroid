@@ -568,4 +568,8 @@
     <string name="show_nicoad">To niconico advertisement screen</string>
     <string name="show_gift">To the gift screen</string>
     <string name="total">Total</string>
+    <string name="nicolive_time_shift_register_short">TS reservation</string>
+    <string name="nicolive_time_shift_un_register_short">TS remove</string>
+    <string name="nicolive_time_shift_register_message">Do you want to make a time-shift reservation?</string>
+    <string name="nicolive_time_shift_un_register_message">Do you want to cancel the time shift reservation?</string>
 </resources>

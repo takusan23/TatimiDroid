@@ -568,4 +568,8 @@
     <string name="show_nicoad">ニコニ広告画面へ</string>
     <string name="show_gift">ギフト画面へ</string>
     <string name="total">合計</string>
+    <string name="nicolive_time_shift_register_short">TS予約</string>
+    <string name="nicolive_time_shift_un_register_short">TS解除</string>
+    <string name="nicolive_time_shift_un_register_message">タイムシフト予約を解除しますか？</string>
+    <string name="nicolive_time_shift_register_message">タイムシフト予約をしますか？</string>
 </resources>

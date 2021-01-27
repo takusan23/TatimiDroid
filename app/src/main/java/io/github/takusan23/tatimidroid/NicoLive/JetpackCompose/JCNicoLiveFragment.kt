@@ -29,7 +29,6 @@ import com.google.android.material.button.MaterialButton
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.DropPopAlertMotionLayoutFix
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoLive.CommentRoomFragment
@@ -246,6 +245,16 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             showSnackBar(getString(R.string.nicolive_jk_not_live_receive), null, null)
             // 映像を受信しないモードをtrueへ
             viewModel.isNotReceiveLive.postValue(true)
+            // 通常画面へ
+            toDefaultPlayer()
+            // コメント一覧も表示
+            lifecycleScope.launch {
+                delay(1000)
+                if (!viewModel.isFullScreenMode && !viewModel.isAutoCommentListShowOff) {
+                    // フルスクリーン時 もしくは 自動で展開しない場合 は操作しない
+                    viewModel.commentListShowLiveData.postValue(true)
+                }
+            }
         }
         // 映像を受信しないモード。映像なしだと3分で620KBぐらい？
         viewModel.isNotReceiveLive.observe(viewLifecycleOwner) { isNotReceiveLive ->
@@ -271,14 +280,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
         viewModel.stopEnquateLiveData.observe(viewLifecycleOwner) { stop ->
             nicolivePlayerUIBinding.includeNicolivePlayerEnquateFrameLayout.removeAllViews()
-        }
-        // 統計情報
-        viewModel.statisticsLiveData.observe(viewLifecycleOwner) { statistics ->
-
-        }
-        // アクティブユーザー？
-        viewModel.activeCommentPostUserLiveData.observe(viewLifecycleOwner) { active ->
-
         }
         // 経過時間
         viewModel.programTimeLiveData.observe(viewLifecycleOwner) { programTime ->
@@ -453,20 +454,20 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                     // info
                     val message = comment.replace("/info \\d+ ".toRegex(), "")
                     nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
-                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                    infoAnim.alert(DropPopAlert.ALERT_UP)
                 }
                 isNicoad -> {
                     // 広告
                     val json = JSONObject(comment.replace("/nicoad ", ""))
                     val message = json.getString("message")
                     nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
-                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                    infoAnim.alert(DropPopAlert.ALERT_UP)
                 }
                 isSpi -> {
                     // ニコニコ新市場
                     val message = comment.replace("/spi ", "")
                     nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
-                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                    infoAnim.alert(DropPopAlert.ALERT_UP)
                 }
                 isGift -> {
                     // 投げ銭。スペース区切り配列
@@ -476,18 +477,18 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                     val giftName = list[5]
                     val message = "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
                     nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
-                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                    infoAnim.alert(DropPopAlert.ALERT_UP)
                 }
                 isEmotion && !isHideEmotion -> {
                     // エモーション
                     val message = comment.replace("/emotion ", "エモーション：")
                     nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
-                    infoAnim.alert(DropPopAlertMotionLayoutFix.ALERT_UP)
+                    infoAnim.alert(DropPopAlert.ALERT_UP)
                 }
                 else -> {
                     // 生主コメント表示
                     nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.text = comment
-                    uneiAnim.alert(DropPopAlertMotionLayoutFix.ALERT_DROP)
+                    uneiAnim.alert(DropPopAlert.ALERT_DROP)
                 }
             }
         }
