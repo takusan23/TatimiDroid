@@ -84,8 +84,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // プレイヤー追加など
         setPlayerUI()
 
-        // フォント設定
-        setFont()
+        // コメント描画設定。フォント設定など
+        setCommentCanvas()
 
         // LiveData監視
         setLiveData()
@@ -437,59 +437,57 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
      * Info（ニコニ広告、ランクイン等）と、運営コメントを表示する関数
      * */
     private fun showInfoOrUNEIComment(comment: String) {
-        nicolivePlayerUIBinding.root.doOnLayout {
-            val isNicoad = comment.contains("/nicoad")
-            val isInfo = comment.contains("/info")
-            val isUadPoint = comment.contains("/uadpoint")
-            val isSpi = comment.contains("/spi")
-            val isGift = comment.contains("/gift")
-            // エモーション。いらない
-            val isHideEmotion = prefSetting.getBoolean("setting_nicolive_hide_emotion", false)
-            val isEmotion = comment.contains("/emotion")
-            // アニメーション
-            val infoAnim = nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.toDropPopAlert() // 自作ライブラリ
-            val uneiAnim = nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.toDropPopAlert()
-            when {
-                isInfo || isUadPoint -> {
-                    // info
-                    val message = comment.replace("/info \\d+ ".toRegex(), "")
-                    nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
-                    infoAnim.alert(DropPopAlert.ALERT_UP)
-                }
-                isNicoad -> {
-                    // 広告
-                    val json = JSONObject(comment.replace("/nicoad ", ""))
-                    val message = json.getString("message")
-                    nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
-                    infoAnim.alert(DropPopAlert.ALERT_UP)
-                }
-                isSpi -> {
-                    // ニコニコ新市場
-                    val message = comment.replace("/spi ", "")
-                    nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
-                    infoAnim.alert(DropPopAlert.ALERT_UP)
-                }
-                isGift -> {
-                    // 投げ銭。スペース区切り配列
-                    val list = comment.replace("/gift ", "").split(" ")
-                    val userName = list[2]
-                    val giftPoint = list[3]
-                    val giftName = list[5]
-                    val message = "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
-                    nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
-                    infoAnim.alert(DropPopAlert.ALERT_UP)
-                }
-                isEmotion && !isHideEmotion -> {
-                    // エモーション
-                    val message = comment.replace("/emotion ", "エモーション：")
-                    nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
-                    infoAnim.alert(DropPopAlert.ALERT_UP)
-                }
-                else -> {
-                    // 生主コメント表示
-                    nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.text = comment
-                    uneiAnim.alert(DropPopAlert.ALERT_DROP)
-                }
+        val isNicoad = comment.contains("/nicoad")
+        val isInfo = comment.contains("/info")
+        val isUadPoint = comment.contains("/uadpoint")
+        val isSpi = comment.contains("/spi")
+        val isGift = comment.contains("/gift")
+        // エモーション。いらない
+        val isHideEmotion = prefSetting.getBoolean("setting_nicolive_hide_emotion", false)
+        val isEmotion = comment.contains("/emotion")
+        // アニメーション
+        val infoAnim = nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.toDropPopAlert() // 自作ライブラリ
+        val uneiAnim = nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.toDropPopAlert()
+        when {
+            isInfo || isUadPoint -> {
+                // info
+                val message = comment.replace("/info \\d+ ".toRegex(), "")
+                nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
+                infoAnim.alert(DropPopAlert.ALERT_UP)
+            }
+            isNicoad -> {
+                // 広告
+                val json = JSONObject(comment.replace("/nicoad ", ""))
+                val message = json.getString("message")
+                nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
+                infoAnim.alert(DropPopAlert.ALERT_UP)
+            }
+            isSpi -> {
+                // ニコニコ新市場
+                val message = comment.replace("/spi ", "")
+                nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
+                infoAnim.alert(DropPopAlert.ALERT_UP)
+            }
+            isGift -> {
+                // 投げ銭。スペース区切り配列
+                val list = comment.replace("/gift ", "").split(" ")
+                val userName = list[2]
+                val giftPoint = list[3]
+                val giftName = list[5]
+                val message = "${userName} さんが ${giftName} （${giftPoint} pt）をプレゼントしました。"
+                nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
+                infoAnim.alert(DropPopAlert.ALERT_UP)
+            }
+            isEmotion && !isHideEmotion -> {
+                // エモーション
+                val message = comment.replace("/emotion ", "エモーション：")
+                nicolivePlayerUIBinding.includeNicolivePlayerInfoCommentTextView.text = message
+                infoAnim.alert(DropPopAlert.ALERT_UP)
+            }
+            else -> {
+                // 生主コメント表示
+                nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.text = comment
+                uneiAnim.alert(DropPopAlert.ALERT_DROP)
             }
         }
     }
@@ -601,11 +599,11 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
     }
 
-    /** フォント設定を適用 */
-    private fun setFont() {
+    /** コメント描画設定を適用 */
+    private fun setCommentCanvas() {
         val font = CustomFont(requireContext())
         if (font.isApplyFontFileToCommentCanvas) {
-            // 適用する設定の場合
+            // フォント設定
             nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.typeface = font.typeface
         }
     }

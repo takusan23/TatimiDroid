@@ -100,6 +100,17 @@
         <item name="backgroundTint">#ffffff</item>
     </style>
 
+    <!-- ボタンだけのトグルボタン（複数アイコン有る中から選ぶやつ）のStyle -->
+    <style name="Widget.App.Button.OutlinedButton.IconOnly" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="iconPadding">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:paddingRight">12dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+
     <!-- NavigationViewの色が薄くて見にくいので特別に作ってあげた -->
     <style name="NavigationViewSelectColor" parent="Widget.Design.NavigationView">
         <item name="itemShapeFillColor">@color/navigation_item_color</item>

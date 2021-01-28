@@ -311,8 +311,8 @@ class MainActivity : AppCompatActivity() {
      * */
     fun setFragment(fragment: Fragment, backstack: String? = null, forceAdd: Boolean = false) {
         // 同じFragmentの場合はやらない（例：生放送開いてるのにもう一回生放送開いたときは何もしない）
-        val findFragment = supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
-        if (findFragment != null && findFragment.javaClass == fragment.javaClass) {
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.main_activity_linearlayout)
+        if (currentFragment != null && currentFragment.javaClass == fragment.javaClass) {
             if (!forceAdd) {
                 // Fragmentはすでに設置済みなので
                 return
@@ -326,6 +326,7 @@ class MainActivity : AppCompatActivity() {
             }
             commit()
         }
+
     }
 
     /**

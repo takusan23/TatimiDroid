@@ -14,6 +14,29 @@ import java.util.*
  * */
 class NicoVideoSearchHTML {
 
+    companion object {
+
+        /**
+         * 並び替え一覧。
+         * */
+        val NICOVIDEO_SEARCH_ORDER = arrayListOf<String>(
+            "人気が高い順",
+            "あなたへのおすすめ順",
+            "投稿日時が新しい順",
+            "再生数が多い順",
+            "マイリスト数が多い順",
+            "コメントが新しい順",
+            "コメントが古い順",
+            "再生数が少ない順",
+            "コメント数が多い順",
+            "コメント数が少ない順",
+            "マイリスト数が少ない順",
+            "投稿日時が古い順",
+            "再生時間が長い順",
+            "再生時間が短い順"
+        )
+    }
+
     /** シングルトンなOkHttpClient */
     private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
@@ -73,6 +96,19 @@ class NicoVideoSearchHTML {
             }
         }
         list
+    }
+
+    /**
+     * 検索結果の関連タグの項目をスクレイピングする
+     *
+     * @param html HTML。はい
+     * @return 関連タグの文字が入った文字列を返す
+     * */
+    suspend fun parseTag(html: String?) = withContext(Dispatchers.Default) {
+        val document = Jsoup.parse(html)
+        val ul = document.getElementsByClass("tags")[0]
+        val tagElements = ul.getElementsByTag("a")
+        tagElements.map { element -> element.text() }
     }
 
     // 投稿時間をUnixTimeへ変換

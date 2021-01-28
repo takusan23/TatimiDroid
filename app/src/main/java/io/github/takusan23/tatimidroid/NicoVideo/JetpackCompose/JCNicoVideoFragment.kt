@@ -97,8 +97,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // ExoPlayer初期化
         initExoPlayer()
 
-        // フォント設定
-        setFont()
+        // コメント描画設定。フォント設定など
+        setCommentCanvas()
 
         // LiveData監視
         setLiveData()
@@ -111,6 +111,9 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
 
         // スリープにしない
         caffeine()
+
+        nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.scaleX = 1f
+        nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.scaleY = 1f
 
         // アニメーション
         if (viewModel.isFirst) {
@@ -429,8 +432,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
     }
 
-    /** コメントキャンバスへフォントを適用 */
-    private fun setFont() {
+    /** コメント描画設定。フォント設定など */
+    private fun setCommentCanvas() {
         val font = CustomFont(requireContext())
         if (font.isApplyFontFileToCommentCanvas) {
             // 適用する設定の場合

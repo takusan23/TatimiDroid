@@ -116,10 +116,11 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /** コルーチン */
     private val coroutineJob = Job()
 
+
     init {
         // コメントを動かす
-        commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
-            GlobalScope.launch(coroutineJob + Dispatchers.Main) {
+        GlobalScope.launch(coroutineJob + Dispatchers.Main) {
+            commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
                 if (isPlaying) {
                     // 画面外のコメントは描画しない
                     for (reDrawCommentData in drawNakaCommentList.toList().filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
