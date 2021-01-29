@@ -572,4 +572,6 @@
     <string name="nicolive_time_shift_un_register_short">TS remove</string>
     <string name="nicolive_time_shift_register_message">Do you want to make a time-shift reservation?</string>
     <string name="nicolive_time_shift_un_register_message">Do you want to cancel the time shift reservation?</string>
+    <string name="nicolive_jk_program_official">official</string>
+    <string name="nicolive_jk_program_tag">Nico Nico live tag (volunteer)</string>
 </resources>

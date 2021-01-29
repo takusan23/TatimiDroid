@@ -572,4 +572,6 @@
     <string name="nicolive_time_shift_un_register_short">TS解除</string>
     <string name="nicolive_time_shift_un_register_message">タイムシフト予約を解除しますか？</string>
     <string name="nicolive_time_shift_register_message">タイムシフト予約をしますか？</string>
+    <string name="nicolive_jk_program_official">公式</string>
+    <string name="nicolive_jk_program_tag">ニコニコ実況タグ（有志）</string>
 </resources>

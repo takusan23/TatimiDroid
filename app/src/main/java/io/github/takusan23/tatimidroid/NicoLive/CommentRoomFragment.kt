@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoLive
 
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommentRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.databinding.FragmentCommentRoomBinding
 
 /**
@@ -40,8 +42,9 @@ class CommentRoomFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        //ここから下三行必須
         initRecyclerView()
+
+        viewBinding.commentRoomTabLayout.background = ColorDrawable(getThemeColor(context))
 
         // LiveDataで新規コメント監視
         viewModel.commentReceiveLiveData.observe(viewLifecycleOwner) { comment ->

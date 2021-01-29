@@ -639,7 +639,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                     snackbarLiveData.postValue(getString(R.string.program_disconnect))
                 }
             }
-            if (isHideInfoUnnkome.value == true) {
+            if (isHideInfoUnnkome.value == false) {
                 // 運営コメント非表示時
                 if (commentJSONParse.premium == "生主" || commentJSONParse.premium == "運営") {
                     unneiCommentLiveData.postValue(comment)

@@ -68,6 +68,9 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** View表示時 */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // ダークモード対策
+        viewBinding.fragmentPlayerBaseFragmentParentLinearLayout.background = ColorDrawable(getThemeColor(context))
+        fragmentCommentHostAppbar.background = ColorDrawable(getThemeColor(context))
         // BottomSheet初期化。画面の半分ぐらい
         val width = DisplaySizeTool.getDisplayWidth(requireContext())
         bottomSheetPlayerBehavior.init(
@@ -75,9 +78,6 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
             bottomSheetView = viewBinding.fragmentPlayerBaseFragmentParentLinearLayout,
             playerView = viewBinding.fragmentPlayerBasePlayerFrameLayout
         )
-        // ダークモード対策
-        viewBinding.fragmentPlayerBaseFragmentParentLinearLayout.background = ColorDrawable(getThemeColor(context))
-        fragmentCommentHostAppbar.background = ColorDrawable(getThemeColor(context))
         // コールバック
         bottomSheetPlayerBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {

@@ -7,10 +7,13 @@ import android.view.View
 import android.webkit.WebView
 import android.widget.LinearLayout
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.AmbientContext
 import androidx.core.app.ShareCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -35,6 +38,8 @@ import io.github.takusan23.tatimidroid.NicoLive.CommentRoomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentViewFragment
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFactory
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.LightColors
 import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
@@ -167,28 +172,35 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // 累計情報。来場者、コメント数などを表示するCompose
         fragmentCommentHostTopComposeView.apply {
             setContent {
-                // 統計情報LiveData
-                val statisticsLiveData = viewModel.statisticsLiveData.observeAsState()
-                // アクティブ人数
-                val activeCountLiveData = viewModel.activeCommentPostUserLiveData.observeAsState()
+                MaterialTheme(
+                    // ダークモード。動的にテーマ変更できるようになるんか？
+                    colors = if (isDarkMode(AmbientContext.current)) DarkColors else LightColors,
+                ) {
+                    Surface {
+                        // 統計情報LiveData
+                        val statisticsLiveData = viewModel.statisticsLiveData.observeAsState()
+                        // アクティブ人数
+                        val activeCountLiveData = viewModel.activeCommentPostUserLiveData.observeAsState()
 
-                NicoLiveStatisticsUI(
-                    allViewer = statisticsLiveData.value?.viewers ?: 0,
-                    allCommentCount = statisticsLiveData.value?.comments ?: 0,
-                    activeCountText = activeCountLiveData.value ?: "計測中",
-                    onClickRoomChange = {
-                        // Fragment切り替え
-                        val toFragment = when (childFragmentManager.findFragmentById(fragmentCommentHostFrameLayout.id)) {
-                            is CommentRoomFragment -> CommentViewFragment()
-                            else -> CommentRoomFragment()
-                        }
-                        childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, toFragment).commit()
-                    },
-                    onClickActiveCalc = {
-                        // アクティブ人数計算
-                        viewModel.calcToukei(true)
+                        NicoLiveStatisticsUI(
+                            allViewer = statisticsLiveData.value?.viewers ?: 0,
+                            allCommentCount = statisticsLiveData.value?.comments ?: 0,
+                            activeCountText = activeCountLiveData.value ?: "計測中",
+                            onClickRoomChange = {
+                                // Fragment切り替え
+                                val toFragment = when (childFragmentManager.findFragmentById(fragmentCommentHostFrameLayout.id)) {
+                                    is CommentRoomFragment -> CommentViewFragment()
+                                    else -> CommentRoomFragment()
+                                }
+                                childFragmentManager.beginTransaction().replace(fragmentCommentHostFrameLayout.id, toFragment).commit()
+                            },
+                            onClickActiveCalc = {
+                                // アクティブ人数計算
+                                viewModel.calcToukei(true)
+                            }
+                        )
                     }
-                )
+                }
             }
         }
     }
@@ -240,9 +252,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // 新ニコニコ実況の番組と発覚した場合
         viewModel.isNicoJKLiveData.observe(viewLifecycleOwner) { nicoJKId ->
             // バックグラウンド再生無いので非表示
-//            nicolivePlayerUIBinding.includeNicolivePlayerBackgroundImageView.isVisible = false
-            // 映像を受信しない。
-            showSnackBar(getString(R.string.nicolive_jk_not_live_receive), null, null)
+            nicolivePlayerUIBinding.includeNicolivePlayerBackgroundImageView.isVisible = false
             // 映像を受信しないモードをtrueへ
             viewModel.isNotReceiveLive.postValue(true)
             // 通常画面へ
@@ -250,6 +260,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             // コメント一覧も表示
             lifecycleScope.launch {
                 delay(1000)
+                showSnackBar(getString(R.string.nicolive_jk_not_live_receive), null, null)
                 if (!viewModel.isFullScreenMode && !viewModel.isAutoCommentListShowOff) {
                     // フルスクリーン時 もしくは 自動で展開しない場合 は操作しない
                     viewModel.commentListShowLiveData.postValue(true)

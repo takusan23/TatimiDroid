@@ -14,7 +14,6 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.NicoAPI.JK.NicoLiveJKHTML
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveGameProgram
@@ -121,31 +120,6 @@ class CommunityListFragment : Fragment() {
             YOYAKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.POPULAR_BEFORE_OPEN_BROADCAST_STATUS_PROGRAM)
             KOREKARA -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.RECENT_JUST_BEFORE_BROADCAST_STATUS_PROGRAM)
             ROOKIE -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.ROOKIE_PROGRAM)
-            NICOLIVE_JK -> setNicoLiveJKProgramList()
-        }
-    }
-
-    /**
-     * ニコ生版ニコニコ実況の一覧を読み込む。まあハードコートなので一瞬だと思います。
-     * */
-    private fun setNicoLiveJKProgramList() {
-        recyclerViewList.clear()
-
-        // 例外を捕まえる。これでtry/catchをそれぞれ書かなくても済む？
-        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            // エラー
-            showToast("${getString(R.string.error)}\n${throwable}")
-        }
-        // コルーチン実行
-        lifecycleScope.launch(errorHandler) {
-            val nicoLiveJKHTML = NicoLiveJKHTML()
-            val response = nicoLiveJKHTML.getNicoLiveJKProgramList(userSession)
-            val nicoLiveJKProgramList = withContext(Dispatchers.Default) {
-                nicoLiveJKHTML.parseNicoLiveJKProgramList(response.body?.string())
-            }
-            recyclerViewList.addAll(nicoLiveJKProgramList)
-            communityRecyclerViewAdapter.notifyDataSetChanged()
-            viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = false
         }
     }
 
@@ -404,8 +378,6 @@ class CommunityListFragment : Fragment() {
         /** ルーキー番組 */
         const val ROOKIE = 10
 
-        /** ニコ生版ニコニコ実況 */
-        const val NICOLIVE_JK = 11
     }
 
 }

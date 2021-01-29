@@ -35,9 +35,28 @@ class NicoLiveJKHTML {
     }
 
     /**
-     * [getNicoLiveJKProgramList]をスクレイピングしてデータを取り出す
+     * [getNicoLiveJKProgramList]で取得したHTMLから番組を取り出す関数
+     *
+     * @param responseString HTML
+     * @return 番組配列
      * */
-    suspend fun parseNicoLiveJKProgramList(responseString: String?) = withContext(Dispatchers.Default) {
+    suspend fun parseNicoLiveJKProgramList(responseString: String?) = parseNicoLiveJKProgramHTML(responseString, "tv__card tvcard")
+
+    /**
+     * [getNicoLiveJKProgramList]で取得したHTMLから「ニコニコ実況タグがついた番組」を取り出す関数
+     *
+     * @param responseString HTML
+     * @return 番組配列
+     * */
+    suspend fun parseNicoLiveJKTagProgramList(responseString: String?) = parseNicoLiveJKProgramHTML(responseString, "live__card livecard")
+
+    /**
+     * スクレイピングして配列にして返す関数
+     *
+     * @param responseString HTML
+     * @param elementClassName スクレイピングで取得する要素をClass名から探し出すため。「tv__card tvcard」か「live__card livecard」だと
+     * */
+    private suspend fun parseNicoLiveJKProgramHTML(responseString: String?, elementClassName: String = "tv__card tvcard") = withContext(Dispatchers.Default) {
 
         // おはよう！午前４時に 何してるんだい？
         val startTime = Calendar.getInstance().apply {
@@ -55,17 +74,25 @@ class NicoLiveJKHTML {
         }.time.time
 
         val document = Jsoup.parse(responseString)
-        val nicoLiveProgramDataList = document.getElementsByClass("tv__card tvcard").map { element ->
+        val nicoLiveProgramDataList = document.getElementsByClass(elementClassName).map { element ->
             // divの中にあるimgを取得
             val imgElement = element.getElementsByTag("img")[0]
 
             val title = imgElement.attr("alt")
+            val imgSrc = imgElement.attr("src")
             val channelName = "$title（ニコニコ実況）"
             // 生放送IDは取れない。チャンネルIDが取れる
             val programId = element.attr("href").replace("https://live.nicovideo.jp/watch/", "")
             val broadCaster = channelName
-            val lifeCycle = "ON_AIR"
-            val thumbUrl = "https://jk.nicovideo.jp/${imgElement.attr("src")}"
+            // ニコニコ実況タグの場合は予約枠の場合がある
+            val isOnAir = element.getElementsByTag("span")[0].attr("data-type") == "onair"
+            val lifeCycle = if (isOnAir) "ON_AIR" else "RESERVED"
+            // 有志の方は画像URLが完全パスなので分岐
+            val thumbUrl = if (imgSrc.contains("https://")) {
+                imgSrc
+            } else {
+                "https://jk.nicovideo.jp/$imgSrc"
+            }
 
             /**
              * 本当に謎なんだけど、どうやらニコニコ実況だけは公式なのに、programinfo（全部屋、流量制限コメントサーバー、ハブられたコメント）

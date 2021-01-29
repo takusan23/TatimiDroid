@@ -32,8 +32,10 @@ import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import java.text.SimpleDateFormat
 import java.util.*
 
-// 番組RecyclerViewAdapter
-class CommunityRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<NicoLiveProgramData>) : RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
+/**
+ * 番組一覧表示で使うRecyclerViewAdapter
+ * */
+class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramData>) : RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
 
     private lateinit var prefSetting: SharedPreferences
 
@@ -43,14 +45,14 @@ class CommunityRecyclerViewAdapter(val arrayListArrayAdapter: ArrayList<NicoLive
     }
 
     override fun getItemCount(): Int {
-        return arrayListArrayAdapter.size
+        return programList.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val content = holder.timeTextView.context
         prefSetting = PreferenceManager.getDefaultSharedPreferences(content)
 
-        val item = arrayListArrayAdapter[position]
+        val item = programList[position]
         val title = item.title
         val name = item.communityName
         val live_time = item.beginAt
