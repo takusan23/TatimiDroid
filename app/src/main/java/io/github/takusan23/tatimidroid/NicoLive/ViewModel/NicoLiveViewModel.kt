@@ -104,7 +104,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** 運営コメントを渡すLiveData。 */
     val unneiCommentLiveData = MutableLiveData<String>()
 
-    /** アンケートがあったら表示するLiveData。 */
+    /** アンケートがあったら表示するLiveData。（Jetpack Composeでは使ってない） */
     val enquateLiveData = MutableLiveData<String>()
 
     /** アンケートが開始されたら呼ばれるLiveData */
@@ -286,6 +286,19 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
                 updateRecyclerViewLiveData.postValue("update")
             }
         }
+
+/*
+        // アンケテスト用
+        viewModelScope.launch {
+            delay(1000)
+            receiveCommentFun("{chat:{ content: \"/vote start てｓｔ あ え\", date: ${System.currentTimeMillis()} , premium: 3}}", "Arena", false)
+            delay(1000)
+            receiveCommentFun("{chat:{ content: \"/vote showresult per 10 10\", date: ${System.currentTimeMillis()} , premium: 3}}", "Arena", false)
+            delay(5000)
+            receiveCommentFun("{chat:{ content: \"/vote stop\", date: ${System.currentTimeMillis()} , premium: 3}}", "Arena", false)
+        }
+*/
+        
     }
 
     /**
@@ -610,31 +623,31 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         // どっちの部屋のコメントかどうか。trueで部屋統合
         val isArenaComment = roomName != getString(R.string.room_limit)
 
-        // アンケートや運コメを表示させる。
-        if (isArenaComment) {
+        // アンケートや運コメを表示させる。アリーナで生主コメのとき
+        if (isArenaComment && commentJSONParse.premium == "生主") {
+            if (commentJSONParse.comment.contains("/vote")) {
+                // アンケート
+                enquateLiveData.postValue(comment)
+            }
             when {
-                comment.contains("/vote") -> {
-                    // アンケート
-                    enquateLiveData.postValue(comment)
+                commentJSONParse.comment.contains("/vote start") -> {
+                    // アンケート開始。/vote startの最後に空白入れるの忘れるなよ
+                    startEnquateLiveData.postValue(commentJSONParse.comment.replace("/vote start ", "").split(" "))
                 }
-                comment.contains("/vote start") -> {
-                    // アンケート開始
-                    startEnquateLiveData.postValue(comment.replace("/vote start", "").split(" "))
-                }
-                comment.contains("/vote showresult per") -> {
+                commentJSONParse.comment.contains("/vote showresult per") -> {
                     // アンケート開票。％に変換する
                     openEnquateLiveData.postValue(
-                        comment.replace("/vote showresult per", "")
+                        commentJSONParse.comment.replace("/vote showresult per ", "")
                             .split(" ")
                             // 176 を 17.6% って表記するためのコード。１桁増やして（9%以下とき対応できないため）２桁消す
                             .map { per -> "${(per.toFloat() * 10) / 100}%" }
                     )
                 }
-                comment.contains("/vote stop") -> {
+                commentJSONParse.comment.contains("/vote stop") -> {
                     // アンケート終了
                     stopEnquateLiveData.postValue("/vote stop")
                 }
-                comment.contains("/disconnect") -> {
+                commentJSONParse.comment.contains("/disconnect") -> {
                     // disconnect受け取ったらSnackBar表示
                     snackbarLiveData.postValue(getString(R.string.program_disconnect))
                 }

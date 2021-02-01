@@ -175,11 +175,7 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                             // 展開時のプレイヤーとミニプレイヤーとの差分を出す。どれぐらい掛ければ展開時のサイズになるのか
                             val sabun = (displayWidth / 2f) - videoWidth
                             playerView.updateLayoutParams<LinearLayout.LayoutParams> {
-                                /**
-                                 * ミニプレイヤー時のサイズ + （(ミニプレイヤーサイズ - 展開時のサイズ) * 進捗）
-                                 * sabun - 1f のところで (ミニプレイヤーサイズ - 展開時のサイズ)の大きさを出してる
-                                 * 最初にミニプレイヤーのサイズを足さないとミニプレイヤー消滅する
-                                 * */
+                                // 最初にミニプレイヤーのサイズを足さないとミニプレイヤー消滅する
                                 val calcWidth = videoWidth + (sabun * slideOffset)
                                 width = calcWidth.roundToInt()
                                 height = (width / 16) * 9
@@ -223,10 +219,6 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
      * [isDraggableAreaPlayerOnly]の判定で利用。
      * */
     override fun onInterceptTouchEvent(parent: CoordinatorLayout, child: T, event: MotionEvent): Boolean {
-
-        // nullなら（ミニプレイヤーにならなくする）
-        if (draggablePlayerView == null && draggableBottomSheetView == null) return false
-
         // ちなみにchild.leftは0を返す
         val isTouchingSwipeTargetView = if (!isDraggableAreaPlayerOnly) {
             event.x > currentMiniPlayerXPos
@@ -238,7 +230,6 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                     && event.y > draggableBottomSheetView!!.y
                     && event.y < draggableBottomSheetView!!.y + draggablePlayerView!!.height
         }
-
         // 展開時 + ドラッグ範囲限定 + いま指がプレイヤーに触れている 場合はプレイヤーをミニプレイヤーにできる
         isDraggable = if (!isMiniPlayerMode() && isDraggableAreaPlayerOnly && isTouchingSwipeTargetView) {
             true
@@ -247,10 +238,6 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     }
 
     override fun onTouchEvent(parent: CoordinatorLayout, child: T, event: MotionEvent): Boolean {
-
-        // nullなら（ミニプレイヤーにならなくする）
-        if (draggablePlayerView == null && draggableBottomSheetView == null) return false
-
         // プレイヤーを触っているときのみタッチイベントを渡す。translateXの値変えてもタッチは何故か行くので制御
         // ちなみにchild.leftは0を返す
         val isTouchingSwipeTargetView = if (!isDraggableAreaPlayerOnly) {
