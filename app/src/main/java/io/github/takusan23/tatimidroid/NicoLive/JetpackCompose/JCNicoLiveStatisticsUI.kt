@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,7 +45,10 @@ fun NicoLiveStatisticsUI(
                 .align(Alignment.CenterVertically)
                 .weight(1f)
         ) {
-            Icon(imageVector = Icons.Outlined.PeopleOutline)
+            Icon(
+                imageVector = Icons.Outlined.PeopleOutline,
+                contentDescription = "累計来場者",
+            )
             Text(
                 text = allViewer.toString(),
                 textAlign = TextAlign.Center,
@@ -58,7 +62,10 @@ fun NicoLiveStatisticsUI(
                 .align(Alignment.CenterVertically)
                 .weight(1f)
         ) {
-            Icon(imageVector = Icons.Outlined.Comment)
+            Icon(
+                imageVector = Icons.Outlined.Comment,
+                contentDescription = stringResource(id = R.string.comment_count),
+            )
             Text(
                 text = allCommentCount.toString(),
                 textAlign = TextAlign.Center,
@@ -72,7 +79,10 @@ fun NicoLiveStatisticsUI(
                 .align(Alignment.CenterVertically)
                 .weight(1f)
         ) {
-            Icon(imageVector = vectorResource(id = R.drawable.ic_active_icon))
+            Icon(
+                imageVector = vectorResource(id = R.drawable.ic_active_icon),
+                contentDescription = stringResource(id = R.string.active),
+            )
             Text(
                 text = activeCountText,
                 textAlign = TextAlign.Center,
@@ -81,11 +91,17 @@ fun NicoLiveStatisticsUI(
         }
         // アクティブ人数計算ボタン
         IconButton(onClick = { onClickActiveCalc() }) {
-            Icon(imageVector = Icons.Outlined.Timeline)
+            Icon(
+                imageVector = Icons.Outlined.Timeline,
+                contentDescription = "アクティブ人数計算"
+            )
         }
         // 部屋切り替えボタン
         IconButton(onClick = { onClickRoomChange() }) {
-            Icon(imageVector = Icons.Outlined.RoomPreferences)
+            Icon(
+                imageVector = Icons.Outlined.RoomPreferences,
+                stringResource(id = R.string.room_comment)
+            )
         }
     }
 }

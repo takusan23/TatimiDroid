@@ -45,6 +45,7 @@ fun NicoVideoCommentButton(
                 Icon(
                     imageVector = if (isComment) Icons.Outlined.Comment else Icons.Outlined.Info,
                     tint = Color.White,
+                    contentDescription = "コメント/動画情報 切り替え"
                 )
             }
         }

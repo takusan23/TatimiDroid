@@ -3,11 +3,11 @@ package io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose
 import android.text.format.DateUtils
 import android.widget.TextView
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.ScrollableRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -98,14 +98,15 @@ fun NicoVideoInfoCard(
             if (isBirthday) {
                 Text(
                     text = AnniversaryDate.makeAnniversaryMessage(anniversary),
-                    color = Color.Red
+                    color = Color.Red,
                 )
             }
 
             // 投稿日時
             Row {
                 Icon(
-                    imageVector = Icons.Outlined.EventAvailable
+                    imageVector = Icons.Outlined.EventAvailable,
+                    contentDescription = null,
                 )
                 Text(
                     text = "${stringResource(id = R.string.post_date)}：${toFormatTime(nicoVideoData?.date ?: 0L)}",
@@ -113,7 +114,8 @@ fun NicoVideoInfoCard(
             }
             Row {
                 Icon(
-                    imageVector = Icons.Outlined.History
+                    imageVector = Icons.Outlined.History,
+                    contentDescription = null,
                 )
                 Text(
                     text = "今日から ${calcDayCount(toFormatTime(nicoVideoData?.date ?: 0L))} 日前に投稿",
@@ -151,24 +153,36 @@ fun NicoVideoInfoCard(
                 // 展開ボタン。動画説明文の表示を切り替える
                 IconButton(onClick = { expanded.value = !expanded.value }) {
                     // アイコンコード一行で召喚できる。npmのmdiみたいだな！
-                    Icon(imageVector = if (expanded.value) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore)
+                    Icon(
+                        imageVector = if (expanded.value) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                        contentDescription = stringResource(id = R.string.nicovideo_info)
+                    )
                 }
             }
 
             // マイリスト数とかコメント数とか
             Row {
                 Row {
-                    Icon(imageVector = Icons.Outlined.PlayArrow)
+                    Icon(
+                        imageVector = Icons.Outlined.PlayArrow,
+                        contentDescription = stringResource(id = R.string.view_count)
+                    )
                     Text(text = nicoVideoData?.viewCount ?: "0")
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Row {
-                    Icon(imageVector = Icons.Outlined.Comment)
+                    Icon(
+                        imageVector = Icons.Outlined.Comment,
+                        contentDescription = stringResource(id = R.string.comment_count)
+                    )
                     Text(text = nicoVideoData?.commentCount ?: "0")
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Row {
-                    Icon(imageVector = Icons.Outlined.Folder)
+                    Icon(
+                        imageVector = Icons.Outlined.Folder,
+                        contentDescription = stringResource(id = R.string.mylist_count)
+                    )
                     Text(text = nicoVideoData?.mylistCount ?: "0")
                 }
             }
@@ -217,7 +231,8 @@ fun NicoVideoLikeButton(
         Text(text = if (isLiked) stringResource(id = R.string.liked) else stringResource(id = R.string.like))
         Icon(
             imageVector = if (isLiked) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-            tint = if (isLiked) pinkColor else AmbientContentColor.current.copy(alpha = AmbientContentAlpha.current)
+            tint = if (isLiked) pinkColor else AmbientContentColor.current.copy(alpha = AmbientContentAlpha.current),
+            contentDescription = stringResource(id = R.string.like)
         )
     }
 }
@@ -240,7 +255,10 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
         ) {
             // 関連動画
             Row {
-                Icon(imageVector = Icons.Outlined.LocalMovies)
+                Icon(
+                    imageVector = Icons.Outlined.LocalMovies,
+                    contentDescription = null
+                )
                 Text(text = stringResource(id = R.string.recommend_video))
             }
             // 一覧表示。RecyclerViewを使い回す
@@ -276,7 +294,8 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
             if (bitmap != null) {
                 Image(
                     bitmap = bitmap.asImageBitmap(),
-                    modifier = Modifier.clip(RoundedCornerShape(5.dp))
+                    modifier = Modifier.clip(RoundedCornerShape(5.dp)),
+                    contentDescription = null,
                 )
             }
             Text(
@@ -288,7 +307,10 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
             OutlinedButton(onClick = {
                 onUserOpenClick()
             }) {
-                Icon(imageVector = Icons.Outlined.OpenInBrowser)
+                Icon(
+                    imageVector = Icons.Outlined.OpenInBrowser,
+                    contentDescription = stringResource(id = R.string.open_browser)
+                )
             }
         }
     }
@@ -310,14 +332,17 @@ fun NicoVideoTagCard(tagItemDataList: ArrayList<NicoTagItemData>, onTagClick: (N
         LazyRow(
             modifier = Modifier.padding(3.dp),
             content = {
-                this.items(tagItemDataList) { data ->
+                items(tagItemDataList) { data ->
                     OutlinedButton(
                         modifier = Modifier.padding(3.dp),
                         onClick = {
                             onTagClick(data)
                         },
                     ) {
-                        Icon(imageVector = Icons.Outlined.LocalOffer)
+                        Icon(
+                            imageVector = Icons.Outlined.LocalOffer,
+                            contentDescription = stringResource(id = R.string.serch)
+                        )
                         Text(text = data.tagName)
                     }
                 }
@@ -358,7 +383,10 @@ fun NicoVideoSeriesCard(
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Row {
-                Icon(imageVector = Icons.Outlined.Folder)
+                Icon(
+                    imageVector = Icons.Outlined.Folder,
+                    contentDescription = stringResource(id = R.string.series)
+                )
                 Text(text = stringResource(id = R.string.series))
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -370,7 +398,8 @@ fun NicoVideoSeriesCard(
                         bitmap = bitmap.asImageBitmap(),
                         modifier = Modifier
                             .height(40.dp)
-                            .clip(RoundedCornerShape(5.dp))
+                            .clip(RoundedCornerShape(5.dp)),
+                        contentDescription = null,
                     )
                 }
                 // タイトル
@@ -382,7 +411,10 @@ fun NicoVideoSeriesCard(
                 )
                 // 一覧表示
                 IconButton(onClick = { expanded.value = !expanded.value }) {
-                    Icon(imageVector = if (expanded.value) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore)
+                    Icon(
+                        imageVector = if (expanded.value) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                        contentDescription = "シリーズメニュー",
+                    )
                 }
             }
             if (expanded.value) {
@@ -391,27 +423,39 @@ fun NicoVideoSeriesCard(
                     Divider()
                     // 連続再生開始などのメニュー
                     TextButton(onClick = { onClickStartSeriesPlay() }) {
-                        Icon(imageVector = Icons.Outlined.PlayArrow)
+                        Icon(
+                            imageVector = Icons.Outlined.PlayArrow,
+                            contentDescription = stringResource(id = R.string.nicovideo_playlist_start)
+                        )
                         Text(text = stringResource(id = R.string.nicovideo_playlist_start), modifier = Modifier.weight(1f))
                     }
                     // 最初から再生
                     if (nicoVideoHTMLSeriesData.firstVideoData != null) {
                         TextButton(onClick = { onClickFirstVideoPlay(nicoVideoHTMLSeriesData.firstVideoData) }, modifier = Modifier.fillMaxWidth()) {
-                            Icon(imageVector = Icons.Outlined.Filter1)
+                            Icon(
+                                imageVector = Icons.Outlined.Filter1,
+                                contentDescription = stringResource(id = R.string.nicovideo_series_first_video)
+                            )
                             Text(text = "${stringResource(id = R.string.nicovideo_series_first_video)}\n${nicoVideoHTMLSeriesData.firstVideoData.title}", modifier = Modifier.weight(1f))
                         }
                     }
                     // 次の動画
                     if (nicoVideoHTMLSeriesData.nextVideoData != null) {
                         TextButton(onClick = { onClickNextVideoPlay(nicoVideoHTMLSeriesData.nextVideoData) }, modifier = Modifier.fillMaxWidth()) {
-                            Icon(imageVector = Icons.Outlined.ArrowForward)
+                            Icon(
+                                imageVector = Icons.Outlined.ArrowForward,
+                                contentDescription = stringResource(id = R.string.nicovideo_series_next_video)
+                            )
                             Text(text = "${stringResource(id = R.string.nicovideo_series_next_video)}\n${nicoVideoHTMLSeriesData.nextVideoData.title}", modifier = Modifier.weight(1f))
                         }
                     }
                     // 前の動画
                     if (nicoVideoHTMLSeriesData.prevVideoData != null) {
                         TextButton(onClick = { onClickPrevVideoPlay(nicoVideoHTMLSeriesData.prevVideoData) }, modifier = Modifier.fillMaxWidth()) {
-                            Icon(imageVector = Icons.Outlined.ArrowBack)
+                            Icon(
+                                imageVector = Icons.Outlined.ArrowBack,
+                                contentDescription = stringResource(id = R.string.nicovideo_series_prev_video)
+                            )
                             Text(text = "${stringResource(id = R.string.nicovideo_series_prev_video)}\n${nicoVideoHTMLSeriesData.prevVideoData.title}", modifier = Modifier.weight(1f))
                         }
                     }
@@ -454,6 +498,7 @@ fun NicoVideoPlayList(
                     Icon(
                         bitmap = icon,
                         modifier = Modifier.padding(5.dp),
+                        contentDescription = stringResource(id = R.string.playlist_button)
                     )
                 }
                 Text(
@@ -462,46 +507,61 @@ fun NicoVideoPlayList(
                 )
                 IconButton(onClick = { isPlaylistShow.value = !isPlaylistShow.value }) {
                     Icon(
-                        imageVector = if (isPlaylistShow.value) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore
+                        imageVector = if (isPlaylistShow.value) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                        contentDescription = "動画一覧"
                     )
                 }
             }
             if (isPlaylistShow.value) {
                 // シャッフルとか
-                ScrollableRow {
-                    // 動画時間
-                    OutlinedButton(
-                        modifier = Modifier.padding(2.dp),
-                        onClick = { }
-                    ) {
-                        // 何分か
-                        val totalDuration = videoList.sumBy { nicoVideoData -> nicoVideoData.duration?.toInt() ?: 0 }
-                        Icon(imageVector = Icons.Outlined.Timer)
-                        Text(text = "${stringResource(id = R.string.playlist_total_time)}：${DateUtils.formatElapsedTime(totalDuration.toLong())}")
-                    }
-                    // 作品数
-                    OutlinedButton(
-                        modifier = Modifier.padding(2.dp),
-                        onClick = { }
-                    ) {
-                        Icon(imageVector = Icons.Outlined.ViewList)
-                        Text(text = "${stringResource(id = R.string.video_count)}：${videoList.size}")
-                    }
-                    // 逆順
-                    OutlinedButton(
-                        modifier = Modifier.padding(2.dp),
-                        onClick = { reverseClick() }
-                    ) {
-                        Icon(imageVector = if (isReverse) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank)
-                        Text(text = stringResource(id = R.string.reverse))
-                    }
-                    // シャッフル
-                    OutlinedButton(
-                        modifier = Modifier.padding(2.dp),
-                        onClick = { shuffleClick() }
-                    ) {
-                        Icon(imageVector = if (isShuffle) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank)
-                        Text(text = stringResource(id = R.string.shuffle))
+                LazyRow {
+                    item {
+                        // 動画時間
+                        OutlinedButton(
+                            modifier = Modifier.padding(2.dp),
+                            onClick = { }
+                        ) {
+                            // 何分か
+                            val totalDuration = videoList.sumBy { nicoVideoData -> nicoVideoData.duration?.toInt() ?: 0 }
+                            Icon(
+                                imageVector = Icons.Outlined.Timer,
+                                contentDescription = stringResource(id = R.string.playlist_total_time),
+                            )
+                            Text(text = "${stringResource(id = R.string.playlist_total_time)}：${DateUtils.formatElapsedTime(totalDuration.toLong())}")
+                        }
+                        // 作品数
+                        OutlinedButton(
+                            modifier = Modifier.padding(2.dp),
+                            onClick = { }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.ViewList,
+                                contentDescription = stringResource(id = R.string.video_count),
+                            )
+                            Text(text = "${stringResource(id = R.string.video_count)}：${videoList.size}")
+                        }
+                        // 逆順
+                        OutlinedButton(
+                            modifier = Modifier.padding(2.dp),
+                            onClick = { reverseClick() }
+                        ) {
+                            Icon(
+                                imageVector = if (isReverse) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
+                                contentDescription = stringResource(id = R.string.reverse),
+                            )
+                            Text(text = stringResource(id = R.string.reverse))
+                        }
+                        // シャッフル
+                        OutlinedButton(
+                            modifier = Modifier.padding(2.dp),
+                            onClick = { shuffleClick() }
+                        ) {
+                            Icon(
+                                imageVector = if (isShuffle) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
+                                contentDescription = stringResource(id = R.string.shuffle),
+                            )
+                            Text(text = stringResource(id = R.string.shuffle))
+                        }
                     }
                 }
                 // 一覧表示
@@ -532,7 +592,8 @@ fun NicoVideoPlayList(
                                         modifier = Modifier
                                             .height(60.dp)
                                             .width(110.dp)
-                                            .padding(5.dp)
+                                            .padding(5.dp),
+                                        contentDescription = null
                                     )
                                 }
                                 Text(
@@ -555,6 +616,7 @@ fun NicoVideoPlayList(
                                     Icon(
                                         imageVector = Icons.Outlined.PlayArrow,
                                         modifier = Modifier.padding(10.dp),
+                                        contentDescription = "ここから再生"
                                     )
                                 }
                             }
@@ -589,7 +651,10 @@ fun NicoVideoCommentListFab(
             click()
         })
     {
-        Icon(imageVector = if (isShowCommentList) Icons.Outlined.Info else Icons.Outlined.Comment)
+        Icon(
+            imageVector = if (isShowCommentList) Icons.Outlined.Info else Icons.Outlined.Comment,
+            contentDescription = null
+        )
     }
 }
 
@@ -618,7 +683,10 @@ fun NicoVideoCommentBottomSheet(commentList: ArrayList<CommentJSONParse>, commen
                         Row(
                             modifier = Modifier.padding(10.dp)
                         ) {
-                            Icon(imageVector = Icons.Outlined.Comment)
+                            Icon(
+                                imageVector = Icons.Outlined.Comment,
+                                contentDescription = null
+                            )
                             Text(text = stringResource(id = R.string.comment))
                         }
                         // コメント一覧。AndroidViewで既存のRecyclerViewを使い回す。
@@ -660,7 +728,10 @@ fun BottomSheetFab(fabClick: () -> Unit) {
                 // 押した時
                 fabClick()
             }) {
-            Icon(imageVector = Icons.Outlined.Comment)
+            Icon(
+                imageVector = Icons.Outlined.Comment,
+                contentDescription = null
+            )
         }
     }
 }

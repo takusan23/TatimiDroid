@@ -4,6 +4,7 @@ import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -57,7 +58,8 @@ fun NicoLiveInfoCard(
             // 番組開始、終了時刻
             Row {
                 Icon(
-                    imageVector = Icons.Outlined.MeetingRoom
+                    imageVector = Icons.Outlined.MeetingRoom,
+                    contentDescription = null,
                 )
                 Text(
                     text = "${stringResource(id = R.string.nicolive_begin_time)}：${toFormatTime(nicoLiveProgramData.beginAt.toLong() * 1000)}",
@@ -65,7 +67,8 @@ fun NicoLiveInfoCard(
             }
             Row {
                 Icon(
-                    imageVector = Icons.Outlined.NoMeetingRoom
+                    imageVector = Icons.Outlined.NoMeetingRoom,
+                    contentDescription = null,
                 )
                 Text(
                     text = "${stringResource(id = R.string.nicolive_end_time)}：${toFormatTime(nicoLiveProgramData.endAt.toLong() * 1000)}",
@@ -100,7 +103,10 @@ fun NicoLiveInfoCard(
                 // 展開ボタン。動画説明文の表示を切り替える
                 IconButton(onClick = { expanded = !expanded }) {
                     // アイコンコード一行で召喚できる。Node.jsのnpmのmdiみたいだな！
-                    Icon(imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore)
+                    Icon(
+                        imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                        contentDescription = stringResource(id = R.string.program_info),
+                    )
                 }
             }
             // 詳細表示
@@ -132,12 +138,14 @@ fun TimeShiftRegisterButton(
     isRegisteredTimeShift: Boolean,
     onClickTimeShift: () -> Unit
 ) {
-    // いいねボタン
     OutlinedButton(
         shape = RoundedCornerShape(20.dp), // 丸み
         onClick = { onClickTimeShift() },
     ) {
-        Icon(imageVector = Icons.Outlined.History)
+        Icon(
+            imageVector = Icons.Outlined.History,
+            contentDescription = stringResource(id = R.string.timeshift)
+        )
         Text(text = if (isRegisteredTimeShift) stringResource(id = R.string.nicolive_time_shift_un_register_short) else stringResource(id = R.string.nicolive_time_shift_register_short))
     }
 }
@@ -167,7 +175,10 @@ fun NicoLiveCommunityCard(
                 modifier = Modifier.padding(5.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(imageVector = Icons.Outlined.SupervisorAccount)
+                Icon(
+                    imageVector = Icons.Outlined.SupervisorAccount,
+                    contentDescription = null,
+                )
                 Text(text = stringResource(id = R.string.community_name))
             }
             Divider(modifier = Modifier.padding(5.dp))
@@ -179,7 +190,8 @@ fun NicoLiveCommunityCard(
                 if (bitmap != null) {
                     Image(
                         bitmap = bitmap.asImageBitmap(),
-                        modifier = Modifier.clip(RoundedCornerShape(5.dp))
+                        modifier = Modifier.clip(RoundedCornerShape(5.dp)),
+                        contentDescription = null
                     )
                 }
                 Text(
@@ -199,19 +211,28 @@ fun NicoLiveCommunityCard(
                     TextButton(modifier = Modifier.padding(3.dp), onClick = { onFollowClick() }) {
                         if (isFollow) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(imageVector = Icons.Outlined.PersonRemove)
+                                Icon(
+                                    imageVector = Icons.Outlined.PersonRemove,
+                                    contentDescription = stringResource(id = R.string.nicovideo_account_remove_follow)
+                                )
                                 Text(text = stringResource(id = R.string.nicovideo_account_remove_follow))
                             }
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(imageVector = Icons.Outlined.StarBorder)
+                                Icon(
+                                    imageVector = Icons.Outlined.StarBorder,
+                                    contentDescription = stringResource(id = R.string.nicovideo_account_remove_follow)
+                                )
                                 Text(text = stringResource(id = R.string.community_follow))
                             }
                         }
                     }
                 }
                 TextButton(modifier = Modifier.padding(3.dp), onClick = { onCommunityOpenClick() }) {
-                    Icon(imageVector = Icons.Outlined.OpenInBrowser)
+                    Icon(
+                        imageVector = Icons.Outlined.OpenInBrowser,
+                        contentDescription = stringResource(id = R.string.open_browser)
+                    )
                 }
             }
         }
@@ -248,19 +269,22 @@ fun NicoLiveTagCard(
                             modifier = Modifier.padding(3.dp),
                             onClick = { onClickEditButton() }
                         ) {
-                            Icon(imageVector = Icons.Outlined.Edit)
+                            Icon(imageVector = Icons.Outlined.Edit, contentDescription = stringResource(id = R.string.tag_edit))
                             Text(text = stringResource(id = R.string.tag_edit))
                         }
                     }
                 }
-                this.items(list) { data ->
+                items(list) { data ->
                     OutlinedButton(
                         modifier = Modifier.padding(3.dp),
                         onClick = {
                             onTagClick(data)
                         },
                     ) {
-                        Icon(imageVector = Icons.Outlined.LocalOffer)
+                        Icon(
+                            imageVector = Icons.Outlined.LocalOffer,
+                            contentDescription = stringResource(id = R.string.tag)
+                        )
                         Text(text = data.tagName)
                     }
                 }
@@ -288,7 +312,10 @@ fun NicoLiveKonomiCard(
                 modifier = Modifier.padding(5.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(imageVector = Icons.Outlined.FavoriteBorder)
+                Icon(
+                    imageVector = Icons.Outlined.FavoriteBorder,
+                    contentDescription = null,
+                )
                 Text(text = stringResource(id = R.string.konomi_tag))
             }
             Divider(modifier = Modifier.padding(5.dp))
@@ -342,7 +369,10 @@ fun NicoLivePointCard(
                         modifier = Modifier.padding(5.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(imageVector = Icons.Outlined.Money)
+                        Icon(
+                            imageVector = Icons.Outlined.Money,
+                            contentDescription = stringResource(id = R.string.nicoads),
+                        )
                         Text(text = stringResource(id = R.string.nicoads))
                     }
                     Divider()
@@ -359,7 +389,10 @@ fun NicoLivePointCard(
                         modifier = Modifier
                             .align(Alignment.End)
                     ) {
-                        Icon(imageVector = Icons.Outlined.ArrowForward)
+                        Icon(
+                            imageVector = Icons.Outlined.ArrowForward,
+                            contentDescription = stringResource(id = R.string.show_nicoad),
+                        )
                         Text(text = stringResource(id = R.string.show_nicoad))
                     }
                 }
@@ -369,7 +402,10 @@ fun NicoLivePointCard(
                         modifier = Modifier.padding(5.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(imageVector = Icons.Outlined.CardGiftcard)
+                        Icon(
+                            imageVector = Icons.Outlined.CardGiftcard,
+                            contentDescription = stringResource(id = R.string.gift),
+                        )
                         Text(text = stringResource(id = R.string.gift))
                     }
                     Divider()
@@ -386,7 +422,10 @@ fun NicoLivePointCard(
                         modifier = Modifier
                             .align(Alignment.End)
                     ) {
-                        Icon(imageVector = Icons.Outlined.ArrowForward)
+                        Icon(
+                            imageVector = Icons.Outlined.ArrowForward,
+                            contentDescription = stringResource(id = R.string.show_gift)
+                        )
                         Text(text = stringResource(id = R.string.show_gift))
                     }
                 }

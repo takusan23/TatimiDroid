@@ -34,10 +34,7 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.databinding.IncludeNicovideoPlayerBinding
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
 /**

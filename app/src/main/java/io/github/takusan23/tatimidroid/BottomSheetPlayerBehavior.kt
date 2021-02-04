@@ -219,6 +219,9 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
      * [isDraggableAreaPlayerOnly]の判定で利用。
      * */
     override fun onInterceptTouchEvent(parent: CoordinatorLayout, child: T, event: MotionEvent): Boolean {
+
+        println("onInterceptTouchEvent")
+
         // ちなみにchild.leftは0を返す
         val isTouchingSwipeTargetView = if (!isDraggableAreaPlayerOnly) {
             event.x > currentMiniPlayerXPos
@@ -238,6 +241,9 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     }
 
     override fun onTouchEvent(parent: CoordinatorLayout, child: T, event: MotionEvent): Boolean {
+
+        println("onTouchEvent")
+
         // プレイヤーを触っているときのみタッチイベントを渡す。translateXの値変えてもタッチは何故か行くので制御
         // ちなみにchild.leftは0を返す
         val isTouchingSwipeTargetView = if (!isDraggableAreaPlayerOnly) {

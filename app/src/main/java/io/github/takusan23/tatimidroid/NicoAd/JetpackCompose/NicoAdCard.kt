@@ -52,7 +52,8 @@ fun NicoAdTop(
                     modifier = Modifier
                         .width(160.dp)
                         .height(90.dp)
-                        .padding(5.dp)
+                        .padding(5.dp),
+                    contentDescription = "サムネイル"
                 )
             }
             // タイトル
@@ -112,7 +113,10 @@ fun NicoAdTop(
             }
             // ブラウザ起動ボタン
             IconButton(onClick = { onClickOpenBrowser() }) {
-                Icon(imageVector = Icons.Outlined.OpenInBrowser)
+                Icon(
+                    imageVector = Icons.Outlined.OpenInBrowser,
+                    contentDescription = stringResource(id = R.string.open_browser)
+                )
             }
         }
     }

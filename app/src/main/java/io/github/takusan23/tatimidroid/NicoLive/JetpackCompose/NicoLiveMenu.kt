@@ -236,7 +236,10 @@ fun NicoLiveButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.PhotoFilter)
+                Icon(
+                    imageVector = Icons.Outlined.PhotoFilter,
+                    contentDescription = stringResource(id = R.string.quality)
+                )
                 Text(
                     text = stringResource(id = R.string.quality),
                     modifier = Modifier
@@ -251,7 +254,10 @@ fun NicoLiveButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.AddToHomeScreen)
+                Icon(
+                    imageVector = Icons.Outlined.AddToHomeScreen,
+                    contentDescription = stringResource(id = R.string.add_homescreen)
+                )
                 Text(
                     text = stringResource(id = R.string.add_homescreen),
                     modifier = Modifier
@@ -266,7 +272,10 @@ fun NicoLiveButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.ScreenRotation)
+                Icon(
+                    imageVector = Icons.Outlined.ScreenRotation,
+                    contentDescription = stringResource(id = R.string.landscape_portrait)
+                )
                 Text(
                     text = stringResource(id = R.string.landscape_portrait),
                     modifier = Modifier
@@ -281,7 +290,10 @@ fun NicoLiveButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.ContentCopy)
+                Icon(
+                    imageVector = Icons.Outlined.ContentCopy,
+                    contentDescription = stringResource(id = R.string.copy_program_id)
+                )
                 Text(
                     text = stringResource(id = R.string.copy_program_id),
                     modifier = Modifier
@@ -296,7 +308,10 @@ fun NicoLiveButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.ContentCopy)
+                Icon(
+                    imageVector = Icons.Outlined.ContentCopy,
+                    contentDescription = stringResource(id = R.string.copy_communityid)
+                )
                 Text(
                     text = stringResource(id = R.string.copy_communityid),
                     modifier = Modifier
@@ -311,7 +326,10 @@ fun NicoLiveButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.OpenInBrowser)
+                Icon(
+                    imageVector = Icons.Outlined.OpenInBrowser,
+                    contentDescription = stringResource(id = R.string.open_browser)
+                )
                 Text(
                     text = stringResource(id = R.string.open_browser),
                     modifier = Modifier
@@ -326,7 +344,10 @@ fun NicoLiveButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.Block)
+                Icon(
+                    imageVector = Icons.Outlined.Block,
+                    contentDescription = stringResource(id = R.string.ng_list)
+                )
                 Text(
                     text = stringResource(id = R.string.ng_list),
                     modifier = Modifier
@@ -341,7 +362,10 @@ fun NicoLiveButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.AccountBox)
+                Icon(
+                    imageVector = Icons.Outlined.AccountBox,
+                    contentDescription = stringResource(id = R.string.kotehan_list)
+                )
                 Text(
                     text = stringResource(id = R.string.kotehan_list),
                     modifier = Modifier
@@ -370,7 +394,10 @@ fun NicoLiveNicoNamaGameCard(
             .fillMaxWidth(),
     ) {
         Row(modifier = Modifier.padding(10.dp)) {
-            Icon(imageVector = Icons.Outlined.Info)
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = null,
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = stringResource(id = R.string.nico_nama_game_description))
                 Text(text = stringResource(id = R.string.nico_nama_game_engineers))

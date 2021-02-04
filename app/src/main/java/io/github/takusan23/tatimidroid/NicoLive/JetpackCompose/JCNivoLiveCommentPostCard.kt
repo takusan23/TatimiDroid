@@ -115,6 +115,7 @@ fun NicoLiveCommentInputButton(
                 Icon(
                     imageVector = if (isHideCommentLayout.value) Icons.Outlined.Create else Icons.Outlined.KeyboardArrowRight,
                     tint = Color.White,
+                    contentDescription = "コメント投稿UI表示"
                 )
             }
             // コメント入力展開するか
@@ -124,6 +125,7 @@ fun NicoLiveCommentInputButton(
                     Icon(
                         imageVector = Icons.Outlined.FormatPaint,
                         tint = Color.White,
+                        contentDescription = "コマンドパネル"
                     )
                 }
                 // コメント入力
@@ -158,6 +160,7 @@ fun NicoLiveCommentInputButton(
                     Icon(
                         imageVector = Icons.Outlined.Send,
                         tint = Color.White,
+                        contentDescription = stringResource(id = R.string.comment_post)
                     )
                 }
             }
@@ -166,6 +169,7 @@ fun NicoLiveCommentInputButton(
                 Icon(
                     imageVector = if (isComment) Icons.Outlined.Comment else Icons.Outlined.Info,
                     tint = Color.White,
+                    contentDescription = "コメント表示/番組情報 切り替え"
                 )
             }
         }
@@ -359,7 +363,8 @@ fun NicoLiveCommentCommandPanel(
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Backspace,
-                    tint = Color.White
+                    tint = Color.White,
+                    contentDescription = stringResource(id = R.string.reset)
                 )
             }
         }
@@ -367,7 +372,7 @@ fun NicoLiveCommentCommandPanel(
         Row(
             modifier = Modifier
                 .padding(5.dp)
-                .clickable(onClick = { onTokumeiChange(!is184) }, indication = null),
+                .clickable(onClick = { onTokumeiChange(!is184) }),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(

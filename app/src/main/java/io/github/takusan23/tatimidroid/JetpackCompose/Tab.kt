@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
  * @param tabClick タブを押した時
  * */
 @Composable
-fun TabPadding(index:Int, tabName: String, tabIcon: ImageVector, selectedIndex: Int, tabClick: (Int) -> Unit) {
+fun TabPadding(index: Int, tabName: String, tabIcon: ImageVector, selectedIndex: Int, tabClick: (Int) -> Unit) {
     Tab(
         modifier = Modifier.padding(5.dp),
         selected = selectedIndex == index,
@@ -26,7 +26,7 @@ fun TabPadding(index:Int, tabName: String, tabIcon: ImageVector, selectedIndex: 
             tabClick(index)
         }
     ) {
-        Icon(imageVector = tabIcon)
+        Icon(imageVector = tabIcon, contentDescription = tabName)
         Text(text = tabName)
     }
 }

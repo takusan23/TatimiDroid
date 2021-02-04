@@ -143,7 +143,10 @@ fun NicoVideoMylistsMenu(onClickAddMylist: () -> Unit, onClickAddAtodemiru: () -
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.Folder)
+                Icon(
+                    imageVector = Icons.Outlined.Folder,
+                    contentDescription = stringResource(id = R.string.add_mylist)
+                )
                 Text(
                     text = stringResource(id = R.string.add_mylist),
                     modifier = Modifier
@@ -161,7 +164,10 @@ fun NicoVideoMylistsMenu(onClickAddMylist: () -> Unit, onClickAddAtodemiru: () -
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.Folder)
+                Icon(
+                    imageVector = Icons.Outlined.Folder,
+                    contentDescription = stringResource(id = R.string.add_atodemiru)
+                )
                 Text(
                     text = stringResource(id = R.string.add_atodemiru),
                     modifier = Modifier
@@ -207,7 +213,10 @@ fun NicoVideoOtherButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.PhotoFilter)
+                Icon(
+                    imageVector = Icons.Outlined.PhotoFilter,
+                    contentDescription = stringResource(id = R.string.quality)
+                )
                 Text(
                     text = stringResource(id = R.string.quality),
                     modifier = Modifier
@@ -223,7 +232,10 @@ fun NicoVideoOtherButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.Money)
+                Icon(
+                    imageVector = Icons.Outlined.Money,
+                    contentDescription = stringResource(id = R.string.nicoads)
+                )
                 Text(
                     text = stringResource(id = R.string.nicoads),
                     modifier = Modifier
@@ -239,7 +251,10 @@ fun NicoVideoOtherButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.ScreenRotation)
+                Icon(
+                    imageVector = Icons.Outlined.ScreenRotation,
+                    contentDescription = stringResource(id = R.string.landscape_portrait)
+                )
                 Text(
                     text = stringResource(id = R.string.landscape_portrait),
                     modifier = Modifier
@@ -255,7 +270,10 @@ fun NicoVideoOtherButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.ContentCopy)
+                Icon(
+                    imageVector = Icons.Outlined.ContentCopy,
+                    contentDescription = stringResource(id = R.string.video_id_copy)
+                )
                 Text(
                     text = stringResource(id = R.string.video_id_copy),
                     modifier = Modifier
@@ -271,7 +289,10 @@ fun NicoVideoOtherButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.OpenInBrowser)
+                Icon(
+                    imageVector = Icons.Outlined.OpenInBrowser,
+                    contentDescription = stringResource(id = R.string.open_browser)
+                )
                 Text(
                     text = stringResource(id = R.string.open_browser),
                     modifier = Modifier
@@ -287,7 +308,10 @@ fun NicoVideoOtherButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.Block)
+                Icon(
+                    imageVector = Icons.Outlined.Block,
+                    contentDescription = stringResource(id = R.string.ng_list)
+                )
                 Text(
                     text = stringResource(id = R.string.ng_list),
                     modifier = Modifier
@@ -303,7 +327,10 @@ fun NicoVideoOtherButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.AccountBox)
+                Icon(
+                    imageVector = Icons.Outlined.AccountBox,
+                    contentDescription = stringResource(id = R.string.kotehan)
+                )
                 Text(
                     text = stringResource(id = R.string.kotehan_list),
                     modifier = Modifier
@@ -319,7 +346,10 @@ fun NicoVideoOtherButtonMenu(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Icon(imageVector = Icons.Outlined.Redo)
+                Icon(
+                    imageVector = Icons.Outlined.Redo,
+                    contentDescription = stringResource(id = R.string.skip_setting)
+                )
                 Text(
                     text = stringResource(id = R.string.skip_setting),
                     modifier = Modifier
@@ -359,7 +389,10 @@ fun NicoVideoCacheMenu(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Icon(imageVector = Icons.Outlined.Refresh)
+                    Icon(
+                        imageVector = Icons.Outlined.Refresh,
+                        contentDescription = stringResource(id = R.string.get_cache_re_get)
+                    )
                     Text(
                         text = stringResource(id = R.string.get_cache_re_get),
                         modifier = Modifier
@@ -375,7 +408,10 @@ fun NicoVideoCacheMenu(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Icon(imageVector = Icons.Outlined.Folder)
+                    Icon(
+                        imageVector = Icons.Outlined.Folder,
+                        contentDescription = stringResource(id = R.string.get_cache)
+                    )
                     Text(
                         text = stringResource(id = R.string.get_cache),
                         modifier = Modifier
@@ -390,7 +426,10 @@ fun NicoVideoCacheMenu(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    Icon(imageVector = Icons.Outlined.Folder)
+                    Icon(
+                        imageVector = Icons.Outlined.Folder,
+                        contentDescription = stringResource(id = R.string.get_cache_eco)
+                    )
                     Text(
                         text = stringResource(id = R.string.get_cache_eco),
                         modifier = Modifier
@@ -425,7 +464,10 @@ fun NicoVideoShareMenu(
                 modifier = Modifier.weight(1f),
                 onClick = { onClickShare() },
             ) {
-                Icon(imageVector = Icons.Outlined.Share)
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = stringResource(id = R.string.share)
+                )
                 Text(
                     text = stringResource(id = R.string.share),
                     modifier = Modifier.padding(5.dp),
@@ -435,7 +477,10 @@ fun NicoVideoShareMenu(
                 modifier = Modifier.weight(1f),
                 onClick = { onClickShareAttachImg() },
             ) {
-                Icon(imageVector = Icons.Outlined.Share)
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = stringResource(id = R.string.share_attach_image)
+                )
                 Text(
                     text = stringResource(id = R.string.share_attach_image),
                     modifier = Modifier.padding(5.dp),

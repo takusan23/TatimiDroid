@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.NicoLive.JetpackCompose
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.TabRow
 import androidx.compose.material.Text
@@ -55,7 +56,7 @@ fun NicoLiveGiftTop(
         Divider(modifier = Modifier.padding(10.dp))
         // 投げられたアイテムを横に並べていく
         LazyRow(content = {
-            this.items(giftItemDataList) { data ->
+            items(giftItemDataList) { data ->
                 NicoLiveGiftIcon(giftItemData = data)
             }
         })
@@ -74,10 +75,12 @@ fun NicoLiveGiftIcon(giftItemData: NicoLiveGiftItemData) {
         val giftIcon = getBitmapCompose(url = giftItemData.thumbnailUrl)?.asImageBitmap()
         if (giftIcon != null) {
             Image(
-                bitmap = giftIcon, modifier = Modifier
+                bitmap = giftIcon,
+                modifier = Modifier
                     .width(50.dp)
                     .height(50.dp)
-                    .align(Alignment.CenterHorizontally)
+                    .align(Alignment.CenterHorizontally),
+                contentDescription = giftItemData.itemName
             )
             // アイテムの名前
             Text(
