@@ -3,10 +3,6 @@ package io.github.takusan23.tatimidroid.NicoAd.JetpackCompose
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.OpenInBrowser
-import androidx.compose.material.icons.outlined.SignalCellularAlt
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -114,7 +111,7 @@ fun NicoAdTop(
             // ブラウザ起動ボタン
             IconButton(onClick = { onClickOpenBrowser() }) {
                 Icon(
-                    imageVector = Icons.Outlined.OpenInBrowser,
+                    imageVector = vectorResource(id = R.drawable.ic_outline_open_in_browser_24px),
                     contentDescription = stringResource(id = R.string.open_browser)
                 )
             }
@@ -180,14 +177,14 @@ fun NicoAdTabMenu(
         TabPadding(
             index = 0,
             tabName = stringResource(id = R.string.nico_ad_ranking),
-            tabIcon = Icons.Outlined.SignalCellularAlt,
+            tabIcon = vectorResource(id = R.drawable.ic_signal_cellular_alt_black_24dp),
             selectedIndex = selectTabIndex,
             tabClick = { onClickTabItem(it) }
         )
         TabPadding(
             index = 1,
             tabName = stringResource(id = R.string.nico_ad_history),
-            tabIcon = Icons.Outlined.History,
+            tabIcon = vectorResource(id = R.drawable.ic_history_24px),
             selectedIndex = selectTabIndex,
             tabClick = { onClickTabItem(it) }
         )

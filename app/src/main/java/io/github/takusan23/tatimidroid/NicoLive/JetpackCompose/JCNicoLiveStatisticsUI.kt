@@ -6,11 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Comment
-import androidx.compose.material.icons.outlined.PeopleOutline
-import androidx.compose.material.icons.outlined.RoomPreferences
-import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,7 +41,7 @@ fun NicoLiveStatisticsUI(
                 .weight(1f)
         ) {
             Icon(
-                imageVector = Icons.Outlined.PeopleOutline,
+                imageVector = vectorResource(id = R.drawable.ic_outline_people_outline_24px),
                 contentDescription = "累計来場者",
             )
             Text(
@@ -63,7 +58,7 @@ fun NicoLiveStatisticsUI(
                 .weight(1f)
         ) {
             Icon(
-                imageVector = Icons.Outlined.Comment,
+                imageVector = vectorResource(id = R.drawable.ic_outline_comment_24px),
                 contentDescription = stringResource(id = R.string.comment_count),
             )
             Text(
@@ -92,14 +87,14 @@ fun NicoLiveStatisticsUI(
         // アクティブ人数計算ボタン
         IconButton(onClick = { onClickActiveCalc() }) {
             Icon(
-                imageVector = Icons.Outlined.Timeline,
+                imageVector = vectorResource(id = R.drawable.ic_timeline_black_24dp),
                 contentDescription = "アクティブ人数計算"
             )
         }
         // 部屋切り替えボタン
         IconButton(onClick = { onClickRoomChange() }) {
             Icon(
-                imageVector = Icons.Outlined.RoomPreferences,
+                imageVector = vectorResource(id = R.drawable.ic_outline_meeting_room_24px),
                 stringResource(id = R.string.room_comment)
             )
         }

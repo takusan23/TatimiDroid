@@ -7,14 +7,13 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -58,7 +57,7 @@ fun NicoLiveInfoCard(
             // 番組開始、終了時刻
             Row {
                 Icon(
-                    imageVector = Icons.Outlined.MeetingRoom,
+                    imageVector = vectorResource(id = R.drawable.ic_outline_meeting_room_24px),
                     contentDescription = null,
                 )
                 Text(
@@ -67,7 +66,7 @@ fun NicoLiveInfoCard(
             }
             Row {
                 Icon(
-                    imageVector = Icons.Outlined.NoMeetingRoom,
+                    imageVector = vectorResource(id = R.drawable.ic_outline_no_meeting_room_24),
                     contentDescription = null,
                 )
                 Text(
@@ -104,7 +103,7 @@ fun NicoLiveInfoCard(
                 IconButton(onClick = { expanded = !expanded }) {
                     // アイコンコード一行で召喚できる。Node.jsのnpmのmdiみたいだな！
                     Icon(
-                        imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                        imageVector = if (expanded) vectorResource(id = R.drawable.ic_expand_less_black_24dp) else vectorResource(id = R.drawable.ic_expand_more_24px),
                         contentDescription = stringResource(id = R.string.program_info),
                     )
                 }
@@ -143,7 +142,7 @@ fun TimeShiftRegisterButton(
         onClick = { onClickTimeShift() },
     ) {
         Icon(
-            imageVector = Icons.Outlined.History,
+            imageVector = vectorResource(id = R.drawable.ic_history_24px),
             contentDescription = stringResource(id = R.string.timeshift)
         )
         Text(text = if (isRegisteredTimeShift) stringResource(id = R.string.nicolive_time_shift_un_register_short) else stringResource(id = R.string.nicolive_time_shift_register_short))
@@ -176,7 +175,7 @@ fun NicoLiveCommunityCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.SupervisorAccount,
+                    imageVector = vectorResource(id = R.drawable.ic_outline_people_outline_24px),
                     contentDescription = null,
                 )
                 Text(text = stringResource(id = R.string.community_name))
@@ -212,7 +211,7 @@ fun NicoLiveCommunityCard(
                         if (isFollow) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    imageVector = Icons.Outlined.PersonRemove,
+                                    imageVector = vectorResource(id = R.drawable.person_remove_alt_black_24dp),
                                     contentDescription = stringResource(id = R.string.nicovideo_account_remove_follow)
                                 )
                                 Text(text = stringResource(id = R.string.nicovideo_account_remove_follow))
@@ -220,7 +219,7 @@ fun NicoLiveCommunityCard(
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    imageVector = Icons.Outlined.StarBorder,
+                                    imageVector = vectorResource(id = R.drawable.ic_outline_star_border_24),
                                     contentDescription = stringResource(id = R.string.nicovideo_account_remove_follow)
                                 )
                                 Text(text = stringResource(id = R.string.community_follow))
@@ -230,7 +229,7 @@ fun NicoLiveCommunityCard(
                 }
                 TextButton(modifier = Modifier.padding(3.dp), onClick = { onCommunityOpenClick() }) {
                     Icon(
-                        imageVector = Icons.Outlined.OpenInBrowser,
+                        imageVector = vectorResource(id = R.drawable.ic_outline_open_in_browser_24px),
                         contentDescription = stringResource(id = R.string.open_browser)
                     )
                 }
@@ -269,7 +268,10 @@ fun NicoLiveTagCard(
                             modifier = Modifier.padding(3.dp),
                             onClick = { onClickEditButton() }
                         ) {
-                            Icon(imageVector = Icons.Outlined.Edit, contentDescription = stringResource(id = R.string.tag_edit))
+                            Icon(
+                                imageVector = vectorResource(id = R.drawable.ic_outline_create_24px),
+                                contentDescription = stringResource(id = R.string.tag_edit)
+                            )
                             Text(text = stringResource(id = R.string.tag_edit))
                         }
                     }
@@ -282,7 +284,7 @@ fun NicoLiveTagCard(
                         },
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.LocalOffer,
+                            imageVector = vectorResource(id = R.drawable.ic_local_offer_24px),
                             contentDescription = stringResource(id = R.string.tag)
                         )
                         Text(text = data.tagName)
@@ -313,7 +315,7 @@ fun NicoLiveKonomiCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.FavoriteBorder,
+                    imageVector = vectorResource(id = R.drawable.ic_outline_favorite_border_24),
                     contentDescription = null,
                 )
                 Text(text = stringResource(id = R.string.konomi_tag))
@@ -370,7 +372,7 @@ fun NicoLivePointCard(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Money,
+                            imageVector = vectorResource(id = R.drawable.ic_outline_money_24px),
                             contentDescription = stringResource(id = R.string.nicoads),
                         )
                         Text(text = stringResource(id = R.string.nicoads))
@@ -390,7 +392,7 @@ fun NicoLivePointCard(
                             .align(Alignment.End)
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.ArrowForward,
+                            imageVector = vectorResource(id = R.drawable.ic_outline_arrow_forward_24),
                             contentDescription = stringResource(id = R.string.show_nicoad),
                         )
                         Text(text = stringResource(id = R.string.show_nicoad))
@@ -403,7 +405,7 @@ fun NicoLivePointCard(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.CardGiftcard,
+                            imageVector = vectorResource(id = R.drawable.ic_outline_card_giftcard_24px),
                             contentDescription = stringResource(id = R.string.gift),
                         )
                         Text(text = stringResource(id = R.string.gift))
@@ -423,7 +425,7 @@ fun NicoLivePointCard(
                             .align(Alignment.End)
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.ArrowForward,
+                            imageVector = vectorResource(id = R.drawable.ic_outline_arrow_forward_24),
                             contentDescription = stringResource(id = R.string.show_gift)
                         )
                         Text(text = stringResource(id = R.string.show_gift))

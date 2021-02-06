@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -113,7 +113,7 @@ fun NicoLiveCommentInputButton(
             // コメント投稿エリア収納
             IconButton(onClick = { isHideCommentLayout.value = !isHideCommentLayout.value }) {
                 Icon(
-                    imageVector = if (isHideCommentLayout.value) Icons.Outlined.Create else Icons.Outlined.KeyboardArrowRight,
+                    imageVector = if (isHideCommentLayout.value) vectorResource(id = R.drawable.ic_outline_create_24px) else vectorResource(id = R.drawable.ic_outline_keyboard_arrow_right_24),
                     tint = Color.White,
                     contentDescription = "コメント投稿UI表示"
                 )
@@ -123,7 +123,7 @@ fun NicoLiveCommentInputButton(
                 // コマンドパネル
                 IconButton(onClick = { isShowCommandPanel.value = !isShowCommandPanel.value }) {
                     Icon(
-                        imageVector = Icons.Outlined.FormatPaint,
+                        imageVector = vectorResource(id = R.drawable.ic_paint_black),
                         tint = Color.White,
                         contentDescription = "コマンドパネル"
                     )
@@ -158,7 +158,7 @@ fun NicoLiveCommentInputButton(
                 // 投稿ボタン
                 IconButton(onClick = { onPostClick() }) {
                     Icon(
-                        imageVector = Icons.Outlined.Send,
+                        imageVector = vectorResource(id = R.drawable.ic_send_black),
                         tint = Color.White,
                         contentDescription = stringResource(id = R.string.comment_post)
                     )
@@ -167,7 +167,7 @@ fun NicoLiveCommentInputButton(
             // ボタン
             IconButton(onClick = { onClick() }) {
                 Icon(
-                    imageVector = if (isComment) Icons.Outlined.Comment else Icons.Outlined.Info,
+                    imageVector = if (isComment) vectorResource(id = R.drawable.ic_outline_comment_24px) else vectorResource(id = R.drawable.ic_outline_info_24px),
                     tint = Color.White,
                     contentDescription = "コメント表示/番組情報 切り替え"
                 )
@@ -362,7 +362,7 @@ fun NicoLiveCommentCommandPanel(
                 }
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Backspace,
+                    imageVector = vectorResource(id = R.drawable.ic_backspace_24px),
                     tint = Color.White,
                     contentDescription = stringResource(id = R.string.reset)
                 )

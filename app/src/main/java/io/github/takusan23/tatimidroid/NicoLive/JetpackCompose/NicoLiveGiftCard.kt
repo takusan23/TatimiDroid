@@ -7,9 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.TabRow
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.SignalCellularAlt
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -154,14 +152,14 @@ fun NicoLiveGiftTab(
         TabPadding(
             index = 0,
             tabName = stringResource(id = R.string.gift_history),
-            tabIcon = Icons.Outlined.History,
+            tabIcon = vectorResource(id = R.drawable.ic_history_24px),
             selectedIndex = selectTabIndex,
             tabClick = { onClickTabItem(it) }
         )
         TabPadding(
             index = 1,
             tabName = stringResource(id = R.string.gift_ranking),
-            tabIcon = Icons.Outlined.SignalCellularAlt,
+            tabIcon = vectorResource(id = R.drawable.ic_signal_cellular_alt_black_24dp),
             selectedIndex = selectTabIndex,
             tabClick = { onClickTabItem(it) }
         )

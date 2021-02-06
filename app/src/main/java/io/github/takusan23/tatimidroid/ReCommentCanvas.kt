@@ -119,8 +119,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
 
     init {
         // コメントを動かす
-        GlobalScope.launch(coroutineJob + Dispatchers.Main) {
-            commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
+        commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
+            GlobalScope.launch(coroutineJob + Dispatchers.Main) {
                 if (isPlaying) {
                     // 画面外のコメントは描画しない
                     for (reDrawCommentData in drawNakaCommentList.toList().filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
