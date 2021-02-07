@@ -115,7 +115,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     }
 
     /** Jetpack Composeで作成したコメント投稿UIを追加する */
-    @ExperimentalAnimationApi
     private fun setCommentPostUI() {
         // コメント一覧展開ボタンを設置する
         bottomComposeView.apply {

@@ -21,7 +21,7 @@ import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoCommentOnlyB
  *
  * id   | String    | 動画ID
  * */
-class JCNicoVideoCommentListHostFragment : Fragment() {
+class JCNicoVideoCommentOnlyFragment : Fragment() {
 
     /** Fragmentを置くFrameLayout */
     private val viewBinding by lazy { FragmentNicovideoCommentOnlyBinding.inflate(layoutInflater) }

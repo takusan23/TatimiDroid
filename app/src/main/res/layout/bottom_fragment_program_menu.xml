@@ -103,6 +103,17 @@
                         android:visibility="gone" />
 
                 <TextView
+                    android:id="@+id/bottom_fragment_program_info_comment_only_text_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_outline_comment_24px"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:padding="10dp"
+                    android:text="@string/comment_list_only" />
+
+                <TextView
                         android:id="@+id/bottom_fragment_program_info_timeshift_text_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

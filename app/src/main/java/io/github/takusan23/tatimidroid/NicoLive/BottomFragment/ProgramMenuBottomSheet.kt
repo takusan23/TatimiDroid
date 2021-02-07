@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
@@ -103,11 +104,20 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
                 // TS予約とか
                 initTSButton()
 
+                // コメントのみ
+                initCommentOnlyButton()
+
                 // 予約枠自動入場
                 initDB()
             }
         }
 
+    }
+
+    private fun initCommentOnlyButton() {
+        viewBinding.bottomFragmentProgramInfoCommentOnlyTextView.setOnClickListener {
+            (requireActivity() as? MainActivity)?.setNicoliveFragment(liveId, "comment_post", null, true)
+        }
     }
 
     private fun initFloatingCommentViewer() {
@@ -138,7 +148,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
                 } else {
                     setCompoundDrawablesWithIntrinsicBounds(context?.getDrawable(R.drawable.ic_expand_more_24px), null, null, null)
                 }
-                isVisible = !isVisible
+                viewBinding.bottomFragmentProgramInfoAutoAdmissionLinearlayout.isVisible = !viewBinding.bottomFragmentProgramInfoAutoAdmissionLinearlayout.isVisible
             }
         }
         // 予約枠自動入場

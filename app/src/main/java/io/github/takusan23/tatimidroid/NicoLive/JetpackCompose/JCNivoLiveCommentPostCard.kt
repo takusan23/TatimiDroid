@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.NicoLive.JetpackCompose
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollableRow
 import androidx.compose.foundation.background
@@ -34,6 +33,7 @@ import io.github.takusan23.tatimidroid.R
  * @param onClick ボタンを押した時
  * @param isComment コメントのアイコンを表示する場合はtrue
  * @param comment コメント本文
+ * @param isShowCommentInfoChangeButton 番組情報 <-> コメント一覧 切り替えボタンを表示する場合はtrue。コメントのみ表示機能のために用意した
  * @param isPremium プレミアム会員かどうか。trueにするとプレ垢限定色を開放します。
  * @param commentChange コメントInputに変更が入ったときに呼ばれる
  * @param is184 匿名で投稿する場合はtrue。もしfalseになった場合はテキストボックスのヒントにに生IDで投稿されるという旨が表示されます。
@@ -50,7 +50,6 @@ import io.github.takusan23.tatimidroid.R
  * @param color コメントの色
  * @param onChangeMultiLine 複数行での投稿を有効にした場合は呼ばれる
  * */
-@ExperimentalAnimationApi
 @Composable
 fun NicoLiveCommentInputButton(
     onClick: () -> Unit,
@@ -60,6 +59,7 @@ fun NicoLiveCommentInputButton(
     comment: String,
     commentChange: (String) -> Unit,
     onPostClick: () -> Unit,
+    isShowCommentInfoChangeButton: Boolean = true,
     isMultiLine: Boolean,
     isHideCommentInputLayout: Boolean = false,
     onHideCommentInputLayoutChange: (Boolean) -> Unit = {},
@@ -165,12 +165,14 @@ fun NicoLiveCommentInputButton(
                 }
             }
             // ボタン
-            IconButton(onClick = { onClick() }) {
-                Icon(
-                    imageVector = if (isComment) vectorResource(id = R.drawable.ic_outline_comment_24px) else vectorResource(id = R.drawable.ic_outline_info_24px),
-                    tint = Color.White,
-                    contentDescription = "コメント表示/番組情報 切り替え"
-                )
+            if (isShowCommentInfoChangeButton) {
+                IconButton(onClick = { onClick() }) {
+                    Icon(
+                        imageVector = if (isComment) vectorResource(id = R.drawable.ic_outline_comment_24px) else vectorResource(id = R.drawable.ic_outline_info_24px),
+                        tint = Color.White,
+                        contentDescription = "コメント表示/番組情報 切り替え"
+                    )
+                }
             }
         }
     }

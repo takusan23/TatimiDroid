@@ -26,9 +26,10 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveCommentOnlyFragment
 import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveFragment
 import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoCommentListHostFragment
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoCommentOnlyFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
@@ -232,7 +233,7 @@ class MainActivity : AppCompatActivity() {
      * */
     fun setNicovideoFragment(videoId: String, isCache: Boolean? = null, isEco: Boolean? = null, useInternet: Boolean? = null, startFullScreen: Boolean? = null, _videoList: ArrayList<NicoVideoData>? = null) {
         val fragment: Fragment = when {
-            prefSetting.getBoolean("setting_nicovideo_comment_only", false) -> JCNicoVideoCommentListHostFragment()// コメントのみ表示
+            prefSetting.getBoolean("setting_nicovideo_comment_only", false) -> JCNicoVideoCommentOnlyFragment()// コメントのみ表示
             prefSetting.getBoolean("setting_nicovideo_use_old_ui", true) -> NicoVideoFragment() // 旧UI。JetpackCompose、 Android 7 以前で表示が乱れる
             else -> JCNicoVideoFragment() // Jetpack Compose 利用版
         }
@@ -246,7 +247,7 @@ class MainActivity : AppCompatActivity() {
                 _videoList?.let { putSerializable("video_list", _videoList) }
             }
         }
-        if (fragment is JCNicoVideoCommentListHostFragment) {
+        if (fragment is JCNicoVideoCommentOnlyFragment) {
             setFragment(fragment, "comment_list")
         } else {
             setPlayer(fragment, videoId)
@@ -260,14 +261,15 @@ class MainActivity : AppCompatActivity() {
      *
      * @param liveId 生放送ID
      * @param isOfficial 公式どうか。わかるなら入れてくれ
+     * @param isCommentOnly コメント一覧のみを表示するやつ。コメントビューアー的な
      * @param watchMode 視聴モード。以下のどれか。将来的には comment_post だけにしたい。
      * - comment_viewer (コメント投稿無し)
      * - comment_post (デフォルト)
      * - nicocas (コメント投稿にnicocasAPIを利用。てかこれまだ使えるの？)
      * */
-    fun setNicoliveFragment(liveId: String, watchMode: String = "comment_post", isOfficial: Boolean? = null) {
+    fun setNicoliveFragment(liveId: String, watchMode: String = "comment_post", isOfficial: Boolean? = null, isCommentOnly: Boolean = false) {
         val fragment: Fragment = when {
-            // prefSetting.getBoolean("setting_nicovideo_comment_only", false) -> JCNicoVideoCommentListHostFragment()// コメントのみ表示
+            isCommentOnly -> JCNicoLiveCommentOnlyFragment() // コメントのみ表示
             prefSetting.getBoolean("setting_nicovideo_use_old_ui", true) -> CommentFragment() // 旧UI。JetpackCompose、 Android 7 以前で表示が乱れる
             else -> JCNicoLiveFragment() // Jetpack Compose 利用版
         }

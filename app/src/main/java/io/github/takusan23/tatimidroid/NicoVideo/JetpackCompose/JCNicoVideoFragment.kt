@@ -212,7 +212,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
         // 動画再生 or 動画なしモード
         if (viewModel.isCommentOnlyMode) {
-            /** コメントのみは [JCNicoVideoCommentListHostFragment] にあります。 */
+            /** コメントのみは [JCNicoVideoCommentOnlyFragment] にあります。 */
         } else {
             // 動画再生
             viewModel.contentUrl.observe(viewLifecycleOwner) { contentUrl ->

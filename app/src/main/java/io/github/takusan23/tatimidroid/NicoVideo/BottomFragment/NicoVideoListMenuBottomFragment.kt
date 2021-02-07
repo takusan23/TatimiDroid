@@ -26,7 +26,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.NicoAd.NicoAdBottomFragment
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoCommentListHostFragment
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoCommentOnlyFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoCacheFragmentViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoMyListListViewModel
 import io.github.takusan23.tatimidroid.R
@@ -147,7 +147,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
     private fun initCommentListButton() {
         // コメント一覧のみを表示する
         viewBinding.bottomFragmentNicovideoListMenuCommmentOnly.setOnClickListener {
-            val commentListHostFragment = JCNicoVideoCommentListHostFragment().apply {
+            val commentListHostFragment = JCNicoVideoCommentOnlyFragment().apply {
                 arguments = Bundle().apply {
                     putString("id", videoId)
                 }
