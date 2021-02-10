@@ -27,12 +27,10 @@ import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.button.MaterialButton
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoLive.CommentRoomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentViewFragment
@@ -41,6 +39,7 @@ import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFacto
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.LightColors
 import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
+import io.github.takusan23.tatimidroid.PlayerLinearLayout
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.*
@@ -107,11 +106,11 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // スリープにしない
         caffeine()
 
-        // アニメーション
-        if (viewModel.isFirst) {
-            viewModel.isFirst = false
-            miniPlayerAnimation()
-        }
+        //   // アニメーション
+        //   if (viewModel.isFirst) {
+        //       viewModel.isFirst = false
+        //       miniPlayerAnimation()
+        //   }
     }
 
     /** Jetpack Composeで作成したコメント投稿UIを追加する */
@@ -701,8 +700,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     override fun onBottomSheetStateChane(state: Int, isMiniPlayer: Boolean) {
         super.onBottomSheetStateChane(state, isMiniPlayer)
         // 展開 or ミニプレイヤー のみ
-        if (state == BottomSheetBehavior.STATE_COLLAPSED || state == BottomSheetBehavior.STATE_EXPANDED) {
-            (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
+        if (state == PlayerLinearLayout.PLAYER_STATE_DEFAULT || state == PlayerLinearLayout.PLAYER_STATE_MINI) {
+            // (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
             // 一応UI表示
             nicolivePlayerUIBinding.root.performClick()
             // アイコン直す

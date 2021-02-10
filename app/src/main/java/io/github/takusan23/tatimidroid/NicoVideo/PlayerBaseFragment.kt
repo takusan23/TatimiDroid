@@ -9,23 +9,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
-import io.github.takusan23.tatimidroid.BottomSheetPlayerBehavior
-import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
-import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.Tool.InternetConnectionCheck
 import io.github.takusan23.tatimidroid.Tool.SystemBarVisibility
 import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.databinding.FragmentPlayerBaseBinding
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /**
  * 動画、生放送のFragmentのベースになるFragment。これを継承して作っていきたい。
@@ -34,11 +30,12 @@ import kotlinx.coroutines.launch
  * */
 open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
-    /** BottomSheetとプレイヤーFrameLayoutとFragment置くFrameLayoutがあるだけ */
+    /** プレイヤーFrameLayoutとFragment置くFrameLayoutがあるだけ */
     private val viewBinding by lazy { FragmentPlayerBaseBinding.inflate(layoutInflater) }
 
-    /** BottomSheetをコード上で操作するために */
-    private val bottomSheetPlayerBehavior by lazy { BottomSheetPlayerBehavior.from(viewBinding.fragmentPlayerBaseFragmentParentLinearLayout) }
+    /** プレイヤーのレイアウト。ミニプレイヤーとか */
+
+    val playerLinearLayout by lazy { viewBinding.fragmentPlayerBaseFragmentParentLinearLayout }
 
     /** Fragmentを置くFrameLayout */
     val fragmentHostFrameLayout by lazy { viewBinding.fragmentPlayerBaseFragmentFrameLayout }
@@ -72,29 +69,35 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         viewBinding.fragmentPlayerBaseFragmentParentLinearLayout.background = ColorDrawable(getThemeColor(context))
         fragmentCommentHostAppbar.background = ColorDrawable(getThemeColor(context))
         // BottomSheet初期化。画面の半分ぐらい
-        val width = DisplaySizeTool.getDisplayWidth(requireContext())
-        bottomSheetPlayerBehavior.init(
-            videoWidth = if (isLandscape()) width / 3 else width / 2,
-            bottomSheetView = viewBinding.fragmentPlayerBaseFragmentParentLinearLayout,
-            playerView = viewBinding.fragmentPlayerBasePlayerFrameLayout
-        )
-        // コールバック
-        bottomSheetPlayerBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-                onBottomSheetStateChane(newState, isMiniPlayerMode())
-                // 終了の時
-                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
-                    finishFragment()
-                }
+        val displayWidth = DisplaySizeTool.getDisplayWidth(requireContext())
+        // プレイヤー用意
+        if (isLandscape()) {
+            viewBinding.fragmentPlayerBasePlayerFrameLayout.updateLayoutParams<LinearLayout.LayoutParams> {
+                width = displayWidth / 2
+                height = (width / 16) * 9
             }
-
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                onBottomSheetProgress(slideOffset)
+        } else {
+            viewBinding.fragmentPlayerBasePlayerFrameLayout.updateLayoutParams<LinearLayout.LayoutParams> {
+                width = displayWidth
+                height = (width / 16) * 9
             }
-        })
-        // プレイヤー以外で動かさないように
-        setDraggableAreaPlayerOnly(true)
-
+        }
+        playerLinearLayout.playerView = viewBinding.fragmentPlayerBasePlayerFrameLayout
+        // なんか addBottomSheetCallback が呼ばれずに onBottomSheetStateChane がよばれないので手動で
+        onBottomSheetStateChane(PlayerLinearLayout.PLAYER_STATE_DEFAULT, false)
+        // コールバック。これは変更通知
+        playerLinearLayout.addOnStateChangeListener { state ->
+            // 終了の時
+            if (state == PlayerLinearLayout.PLAYER_STATE_DESTROY) {
+                finishFragment()
+            }
+            // 変更通知関数を呼ぶ
+            onBottomSheetStateChane(state, isMiniPlayerMode())
+        }
+        // コールバック。これは進捗具合
+        playerLinearLayout.addOnProgressListener { progress ->
+            onBottomSheetProgress(progress)
+        }
         // バックキーのイベント
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             if (!isMiniPlayerMode()) {
@@ -102,6 +105,10 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
             } else {
                 isEnabled = false
             }
+        }
+        // BottomNavを消してみる
+        (requireActivity() as? MainActivity)?.apply {
+            playerLinearLayout.setupBottomNavigation(this.viewBinding.mainActivityBottomNavigationView)
         }
     }
 
@@ -113,16 +120,6 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** スリープにしないを解除する */
     fun caffeineUnlock() {
         requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-    }
-
-    /** ミニプレイヤー登場のアニメーションをする場合は呼んでね。一回だけとか */
-    fun miniPlayerAnimation() {
-        bottomSheetPlayerBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-        // 遅延で表示。ぴょこって
-        lifecycleScope.launch {
-            delay(100)
-            bottomSheetPlayerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-        }
     }
 
     /**
@@ -139,18 +136,16 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     }
 
     /** ミニプレイヤー状態かどうかを返す */
-    override fun isMiniPlayerMode(): Boolean {
-        return bottomSheetPlayerBehavior.isMiniPlayerMode()
-    }
+    override fun isMiniPlayerMode() = playerLinearLayout.isMiniPlayer()
 
     /** ミニプレイヤーモードへ */
     fun toMiniPlayer() {
-        bottomSheetPlayerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        playerLinearLayout.toMiniPlayer()
     }
 
     /** 通常モードへ */
     fun toDefaultPlayer() {
-        bottomSheetPlayerBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        playerLinearLayout.toDefaultPlayer()
     }
 
     /** 現在の状態（ミニプレイヤー等）に合わせたアイコンを返す */
@@ -170,22 +165,6 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** 画面が横かどうかを返す。横ならtrue */
     fun isLandscape(): Boolean {
         return requireActivity().resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    }
-
-    /**
-     * ドラッグを有効/無効にする
-     * @param isDraggable ドラッグ禁止はfalse
-     * */
-    fun setDraggable(isDraggable: Boolean) {
-        bottomSheetPlayerBehavior.isDraggable = isDraggable
-    }
-
-    /**
-     * プレイヤーのサイズ変更（ドラッグ操作）をプレイヤー範囲に限定するかどうか
-     * @param isPlayerOnly trueで限定する
-     * */
-    fun setDraggableAreaPlayerOnly(isPlayerOnly: Boolean) {
-        bottomSheetPlayerBehavior.isDraggableAreaPlayerOnly = isPlayerOnly
     }
 
     /**
@@ -221,7 +200,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         // ステータスバー隠す
         SystemBarVisibility.hideSystemBar(requireActivity().window)
         // BottomSheet側も全画面に切り替える
-        bottomSheetPlayerBehavior.toFullScreen()
+        playerLinearLayout.toFullScreen()
     }
 
     /**
@@ -235,7 +214,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         // ステータスバー表示
         SystemBarVisibility.showSystemBar(requireActivity().window)
         // BottomSheet側も全画面を無効にする
-        bottomSheetPlayerBehavior.toDefaultScreen()
+        playerLinearLayout.toDefaultScreen()
     }
 
     /**
@@ -250,7 +229,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
 
     /**
      * BottomSheetの状態が変わったら呼ばれる関数。オーバーライドして使って
-     * @param state [BottomSheetBehavior.state]の値
+     * @param state [PlayerLinearLayout.PLAYER_STATE_DEFAULT]などの値
      * @param isMiniPlayer [isMiniPlayerMode]の値
      * */
     open fun onBottomSheetStateChane(state: Int, isMiniPlayer: Boolean) {

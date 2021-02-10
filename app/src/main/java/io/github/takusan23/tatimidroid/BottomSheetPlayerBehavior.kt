@@ -28,7 +28,7 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     companion object {
 
         /**
-         * これを使うにはこれを呼んでBottomSheetを作成し、[currentMiniPlayerHeight]、[currentMiniPlayerWidth]、[currentMiniPlayerXPos]を更新し続けてください。
+         * これを使うにはこれを呼んでBottomSheetを作成し、[currentPlayerHeight]、[currentPlayerWidth]、[currentPlayerXPos]を更新し続けてください。
          * */
         fun <V : View> from(view: V): BottomSheetPlayerBehavior<V> {
             val params = view.layoutParams
@@ -50,17 +50,17 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     private var draggableBottomSheetView: View? = null
 
     /** ミニプレイヤー時の幅。大きさが変わったらその都度入れて */
-    var currentMiniPlayerWidth = 0
+    var currentPlayerWidth = 0
 
     /** ミニプレイヤー時の高さ。大きさが変わったらその都度入れて */
-    var currentMiniPlayerHeight = 0
+    var currentPlayerHeight = 0
 
     /**
      * ↓ここの大きさ。値が変わったらその都度更新して
      *
      * |<--->■|
      * */
-    var currentMiniPlayerXPos = 0f
+    var currentPlayerXPos = 0f
 
     /** 現在の進捗 */
     var progress = 0f
@@ -77,36 +77,38 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
      * スワイプの処理等、めんどいのはこっちでやる
      *
      * サイズ変更等やります。
-     * @param videoHeight 動画の高さ
+     * @param playerWidth ミニプレイヤー時のプレイヤーの幅。
      * @param bottomSheetView BottomSheetを設定したView
      * @param playerView プレイヤーのView
      * */
-    fun init(videoWidth: Int, bottomSheetView: View, playerView: View) {
+    fun init(_playerWidth: Int, bottomSheetView: View, playerView: View) {
         draggablePlayerView = playerView
         draggableBottomSheetView = bottomSheetView
 
-        // 最小値
-        val videoHeight = (videoWidth / 16) * 9
-        peekHeight = videoHeight
 
         // 画面の幅
         val displayWidth = DisplaySizeTool.getDisplayWidth(context)
 
-        /** 画面の幅からミニプレイヤーの幅を引いた値 */
-        val maxTransitionX = (displayWidth - videoWidth).toFloat()
+        // ミニプレイヤー時の高さ
+        val videoHeight = (_playerWidth / 16) * 9
+        peekHeight = videoHeight
 
-        bottomSheetView.translationX = maxTransitionX
-
-        currentMiniPlayerHeight = videoHeight
-        currentMiniPlayerWidth = videoWidth
-        currentMiniPlayerXPos = maxTransitionX
-        isHideable = true
+        // 画面の幅からミニプレイヤーの幅を引いた値
+        val maxTransitionX = (displayWidth - _playerWidth).toFloat()
 
         // プレイヤーの大きさ
         playerView.updateLayoutParams {
-            height = videoHeight
-            width = videoWidth
+            width = if (isLandScape()) displayWidth / 2 else displayWidth
+            height = (width / 16) * 9
         }
+
+        currentPlayerWidth = playerView.width
+        currentPlayerHeight = playerView.height
+        currentPlayerXPos = bottomSheetView.translationX
+        isHideable = true
+
+        // 通常画面へ
+        state = STATE_EXPANDED
 
         addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
@@ -144,7 +146,7 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                         // 格納時のプレイヤーの大きさ
                         playerView.updateLayoutParams {
                             height = videoHeight
-                            width = videoWidth
+                            width = _playerWidth
                         }
                     }
                 }
@@ -165,18 +167,18 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                         if (isFullScreenMode) {
                             // フルスクリーン時
                             // 展開時のプレイヤーとミニプレイヤーとの差分を出す。引き算
-                            val sabun = displayWidth - videoWidth
+                            val sabun = displayWidth - _playerWidth
                             playerView.updateLayoutParams<LinearLayout.LayoutParams> {
-                                val calcWidth = videoWidth + (sabun * slideOffset)
+                                val calcWidth = _playerWidth + (sabun * slideOffset)
                                 width = calcWidth.roundToInt()
                                 height = (width / 16) * 9
                             }
                         } else {
                             // 展開時のプレイヤーとミニプレイヤーとの差分を出す。どれぐらい掛ければ展開時のサイズになるのか
-                            val sabun = (displayWidth / 2f) - videoWidth
+                            val sabun = (displayWidth / 2f) - _playerWidth
                             playerView.updateLayoutParams<LinearLayout.LayoutParams> {
                                 // 最初にミニプレイヤーのサイズを足さないとミニプレイヤー消滅する
-                                val calcWidth = videoWidth + (sabun * slideOffset)
+                                val calcWidth = _playerWidth + (sabun * slideOffset)
                                 width = calcWidth.roundToInt()
                                 height = (width / 16) * 9
                                 // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
@@ -189,19 +191,22 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                         }
                     } else {
                         playerView.updateLayoutParams {
-                            width = videoWidth + (maxTransitionX * slideOffset).toInt()
+                            width = _playerWidth + (maxTransitionX * slideOffset).toInt()
+                            println(((_playerWidth + (maxTransitionX * slideOffset).toInt()) / 10)*10)
+                            println("-----------")
                             height = (width / 16) * 9
                         }
                     }
 
                     // 値更新
-                    currentMiniPlayerHeight = playerView.height
-                    currentMiniPlayerWidth = playerView.width
-                    currentMiniPlayerXPos = bottomSheetView.translationX
+                    currentPlayerHeight = playerView.height
+                    currentPlayerWidth = playerView.width
+                    currentPlayerXPos = bottomSheetView.translationX
 
                 }
             }
         })
+
     }
 
     /** ミニプレイヤー状態かどうかを返す */
@@ -221,12 +226,12 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
     override fun onInterceptTouchEvent(parent: CoordinatorLayout, child: T, event: MotionEvent): Boolean {
         // ちなみにchild.leftは0を返す
         val isTouchingSwipeTargetView = if (!isDraggableAreaPlayerOnly) {
-            event.x > currentMiniPlayerXPos
-                    && event.x < currentMiniPlayerXPos + draggablePlayerView!!.width
+            event.x > currentPlayerXPos
+                    && event.x < currentPlayerXPos + draggablePlayerView!!.width
         } else {
             // 操作ターゲットをプレイヤーに限定
-            event.x > currentMiniPlayerXPos
-                    && event.x < currentMiniPlayerXPos + draggablePlayerView!!.width
+            event.x > currentPlayerXPos
+                    && event.x < currentPlayerXPos + draggablePlayerView!!.width
                     && event.y > draggableBottomSheetView!!.y
                     && event.y < draggableBottomSheetView!!.y + draggablePlayerView!!.height
         }
@@ -241,12 +246,12 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
         // プレイヤーを触っているときのみタッチイベントを渡す。translateXの値変えてもタッチは何故か行くので制御
         // ちなみにchild.leftは0を返す
         val isTouchingSwipeTargetView = if (!isDraggableAreaPlayerOnly) {
-            event.x > currentMiniPlayerXPos
-                    && event.x < currentMiniPlayerXPos + draggablePlayerView!!.width
+            event.x > currentPlayerXPos
+                    && event.x < currentPlayerXPos + draggablePlayerView!!.width
         } else {
             // 操作ターゲットをプレイヤーに限定
-            event.x > currentMiniPlayerXPos
-                    && event.x < currentMiniPlayerXPos + draggablePlayerView!!.width
+            event.x > currentPlayerXPos
+                    && event.x < currentPlayerXPos + draggablePlayerView!!.width
                     && event.y > draggableBottomSheetView!!.y
                     && event.y < draggableBottomSheetView!!.y + draggablePlayerView!!.height
         }

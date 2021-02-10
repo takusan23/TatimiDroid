@@ -438,16 +438,6 @@ fun NicoVideoSeriesCard(
                             Text(text = "${stringResource(id = R.string.nicovideo_series_first_video)}\n${nicoVideoHTMLSeriesData.firstVideoData.title}", modifier = Modifier.weight(1f))
                         }
                     }
-                    // 次の動画
-                    if (nicoVideoHTMLSeriesData.nextVideoData != null) {
-                        TextButton(onClick = { onClickNextVideoPlay(nicoVideoHTMLSeriesData.nextVideoData) }, modifier = Modifier.fillMaxWidth()) {
-                            Icon(
-                                imageVector = vectorResource(id = R.drawable.ic_outline_arrow_forward_24),
-                                contentDescription = stringResource(id = R.string.nicovideo_series_next_video)
-                            )
-                            Text(text = "${stringResource(id = R.string.nicovideo_series_next_video)}\n${nicoVideoHTMLSeriesData.nextVideoData.title}", modifier = Modifier.weight(1f))
-                        }
-                    }
                     // 前の動画
                     if (nicoVideoHTMLSeriesData.prevVideoData != null) {
                         TextButton(onClick = { onClickPrevVideoPlay(nicoVideoHTMLSeriesData.prevVideoData) }, modifier = Modifier.fillMaxWidth()) {
@@ -456,6 +446,16 @@ fun NicoVideoSeriesCard(
                                 contentDescription = stringResource(id = R.string.nicovideo_series_prev_video)
                             )
                             Text(text = "${stringResource(id = R.string.nicovideo_series_prev_video)}\n${nicoVideoHTMLSeriesData.prevVideoData.title}", modifier = Modifier.weight(1f))
+                        }
+                    }
+                    // 次の動画
+                    if (nicoVideoHTMLSeriesData.nextVideoData != null) {
+                        TextButton(onClick = { onClickNextVideoPlay(nicoVideoHTMLSeriesData.nextVideoData) }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(
+                                imageVector = vectorResource(id = R.drawable.ic_outline_arrow_forward_24),
+                                contentDescription = stringResource(id = R.string.nicovideo_series_next_video)
+                            )
+                            Text(text = "${stringResource(id = R.string.nicovideo_series_next_video)}\n${nicoVideoHTMLSeriesData.nextVideoData.title}", modifier = Modifier.weight(1f))
                         }
                     }
                 }

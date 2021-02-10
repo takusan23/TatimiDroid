@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.format.DateUtils
@@ -21,15 +22,14 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
-import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentFragment
 import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
+import io.github.takusan23.tatimidroid.PlayerLinearLayout
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
@@ -109,13 +109,10 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // スリープにしない
         caffeine()
 
-        nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.scaleX = 1f
-        nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.scaleY = 1f
-
         // アニメーション
         if (viewModel.isFirst) {
             viewModel.isFirst = false
-            miniPlayerAnimation()
+            // miniPlayerAnimation()
         }
 
     }
@@ -353,8 +350,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                             }
                         }
                     }
-                    // 通常画面へ。なおこいつのせいで画面回転前がミニプレイヤーでもミニプレイヤーにならない
-                    toDefaultPlayer()
                     // コメント一覧も表示
                     lifecycleScope.launch {
                         delay(1000)
@@ -439,11 +434,12 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     }
 
     /** プレイヤーFrameLayoutにUIを追加する */
+    @SuppressLint("ClickableViewAccessibility")
     private fun setPlayerUI() {
         addPlayerFrameLayout(nicovideoPlayerUIBinding.root)
         // プレイヤー部分の表示設定
         val hideJob = Job()
-        nicovideoPlayerUIBinding.root.setOnClickListener {
+        nicovideoPlayerUIBinding.root.setOnTouchListener { v, event ->
             hideJob.cancelChildren()
             // ConstraintLayoutのGroup機能でまとめてVisibility変更。
             nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = if (nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility == View.VISIBLE) {
@@ -461,6 +457,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 delay(3000)
                 nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = View.INVISIBLE
             }
+            false
         }
         // プレイヤー右上のアイコンにWi-Fiアイコンがあるけどあれ、どの方法で再生してるかだから。キャッシュならフォルダーになる
         val playingTypeDrawable = when {
@@ -509,18 +506,18 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             }
         })
         // ダブルタップ
-        nicovideoPlayerUIBinding.root.setOnDoubleClickListener { motionEvent, isDoubleClick ->
-            if (motionEvent != null && isDoubleClick) {
-                val isLeft = motionEvent.x <= nicovideoPlayerUIBinding.root.width / 2
-                // どれだけシークするの？
-                val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
-                if (isLeft) {
-                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition - (seekValue * 1000))
-                } else {
-                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition + (seekValue * 1000))
-                }
-            }
-        }
+       // nicovideoPlayerUIBinding.root.setOnDoubleClickListener { motionEvent, isDoubleClick ->
+       //     if (motionEvent != null && isDoubleClick) {
+       //         val isLeft = motionEvent.x <= nicovideoPlayerUIBinding.root.width / 2
+       //         // どれだけシークするの？
+       //         val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
+       //         if (isLeft) {
+       //             viewModel.playerSetSeekMs.postValue(viewModel.currentPosition - (seekValue * 1000))
+       //         } else {
+       //             viewModel.playerSetSeekMs.postValue(viewModel.currentPosition + (seekValue * 1000))
+       //         }
+       //     }
+       // }
         // コメントキャンバス非表示
         nicovideoPlayerUIBinding.includeNicovideoPlayerCommentHideImageView.setOnClickListener {
             nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.apply {
@@ -621,8 +618,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     override fun onBottomSheetStateChane(state: Int, isMiniPlayer: Boolean) {
         super.onBottomSheetStateChane(state, isMiniPlayer)
         // 展開 or ミニプレイヤー のみ
-        if (state == BottomSheetBehavior.STATE_COLLAPSED || state == BottomSheetBehavior.STATE_EXPANDED) {
-            (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
+        if (state == PlayerLinearLayout.PLAYER_STATE_DEFAULT || state == PlayerLinearLayout.PLAYER_STATE_MINI) {
+            // (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
             // 一応UI表示
             nicovideoPlayerUIBinding.root.performClick()
             // アイコン直す

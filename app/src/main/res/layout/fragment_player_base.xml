@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <io.github.takusan23.tatimidroid.PlayerLinearLayout
         android:id="@+id/fragment_player_base_fragment_parent_linear_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#fff"
-        android:clickable="true"
         android:elevation="10dp"
-        android:focusable="true"
         android:orientation="vertical"
         app:behavior_hideable="true"
         app:behavior_peekHeight="100dp"
@@ -22,9 +20,7 @@
             android:id="@+id/fragment_player_base_player_frame_layout"
             android:layout_width="match_parent"
             android:layout_height="250dp"
-            android:background="#000"
-            android:clickable="true"
-            android:focusable="true" />
+            android:background="#000" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -81,6 +77,6 @@
 
         </FrameLayout>
 
-    </LinearLayout>
+    </io.github.takusan23.tatimidroid.PlayerLinearLayout>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</FrameLayout>
