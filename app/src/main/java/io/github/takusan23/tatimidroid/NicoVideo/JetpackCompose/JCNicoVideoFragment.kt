@@ -29,7 +29,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentFragment
 import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
-import io.github.takusan23.tatimidroid.PlayerLinearLayout
+import io.github.takusan23.tatimidroid.PlayerParentFrameLayout
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
@@ -108,12 +108,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
 
         // スリープにしない
         caffeine()
-
-        // アニメーション
-        if (viewModel.isFirst) {
-            viewModel.isFirst = false
-            // miniPlayerAnimation()
-        }
 
     }
 
@@ -439,7 +433,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         addPlayerFrameLayout(nicovideoPlayerUIBinding.root)
         // プレイヤー部分の表示設定
         val hideJob = Job()
-        nicovideoPlayerUIBinding.root.setOnTouchListener { v, event ->
+        nicovideoPlayerUIBinding.root.setOnClickListener {
             hideJob.cancelChildren()
             // ConstraintLayoutのGroup機能でまとめてVisibility変更。
             nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = if (nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility == View.VISIBLE) {
@@ -457,7 +451,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 delay(3000)
                 nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = View.INVISIBLE
             }
-            false
         }
         // プレイヤー右上のアイコンにWi-Fiアイコンがあるけどあれ、どの方法で再生してるかだから。キャッシュならフォルダーになる
         val playingTypeDrawable = when {
@@ -506,18 +499,18 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             }
         })
         // ダブルタップ
-       // nicovideoPlayerUIBinding.root.setOnDoubleClickListener { motionEvent, isDoubleClick ->
-       //     if (motionEvent != null && isDoubleClick) {
-       //         val isLeft = motionEvent.x <= nicovideoPlayerUIBinding.root.width / 2
-       //         // どれだけシークするの？
-       //         val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
-       //         if (isLeft) {
-       //             viewModel.playerSetSeekMs.postValue(viewModel.currentPosition - (seekValue * 1000))
-       //         } else {
-       //             viewModel.playerSetSeekMs.postValue(viewModel.currentPosition + (seekValue * 1000))
-       //         }
-       //     }
-       // }
+        nicovideoPlayerUIBinding.root.setOnDoubleClickListener { motionEvent, isDoubleClick ->
+            if (motionEvent != null && isDoubleClick) {
+                val isLeft = motionEvent.x <= nicovideoPlayerUIBinding.root.width / 2
+                // どれだけシークするの？
+                val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
+                if (isLeft) {
+                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition - (seekValue * 1000))
+                } else {
+                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition + (seekValue * 1000))
+                }
+            }
+        }
         // コメントキャンバス非表示
         nicovideoPlayerUIBinding.includeNicovideoPlayerCommentHideImageView.setOnClickListener {
             nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.apply {
@@ -618,7 +611,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     override fun onBottomSheetStateChane(state: Int, isMiniPlayer: Boolean) {
         super.onBottomSheetStateChane(state, isMiniPlayer)
         // 展開 or ミニプレイヤー のみ
-        if (state == PlayerLinearLayout.PLAYER_STATE_DEFAULT || state == PlayerLinearLayout.PLAYER_STATE_MINI) {
+        if (state == PlayerParentFrameLayout.PLAYER_STATE_DEFAULT || state == PlayerParentFrameLayout.PLAYER_STATE_MINI) {
             // (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
             // 一応UI表示
             nicovideoPlayerUIBinding.root.performClick()

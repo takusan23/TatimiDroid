@@ -33,9 +33,8 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** プレイヤーFrameLayoutとFragment置くFrameLayoutがあるだけ */
     private val viewBinding by lazy { FragmentPlayerBaseBinding.inflate(layoutInflater) }
 
-    /** プレイヤーのレイアウト。ミニプレイヤーとか */
-
-    val playerLinearLayout by lazy { viewBinding.fragmentPlayerBaseFragmentParentLinearLayout }
+    /** プレイヤーのレイアウト。ミニプレイヤー切り替えとかはここ */
+    val playerLinearLayout by lazy { viewBinding.root }
 
     /** Fragmentを置くFrameLayout */
     val fragmentHostFrameLayout by lazy { viewBinding.fragmentPlayerBaseFragmentFrameLayout }
@@ -82,13 +81,12 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
                 height = (width / 16) * 9
             }
         }
-        playerLinearLayout.playerView = viewBinding.fragmentPlayerBasePlayerFrameLayout
-        // なんか addBottomSheetCallback が呼ばれずに onBottomSheetStateChane がよばれないので手動で
-        onBottomSheetStateChane(PlayerLinearLayout.PLAYER_STATE_DEFAULT, false)
+        // プレイヤー（PlayerParentFrameLayout）セットアップ
+        playerLinearLayout.setup(fragmentPlayerFrameLayout, viewBinding.fragmentPlayerBaseFragmentParentLinearLayout)
         // コールバック。これは変更通知
         playerLinearLayout.addOnStateChangeListener { state ->
             // 終了の時
-            if (state == PlayerLinearLayout.PLAYER_STATE_DESTROY) {
+            if (state == PlayerParentFrameLayout.PLAYER_STATE_DESTROY) {
                 finishFragment()
             }
             // 変更通知関数を呼ぶ
@@ -136,7 +134,9 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     }
 
     /** ミニプレイヤー状態かどうかを返す */
-    override fun isMiniPlayerMode() = playerLinearLayout.isMiniPlayer()
+    override fun isMiniPlayerMode(): Boolean {
+        return playerLinearLayout.isMiniPlayer()
+    }
 
     /** ミニプレイヤーモードへ */
     fun toMiniPlayer() {
@@ -229,7 +229,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
 
     /**
      * BottomSheetの状態が変わったら呼ばれる関数。オーバーライドして使って
-     * @param state [PlayerLinearLayout.PLAYER_STATE_DEFAULT]などの値
+     * @param state [PlayerParentFrameLayout.PLAYER_STATE_DEFAULT]などの値
      * @param isMiniPlayer [isMiniPlayerMode]の値
      * */
     open fun onBottomSheetStateChane(state: Int, isMiniPlayer: Boolean) {

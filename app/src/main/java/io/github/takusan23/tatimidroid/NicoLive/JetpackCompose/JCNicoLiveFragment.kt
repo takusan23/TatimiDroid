@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoLive.JetpackCompose
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -39,7 +40,7 @@ import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModelFacto
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.LightColors
 import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
-import io.github.takusan23.tatimidroid.PlayerLinearLayout
+import io.github.takusan23.tatimidroid.PlayerParentFrameLayout
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.*
@@ -106,11 +107,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // スリープにしない
         caffeine()
 
-        //   // アニメーション
-        //   if (viewModel.isFirst) {
-        //       viewModel.isFirst = false
-        //       miniPlayerAnimation()
-        //   }
     }
 
     /** Jetpack Composeで作成したコメント投稿UIを追加する */
@@ -618,6 +614,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     }
 
     /** プレイヤーのUIをFragmentに追加する */
+    @SuppressLint("ClickableViewAccessibility")
     private fun setPlayerUI() {
         // ここは動画と一緒
         addPlayerFrameLayout(nicolivePlayerUIBinding.root)
@@ -700,7 +697,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     override fun onBottomSheetStateChane(state: Int, isMiniPlayer: Boolean) {
         super.onBottomSheetStateChane(state, isMiniPlayer)
         // 展開 or ミニプレイヤー のみ
-        if (state == PlayerLinearLayout.PLAYER_STATE_DEFAULT || state == PlayerLinearLayout.PLAYER_STATE_MINI) {
+        if (state == PlayerParentFrameLayout.PLAYER_STATE_DEFAULT || state == PlayerParentFrameLayout.PLAYER_STATE_MINI) {
             // (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
             // 一応UI表示
             nicolivePlayerUIBinding.root.performClick()
