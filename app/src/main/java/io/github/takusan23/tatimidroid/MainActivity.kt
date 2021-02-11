@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -534,6 +535,16 @@ class MainActivity : AppCompatActivity() {
     fun setVisibilityBottomNav() {
         val fragment = supportFragmentManager.findFragmentById(R.id.main_activity_fragment_layout)
         viewBinding.mainActivityBottomNavigationView.isVisible = (fragment as? MainActivityPlayerFragmentInterface)?.isMiniPlayerMode() ?: true
+    }
+
+    /**
+     * BottomNavigationのサイズ変更
+     * @param argHeight 高さ。0を入れると戻る
+     * */
+    fun setBottomNavigationHeight(argHeight: Int) {
+        viewBinding.mainActivityBottomNavigationView.updateLayoutParams {
+            height = argHeight
+        }
     }
 
     private fun showToast(message: String) {

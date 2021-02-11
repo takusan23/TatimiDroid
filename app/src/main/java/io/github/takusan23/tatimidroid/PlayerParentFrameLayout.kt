@@ -44,9 +44,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
 
     /** ミニプレイヤーになったときの高さ。[miniPlayerWidth]を16で割って9をかけることで16:9になるようにしている */
     private val miniPlayerHeight: Int
-        get() {
-            return (miniPlayerWidth / 16) * 9
-        }
+        get() = (miniPlayerWidth / 16) * 9
 
     /** プレイヤーのView */
     private var playerView: View? = null
@@ -81,9 +79,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
 
     /** 勢いよくスワイプしたときにミニプレイヤー、通常画面に切り替えられるんだけど、それのしきい値 */
     val flickSpeed = 5000
-
-    /** 下までスワイプしたら消せるようにするかどうか */
-    var isHideable = true
 
     /**
      * [toDefaultPlayer]、[toMiniPlayer]、[toDestroyPlayer]で実行されるアニメーションの
@@ -254,7 +249,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                                         toDefaultPlayer()
                                     } else {
                                         // 以下。下半分で戻した場合はミニプレイヤーへ
-                                        if (isHideable && translationY > (parentViewGroupHeight - miniPlayerHeight) + (miniPlayerHeight / 2)) {
+                                        if (translationY > (parentViewGroupHeight - miniPlayerHeight) + (miniPlayerHeight / 2)) {
                                             // 消せる + ミニプレイヤーでも更に半分進んだ場合は終了アニメへ
                                             toDestroyPlayer()
                                         } else {
@@ -280,10 +275,46 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
      *
      * @param progress 0から1まで
      * */
-    private fun toPlayerProgress(progress: Float) {
+    private fun toPlayerProgress(argProgress: Float) {
         playerViewParentViewGroup?.apply {
-            // 進捗具合
-            this@PlayerParentFrameLayout.progress = progress
+            // 進捗具合。小数点3桁ぐらいまでにする
+            this@PlayerParentFrameLayout.progress = argProgress
+
+            val maxTransitionX = (parentViewGroupWidth - miniPlayerWidth).toFloat()
+            // サイズ変更
+            val calcTranslationY = (parentViewGroupHeight - miniPlayerHeight) * progress
+
+            if (calcTranslationY >= 0f) {
+                translationY = calcTranslationY
+                // 横にずらす / プレイヤーサイズ変更 は終了アニメで使わないため
+                if (calcTranslationY <= (parentViewGroupHeight - miniPlayerHeight).toFloat()) {
+                    // 横にずらす
+                    translationX = maxTransitionX * progress
+                    // プレイヤーサイズ変更
+                    if (isLandScape()) {
+                        playerView!!.updateLayoutParams {
+                            // 展開時のプレイヤーとミニプレイヤーとの差分を出す。どれぐらい掛ければ展開時のサイズになるのか
+                            val sabun = if (isFullScreenMode) {
+                                parentViewGroupWidth - miniPlayerWidth.toFloat()
+                            } else {
+                                (parentViewGroupWidth / 2f) - miniPlayerWidth
+                            }
+                            width = miniPlayerWidth + (sabun * (1f - progress)).toInt()
+                            height = (width / 16) * 9
+                        }
+                    } else {
+                        playerView!!.updateLayoutParams {
+                            width = miniPlayerWidth + (maxTransitionX * (1f - progress)).toInt()
+                            height = (width / 16) * 9
+                        }
+                    }
+                }
+            }
+
+            /** それとは関係ないんだけど、横モード時は上方向のマージンを掛けて真ん中に来るようにしたい */
+            if ((1f - progress) in 0f..1f) {
+                setLandScapeTopMargin((1f - progress))
+            }
 
             /**
              * [progressListenerList]を呼ぶ
@@ -293,7 +324,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 progressListenerList.forEach { it.invoke(progress) }
             }
 
-
             // 画面回転するとなんか NaN になる。JS以外にもこの概念あったのか
             if (!progress.isNaN()) {
                 /**
@@ -301,7 +331,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                  * */
                 when {
                     isDefaultScreen() -> {
-                        println("isDefaultScreen？")
                         // 違ったら入れる
                         if (beforeState != PLAYER_STATE_DEFAULT) {
                             stateChangeListenerList.forEach { it.invoke(PLAYER_STATE_DEFAULT) }
@@ -309,7 +338,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                         }
                     }
                     isMiniPlayer() -> {
-                        println("isMiniPlayer？")
                         // 違ったら入れる
                         if (beforeState != PLAYER_STATE_MINI) {
                             stateChangeListenerList.forEach { it.invoke(PLAYER_STATE_MINI) }
@@ -317,7 +345,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                         }
                     }
                     translationY.roundToInt() == parentViewGroupHeight -> {
-                        println("なんで？")
                         // まだ終了済みではない
                         if (!isAlreadyDestroyed) {
                             // 違ったら入れる
@@ -331,68 +358,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 }
             }
 
-            val maxTransitionX = (parentViewGroupWidth - miniPlayerWidth).toFloat()
-            // サイズ変更
-            val calcTranslationY = (parentViewGroupHeight - miniPlayerHeight) * progress
-
-            // 一番下までスライドしてプレイヤーを消去できるようにするかどうか
-            if (isHideable) {
-                // 下までスワイプできる場合
-                if (calcTranslationY >= 0f) {
-                    translationY = calcTranslationY
-                    // 横にずらす / プレイヤーサイズ変更 は終了アニメで使わないため
-                    if (calcTranslationY <= (parentViewGroupHeight - miniPlayerHeight).toFloat()) {
-                        // 横にずらす
-                        translationX = maxTransitionX * progress
-                        // プレイヤーサイズ変更
-                        if (isLandScape()) {
-                            playerView!!.updateLayoutParams {
-                                // 展開時のプレイヤーとミニプレイヤーとの差分を出す。どれぐらい掛ければ展開時のサイズになるのか
-                                val sabun = if (isFullScreenMode) {
-                                    parentViewGroupWidth - miniPlayerWidth.toFloat()
-                                } else {
-                                    (parentViewGroupWidth / 2f) - miniPlayerWidth
-                                }
-                                width = miniPlayerWidth + (sabun * (1f - progress)).toInt()
-                                height = (width / 16) * 9
-                            }
-                        } else {
-                            playerView!!.updateLayoutParams {
-                                width = miniPlayerWidth + (maxTransitionX * (1f - progress)).toInt()
-                                height = (width / 16) * 9
-                            }
-                        }
-                    }
-                }
-            } else {
-                // ミニプレイヤー以降は下にスワイプさせないので
-                // 画面外になる場合は return
-                if (calcTranslationY !in 0f..(parentViewGroupHeight - miniPlayerHeight).toFloat()) {
-                    return
-                }
-                translationY = calcTranslationY
-                // 横にずらす
-                translationX = maxTransitionX * progress
-                // プレイヤーサイズ変更
-                if (isLandScape()) {
-                    playerView!!.updateLayoutParams {
-                        // 展開時のプレイヤーとミニプレイヤーとの差分を出す。どれぐらい掛ければ展開時のサイズになるのか
-                        val sabun = (parentViewGroupWidth / 2f) - miniPlayerWidth
-                        width = miniPlayerWidth + (sabun * (1f - progress)).toInt()
-                        height = (width / 16) * 9
-                    }
-                } else {
-                    playerView!!.updateLayoutParams {
-                        width = miniPlayerWidth + (maxTransitionX * (1f - progress)).toInt()
-                        height = (width / 16) * 9
-                    }
-                }
-            }
-
-            /** それとは関係ないんだけど、横モード時は上方向のマージンを掛けて真ん中に来るようにしたい */
-            if ((1f - progress) in 0f..1f) {
-                setLandScapeTopMargin((1f - progress))
-            }
         }
     }
 
@@ -500,9 +465,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
      * [isHideable]がtrueじゃないと動かない
      * */
     fun toDestroyPlayer() {
-        // KDocの通り
-        if (!isHideable) return
-
         /**
          * 開始時の進行度。途中で指を離した場合はそこからアニメーションを始める
          * */
@@ -510,13 +472,12 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
 
         /**
          * 終了地点
-         * なんかしらんけどこの計算式で出せた（1.6位になると思う。この値を[toPlayerProgress]に渡せばええんじゃ？）
+         * なんかしらんけどこの計算式で出せた（1.8位になると思う。この値を[toPlayerProgress]に渡せばええんじゃ？）
          * */
-        val endProgress = parentViewGroupHeight.toFloat() / (parentViewGroupHeight - miniPlayerHeight)
+        val endProgress = parentViewGroupHeight / (parentViewGroupHeight - miniPlayerHeight).toFloat()
 
         /**
          * 第一引数から第２引数までの値を払い出してくれるやつ。
-         * 第２引数は謎
          * */
         ValueAnimator.ofFloat(startProgress, endProgress).apply {
             duration = durationMs

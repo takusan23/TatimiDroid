@@ -101,6 +101,8 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
             if (!isMiniPlayerMode()) {
                 toMiniPlayer()
             } else {
+                // 終了
+                playerLinearLayout.toDestroyPlayer()
                 isEnabled = false
             }
         }
@@ -160,6 +162,8 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** このFragmentを終了させるときに使う関数 */
     fun finishFragment() {
         parentFragmentManager.beginTransaction().remove(this).commit()
+        // MainActivityの場合はBottomNavigationを戻す
+        (requireActivity() as? MainActivity)?.setBottomNavigationHeight(0)
     }
 
     /** 画面が横かどうかを返す。横ならtrue */
