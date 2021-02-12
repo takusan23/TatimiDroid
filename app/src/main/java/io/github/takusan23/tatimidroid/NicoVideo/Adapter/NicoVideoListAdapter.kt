@@ -37,7 +37,9 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : Re
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val titleTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_title)
-        val infoTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_info)
+        val playCountTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_play_count_text_view)
+        val commentCountTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_comment_count_text_view)
+        val mylistCountTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_mylist_count_text_view)
         val dateTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_date)
         val cardView = itemView.findViewById<CardView>(R.id.adapter_nicovideo_list_cardview)
         val thumImageView = itemView.findViewById<ImageView>(R.id.adapter_nicovideo_list_thum)
@@ -86,9 +88,13 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : Re
             titleTextView.text = "${data.title}\n${data.videoId}"
             // 再生回数、マイリスト数、コメント数がすべて-1以外なら表示させる（ニコレポは再生回数取れない）
             if (data.viewCount != "-1" && data.mylistCount != "-1" && data.commentCount != "-1") {
-                infoTextView.text = "${context.getString(R.string.view_count)}：${data.viewCount} | ${context.getString(R.string.comment_count)}：${data.commentCount} | ${context.getString(R.string.mylist_count)}：${data.mylistCount}"
+                playCountTextView.text = data.viewCount
+                commentCountTextView.text = data.commentCount
+                mylistCountTextView.text = data.mylistCount
             } else {
-                infoTextView.text = ""
+                playCountTextView.text = "-"
+                commentCountTextView.text = "-"
+                mylistCountTextView.text = "-"
             }
             // 再生時間。ない場合がある
             if (data.duration != null && data.duration > 0) {

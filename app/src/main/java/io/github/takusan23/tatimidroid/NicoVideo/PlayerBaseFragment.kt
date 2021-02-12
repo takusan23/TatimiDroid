@@ -98,12 +98,10 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         }
         // バックキーのイベント
         requireActivity().onBackPressedDispatcher.addCallback(this) {
-            if (!isMiniPlayerMode()) {
-                toMiniPlayer()
-            } else {
-                // 終了
-                playerLinearLayout.toDestroyPlayer()
-                isEnabled = false
+            when {
+                playerLinearLayout.isDisableMiniPlayerMode -> finishFragment()
+                !isMiniPlayerMode() -> toMiniPlayer()
+                else -> isEnabled = false
             }
         }
         // BottomNavを消してみる

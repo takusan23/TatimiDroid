@@ -40,7 +40,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     }
 
     /** ミニプレイヤー時の幅 */
-    var miniPlayerWidth = if (isLandScape()) DisplaySizeTool.getDisplayWidth(context) / 3 else DisplaySizeTool.getDisplayWidth(context) / 2
+    private var miniPlayerWidth = if (isLandScape()) DisplaySizeTool.getDisplayWidth(context) / 3 else DisplaySizeTool.getDisplayWidth(context) / 2
 
     /** ミニプレイヤーになったときの高さ。[miniPlayerWidth]を16で割って9をかけることで16:9になるようにしている */
     private val miniPlayerHeight: Int
@@ -115,8 +115,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     /** 操作中の移動速度 */
     private var slidingSpeed = 0f
 
-    /** 一つ前の状態を持っておく */
-    private var beforeState = -1
+    /** 今の状態を持っておく */
+    private var currentState = PLAYER_STATE_DEFAULT
 
 
     /**
@@ -135,10 +135,13 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
      * 初期設定を行いますので利用前にこの関数をよんでください
      * @param playerView サイズ変更を行うView。これはアスペクト比の調整のために使う。VideoViewとかSurfaceViewとか？
      * @param playerViewParent [playerView]が乗っているViewGroup。こいつを[View.setTranslationY]などを使って動かす。
+     * @param portlateMiniPlayerWidth 省略可能。縦画面のときのミニプレイヤーの幅。省略すると画面の幅の半分
+     * @param landscapeMiniPlayerWidth 省略可能。横画面のときのミニプレイヤーの幅。省略すると画面の幅の三分の一
      * */
-    fun setup(playerView: View, playerViewParent: ViewGroup) {
+    fun setup(playerView: View, playerViewParent: ViewGroup, portlateMiniPlayerWidth: Int = DisplaySizeTool.getDisplayWidth(context) / 2, landscapeMiniPlayerWidth: Int = DisplaySizeTool.getDisplayWidth(context) / 3) {
         this.playerView = playerView
         this.playerViewParentViewGroup = playerViewParent
+        this.miniPlayerWidth = if (isLandScape()) landscapeMiniPlayerWidth else portlateMiniPlayerWidth
         // 横画面時は上方向のマージンをかける
         setLandScapeTopMargin(1f)
     }
@@ -332,26 +335,26 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 when {
                     isDefaultScreen() -> {
                         // 違ったら入れる
-                        if (beforeState != PLAYER_STATE_DEFAULT) {
+                        if (currentState != PLAYER_STATE_DEFAULT) {
                             stateChangeListenerList.forEach { it.invoke(PLAYER_STATE_DEFAULT) }
-                            beforeState = PLAYER_STATE_DEFAULT
+                            currentState = PLAYER_STATE_DEFAULT
                         }
                     }
                     isMiniPlayer() -> {
                         // 違ったら入れる
-                        if (beforeState != PLAYER_STATE_MINI) {
+                        if (currentState != PLAYER_STATE_MINI) {
                             stateChangeListenerList.forEach { it.invoke(PLAYER_STATE_MINI) }
-                            beforeState = PLAYER_STATE_MINI
+                            currentState = PLAYER_STATE_MINI
                         }
                     }
                     translationY.roundToInt() == parentViewGroupHeight -> {
                         // まだ終了済みではない
                         if (!isAlreadyDestroyed) {
                             // 違ったら入れる
-                            if (beforeState != PLAYER_STATE_DESTROY) {
+                            if (currentState != PLAYER_STATE_DESTROY) {
                                 stateChangeListenerList.forEach { it.invoke(PLAYER_STATE_DESTROY) }
                                 isAlreadyDestroyed = true
-                                beforeState = PLAYER_STATE_DESTROY
+                                currentState = PLAYER_STATE_DESTROY
                             }
                         }
                     }

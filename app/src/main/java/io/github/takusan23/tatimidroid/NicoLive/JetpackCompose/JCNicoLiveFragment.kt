@@ -639,6 +639,11 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 nicolivePlayerUIBinding.includeNicolivePlayerControlGroup.visibility = View.INVISIBLE
             }
         }
+        // 初回時もちょっとまってから消す
+        lifecycleScope.launch(hideJob) {
+            delay(3000)
+            nicolivePlayerUIBinding.includeNicolivePlayerControlGroup.visibility = View.INVISIBLE
+        }
         // プレイヤー右上のアイコンにWi-Fiアイコンがあるけどあれ、どの方法で再生してるかだから。キャッシュならフォルダーになる
         val playingTypeDrawable = InternetConnectionCheck.getConnectionTypeDrawable(requireContext())
         nicolivePlayerUIBinding.includeNicolivePlayerNetworkImageView.setImageDrawable(playingTypeDrawable)

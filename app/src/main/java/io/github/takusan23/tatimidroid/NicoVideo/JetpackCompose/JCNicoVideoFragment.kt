@@ -452,6 +452,11 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = View.INVISIBLE
             }
         }
+        // 初回時もちょっとまってから消す
+        lifecycleScope.launch(hideJob) {
+            delay(3000)
+            nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = View.INVISIBLE
+        }
         // プレイヤー右上のアイコンにWi-Fiアイコンがあるけどあれ、どの方法で再生してるかだから。キャッシュならフォルダーになる
         val playingTypeDrawable = when {
             viewModel.isOfflinePlay.value ?: false -> requireContext().getDrawable(R.drawable.ic_folder_open_black_24dp)
