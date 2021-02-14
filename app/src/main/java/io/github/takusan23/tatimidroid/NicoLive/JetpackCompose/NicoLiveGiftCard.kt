@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.AmbientContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -152,14 +153,14 @@ fun NicoLiveGiftTab(
         TabPadding(
             index = 0,
             tabName = stringResource(id = R.string.gift_history),
-            tabIcon = vectorResource(id = R.drawable.ic_history_24px),
+            tabIcon = painterResource(id = R.drawable.ic_history_24px),
             selectedIndex = selectTabIndex,
             tabClick = { onClickTabItem(it) }
         )
         TabPadding(
             index = 1,
             tabName = stringResource(id = R.string.gift_ranking),
-            tabIcon = vectorResource(id = R.drawable.ic_signal_cellular_alt_black_24dp),
+            tabIcon = painterResource(id = R.drawable.ic_signal_cellular_alt_black_24dp),
             selectedIndex = selectTabIndex,
             tabClick = { onClickTabItem(it) }
         )

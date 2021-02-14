@@ -9,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -41,7 +42,7 @@ fun NicoLiveStatisticsUI(
                 .weight(1f)
         ) {
             Icon(
-                imageVector = vectorResource(id = R.drawable.ic_outline_people_outline_24px),
+                painter = painterResource(id = R.drawable.ic_outline_people_outline_24px),
                 contentDescription = "累計来場者",
             )
             Text(
@@ -58,7 +59,7 @@ fun NicoLiveStatisticsUI(
                 .weight(1f)
         ) {
             Icon(
-                imageVector = vectorResource(id = R.drawable.ic_outline_comment_24px),
+                painter = painterResource(id = R.drawable.ic_outline_comment_24px),
                 contentDescription = stringResource(id = R.string.comment_count),
             )
             Text(
@@ -75,7 +76,7 @@ fun NicoLiveStatisticsUI(
                 .weight(1f)
         ) {
             Icon(
-                imageVector = vectorResource(id = R.drawable.ic_active_icon),
+                painter = painterResource(id = R.drawable.ic_active_icon),
                 contentDescription = stringResource(id = R.string.active),
             )
             Text(
@@ -87,14 +88,14 @@ fun NicoLiveStatisticsUI(
         // アクティブ人数計算ボタン
         IconButton(onClick = { onClickActiveCalc() }) {
             Icon(
-                imageVector = vectorResource(id = R.drawable.ic_timeline_black_24dp),
+                painter = painterResource(id = R.drawable.ic_timeline_black_24dp),
                 contentDescription = "アクティブ人数計算"
             )
         }
         // 部屋切り替えボタン
         IconButton(onClick = { onClickRoomChange() }) {
             Icon(
-                imageVector = vectorResource(id = R.drawable.ic_outline_meeting_room_24px),
+                painter = painterResource(id = R.drawable.ic_outline_meeting_room_24px),
                 stringResource(id = R.string.room_comment)
             )
         }

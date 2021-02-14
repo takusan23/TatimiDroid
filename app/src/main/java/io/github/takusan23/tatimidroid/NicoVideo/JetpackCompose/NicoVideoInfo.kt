@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -105,7 +106,7 @@ fun NicoVideoInfoCard(
             // 投稿日時
             Row {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_event_available_24px),
+                    painter = painterResource(id = R.drawable.ic_event_available_24px),
                     contentDescription = null,
                 )
                 Text(
@@ -114,7 +115,7 @@ fun NicoVideoInfoCard(
             }
             Row {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_history_24px),
+                    painter = painterResource(id = R.drawable.ic_history_24px),
                     contentDescription = null,
                 )
                 Text(
@@ -154,7 +155,7 @@ fun NicoVideoInfoCard(
                 IconButton(onClick = { expanded.value = !expanded.value }) {
                     // アイコンコード一行で召喚できる。npmのmdiみたいだな！
                     Icon(
-                        imageVector = if (expanded.value) vectorResource(id = R.drawable.ic_expand_less_black_24dp) else vectorResource(id = R.drawable.ic_expand_more_24px),
+                        painter = if (expanded.value) painterResource(id = R.drawable.ic_expand_less_black_24dp) else painterResource(id = R.drawable.ic_expand_more_24px),
                         contentDescription = stringResource(id = R.string.nicovideo_info)
                     )
                 }
@@ -164,7 +165,7 @@ fun NicoVideoInfoCard(
             Row {
                 Row {
                     Icon(
-                        imageVector = vectorResource(id = R.drawable.ic_play_arrow_24px),
+                        painter = painterResource(id = R.drawable.ic_play_arrow_24px),
                         contentDescription = stringResource(id = R.string.view_count)
                     )
                     Text(text = nicoVideoData?.viewCount ?: "0")
@@ -172,7 +173,7 @@ fun NicoVideoInfoCard(
                 Spacer(modifier = Modifier.width(10.dp))
                 Row {
                     Icon(
-                        imageVector = vectorResource(id = R.drawable.ic_outline_comment_24px),
+                        painter = painterResource(id = R.drawable.ic_outline_comment_24px),
                         contentDescription = stringResource(id = R.string.comment_count)
                     )
                     Text(text = nicoVideoData?.commentCount ?: "0")
@@ -180,7 +181,7 @@ fun NicoVideoInfoCard(
                 Spacer(modifier = Modifier.width(10.dp))
                 Row {
                     Icon(
-                        imageVector = vectorResource(id = R.drawable.ic_folder_open_black_24dp),
+                        painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
                         contentDescription = stringResource(id = R.string.mylist_count)
                     )
                     Text(text = nicoVideoData?.mylistCount ?: "0")
@@ -230,7 +231,7 @@ fun NicoVideoLikeButton(
     ) {
         Text(text = if (isLiked) stringResource(id = R.string.liked) else stringResource(id = R.string.like))
         Icon(
-            imageVector = if (isLiked) vectorResource(id = R.drawable.ic_favorite_black_24dp) else vectorResource(id = R.drawable.ic_outline_favorite_border_24),
+            painter = if (isLiked) painterResource(id = R.drawable.ic_favorite_black_24dp) else painterResource(id = R.drawable.ic_outline_favorite_border_24),
             tint = if (isLiked) pinkColor else AmbientContentColor.current.copy(alpha = AmbientContentAlpha.current),
             contentDescription = stringResource(id = R.string.like)
         )
@@ -256,7 +257,7 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
             // 関連動画
             Row {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_local_movies_24px),
+                    painter = painterResource(id = R.drawable.ic_local_movies_24px),
                     contentDescription = null
                 )
                 Text(text = stringResource(id = R.string.recommend_video))
@@ -311,7 +312,7 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
                 onUserOpenClick()
             }) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_outline_open_in_browser_24px),
+                    painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
                     contentDescription = stringResource(id = R.string.open_browser)
                 )
             }
@@ -353,7 +354,7 @@ fun NicoVideoTagCard(
                             Surface(modifier = Modifier.clickable { onTagClick(data) }) {
                                 Row(modifier = Modifier.padding(10.dp)) {
                                     Icon(
-                                        imageVector = vectorResource(id = R.drawable.ic_local_offer_24px),
+                                        painter = painterResource(id = R.drawable.ic_local_offer_24px),
                                         contentDescription = stringResource(id = R.string.serch),
                                     )
                                     Text(text = data.tagName)
@@ -371,7 +372,7 @@ fun NicoVideoTagCard(
                                 Surface(modifier = Modifier.clickable { onNicoPediaClick(data.nicoPediaUrl) }) {
                                     Row(modifier = Modifier.padding(10.dp)) {
                                         Icon(
-                                            imageVector = vectorResource(id = R.drawable.ic_outline_open_in_browser_24px),
+                                            painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
                                             contentDescription = stringResource(id = R.string.nico_pedia),
                                         )
                                         Text(text = stringResource(id = R.string.nico_pedia))
@@ -420,7 +421,7 @@ fun NicoVideoSeriesCard(
         Column(modifier = Modifier.padding(10.dp)) {
             Row {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_folder_open_black_24dp),
+                    painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
                     contentDescription = stringResource(id = R.string.series)
                 )
                 Text(text = stringResource(id = R.string.series))
@@ -448,7 +449,7 @@ fun NicoVideoSeriesCard(
                 // 一覧表示
                 IconButton(onClick = { expanded.value = !expanded.value }) {
                     Icon(
-                        imageVector = if (expanded.value) vectorResource(id = R.drawable.ic_expand_less_black_24dp) else vectorResource(id = R.drawable.ic_expand_more_24px),
+                        painter = if (expanded.value) painterResource(id = R.drawable.ic_expand_less_black_24dp) else painterResource(id = R.drawable.ic_expand_more_24px),
                         contentDescription = "シリーズメニュー",
                     )
                 }
@@ -460,7 +461,7 @@ fun NicoVideoSeriesCard(
                     // 連続再生開始などのメニュー
                     TextButton(onClick = { onClickStartSeriesPlay() }) {
                         Icon(
-                            imageVector = vectorResource(id = R.drawable.ic_play_arrow_24px),
+                            painter = painterResource(id = R.drawable.ic_play_arrow_24px),
                             contentDescription = stringResource(id = R.string.nicovideo_playlist_start)
                         )
                         Text(text = stringResource(id = R.string.nicovideo_playlist_start), modifier = Modifier.weight(1f))
@@ -469,7 +470,7 @@ fun NicoVideoSeriesCard(
                     if (nicoVideoHTMLSeriesData.firstVideoData != null) {
                         TextButton(onClick = { onClickFirstVideoPlay(nicoVideoHTMLSeriesData.firstVideoData) }, modifier = Modifier.fillMaxWidth()) {
                             Icon(
-                                imageVector = vectorResource(id = R.drawable.ic_outline_filter_1_24),
+                                painter = painterResource(id = R.drawable.ic_outline_filter_1_24),
                                 contentDescription = stringResource(id = R.string.nicovideo_series_first_video)
                             )
                             Text(text = "${stringResource(id = R.string.nicovideo_series_first_video)}\n${nicoVideoHTMLSeriesData.firstVideoData.title}", modifier = Modifier.weight(1f))
@@ -479,7 +480,7 @@ fun NicoVideoSeriesCard(
                     if (nicoVideoHTMLSeriesData.prevVideoData != null) {
                         TextButton(onClick = { onClickPrevVideoPlay(nicoVideoHTMLSeriesData.prevVideoData) }, modifier = Modifier.fillMaxWidth()) {
                             Icon(
-                                imageVector = vectorResource(id = R.drawable.ic_arrow_back_black_24dp),
+                                painter = painterResource(id = R.drawable.ic_arrow_back_black_24dp),
                                 contentDescription = stringResource(id = R.string.nicovideo_series_prev_video)
                             )
                             Text(text = "${stringResource(id = R.string.nicovideo_series_prev_video)}\n${nicoVideoHTMLSeriesData.prevVideoData.title}", modifier = Modifier.weight(1f))
@@ -489,7 +490,7 @@ fun NicoVideoSeriesCard(
                     if (nicoVideoHTMLSeriesData.nextVideoData != null) {
                         TextButton(onClick = { onClickNextVideoPlay(nicoVideoHTMLSeriesData.nextVideoData) }, modifier = Modifier.fillMaxWidth()) {
                             Icon(
-                                imageVector = vectorResource(id = R.drawable.ic_outline_arrow_forward_24),
+                                painter = painterResource(id = R.drawable.ic_outline_arrow_forward_24),
                                 contentDescription = stringResource(id = R.string.nicovideo_series_next_video)
                             )
                             Text(text = "${stringResource(id = R.string.nicovideo_series_next_video)}\n${nicoVideoHTMLSeriesData.nextVideoData.title}", modifier = Modifier.weight(1f))
@@ -543,7 +544,7 @@ fun NicoVideoPlayList(
                 )
                 IconButton(onClick = { isPlaylistShow.value = !isPlaylistShow.value }) {
                     Icon(
-                        imageVector = if (isPlaylistShow.value) vectorResource(id = R.drawable.ic_expand_less_black_24dp) else vectorResource(id = R.drawable.ic_expand_more_24px),
+                        painter = if (isPlaylistShow.value) painterResource(id = R.drawable.ic_expand_less_black_24dp) else painterResource(id = R.drawable.ic_expand_more_24px),
                         contentDescription = "動画一覧"
                     )
                 }
@@ -560,7 +561,7 @@ fun NicoVideoPlayList(
                             // 何分か
                             val totalDuration = videoList.sumBy { nicoVideoData -> nicoVideoData.duration?.toInt() ?: 0 }
                             Icon(
-                                imageVector = vectorResource(id = R.drawable.ic_outline_timer_24),
+                                painter = painterResource(id = R.drawable.ic_outline_timer_24),
                                 contentDescription = stringResource(id = R.string.playlist_total_time),
                             )
                             Text(text = "${stringResource(id = R.string.playlist_total_time)}：${DateUtils.formatElapsedTime(totalDuration.toLong())}")
@@ -571,7 +572,7 @@ fun NicoVideoPlayList(
                             onClick = { }
                         ) {
                             Icon(
-                                imageVector = vectorResource(id = R.drawable.ic_view_list_black),
+                                painter = painterResource(id = R.drawable.ic_view_list_black),
                                 contentDescription = stringResource(id = R.string.video_count),
                             )
                             Text(text = "${stringResource(id = R.string.video_count)}：${videoList.size}")
@@ -582,7 +583,7 @@ fun NicoVideoPlayList(
                             onClick = { reverseClick() }
                         ) {
                             Icon(
-                                imageVector = if (isReverse) vectorResource(id = R.drawable.ic_outline_check_box_24) else vectorResource(id = R.drawable.ic_outline_check_box_outline_blank_24),
+                                painter = if (isReverse) painterResource(id = R.drawable.ic_outline_check_box_24) else painterResource(id = R.drawable.ic_outline_check_box_outline_blank_24),
                                 contentDescription = stringResource(id = R.string.reverse),
                             )
                             Text(text = stringResource(id = R.string.reverse))
@@ -593,7 +594,7 @@ fun NicoVideoPlayList(
                             onClick = { shuffleClick() }
                         ) {
                             Icon(
-                                imageVector = if (isShuffle) vectorResource(id = R.drawable.ic_outline_check_box_24) else vectorResource(id = R.drawable.ic_outline_check_box_outline_blank_24),
+                                painter = if (isShuffle) painterResource(id = R.drawable.ic_outline_check_box_24) else painterResource(id = R.drawable.ic_outline_check_box_outline_blank_24),
                                 contentDescription = stringResource(id = R.string.shuffle),
                             )
                             Text(text = stringResource(id = R.string.shuffle))
@@ -650,7 +651,7 @@ fun NicoVideoPlayList(
                                     videoClick(data.videoId)
                                 }) {
                                     Icon(
-                                        imageVector = vectorResource(id = R.drawable.ic_play_arrow_24px),
+                                        painter = painterResource(id = R.drawable.ic_play_arrow_24px),
                                         modifier = Modifier.padding(10.dp),
                                         contentDescription = "ここから再生"
                                     )
@@ -688,7 +689,7 @@ fun NicoVideoCommentListFab(
         })
     {
         Icon(
-            imageVector = if (isShowCommentList) vectorResource(id = R.drawable.ic_outline_info_24px) else vectorResource(id = R.drawable.ic_outline_comment_24px),
+            painter = if (isShowCommentList) painterResource(id = R.drawable.ic_outline_info_24px) else painterResource(id = R.drawable.ic_outline_comment_24px),
             contentDescription = null
         )
     }
@@ -720,7 +721,7 @@ fun NicoVideoCommentBottomSheet(commentList: ArrayList<CommentJSONParse>, commen
                             modifier = Modifier.padding(10.dp)
                         ) {
                             Icon(
-                                imageVector = vectorResource(id = R.drawable.ic_outline_comment_24px),
+                                painter = painterResource(id = R.drawable.ic_outline_comment_24px),
                                 contentDescription = null
                             )
                             Text(text = stringResource(id = R.string.comment))
@@ -765,7 +766,7 @@ fun BottomSheetFab(fabClick: () -> Unit) {
                 fabClick()
             }) {
             Icon(
-                imageVector = vectorResource(id = R.drawable.ic_outline_comment_24px),
+                painter = painterResource(id = R.drawable.ic_outline_comment_24px),
                 contentDescription = null
             )
         }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.outlined.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -82,12 +84,11 @@ fun NicoLiveCommentInputButton(
     Column(
         modifier = Modifier.background(
             colorResource(id = R.color.colorPrimary),
-            RoundedCornerShape(
-                // コメント入力テキストボックス表示中は角を丸くしない
-                topLeft = if (!isHideCommentLayout.value) 0.dp else 20.dp,
-                topRight = 0.dp,
-                bottomRight = 0.dp,
-                bottomLeft = 0.dp
+            RoundedCornerShape(                // コメント入力テキストボックス表示中は角を丸くしない
+                topStart = if (!isHideCommentLayout.value) 0f else 20f,
+                topEnd = 0f,
+                bottomStart = 0f,
+                bottomEnd = 0f
             )
         ),
     ) {
@@ -113,7 +114,7 @@ fun NicoLiveCommentInputButton(
             // コメント投稿エリア収納
             IconButton(onClick = { isHideCommentLayout.value = !isHideCommentLayout.value }) {
                 Icon(
-                    imageVector = if (isHideCommentLayout.value) vectorResource(id = R.drawable.ic_outline_create_24px) else vectorResource(id = R.drawable.ic_outline_keyboard_arrow_right_24),
+                    painter = if (isHideCommentLayout.value) painterResource(id = R.drawable.ic_outline_create_24px) else painterResource(id = R.drawable.ic_outline_keyboard_arrow_right_24),
                     tint = Color.White,
                     contentDescription = "コメント投稿UI表示"
                 )
@@ -123,7 +124,7 @@ fun NicoLiveCommentInputButton(
                 // コマンドパネル
                 IconButton(onClick = { isShowCommandPanel.value = !isShowCommandPanel.value }) {
                     Icon(
-                        imageVector = vectorResource(id = R.drawable.ic_paint_black),
+                        painter = painterResource(id = R.drawable.ic_paint_black),
                         tint = Color.White,
                         contentDescription = "コマンドパネル"
                     )
@@ -148,17 +149,17 @@ fun NicoLiveCommentInputButton(
                     textStyle = TextStyle(Color.White),
                     // 複数行投稿が無効な場合はEnterキーを送信、そうじゃない場合は改行へ
                     keyboardOptions = if (!isMultiLine) KeyboardOptions(imeAction = ImeAction.Send) else KeyboardOptions.Default,
-                    onImeActionPerformed = { imeAction, softwareKeyboardController ->
-                        if (imeAction == ImeAction.Send) {
+                    keyboardActions = KeyboardActions(
+                        onSend = {
                             // 送信！
                             onPostClick()
                         }
-                    }
+                    )
                 )
                 // 投稿ボタン
                 IconButton(onClick = { onPostClick() }) {
                     Icon(
-                        imageVector = vectorResource(id = R.drawable.ic_send_black),
+                        painter = painterResource(id = R.drawable.ic_send_black),
                         tint = Color.White,
                         contentDescription = stringResource(id = R.string.comment_post)
                     )
@@ -168,7 +169,7 @@ fun NicoLiveCommentInputButton(
             if (isShowCommentInfoChangeButton) {
                 IconButton(onClick = { onClick() }) {
                     Icon(
-                        imageVector = if (isComment) vectorResource(id = R.drawable.ic_outline_comment_24px) else vectorResource(id = R.drawable.ic_outline_info_24px),
+                        painter = if (isComment) painterResource(id = R.drawable.ic_outline_comment_24px) else painterResource(id = R.drawable.ic_outline_info_24px),
                         tint = Color.White,
                         contentDescription = "コメント表示/番組情報 切り替え"
                     )
@@ -364,7 +365,7 @@ fun NicoLiveCommentCommandPanel(
                 }
             ) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_backspace_24px),
+                    painter = painterResource(id = R.drawable.ic_backspace_24px),
                     tint = Color.White,
                     contentDescription = stringResource(id = R.string.reset)
                 )

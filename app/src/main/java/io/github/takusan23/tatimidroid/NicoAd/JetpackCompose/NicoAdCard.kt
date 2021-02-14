@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.AmbientContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -111,7 +112,7 @@ fun NicoAdTop(
             // ブラウザ起動ボタン
             IconButton(onClick = { onClickOpenBrowser() }) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_outline_open_in_browser_24px),
+                    painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
                     contentDescription = stringResource(id = R.string.open_browser)
                 )
             }
@@ -177,14 +178,14 @@ fun NicoAdTabMenu(
         TabPadding(
             index = 0,
             tabName = stringResource(id = R.string.nico_ad_ranking),
-            tabIcon = vectorResource(id = R.drawable.ic_signal_cellular_alt_black_24dp),
+            tabIcon = painterResource(id = R.drawable.ic_signal_cellular_alt_black_24dp),
             selectedIndex = selectTabIndex,
             tabClick = { onClickTabItem(it) }
         )
         TabPadding(
             index = 1,
             tabName = stringResource(id = R.string.nico_ad_history),
-            tabIcon = vectorResource(id = R.drawable.ic_history_24px),
+            tabIcon = painterResource(id = R.drawable.ic_history_24px),
             selectedIndex = selectTabIndex,
             tabClick = { onClickTabItem(it) }
         )

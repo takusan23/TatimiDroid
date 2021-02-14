@@ -6,6 +6,7 @@ import androidx.compose.material.Tab
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
@@ -18,7 +19,7 @@ import androidx.compose.ui.unit.dp
  * @param tabClick タブを押した時
  * */
 @Composable
-fun TabPadding(index: Int, tabName: String, tabIcon: ImageVector, selectedIndex: Int, tabClick: (Int) -> Unit) {
+fun TabPadding(index: Int, tabName: String, tabIcon: Painter, selectedIndex: Int, tabClick: (Int) -> Unit) {
     Tab(
         modifier = Modifier.padding(5.dp),
         selected = selectedIndex == index,
@@ -26,7 +27,7 @@ fun TabPadding(index: Int, tabName: String, tabIcon: ImageVector, selectedIndex:
             tabClick(index)
         }
     ) {
-        Icon(imageVector = tabIcon, contentDescription = tabName)
+        Icon(painter = tabIcon, contentDescription = tabName)
         Text(text = tabName)
     }
 }

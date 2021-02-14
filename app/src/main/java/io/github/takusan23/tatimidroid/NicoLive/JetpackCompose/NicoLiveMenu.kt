@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,42 +33,42 @@ fun NicoLiveMenuTab(
         TabPadding(
             index = 0,
             tabName = stringResource(id = R.string.menu),
-            tabIcon = vectorResource(id = R.drawable.ic_outline_toggle_on_24),
+            tabIcon = painterResource(id = R.drawable.ic_outline_toggle_on_24),
             selectedIndex = selectedIndex,
             tabClick = { tabClick(0) }
         )
         TabPadding(
             index = 1,
             tabName = stringResource(id = R.string.comment_viewer_setting),
-            tabIcon = vectorResource(id = R.drawable.ic_outline_comment_24px),
+            tabIcon = painterResource(id = R.drawable.ic_outline_comment_24px),
             selectedIndex = selectedIndex,
             tabClick = { tabClick(1) }
         )
         TabPadding(
             index = 2,
             tabName = stringResource(id = R.string.menu),
-            tabIcon = vectorResource(id = R.drawable.ic_outline_menu_24),
+            tabIcon = painterResource(id = R.drawable.ic_outline_menu_24),
             selectedIndex = selectedIndex,
             tabClick = { tabClick(2) }
         )
         TabPadding(
             index = 3,
             tabName = stringResource(id = R.string.share),
-            tabIcon = vectorResource(id = R.drawable.ic_share),
+            tabIcon = painterResource(id = R.drawable.ic_share),
             selectedIndex = selectedIndex,
             tabClick = { tabClick(3) }
         )
         TabPadding(
             index = 4,
             tabName = stringResource(id = R.string.volume),
-            tabIcon = vectorResource(id = R.drawable.ic_volume_up_24px),
+            tabIcon = painterResource(id = R.drawable.ic_volume_up_24px),
             selectedIndex = selectedIndex,
             tabClick = { tabClick(4) }
         )
         TabPadding(
             index = 5,
             tabName = stringResource(id = R.string.nico_nama_game),
-            tabIcon = vectorResource(id = R.drawable.ic_videogame_asset_black_24dp),
+            tabIcon = painterResource(id = R.drawable.ic_videogame_asset_black_24dp),
             selectedIndex = selectedIndex,
             tabClick = { tabClick(5) }
         )
@@ -236,7 +237,7 @@ fun NicoLiveButtonMenu(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_outline_photo_filter_24px),
+                    painter = painterResource(id = R.drawable.ic_outline_photo_filter_24px),
                     contentDescription = stringResource(id = R.string.quality)
                 )
                 Text(
@@ -254,7 +255,7 @@ fun NicoLiveButtonMenu(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_outline_add_to_home_screen_24),
+                    painter = painterResource(id = R.drawable.ic_outline_add_to_home_screen_24),
                     contentDescription = stringResource(id = R.string.add_homescreen)
                 )
                 Text(
@@ -272,7 +273,7 @@ fun NicoLiveButtonMenu(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_screen_rotation_24px),
+                    painter = painterResource(id = R.drawable.ic_screen_rotation_24px),
                     contentDescription = stringResource(id = R.string.landscape_portrait)
                 )
                 Text(
@@ -290,7 +291,7 @@ fun NicoLiveButtonMenu(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_content_paste_black_24dp),
+                    painter = painterResource(id = R.drawable.ic_content_paste_black_24dp),
                     contentDescription = stringResource(id = R.string.copy_program_id)
                 )
                 Text(
@@ -308,7 +309,7 @@ fun NicoLiveButtonMenu(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_content_paste_black_24dp),
+                    painter = painterResource(id = R.drawable.ic_content_paste_black_24dp),
                     contentDescription = stringResource(id = R.string.copy_communityid)
                 )
                 Text(
@@ -326,7 +327,7 @@ fun NicoLiveButtonMenu(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_outline_open_in_browser_24px),
+                    painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
                     contentDescription = stringResource(id = R.string.open_browser)
                 )
                 Text(
@@ -344,7 +345,7 @@ fun NicoLiveButtonMenu(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_outline_block_24px),
+                    painter = painterResource(id = R.drawable.ic_outline_block_24px),
                     contentDescription = stringResource(id = R.string.ng_list)
                 )
                 Text(
@@ -362,7 +363,7 @@ fun NicoLiveButtonMenu(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
-                    imageVector = vectorResource(id = R.drawable.ic_outline_account_box_24),
+                    painter = painterResource(id = R.drawable.ic_outline_account_box_24),
                     contentDescription = stringResource(id = R.string.kotehan_list)
                 )
                 Text(
@@ -394,7 +395,7 @@ fun NicoLiveNicoNamaGameCard(
     ) {
         Row(modifier = Modifier.padding(10.dp)) {
             Icon(
-                imageVector = vectorResource(id = R.drawable.ic_outline_info_24px),
+                painter = painterResource(id = R.drawable.ic_outline_info_24px),
                 contentDescription = null,
             )
             Column(modifier = Modifier.weight(1f)) {
