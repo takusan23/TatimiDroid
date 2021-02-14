@@ -120,8 +120,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     init {
         // コメントを動かす
         commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
-            GlobalScope.launch(coroutineJob + Dispatchers.Main) {
-                if (isPlaying) {
+            if (isPlaying) {
+                GlobalScope.launch(coroutineJob + Dispatchers.Main) {
                     // 画面外のコメントは描画しない
                     for (reDrawCommentData in drawNakaCommentList.toList().filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
                         if (reDrawCommentData != null) {
@@ -181,8 +181,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                         drawComment(it, currentPos)
                     }
                 }
-                delay(100)
             }
+            delay(100)
         }
 
 
