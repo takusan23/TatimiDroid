@@ -83,6 +83,10 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         }
         // プレイヤー（PlayerParentFrameLayout）セットアップ
         playerLinearLayout.setup(fragmentPlayerFrameLayout, viewBinding.fragmentPlayerBaseFragmentParentLinearLayout)
+
+        // ミニプレイヤー無効化
+        // playerLinearLayout.isDisableMiniPlayerMode = true
+
         // コールバック。これは変更通知
         playerLinearLayout.addOnStateChangeListener { state ->
             // 終了の時
@@ -106,7 +110,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         }
         // BottomNavを消してみる
         (requireActivity() as? MainActivity)?.apply {
-            playerLinearLayout.setupBottomNavigation(this.viewBinding.mainActivityBottomNavigationView)
+            playerLinearLayout.setupBottomNavigation(this.viewBinding.mainActivityBottomNavigationView, this@PlayerBaseFragment.lifecycle)
         }
     }
 

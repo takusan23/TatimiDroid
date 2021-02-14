@@ -91,7 +91,9 @@ class NicoVideoCommentFragment : Fragment() {
             adapter = nicoVideoAdapter
             //区切り線いれる
             val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
-            addItemDecoration(itemDecoration)
+            if (itemDecorationCount == 0) {
+                addItemDecoration(itemDecoration)
+            }
             // スクロールイベント。上方向へスクロールをしたら自動追従を解除する設定にした。
             // これで自動スクロール止めたい場合は上方向へスクロールしてください。代わりに追いかけるボタンが表示されます。
             addOnScrollListener(object : RecyclerView.OnScrollListener() {

@@ -11,10 +11,16 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.core.view.doOnLayout
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
+import okhttp3.internal.format
 import kotlin.math.roundToInt
+
 
 /**
  * 第3世代プレイヤーレイアウト
@@ -116,8 +122,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     private var slidingSpeed = 0f
 
     /** 今の状態を持っておく */
-    private var currentState = PLAYER_STATE_DEFAULT
-
+    var currentState = PLAYER_STATE_DEFAULT
 
     /**
      * 終了したときに呼ばれる関数。関数が入ってる配列、なんかおもろい
@@ -130,6 +135,15 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
      * 通常プレイヤーなら0、ミニプレイヤーなら1になると思う
      * */
     private var progressListenerList = arrayListOf<((progress: Float) -> Unit)>()
+
+    /**
+     * フルスクリーン、解除コールバック
+     * isFullScreenがtrueでフルスクリーン
+     * */
+    private var fullscreenListenerList = arrayListOf<((isFullScreen: Boolean) -> Unit)>()
+
+    /** タッチ開始時間。ミリ秒 */
+    private var touchTime = 0L
 
     /**
      * 初期設定を行いますので利用前にこの関数をよんでください
@@ -164,7 +178,10 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         // apply { } を利用しているので translationY を利用すると playerViewParentViewGroup になります
         playerViewParentViewGroup?.apply {
 
-            // 無効状態 か プレイヤーをタッチしていない場合は return
+            /** プレイヤータッチしているか */
+            isTouchingPlayerView = isTouchingPlayerView(event)
+
+            // プレイヤーをタッチしていない場合は return
             if (isDisableMiniPlayerMode) return
 
             // setup関数よんだ？
@@ -183,9 +200,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
 
                 /** 進行途中の場合はtrue */
                 isProgress = progress < 1f && progress > 0f
-
-                /** プレイヤータッチしているか */
-                isTouchingPlayerView = isTouchingPlayerView(event)
 
                 // フリック時の処理。早くフリックしたときにミニプレイヤー、通常画面へ素早く切り替える
                 when (event.action) {
@@ -235,17 +249,19 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                     // プレイヤーを操作中 または 進行中...（通常画面でもなければミニプレイヤーでもない）
                     if (isTouchingPlayerView || (!isDefaultScreen() && !isMiniPlayer())) {
                         when (event.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                touchTime = System.currentTimeMillis()
+                            }
                             MotionEvent.ACTION_MOVE -> {
                                 // サイズ変更
                                 toPlayerProgress(progress)
                             }
                             MotionEvent.ACTION_UP -> {
-                                /**
-                                 * 上のフリックでのミニプレイヤー、通常切り替えを実施済みかどうか
-                                 * 移動速度から判定
-                                 * */
+                                // 上のフリックでのミニプレイヤー、通常切り替えを実施済みかどうか。移動速度から
                                 val isAlreadyMoveAnimated = slidingSpeed > flickSpeed || slidingSpeed < -flickSpeed
-                                if (!isAlreadyMoveAnimated) {
+                                // タッチが短い場合は無視（0.1秒以内に処理を終えたら無視）
+                                val calcTouchTime = System.currentTimeMillis() - touchTime
+                                if (!isAlreadyMoveAnimated && calcTouchTime > 100) {
                                     // 画面の半分以上か以下か
                                     if (event.y < (parentViewGroupHeight / 2)) {
                                         // 以上。上半分で離した場合は上に戻す
@@ -253,7 +269,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                                     } else {
                                         // 以下。下半分で戻した場合はミニプレイヤーへ
                                         if (translationY > (parentViewGroupHeight - miniPlayerHeight) + (miniPlayerHeight / 2)) {
-                                            // 消せる + ミニプレイヤーでも更に半分進んだ場合は終了アニメへ
+                                            // ミニプレイヤーでも更に半分進んだ場合は終了アニメへ
                                             toDestroyPlayer()
                                         } else {
                                             toMiniPlayer()
@@ -297,13 +313,17 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                     if (isLandScape()) {
                         playerView!!.updateLayoutParams {
                             // 展開時のプレイヤーとミニプレイヤーとの差分を出す。どれぐらい掛ければ展開時のサイズになるのか
-                            val sabun = if (isFullScreenMode) {
-                                parentViewGroupWidth - miniPlayerWidth.toFloat()
+                            if (isFullScreenMode) {
+                                val sabun = parentViewGroupWidth - miniPlayerWidth
+                                width = miniPlayerWidth + (sabun * (1f - progress)).toInt()
+                                // 何倍すれば縦の大きさが出るか
+                                val nanbai = DisplaySizeTool.getDisplayHeight(context) / DisplaySizeTool.getDisplayWidth(context).toFloat()
+                                height = (width * nanbai).toInt()
                             } else {
-                                (parentViewGroupWidth / 2f) - miniPlayerWidth
+                                val sabun = (parentViewGroupWidth / 2f) - miniPlayerWidth
+                                width = miniPlayerWidth + (sabun * (1f - progress)).toInt()
+                                height = (width / 16) * 9
                             }
-                            width = miniPlayerWidth + (sabun * (1f - progress)).toInt()
-                            height = (width / 16) * 9
                         }
                     } else {
                         playerView!!.updateLayoutParams {
@@ -387,12 +407,16 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
      * */
     fun toFullScreen() {
         isFullScreenMode = true
-        playerView!!.updateLayoutParams<LinearLayout.LayoutParams> {
-            // 幅を治す
-            width = DisplaySizeTool.getDisplayWidth(context)
-            height = DisplaySizeTool.getDisplayHeight(context)
-            // マージン解除
-            topMargin = 0
+        // コールバックを送信
+        fullscreenListenerList.forEach { function -> function.invoke(isFullScreenMode) }
+        playerViewParentViewGroup!!.doOnLayout {
+            playerView!!.updateLayoutParams<LinearLayout.LayoutParams> {
+                // 幅を治す
+                width = DisplaySizeTool.getDisplayWidth(context)
+                height = DisplaySizeTool.getDisplayHeight(context)
+                // マージン解除
+                topMargin = 0
+            }
         }
     }
 
@@ -406,6 +430,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
      * */
     fun toDefaultScreen() {
         isFullScreenMode = false
+        // コールバックを送信
+        fullscreenListenerList.forEach { function -> function.invoke(isFullScreenMode) }
         playerView!!.updateLayoutParams<LinearLayout.LayoutParams> {
             // 幅を治す
             width = DisplaySizeTool.getDisplayWidth(context) / 2
@@ -510,25 +536,53 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     }
 
     /**
+     * フルスクリーン遷移コールバックを追加する
+     * @param callback フルスクリーンの切り替えがあったら呼ばれる。引数の isFullScreen はフルスクリーンならtrueになるようになってる
+     * */
+    fun addOnFullScreenChangeListener(callback: (isFullScreen: Boolean) -> Unit) {
+        fullscreenListenerList.add(callback)
+    }
+
+    /**
      * BottomNavigationのHeightも一緒に変化させる場合
      * @param bottomNavigationView 変化させたいView
+     * @param lifecycle Fragment終了時にBottomNavigationViewのサイズを戻す場合は[androidx.fragment.app.Fragment.getLifecycle]を入れてください
      * */
-    fun setupBottomNavigation(bottomNavigationView: BottomNavigationView) {
+    fun setupBottomNavigation(bottomNavigationView: BottomNavigationView, lifecycle: Lifecycle?) {
         // doOnLayoutを使うとHeightが取れる状態になったらコールバックが呼ばれる（本当は：生成直後にgetHeight()を呼ぶと0が帰ってくるのでちょっと待たないといけない）
         bottomNavigationView.doOnLayout { navView ->
             // 高さ調整
             val defaultNavViewHeight = navView.height
             // 進捗を購読する
             addOnProgressListener { progress ->
+                // 全画面時はBottomNavigation消す
+                if (isFullScreenMode) {
+                    navView.isVisible = !isDefaultScreen()
+                }
+                // navView.isVisible = !isFullScreenMode && isMiniPlayer()
                 navView.updateLayoutParams {
                     // LienarLayoutが親の場合は height = 0 が使えるけどそうじゃないので最低値は1にする
                     height = (defaultNavViewHeight * progress).toInt() + 1
                 }
+                // 透明度でごまかす
+                navView.alpha = progress
             }
             // とりあえず1にする
             bottomNavigationView.updateLayoutParams {
                 height = 1
             }
+            addOnFullScreenChangeListener { isFullScreen ->
+                navView.isVisible = !isFullScreen
+            }
+            // Fragmentが終了したときにBottomNavigationのサイズをもとに戻すコード
+            lifecycle?.addObserver(object : LifecycleObserver {
+                // lifecycleライブラリ有能
+                @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+                fun onDestroy() {
+                    navView.updateLayoutParams { height = defaultNavViewHeight }
+                    navView.alpha = 1f
+                }
+            })
         }
     }
 
@@ -554,11 +608,13 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
 
     /**
      * ミニプレイヤーのときはtrueを返す
+     * ユーザー操作時は小数点以下が出るので小数点1桁まで
      * */
-    fun isMiniPlayer() = progress == 1.0f
+    fun isMiniPlayer() = format("%.1f", progress).toFloat() == 1.0f
 
     /**
      * 画面が横向きかどうかを返す
      * */
     private fun isLandScape() = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
 }

@@ -192,8 +192,6 @@ class BottomSheetPlayerBehavior<T : View>(val context: Context, attributeSet: At
                     } else {
                         playerView.updateLayoutParams {
                             width = _playerWidth + (maxTransitionX * slideOffset).toInt()
-                            println(((_playerWidth + (maxTransitionX * slideOffset).toInt()) / 10)*10)
-                            println("-----------")
                             height = (width / 16) * 9
                         }
                     }

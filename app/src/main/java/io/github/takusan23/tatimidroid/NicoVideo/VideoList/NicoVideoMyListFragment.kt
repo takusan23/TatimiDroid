@@ -72,7 +72,9 @@ class NicoVideoMyListFragment : Fragment() {
             adapter = myListAdapter
             // 区切り線
             val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
-            addItemDecoration(itemDecoration)
+            if (itemDecorationCount == 0) {
+                addItemDecoration(itemDecoration)
+            }
         }
     }
 

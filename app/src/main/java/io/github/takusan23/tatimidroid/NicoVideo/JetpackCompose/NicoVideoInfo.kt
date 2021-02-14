@@ -4,6 +4,7 @@ import android.text.format.DateUtils
 import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -245,7 +246,7 @@ fun NicoVideoLikeButton(
 @Composable
 fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
     Card(
-        modifier = parentCardModifier,
+        modifier = parentCardModifier.fillMaxWidth(),
         shape = parentCardShape,
         elevation = parentCardElevation,
     ) {
@@ -261,14 +262,17 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
                 Text(text = stringResource(id = R.string.recommend_video))
             }
             // 一覧表示。RecyclerViewを使い回す
-            AndroidView(viewBlock = { context ->
-                RecyclerView(context).apply {
-                    setHasFixedSize(true)
-                    isNestedScrollingEnabled = false // これしないと関連動画スクロールした状態でミニプレイヤーに遷移できない
-                    layoutManager = LinearLayoutManager(context)
-                    adapter = NicoVideoListAdapter(nicoVideoDataList)
+            AndroidView(
+                modifier = Modifier.fillMaxWidth(),
+                viewBlock = { context ->
+                    RecyclerView(context).apply {
+                        setHasFixedSize(true)
+                        isNestedScrollingEnabled = false // これしないと関連動画スクロールした状態でミニプレイヤーに遷移できない
+                        layoutManager = LinearLayoutManager(context)
+                        adapter = NicoVideoListAdapter(nicoVideoDataList)
+                    }
                 }
-            })
+            )
         }
     }
 }
@@ -319,9 +323,15 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
  * タグ一覧表示Card
  * @param tagItemDataList [NicoTagItemData]配列
  * @param onTagClick 押したときに呼ばれる。
+ * @param onNicoPediaClick ニコニコ大百科ボタンを押したときに呼ばれる
  * */
+@ExperimentalLayout
 @Composable
-fun NicoVideoTagCard(tagItemDataList: ArrayList<NicoTagItemData>, onTagClick: (NicoTagItemData) -> Unit) {
+fun NicoVideoTagCard(
+    tagItemDataList: ArrayList<NicoTagItemData>,
+    onTagClick: (NicoTagItemData) -> Unit,
+    onNicoPediaClick: (String) -> Unit
+) {
     Card(
         modifier = parentCardModifier,
         shape = parentCardShape,
@@ -332,23 +342,50 @@ fun NicoVideoTagCard(tagItemDataList: ArrayList<NicoTagItemData>, onTagClick: (N
             modifier = Modifier.padding(3.dp),
             content = {
                 items(tagItemDataList) { data ->
-                    OutlinedButton(
-                        modifier = Modifier.padding(3.dp),
-                        onClick = {
-                            onTagClick(data)
-                        },
+                    // 角丸ボタン
+                    Surface(
+                        border = ButtonDefaults.outlinedBorder,
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.padding(5.dp),
                     ) {
-                        Icon(
-                            imageVector = vectorResource(id = R.drawable.ic_local_offer_24px),
-                            contentDescription = stringResource(id = R.string.serch)
-                        )
-                        Text(text = data.tagName)
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.preferredHeight(IntrinsicSize.Min)) {
+                            // タグ検索
+                            Surface(modifier = Modifier.clickable { onTagClick(data) }) {
+                                Row(modifier = Modifier.padding(10.dp)) {
+                                    Icon(
+                                        imageVector = vectorResource(id = R.drawable.ic_local_offer_24px),
+                                        contentDescription = stringResource(id = R.string.serch),
+                                    )
+                                    Text(text = data.tagName)
+                                }
+                            }
+                            // 大百科。あるときのみ
+                            if (data.hasNicoPedia) {
+                                // 区切り線
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .preferredWidth(1.dp)
+                                        .background(color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f))
+                                )
+                                Surface(modifier = Modifier.clickable { onNicoPediaClick(data.nicoPediaUrl) }) {
+                                    Row(modifier = Modifier.padding(10.dp)) {
+                                        Icon(
+                                            imageVector = vectorResource(id = R.drawable.ic_outline_open_in_browser_24px),
+                                            contentDescription = stringResource(id = R.string.nico_pedia),
+                                        )
+                                        Text(text = stringResource(id = R.string.nico_pedia))
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         )
     }
 }
+
 
 /**
  * シリーズが設定されてる場合は表示する

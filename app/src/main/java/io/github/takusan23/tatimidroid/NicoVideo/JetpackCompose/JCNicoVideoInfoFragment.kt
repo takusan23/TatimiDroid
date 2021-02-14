@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayout
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.*
@@ -44,6 +45,7 @@ class JCNicoVideoInfoFragment : Fragment() {
     /** [JCNicoVideoFragment]のViewModelを取得する */
     private val viewModel by viewModels<NicoVideoViewModel>({ requireParentFragment() })
 
+    @ExperimentalLayout
     @ExperimentalMaterialApi
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return ComposeView(requireContext()).apply {
@@ -174,6 +176,9 @@ class JCNicoVideoInfoFragment : Fragment() {
                                             onTagClick = { data ->
                                                 // タグ押した時
                                                 setTagSearchFragment(data.tagName)
+                                            },
+                                            onNicoPediaClick = { url ->
+                                                openBrowser(url)
                                             }
                                         )
                                     }
@@ -207,13 +212,6 @@ class JCNicoVideoInfoFragment : Fragment() {
         }
     }
 
-    private fun removeLike() {
-        // どうにかしたい
-        (requireParentFragment() as? JCNicoVideoFragment)?.showSnackBar(getString(R.string.unlike), getString(R.string.torikesu)) {
-            viewModel.removeLike()
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -229,6 +227,23 @@ class JCNicoVideoInfoFragment : Fragment() {
                     bar.view.elevation = 30f
                 }.show()
             }
+        }
+    }
+
+    private fun removeLike() {
+        // どうにかしたい
+        (requireParentFragment() as? JCNicoVideoFragment)?.showSnackBar(getString(R.string.unlike), getString(R.string.torikesu)) {
+            viewModel.removeLike()
+        }
+    }
+
+    /**
+     * ブラウザを開く
+     * @param url リンク
+     * */
+    private fun openBrowser(url: String) {
+        Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+            startActivity(this)
         }
     }
 
