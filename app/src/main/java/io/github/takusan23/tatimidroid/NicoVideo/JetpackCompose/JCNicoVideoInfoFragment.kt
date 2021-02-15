@@ -18,6 +18,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -53,7 +54,7 @@ class JCNicoVideoInfoFragment : Fragment() {
             setContent {
                 MaterialTheme(
                     // ダークモード。動的にテーマ変更できるようになるんか？
-                    colors = if (isDarkMode(AmbientContext.current)) DarkColors else LightColors,
+                    colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
                 ) {
                     Surface {
 

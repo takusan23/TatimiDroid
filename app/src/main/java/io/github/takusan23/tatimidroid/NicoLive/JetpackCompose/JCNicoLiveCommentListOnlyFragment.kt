@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.AmbientContext
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -171,7 +172,7 @@ class JCNicoLiveCommentOnlyFragment : Fragment() {
             setContent {
                 MaterialTheme(
                     // ダークモード。動的にテーマ変更できるようになるんか？
-                    colors = if (isDarkMode(AmbientContext.current)) DarkColors else LightColors,
+                    colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
                 ) {
                     Surface {
                         // 統計情報LiveData

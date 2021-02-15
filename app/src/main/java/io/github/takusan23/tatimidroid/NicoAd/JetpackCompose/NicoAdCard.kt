@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.AmbientContext
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -172,7 +173,7 @@ fun NicoAdTabMenu(
     onClickTabItem: (Int) -> Unit,
 ) {
     TabRow(
-        backgroundColor = if (isDarkMode(AmbientContext.current)) Color.Black else Color.White,
+        backgroundColor = if (isDarkMode(LocalContext.current)) Color.Black else Color.White,
         selectedTabIndex = selectTabIndex
     ) {
         TabPadding(
