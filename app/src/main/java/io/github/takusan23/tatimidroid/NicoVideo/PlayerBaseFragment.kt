@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
@@ -29,6 +30,9 @@ import io.github.takusan23.tatimidroid.databinding.FragmentPlayerBaseBinding
  * プレイヤーに関しては[BottomSheetPlayerBehavior]も参照
  * */
 open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface {
+
+    /** Preference */
+    private val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(requireContext()) }
 
     /** プレイヤーFrameLayoutとFragment置くFrameLayoutがあるだけ */
     private val viewBinding by lazy { FragmentPlayerBaseBinding.inflate(layoutInflater) }
@@ -85,7 +89,8 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         playerLinearLayout.setup(fragmentPlayerFrameLayout, viewBinding.fragmentPlayerBaseFragmentParentLinearLayout)
 
         // ミニプレイヤー無効化
-        // playerLinearLayout.isDisableMiniPlayerMode = true
+        val isDisableMiniPlayerMode = prefSetting.getBoolean("setting_nicovideo_jc_disable_mini_player", false)
+        playerLinearLayout.isDisableMiniPlayerMode = isDisableMiniPlayerMode
 
         // コールバック。これは変更通知
         playerLinearLayout.addOnStateChangeListener { state ->

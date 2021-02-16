@@ -15,7 +15,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -139,7 +138,7 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
     }
 
     /** 画像つき共有をする */
-    fun showShereSheetMediaAttach() {
+    fun showShareSheetMediaAttach() {
         // 親のFragment取得
         (parentFragment as? JCNicoVideoFragment)?.showShareSheetMediaAttach()
     }
@@ -216,7 +215,7 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
                 3 -> {
                     NicoVideoShareMenu(
                         onClickShare = { showShareSheet() },
-                        onClickShareAttachImg = { showShereSheetMediaAttach() },
+                        onClickShareAttachImg = { showShareSheetMediaAttach() },
                     )
                 }
                 4 -> {

@@ -335,7 +335,7 @@ fun NicoVideoTagCard(
     onNicoPediaClick: (String) -> Unit
 ) {
     Card(
-        modifier = parentCardModifier,
+        modifier = parentCardModifier.fillMaxWidth(),
         shape = parentCardShape,
         elevation = parentCardElevation,
     ) {

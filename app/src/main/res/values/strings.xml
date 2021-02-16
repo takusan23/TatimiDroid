@@ -553,8 +553,8 @@
     <string name="setting_nicovideo_jc_disable_description">Since the display is broken on old Android, it is enabled by default.</string>
     <string name="setting_nicovideo_jc_comment_auto_show_off_title">Do not automatically display the comment list during playback</string>
     <string name="setting_nicovideo_jc_comment_auto_show_off_description">If you disable it, the comment list will be displayed automatically.Even live broadcast.</string>
-    <string name="setting_nicovideo_jc_title">Nico Nico Douga New UI Settings</string>
-    <string name="setting_nicovideo_jc_description">I wrote about half of it in Jetpack Compose because of the trend. The way to exit is to swipe down again.</string>
+    <string name="setting_newplayer_jc_title">New player settings</string>
+    <string name="setting_newplayer_jc_description">Under development / experiment.I wrote about half of it in Jetpack Compose because of the trend. The way to exit is to swipe down again.</string>
     <string name="comment_list_only">Show only comment list</string>
     <string name="setting_nicovideo_default_playlist_mode_title">Use continuous playback by default</string>
     <string name="setting_nicovideo_default_playlist_mode_description">Even if it is disabled, continuous playback can be started by selecting continuous playback from each menu in the video list.</string>

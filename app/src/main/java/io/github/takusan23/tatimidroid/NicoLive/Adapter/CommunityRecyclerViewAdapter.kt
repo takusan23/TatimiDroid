@@ -163,25 +163,42 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
 
     // 視聴モード選択ボタン初期化
     private fun initWatchModeButton(itemHolder: ViewHolder, nicoLiveProgramData: NicoLiveProgramData) {
-        itemHolder.apply {
-            val context = itemHolder.watchModeComeCas.context
-            val mainActivity = context as MainActivity
-            watchModeComeView.setOnClickListener {
-                mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "comment_viewer", nicoLiveProgramData.isOfficial)
+
+        // 新UIの場合はコメント投稿モードのみで
+        val isOldUI = prefSetting.getBoolean("setting_nicovideo_use_old_ui", true)
+
+        val context = itemHolder.communityCard.context
+        val mainActivity = context as MainActivity
+
+        if (isOldUI) {
+            itemHolder.apply {
+                watchModeLinearLayout.isVisible = true
+                communityCard.setOnClickListener(null)
+
+                watchModeComeView.setOnClickListener {
+                    mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "comment_viewer", nicoLiveProgramData.isOfficial)
+                }
+                watchModeComePost.setOnClickListener {
+                    mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "comment_post", nicoLiveProgramData.isOfficial)
+                }
+                watchModeComeCas.setOnClickListener {
+                    mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "nicocas", nicoLiveProgramData.isOfficial)
+                }
+                watchModeDesc.setOnClickListener {
+                    //ダイアログ
+                    val bundle = Bundle()
+                    bundle.putString("liveId", nicoLiveProgramData.programId)
+                    val dialog = WatchModeBottomFragment()
+                    dialog.arguments = bundle
+                    dialog.show((context as AppCompatActivity).supportFragmentManager, "watchmode")
+                }
             }
-            watchModeComePost.setOnClickListener {
-                mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "comment_post", nicoLiveProgramData.isOfficial)
-            }
-            watchModeComeCas.setOnClickListener {
-                mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "nicocas", nicoLiveProgramData.isOfficial)
-            }
-            watchModeDesc.setOnClickListener {
-                //ダイアログ
-                val bundle = Bundle()
-                bundle.putString("liveId", nicoLiveProgramData.programId)
-                val dialog = WatchModeBottomFragment()
-                dialog.arguments = bundle
-                dialog.show((context as AppCompatActivity).supportFragmentManager, "watchmode")
+        } else {
+            itemHolder.apply {
+                watchModeLinearLayout.isVisible = false
+                communityCard.setOnClickListener {
+                    mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "comment_post", nicoLiveProgramData.isOfficial)
+                }
             }
         }
     }

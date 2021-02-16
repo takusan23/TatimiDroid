@@ -469,7 +469,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     /** ミニプレイヤーへ遷移する */
     fun toMiniPlayer() {
         // 同じなら無視
-        if (isMiniPlayer()) return
+        if (isMiniPlayer() || isDisableMiniPlayerMode) return
 
         isMoveAnimating = true
 
@@ -571,6 +571,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
             bottomNavigationView.updateLayoutParams {
                 height = 1
             }
+            bottomNavigationView.alpha = 0f
+            // 全画面時の対応
             addOnFullScreenChangeListener { isFullScreen ->
                 navView.isVisible = !isFullScreen
             }

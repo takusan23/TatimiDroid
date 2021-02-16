@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
@@ -69,68 +70,70 @@ class JCNicoLiveInfoFragment : Fragment() {
 
                     Surface {
                         Scaffold {
-                            ScrollableColumn {
-                                // 番組情報
-                                if (programData.value != null && description.value != null) {
-                                    NicoLiveInfoCard(
-                                        nicoLiveProgramData = programData.value!!,
-                                        programDescription = description.value!!,
-                                        isRegisteredTimeShift = isRegisteredTimeShift.value,
-                                        onClickTimeShift = { registerTimeShift() },
-                                    )
-                                }
-                                // ユーザー情報。ニコ動用のがそのまま使えた
-                                if (userData.value != null) {
-                                    NicoVideoUserCard(userData = userData.value!!, onUserOpenClick = {
-                                        setAccountFragment(userData.value!!.userId.toString())
-                                    })
-                                }
-                                // コミュ、番組情報
-                                if (communityOrChannelData.value != null) {
-                                    NicoLiveCommunityCard(
-                                        communityOrChannelData = communityOrChannelData.value!!,
-                                        isFollow = isCommunityOrChannelFollow.value,
-                                        onFollowClick = {
-                                            if (isCommunityOrChannelFollow.value) {
-                                                // 解除
-                                                requestRemoveCommunityFollow(communityOrChannelData.value!!.id)
-                                            } else {
-                                                // コミュをフォローする
-                                                requestCommunityFollow(communityOrChannelData.value!!.id)
+                            LazyColumn {
+                                item {
+                                    // 番組情報
+                                    if (programData.value != null && description.value != null) {
+                                        NicoLiveInfoCard(
+                                            nicoLiveProgramData = programData.value!!,
+                                            programDescription = description.value!!,
+                                            isRegisteredTimeShift = isRegisteredTimeShift.value,
+                                            onClickTimeShift = { registerTimeShift() },
+                                        )
+                                    }
+                                    // ユーザー情報。ニコ動用のがそのまま使えた
+                                    if (userData.value != null) {
+                                        NicoVideoUserCard(userData = userData.value!!, onUserOpenClick = {
+                                            setAccountFragment(userData.value!!.userId.toString())
+                                        })
+                                    }
+                                    // コミュ、番組情報
+                                    if (communityOrChannelData.value != null) {
+                                        NicoLiveCommunityCard(
+                                            communityOrChannelData = communityOrChannelData.value!!,
+                                            isFollow = isCommunityOrChannelFollow.value,
+                                            onFollowClick = {
+                                                if (isCommunityOrChannelFollow.value) {
+                                                    // 解除
+                                                    requestRemoveCommunityFollow(communityOrChannelData.value!!.id)
+                                                } else {
+                                                    // コミュをフォローする
+                                                    requestCommunityFollow(communityOrChannelData.value!!.id)
+                                                }
+                                            },
+                                            onCommunityOpenClick = {
+                                                launchBrowser("https://com.nicovideo.jp/community/${communityOrChannelData.value!!.id}")
                                             }
-                                        },
-                                        onCommunityOpenClick = {
-                                            launchBrowser("https://com.nicovideo.jp/community/${communityOrChannelData.value!!.id}")
-                                        }
-                                    )
-                                }
-                                // タグ
-                                if (tagData.value != null) {
-                                    NicoLiveTagCard(
-                                        list = tagData.value!!.tagList,
-                                        onTagClick = { },
-                                        isEditable = !tagData.value!!.isLocked,
-                                        onClickEditButton = { showTagEditBottomFragment() }
-                                    )
-                                }
-                                // 好みタグ
-                                NicoLiveKonomiCard(konomiTagList = konomiTagList.value)
+                                        )
+                                    }
+                                    // タグ
+                                    if (tagData.value != null) {
+                                        NicoLiveTagCard(
+                                            list = tagData.value!!.tagList,
+                                            onTagClick = { },
+                                            isEditable = !tagData.value!!.isLocked,
+                                            onClickEditButton = { showTagEditBottomFragment() }
+                                        )
+                                    }
+                                    // 好みタグ
+                                    NicoLiveKonomiCard(konomiTagList = konomiTagList.value)
 
-                                // メニュー
-                                NicoLiveMenuScreen(requireParentFragment())
+                                    // メニュー
+                                    NicoLiveMenuScreen(requireParentFragment())
 
-                                if (statisticsLiveData.value != null) {
-                                    // ニコニ広告 投げ銭
-                                    NicoLivePointCard(
-                                        totalNicoAdPoint = statisticsLiveData.value!!.adPoints,
-                                        totalGiftPoint = statisticsLiveData.value!!.giftPoints,
-                                        onClickNicoAdOpen = { showNicoAdBottomFragment() },
-                                        onClickGiftOpen = { showGiftBottomFragment() }
-                                    )
+                                    if (statisticsLiveData.value != null) {
+                                        // ニコニ広告 投げ銭
+                                        NicoLivePointCard(
+                                            totalNicoAdPoint = statisticsLiveData.value!!.adPoints,
+                                            totalGiftPoint = statisticsLiveData.value!!.giftPoints,
+                                            onClickNicoAdOpen = { showNicoAdBottomFragment() },
+                                            onClickGiftOpen = { showGiftBottomFragment() }
+                                        )
+                                    }
+
+                                    // スペース
+                                    Spacer(modifier = Modifier.height(100.dp))
                                 }
-
-                                // スペース
-                                Spacer(modifier = Modifier.height(100.dp))
                             }
                         }
                     }
