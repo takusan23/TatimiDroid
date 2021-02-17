@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,7 +15,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -46,7 +44,7 @@ class JCNicoLiveInfoFragment : Fragment() {
             setContent {
                 MaterialTheme(
                     // ダークモード。動的にテーマ変更できるようになるんか？
-                    colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
+                    colors = if (isDarkMode(AmbientContext.current)) DarkColors else LightColors,
                 ) {
 
                     // 番組情報

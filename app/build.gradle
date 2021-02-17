@@ -47,8 +47,8 @@ android {
 
     // Compose関係
     composeOptions {
-        kotlinCompilerVersion kotlin_version // 1.4.30 が入ると思う
-        kotlinCompilerExtensionVersion '1.0.0-alpha12' // Jetpack Composeの更新をしたらこっちも書き換えろ
+        kotlinCompilerVersion kotlin_version // 1.4.21-2 が入ると思う
+        kotlinCompilerExtensionVersion '1.0.0-alpha11' // Jetpack Composeの更新をしたらこっちも書き換えろ
     }
 
     // これもいる？
@@ -65,15 +65,15 @@ dependencies {
 
     // Jetpack Compose --- ここから
 
-    implementation 'androidx.compose.ui:ui:1.0.0-alpha12'
+    implementation 'androidx.compose.ui:ui:1.0.0-alpha11'
     // Tooling support (Previews, etc.)
-    implementation 'androidx.compose.ui:ui-tooling:1.0.0-alpha12'
+    implementation 'androidx.compose.ui:ui-tooling:1.0.0-alpha11'
     // Foundation (Border, Background, Box, Image, Scroll, shapes, animations, etc.)
-    implementation 'androidx.compose.foundation:foundation:1.0.0-alpha12'
+    implementation 'androidx.compose.foundation:foundation:1.0.0-alpha11'
     // Material Design
-    implementation 'androidx.compose.material:material:1.0.0-alpha12'
+    implementation 'androidx.compose.material:material:1.0.0-alpha11'
     // Integration with observables
-    implementation 'androidx.compose.runtime:runtime-livedata:1.0.0-alpha12'
+    implementation 'androidx.compose.runtime:runtime-livedata:1.0.0-alpha11'
 
     // Jetpack Compose --- ここまで
 

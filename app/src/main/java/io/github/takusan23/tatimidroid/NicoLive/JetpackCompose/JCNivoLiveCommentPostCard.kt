@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.outlined.*
@@ -84,11 +83,12 @@ fun NicoLiveCommentInputButton(
     Column(
         modifier = Modifier.background(
             colorResource(id = R.color.colorPrimary),
-            RoundedCornerShape(                // コメント入力テキストボックス表示中は角を丸くしない
-                topStart = if (!isHideCommentLayout.value) 0f else 20f,
-                topEnd = 0f,
-                bottomStart = 0f,
-                bottomEnd = 0f
+            RoundedCornerShape(
+                // コメント入力テキストボックス表示中は角を丸くしない
+                topLeft = if (!isHideCommentLayout.value) 0.dp else 20.dp,
+                topRight = 0.dp,
+                bottomRight = 0.dp,
+                bottomLeft = 0.dp
             )
         ),
     ) {
@@ -149,12 +149,12 @@ fun NicoLiveCommentInputButton(
                     textStyle = TextStyle(Color.White),
                     // 複数行投稿が無効な場合はEnterキーを送信、そうじゃない場合は改行へ
                     keyboardOptions = if (!isMultiLine) KeyboardOptions(imeAction = ImeAction.Send) else KeyboardOptions.Default,
-                    keyboardActions = KeyboardActions(
-                        onSend = {
+                    onImeActionPerformed = { imeAction, softwareKeyboardController ->
+                        if (imeAction == ImeAction.Send) {
                             // 送信！
                             onPostClick()
                         }
-                    )
+                    }
                 )
                 // 投稿ボタン
                 IconButton(onClick = { onPostClick() }) {

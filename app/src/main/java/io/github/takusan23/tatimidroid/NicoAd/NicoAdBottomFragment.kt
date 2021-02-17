@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoAd.JetpackCompose.NicoAdScreen
 import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModel
 import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModelFactory
+import java.lang.Exception
 
 /**
  * ニコニ広告の履歴とか貢献度を表示するBottomFragment
@@ -29,7 +31,7 @@ class NicoAdBottomFragment : BottomSheetDialogFragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return ComposeView(requireContext()).apply {
+        return ComposeView(requireActivity()).apply {
             setContent {
                 NicoAdScreen(viewModel)
             }
@@ -38,10 +40,6 @@ class NicoAdBottomFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        viewModel.nicoAdHistoryLiveData.observe(viewLifecycleOwner){
-            println(it)
-        }
 
     }
 

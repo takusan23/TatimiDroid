@@ -10,7 +10,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import io.github.takusan23.tatimidroid.NicoAPI.NicoAd.NicoAdAPI
@@ -28,7 +28,7 @@ fun NicoAdScreen(viewModel: NicoAdViewModel) {
     // ニコニ広告履歴データ
     val nicoAdHistoryLiveData = viewModel.nicoAdHistoryLiveData.observeAsState()
     // Context
-    val context = LocalContext.current
+    val context = AmbientContext.current
 
     Column {
         // タイトル、累計ポイント、アクティブポイント表示

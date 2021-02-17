@@ -20,7 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.AmbientContext
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -56,7 +55,7 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
     val fragmentManager = parentFragment.childFragmentManager
 
     /** Context */
-    val context = LocalContext.current
+    val context = AmbientContext.current
 
     /** Coroutine */
     val scope = rememberCoroutineScope()
