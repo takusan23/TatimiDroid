@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoLive.JetpackCompose
 
 import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -691,12 +692,39 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 )
                 finishFragment()
             }
-
+        }
+        // 全画面
+        nicolivePlayerUIBinding.includeNicovideoFullScreenImageView.setOnClickListener {
+            if (viewModel.isFullScreenMode) {
+                setDefaultScreen()
+            } else {
+                setFullScreen()
+            }
         }
         // センサーによる画面回転
         if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
             RotationSensor(requireActivity(), lifecycle)
         }
+    }
+
+    /** 全画面UIへ切り替える */
+    private fun setFullScreen() {
+        viewModel.isFullScreenMode = true
+        nicolivePlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
+        // コメント / 動画情報Fragmentを非表示にする
+        toFullScreen()
+        // アスペクト比治すなど
+        aspectRatioFix()
+    }
+
+    /** 全画面UIを戻す */
+    private fun setDefaultScreen() {
+        viewModel.isFullScreenMode = false
+        nicolivePlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
+        // コメント / 動画情報Fragmentを表示にする
+        toDefaultScreen()
+        // アスペクト比治すなど
+        aspectRatioFix()
     }
 
     override fun onBottomSheetStateChane(state: Int, isMiniPlayer: Boolean) {

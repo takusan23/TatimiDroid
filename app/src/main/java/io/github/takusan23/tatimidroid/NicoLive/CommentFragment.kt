@@ -29,9 +29,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
-import androidx.core.view.children
-import androidx.core.view.isVisible
-import androidx.core.view.updateLayoutParams
+import androidx.core.view.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope

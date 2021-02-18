@@ -12,7 +12,11 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
+import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveCommentOnlyFragment
+import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
@@ -22,6 +26,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.w3c.dom.Comment
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -38,14 +43,19 @@ class FloatingCommentViewer : AppCompatActivity() {
         val darkModeSupport = DarkModeSupport(this)
         darkModeSupport.setActivityTheme(this)
 
+        val prefSetting = PreferenceManager.getDefaultSharedPreferences(this)
+
         setContentView(R.layout.activity_floating_comment_viewer)
+
+        // ToolBar消す
+        supportActionBar?.hide()
 
         val liveId = intent.getStringExtra("liveId")
         val watchMode = intent.getStringExtra("watch_mode")
 
         //Fragment設置
         val trans = supportFragmentManager.beginTransaction()
-        val commentFragment = CommentFragment()
+        val commentFragment = JCNicoLiveFragment()
         //LiveID詰める
         val bundle = Bundle()
         bundle.putString("liveId", liveId)

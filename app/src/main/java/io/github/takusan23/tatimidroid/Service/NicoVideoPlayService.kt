@@ -97,7 +97,7 @@ class NicoVideoPlayService : Service() {
     /** 連続再生かどうか */
     private val isPlayList: Boolean
         get() {
-            return playlist.isNotEmpty()
+            return playlist.size > 1
         }
 
     /** 連続再生で現在の位置 */

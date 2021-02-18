@@ -52,7 +52,7 @@ object DisplaySizeTool {
         // 従来の方法で
         val display = windowManager.defaultDisplay
         val point = Point()
-        display?.getSize(point)
+        display?.getRealSize(point)
         return point
     }
 

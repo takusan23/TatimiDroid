@@ -48,7 +48,8 @@ fun NicoLiveStatisticsUI(
             Text(
                 text = allViewer.toString(),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1,
             )
         }
         // コメント数
@@ -65,7 +66,8 @@ fun NicoLiveStatisticsUI(
             Text(
                 text = allCommentCount.toString(),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1,
             )
         }
         // アクティブ人数
@@ -82,7 +84,8 @@ fun NicoLiveStatisticsUI(
             Text(
                 text = activeCountText,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1,
             )
         }
         // アクティブ人数計算ボタン

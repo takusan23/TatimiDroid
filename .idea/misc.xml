@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/takusan23/Desktop/Dev/Android/TatimiDroid/app/src/main/res/layout/activity_floating_comment_viewer.xml" value="0.18229166666666666" />
+        <entry key="..\:/Users/takusan23/Desktop/Dev/Android/TatimiDroid/app/src/main/res/layout/activity_kono_app.xml" value="0.18229166666666666" />
+        <entry key="..\:/Users/takusan23/Desktop/Dev/Android/TatimiDroid/app/src/main/res/layout/activity_main.xml" value="0.18229166666666666" />
+        <entry key="..\:/Users/takusan23/Desktop/Dev/Android/TatimiDroid/app/src/main/res/layout/fragment_nicolive.xml" value="0.18229166666666666" />
+        <entry key="..\:/Users/takusan23/Desktop/Dev/Android/TatimiDroid/app/src/main/res/layout/include_nicovideo_player_controller.xml" value="0.18229166666666666" />
+      </map>
+    </option>
+  </component>
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="JDK" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />

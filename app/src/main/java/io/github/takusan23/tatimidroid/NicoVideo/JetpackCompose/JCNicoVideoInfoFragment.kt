@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayout
 import androidx.compose.foundation.layout.Spacer
@@ -35,8 +36,6 @@ import io.github.takusan23.tatimidroid.Tool.isDarkMode
 
 /**
  * 動画情報Fragment。Jetpack Composeでレイアウトを作っている。Jetpack Composeたのし～～～。なんで動いてんのかよく知らんけど
- *
- * [io.github.takusan23.tatimidroid.BottomSheetPlayerBehavior.isDraggableAreaPlayerOnly]がtrueじゃないとうまくスクロールできない。
  *
  * [JCNicoVideoFragment]のViewModelを利用している。
  * */
@@ -134,83 +133,85 @@ class JCNicoVideoInfoFragment : Fragment() {
                                         )
                                     }
 
-                                    // スクロールできるやつ
-                                    LazyColumn {
-                                        item {
-                                            if (data.value != null) {
-                                                // 動画情報表示Card
-                                                NicoVideoInfoCard(
-                                                    nicoVideoData = data.value,
-                                                    isLiked = isLiked.value,
-                                                    onLikeClick = {
-                                                        if (isLiked.value) {
-                                                            // いいね解除
-                                                            removeLike()
-                                                        } else {
-                                                            // いいね登録
-                                                            NicoVideoLikeBottomFragment().show(parentFragmentManager, "like")
-                                                        }
-                                                    },
-                                                    isOffline = viewModel.isOfflinePlay.value ?: false,
-                                                    scaffoldState = state,
-                                                    description = descroption.value,
-                                                    descriptionClick = { link, type ->
-                                                        // 押した時
-                                                        descriptionClick(type, link)
+                                    /**
+                                     * スクロールできるやつ
+                                     * 本当はこれは非推奨で、[LazyColumn]を使うべきなんだけど描画されない時があるのでいまのところこっちを使う
+                                     * */
+                                    ScrollableColumn {
+                                        if (data.value != null) {
+                                            // 動画情報表示Card
+                                            NicoVideoInfoCard(
+                                                nicoVideoData = data.value,
+                                                isLiked = isLiked.value,
+                                                onLikeClick = {
+                                                    if (isLiked.value) {
+                                                        // いいね解除
+                                                        removeLike()
+                                                    } else {
+                                                        // いいね登録
+                                                        NicoVideoLikeBottomFragment().show(parentFragmentManager, "like")
                                                     }
-                                                )
-                                            }
-
-                                            // シリーズ
-                                            if (seriesHTMLLiveData.value != null) {
-                                                NicoVideoSeriesCard(
-                                                    nicoVideoHTMLSeriesData = seriesHTMLLiveData.value!!,
-                                                    onClickStartSeriesPlay = {
-                                                        // シリーズ連続再生押した時
-                                                        viewModel.addSeriesPlaylist(seriesId = seriesDataLiveData.value!!.seriesId)
-                                                    },
-                                                    // 後３つはそれぞれ動画再生関数を呼ぶ
-                                                    onClickFirstVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
-                                                    onClickNextVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
-                                                    onClickPrevVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) }
-                                                )
-                                            }
-
-                                            // タグ
-                                            if (tagList.value != null) {
-                                                NicoVideoTagCard(
-                                                    tagItemDataList = tagList.value!!,
-                                                    onTagClick = { data ->
-                                                        // タグ押した時
-                                                        setTagSearchFragment(data.tagName)
-                                                    },
-                                                    onNicoPediaClick = { url ->
-                                                        openBrowser(url)
-                                                    }
-                                                )
-                                            }
-
-                                            // ユーザー情報
-                                            if (userData.value != null) {
-                                                NicoVideoUserCard(
-                                                    userData = userData.value!!,
-                                                    onUserOpenClick = {
-                                                        setAccountFragment(userData.value!!.userId.toString())
-                                                    }
-                                                )
-                                            }
-
-                                            // メニューカード。長いのでまとめた
-                                            NicoVideoMenuScreen(requireParentFragment())
-
-                                            // 関連動画表示Card
-                                            if (recommendList.value != null) {
-                                                NicoVideoRecommendCard(recommendList.value!!)
-                                            }
-
-                                            // スペース
-                                            Spacer(modifier = Modifier.height(100.dp))
+                                                },
+                                                isOffline = viewModel.isOfflinePlay.value ?: false,
+                                                scaffoldState = state,
+                                                description = descroption.value,
+                                                descriptionClick = { link, type ->
+                                                    // 押した時
+                                                    descriptionClick(type, link)
+                                                }
+                                            )
                                         }
+
+                                        // シリーズ
+                                        if (seriesHTMLLiveData.value != null) {
+                                            NicoVideoSeriesCard(
+                                                nicoVideoHTMLSeriesData = seriesHTMLLiveData.value!!,
+                                                onClickStartSeriesPlay = {
+                                                    // シリーズ連続再生押した時
+                                                    viewModel.addSeriesPlaylist(seriesId = seriesDataLiveData.value!!.seriesId)
+                                                },
+                                                // 後３つはそれぞれ動画再生関数を呼ぶ
+                                                onClickFirstVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
+                                                onClickNextVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
+                                                onClickPrevVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) }
+                                            )
+                                        }
+
+                                        // タグ
+                                        if (tagList.value != null) {
+                                            NicoVideoTagCard(
+                                                tagItemDataList = tagList.value!!,
+                                                onTagClick = { data ->
+                                                    // タグ押した時
+                                                    setTagSearchFragment(data.tagName)
+                                                },
+                                                onNicoPediaClick = { url ->
+                                                    openBrowser(url)
+                                                }
+                                            )
+                                        }
+
+                                        // ユーザー情報
+                                        if (userData.value != null) {
+                                            NicoVideoUserCard(
+                                                userData = userData.value!!,
+                                                onUserOpenClick = {
+                                                    setAccountFragment(userData.value!!.userId.toString())
+                                                }
+                                            )
+                                        }
+
+                                        // メニューカード。長いのでまとめた
+                                        NicoVideoMenuScreen(requireParentFragment())
+
+                                        // 関連動画表示Card
+                                        if (recommendList.value != null) {
+                                            NicoVideoRecommendCard(recommendList.value!!)
+                                        }
+
+                                        // スペース
+                                        Spacer(modifier = Modifier.height(100.dp))
+
                                     }
                                 }
                             }

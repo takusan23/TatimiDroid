@@ -36,6 +36,7 @@ import io.github.takusan23.tatimidroid.Tool.toFormatTime
  * @param nicoLiveProgramData 番組情報データクラス
  * @param programDescription 番組説明文
  * @param isRegisteredTimeShift タイムシフト予約済みかどうか
+ * @param isAllowTSRegister タイムシフト予約が利用可能かどうか。falseの場合はTS予約ボタンを非表示にします
  * @param onClickTimeShift タイムシフト予約ボタンを押した時
  * */
 @Composable
@@ -43,6 +44,7 @@ fun NicoLiveInfoCard(
     nicoLiveProgramData: NicoLiveProgramData,
     programDescription: String,
     isRegisteredTimeShift: Boolean,
+    isAllowTSRegister: Boolean,
     onClickTimeShift: () -> Unit,
 ) {
     // 動画説明文表示状態
@@ -96,10 +98,12 @@ fun NicoLiveInfoCard(
                     )
                 }
                 // タイムシフト予約ボタン
-                TimeShiftRegisterButton(
-                    isRegisteredTimeShift = isRegisteredTimeShift,
-                    onClickTimeShift = onClickTimeShift
-                )
+                if (isAllowTSRegister) {
+                    TimeShiftRegisterButton(
+                        isRegisteredTimeShift = isRegisteredTimeShift,
+                        onClickTimeShift = onClickTimeShift
+                    )
+                }
                 // 展開ボタン。動画説明文の表示を切り替える
                 IconButton(onClick = { expanded = !expanded }) {
                     // アイコンコード一行で召喚できる。Node.jsのnpmのmdiみたいだな！

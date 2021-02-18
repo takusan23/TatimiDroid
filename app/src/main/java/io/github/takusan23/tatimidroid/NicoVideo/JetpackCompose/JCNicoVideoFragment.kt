@@ -235,15 +235,16 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             } else {
                 // 負の値に突入するので０
                 viewModel.playerCurrentPositionMs = 0
-                exoPlayer.seekTo(0)
             }
             // シークさせる
             nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.seekComment()
         }
         // 動画の再生時間
         viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
-            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekBar.max = (duration / 1000).toInt()
-            nicovideoPlayerUIBinding.includeNicovideoPlayerDurationTextView.text = DateUtils.formatElapsedTime(duration / 1000)
+            if (duration > 0) {
+                nicovideoPlayerUIBinding.includeNicovideoPlayerSeekBar.max = (duration / 1000).toInt()
+                nicovideoPlayerUIBinding.includeNicovideoPlayerDurationTextView.text = DateUtils.formatElapsedTime(duration / 1000)
+            }
         }
         // リピートモードが変わったとき
         viewModel.playerIsRepeatMode.observe(viewLifecycleOwner) { isRepeatMode ->
@@ -330,7 +331,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 if (isFirst) {
                     isFirst = false
                     // 前回見た位置から再生
-                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition)
+                    viewModel.playerSetSeekMs.value = viewModel.currentPosition
                     if (exoPlayer.currentPosition == 0L) {
                         // 画面回転時に２回目以降表示されると邪魔なので制御
                         val progress = prefSetting.getLong("progress_${viewModel.playingVideoId.value}", 0)

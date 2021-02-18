@@ -27,7 +27,7 @@ import io.github.takusan23.tatimidroid.databinding.FragmentPlayerBaseBinding
 /**
  * 動画、生放送のFragmentのベースになるFragment。これを継承して作っていきたい。
  *
- * プレイヤーに関しては[BottomSheetPlayerBehavior]も参照
+ * プレイヤーに関しては[PlayerParentFrameLayout]も参照
  * */
 open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
@@ -207,7 +207,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
      * */
     fun toFullScreen() {
         // 横画面にする。SENSOR版なので右に倒しても左に倒してもおｋだよ？
-        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         // ステータスバー隠す
         SystemBarVisibility.hideSystemBar(requireActivity().window)
         // BottomSheet側も全画面に切り替える

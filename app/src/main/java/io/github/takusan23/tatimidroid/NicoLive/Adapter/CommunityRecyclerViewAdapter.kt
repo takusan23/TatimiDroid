@@ -88,8 +88,8 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
             //放送中
             holder.timeTextView.text = time
             holder.timeTextView.setTextColor(Color.RED)
-            // 視聴モード
-            holder.watchModeLinearLayout.visibility = View.VISIBLE
+            // 視聴モードボタン用意
+            initWatchModeButton(holder, item)
         } else {
             //予約枠
             holder.timeTextView.text = time
@@ -124,8 +124,6 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
             holder.thumbImageView.isVisible = false
         }
 
-        // 視聴モードボタン
-        initWatchModeButton(holder, item)
         // TS予約などのボタン
         holder.liveMenuIconImageView.setOnClickListener {
             val programMenuBottomSheet = ProgramMenuBottomSheet()

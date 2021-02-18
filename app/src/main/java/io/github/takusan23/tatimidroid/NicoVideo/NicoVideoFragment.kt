@@ -257,21 +257,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // アスペクト比直す。とりあえず16:9で
         aspectRatioFix(16, 9)
 
-        // 戻るキー押した時
-        requireActivity().onBackPressedDispatcher.addCallback(this) {
-            // コメントのみの表示の際はFragment終了
-            if (viewModel.isCommentOnlyMode) {
-                finishFragment()
-            } else {
-                viewBinding.fragmentNicovideoMotionLayout.apply {
-                    if (currentState == R.id.fragment_nicovideo_transition_end) {
-                        transitionToState(R.id.fragment_nicovideo_transition_finish)
-                    } else {
-                        transitionToState(R.id.fragment_nicovideo_transition_end)
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -298,15 +283,16 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             } else {
                 // 負の値に突入するので０
                 viewModel.playerCurrentPositionMs = 0
-                exoPlayer.seekTo(0)
             }
             // シークさせる
             viewBinding.fragmentNicovideoCommentCanvas.seekComment()
         }
         // 動画の再生時間
         viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
-            viewBinding.fragmentNicovideoControlInclude.playerControlSeek.max = (duration / 1000).toInt()
-            viewBinding.fragmentNicovideoControlInclude.playerControlDuration.text = DateUtils.formatElapsedTime(duration / 1000)
+            if (duration > 0) {
+                viewBinding.fragmentNicovideoControlInclude.playerControlSeek.max = (duration / 1000).toInt()
+                viewBinding.fragmentNicovideoControlInclude.playerControlDuration.text = DateUtils.formatElapsedTime(duration / 1000)
+            }
         }
         // リピートモードが変わったとき
         viewModel.playerIsRepeatMode.observe(viewLifecycleOwner) { isRepeatMode ->
@@ -401,7 +387,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                     // 一度だけ実行するように。画面回転前の時間を適用する
                     isRotationProgressSuccessful = true
                     // 前回見た位置から再生
-                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition)
+                    viewModel.playerSetSeekMs.value = viewModel.currentPosition
                     if (exoPlayer.currentPosition == 0L) {
                         // 画面回転時に２回目以降表示されると邪魔なので制御
                         val progress = prefSetting.getLong("progress_$videoId", 0)
@@ -731,6 +717,22 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             finishFragment()
         }
 
+        // 戻るキー押した時
+        val callback = requireActivity().onBackPressedDispatcher.addCallback(this) {
+            // コメントのみの表示の際はFragment終了
+            if (viewModel.isCommentOnlyMode) {
+                finishFragment()
+            } else {
+                viewBinding.fragmentNicovideoMotionLayout.apply {
+                    if (currentState == R.id.fragment_nicovideo_transition_end) {
+                        this@addCallback.isEnabled = false
+                    } else {
+                        transitionToState(R.id.fragment_nicovideo_transition_end)
+                    }
+                }
+            }
+        }
+
         // MotioLayoutのコールバック
         viewBinding.fragmentNicovideoMotionLayout.addTransitionListener(object : MotionLayout.TransitionListener {
             override fun onTransitionStarted(p0: MotionLayout?, p1: Int, p2: Int) {
@@ -742,14 +744,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
 
             override fun onTransitionCompleted(p0: MotionLayout?, p1: Int) {
-                when (p1) {
-                    R.id.fragment_nicovideo_transition_finish -> {
-
-                    }
-                    R.id.fragment_nicovideo_transition_fullscreen -> {
-
-                    }
-                }
+                // 戻るキー監視は通常時とフルスクリーン時のみ
+                callback.isEnabled = p1 == R.id.fragment_nicovideo_transition_start || p1 == R.id.fragment_nicovideo_transition_fullscreen
                 if (p1 == R.id.fragment_nicovideo_transition_finish) {
                     // 終了時。左へスワイプした時
                     parentFragmentManager.beginTransaction().remove(this@NicoVideoFragment).commit()

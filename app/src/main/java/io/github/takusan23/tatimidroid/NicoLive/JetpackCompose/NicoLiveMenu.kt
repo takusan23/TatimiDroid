@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.NicoLive.JetpackCompose
 
-import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -414,16 +413,5 @@ fun NicoLiveNicoNamaGameCard(
                 onCheckedChange = { onSwitchNicoNamaGame(it) }
             )
         }
-    }
-}
-
-@Preview
-@Composable
-fun NicoLiveMenuPreview() {
-    ScrollableColumn() {
-        NicoLiveMenuTab(selectedIndex = 0, tabClick = { /*TODO*/ })
-        NicoLiveSwitchMenu(isHideUNEIComment = false, onSwitchHideUNEIComment = { /*TODO*/ }, isHideEmotion = false, onSwitchHideEmotion = { /*TODO*/ }, isHideTokumeiComment = false, onSwitchHideTokumeiComment = { /*TODO*/ }, isLowLatency = false, onSwitchLowLatency = { /*TODO*/ }, isNotReceiveLive = false, onSwitchNotReceiveLive = { /*TODO*/ })
-        NicoLiveButtonMenu(onClickQualityChange = { /*TODO*/ }, onClickScreenRotation = { /*TODO*/ }, onClickCopyProgramId = { /*TODO*/ }, onClickCopyCommunityId = { /*TODO*/ }, onClickOpenBrowser = { /*TODO*/ }, onClickNGList = { /*TODO*/ }, onClickKotehanList = { /*TODO*/ }, onClickHomeScreenPin = { /*TODO*/ })
-        NicoLiveCommentViewerMenu(isHideUserId = false, onSwitchHideUserId = { /*TODO*/ }, isCommentOneLine = false, onSwitchCommentOneLine = { /*TODO*/ })
     }
 }

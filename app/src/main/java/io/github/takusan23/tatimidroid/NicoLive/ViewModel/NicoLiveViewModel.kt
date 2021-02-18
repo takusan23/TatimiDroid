@@ -206,6 +206,9 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** ニコ生WebViewを表示中か */
     val isUseNicoNamaWebView = MutableLiveData(false)
 
+    /** TS予約が可能かどうか */
+    val isAllowTSRegister = MutableLiveData(true)
+
     /** 初回判定用フラグ。初回のみぴょこってプレイヤーが出てくるあれをやるために */
     var isFirst = true
 
@@ -261,6 +264,8 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             activeUserClear()
             // 経過時間
             setLiveTime()
+            // TS予約が許可されているか
+            checkIsAllowTSRegister(jsonObject)
 
             /**
              * すでにニコニコ実況チャンネルが存在する：https://ch.nicovideo.jp/jk1
@@ -299,6 +304,20 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
         }
 */
         
+    }
+
+    /**
+     * TS予約が可能かどうか。結果はLiveDataへ
+     * @param jsonObject [NicoLiveHTML.nicoLiveHTMLtoJSONObject]
+     * */
+    private fun checkIsAllowTSRegister(jsonObject: JSONObject) {
+        /**
+         * タイムシフト機能が使えない場合
+         * JSONに programTimeshift と programTimeshiftWatch が存在しない場合はTS予約が無効にされている？
+         * 存在すればTS予約が利用できる
+         * */
+        val canTSReserve = jsonObject.has("programTimeshift") && jsonObject.has("programTimeshiftWatch")
+        isAllowTSRegister.postValue(canTSReserve)
     }
 
     /**

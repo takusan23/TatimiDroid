@@ -559,19 +559,16 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 if (isFullScreenMode) {
                     navView.isVisible = !isDefaultScreen()
                 }
-                // navView.isVisible = !isFullScreenMode && isMiniPlayer()
                 navView.updateLayoutParams {
-                    // LienarLayoutが親の場合は height = 0 が使えるけどそうじゃないので最低値は1にする
                     height = (defaultNavViewHeight * progress).toInt() + 1
                 }
                 // 透明度でごまかす
                 navView.alpha = progress
             }
-            // とりあえず1にする
-            bottomNavigationView.updateLayoutParams {
-                height = 1
-            }
-            bottomNavigationView.alpha = 0f
+            // とりあえず初期設定
+            navView.updateLayoutParams { height = 1 }
+            navView.alpha = 0f
+            navView.isVisible = !isFullScreenMode // trueでもheightが1なのでほぼ見えない
             // 全画面時の対応
             addOnFullScreenChangeListener { isFullScreen ->
                 navView.isVisible = !isFullScreen
@@ -581,8 +578,9 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 // lifecycleライブラリ有能
                 @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
                 fun onDestroy() {
-                    navView.updateLayoutParams { height = defaultNavViewHeight }
+                    navView.updateLayoutParams { height = 0 }
                     navView.alpha = 1f
+                    navView.isVisible = true
                 }
             })
         }
