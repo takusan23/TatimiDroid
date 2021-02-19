@@ -16,6 +16,8 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.Tool.AppDataZip
+import io.github.takusan23.tatimidroid.Tool.RoomDBExporter
+import io.github.takusan23.tatimidroid.Tool.RoomDBImporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,6 +32,11 @@ class SettingsFragment : SearchPreferenceFragment() {
     /** プライバシーポリシー */
     private val PRIVACY_POLICY_URL = "https://github.com/takusan23/TatimiDroid/blob/master/privacy_policy.md"
 
+    /** データベースバックアップで使う */
+    private val roomDBExporter = RoomDBExporter(this)
+
+    /** データベースの取り込みで使う */
+    private val roomDBImporter = RoomDBImporter(this)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -103,20 +110,15 @@ class SettingsFragment : SearchPreferenceFragment() {
                     }.show(getParentFragmentManager(), "delete")
                 }
                 "history_db_backup" -> {
+                    // SAFを開く
+                    roomDBExporter.start()
+                }
+                "history_db_restore" -> {
+                    // SAFを開く
+                    roomDBImporter.start()
                 }
             }
         }
-    }
-
-    /** 将来的に実装 */
-    private fun exportDB() {
-        // データベースのファイルの場所
-        val dbFile = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            File("${context?.dataDir?.path}/databases/NicoHistory.db") // getDataDir()がヌガー以降じゃないと使えない
-        } else {
-            File("/data/user/0/io.github.takusan23.tatimidroid/databases/NicoHistory.db") // ハードコート大丈夫か・・？
-        }
-        AppDataZip.createZipFile((requireActivity() as AppCompatActivity), dbFile)
     }
 
     /** UnixTime -> わかりやすい形式に */

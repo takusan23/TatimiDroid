@@ -25,20 +25,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-            android:icon="@drawable/ic_folder_open_black_24dp"
-            android:title="履歴DBのバックアップ/復元">
-        <Preference
-                android:icon="@drawable/ic_report_problem_black_24dp"
-                android:summary="注意：復元のとき、データベースファイル以外も選べちゃう仕様ですがデータベースのファイルを選んでください。" />
-        <Preference
-                android:key="dev_setting_history_db_backup"
-                android:title="履歴DBのバックアップをする" />
-        <Preference
-                android:key="dev_setting_history_db_restore"
-                android:title="履歴DBの復元をする" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
             android:icon="@drawable/ic_outline_comment_24px"
             android:title="コメント描画">
         <SwitchPreference
@@ -46,6 +32,5 @@
                 android:key="dev_setting_comment_canvas_text_rect"
                 android:title="テキストに枠を付けて検証する" />
     </PreferenceCategory>
-
 
 </PreferenceScreen>

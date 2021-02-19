@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.Room.Init
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import io.github.takusan23.tatimidroid.Room.Database.NGDB
@@ -23,6 +24,7 @@ object NicoHistoryDBInit {
     fun getInstance(context: Context): NicoHistoryDB {
         if (!::nicoHistoryDB.isInitialized) {
             nicoHistoryDB = Room.databaseBuilder(context, NicoHistoryDB::class.java, "NicoHistory.db")
+                //.setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
                 .addMigrations(object : Migration(1, 2) {
                     override fun migrate(database: SupportSQLiteDatabase) {
                         // SQLite->Room移行。移行後のデータベースを作成する。カラムは移行前と同じ
