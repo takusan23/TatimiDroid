@@ -56,6 +56,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:layout_margin="5dp"
+                        app:selectionRequired="true"
                         app:checkedButton="@id/fragment_nicovideo_search_tag_button"
                         app:singleSelection="true">
 

@@ -580,7 +580,10 @@
     <string name="setting_database_backup_title">データベースの書き出し（バックアップ）</string>
     <string name="setting_database_backup_description">忘れ物はない？</string>
     <string name="setting_database_restore_title">データベースの取り込み（リストア）</string>
-    <string name="setting_database_restore_description">ピカピカのスマホ</string>
+    <string name="setting_database_restore_description">ピカピカのスマホ。上書きされます。</string>
     <string name="database_backup_successful">バックアップを作成しました。</string>
     <string name="database_restore_successful">リストアできました。アプリを再起動してください。</string>
+    <string name="database_backup_start">バックアップを始める</string>
+    <string name="database_backup_cancel">やめておく</string>
+    <string name="database_backup_description">バックアップを行いますか？バックアップデータの取り扱いには注意してください。</string>
 </resources>

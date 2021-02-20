@@ -33,7 +33,7 @@ class KonoApp : AppCompatActivity() {
     /**
      * バージョンとか
      * */
-    val version = "2021/02/19"
+    val version = "2021/02/21"
     val codeName1 = "（GINZA）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     /** findViewById駆逐 */

@@ -111,7 +111,7 @@ class SettingsFragment : SearchPreferenceFragment() {
                 }
                 "history_db_backup" -> {
                     // SAFを開く
-                    roomDBExporter.start()
+                    startBackup()
                 }
                 "history_db_restore" -> {
                     // SAFを開く
@@ -119,6 +119,20 @@ class SettingsFragment : SearchPreferenceFragment() {
                 }
             }
         }
+    }
+
+    /** バックアップするよーダイアログを出す */
+    private fun startBackup() {
+        val buttons = arrayListOf(
+            DialogBottomSheet.DialogBottomSheetItem(getString(R.string.database_backup_start), R.drawable.ic_backup_icon),
+            DialogBottomSheet.DialogBottomSheetItem(getString(R.string.database_backup_cancel), R.drawable.ic_clear_black)
+        )
+        DialogBottomSheet(getString(R.string.database_backup_description), buttons) { i, bottomSheetDialogFragment ->
+            if (i == 0) {
+                roomDBExporter.start()
+            }
+            bottomSheetDialogFragment.dismiss()
+        }.show(childFragmentManager, "backup_dialog")
     }
 
     /** UnixTime -> わかりやすい形式に */

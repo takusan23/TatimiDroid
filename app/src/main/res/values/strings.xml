@@ -580,7 +580,10 @@
     <string name="setting_database_backup_title">Database export (backup)</string>
     <string name="setting_database_backup_description">Did you forget anything?</string>
     <string name="setting_database_restore_title">Database import (restore)</string>
-    <string name="setting_database_restore_description">Shiny smartphone</string>
+    <string name="setting_database_restore_description">A shiny smartphone. It will be overwritten.</string>
     <string name="database_backup_successful">I made a backup</string>
     <string name="database_restore_successful">I was able to restore. Please restart the app.</string>
+    <string name="database_backup_start">Start backup</string>
+    <string name="database_backup_cancel">Cancel</string>
+    <string name="database_backup_description">Do you want to back up? Be careful when handling backup data.</string>
 </resources>

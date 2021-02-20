@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -223,6 +224,7 @@ fun NicoLiveButtonMenu(
     onClickNGList: () -> Unit,
     onClickKotehanList: () -> Unit,
     onClickHomeScreenPin: () -> Unit,
+    onClickLaunchFloatingCommentViewer: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -281,6 +283,26 @@ fun NicoLiveButtonMenu(
                         .weight(1f)
                         .padding(5.dp),
                 )
+            }
+        }
+        // フローティングコメビュ起動。なおAndroid 10以前は利用できないように
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            TextButton(onClick = { onClickLaunchFloatingCommentViewer() }) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_library_books_24px),
+                        contentDescription = stringResource(id = R.string.floating_comment_viewer)
+                    )
+                    Text(
+                        text = stringResource(id = R.string.floating_comment_viewer),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(5.dp),
+                    )
+                }
             }
         }
         // 番組IDコピー

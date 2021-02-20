@@ -60,7 +60,7 @@ https://play.google.com/store/apps/details?id=io.github.takusan23.tatimidroid&hl
 
 Canary版Android Studio。Jetpack Composeを使っているんで
 
-Android Studio Arctic Fox | 2020.3.1 Canary 6
+Android Studio Arctic Fox | 2020.3.1 Canary 7
 
 ちなみにKotlin 1.4.30を入れてもなんか赤くなる（修正待ち。実行はできる）
 

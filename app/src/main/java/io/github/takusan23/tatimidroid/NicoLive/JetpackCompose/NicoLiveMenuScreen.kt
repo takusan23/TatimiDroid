@@ -28,6 +28,7 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.*
@@ -219,6 +220,13 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
         (parentFragment as? JCNicoLiveFragment)?.showShareSheet()
     }
 
+    /** フローティングコメビュ */
+    fun openFloatingCommentViewer() {
+        viewModel.nicoLiveProgramData.value?.apply {
+            FloatingCommentViewer.showBubbles(context, this.programId, "comment_post", this.title, this.thum)
+        }
+    }
+
     /**
      * こっからレイアウト
      * ----------------------------
@@ -291,6 +299,7 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
                         onClickNGList = { openNGListActivity() },
                         onClickKotehanList = { openKotehanListActivity() },
                         onClickHomeScreenPin = { createHomeScreenShortcut() },
+                        onClickLaunchFloatingCommentViewer = { openFloatingCommentViewer() }
                     )
                 }
                 3 -> {
@@ -320,3 +329,4 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
         }
     }
 }
+

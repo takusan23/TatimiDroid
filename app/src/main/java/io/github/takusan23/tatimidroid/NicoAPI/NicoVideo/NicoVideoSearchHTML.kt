@@ -106,9 +106,11 @@ class NicoVideoSearchHTML {
      * */
     suspend fun parseTag(html: String?) = withContext(Dispatchers.Default) {
         val document = Jsoup.parse(html)
-        val ul = document.getElementsByClass("tags")[0]
-        val tagElements = ul.getElementsByTag("a")
-        tagElements.map { element -> element.text() }
+        if (document.getElementsByClass("tags").isNotEmpty()) {
+            val ul = document.getElementsByClass("tags")[0]
+            val tagElements = ul.getElementsByTag("a")
+            tagElements.map { element -> element.text() }
+        } else arrayListOf() // タグの件数0なら空を返す
     }
 
     // 投稿時間をUnixTimeへ変換
