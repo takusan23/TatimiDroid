@@ -2,11 +2,9 @@ package io.github.takusan23.tatimidroid.Fragment
 
 import android.content.Intent
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
@@ -15,13 +13,11 @@ import io.github.takusan23.tatimidroid.Activity.LicenceActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
-import io.github.takusan23.tatimidroid.Tool.AppDataZip
 import io.github.takusan23.tatimidroid.Tool.RoomDBExporter
 import io.github.takusan23.tatimidroid.Tool.RoomDBImporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.text.SimpleDateFormat
 
 /**

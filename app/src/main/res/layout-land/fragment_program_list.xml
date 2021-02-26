@@ -9,22 +9,22 @@
         tools:showPaths="true">
 
     <LinearLayout
-            android:id="@+id/fragment_program_backdrop_linear_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+        android:id="@+id/fragment_program_backdrop_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.navigation.NavigationView
-                android:id="@+id/fragment_program_navigation_view"
-                style="@style/NavigationViewSelectColor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:elevation="0dp"
-                app:menu="@menu/nicolive_program_list_menu" />
+            android:id="@+id/fragment_program_navigation_view"
+            style="@style/NavigationViewSelectColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:elevation="0dp"
+            app:menu="@menu/nicolive_program_list_menu" />
 
     </LinearLayout>
 

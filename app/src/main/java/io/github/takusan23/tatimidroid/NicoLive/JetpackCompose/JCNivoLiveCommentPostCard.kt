@@ -337,7 +337,8 @@ fun NicoLiveCommentCommandPanel(
                     .padding(2.dp),
                 textStyle = TextStyle(Color.White),
                 label = { Text(text = stringResource(id = R.string.position)) },
-                onValueChange = { selectPos.value = it }
+                onValueChange = { selectPos.value = it },
+                colors = getWhiteColorOutlinedTextField()
             )
             OutlinedTextField(
                 value = selectSize.value,

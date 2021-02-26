@@ -1,41 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/fragment_program_list_parent"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layoutDescription="@xml/fragment_program_backdrop_motion"
-        tools:showPaths="true">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_program_list_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:layoutDescription="@xml/fragment_program_backdrop_motion"
+    tools:showPaths="true">
 
     <LinearLayout
-            android:id="@+id/fragment_program_backdrop_linear_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10sp"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+        android:id="@+id/fragment_program_backdrop_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10sp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
             <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
                 <!-- Buttonを並べるより良さそう。styleでメニュー選択時の色を変えている-->
                 <com.google.android.material.navigation.NavigationView
-                        android:id="@+id/fragment_program_navigation_view"
-                        style="@style/NavigationViewSelectColor"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:elevation="0dp"
-                        app:menu="@menu/nicolive_program_list_menu" />
+                    android:id="@+id/fragment_program_navigation_view"
+                    style="@style/NavigationViewSelectColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:elevation="0dp"
+                    app:menu="@menu/nicolive_program_list_menu" />
 
             </LinearLayout>
         </ScrollView>
@@ -43,40 +43,40 @@
     </LinearLayout>
 
     <LinearLayout
-            android:id="@+id/fragment_program_bar_linear_layout"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="75dp"
-            android:background="#ffffff"
-            android:elevation="10dp"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="5sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+        android:id="@+id/fragment_program_bar_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="75dp"
+        android:background="#ffffff"
+        android:elevation="10dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="5sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <View
-                android:layout_width="100sp"
-                android:layout_height="10sp"
-                android:background="@drawable/backdrop_sheet_bar"
-                android:padding="10sp" />
+            android:layout_width="100sp"
+            android:layout_height="10sp"
+            android:background="@drawable/backdrop_sheet_bar"
+            android:padding="10sp" />
 
         <TextView
-                android:id="@+id/textView16"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_filter_list_black_24dp"
-                android:padding="10sp"
-                android:text="@string/dropdown_title" />
+            android:id="@+id/textView16"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableStart="@drawable/ic_filter_list_black_24dp"
+            android:padding="10sp"
+            android:text="@string/dropdown_title" />
 
         <LinearLayout
-                android:id="@+id/fragment_program_list_linear_layout"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#fff"
-                android:orientation="vertical" />
+            android:id="@+id/fragment_program_list_linear_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#fff"
+            android:orientation="vertical" />
 
     </LinearLayout>
 

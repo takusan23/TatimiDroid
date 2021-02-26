@@ -62,8 +62,6 @@ Canary版Android Studio。Jetpack Composeを使っているんで
 
 Android Studio Arctic Fox | 2020.3.1 Canary 8
 
-ちなみにKotlin 1.4.30を入れてもなんか赤くなる（修正待ち。実行はできる）
-
 ## たちみどろいどのIntent
 Intentという仕組みを利用することでたちみどろいどを他アプリから起動できます。
 MainActivityを指したIntentを飛ばしてください。

@@ -111,7 +111,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1" // バージョン合わせないとだめなんか？
     // CoroutineとLifeCycle考えてくれるやつ
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-rc01"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.0"
     // Preference
     implementation "androidx.preference:preference:1.1.1"
     // OkHttp
