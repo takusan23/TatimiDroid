@@ -1,13 +1,16 @@
 package io.github.takusan23.tatimidroid.NicoLive.JetpackCompose
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ScrollableRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.outlined.*
@@ -20,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -29,6 +31,20 @@ import io.github.takusan23.tatimidroid.NicoAPI.CommentColorList
 import io.github.takusan23.tatimidroid.R
 
 
+/** まっしろなテキストフィールド */
+@Composable
+private fun getWhiteColorOutlinedTextField() = TextFieldDefaults.outlinedTextFieldColors(
+    textColor = Color.White,
+    focusedBorderColor = Color.White,
+    unfocusedBorderColor = Color.White,
+    unfocusedLabelColor = Color.White,
+    focusedLabelColor = Color.White,
+    disabledLabelColor = Color.White,
+    errorLabelColor = Color.White,
+    cursorColor = Color.White,
+    errorCursorColor = Color.White,
+)
+
 /**
  * 生放送のコメント表示用、投稿UIをComposeで作成する
  * @param onClick ボタンを押した時
@@ -36,7 +52,7 @@ import io.github.takusan23.tatimidroid.R
  * @param comment コメント本文
  * @param isShowCommentInfoChangeButton 番組情報 <-> コメント一覧 切り替えボタンを表示する場合はtrue。コメントのみ表示機能のために用意した
  * @param isPremium プレミアム会員かどうか。trueにするとプレ垢限定色を開放します。
- * @param commentChange コメントInputに変更が入ったときに呼ばれる
+ * @param onCommentChange コメントInputに変更が入ったときに呼ばれる
  * @param is184 匿名で投稿する場合はtrue。もしfalseになった場合はテキストボックスのヒントにに生IDで投稿されるという旨が表示されます。
  * @param onPostClick 投稿ボタン押した時
  * @param isMultiLine 複数行コメントを送信する場合はtrue。falseの場合はEnterキーを送信キーに変更します。
@@ -49,7 +65,6 @@ import io.github.takusan23.tatimidroid.R
  * @param position コメントの位置
  * @param size コメントの大きさ
  * @param color コメントの色
- * @param onChangeMultiLine 複数行での投稿を有効にした場合は呼ばれる
  * */
 @Composable
 fun NicoLiveCommentInputButton(
@@ -58,7 +73,7 @@ fun NicoLiveCommentInputButton(
     is184: Boolean = true,
     isPremium: Boolean = true,
     comment: String,
-    commentChange: (String) -> Unit,
+    onCommentChange: (String) -> Unit,
     onPostClick: () -> Unit,
     isShowCommentInfoChangeButton: Boolean = true,
     isMultiLine: Boolean,
@@ -85,10 +100,10 @@ fun NicoLiveCommentInputButton(
             colorResource(id = R.color.colorPrimary),
             RoundedCornerShape(
                 // コメント入力テキストボックス表示中は角を丸くしない
-                topLeft = if (!isHideCommentLayout.value) 0.dp else 20.dp,
-                topRight = 0.dp,
-                bottomRight = 0.dp,
-                bottomLeft = 0.dp
+                topStart = if (!isHideCommentLayout.value) 0.dp else 20.dp,
+                topEnd = 0.dp,
+                bottomStart = 0.dp,
+                bottomEnd = 0.dp
             )
         ),
     ) {
@@ -133,6 +148,7 @@ fun NicoLiveCommentInputButton(
                 OutlinedTextField(
                     modifier = Modifier.weight(1f),
                     value = comment,
+                    onValueChange = { onCommentChange(it) },
                     label = {
                         Text(
                             text = if (is184) {
@@ -143,18 +159,14 @@ fun NicoLiveCommentInputButton(
                             }
                         )
                     },
-                    onValueChange = { commentChange(it) },
-                    activeColor = Color.White,
-                    inactiveColor = Color.White,
-                    textStyle = TextStyle(Color.White),
+                    textStyle = TextStyle(color = Color.White),
+                    colors = getWhiteColorOutlinedTextField(),
                     // 複数行投稿が無効な場合はEnterキーを送信、そうじゃない場合は改行へ
                     keyboardOptions = if (!isMultiLine) KeyboardOptions(imeAction = ImeAction.Send) else KeyboardOptions.Default,
-                    onImeActionPerformed = { imeAction, softwareKeyboardController ->
-                        if (imeAction == ImeAction.Send) {
-                            // 送信！
-                            onPostClick()
-                        }
-                    }
+                    keyboardActions = KeyboardActions(onSend = {
+                        // 送信！
+                        onPostClick()
+                    })
                 )
                 // 投稿ボタン
                 IconButton(onClick = { onPostClick() }) {
@@ -292,8 +304,8 @@ fun NicoLiveCommentCommandPanel(
             }
         }
         // 一般でも使える
-        ScrollableRow {
-            colorList.forEach { color ->
+        LazyRow {
+            items(colorList) { color ->
                 Button(
                     onClick = { selectColor.value = color.name },
                     modifier = Modifier.padding(5.dp),
@@ -305,14 +317,13 @@ fun NicoLiveCommentCommandPanel(
         }
         // プレミアム限定
         if (isPremium) {
-            ScrollableRow {
-                premiumColorList.forEach { color ->
+            LazyRow {
+                items(premiumColorList) { color ->
                     Button(
                         onClick = { selectColor.value = color.name },
                         modifier = Modifier.padding(5.dp),
                         colors = ButtonDefaults.textButtonColors(backgroundColor = Color(android.graphics.Color.parseColor(color.colorCode)))
                     ) {
-
                     }
                 }
             }
@@ -324,8 +335,6 @@ fun NicoLiveCommentCommandPanel(
                 modifier = Modifier
                     .weight(1f)
                     .padding(2.dp),
-                inactiveColor = Color.White,
-                activeColor = Color.White,
                 textStyle = TextStyle(Color.White),
                 label = { Text(text = stringResource(id = R.string.position)) },
                 onValueChange = { selectPos.value = it }
@@ -335,22 +344,20 @@ fun NicoLiveCommentCommandPanel(
                 modifier = Modifier
                     .weight(1f)
                     .padding(2.dp),
-                inactiveColor = Color.White,
-                activeColor = Color.White,
                 textStyle = TextStyle(Color.White),
                 label = { Text(text = stringResource(id = R.string.size)) },
-                onValueChange = { selectSize.value = it }
+                onValueChange = { selectSize.value = it },
+                colors = getWhiteColorOutlinedTextField()
             )
             OutlinedTextField(
                 value = selectColor.value,
                 modifier = Modifier
                     .weight(1f)
                     .padding(2.dp),
-                inactiveColor = Color.White,
-                activeColor = Color.White,
                 textStyle = TextStyle(Color.White),
                 label = { Text(text = stringResource(id = R.string.color)) },
-                onValueChange = { selectColor.value = it }
+                onValueChange = { selectColor.value = it },
+                colors = getWhiteColorOutlinedTextField()
             )
             // リセットボタン
             IconButton(

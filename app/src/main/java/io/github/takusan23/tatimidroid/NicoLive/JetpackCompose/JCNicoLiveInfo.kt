@@ -119,7 +119,7 @@ fun NicoLiveInfoCard(
                     // 区切り線
                     Divider(modifier = Modifier.padding(5.dp))
                     /** 多分HTMLを表示する機能はないので従来のTextView登場 */
-                    AndroidView(viewBlock = { context ->
+                    AndroidView(factory = { context ->
                         TextView(context).apply {
                             // リンク押せるように
                             text = HtmlCompat.fromHtml(programDescription, HtmlCompat.FROM_HTML_MODE_COMPACT)

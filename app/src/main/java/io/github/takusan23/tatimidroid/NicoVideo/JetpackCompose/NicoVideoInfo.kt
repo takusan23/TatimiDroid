@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.AmbientContext
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -75,7 +75,6 @@ fun NicoVideoInfoCard(
     description: String,
     descriptionClick: (id: String, type: String) -> Unit,
 ) {
-
     // 動画説明文表示状態
     val expanded = remember { mutableStateOf(false) }
 
@@ -193,7 +192,7 @@ fun NicoVideoInfoCard(
                     // 区切り線
                     Divider(modifier = Modifier.padding(5.dp))
                     /** 多分HTMLを表示する機能はないので従来のTextView登場 */
-                    AndroidView(viewBlock = { context ->
+                    AndroidView(factory = { context ->
                         TextView(context).apply {
                             // リンク押せるように
                             NicoVideoDescriptionText.setLinkText(text = HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT), this, descriptionClick)
@@ -231,7 +230,7 @@ fun NicoVideoLikeButton(
         Text(text = if (isLiked) stringResource(id = R.string.liked) else stringResource(id = R.string.like))
         Icon(
             painter = if (isLiked) painterResource(id = R.drawable.ic_favorite_black_24dp) else painterResource(id = R.drawable.ic_outline_favorite_border_24),
-            tint = if (isLiked) pinkColor else AmbientContentColor.current.copy(alpha = AmbientContentAlpha.current),
+            tint = if (isLiked) pinkColor else LocalContentColor.current.copy(alpha = LocalContentColor.current.alpha),
             contentDescription = stringResource(id = R.string.like)
         )
     }
@@ -264,7 +263,7 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
             // 一覧表示。RecyclerViewを使い回す
             AndroidView(
                 modifier = Modifier.fillMaxWidth(),
-                viewBlock = { context ->
+                factory = { context ->
                     RecyclerView(context).apply {
                         setHasFixedSize(true)
                         isNestedScrollingEnabled = false // これしないと関連動画スクロールした状態でミニプレイヤーに遷移できない
@@ -325,7 +324,6 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
  * @param onTagClick 押したときに呼ばれる。
  * @param onNicoPediaClick ニコニコ大百科ボタンを押したときに呼ばれる
  * */
-@ExperimentalLayout
 @Composable
 fun NicoVideoTagCard(
     tagItemDataList: ArrayList<NicoTagItemData>,
@@ -348,7 +346,7 @@ fun NicoVideoTagCard(
                         shape = MaterialTheme.shapes.small,
                         modifier = Modifier.padding(5.dp),
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.preferredHeight(IntrinsicSize.Min)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.requiredHeight(IntrinsicSize.Min)) {
                             // タグ検索
                             Surface(modifier = Modifier.clickable { onTagClick(data) }) {
                                 Row(modifier = Modifier.padding(10.dp)) {
@@ -365,7 +363,7 @@ fun NicoVideoTagCard(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxHeight()
-                                        .preferredWidth(1.dp)
+                                        .requiredWidth(1.dp)
                                         .background(color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f))
                                 )
                                 Surface(modifier = Modifier.clickable { onNicoPediaClick(data.nicoPediaUrl) }) {
@@ -529,7 +527,7 @@ fun NicoVideoPlayList(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                val icon = AmbientContext.current.getDrawable(R.drawable.ic_tatimidroid_list_icon_black)?.toBitmap()?.asImageBitmap()
+                val icon = LocalContext.current.getDrawable(R.drawable.ic_tatimidroid_list_icon_black)?.toBitmap()?.asImageBitmap()
                 if (icon != null) {
                     Icon(
                         bitmap = icon,
@@ -608,7 +606,7 @@ fun NicoVideoPlayList(
                     // 位置を特定
                     val index = videoList.indexOfFirst { it.videoId == playingVideoId }
                     if (index != -1) {
-                        state.snapToItemIndex(index)
+                        state.scrollToItem(index)
                     }
                 }
                 // RecyclerViewみたいに画面外は描画しないやつ
@@ -645,7 +643,7 @@ fun NicoVideoPlayList(
                                         // 位置を特定
                                         val index = videoList.indexOfFirst { it.videoId == data.videoId }
                                         // スクロール実行
-                                        state.snapToItemIndex(index)
+                                        state.scrollToItem(index)
                                     }
                                     videoClick(data.videoId)
                                 }) {
@@ -726,7 +724,7 @@ fun NicoVideoCommentBottomSheet(commentList: ArrayList<CommentJSONParse>, commen
                             Text(text = stringResource(id = R.string.comment))
                         }
                         // コメント一覧。AndroidViewで既存のRecyclerViewを使い回す。
-                        AndroidView(viewBlock = { context ->
+                        AndroidView(factory = { context ->
                             RecyclerView(context).apply {
                                 setHasFixedSize(true)
                                 layoutManager = LinearLayoutManager(context)

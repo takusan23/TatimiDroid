@@ -8,7 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.AmbientContext
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -128,8 +128,8 @@ fun NicoAdTop(
 fun NicoAdRankingList(nicoAdRankingUserList: ArrayList<NicoAdRankingUserData>) {
     AndroidView(
         modifier = Modifier.fillMaxWidth(),
-        viewBlock = { context ->
-            return@AndroidView RecyclerView(context).apply {
+        factory = { context ->
+            RecyclerView(context).apply {
                 setHasFixedSize(true)
                 layoutManager = LinearLayoutManager(context)
                 adapter = NicoAdRankingAdapter(nicoAdRankingUserList)
@@ -148,8 +148,8 @@ fun NicoAdRankingList(nicoAdRankingUserList: ArrayList<NicoAdRankingUserData>) {
 fun NicoAdHistoryList(nicoAdHistoryUserList: ArrayList<NicoAdHistoryUserData>) {
     AndroidView(
         modifier = Modifier.fillMaxWidth(),
-        viewBlock = { context ->
-            return@AndroidView RecyclerView(context).apply {
+        factory = { context ->
+            RecyclerView(context).apply {
                 setHasFixedSize(true)
                 layoutManager = LinearLayoutManager(context)
                 adapter = NicoAdHistoryAdapter(nicoAdHistoryUserList)
@@ -171,7 +171,7 @@ fun NicoAdTabMenu(
     onClickTabItem: (Int) -> Unit,
 ) {
     TabRow(
-        backgroundColor = if (isDarkMode(AmbientContext.current)) Color.Black else Color.White,
+        backgroundColor = if (isDarkMode(LocalContext.current)) Color.Black else Color.White,
         selectedTabIndex = selectTabIndex
     ) {
         TabPadding(

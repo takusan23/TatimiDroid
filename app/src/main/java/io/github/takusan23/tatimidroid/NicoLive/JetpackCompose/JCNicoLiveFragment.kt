@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoLive.JetpackCompose
 
 import android.annotation.SuppressLint
-import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -15,7 +14,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.AmbientContext
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ShareCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -111,6 +110,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     }
 
     /** Jetpack Composeで作成したコメント投稿UIを追加する */
+    @ExperimentalAnimationApi
     private fun setCommentPostUI() {
         // コメント一覧展開ボタンを設置する
         bottomComposeView.apply {
@@ -136,7 +136,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                     onClick = { viewModel.commentListShowLiveData.postValue(!isComment.value) },
                     isComment = isComment.value,
                     comment = commentPostText.value,
-                    commentChange = { commentPostText.value = it },
+                    onCommentChange = { commentPostText.value = it },
                     onPostClick = {
                         // コメント投稿
                         scope.launch {
@@ -169,7 +169,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             setContent {
                 MaterialTheme(
                     // ダークモード。動的にテーマ変更できるようになるんか？
-                    colors = if (isDarkMode(AmbientContext.current)) DarkColors else LightColors,
+                    colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
                 ) {
                     Surface {
                         // 統計情報LiveData
