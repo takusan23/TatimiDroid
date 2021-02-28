@@ -8,21 +8,25 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.BitmapFactory
+import android.media.session.MediaController
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.media.MediaBrowserServiceCompat
+import androidx.media.session.MediaButtonReceiver
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
@@ -44,6 +48,11 @@ import org.json.JSONObject
  * ```
  * */
 class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
+
+    companion object {
+        /** 通知ID */
+        const val NOTIFICATION_ID = 157
+    }
 
     /** [onLoadChildren]でparentIdに入ってくる。Android 11のメディアの再開の場合はこの値 */
     private val ROOT_RECENT = "root_recent"
@@ -70,7 +79,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
     private val nicoVideoCache by lazy { NicoVideoCache(this) }
 
     /** リピート有効等の操作はブロードキャストで受け取る */
-    lateinit var broadcastReceiver: BroadcastReceiver
+    private lateinit var broadcastReceiver: BroadcastReceiver
 
     /** MediaSession初期化など */
     override fun onCreate() {
@@ -392,8 +401,9 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             NotificationCompat.Builder(this)
         }
         notification.apply {
-            setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken).setShowActionsInCompactView(0, 1, 3))
+            setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSessionCompat.sessionToken).setShowActionsInCompactView(1, 2, 3))
             setSmallIcon(R.drawable.ic_tatimidroid_playlist_play_black)
+            setContentIntent(PendingIntent.getActivity(this@BackgroundPlaylistCachePlayService, 2525, Intent(this@BackgroundPlaylistCachePlayService, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT))
 
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
                 // Android 11 からは MediaSession から値をもらってsetContentTextしてくれるけど10以前はしてくれないので
@@ -414,58 +424,22 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
             val stopIntent = Intent("stop") // まじでなんで使えんの？
             val prevIntent = Intent("prev")
             val nextIntent = Intent("next")
-            val repeatOneIntent = Intent("repeat_one")
-            val repeatAllIntent = Intent("repeat_all")
-            val repeatOffIntent = Intent("repeat_off")
-            val shuffleOn = Intent("shuffle_on")
-            val shuffleOff = Intent("shuffle_off")
             // 停止ボタン
-            addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 30, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+            addAction(NotificationCompat.Action(R.drawable.ic_clear_black, getString(R.string.finish), PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 105, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+            // 前の曲ボタン
+            addAction(NotificationCompat.Action(R.drawable.ic_skip_previous_black_24dp, "prev", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 104, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
             if (::exoPlayer.isInitialized && exoPlayer.playWhenReady) {
                 // 一時停止
-                addAction(NotificationCompat.Action(R.drawable.ic_pause_black_24dp, "play", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 31, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                addAction(NotificationCompat.Action(R.drawable.ic_pause_black_24dp, "play", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 101, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
             } else {
                 // 再生
-                addAction(NotificationCompat.Action(R.drawable.ic_play_arrow_24px, "pause", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 32, playIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
+                addAction(NotificationCompat.Action(R.drawable.ic_play_arrow_24px, "pause", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 102, playIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
             }
-            // 次の曲（設定で前の曲にできる）
-            if (prefSetting.getBoolean("setting_cache_background_play_prev_button", false)) {
-                // 前の曲ボタン
-                addAction(NotificationCompat.Action(R.drawable.ic_skip_previous_black_24dp, "prev", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 33, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-            } else {
-                // 次の曲ボタン
-                addAction(NotificationCompat.Action(R.drawable.ic_skip_next_black_24dp, "next", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 33, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-            }
-            if (::exoPlayer.isInitialized) {
-                // 初期化済みなら
-                when (exoPlayer.repeatMode) {
-                    Player.REPEAT_MODE_OFF -> {
-                        // Off -> All Repeat
-                        addAction(NotificationCompat.Action(R.drawable.ic_arrow_downward_black_24dp, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 25, repeatAllIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                    }
-                    Player.REPEAT_MODE_ALL -> {
-                        // All Repeat -> Repeat One
-                        addAction(NotificationCompat.Action(R.drawable.ic_repeat_black_24dp, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 26, repeatOneIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                    }
-                    Player.REPEAT_MODE_ONE -> {
-                        // Repeat One -> Off
-                        addAction(NotificationCompat.Action(R.drawable.ic_repeat_one_24px, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 27, repeatOffIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-                    }
-                }
-            } else {
-                // 今再生中の曲を無限大なああああああ->プレイリストループ
-                addAction(NotificationCompat.Action(R.drawable.ic_repeat_black_24dp, "repeat", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 25, repeatOneIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
-            }
-
-            // シャッフル
-            if (::exoPlayer.isInitialized && exoPlayer.shuffleModeEnabled) {
-                addAction(NotificationCompat.Action(R.drawable.ic_shuffle_black_24dp, "shuffle", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 26, shuffleOff, PendingIntent.FLAG_UPDATE_CURRENT)))
-            } else {
-                addAction(NotificationCompat.Action(R.drawable.ic_trending_flat_black_24dp, "shuffle", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 27, shuffleOn, PendingIntent.FLAG_UPDATE_CURRENT)))
-            }
+            // 次の曲ボタン
+            addAction(NotificationCompat.Action(R.drawable.ic_skip_next_black_24dp, "next", PendingIntent.getBroadcast(this@BackgroundPlaylistCachePlayService, 103, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)))
         }
         // 通知表示
-        startForeground(84, notification.build())
+        startForeground(NOTIFICATION_ID, notification.build())
     }
 
     /** フォアグラウンドサービスを起動する */

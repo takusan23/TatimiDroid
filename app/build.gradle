@@ -96,7 +96,7 @@ dependencies {
     // MotionLayout
     implementation 'androidx.constraintlayout:constraintlayout:2.1.0-alpha2'
     // MediaSession
-    implementation "androidx.media:media:1.2.0"
+    implementation "androidx.media:media:1.2.1"
     //GoogleCast
     implementation 'com.google.android.gms:play-services-cast-framework:18.1.0'
     // ExoPlayer

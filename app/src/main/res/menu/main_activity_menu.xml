@@ -3,11 +3,11 @@
 
     <item
             android:id="@+id/menu_community"
-            android:icon="@drawable/ic_outline_live_tv_24px_black"
+            android:icon="@drawable/live_icon"
             android:title="@string/nicolive" />
     <item
             android:id="@+id/menu_nicovideo"
-            android:icon="@drawable/ic_local_movies_24px"
+            android:icon="@drawable/video_icon"
             android:title="@string/nicovideo" />
     <item
             android:id="@+id/menu_cache"

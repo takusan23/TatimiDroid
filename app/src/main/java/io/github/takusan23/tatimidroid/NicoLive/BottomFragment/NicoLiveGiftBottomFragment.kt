@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.WindowRecomposerFactory
 import androidx.compose.ui.platform.compositionContext
 import androidx.lifecycle.ViewModelProvider
@@ -14,6 +16,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.NicoLiveGiftScreen
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveGiftViewModel
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveGiftViewModelFactory
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.LightColors
+import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -40,7 +45,11 @@ class NicoLiveGiftBottomFragment : BottomSheetDialogFragment() {
             compositionContext = newRecomposer
 
             setContent {
-                NicoLiveGiftScreen(viewModel)
+                MaterialTheme(
+                    colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
+                ) {
+                    NicoLiveGiftScreen(viewModel)
+                }
             }
         }
     }

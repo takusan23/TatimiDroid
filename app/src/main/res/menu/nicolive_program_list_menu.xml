@@ -37,7 +37,7 @@
                 android:title="@string/popular_reservation_program" />
         <item
                 android:id="@+id/nicolive_program_list_menu_nicolive_jk"
-                android:icon="@drawable/ic_personal_video_black_24dp"
+                android:icon="@drawable/jk_icon"
                 android:title="@string/nicolive_jk" />
 <!--
         <item

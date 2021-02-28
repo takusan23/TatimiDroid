@@ -1,20 +1,28 @@
 package io.github.takusan23.tatimidroid.NicoVideo.VideoList
 
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ComponentName
+import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.NotificationCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.Player
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
@@ -29,6 +37,10 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+
+/**
+ * キャッシュ一覧を表示するFragment
+ * */
 class NicoVideoCacheFragment : Fragment() {
 
     // 必要なやつ
@@ -36,7 +48,7 @@ class NicoVideoCacheFragment : Fragment() {
     lateinit var nicoVideoListAdapter: NicoVideoListAdapter
 
     /** バックグラウンド連続再生のMediaSessionへ接続する */
-    var mediaBrowser: MediaBrowserCompat? = null
+    private var mediaBrowser: MediaBrowserCompat? = null
 
     /** ViewModel。画面回転時に再読み込みされるのつらいので */
     private val viewModel by viewModels<NicoVideoCacheFragmentViewModel>({ this })
@@ -64,7 +76,6 @@ class NicoVideoCacheFragment : Fragment() {
         viewModel.totalUsedStorageGB.observe(viewLifecycleOwner) { gb ->
             viewBinding.fragmentNicovideoCacheStorageInfoTextView.text = "${getString(R.string.cache_usage)}：$gb GB"
         }
-
 
         // フィルター / 並び替え BottomFragment
         viewBinding.fragmentNicovideoCacheMenuFilterTextview.setOnClickListener {
@@ -94,9 +105,121 @@ class NicoVideoCacheFragment : Fragment() {
                     controller.transportControls.playFromMediaId(videoId, null)
                 }
                 viewBinding.fragmentNicovideoCacheCardMotionLayout.transitionToStart()
+                // リピート、シャッフルボタンセット
+                controller.registerCallback(object : MediaControllerCompat.Callback() {
+                    override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+                        super.onPlaybackStateChanged(state)
+                        initRepeatShuffleButton()
+                    }
+                })
             }
         }
 
+        // キャッシュ用バックグラウンドに連続再生起動中の場合はリピート、シャッフルボタンを表示させる
+        if (isCheckRunningBackgroundCachePlayService()) {
+            initRepeatShuffleButton()
+        }
+
+    }
+
+    /** リピート、シャッフルボタンを設定 */
+    private fun initRepeatShuffleButton() {
+
+        /** リピートアイコンをセットする */
+        fun setRepeatIcon(mode: Int) {
+            val icon = when (mode) {
+                Player.REPEAT_MODE_OFF -> {
+                    requireContext().getDrawable(R.drawable.ic_arrow_downward_black_24dp)
+                }
+                Player.REPEAT_MODE_ALL -> {
+                    requireContext().getDrawable(R.drawable.ic_repeat_black_24dp)
+                }
+                Player.REPEAT_MODE_ONE -> {
+                    requireContext().getDrawable(R.drawable.ic_repeat_one_24px)
+                }
+                else -> requireContext().getDrawable(R.drawable.ic_trending_flat_black_24dp)
+            }
+            viewBinding.fragmentNicovideoCacheMenuBackgroundRepeatImageView.setImageDrawable(icon)
+        }
+
+        /** シャッフルアイコンをセットする */
+        fun setShuffleIcon(isShuffleMode: Boolean) {
+            val icon = if (isShuffleMode) {
+                requireContext().getDrawable(R.drawable.ic_shuffle_black_24dp)
+            } else {
+                requireContext().getDrawable(R.drawable.ic_trending_flat_black_24dp)
+            }
+            viewBinding.fragmentNicovideoCacheMenuBackgroundShuffleImageView.setImageDrawable(icon)
+        }
+
+        // アイコン表示
+        viewBinding.fragmentNicovideoCacheMenuBackgroundRepeatImageView.isVisible = true
+        viewBinding.fragmentNicovideoCacheMenuBackgroundShuffleImageView.isVisible = true
+
+        lifecycleScope.launch {
+
+            if (mediaBrowser == null) {
+                // MediaSession接続
+                connectMediaSession()
+            }
+            // このActivityに関連付けられたMediaSessionControllerを取得
+            val controller = MediaControllerCompat.getMediaController(requireActivity())
+
+            // 初期化
+            setRepeatIcon(prefSetting.getInt("cache_repeat_mode", 0))
+            setShuffleIcon(prefSetting.getBoolean("cache_shuffle_mode", false))
+
+            // リピートボタン押したとき
+            viewBinding.fragmentNicovideoCacheMenuBackgroundRepeatImageView.setOnClickListener {
+                val mode = when (prefSetting.getInt("cache_repeat_mode", 0)) {
+                    Player.REPEAT_MODE_OFF -> {
+                        // Off -> All Repeat
+                        PlaybackStateCompat.REPEAT_MODE_ALL
+                    }
+                    Player.REPEAT_MODE_ALL -> {
+                        // All Repeat -> Repeat One
+                        PlaybackStateCompat.REPEAT_MODE_ONE
+                    }
+                    Player.REPEAT_MODE_ONE -> {
+                        // Repeat One -> Off
+                        PlaybackStateCompat.REPEAT_MODE_NONE
+                    }
+                    else -> PlaybackStateCompat.REPEAT_MODE_ALL
+                }
+                // アイコン用意
+                controller.transportControls.setRepeatMode(mode)
+                setRepeatIcon(mode)
+            }
+            // シャッフルボタン押したとき
+            viewBinding.fragmentNicovideoCacheMenuBackgroundShuffleImageView.setOnClickListener {
+                val mode = if (prefSetting.getBoolean("cache_shuffle_mode", false)) {
+                    // シャッフルON -> OFF
+                    PlaybackStateCompat.SHUFFLE_MODE_NONE
+                } else {
+                    // シャッフルOFF -> ON
+                    PlaybackStateCompat.SHUFFLE_MODE_ALL
+                }
+                controller.transportControls.setShuffleMode(mode)
+                setShuffleIcon(mode == PlaybackStateCompat.SHUFFLE_MODE_ALL)
+            }
+        }
+
+    }
+
+    /**
+     * [BackgroundPlaylistCachePlayService]が起動中かどうかを判断する
+     * 判断方法は今ある通知の中から通知IDが[BackgroundPlaylistCachePlayService.NOTIFICATION_ID]と同じものがあるかどうか
+     *
+     * なおAndroid 6以降のみ対応。5の場合は強制true
+     * */
+    private fun isCheckRunningBackgroundCachePlayService(): Boolean {
+        val notificationManager = requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        // キャッシュ用バックグラウンドに連続再生サービスの通知が出ているかどうかを確認
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            notificationManager.activeNotifications.any { notification -> notification.id == BackgroundPlaylistCachePlayService.NOTIFICATION_ID }
+        } else {
+            true
+        }
     }
 
     /**

@@ -3,7 +3,7 @@
 
     <!-- ニコ動 -->
     <shortcut
-            android:icon="@drawable/ic_local_movies_24px"
+            android:icon="@drawable/video_icon"
             android:shortcutId="nicovideo"
             android:shortcutShortLabel="@string/nicovideo">
         <!-- インテント -->
@@ -18,7 +18,7 @@
     </shortcut>
     <!-- ニコ生 -->
     <shortcut
-            android:icon="@drawable/ic_outline_live_tv_24px_black"
+            android:icon="@drawable/live_icon"
             android:shortcutId="nicolive"
             android:shortcutShortLabel="@string/nicolive">
         <!-- インテント -->
@@ -48,7 +48,7 @@
     </shortcut>
     <!-- ニコニコ実況 -->
     <shortcut
-            android:icon="@drawable/ic_personal_video_black_24dp"
+            android:icon="@drawable/jk_icon"
             android:shortcutId="jk"
             android:shortcutShortLabel="@string/nico_jk">
         <!-- インテント -->

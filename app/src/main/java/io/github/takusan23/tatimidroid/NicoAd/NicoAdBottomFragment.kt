@@ -7,17 +7,18 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.InternalComposeUiApi
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.WindowRecomposerFactory
-import androidx.compose.ui.platform.WindowRecomposerPolicy
-import androidx.compose.ui.platform.compositionContext
+import androidx.compose.ui.platform.*
 import androidx.lifecycle.*
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoAd.JetpackCompose.NicoAdScreen
 import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModel
 import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModelFactory
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.LightColors
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -45,7 +46,11 @@ class NicoAdBottomFragment : BottomSheetDialogFragment() {
             compositionContext = newRecomposer
 
             setContent {
-                NicoAdScreen(viewModel)
+                MaterialTheme(
+                    colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
+                ) {
+                    NicoAdScreen(viewModel)
+                }
             }
         }
     }
