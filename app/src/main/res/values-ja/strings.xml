@@ -586,4 +586,6 @@
     <string name="database_backup_start">バックアップを始める</string>
     <string name="database_backup_cancel">やめておく</string>
     <string name="database_backup_description">バックアップを行いますか？バックアップデータの取り扱いには注意してください。</string>
+    <string name="setting_cache_split_count_title">同時接続数（並列ダウンロード数）</string>
+    <string name="setting_cache_split_count_description">キャッシュ取得時にかかる時間が速くなります。多分。動画ファイルをいくつかに分けてダウンロードして最後に結合してます。</string>
 </resources>

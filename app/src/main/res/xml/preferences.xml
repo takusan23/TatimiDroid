@@ -161,6 +161,19 @@
             android:title="@string/setting_play_type_title" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/get_cache">
+
+        <SeekBarPreference
+            android:defaultValue="5"
+            android:icon="@drawable/ic_cache_progress_icon"
+            android:key="setting_cache_split_count"
+            android:max="10"
+            android:summary="@string/setting_cache_split_count_description"
+            android:title="@string/setting_cache_split_count_title"
+            app:min="1"
+            app:showSeekBarValue="true" />
+
+    </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/nicolive">
 
@@ -445,7 +458,7 @@
             android:title="@string/privacy_policy" />
 
         <Preference
-            android:icon="@drawable/ic_save_alt_black_24dp"
+            android:icon="@drawable/ic_cache_progress_icon"
             android:key="about_cache"
             android:summary="@string/about_cache_description"
             android:title="@string/about_cache" />

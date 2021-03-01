@@ -138,7 +138,7 @@ class DownloadPocket(private val url: String, private val splitFileFolder: File,
         while (true) {
             val read = inputStream?.read(buffer)
             if (read == -1 || read == null) {
-                // 終わりなら無限ループ抜けて高階関数よぶ
+                // もう取れない
                 break
             }
             splitFileOutputStream.write(buffer, 0, read)

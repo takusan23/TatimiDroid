@@ -140,7 +140,7 @@
             android:layout_width="match_parent"
             android:layout_height="100sp"
             android:gravity="center"
-            android:src="@drawable/ic_cache_icon"
+            android:src="@drawable/ic_cache_icon_list"
             app:tint="@color/colorPrimaryDark" />
 
         <TextView

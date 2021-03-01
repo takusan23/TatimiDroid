@@ -586,4 +586,6 @@
     <string name="database_backup_start">Start backup</string>
     <string name="database_backup_cancel">Cancel</string>
     <string name="database_backup_description">Do you want to back up? Be careful when handling backup data.</string>
+    <string name="setting_cache_split_count_title">Number of simultaneous connections (number of parallel downloads)</string>
+    <string name="setting_cache_split_count_description">The time it takes to get the cache will be faster. Perhaps. The video file is divided into several parts, downloaded, and finally combined.</string>
 </resources>

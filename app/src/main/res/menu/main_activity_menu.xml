@@ -11,7 +11,7 @@
             android:title="@string/nicovideo" />
     <item
             android:id="@+id/menu_cache"
-            android:icon="@drawable/ic_folder_open_black_24dp"
+            android:icon="@drawable/ic_cache_icon_list"
             android:title="@string/cache" />
     <!--
         <item

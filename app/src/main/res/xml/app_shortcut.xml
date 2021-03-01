@@ -33,7 +33,7 @@
     </shortcut>
     <!-- キャッシュ -->
     <shortcut
-            android:icon="@drawable/ic_cache_icon_black"
+            android:icon="@drawable/ic_cache_icon_list"
             android:shortcutId="cache"
             android:shortcutShortLabel="@string/cache">
         <!-- インテント -->

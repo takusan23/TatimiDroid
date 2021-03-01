@@ -47,7 +47,7 @@ class GetCacheService : Service() {
     }
 
     /** 並列数、分割数 */
-    private val splitCount = 4
+    private val splitCount by lazy { prefSetting.getInt("setting_cache_split_count", 5) }
 
     /** 動画キャッシュ予約リスト。キャッシュ取得成功すればここの配列の中身が使われていく */
     private val cacheList = arrayListOf<Pair<String, Boolean>>()
@@ -226,7 +226,7 @@ class GetCacheService : Service() {
         foregroundNotification.apply {
             setContentTitle(getString(R.string.cache_get_notification_title))
             setContentText(contentText)
-            setSmallIcon(R.drawable.ic_save_alt_black_24dp)
+            setSmallIcon(R.drawable.ic_cache_progress_icon)
             // 強制終了ボタン置いておく
             addAction(R.drawable.ic_outline_delete_24px, getString(R.string.cache_get_service_stop), PendingIntent.getBroadcast(this@GetCacheService, 811, Intent("cache_service_stop"), PendingIntent.FLAG_UPDATE_CURRENT))
             setStyle(NotificationCompat.InboxStyle().also { inboxStyle ->
@@ -257,7 +257,7 @@ class GetCacheService : Service() {
         notification.apply {
             setContentTitle("${getString(R.string.cache_progress_now)} : $progress %")
             setContentText(videoId)
-            setSmallIcon(R.drawable.ic_save_alt_black_24dp)
+            setSmallIcon(R.drawable.ic_cache_progress_icon)
             setProgress(100, progress, false) // プログレスバー
         }
         if (progress == 100) {

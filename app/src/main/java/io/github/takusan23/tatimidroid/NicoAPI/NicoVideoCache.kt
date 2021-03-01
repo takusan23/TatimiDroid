@@ -1,11 +1,7 @@
 package io.github.takusan23.tatimidroid.NicoAPI
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.media.MediaMetadataRetriever
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -179,39 +175,6 @@ class NicoVideoCache(val context: Context?) {
         sort(filterList, NicoVideoCacheFilterBottomFragment.CACHE_FILTER_SORT_LIST.indexOf(filter.sort))
 
         return filterList
-    }
-
-    /**
-     * キャッシュ取得
-     * 注意：キャッシュ取得中はハートビート処理しないと切られます、多分。
-     * @param videoId 動画ID
-     * @param json NicoVideoHTML#parseJSON()の値
-     * @param userSession ユーザーセッション
-     * @param nicoHistory レスポンスヘッダーのCookieにあるnicohistoryを入れてね。
-     * @param splitCount 分割数。並列リクエスト数。デフォ4
-     * @param url 動画URL
-     * */
-    suspend fun getCache(videoId: String, json: String, url: String, userSession: String, nicoHistory: String, splitCount: Int = 4) = withContext(Dispatchers.IO) {
-        // 公式動画は落とせない。
-        if (!isEncryption(json)) {
-            // 保存先
-            val path = getCacheFolderPath()
-            // 動画IDフォルダー作成
-            val videoIdFolder = File("$path/$videoId")
-            videoIdFolder.mkdir()
-            // コメント取得
-            getCacheComment(videoIdFolder, videoId, json, userSession)
-            // 動画情報取得
-            saveVideoInfo(videoIdFolder, videoId, json)
-            // 動画のサ胸取得
-            getThumbnail(videoIdFolder, videoId, json, userSession)
-            // 動画取得で使う一時的に持っておくフォルダ
-            val tmpVideoFileFolder = File(path, "${videoId}_pocket")
-            // 動画取得
-            getVideoDownloader(tmpVideoFileFolder, videoIdFolder, videoId, url, userSession, nicoHistory, splitCount)
-        } else {
-            showToast(context?.getString(R.string.encryption_not_download) ?: "")
-        }
     }
 
     /**
