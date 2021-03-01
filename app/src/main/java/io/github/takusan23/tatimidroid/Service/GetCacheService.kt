@@ -1,9 +1,6 @@
 package io.github.takusan23.tatimidroid.Service
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.content.*
 import android.os.Build
 import android.os.Handler
@@ -17,10 +14,9 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.LanguageTool
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
+import java.io.File
 
 /**
  * キャッシュ取得サービス。Serviceに移管した。
@@ -29,31 +25,44 @@ import kotlinx.coroutines.launch
  *   is_eco|  Boolean|     エコノミーならtrue
  * */
 class GetCacheService : Service() {
-    // 通知系
-    val NOTIFICAION_ID = 816
-    lateinit var notificationManager: NotificationManager
+    /** フォアグラウンドサービス通知ID */
+    private val FOREGROUND_NOTIFICATION_ID = 816
 
-    // 設定
-    lateinit var prefSetting: SharedPreferences
-    var userSession = ""
+    /** ダウンロード進捗通知ID */
+    private val DOWNLOAD_PROGRESS_NOTIFICATION_ID = 1919
 
-    // キャッシュ取得用クラス
-    lateinit var nicoVideoCache: NicoVideoCache
+    /** 通知出すやつ */
+    private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
 
-    // 動画キャッシュ予約リスト。キャッシュ取得成功すればここの配列の中身が使われていく
-    val cacheList = arrayListOf<Pair<String, Boolean>>()
+    /** 設定 */
+    private val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
 
-    // 終了済みリスト
-    val cacheGuttedList = arrayListOf<String>()
+    /** ユーザーセッション */
+    private val userSession by lazy {
+        if (isLoginMode(this)) {
+            prefSetting.getString("user_session", "") ?: "" // ログインする
+        } else {
+            ""  // ログインしない
+        }
+    }
 
-    // 一度だけ動かすのに使う（フラグ用意しても良かった感）
-    lateinit var launch: Job
+    /** 並列数、分割数 */
+    private val splitCount = 4
 
-    // 現在取得している動画ID
-    var currentCacheVideoId = ""
+    /** 動画キャッシュ予約リスト。キャッシュ取得成功すればここの配列の中身が使われていく */
+    private val cacheList = arrayListOf<Pair<String, Boolean>>()
 
-    // キャンセル用Broadcast
-    lateinit var broadcastReceiver: BroadcastReceiver
+    /** 終了済みリスト */
+    private val cacheDLFinishedList = arrayListOf<String>()
+
+    /** コルーチンキャンセル用。launch{ }の戻り値 */
+    private var cacheCoroutineJob: Job? = null
+
+    /** 現在取得している動画ID */
+    private var currentCacheVideoId = ""
+
+    /** キャンセル用Broadcast */
+    private lateinit var broadcastReceiver: BroadcastReceiver
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -62,12 +71,12 @@ class GetCacheService : Service() {
     override fun onCreate() {
         super.onCreate()
         // 通知出す
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         showNotification()
         // ブロードキャスト初期化
         initBroadcastReceiver()
     }
 
+    /** 通知ボタンのBroadCastReceiver */
     private fun initBroadcastReceiver() {
         val intentFilter = IntentFilter()
         intentFilter.addAction("cache_service_stop")
@@ -77,8 +86,6 @@ class GetCacheService : Service() {
                     "cache_service_stop" -> {
                         // DL中に中断したらファイルを消すように
                         NicoVideoCache(this@GetCacheService).deleteCache(currentCacheVideoId)
-                        // DownloadManager中断
-                        nicoVideoCache.isCacheGetCancel = true
                         // Service強制終了
                         stopSelf()
                     }
@@ -89,13 +96,6 @@ class GetCacheService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // ユーザーセッション
-        prefSetting = PreferenceManager.getDefaultSharedPreferences(this)
-        userSession = if (isLoginMode(this)) {
-            prefSetting.getString("user_session", "") ?: "" // ログインする
-        } else {
-            ""  // ログインしない
-        }
         // 動画ID
         val id = intent?.getStringExtra("id")
         // エコノミーなら
@@ -107,14 +107,14 @@ class GetCacheService : Service() {
                 cacheList.add(Pair(id, isEco1))
                 // 一度だけ実行
                 // Serviceは多重起動できないけど起動中ならonStartCommandが呼ばれる
-                if (!::launch.isInitialized) {
+                if (cacheCoroutineJob == null) {
                     // 取得
                     coroutine()
                 } else {
                     // 予定に追加したよ！
-                    showToast("${getString(R.string.cache_get_list_add)}。$id\n${getString(R.string.cache_get_list_size)}：${cacheList.size - cacheGuttedList.size}")
+                    showToast("${getString(R.string.cache_get_list_add)}。$id\n${getString(R.string.cache_get_list_size)}：${cacheList.size - cacheDLFinishedList.size}")
                 }
-                showNotification("${getString(R.string.loading)}：$currentCacheVideoId / ${getString(R.string.cache_get_list_size)}：${cacheList.size - cacheGuttedList.size}")
+                showNotification("${getString(R.string.loading)}：$currentCacheVideoId / ${getString(R.string.cache_get_list_size)}：${cacheList.size - cacheDLFinishedList.size}")
             } else {
                 showToast(getString(R.string.cache_get_list_contains))
             }
@@ -128,22 +128,18 @@ class GetCacheService : Service() {
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             showToast("${getString(R.string.error)}\n${throwable}")
         }
-        launch = GlobalScope.launch(errorHandler) {
+        cacheCoroutineJob = GlobalScope.launch(errorHandler) {
             // キャッシュ取得クラス
             val nicoVideoHTML = NicoVideoHTML()
-            nicoVideoCache = NicoVideoCache(this@GetCacheService)
+            val nicoVideoCache = NicoVideoCache(this@GetCacheService)
             // ID
             val videoId = cacheList[position].first
             currentCacheVideoId = videoId
             // エコノミーか
             val isEco1 = cacheList[position].second
-            val eco = if (isEco1) {
-                "1"
-            } else {
-                "0"
-            }
+            val eco = if (isEco1) "1" else "0"
             // 進捗通知
-            showNotification("${getString(R.string.loading)}：$currentCacheVideoId / ${getString(R.string.cache_get_list_size)}：${cacheList.size - cacheGuttedList.size}")
+            showNotification("${getString(R.string.loading)}：$currentCacheVideoId / ${getString(R.string.cache_get_list_size)}：${cacheList.size - cacheDLFinishedList.size}")
             // リクエスト
             val response = nicoVideoHTML.getHTML(videoId, userSession, eco)
             if (!response.isSuccessful) {
@@ -158,12 +154,10 @@ class GetCacheService : Service() {
                 var contentUrl = ""
                 if (nicoVideoHTML.isDMCServer(jsonObject)) {
                     // https://api.dmc.nico/api/sessions のレスポンス
-                    val sessionAPIJSONObject =
-                        nicoVideoHTML.callSessionAPI(jsonObject)
+                    val sessionAPIJSONObject = nicoVideoHTML.callSessionAPI(jsonObject)
                     if (sessionAPIJSONObject != null) {
                         // 動画URL
-                        contentUrl =
-                            nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
+                        contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
                         // ハートビート処理
                         nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSONObject)
                     }
@@ -171,91 +165,107 @@ class GetCacheService : Service() {
                     // Smileサーバー。動画URL取得
                     contentUrl = nicoVideoHTML.getContentURI(jsonObject, null)
                 }
-                // キャッシュ取得
-                nicoVideoCache.getCache(videoId, jsonObject.toString(), contentUrl, userSession, nicoHistory) {
-                    if (it == 1) {
-                        // 失敗時
-                        showToast("動画の取得に失敗しました（$videoId）")
-                        // 消す
-                        nicoVideoCache.deleteCache(videoId)
-                    }
-                    // 取得完了したら呼ぶ
-                    nicoVideoHTML.destroy()
-                    nicoVideoCache.destroy()
-                    // 終了済みリスト
-                    cacheGuttedList.add(videoId)
-                    // 次の要素へ
-                    if (position + 1 < cacheList.size) {
-                        coroutine(position + 1)
-                    } else {
-                        // 全て終了
-                        showToast(getString(R.string.cache_get_list_all_complete))
-                        stopSelf()
-                    }
+                /**
+                 * キャッシュ取得
+                 *
+                 * コルーチンのasyncで並列にリクエストを飛ばす
+                 * */
+                val json = jsonObject.toString()
+                // 動画IDフォルダー作成
+                val videoIdFolder = File(nicoVideoCache.getCacheFolderPath(), videoId)
+                videoIdFolder.mkdir()
+                // コメント取得
+                val asyncComment = async { nicoVideoCache.getCacheComment(videoIdFolder, videoId, json, userSession) }
+                // 動画情報取得
+                val asyncVideoInfo = async { nicoVideoCache.saveVideoInfo(videoIdFolder, videoId, json) }
+                // 動画のサ胸取得
+                val asyncThumb = async { nicoVideoCache.getThumbnail(videoIdFolder, videoId, json, userSession) }
+                // 動画取得で使う一時的に持っておくフォルダ
+                val tmpVideoFileFolder = File(nicoVideoCache.getCacheTempFolderPath(), "${videoId}_pocket").apply { mkdir() }
+                // 動画取得用クラス
+                val pocket = nicoVideoCache.getVideoDownloader(tmpVideoFileFolder, videoIdFolder, videoId, contentUrl, userSession, nicoHistory, splitCount)
+                val asyncVideo = async { pocket.start() }
+                // 通知更新
+                launch {
+                    pocket.progressFlow.collect { progress -> showDownloadProgressNotification(videoId, progress) }
                 }
+                // 終了を待つ
+                asyncComment.await()
+                asyncVideoInfo.await()
+                asyncThumb.await()
+                asyncVideo.await()
             } else {
                 showToast(getString(R.string.encryption_not_download))
-                // 取得完了したら呼ばれる。
-                nicoVideoHTML.destroy()
-                nicoVideoCache.destroy()
-                // 次の要素へ
-                if (position + 1 < cacheList.size) {
-                    coroutine(position + 1)
-                } else {
-                    // 終了
-                    showToast(getString(R.string.cache_get_list_all_complete))
-                    stopSelf()
-                }
+            }
+            // 取得完了したら呼ばれる。
+            nicoVideoHTML.destroy()
+            // 次の要素へ
+            if (position + 1 < cacheList.size) {
+                coroutine(position + 1)
+            } else {
+                // 終了
+                showToast(getString(R.string.cache_get_list_all_complete))
+                stopSelf()
             }
         }
     }
 
     // サービス実行中通知出す
     private fun showNotification(contentText: String = getString(R.string.loading)) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val foregroundNotification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // 通知チャンネル
             val notificationChannelId = "cache_service"
-            val notificationChannel =
-                NotificationChannel(notificationChannelId, getString(R.string.cache_service_title), NotificationManager.IMPORTANCE_HIGH)
+            val notificationChannel = NotificationChannel(notificationChannelId, getString(R.string.cache_service_title), NotificationManager.IMPORTANCE_HIGH)
             //通知チャンネル登録
             if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
                 notificationManager.createNotificationChannel(notificationChannel)
             }
-            val programNotification =
-                NotificationCompat.Builder(this, notificationChannelId).apply {
-                    setContentTitle(getString(R.string.cache_get_notification_title))
-                    setContentText(contentText)
-                    setSmallIcon(R.drawable.ic_save_alt_black_24dp)
-                    // 強制終了ボタン置いておく
-                    addAction(R.drawable.ic_outline_delete_24px, getString(R.string.cache_get_service_stop), PendingIntent.getBroadcast(this@GetCacheService, 811, Intent("cache_service_stop"), PendingIntent.FLAG_UPDATE_CURRENT))
-                    setStyle(NotificationCompat.InboxStyle().also { inboxStyle ->
-                        // キャッシュ予約リストを表示させるなど
-                        // キャッシュ取得済みは表示させない
-                        cacheList.filter { pair: Pair<String, Boolean> -> !cacheGuttedList.contains(pair.first) }
-                            .forEach {
-                                inboxStyle.addLine(it.first)
-                            }
-                    })
-                }.build()
-            startForeground(NOTIFICAION_ID, programNotification)
-        } else {
+            NotificationCompat.Builder(this, notificationChannelId)
+        } else NotificationCompat.Builder(this)
+        // 通知の中身
+        foregroundNotification.apply {
+            setContentTitle(getString(R.string.cache_get_notification_title))
+            setContentText(contentText)
+            setSmallIcon(R.drawable.ic_save_alt_black_24dp)
+            // 強制終了ボタン置いておく
+            addAction(R.drawable.ic_outline_delete_24px, getString(R.string.cache_get_service_stop), PendingIntent.getBroadcast(this@GetCacheService, 811, Intent("cache_service_stop"), PendingIntent.FLAG_UPDATE_CURRENT))
+            setStyle(NotificationCompat.InboxStyle().also { inboxStyle ->
+                // キャッシュ予約リストを表示させるなど、キャッシュ取得済みは表示させない
+                cacheList.filter { pair: Pair<String, Boolean> -> !cacheDLFinishedList.contains(pair.first) }.forEach { inboxStyle.addLine(it.first) }
+            })
+        }
+        startForeground(FOREGROUND_NOTIFICATION_ID, foregroundNotification.build())
+    }
+
+    /**
+     * 動画ダウンロード進捗通知を飛ばす
+     * @param videoId 動画ID
+     * @param progress 0から100
+     * */
+    private fun showDownloadProgressNotification(videoId: String, progress: Int) {
+        val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // 通知チャンネル
-            val programNotification = NotificationCompat.Builder(this).apply {
-                setContentTitle(getString(R.string.cache_get_notification_title))
-                setContentText(contentText)
-                setSmallIcon(R.drawable.ic_save_alt_black_24dp)
-                // 強制終了ボタン置いておく
-                addAction(R.drawable.ic_outline_delete_24px, getString(R.string.cache_get_service_stop), PendingIntent.getBroadcast(this@GetCacheService, 811, Intent("cache_service_stop"), PendingIntent.FLAG_UPDATE_CURRENT))
-                setStyle(NotificationCompat.InboxStyle().also { inboxStyle ->
-                    // キャッシュ予約リストを表示させるなど
-                    // キャッシュ取得済みは表示させない
-                    cacheList.filter { pair: Pair<String, Boolean> -> !cacheGuttedList.contains(pair.first) }
-                        .forEach {
-                            inboxStyle.addLine(it.first)
-                        }
-                })
-            }.build()
-            startForeground(NOTIFICAION_ID, programNotification)
+            val notificationChannelId = "cache_download_progress"
+            val notificationChannel = NotificationChannel(notificationChannelId, getString(R.string.cache_progress_notification), NotificationManager.IMPORTANCE_LOW)
+            if (notificationManager.getNotificationChannel(notificationChannelId) == null) {
+                notificationManager.createNotificationChannel(notificationChannel)
+            }
+            Notification.Builder(this, notificationChannelId)
+        } else {
+            Notification.Builder(this)
+        }
+        notification.apply {
+            setContentTitle("${getString(R.string.cache_progress_now)} : $progress %")
+            setContentText(videoId)
+            setSmallIcon(R.drawable.ic_save_alt_black_24dp)
+            setProgress(100, progress, false) // プログレスバー
+        }
+        if (progress == 100) {
+            // 消す
+            notificationManager.cancel(DOWNLOAD_PROGRESS_NOTIFICATION_ID)
+        } else {
+            // 表示
+            notificationManager.notify(DOWNLOAD_PROGRESS_NOTIFICATION_ID, notification.build().apply { flags = Notification.FLAG_NO_CLEAR })
         }
     }
 
@@ -265,9 +275,17 @@ class GetCacheService : Service() {
         }
     }
 
+    /** お片付け */
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(broadcastReceiver)
+        // コルーチン終了
+        cacheCoroutineJob?.cancel()
+        // 通知さんも退場
+        notificationManager.cancel(FOREGROUND_NOTIFICATION_ID)
+        notificationManager.cancel(DOWNLOAD_PROGRESS_NOTIFICATION_ID)
+        // 一時保管フォルダも一応消す
+        NicoVideoCache(this).getCacheTempFolderPath()?.let { path -> File(path).deleteRecursively() }
     }
 
     /**

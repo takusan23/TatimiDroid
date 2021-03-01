@@ -1,66 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        package="io.github.takusan23.tatimidroid">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="io.github.takusan23.tatimidroid">
 
     <uses-permission android:name="android.permission.INTERNET" /> <!-- インターネット -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- 予約枠自動入場のServiceよう -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /> <!-- 他のアプリに重ねて表示 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- ネットワーク状態取得 -->
-    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" /> <!-- Android 8未満の際、ショートカット作成で利用 -->
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
 
     <application
-            android:allowBackup="true"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name"
-            android:largeHeap="true"
-            android:roundIcon="@mipmap/ic_launcher_round"
-            android:supportsRtl="true"
-            android:theme="@style/AppTheme">
-
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
         <activity
-                android:name=".Activity.TwoFactorAuthLoginActivity"
-                android:label="@string/two_factor_auth" />
+            android:name=".Activity.TwoFactorAuthLoginActivity"
+            android:label="@string/two_factor_auth" />
 
         <meta-data
-                android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-                android:value="io.github.takusan23.tatimidroid.GoogleCast.CastOptionsProvider" />
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="io.github.takusan23.tatimidroid.GoogleCast.CastOptionsProvider" />
 
         <activity
-                android:name=".NimadoActivity"
-                android:label="@string/nimado"
-                android:theme="@style/NimadoTheme" />
+            android:name=".NimadoActivity"
+            android:label="@string/nimado"
+            android:theme="@style/NimadoTheme" />
         <activity
-                android:name=".NicoLive.Activity.FloatingCommentViewer"
-                android:allowEmbedded="true"
-                android:documentLaunchMode="always"
-                android:resizeableActivity="true" />
+            android:name=".NicoLive.Activity.FloatingCommentViewer"
+            android:allowEmbedded="true"
+            android:documentLaunchMode="always"
+            android:resizeableActivity="true" />
         <activity android:name=".NicoLive.Activity.CommentCollectionListActivity" />
         <activity android:name=".Activity.NGListActivity" />
         <activity android:name=".Activity.KonoApp" />
         <activity android:name=".Activity.LicenceActivity" />
         <activity
-                android:name=".Activity.KotehanListActivity"
-                android:label="@string/kotehan_list" />
+            android:name=".Activity.KotehanListActivity"
+            android:label="@string/kotehan_list" />
 
         <service android:name=".Service.AutoAdmissionService" />
         <service android:name=".Service.NicoLivePlayService" />
-        <service android:name=".Service.NicoVideoPlayService" />
-        <!-- キャッシュ連続再生用サービス -->
+        <service android:name=".Service.NicoVideoPlayService" /> <!-- キャッシュ連続再生用サービス -->
         <service android:name=".Service.GetCacheService" />
-
         <service
-                android:name=".Service.BackgroundPlaylistCachePlayService"
-                android:enabled="true"
-                android:exported="true"
-                android:label="@string/cache_background_play">
+            android:name=".Service.BackgroundPlaylistCachePlayService"
+            android:enabled="true"
+            android:exported="true"
+            android:label="@string/cache_background_play">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
-        </service>
-
-
-        <!-- これ書かないと通知から操作一生こない -->
+        </service> <!-- これ書かないと通知から操作一生こない -->
         <receiver android:name="androidx.media.session.MediaButtonReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
@@ -87,15 +81,13 @@
 
             <!-- AppShortcut -->
             <meta-data
-                    android:name="android.app.shortcuts"
-                    android:resource="@xml/app_shortcut" />
-        </activity>
-
-        <!-- おまけ -->
+                android:name="android.app.shortcuts"
+                android:resource="@xml/app_shortcut" />
+        </activity> <!-- おまけ -->
         <service
-                android:name=".Service.NicoVersionHistoryDeviceControl"
-                android:label="@string/nico_version_history"
-                android:permission="android.permission.BIND_CONTROLS">
+            android:name=".Service.NicoVersionHistoryDeviceControl"
+            android:label="@string/nico_version_history"
+            android:permission="android.permission.BIND_CONTROLS">
             <intent-filter>
                 <action android:name="android.service.controls.ControlsProviderService" />
             </intent-filter>

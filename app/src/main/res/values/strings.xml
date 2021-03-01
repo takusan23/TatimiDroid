@@ -354,7 +354,7 @@
     <string name="find_video_id">Video ID found.</string>
     <string name="hide_comment_search_area">Hide comment search and comment sort buttons</string>
     <string name="get_cache_eco">Cash acquisition (economy mode)</string>
-    <string name="cache_service_title">Cash acquisition service</string>
+    <string name="cache_service_title">Cache acquisition service</string>
     <string name="cache_get_notification_title">Getting cache</string>
     <string name="cache_get_list_add">Reserved for cash acquisition</string>
     <string name="cache_get_list_size">Number of remaining cache reservations</string>
@@ -413,8 +413,8 @@
     <string name="setting_economy_title">Watch in forced economy mode</string>
     <string name="setting_nicolive_quality_low_title">Always watch in low quality</string>
     <string name="setting_nicolive_quality_low_description">Please when Internet is slow</string>
-    <string name="cache_progress_notification">Cash acquisition progress notification</string>
-    <string name="cache_progress_now">Getting cash</string>
+    <string name="cache_progress_notification">Cache acquisition progress notification</string>
+    <string name="cache_progress_now">Getting cache</string>
     <string name="reset">Reset</string>
     <string name="tv">TV</string>
     <string name="radio">Radio</string>
