@@ -659,6 +659,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
         // コメントキャンバス非表示
         nicolivePlayerUIBinding.includeNicolivePlayerCommentHideImageView.setOnClickListener {
+            val drawable = if (!nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible) requireContext().getDrawable(R.drawable.ic_comment_on) else requireContext().getDrawable(R.drawable.ic_comment_off)
+            nicolivePlayerUIBinding.includeNicolivePlayerCommentHideImageView.setImageDrawable(drawable)
             nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.apply {
                 isVisible = !isVisible
             }

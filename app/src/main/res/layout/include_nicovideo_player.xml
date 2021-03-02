@@ -130,7 +130,7 @@
         app:layout_constraintEnd_toStartOf="@+id/include_nicovideo_player_repeat_image_view"
         app:layout_constraintTop_toTopOf="@+id/include_nicovideo_player_repeat_image_view"
         app:layout_constraintVertical_bias="1.0"
-        app:srcCompat="@drawable/ic_outline_comment_24px"
+        app:srcCompat="@drawable/ic_comment_on"
         app:tint="#fff" />
 
     <ImageView

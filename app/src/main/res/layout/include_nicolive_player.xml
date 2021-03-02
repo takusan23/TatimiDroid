@@ -114,7 +114,7 @@
         android:padding="10dp"
         app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_network_image_view"
         app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_network_image_view"
-        app:srcCompat="@drawable/ic_outline_comment_24px"
+        app:srcCompat="@drawable/ic_comment_on"
         app:tint="#fff" />
 
 
