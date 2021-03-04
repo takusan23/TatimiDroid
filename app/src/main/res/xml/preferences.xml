@@ -164,10 +164,10 @@
     <PreferenceCategory android:title="@string/get_cache">
 
         <SeekBarPreference
-            android:defaultValue="5"
+            android:defaultValue="1"
             android:icon="@drawable/ic_cache_progress_icon"
             android:key="setting_cache_split_count"
-            android:max="10"
+            android:max="5"
             android:summary="@string/setting_cache_split_count_description"
             android:title="@string/setting_cache_split_count_title"
             app:min="1"

@@ -124,6 +124,8 @@ class NicoVideoCacheFragment : Fragment() {
 
     /** リピート、シャッフルボタンを設定 */
     private fun initRepeatShuffleButton() {
+        // 多分いる
+        if (!isAdded) return
 
         /** リピートアイコンをセットする */
         fun setRepeatIcon(mode: Int) {
@@ -157,11 +159,11 @@ class NicoVideoCacheFragment : Fragment() {
         viewBinding.fragmentNicovideoCacheMenuBackgroundShuffleImageView.isVisible = true
 
         lifecycleScope.launch {
-
             if (mediaBrowser == null) {
                 // MediaSession接続
                 connectMediaSession()
             }
+
             // このActivityに関連付けられたMediaSessionControllerを取得
             val controller = MediaControllerCompat.getMediaController(requireActivity())
 

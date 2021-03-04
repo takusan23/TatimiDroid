@@ -47,7 +47,7 @@ class GetCacheService : Service() {
     }
 
     /** 並列数、分割数 */
-    private val splitCount by lazy { prefSetting.getInt("setting_cache_split_count", 5) }
+    private val splitCount by lazy { prefSetting.getInt("setting_cache_split_count", 1) }
 
     /** 動画キャッシュ予約リスト。キャッシュ取得成功すればここの配列の中身が使われていく */
     private val cacheList = arrayListOf<Pair<String, Boolean>>()
