@@ -30,6 +30,7 @@ import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoLikeAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeThanksMessageBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
@@ -261,34 +262,28 @@ class NicoVideoInfoFragment : Fragment() {
     }
 
     private fun setLike() {
-        // いいね！機能。キャッシュのときは使わない
-        val jsonObject = viewModel.nicoVideoJSON.value ?: return
         if (viewModel.isOfflinePlay.value == false && isLoginMode(context)) {
             // キャッシュじゃない　かつ　ログイン必須モード
             viewBinding.fragmentNicovideoInfoLikeChip.isVisible = true
-            // いいね♡済みかもしれないので
-            // いいねボタンのテキスト、アイコン変更
-            setLikeChipStatus(NicoVideoHTML().isLiked(jsonObject))
-            // 押したとき
+            // LiveData監視
+            viewModel.isLikedLiveData.observe(viewLifecycleOwner) { isLiked ->
+                setLikeChipStatus(isLiked)
+            }
+            // お礼メッセージ監視
+            viewModel.likeThanksMessageLiveData.observe(viewLifecycleOwner) {
+                val thanksMessageBottomFragment = NicoVideoLikeThanksMessageBottomFragment()
+                thanksMessageBottomFragment.show(parentFragmentManager, "thanks")
+            }
+            // いいね押したとき
             viewBinding.fragmentNicovideoInfoLikeChip.setOnClickListener {
-                if (NicoVideoHTML().isLiked(jsonObject)) {
-                    // いいね済み。取り消しSnackBar
+                if (viewModel.isLikedLiveData.value == true) {
                     requireDevNicoVideoFragment().showSnackbar(getString(R.string.unlike), getString(R.string.torikesu)) {
-                        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-                            showToast("${getString(R.string.error)}\n${throwable}") // エラーのときはToast出すなど
-                        }
                         // いいね解除API叩く
-                        lifecycleScope.launch(errorHandler) {
-                            sendLike(false)
-                        }
+                        viewModel.removeLike()
                     }
                 } else {
                     // いいね開く
                     val nicoVideoLikeBottomFragment = NicoVideoLikeBottomFragment()
-                    val bundle = Bundle().apply {
-                        putString("video_id", videoId)
-                    }
-                    nicoVideoLikeBottomFragment.arguments = bundle
                     nicoVideoLikeBottomFragment.show(parentFragmentManager, "like")
                 }
             }
@@ -363,7 +358,7 @@ class NicoVideoInfoFragment : Fragment() {
 
     /** ハートのアイコン色とテキストを変更する関数 */
     private fun setLikeChipStatus(liked: Boolean) {
-        activity?.runOnUiThread {
+        requireActivity().runOnUiThread {
             // いいね済み
             if (liked) {
                 viewBinding.fragmentNicovideoInfoLikeChip.apply {

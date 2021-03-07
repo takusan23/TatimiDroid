@@ -23,6 +23,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeThanksMessageBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoAccountFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSearchFragment
@@ -194,7 +195,11 @@ class JCNicoVideoInfoFragment : Fragment() {
                                                 NicoVideoUserCard(
                                                     userData = userData.value!!,
                                                     onUserOpenClick = {
-                                                        setAccountFragment(userData.value!!.userId.toString())
+                                                        if (userData.value!!.isChannel) {
+                                                            openBrowser("https://ch.nicovideo.jp/${userData.value!!.userId}")
+                                                        } else {
+                                                            setAccountFragment(userData.value!!.userId.toString())
+                                                        }
                                                     }
                                                 )
                                             }
@@ -223,18 +228,10 @@ class JCNicoVideoInfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Snackbar表示。使い方合ってんのかはしらんけど
+        // お礼メッセージ表示用BottomFragmentを出す
         viewModel.likeThanksMessageLiveData.observe(viewLifecycleOwner) {
-            val anchor = (requireParentFragment() as? JCNicoVideoFragment)?.bottomComposeView
-            if (anchor != null) {
-                com.google.android.material.snackbar.Snackbar.make(anchor, it, com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE).also { bar ->
-                    bar.setAction(getString(R.string.close)) {
-                        bar.dismiss()
-                    }
-                    bar.anchorView = anchor
-                    bar.view.elevation = 30f
-                }.show()
-            }
+            val thanksMessageBottomFragment = NicoVideoLikeThanksMessageBottomFragment()
+            thanksMessageBottomFragment.show(parentFragmentManager, "thanks")
         }
     }
 

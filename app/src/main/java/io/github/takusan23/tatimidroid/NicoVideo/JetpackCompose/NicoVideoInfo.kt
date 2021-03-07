@@ -306,9 +306,7 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
                     .weight(1f)
                     .padding(5.dp)
             )
-            OutlinedButton(onClick = {
-                onUserOpenClick()
-            }) {
+            OutlinedButton(onClick = { onUserOpenClick() }) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
                     contentDescription = stringResource(id = R.string.open_browser)
