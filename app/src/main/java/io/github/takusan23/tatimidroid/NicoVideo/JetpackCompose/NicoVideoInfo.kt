@@ -18,11 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -32,6 +35,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.JetpackCompose.OrigamiLayout
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoHTMLSeriesData
@@ -334,51 +338,72 @@ fun NicoVideoTagCard(
         elevation = parentCardElevation,
     ) {
         // 横方向スクロール。LazyRowでRecyclerViewみたいに画面外は描画しない
-        LazyRow(
-            modifier = Modifier.padding(3.dp),
-            content = {
-                items(tagItemDataList) { data ->
-                    // 角丸ボタン
-                    Surface(
-                        border = ButtonDefaults.outlinedBorder,
-                        shape = MaterialTheme.shapes.small,
-                        modifier = Modifier.padding(5.dp),
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.requiredHeight(IntrinsicSize.Min)) {
-                            // タグ検索
-                            Surface(modifier = Modifier.clickable { onTagClick(data) }) {
-                                Row(modifier = Modifier.padding(10.dp)) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_local_offer_24px),
-                                        contentDescription = stringResource(id = R.string.serch),
-                                    )
-                                    Text(text = data.tagName)
-                                }
-                            }
-                            // 大百科。あるときのみ
-                            if (data.hasNicoPedia) {
-                                // 区切り線
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxHeight()
-                                        .requiredWidth(1.dp)
-                                        .background(color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f))
-                                )
-                                Surface(modifier = Modifier.clickable { onNicoPediaClick(data.nicoPediaUrl) }) {
-                                    Row(modifier = Modifier.padding(10.dp)) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
-                                            contentDescription = stringResource(id = R.string.nico_pedia),
-                                        )
-                                        Text(text = stringResource(id = R.string.nico_pedia))
-                                    }
-                                }
-                            }
-                        }
+        OrigamiLayout(isAcceptSort = true) {
+            // タグのボタン
+            tagItemDataList.forEach { data ->
+                NicoVideoTagButton(
+                    data = data,
+                    onTagClick = { onTagClick(it) },
+                    onNicoPediaClick = { onNicoPediaClick(it) }
+                )
+            }
+        }
+    }
+}
+
+
+/**
+ * タグのボタン。ボタンが半分に区切られていて、検索と大百科に飛べるやつ
+ *
+ * @param data タグのデータ
+ * @param onNicoPediaClick 大百科押したとき
+ * @param onTagClick タグ押したとき
+ * */
+@Composable
+fun NicoVideoTagButton(
+    data: NicoTagItemData,
+    onTagClick: (NicoTagItemData) -> Unit,
+    onNicoPediaClick: (String) -> Unit,
+) {
+    // 角丸ボタン
+    Surface(
+        border = ButtonDefaults.outlinedBorder,
+        shape = MaterialTheme.shapes.small,
+        modifier = Modifier
+            .padding(2.dp)
+            .wrapContentWidth(align = Alignment.Start)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.requiredHeight(IntrinsicSize.Min)) {
+            // タグ検索
+            Surface(modifier = Modifier.clickable { onTagClick(data) }) {
+                Row(modifier = Modifier.padding(10.dp)) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_local_offer_24px),
+                        contentDescription = stringResource(id = R.string.serch),
+                    )
+                    Text(text = data.tagName)
+                }
+            }
+            // 大百科。あるときのみ
+            if (data.hasNicoPedia) {
+                // 区切り線
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .requiredWidth(1.dp)
+                        .background(color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f))
+                )
+                Surface(modifier = Modifier.clickable { onNicoPediaClick(data.nicoPediaUrl) }) {
+                    Row(modifier = Modifier.padding(10.dp)) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
+                            contentDescription = stringResource(id = R.string.nico_pedia),
+                        )
+                        Text(text = stringResource(id = R.string.nico_pedia))
                     }
                 }
             }
-        )
+        }
     }
 }
 
