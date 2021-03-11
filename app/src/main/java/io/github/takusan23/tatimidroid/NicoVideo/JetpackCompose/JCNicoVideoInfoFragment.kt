@@ -180,11 +180,11 @@ class JCNicoVideoInfoFragment : Fragment() {
                                             if (tagList.value != null) {
                                                 NicoVideoTagCard(
                                                     tagItemDataList = tagList.value!!,
-                                                    onTagClick = { data ->
+                                                    onClickTag = { data ->
                                                         // タグ押した時
                                                         setTagSearchFragment(data.tagName)
                                                     },
-                                                    onNicoPediaClick = { url ->
+                                                    onClickNicoPedia = { url ->
                                                         openBrowser(url)
                                                     }
                                                 )

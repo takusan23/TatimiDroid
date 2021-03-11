@@ -247,7 +247,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 // フリックによる遷移をしていない場合
                 if (!isMoveAnimating) {
                     // プレイヤーを操作中 または 進行中...（通常画面でもなければミニプレイヤーでもない）
-                    if (isTouchingPlayerView || (!isDefaultScreen() && !isMiniPlayer())) {
+                    if (isTouchingPlayerView || (!isDefaultScreen() && !isMiniPlayerCheckHard())) {
                         when (event.action) {
                             MotionEvent.ACTION_DOWN -> {
                                 touchTime = System.currentTimeMillis()
@@ -360,7 +360,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                             currentState = PLAYER_STATE_DEFAULT
                         }
                     }
-                    isMiniPlayer() -> {
+                    isMiniPlayerCheckHard() -> {
                         // 違ったら入れる
                         if (currentState != PLAYER_STATE_MINI) {
                             stateChangeListenerList.forEach { it.invoke(PLAYER_STATE_MINI) }
@@ -469,7 +469,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     /** ミニプレイヤーへ遷移する */
     fun toMiniPlayer() {
         // 同じなら無視
-        if (isMiniPlayer() || isDisableMiniPlayerMode) return
+        if (isMiniPlayerCheckHard() || isDisableMiniPlayerMode) return
 
         isMoveAnimating = true
 
@@ -610,7 +610,14 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
      * ミニプレイヤーのときはtrueを返す
      * ユーザー操作時は小数点以下が出るので小数点1桁まで
      * */
-    fun isMiniPlayer() = format("%.1f", progress).toFloat() == 1.0f
+    fun isMiniPlayerCheckHard() = format("%.1f", progress).toFloat() == 1.0f
+
+    /**
+     * ミニプレイヤーかどうかの判断よう関数
+     *
+     * なお、判断基準はミニプレイヤーが真ん中を超えたか超えてないか。
+     * */
+    fun isMiniPlayerCheckSoft() = progress > 0.5f
 
     /**
      * 画面が横向きかどうかを返す

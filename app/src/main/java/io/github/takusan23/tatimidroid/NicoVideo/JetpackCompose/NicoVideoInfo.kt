@@ -4,7 +4,6 @@ import android.text.format.DateUtils
 import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,13 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -35,6 +32,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.JetpackCompose.OrigamiLayout
+import io.github.takusan23.tatimidroid.JetpackCompose.TagButton
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoHTMLSeriesData
@@ -43,7 +41,6 @@ import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.coroutines.launch
-import kotlin.math.min
 
 /**
  * Jetpack Compose 略してJC
@@ -253,9 +250,7 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
         shape = parentCardShape,
         elevation = parentCardElevation,
     ) {
-        Column(
-            modifier = Modifier.padding(10.dp),
-        ) {
+        Column(modifier = Modifier.padding(10.dp)) {
             // 関連動画
             Row {
                 Icon(
@@ -323,14 +318,14 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
 /**
  * タグ一覧表示Card
  * @param tagItemDataList [NicoTagItemData]配列
- * @param onTagClick 押したときに呼ばれる。
- * @param onNicoPediaClick ニコニコ大百科ボタンを押したときに呼ばれる
+ * @param onClickTag 押したときに呼ばれる。
+ * @param onClickNicoPedia ニコニコ大百科ボタンを押したときに呼ばれる
  * */
 @Composable
 fun NicoVideoTagCard(
     tagItemDataList: ArrayList<NicoTagItemData>,
-    onTagClick: (NicoTagItemData) -> Unit,
-    onNicoPediaClick: (String) -> Unit
+    onClickTag: (NicoTagItemData) -> Unit,
+    onClickNicoPedia: (String) -> Unit
 ) {
     // 展開状態かどうか
     val isShowAll = remember { mutableStateOf(false) }
@@ -340,33 +335,19 @@ fun NicoVideoTagCard(
         shape = parentCardShape,
         elevation = parentCardElevation,
     ) {
-        Box {
-            Column {
-                // 折り返すレイアウト
-                OrigamiLayout(
-                    modifier = if (isShowAll.value) {
-                        Modifier.wrapContentHeight()
-                    } else {
-                        Modifier.height(50.dp)
-                    }
-                ) {
-                    // タグのボタン
-                    tagItemDataList.forEach { data ->
-                        NicoVideoTagButton(
-                            data = data,
-                            onTagClick = { onTagClick(it) },
-                            onNicoPediaClick = { onNicoPediaClick(it) }
-                        )
-                    }
-                }
+        Column {
+            // 関連動画
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 5.dp, end = 5.dp),
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_local_offer_24px),
+                    contentDescription = null,
+                )
+                Text(text = stringResource(id = R.string.tag), modifier = Modifier.weight(1f))
                 // 展開ボタン
-                Button(
-                    onClick = { isShowAll.value = !isShowAll.value },
-                    shape = RoundedCornerShape(50),
-                    modifier = Modifier
-                        .align(alignment = Alignment.CenterHorizontally)
-                        .padding(all = 10.dp)
-                ) {
+                IconButton(onClick = { isShowAll.value = !isShowAll.value }) {
                     if (isShowAll.value) {
                         Icon(painter = painterResource(id = R.drawable.ic_expand_less_black_24dp), contentDescription = "格納")
                     } else {
@@ -374,91 +355,32 @@ fun NicoVideoTagCard(
                     }
                 }
             }
-        }
-    }
-}
-
-
-@Composable
-fun TestLayout(modifier: Modifier, content: @Composable () -> Unit) {
-    // Viewで言うところのViewGroupの自作
-    Layout(
-        content = content,
-        modifier = modifier
-    ) { measurables, constraints ->
-        val placeList = measurables.map { it.measure(Constraints(0, Constraints.Infinity, 0, Constraints.Infinity)) }
-        val height = placeList.sumBy { it.height }
-        val origamiHeight = min(height, constraints.maxHeight)
-        layout(constraints.maxWidth, origamiHeight) {
-            var yPos = 0
-            if (yPos < height) {
-                placeList.forEach { placeable ->
-                    placeable.place(0, yPos)
-                    yPos += placeable.height
-                    println(yPos)
-                }
-            }
-        }
-    }
-}
-
-
-/**
- * タグのボタン。ボタンが半分に区切られていて、検索と大百科に飛べるやつ
- *
- * @param data タグのデータ
- * @param onNicoPediaClick 大百科押したとき
- * @param onTagClick タグ押したとき
- * */
-@Composable
-fun NicoVideoTagButton(
-    data: NicoTagItemData,
-    onTagClick: (NicoTagItemData) -> Unit,
-    onNicoPediaClick: (String) -> Unit,
-) {
-    // 角丸ボタン
-    Surface(
-        border = ButtonDefaults.outlinedBorder,
-        shape = MaterialTheme.shapes.small,
-        modifier = Modifier
-            .padding(2.dp)
-            .wrapContentWidth(align = Alignment.Start)
-            .wrapContentHeight(align = Alignment.Top)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.requiredHeight(IntrinsicSize.Min)) {
-            // タグ検索
-            Surface(modifier = Modifier.clickable { onTagClick(data) }) {
-                Row(modifier = Modifier.padding(10.dp)) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_local_offer_24px),
-                        contentDescription = stringResource(id = R.string.serch),
+            // --- キリトリセン ---
+            Divider(
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .padding(start = 5.dp, end = 5.dp)
+            )
+            // 折り返すレイアウト
+            OrigamiLayout(
+                modifier = Modifier
+                    .padding(start = 5.dp, end = 5.dp)
+                    .wrapContentHeight(),
+                isExpended = isShowAll.value,
+                minHeight = 200
+            ) {
+                tagItemDataList.forEach { data ->
+                    // タグのボタン設置
+                    TagButton(
+                        data = data,
+                        onClickTag = { onClickTag(it) },
+                        onClickNicoPedia = { onClickNicoPedia(it) }
                     )
-                    Text(text = data.tagName)
-                }
-            }
-            // 大百科。あるときのみ
-            if (data.hasNicoPedia) {
-                // 区切り線
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .requiredWidth(1.dp)
-                        .background(color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f))
-                )
-                Surface(modifier = Modifier.clickable { onNicoPediaClick(data.nicoPediaUrl) }) {
-                    Row(modifier = Modifier.padding(10.dp)) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
-                            contentDescription = stringResource(id = R.string.nico_pedia),
-                        )
-                        Text(text = stringResource(id = R.string.nico_pedia))
-                    }
                 }
             }
         }
     }
 }
-
 
 /**
  * シリーズが設定されてる場合は表示する

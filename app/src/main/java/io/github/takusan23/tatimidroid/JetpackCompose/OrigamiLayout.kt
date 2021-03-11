@@ -5,21 +5,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.unit.Constraints
-import kotlin.math.min
 
 /**
  * 折り返せるViewGroupみたいなやつ。FlexBoxLayoutのCompose版（超簡易的）
  *
- * あとここに追加するComposeのModifierに`wrapContentWidth(align = Alignment.Start)`がいるかも
- *
  * @param content 置きたいComposeの部品（並びは保証しません）
  * @param isAcceptSort 小さい順にソートしてもいいならtrue
  * @param modifier Padding掛けたければどうぞ
+ * @param isExpended 格納する場合はtrue
+ * @param minHeight 格納時の高さ
  * */
 @Composable
 fun OrigamiLayout(
     modifier: Modifier = Modifier,
     isAcceptSort: Boolean = false,
+    isExpended: Boolean = false,
+    minHeight: Int = 100,
     content: @Composable () -> Unit,
 ) {
     // Viewで言うところのViewGroupの自作
@@ -61,9 +62,12 @@ fun OrigamiLayout(
                 lineWidth = placeable.width
             }
         }
-        // このOrigamiLayoutの大きさを決定する。
-        // 必要な高さよりこのレイアウトのほうが小さい場合はレイアウトの方に合わせて、そうじゃないなら必要な高さもらう
-        val origamiLayoutHeight = min(origamiHeight + placeableList.last().height, constraints.maxHeight)
+        // 展開時は必要な高さを
+        val origamiLayoutHeight = if (isExpended) {
+            origamiHeight + placeableList.last().height
+        } else {
+            minHeight
+        }
         layout(width = constraints.maxWidth, height = origamiLayoutHeight) {
             // 部品を置いていく
             childrenDataList.forEach { triple ->
@@ -71,7 +75,7 @@ fun OrigamiLayout(
                 val yPos = triple.second
                 val placeable = triple.third
                 // 設置
-                placeable.placeRelative(xPos, yPos)
+                placeable.place(xPos, yPos)
             }
         }
     }

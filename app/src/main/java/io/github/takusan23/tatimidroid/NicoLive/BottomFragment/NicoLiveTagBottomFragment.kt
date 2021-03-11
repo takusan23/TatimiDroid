@@ -5,18 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.TagRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
-import io.github.takusan23.tatimidroid.databinding.BottomFragmentTagsBinding
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicoliveTagEditBinding
 
 /** タグ編集BottomFragment */
 class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
 
     /** findViewById駆逐 */
-    private val viewBinding by lazy { BottomFragmentTagsBinding.inflate(layoutInflater) }
+    private val viewBinding by lazy { BottomFragmentNicoliveTagEditBinding.inflate(layoutInflater) }
 
    /** ViewModelで共有 */
    private val viewModel by viewModels<NicoLiveViewModel>({ requireParentFragment() })
@@ -37,6 +38,11 @@ class NicoLiveTagBottomFragment : BottomSheetDialogFragment() {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             adapter = tagRecyclerViewAdapter
+            // 区切り線
+            val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+            if (itemDecorationCount == 0) {
+                addItemDecoration(itemDecoration)
+            }
         }
 
         // データを監視

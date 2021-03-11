@@ -442,7 +442,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             } else {
                 View.VISIBLE
             }
-            // ちょっと強引
             if (isMiniPlayerMode()) {
                 // ConstraintLayoutのGroup機能でまとめてVisibility変更。
                 nicovideoPlayerUIBinding.includeNicovideoPlayerMiniPlayerGroup.visibility = View.INVISIBLE

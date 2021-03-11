@@ -3,8 +3,6 @@ package io.github.takusan23.tatimidroid.NicoLive.JetpackCompose
 import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -14,20 +12,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
+import io.github.takusan23.tatimidroid.JetpackCompose.OrigamiLayout
+import io.github.takusan23.tatimidroid.JetpackCompose.TagButton
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommunityOrChannelData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.getBitmapCompose
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardElevation
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardModifier
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardShape
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.*
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.toFormatTime
 
@@ -245,58 +241,83 @@ fun NicoLiveCommunityCard(
 
 /**
  * タグ表示Card。動画とは互換性がない（データクラスが違うの）
- * @param list [NicoTagItemData]の配列
- * @param onTagClick タグを押した時
+ * @param tagItemDataList [NicoTagItemData]の配列
+ * @param onClickTag タグを押した時
  * @param isEditable 編集可能かどうか。falseで編集ボタンを非表示にします。
  * @param onClickEditButton 編集ボタンを押した時
+ * @param onClickNicoPediaButton 二コ百押したとき
  * */
 @Composable
 fun NicoLiveTagCard(
-    list: ArrayList<NicoTagItemData>,
-    onTagClick: (NicoTagItemData) -> Unit,
+    tagItemDataList: ArrayList<NicoTagItemData>,
+    onClickTag: (NicoTagItemData) -> Unit,
     isEditable: Boolean,
     onClickEditButton: () -> Unit,
+    onClickNicoPediaButton: (String) -> Unit,
 ) {
+    // 展開状態かどうか
+    val isShowAll = remember { mutableStateOf(false) }
     Card(
-        modifier = parentCardModifier.fillMaxWidth(),
+        modifier = parentCardModifier
+            .fillMaxWidth(),
         shape = parentCardShape,
         elevation = parentCardElevation,
     ) {
-        // 横方向スクロール。LazyRowでRecyclerViewみたいに画面外は描画しない
-        LazyRow(
-            modifier = Modifier.padding(3.dp),
-            content = {
-                this.item {
-                    // 編集ボタン
-                    if (isEditable) {
-                        Button(
-                            modifier = Modifier.padding(3.dp),
-                            onClick = { onClickEditButton() }
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_outline_create_24px),
-                                contentDescription = stringResource(id = R.string.tag_edit)
-                            )
-                            Text(text = stringResource(id = R.string.tag_edit))
-                        }
+        Column {
+            // 関連動画
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 5.dp, end = 5.dp),
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_local_offer_24px),
+                    contentDescription = null,
+                )
+                Text(text = stringResource(id = R.string.tag), modifier = Modifier.weight(1f))
+                // 編集
+                // タグ編集ボタン
+                if (isEditable) {
+                    TextButton(onClick = { onClickEditButton() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_outline_create_24px),
+                            contentDescription = stringResource(id = R.string.tag_edit)
+                        )
+                        Text(text = stringResource(id = R.string.tag_edit))
                     }
                 }
-                items(list) { data ->
-                    OutlinedButton(
-                        modifier = Modifier.padding(3.dp),
-                        onClick = {
-                            onTagClick(data)
-                        },
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_local_offer_24px),
-                            contentDescription = stringResource(id = R.string.tag)
-                        )
-                        Text(text = data.tagName)
+                // 展開ボタン
+                IconButton(onClick = { isShowAll.value = !isShowAll.value }) {
+                    if (isShowAll.value) {
+                        Icon(painter = painterResource(id = R.drawable.ic_expand_less_black_24dp), contentDescription = "格納")
+                    } else {
+                        Icon(painter = painterResource(id = R.drawable.ic_expand_more_24px), contentDescription = "展開")
                     }
                 }
             }
-        )
+            // --- キリトリセン ---
+            Divider(
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .padding(start = 5.dp, end = 5.dp)
+            )
+            // 折り返すレイアウト
+            OrigamiLayout(
+                modifier = Modifier
+                    .padding(start = 5.dp, end = 5.dp)
+                    .wrapContentHeight(),
+                isExpended = isShowAll.value,
+                minHeight = 200
+            ) {
+                tagItemDataList.forEach { data ->
+                    // タグのボタン設置
+                    TagButton(
+                        data = data,
+                        onClickTag = { onClickTag(it) },
+                        onClickNicoPedia = { onClickNicoPediaButton(it) }
+                    )
+                }
+            }
+        }
     }
 }
 

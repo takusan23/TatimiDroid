@@ -141,7 +141,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
 
     /** ミニプレイヤー状態かどうかを返す */
     override fun isMiniPlayerMode(): Boolean {
-        return playerLinearLayout.isMiniPlayer()
+        return playerLinearLayout.isMiniPlayerCheckSoft()
     }
 
     /** ミニプレイヤーモードへ */
