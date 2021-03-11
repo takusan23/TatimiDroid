@@ -5,9 +5,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.unit.Constraints
+import kotlin.math.min
 
 /**
  * 折り返せるViewGroupみたいなやつ。FlexBoxLayoutのCompose版（超簡易的）
+ *
+ * あとここに追加するComposeのModifierに`wrapContentWidth(align = Alignment.Start)`がいるかも
  *
  * @param content 置きたいComposeの部品（並びは保証しません）
  * @param isAcceptSort 小さい順にソートしてもいいならtrue
@@ -41,23 +44,28 @@ fun OrigamiLayout(
             placeableList.sortBy { placeable -> placeable.width }
         }
         // 子供Composeがの位置を決定する
-        placeableList.forEachIndexed { index, placeable ->
-            // width / height / placeable
-            childrenDataList.add(Triple(lineWidth, origamiHeight, placeable))
-            // その行の幅を足す
-            lineWidth += placeable.width
-            // 次の分を足したときに幅が足りているか
-            if (index + 1 < placeableList.size) {
-                val nextChild = placeableList[index + 1]
-                if (lineWidth + nextChild.width > origamiWidth) {
-                    // 次はもう入らないので次の行へ
-                    origamiHeight += nextChild.height
-                    lineWidth = 0
-                }
+        placeableList.forEach { placeable ->
+            if (lineWidth + placeable.width < origamiWidth) {
+                // 今の行の幅が足りている場合
+                // width / height / placeable
+                childrenDataList.add(Triple(lineWidth, origamiHeight, placeable))
+                lineWidth += placeable.width
+            } else {
+                // 足りてない
+                // 次はもう入らないので次の行へ
+                lineWidth = 0
+                origamiHeight += placeable.height
+                // width / height / placeable
+                childrenDataList.add(Triple(lineWidth, origamiHeight, placeable))
+                // 次の行に移動して幅を足す
+                lineWidth = placeable.width
             }
         }
-        // 子Composeを置いていく
-        layout(width = constraints.maxWidth, height = origamiHeight) {
+        // このOrigamiLayoutの大きさを決定する。
+        // 必要な高さよりこのレイアウトのほうが小さい場合はレイアウトの方に合わせて、そうじゃないなら必要な高さもらう
+        val origamiLayoutHeight = min(origamiHeight + placeableList.last().height, constraints.maxHeight)
+        layout(width = constraints.maxWidth, height = origamiLayoutHeight) {
+            // 部品を置いていく
             childrenDataList.forEach { triple ->
                 val xPos = triple.first
                 val yPos = triple.second

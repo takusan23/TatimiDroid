@@ -19,7 +19,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -44,6 +43,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.*
 import kotlinx.coroutines.launch
+import kotlin.math.min
 
 /**
  * Jetpack Compose 略してJC
@@ -332,20 +332,71 @@ fun NicoVideoTagCard(
     onTagClick: (NicoTagItemData) -> Unit,
     onNicoPediaClick: (String) -> Unit
 ) {
+    // 展開状態かどうか
+    val isShowAll = remember { mutableStateOf(false) }
     Card(
-        modifier = parentCardModifier.fillMaxWidth(),
+        modifier = parentCardModifier
+            .fillMaxWidth(),
         shape = parentCardShape,
         elevation = parentCardElevation,
     ) {
-        // 横方向スクロール。LazyRowでRecyclerViewみたいに画面外は描画しない
-        OrigamiLayout(isAcceptSort = true) {
-            // タグのボタン
-            tagItemDataList.forEach { data ->
-                NicoVideoTagButton(
-                    data = data,
-                    onTagClick = { onTagClick(it) },
-                    onNicoPediaClick = { onNicoPediaClick(it) }
-                )
+        Box {
+            Column {
+                // 折り返すレイアウト
+                OrigamiLayout(
+                    modifier = if (isShowAll.value) {
+                        Modifier.wrapContentHeight()
+                    } else {
+                        Modifier.height(50.dp)
+                    }
+                ) {
+                    // タグのボタン
+                    tagItemDataList.forEach { data ->
+                        NicoVideoTagButton(
+                            data = data,
+                            onTagClick = { onTagClick(it) },
+                            onNicoPediaClick = { onNicoPediaClick(it) }
+                        )
+                    }
+                }
+                // 展開ボタン
+                Button(
+                    onClick = { isShowAll.value = !isShowAll.value },
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .align(alignment = Alignment.CenterHorizontally)
+                        .padding(all = 10.dp)
+                ) {
+                    if (isShowAll.value) {
+                        Icon(painter = painterResource(id = R.drawable.ic_expand_less_black_24dp), contentDescription = "格納")
+                    } else {
+                        Icon(painter = painterResource(id = R.drawable.ic_expand_more_24px), contentDescription = "展開")
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun TestLayout(modifier: Modifier, content: @Composable () -> Unit) {
+    // Viewで言うところのViewGroupの自作
+    Layout(
+        content = content,
+        modifier = modifier
+    ) { measurables, constraints ->
+        val placeList = measurables.map { it.measure(Constraints(0, Constraints.Infinity, 0, Constraints.Infinity)) }
+        val height = placeList.sumBy { it.height }
+        val origamiHeight = min(height, constraints.maxHeight)
+        layout(constraints.maxWidth, origamiHeight) {
+            var yPos = 0
+            if (yPos < height) {
+                placeList.forEach { placeable ->
+                    placeable.place(0, yPos)
+                    yPos += placeable.height
+                    println(yPos)
+                }
             }
         }
     }
@@ -372,6 +423,7 @@ fun NicoVideoTagButton(
         modifier = Modifier
             .padding(2.dp)
             .wrapContentWidth(align = Alignment.Start)
+            .wrapContentHeight(align = Alignment.Top)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.requiredHeight(IntrinsicSize.Min)) {
             // タグ検索
