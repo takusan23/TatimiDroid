@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
@@ -43,7 +45,12 @@ class NicoVideoLikeThanksMessageBottomFragment : BottomSheetDialogFragment() {
                 MaterialTheme(
                     colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
                 ) {
-                    NicoVideoLikeMessageScreen(nicoVideoViewModel = viewModel) { dismiss() }
+                    // これでくくらないとなんかダークモード時に文字が白にならない
+                    Surface {
+                        NicoVideoLikeMessageScreen(nicoVideoViewModel = viewModel) {
+                            dismiss()
+                        }
+                    }
                 }
             }
         }

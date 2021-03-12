@@ -5,11 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
@@ -228,8 +226,10 @@ class JCNicoVideoInfoFragment : Fragment() {
 
         // お礼メッセージ表示用BottomFragmentを出す
         viewModel.likeThanksMessageLiveData.observe(viewLifecycleOwner) {
-            val thanksMessageBottomFragment = NicoVideoLikeThanksMessageBottomFragment()
-            thanksMessageBottomFragment.show(parentFragmentManager, "thanks")
+            if(!viewModel.isAlreadyShowThanksMessage) {
+                val thanksMessageBottomFragment = NicoVideoLikeThanksMessageBottomFragment()
+                thanksMessageBottomFragment.show(parentFragmentManager, "thanks")
+            }
         }
     }
 

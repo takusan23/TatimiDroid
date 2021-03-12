@@ -20,9 +20,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
  * */
 @Composable
 fun NicoVideoLikeMessageScreen(nicoVideoViewModel: NicoVideoViewModel, onCloseClick: () -> Unit) {
-    Column(
-        modifier = Modifier.padding(10.dp)
-    ) {
+    Column(modifier = Modifier.padding(10.dp)) {
         val thanksMessage = nicoVideoViewModel.likeThanksMessageLiveData.observeAsState()
         val userData = nicoVideoViewModel.userDataLiveData.observeAsState()
         // お礼メッセージ表示

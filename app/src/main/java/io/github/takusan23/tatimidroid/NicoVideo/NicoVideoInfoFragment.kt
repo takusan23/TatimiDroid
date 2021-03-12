@@ -271,8 +271,10 @@ class NicoVideoInfoFragment : Fragment() {
             }
             // お礼メッセージ監視
             viewModel.likeThanksMessageLiveData.observe(viewLifecycleOwner) {
-                val thanksMessageBottomFragment = NicoVideoLikeThanksMessageBottomFragment()
-                thanksMessageBottomFragment.show(parentFragmentManager, "thanks")
+                if(!viewModel.isAlreadyShowThanksMessage) {
+                    val thanksMessageBottomFragment = NicoVideoLikeThanksMessageBottomFragment()
+                    thanksMessageBottomFragment.show(parentFragmentManager, "thanks")
+                }
             }
             // いいね押したとき
             viewBinding.fragmentNicovideoInfoLikeChip.setOnClickListener {
