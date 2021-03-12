@@ -71,7 +71,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     private val nicolivePlayerUIBinding by lazy { IncludeNicolivePlayerBinding.inflate(layoutInflater) }
 
     /** そうですね、やっぱり僕は、王道を征く、ExoPlayerですか */
-    private val exoPlayer by lazy { SimpleExoPlayer.Builder(requireContext()).build() }
+    private var exoPlayer: SimpleExoPlayer? = null
 
     /** 共有 */
     val contentShare = ContentShare(this)
@@ -267,7 +267,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             if (isNotReceiveLive) {
                 // 背景真っ暗へ
                 nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.background = ColorDrawable(Color.BLACK)
-                exoPlayer.release()
+                exoPlayer?.release()
             } else {
                 // 生放送再生
                 viewModel.hlsAddressLiveData.value?.let { playExoPlayer(it) }
@@ -297,11 +297,14 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
         // HLSアドレス取得
         viewModel.hlsAddressLiveData.observe(viewLifecycleOwner) { address ->
-            playExoPlayer(address)
+            // ニコ生版ニコニコ実況の場合 と 映像を受信しないモード 以外なら映像を流す
+            if (viewModel.isNicoJKLiveData.value == null && viewModel.isNotReceiveLive.value == false) {
+                playExoPlayer(address)
+            }
         }
         // 音量調整LiveData
         viewModel.exoplayerVolumeLiveData.observe(viewLifecycleOwner) { volume ->
-            exoPlayer.volume = volume
+            exoPlayer?.volume = volume
         }
         viewModel.isUseNicoNamaWebView.observe(viewLifecycleOwner) {
             if (it) {
@@ -505,10 +508,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
 
     /** ExoPlayerで生放送を再生する */
     private fun playExoPlayer(address: String) {
-        // ニコ生版ニコニコ実況の場合 と 映像を受信しないモードのとき は接続しないので即return
-        if (viewModel.nicoLiveHTML.getNicoJKIdFromChannelId(viewModel.communityId) != null || viewModel.isNotReceiveLive.value == true) {
-            return
-        }
+        // ExoPlayer
+        exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
         // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
         if (viewModel.currentQuality == "audio_high") {
             nicolivePlayerUIBinding.includeNicolivePlayerAudioOnlyTextView.visibility = View.VISIBLE
@@ -521,15 +522,15 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         aspectRatioFix()
         // HLS受け取り
         val mediaItem = MediaItem.fromUri(address.toUri())
-        exoPlayer.setMediaItem(mediaItem)
-        exoPlayer.prepare()
+        exoPlayer?.setMediaItem(mediaItem)
+        exoPlayer?.prepare()
         // SurfaceView
-        exoPlayer.setVideoSurfaceView(nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView)
+        exoPlayer?.setVideoSurfaceView(nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView)
         // 再生
-        exoPlayer.playWhenReady = true
+        exoPlayer?.playWhenReady = true
         // ミニプレイヤーから通常画面へ遷移
         var isFirst = true
-        exoPlayer.addListener(object : Player.EventListener {
+        exoPlayer?.addListener(object : Player.EventListener {
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
                 // 一度だけ
@@ -546,13 +547,13 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                         }
                     }
                 } else {
-                    exoPlayer.removeListener(this)
+                    exoPlayer?.removeListener(this)
                 }
             }
         })
 
         // もしエラー出たら
-        exoPlayer.addListener(object : Player.EventListener {
+        exoPlayer?.addListener(object : Player.EventListener {
             override fun onPlayerError(error: ExoPlaybackException) {
                 super.onPlayerError(error)
                 error.printStackTrace()
@@ -563,12 +564,12 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                     println("再度再生準備を行います")
                     activity?.runOnUiThread {
                         //再生準備
-                        exoPlayer.setMediaItem(mediaItem)
-                        exoPlayer.prepare()
+                        exoPlayer?.setMediaItem(mediaItem)
+                        exoPlayer?.prepare()
                         //SurfaceViewセット
-                        exoPlayer.setVideoSurfaceView(nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView)
+                        exoPlayer?.setVideoSurfaceView(nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView)
                         //再生
-                        exoPlayer.playWhenReady = true
+                        exoPlayer?.playWhenReady = true
                         // 再生が止まった時に低遅延が有効になっていればOFFにできるように。安定して見れない場合は低遅延が有効なのが原因
                         if (viewModel.nicoLiveHTML.isLowLatency) {
                             showSnackBar(getString(R.string.error_player), getString(R.string.low_latency_off)) {
@@ -769,7 +770,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        exoPlayer.release()
+        exoPlayer?.release()
         caffeineUnlock()
     }
 }

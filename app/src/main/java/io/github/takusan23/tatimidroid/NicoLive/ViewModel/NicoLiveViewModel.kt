@@ -271,7 +271,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
              * すでにニコニコ実況チャンネルが存在する：https://ch.nicovideo.jp/jk1
              * ので文字列部分一致してたら生放送の映像受信を止めるかどうか尋ねる
              * */
-            checkNicoJK()
+            checkNicoJK(jsonObject)
         }
 
         // NGデータベースを監視する
@@ -303,7 +303,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             receiveCommentFun("{chat:{ content: \"/vote stop\", date: ${System.currentTimeMillis()} , premium: 3}}", "Arena", false)
         }
 */
-        
+
     }
 
     /**
@@ -323,10 +323,11 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /**
      * 視聴中の番組が新ニコニコ実況かどう判断する
      * */
-    private fun checkNicoJK() {
-        val nicoJKId = nicoLiveHTML.getNicoJKIdFromChannelId(nicoLiveHTML.communityId)
-        if (nicoJKId != null) {
-            isNicoJKLiveData.postValue(nicoJKId)
+    private fun checkNicoJK(jsonObject: JSONObject) {
+        // ニコニコ実況タグがついてれば実況判定
+        if (nicoLiveHTML.getTagList(jsonObject).tagList.any { nicoTagItemData -> nicoTagItemData.tagName == "ニコニコ実況" }) {
+            // LiveDataにjk1とかを送信。有志ならコミュID
+            isNicoJKLiveData.postValue(nicoLiveHTML.getNicoJKIdFromChannelId(nicoLiveHTML.communityId) ?: nicoLiveHTML.communityId)
         }
     }
 

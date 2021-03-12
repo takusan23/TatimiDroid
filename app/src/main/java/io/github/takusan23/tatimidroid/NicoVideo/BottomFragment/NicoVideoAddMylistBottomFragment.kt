@@ -11,6 +11,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoMyListData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoAddMyListAdapter
 import io.github.takusan23.tatimidroid.R
@@ -27,7 +28,7 @@ class NicoVideoAddMylistBottomFragment : BottomSheetDialogFragment() {
 
     // アダプター
     lateinit var nicoVideoAddMyListAdapter: NicoVideoAddMyListAdapter
-    val recyclerViewList = arrayListOf<NicoVideoSPMyListAPI.MyListData>()
+    val recyclerViewList = arrayListOf<NicoVideoMyListData>()
 
     // ユーザーセッション
     lateinit var prefSetting: SharedPreferences

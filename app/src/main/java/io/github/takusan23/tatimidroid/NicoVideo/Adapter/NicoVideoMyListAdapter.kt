@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.RecyclerView
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoMyListData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.R
@@ -15,7 +16,7 @@ import io.github.takusan23.tatimidroid.R
 /**
  * マイリスト一覧表示Adapter
  * */
-class NicoVideoMyListAdapter(private val myListDataList: ArrayList<NicoVideoSPMyListAPI.MyListData>, private val fragmentHostId: Int, private val fragmentManager: FragmentManager) : RecyclerView.Adapter<NicoVideoMyListAdapter.ViewHolder>() {
+class NicoVideoMyListAdapter(private val myListDataList: ArrayList<NicoVideoMyListData>, private val fragmentHostId: Int, private val fragmentManager: FragmentManager) : RecyclerView.Adapter<NicoVideoMyListAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val linearLayout = itemView.findViewById<ConstraintLayout>(R.id.adapter_nicovideo_mylist_parent)

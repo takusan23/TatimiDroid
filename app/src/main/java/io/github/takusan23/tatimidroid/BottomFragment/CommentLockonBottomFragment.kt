@@ -246,9 +246,7 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         regexURL()
 
         // 動画の場合は「ここから再生」ボタンを表示する
-        if (fragment != null) {
-            showJumpButton(fragment)
-        }
+        showJumpButton(fragment)
 
         // 生IDのみ、ユーザー名取得ボタン
         if ("([0-9]+)".toRegex().matches(userId)) { // 生IDは数字だけで構成されているので正規表現（じゃなくてもできるだろうけど）
@@ -308,7 +306,9 @@ class CommentLockonBottomFragment : BottomSheetDialogFragment() {
         // ボタン表示。動画Fragmentでかつcurrent_posが-1以外のとき表示
         if (isNicoVideoFragment && currentPos != -1L) {
             viewBinding.bottomFragmentCommentMenuNicovideoSeekButton.isVisible = true
-            viewBinding.bottomFragmentCommentMenuNicovideoSeekButton.append("(${formatTime(currentPos / 100F)})") // 移動先時間追記
+            // こっから再生
+            val seekButtonText = "${getString(R.string.lockon_jump_button)}(${formatTime(currentPos / 100F)})"
+            viewBinding.bottomFragmentCommentMenuNicovideoSeekButton.text = seekButtonText // 移動先時間追記。append()だとGalaxy S7 Edgeが落ちる
         }
         viewBinding.bottomFragmentCommentMenuNicovideoSeekButton.setOnClickListener {
             // こっから再生できるようにする

@@ -1,6 +1,8 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoMyListData
+import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -51,7 +53,7 @@ class NicoVideoSPMyListAPI {
      *
      * */
     suspend fun parseMyListList(responseString: String?, isMe: Boolean = false) = withContext(Dispatchers.Default) {
-        val myListListDataList = arrayListOf<MyListData>()
+        val myListListDataList = arrayListOf<NicoVideoMyListData>()
         val jsonObject = JSONObject(responseString)
         val mylists = jsonObject.getJSONObject("data").getJSONArray("mylists")
         for (i in 0 until mylists.length()) {
@@ -59,7 +61,7 @@ class NicoVideoSPMyListAPI {
             val title = list.getString("name")
             val id = list.getString("id")
             val itemsCount = list.getInt("itemsCount")
-            val data = MyListData(title, id, itemsCount, isMe)
+            val data = NicoVideoMyListData(title, id, itemsCount, isMe)
             myListListDataList.add(data)
         }
         myListListDataList
@@ -134,7 +136,8 @@ class NicoVideoSPMyListAPI {
      * */
     suspend fun parseMyListItems(myListId: String, responseString: String?) = withContext(Dispatchers.Default) {
         val videoItems = arrayListOf<NicoVideoData>()
-        val items = JSONObject(responseString).getJSONObject("data").getJSONArray("items")
+        val data = JSONObject(responseString).getJSONObject("data")
+        val items = data.getJSONArray("items")
         for (i in 0 until items.length()) {
             val itemObject = items.getJSONObject(i)
             // マイリスト操作系
@@ -307,15 +310,5 @@ class NicoVideoSPMyListAPI {
         val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
         return simpleDateFormat.parse(time).time
     }
-
-    /**
-     * マイリスト一覧で使うデータクラス
-     * @param id マイリストID
-     * @param isMe 私のものだったらtrue。APIが違う？ので
-     * @param itemsCount 動画数
-     * @param title マイリスト名
-     * @param isAtodemiru あとでみるならtrue
-     * */
-    data class MyListData(val title: String, val id: String, val itemsCount: Int, val isMe: Boolean, val isAtodemiru: Boolean = false) : Serializable
 
 }

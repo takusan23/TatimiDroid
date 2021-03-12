@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoMyListData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoMyListAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoMyListViewModelFactory
@@ -25,7 +26,7 @@ class NicoVideoMyListFragment : Fragment() {
     private lateinit var myListViewModel: NicoVideoMyListViewModel
 
     /** RecyclerViewにわたす配列 */
-    private val recyclerViewList = arrayListOf<NicoVideoSPMyListAPI.MyListData>()
+    private val recyclerViewList = arrayListOf<NicoVideoMyListData>()
 
     /** RecyclerViewのAdapter */
     private val myListAdapter by lazy { NicoVideoMyListAdapter(recyclerViewList, this.id, parentFragmentManager) }

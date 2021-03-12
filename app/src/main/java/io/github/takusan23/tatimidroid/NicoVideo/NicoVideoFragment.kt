@@ -177,13 +177,12 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             this.videoId = it
         }
 
-        // キャッシュ再生かどうか。ついでに連続再生の動画変更イベントもここで
+        // キャッシュ再生かどうか。
         viewModel.isOfflinePlay.observe(viewLifecycleOwner) {
             this.isCache = it
             // 動画変更時にやることリスト
             initViewPager(viewModel.dynamicAddFragmentList)
             viewBinding.fragmentNicovideoCommentCanvas.clearCommentList()
-            viewBinding.fragmentNicovideoControlInclude.playerControlPlaylist.isVisible = viewModel.isPlayListMode.value!!
         }
 
 
@@ -249,6 +248,17 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
             }
         }
+
+        // 連続再生
+        viewModel.isPlayListMode.observe(viewLifecycleOwner) { isPlaylist ->
+            // 連続再生とそれ以外でアイコン変更
+            val playListModePrevIcon = if (isPlaylist) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
+            val playListModeNextIcon = if (isPlaylist) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
+            viewBinding.fragmentNicovideoControlInclude.playerControlPrev.setImageDrawable(playListModePrevIcon)
+            viewBinding.fragmentNicovideoControlInclude.playerControlNext.setImageDrawable(playListModeNextIcon)
+            viewBinding.fragmentNicovideoControlInclude.playerControlPlaylist.isVisible = isPlaylist
+        }
+
 
         // LiveDataの通知でExoPlayerを操作するようにしたので
         initExoPlayerControlLiveData()
@@ -665,11 +675,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             // 再生ボタン押したとき
             viewModel.playerIsPlaying.postValue(!viewModel.playerIsPlaying.value!!)
         }
-        // 連続再生とそれ以外でアイコン変更
-        val playListModePrevIcon = if (viewModel.isPlayListMode.value!!) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
-        val playListModeNextIcon = if (viewModel.isPlayListMode.value!!) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
-        viewBinding.fragmentNicovideoControlInclude.playerControlPrev.setImageDrawable(playListModePrevIcon)
-        viewBinding.fragmentNicovideoControlInclude.playerControlNext.setImageDrawable(playListModeNextIcon)
         viewBinding.fragmentNicovideoControlInclude.playerControlPrev.setOnClickListener {
             // 前の動画へ
             viewModel.prevVideo()

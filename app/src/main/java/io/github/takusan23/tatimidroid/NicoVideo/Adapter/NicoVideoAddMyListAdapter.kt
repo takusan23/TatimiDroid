@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoMyListData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.R
@@ -21,7 +22,7 @@ import java.util.*
 /**
  * マイリスト追加BottomFragmentで使ってるRecyclerViewで使うAdapter
  * */
-class NicoVideoAddMyListAdapter(val mylistList: ArrayList<NicoVideoSPMyListAPI.MyListData>) : RecyclerView.Adapter<NicoVideoAddMyListAdapter.ViewHolder>() {
+class NicoVideoAddMyListAdapter(private val mylistList: ArrayList<NicoVideoMyListData>) : RecyclerView.Adapter<NicoVideoAddMyListAdapter.ViewHolder>() {
 
     // スマホ版マイリストAPI
     private val spMyListAPI = NicoVideoSPMyListAPI()

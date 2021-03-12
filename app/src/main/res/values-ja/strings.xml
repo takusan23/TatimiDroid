@@ -588,4 +588,6 @@
     <string name="database_backup_description">バックアップを行いますか？バックアップデータの取り扱いには注意してください。</string>
     <string name="setting_cache_split_count_title">同時接続数</string>
     <string name="setting_cache_split_count_description">キャッシュ取得時にかかる時間が速くなります。多分。動画ファイルをいくつかに分けてダウンロードして最後に結合してます。</string>
+    <string name="nicolive_all_room">全部屋</string>
+    <string name="nicolive_room">部屋別</string>
 </resources>

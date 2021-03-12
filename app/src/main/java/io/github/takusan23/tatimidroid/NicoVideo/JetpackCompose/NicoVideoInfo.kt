@@ -4,6 +4,7 @@ import android.text.format.DateUtils
 import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -521,9 +522,7 @@ fun NicoVideoPlayList(
         elevation = 10.dp
     ) {
         Column {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 val icon = LocalContext.current.getDrawable(R.drawable.ic_tatimidroid_list_icon_black)?.toBitmap()?.asImageBitmap()
                 if (icon != null) {
                     Icon(
@@ -613,7 +612,16 @@ fun NicoVideoPlayList(
                         this.items(videoList) { data ->
                             Row(
                                 modifier = Modifier
-                                    .background(color = if (playingVideoId == data.videoId) playingColor else Color.Transparent),
+                                    .background(color = if (playingVideoId == data.videoId) playingColor else Color.Transparent)
+                                    .clickable(onClick = {
+                                        scope.launch {
+                                            // 位置を特定
+                                            val index = videoList.indexOfFirst { it.videoId == data.videoId }
+                                            // スクロール実行
+                                            state.scrollToItem(index)
+                                        }
+                                        videoClick(data.videoId)
+                                    }),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 val bitmap = getBitmapCompose(url = data.thum)
@@ -634,22 +642,6 @@ fun NicoVideoPlayList(
                                         .weight(1f)
                                         .padding(5.dp),
                                 )
-                                // 再生
-                                IconButton(onClick = {
-                                    scope.launch {
-                                        // 位置を特定
-                                        val index = videoList.indexOfFirst { it.videoId == data.videoId }
-                                        // スクロール実行
-                                        state.scrollToItem(index)
-                                    }
-                                    videoClick(data.videoId)
-                                }) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_play_arrow_24px),
-                                        modifier = Modifier.padding(10.dp),
-                                        contentDescription = "ここから再生"
-                                    )
-                                }
                             }
                             // 区切り線
                             Divider()

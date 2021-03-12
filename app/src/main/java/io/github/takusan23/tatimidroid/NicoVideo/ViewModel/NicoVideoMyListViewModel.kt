@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoMyListData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -31,7 +32,7 @@ class NicoVideoMyListViewModel(application: Application, val userId: String? = n
     private var userSession = prefSetting.getString("user_session", "") ?: ""
 
     /** マイリスト一覧を送信するLiveData */
-    val myListDataLiveData = MutableLiveData<ArrayList<NicoVideoSPMyListAPI.MyListData>>()
+    val myListDataLiveData = MutableLiveData<ArrayList<NicoVideoMyListData>>()
 
     /** 読み込み中LiveData */
     val loadingLiveData = MutableLiveData(false)
@@ -83,7 +84,7 @@ class NicoVideoMyListViewModel(application: Application, val userId: String? = n
             // 自分の場合は先頭にとりあえずマイリスト追加する
             if (userId == null) {
                 // とりあえずマイリスト追加
-                myListItems.add(0, NicoVideoSPMyListAPI.MyListData(getString(R.string.atodemiru), "", 500, true, true))
+                myListItems.add(0, NicoVideoMyListData(getString(R.string.atodemiru), "", 500, true, true))
             }
             // LiveData送信
             myListDataLiveData.postValue(myListItems)

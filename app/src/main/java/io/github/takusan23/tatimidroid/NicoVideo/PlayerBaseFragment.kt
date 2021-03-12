@@ -225,6 +225,15 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         playerLinearLayout.toDefaultScreen()
     }
 
+    /** 終了時 */
+    override fun onDestroy() {
+        super.onDestroy()
+        // ステータスバー表示
+        SystemBarVisibility.showSystemBar(requireActivity().window)
+        // センサーの思いのままに
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+    }
+
     /**
      * インターネット接続の種類をトーストで表示する。
      * Wi-FiならWi-Fi。LTE/4Gならモバイルデータみたいな
