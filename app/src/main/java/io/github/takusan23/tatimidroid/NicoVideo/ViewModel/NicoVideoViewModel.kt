@@ -109,7 +109,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     val likeThanksMessageLiveData = MutableLiveData<String>()
 
     /** 画面回転時にもいいねメッセージがサイド表示されるのでそれの制御 */
-    val isAlreadyShowThanksMessage = false
+    var isAlreadyShowThanksMessage = false
 
     /** ユーザー情報LiveData */
     val userDataLiveData = MutableLiveData<UserData>()

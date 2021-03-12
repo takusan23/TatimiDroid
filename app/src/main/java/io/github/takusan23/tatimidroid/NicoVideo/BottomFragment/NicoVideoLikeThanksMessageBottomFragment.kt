@@ -48,6 +48,8 @@ class NicoVideoLikeThanksMessageBottomFragment : BottomSheetDialogFragment() {
                     // これでくくらないとなんかダークモード時に文字が白にならない
                     Surface {
                         NicoVideoLikeMessageScreen(nicoVideoViewModel = viewModel) {
+                            // 二回目（画面回転時）に表示させない
+                            viewModel.isAlreadyShowThanksMessage = true
                             dismiss()
                         }
                     }
