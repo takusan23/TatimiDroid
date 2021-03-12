@@ -12,6 +12,7 @@ import android.view.KeyEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
@@ -230,7 +231,7 @@ class MainActivity : AppCompatActivity() {
      * @param startFullScreen 全画面で再生する場合はtrue
      * @param _videoList 連続再生が決定している場合は[NicoVideoData]の配列を入れてください。なおFragment生成後でも連続再生が可能です。
      * */
-    fun setNicovideoFragment(videoId: String, isCache: Boolean? = null, isEco: Boolean? = null, useInternet: Boolean? = null, startFullScreen: Boolean? = null, _videoList: ArrayList<NicoVideoData>? = null) {
+    fun setNicovideoFragment(videoId: String, isCache: Boolean? = null, isEco: Boolean? = null, useInternet: Boolean? = null, startFullScreen: Boolean? = null, _videoList: ArrayList<NicoVideoData>? = null, startPos: Int? = null) {
         val fragment: Fragment = when {
             prefSetting.getBoolean("setting_nicovideo_comment_only", false) -> JCNicoVideoCommentOnlyFragment()// コメントのみ表示
             prefSetting.getBoolean("setting_nicovideo_use_old_ui", true) -> NicoVideoFragment() // 旧UI。JetpackCompose、 Android 7 以前で表示が乱れる
@@ -244,6 +245,7 @@ class MainActivity : AppCompatActivity() {
                 useInternet?.let { putBoolean("internet", it) }
                 startFullScreen?.let { putBoolean("fullscreen", it) }
                 _videoList?.let { putSerializable("video_list", _videoList) }
+                startPos?.let { putInt("start_pos", it) }
             }
         }
         if (fragment is JCNicoVideoCommentOnlyFragment) {
@@ -517,7 +519,9 @@ class MainActivity : AppCompatActivity() {
             nicoVideoIdMatcher.find() -> {
                 // 動画ID
                 val videoId = nicoVideoIdMatcher.group()
-                setNicovideoFragment(videoId = videoId)
+                // URLから再生時間を出せる場合
+                val from = text.toUri().getQueryParameter("from")?.toInt()
+                setNicovideoFragment(videoId = videoId, startPos = from)
             }
             else -> {
                 Toast.makeText(this, getString(R.string.regix_error), Toast.LENGTH_SHORT).show()

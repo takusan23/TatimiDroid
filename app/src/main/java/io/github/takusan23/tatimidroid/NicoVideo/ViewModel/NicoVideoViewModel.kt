@@ -41,8 +41,9 @@ import org.json.JSONObject
  * @param isEco エコノミー再生ならtrue。なお、キャッシュを優先的に利用する設定等でキャッシュ再生になっている場合があるので[isOfflinePlay]を使ってください。なお連続再生時はすべての動画をエコノミーで再生します。
  * @param useInternet キャッシュが有っても強制的にインターネットを経由して取得する場合はtrue。
  * @param _videoList 連続再生するなら配列を入れてね。nullでもいい。動画一覧が必要な場合は[playlistLiveData]があるのでこっちを利用してください（ViewModel生成後に連続再生に切り替えられるように）。
+ * @param startPos 開始位置を指定する場合は入れてね
  * */
-class NicoVideoViewModel(application: Application, videoId: String? = null, isCache: Boolean? = null, val isEco: Boolean, val useInternet: Boolean, startFullScreen: Boolean, private val _videoList: ArrayList<NicoVideoData>?) : AndroidViewModel(application) {
+class NicoVideoViewModel(application: Application, videoId: String? = null, isCache: Boolean? = null, val isEco: Boolean, val useInternet: Boolean, startFullScreen: Boolean, private val _videoList: ArrayList<NicoVideoData>?, private val startPos: Int?) : AndroidViewModel(application) {
 
     /** Context */
     private val context = getApplication<Application>().applicationContext
@@ -211,6 +212,11 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
 
         // 最初の動画。
         load(videoId!!, isCache!!, isEco, useInternet)
+
+        // 開始位置シーク
+        if (startPos != null) {
+            playerSetSeekMs.postValue(startPos * 1000L)
+        }
 
         // NGデータベースを監視する
         viewModelScope.launch {

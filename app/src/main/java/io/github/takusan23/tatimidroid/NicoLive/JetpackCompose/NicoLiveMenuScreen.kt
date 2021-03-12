@@ -27,6 +27,8 @@ import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
+import io.github.takusan23.tatimidroid.JetpackCompose.ShareMenuCard
+import io.github.takusan23.tatimidroid.JetpackCompose.VolumeMenu
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
@@ -304,7 +306,7 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
                 }
                 3 -> {
                     // 共有メニュー
-                    NicoVideoShareMenu(
+                    ShareMenuCard(
                         onClickShare = { showShareSheet() },
                         onClickShareAttachImg = { showShereSheetMediaAttach() }
                     )
@@ -312,7 +314,7 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
                 4 -> {
                     // 音量調整。ちなみにAndroidの音量調整ではなく動画再生ライブラリ側で音量調整している。
                     val volumeLiveData = viewModel.exoplayerVolumeLiveData.observeAsState(initial = 1f)
-                    NicoVideoVolumeMenu(
+                    VolumeMenu(
                         volume = volumeLiveData.value,
                         volumeChange = { volume -> viewModel.exoplayerVolumeLiveData.postValue(volume) }
                     )

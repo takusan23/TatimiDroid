@@ -279,7 +279,11 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
     private fun initShareButton() {
         viewBinding.bottomFragmentProgramInfoShareTextView.setOnClickListener {
-            contentShare.shareContent(liveId, nicoLiveHTML.programTitle, null)
+            contentShare.shareContent(
+                programId = liveId,
+                programName = nicoLiveHTML.programTitle,
+                fromTimeSecond = null
+            )
         }
     }
 

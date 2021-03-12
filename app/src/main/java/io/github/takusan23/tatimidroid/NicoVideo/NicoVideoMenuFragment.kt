@@ -415,7 +415,14 @@ class NicoVideoMenuFragment : Fragment() {
                 val currentPos = exoPlayer.currentPosition
                 val currentTime = DateUtils.formatElapsedTime(currentPos)
                 // 共有
-                contentShare.shareContentAttachPicture(viewBinding.fragmentNicovideoSurfaceView, viewBinding.fragmentNicovideoCommentCanvas, videoId, this.viewModel.nicoVideoData.value?.title, currentTime)
+                contentShare.shareContentAttachPicture(
+                    playerView = viewBinding.fragmentNicovideoSurfaceView,
+                    commentCanvas = viewBinding.fragmentNicovideoCommentCanvas,
+                    programId = videoId,
+                    programName = this.viewModel.nicoVideoData.value?.title,
+                    fromTimeSecond = null,
+                    message = currentTime
+                )
             }
         }
         // 共有
@@ -425,7 +432,13 @@ class NicoVideoMenuFragment : Fragment() {
                 val currentPos = exoPlayer.currentPosition
                 val currentTime = DateUtils.formatElapsedTime(currentPos)
                 // 共有
-                contentShare.shareContent(videoId, this.viewModel.nicoVideoData.value?.title, null, currentTime)
+                contentShare.shareContent(
+                    programId = videoId,
+                    programName = this.viewModel.nicoVideoData.value?.title,
+                    fromTimeSecond = null,
+                    uri = null,
+                    message = currentTime
+                )
             }
         }
     }

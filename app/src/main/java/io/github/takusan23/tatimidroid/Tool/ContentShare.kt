@@ -28,6 +28,10 @@ import kotlin.coroutines.suspendCoroutine
 /**
  * 共有画面を出す。Activity Result APIを使った。
  *
+ * あと、ニコ動はURLのパラメーター「from」を使うことで再生時間を指定できる
+ *
+ * 例：`https://nico.ms/sm157?from=30` // きしめんを30秒から再生
+ *
  * インスタンス化する場合は書く場所に注意してください。(ライフサイクル的に見てonCreateの前でインスタンス化しないとだめ？)
  *
  * @param fragment Activity Result API を利用するために必要
@@ -46,6 +50,8 @@ class ContentShare(private val fragment: Fragment) {
     /** タイトル */
     private var contentName: String? = null
 
+    /** 再生時間（秒） */
+    private var fromTimeSecond: Int? = null
 
     // 保存する。Activity Result APIを使って
     private val callback = fragment.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -56,7 +62,7 @@ class ContentShare(private val fragment: Fragment) {
                 val outputStream = fragment.context?.contentResolver?.openOutputStream(result.data?.data!!)
                 playerViewBitmap?.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                 //共有画面出す
-                shareContent(contentId, contentName, result.data?.data!!, message)
+                shareContent(contentId, contentName, fromTimeSecond, result.data?.data!!, message)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -68,13 +74,15 @@ class ContentShare(private val fragment: Fragment) {
      * @param commentCanvas コメントView。ReCommentCanvasでもCommentCanvasでもどうぞ
      * @param playerView ExoPlayerにセットしてるSurfaceView
      * @param message 共有時になにか追加したい場合は入れてね
+     * @param fromTimeSecond 再生開始時間（指定したければ）。生放送ではnull、動画なら秒
      * @param programId 番組 か 動画 ID
      * @param programName 名前
      * */
-    fun shareContentAttachPicture(playerView: SurfaceView, commentCanvas: View, programId: String?, programName: String?, message: String? = "") {
+    fun shareContentAttachPicture(playerView: SurfaceView, commentCanvas: View, programId: String?, programName: String?, fromTimeSecond: Int?, message: String? = "") {
         this.message = message
         this.contentId = programId
         this.contentName = programName
+        this.fromTimeSecond = fromTimeSecond
         fragment.lifecycleScope.launch {
             // ExoPlayerのViewをキャプチャーする
             playerViewBitmap = capturePlayerView(playerView) ?: return@launch
@@ -99,14 +107,22 @@ class ContentShare(private val fragment: Fragment) {
      * @param message タイトル、ID、URL以外に文字列を入れたい場合は指定してください。
      * @param programId 番組 か 動画 ID
      * @param programName 名前
+     * @param fromTimeSecond 再生開始時間（指定したければ）。生放送ではnull、動画なら秒
      * */
-    fun shareContent(programId: String?, programName: String?, uri: Uri? = null, message: String? = "") {
+    fun shareContent(programId: String?, programName: String?, fromTimeSecond: Int?, uri: Uri? = null, message: String? = "") {
         this.message = message
         this.contentId = programId
         this.contentName = programName
-        val builder = ShareCompat.IntentBuilder.from(fragment.requireActivity())
+        this.fromTimeSecond = fromTimeSecond
+        val builder = ShareCompat.IntentBuilder(fragment.requireActivity())
         builder.setChooserTitle(programName)
-        builder.setText("$programName\n#$programId\nhttps://nico.ms/$programId\n$message")
+        // 時間指定パラメーター付き？
+        val url = if (fromTimeSecond != null) {
+            "https://nico.ms/$programId?from=${fromTimeSecond}"
+        } else {
+            "https://nico.ms/$programId"
+        }
+        builder.setText("$programName\n#$programId\n$url\n$message")
         if (uri != null) {
             builder.setStream(uri)
             builder.setType("text/jpeg")

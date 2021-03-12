@@ -143,9 +143,11 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         val isStartFullScreen = arguments?.getBoolean("fullscreen") ?: false
         // 連続再生？
         val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
+        // 開始位置
+        val startPos = arguments?.getInt("start_pos")
 
         // ViewModel初期化
-        viewModel = ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList)).get(NicoVideoViewModel::class.java)
+        viewModel = ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList, startPos)).get(NicoVideoViewModel::class.java)
 
         // 全画面モードなら
         if (viewModel.isFullScreenMode) {
@@ -277,7 +279,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
         // シークしたとき
         viewModel.playerSetSeekMs.observe(viewLifecycleOwner) { seekPos ->
-            if (0 <= seekPos && seekPos <= (viewModel.playerDurationMs.value ?: 0)) {
+            if (0 <= seekPos) {
                 viewModel.playerCurrentPositionMs = seekPos
                 exoPlayer.seekTo(seekPos)
             } else {
@@ -1001,6 +1003,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     override fun onDestroy() {
         super.onDestroy()
+        // 再生位置を保管。画面回転後LiveDataで受け取る
+        viewModel.playerSetSeekMs.value = exoPlayer.currentPosition
         seekTimer.cancel()
         exoPlayer.release()
         // 牛乳を飲んで状態異常を解除

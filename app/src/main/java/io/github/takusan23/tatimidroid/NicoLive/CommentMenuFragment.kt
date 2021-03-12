@@ -151,12 +151,23 @@ class CommentMenuFragment : Fragment() {
         }
         //（画像添付しない）共有
         viewBinding.fragmentCommentFragmentMenuShareButton.setOnClickListener {
-            contentShare.shareContent(liveId, viewModel.programTitle, null, null)
+            contentShare.shareContent(
+                programId = liveId,
+                programName = viewModel.programTitle,
+                fromTimeSecond = null,
+                uri = null
+            )
         }
         //画像つき共有
         viewBinding.fragmentCommentFragmentMenuShareImageAttachButton.setOnClickListener {
             // 今いる部屋の名前入れる
-            contentShare.shareContentAttachPicture(commentFragment.viewBinding.commentFragmentSurfaceView, commentFragment.viewBinding.commentFragmentCommentCanvas, viewModel.programTitle, liveId)
+            contentShare.shareContentAttachPicture(
+                playerView = commentFragment.viewBinding.commentFragmentSurfaceView,
+                commentCanvas = commentFragment.viewBinding.commentFragmentCommentCanvas,
+                programId = viewModel.programTitle,
+                programName = liveId,
+                fromTimeSecond = null,
+            )
         }
         //生放送を再生ボタン
         viewBinding.fragmentCommentFragmentMenuViewLiveButton.setOnClickListener {

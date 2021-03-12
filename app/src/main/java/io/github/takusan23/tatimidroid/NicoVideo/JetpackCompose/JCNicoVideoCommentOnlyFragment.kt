@@ -50,6 +50,6 @@ class JCNicoVideoCommentOnlyFragment : Fragment() {
         // キャッシュ再生
         val isCache = arguments?.getBoolean("cache")
         // ViewModel用意
-        ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, false, false, false, null)).get(NicoVideoViewModel::class.java)
+        ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, false, false, false, null,0)).get(NicoVideoViewModel::class.java)
     }
 }

@@ -49,6 +49,7 @@ import kotlin.math.roundToInt
  * internet     |   キャッシュ有っても強制的にインターネットを利用する場合はtrue
  * fullscreen   |   最初から全画面で再生する場合は true。
  * video_list   |   連続再生する場合は[NicoVideoData]の配列を[Bundle.putSerializable]使って入れてね
+ * start_sec    |   開始位置。秒で
  * */
 class JCNicoVideoFragment : PlayerBaseFragment() {
 
@@ -81,8 +82,10 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         val isStartFullScreen = arguments?.getBoolean("fullscreen") ?: false
         // 連続再生
         val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
+        // 開始位置
+        val startPos = arguments?.getInt("start_pos")
         // ViewModel用意
-        ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList)).get(NicoVideoViewModel::class.java)
+        ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList, startPos)).get(NicoVideoViewModel::class.java)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -229,7 +232,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
         // シークしたとき
         viewModel.playerSetSeekMs.observe(viewLifecycleOwner) { seekPos ->
-            if (0 <= seekPos && seekPos <= (viewModel.playerDurationMs.value ?: 0)) {
+            if (0 <= seekPos) {
                 viewModel.playerCurrentPositionMs = seekPos
                 exoPlayer.seekTo(seekPos)
             } else {
@@ -330,8 +333,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 super.onPlaybackStateChanged(state)
                 if (isFirst) {
                     isFirst = false
-                    // 前回見た位置から再生
-                    viewModel.playerSetSeekMs.value = viewModel.currentPosition
                     if (exoPlayer.currentPosition == 0L) {
                         // 画面回転時に２回目以降表示されると邪魔なので制御
                         val progress = prefSetting.getLong("progress_${viewModel.playingVideoId.value}", 0)
@@ -589,13 +590,23 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     /** 画像つき共有をする */
     fun showShareSheetMediaAttach() {
         // 親のFragment取得
-        contentShare.shareContentAttachPicture(nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView, nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas, viewModel.playingVideoId.value, viewModel.nicoVideoData.value?.title)
+        contentShare.shareContentAttachPicture(
+            playerView = nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView,
+            commentCanvas = nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas,
+            programId = viewModel.playingVideoId.value,
+            programName = viewModel.nicoVideoData.value?.title,
+            fromTimeSecond = (exoPlayer.currentPosition / 1000L).toInt()
+        )
     }
 
     /** 共有する */
     fun showShareSheet() {
         // 親のFragment取得
-        contentShare.shareContent(viewModel.playingVideoId.value, viewModel.nicoVideoData.value?.title)
+        contentShare.shareContent(
+            programId = viewModel.playingVideoId.value,
+            programName = viewModel.nicoVideoData.value?.title,
+            fromTimeSecond = (exoPlayer.currentPosition / 1000L).toInt()
+        )
     }
 
     override fun onPause() {
@@ -611,6 +622,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+        // 再生位置を保管。画面回転後LiveDataで受け取る
+        viewModel.playerSetSeekMs.value = exoPlayer.currentPosition
         exoPlayer.release()
         caffeineUnlock()
     }

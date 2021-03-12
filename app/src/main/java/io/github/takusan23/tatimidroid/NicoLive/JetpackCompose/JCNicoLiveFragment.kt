@@ -750,7 +750,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 playerView = nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView,
                 commentCanvas = nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas,
                 programId = programId,
-                programName = title
+                programName = title,
+                fromTimeSecond = null,
             )
         }
     }
@@ -758,7 +759,11 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     /** テキストのみ共有を行う */
     fun showShareSheet() {
         viewModel.nicoLiveProgramData.value?.apply {
-            contentShare.shareContent(programId, title)
+            contentShare.shareContent(
+                programId = programId,
+                programName = title,
+                fromTimeSecond = null
+            )
         }
     }
 

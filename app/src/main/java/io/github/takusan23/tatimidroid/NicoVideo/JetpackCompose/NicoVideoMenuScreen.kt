@@ -23,6 +23,8 @@ import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
+import io.github.takusan23.tatimidroid.JetpackCompose.ShareMenuCard
+import io.github.takusan23.tatimidroid.JetpackCompose.VolumeMenu
 import io.github.takusan23.tatimidroid.NicoAd.NicoAdBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoAddMylistBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoQualityBottomFragment
@@ -213,7 +215,7 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
                     )
                 }
                 3 -> {
-                    NicoVideoShareMenu(
+                    ShareMenuCard(
                         onClickShare = { showShareSheet() },
                         onClickShareAttachImg = { showShareSheetMediaAttach() },
                     )
@@ -228,7 +230,7 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
                 }
                 5 -> {
                     val volume = viewModel.volumeControlLiveData.observeAsState(initial = 1f)
-                    NicoVideoVolumeMenu(
+                    VolumeMenu(
                         volume = volume.value,
                         volumeChange = { viewModel.volumeControlLiveData.postValue(it) }
                     )

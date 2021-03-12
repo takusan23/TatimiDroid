@@ -5,9 +5,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
@@ -74,72 +77,71 @@ class JCNicoLiveInfoFragment : Fragment() {
                         Scaffold {
                             /** コメント一覧表示中は情報表示させても意味ないので消す？ */
                             if (!isVisibleCommentList.value) {
-                                LazyColumn {
-                                    this.item {
-                                        // 番組情報
-                                        if (programData.value != null && description.value != null) {
-                                            NicoLiveInfoCard(
-                                                nicoLiveProgramData = programData.value!!,
-                                                programDescription = description.value!!,
-                                                isRegisteredTimeShift = isRegisteredTimeShift.value,
-                                                isAllowTSRegister = isAllowTSRegister.value!!,
-                                                onClickTimeShift = { registerTimeShift() },
-                                            )
-                                        }
-                                        // ユーザー情報。ニコ動用のがそのまま使えた
-                                        if (userData.value != null) {
-                                            NicoVideoUserCard(userData = userData.value!!, onUserOpenClick = {
-                                                setAccountFragment(userData.value!!.userId.toString())
-                                            })
-                                        }
-                                        // コミュ、番組情報
-                                        if (communityOrChannelData.value != null) {
-                                            NicoLiveCommunityCard(
-                                                communityOrChannelData = communityOrChannelData.value!!,
-                                                isFollow = isCommunityOrChannelFollow.value,
-                                                onFollowClick = {
-                                                    if (isCommunityOrChannelFollow.value) {
-                                                        // 解除
-                                                        requestRemoveCommunityFollow(communityOrChannelData.value!!.id)
-                                                    } else {
-                                                        // コミュをフォローする
-                                                        requestCommunityFollow(communityOrChannelData.value!!.id)
-                                                    }
-                                                },
-                                                onCommunityOpenClick = {
-                                                    launchBrowser("https://com.nicovideo.jp/community/${communityOrChannelData.value!!.id}")
-                                                }
-                                            )
-                                        }
-                                        // タグ
-                                        if (tagData.value != null) {
-                                            NicoLiveTagCard(
-                                                tagItemDataList = tagData.value!!.tagList,
-                                                onClickTag = { openBrowser("https://live.nicovideo.jp/search?keyword=${it.tagName}&isTagSearch=true") },
-                                                isEditable = !tagData.value!!.isLocked,
-                                                onClickEditButton = { showTagEditBottomFragment() },
-                                                onClickNicoPediaButton = { openBrowser(it) }
-                                            )
-                                        }
-                                        // 好みタグ
-                                        NicoLiveKonomiCard(konomiTagList = konomiTagList.value)
-
-                                        // メニュー
-                                        NicoLiveMenuScreen(requireParentFragment())
-
-                                        if (statisticsLiveData.value != null) {
-                                            // ニコニ広告 投げ銭
-                                            NicoLivePointCard(
-                                                totalNicoAdPoint = statisticsLiveData.value!!.adPoints,
-                                                totalGiftPoint = statisticsLiveData.value!!.giftPoints,
-                                                onClickNicoAdOpen = { showNicoAdBottomFragment() },
-                                                onClickGiftOpen = { showGiftBottomFragment() }
-                                            )
-                                        }
-
-                                        // スペース
-                                        Spacer(modifier = Modifier.height(100.dp))
+                                /** スクロールできるColumn。LazyColumnがサイズ変わったときになんかおかしくなる */
+                                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                    // 番組情報
+                                    if (programData.value != null && description.value != null) {
+                                        NicoLiveInfoCard(
+                                            nicoLiveProgramData = programData.value!!,
+                                            programDescription = description.value!!,
+                                            isRegisteredTimeShift = isRegisteredTimeShift.value,
+                                            isAllowTSRegister = isAllowTSRegister.value!!,
+                                            onClickTimeShift = { registerTimeShift() },
+                                        )
                                     }
+                                    // ユーザー情報。ニコ動用のがそのまま使えた
+                                    if (userData.value != null) {
+                                        NicoVideoUserCard(userData = userData.value!!, onUserOpenClick = {
+                                            setAccountFragment(userData.value!!.userId.toString())
+                                        })
+                                    }
+                                    // コミュ、番組情報
+                                    if (communityOrChannelData.value != null) {
+                                        NicoLiveCommunityCard(
+                                            communityOrChannelData = communityOrChannelData.value!!,
+                                            isFollow = isCommunityOrChannelFollow.value,
+                                            onFollowClick = {
+                                                if (isCommunityOrChannelFollow.value) {
+                                                    // 解除
+                                                    requestRemoveCommunityFollow(communityOrChannelData.value!!.id)
+                                                } else {
+                                                    // コミュをフォローする
+                                                    requestCommunityFollow(communityOrChannelData.value!!.id)
+                                                }
+                                            },
+                                            onCommunityOpenClick = {
+                                                launchBrowser("https://com.nicovideo.jp/community/${communityOrChannelData.value!!.id}")
+                                            }
+                                        )
+                                    }
+                                    // タグ
+                                    if (tagData.value != null) {
+                                        NicoLiveTagCard(
+                                            tagItemDataList = tagData.value!!.tagList,
+                                            onClickTag = { openBrowser("https://live.nicovideo.jp/search?keyword=${it.tagName}&isTagSearch=true") },
+                                            isEditable = !tagData.value!!.isLocked,
+                                            onClickEditButton = { showTagEditBottomFragment() },
+                                            onClickNicoPediaButton = { openBrowser(it) }
+                                        )
+                                    }
+                                    // 好みタグ
+                                    NicoLiveKonomiCard(konomiTagList = konomiTagList.value)
+
+                                    // メニュー
+                                    NicoLiveMenuScreen(requireParentFragment())
+
+                                    if (statisticsLiveData.value != null) {
+                                        // ニコニ広告 投げ銭
+                                        NicoLivePointCard(
+                                            totalNicoAdPoint = statisticsLiveData.value!!.adPoints,
+                                            totalGiftPoint = statisticsLiveData.value!!.giftPoints,
+                                            onClickNicoAdOpen = { showNicoAdBottomFragment() },
+                                            onClickGiftOpen = { showGiftBottomFragment() }
+                                        )
+                                    }
+
+                                    // スペース
+                                    Spacer(modifier = Modifier.height(100.dp))
                                 }
                             }
                         }
