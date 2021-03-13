@@ -23,11 +23,11 @@ import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModel
 fun NicoAdScreen(viewModel: NicoAdViewModel) {
     // ニコニ広告データ
     val nicoAdDataLiveData = viewModel.nicoAdDataLiveData.observeAsState()
-    // ニコニ広告ランキングデータ
-    val nicoAdRankingLiveData = viewModel.nicoAdRankingLiveData.observeAsState()
     // ニコニ広告履歴データ
     val nicoAdHistoryLiveData = viewModel.nicoAdHistoryLiveData.observeAsState()
-    // Context
+    // ニコニ広告ランキングデータ
+    val nicoAdRankingLiveData = viewModel.nicoAdRankingLiveData.observeAsState()
+// Context
     val context = LocalContext.current
 
     Column {
@@ -62,10 +62,12 @@ fun NicoAdScreen(viewModel: NicoAdViewModel) {
                     selectTabIndex = selectTab.value,
                     onClickTabItem = { selectTab.value = it }
                 )
-                // どっちを表示するか
-                when (selectTab.value) {
-                    0 -> NicoAdRankingList(nicoAdRankingUserList = nicoAdRankingLiveData.value ?: arrayListOf())
-                    1 -> NicoAdHistoryList(nicoAdHistoryUserList = nicoAdHistoryLiveData.value ?: arrayListOf())
+                if (nicoAdRankingLiveData.value != null && nicoAdHistoryLiveData.value != null) {
+                    // どっちを表示するか
+                    when (selectTab.value) {
+                        0 -> NicoAdRankingList(nicoAdRankingUserList = nicoAdRankingLiveData.value!!)
+                        1 -> NicoAdHistoryList(nicoAdHistoryUserList = nicoAdHistoryLiveData.value!!)
+                    }
                 }
             }
         }

@@ -19,6 +19,7 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.view.doOnLayout
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.ViewModelProvider
@@ -588,7 +589,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     /** アスペクト比を治す。サイズ変更の度によぶ必要あり。めんどいので16:9固定で */
     private fun aspectRatioFix() {
         if (!isAdded) return
-        fragmentPlayerFrameLayout.doOnLayout {
+        fragmentPlayerFrameLayout.doOnNextLayout {
             val playerHeight = fragmentPlayerFrameLayout.height
             val playerWidth = (playerHeight / 9) * 16
             nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
@@ -704,30 +705,38 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 setFullScreen()
             }
         }
+        // 全画面モードなら
+        if (viewModel.isFullScreenMode) {
+            setFullScreen()
+        }
         // センサーによる画面回転
         if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
             RotationSensor(requireActivity(), lifecycle)
         }
     }
 
-    /** 全画面UIへ切り替える */
+    /** 全画面UIへ切り替える。非同期です */
     private fun setFullScreen() {
-        viewModel.isFullScreenMode = true
-        nicolivePlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
-        // コメント / 動画情報Fragmentを非表示にする
-        toFullScreen()
-        // アスペクト比治すなど
-        aspectRatioFix()
+        lifecycleScope.launch {
+            viewModel.isFullScreenMode = true
+            nicolivePlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
+            // コメント / 動画情報Fragmentを非表示にする
+            toFullScreen()
+            // アスペクト比治すなど
+            aspectRatioFix()
+        }
     }
 
-    /** 全画面UIを戻す */
+    /** 全画面UIを戻す。非同期です */
     private fun setDefaultScreen() {
-        viewModel.isFullScreenMode = false
-        nicolivePlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
-        // コメント / 動画情報Fragmentを表示にする
-        toDefaultScreen()
-        // アスペクト比治すなど
-        aspectRatioFix()
+        lifecycleScope.launch {
+            viewModel.isFullScreenMode = false
+            nicolivePlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
+            // コメント / 動画情報Fragmentを表示にする
+            toDefaultScreen()
+            // アスペクト比治すなど
+            aspectRatioFix()
+        }
     }
 
     override fun onBottomSheetStateChane(state: Int, isMiniPlayer: Boolean) {

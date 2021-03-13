@@ -10,6 +10,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.view.doOnLayout
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.ViewModelProvider
@@ -274,21 +275,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             nicovideoPlayerUIBinding.includeNicovideoPlayerPrevImageView.setImageDrawable(prevIcon)
             nicovideoPlayerUIBinding.includeNicovideoPlayerNextImageView.setImageDrawable(nextIcon)
         }
-        // 押した時
-        nicovideoPlayerUIBinding.includeNicovideoPlayerPrevImageView.setOnClickListener { viewModel.prevVideo() }
-        nicovideoPlayerUIBinding.includeNicovideoPlayerNextImageView.setOnClickListener { viewModel.nextVideo() }
-        // 全画面UI
-        nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setOnClickListener {
-            if (viewModel.isFullScreenMode) {
-                setDefaultScreen()
-            } else {
-                setFullScreen()
-            }
-        }
-        // 全画面モードなら
-        if (viewModel.isFullScreenMode) {
-            setFullScreen()
-        }
     }
 
     /** UIに動画情報を反映させる */
@@ -410,7 +396,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
      * */
     private fun aspectRatioFix(videoWidth: Int, videoHeight: Int) {
         if (!isAdded) return
-        fragmentPlayerFrameLayout.doOnLayout {
+        fragmentPlayerFrameLayout.doOnNextLayout {
             val playerHeight = fragmentPlayerFrameLayout.height
             val playerWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(videoWidth, videoHeight, playerHeight).roundToInt()
             nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
@@ -557,34 +543,49 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 finishFragment()
             }
         }
+        // 押した時
+        nicovideoPlayerUIBinding.includeNicovideoPlayerPrevImageView.setOnClickListener { viewModel.prevVideo() }
+        nicovideoPlayerUIBinding.includeNicovideoPlayerNextImageView.setOnClickListener { viewModel.nextVideo() }
+        // 全画面UI
+        nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setOnClickListener {
+            if (viewModel.isFullScreenMode) {
+                setDefaultScreen()
+            } else {
+                setFullScreen()
+            }
+        }
+        // 全画面モードなら
+        if (viewModel.isFullScreenMode) {
+            setFullScreen()
+        }
         // センサーによる画面回転
         if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
             RotationSensor(requireActivity(), lifecycle)
         }
     }
 
-    /**
-     * 全画面UIへ切り替える
-     * */
+    /** 全画面UIへ切り替える。非同期です */
     private fun setFullScreen() {
-        viewModel.isFullScreenMode = true
-        nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
-        // コメント / 動画情報Fragmentを非表示にする
-        toFullScreen()
-        // アスペクト比治すなど
-        aspectRatioFix(viewModel.videoWidth, viewModel.videoHeight)
+        lifecycleScope.launch {
+            viewModel.isFullScreenMode = true
+            nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
+            // コメント / 動画情報Fragmentを非表示にする
+            toFullScreen()
+            // アスペクト比治すなど
+            aspectRatioFix(viewModel.videoWidth, viewModel.videoHeight)
+        }
     }
 
-    /**
-     * 全画面UIを戻す
-     * */
+    /** 全画面UIを戻す。非同期です */
     private fun setDefaultScreen() {
-        viewModel.isFullScreenMode = false
-        nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
-        // コメント / 動画情報Fragmentを表示にする
-        toDefaultScreen()
-        // アスペクト比治すなど
-        aspectRatioFix(viewModel.videoWidth, viewModel.videoHeight)
+        lifecycleScope.launch {
+            viewModel.isFullScreenMode = false
+            nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
+            // コメント / 動画情報Fragmentを表示にする
+            toDefaultScreen()
+            // アスペクト比治すなど
+            aspectRatioFix(viewModel.videoWidth, viewModel.videoHeight)
+        }
     }
 
     /** 画像つき共有をする */

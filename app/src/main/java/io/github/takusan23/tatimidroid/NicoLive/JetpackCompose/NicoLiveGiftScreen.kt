@@ -60,9 +60,11 @@ fun NicoLiveGiftScreen(viewModel: NicoLiveGiftViewModel) {
                     onClickTabItem = { selectTab.value = it }
                 )
                 // どっちを表示するか
-                when (selectTab.value) {
-                    0 -> NicoLiveGiftHistoryList(giftHistoryUserDataList = historyDataLiveData.value ?: arrayListOf())
-                    1 -> NicoLiveGiftRankingList(giftRankingUserDataList = rankingDataLiveData.value ?: arrayListOf())
+                if (historyDataLiveData.value != null && rankingDataLiveData.value != null) {
+                    when (selectTab.value) {
+                        0 -> NicoLiveGiftHistoryList(giftHistoryUserDataList = historyDataLiveData.value!!)
+                        1 -> NicoLiveGiftRankingList(giftRankingUserDataList = rankingDataLiveData.value!!)
+                    }
                 }
             }
         }

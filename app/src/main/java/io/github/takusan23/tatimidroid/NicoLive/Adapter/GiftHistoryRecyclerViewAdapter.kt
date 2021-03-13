@@ -39,6 +39,7 @@ class GiftHistoryRecyclerViewAdapter(val giftHistoryUserDataList: ArrayList<Nico
                 userNameTextView.append("（ID：${data.userId}）")
             }
             // 画像読み込み
+            iconImageView.imageTintList = null
             Glide.with(iconImageView).load(data.itemThumbUrl).into(iconImageView)
         }
     }

@@ -19,6 +19,8 @@ import androidx.lifecycle.OnLifecycleEvent
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
 import okhttp3.internal.format
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.roundToInt
 
 
@@ -181,7 +183,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
             /** プレイヤータッチしているか */
             isTouchingPlayerView = isTouchingPlayerView(event)
 
-            // プレイヤーをタッチしていない場合は return
+            // 操作無効時はreturn
             if (isDisableMiniPlayerMode) return
 
             // setup関数よんだ？
@@ -404,8 +406,10 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
 
     /**
      * 全画面へ遷移する
+     *
+     * @param callback 遷移が完了したら呼ばれます
      * */
-    fun toFullScreen() {
+    fun toFullScreen(callback: (() -> Unit)? = null) {
         isFullScreenMode = true
         // コールバックを送信
         fullscreenListenerList.forEach { function -> function.invoke(isFullScreenMode) }
@@ -416,19 +420,29 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 height = DisplaySizeTool.getDisplayHeight(context)
                 // マージン解除
                 topMargin = 0
+                // 引数の関数を呼ぶ
+                callback?.invoke()
             }
         }
     }
 
+    /**
+     * 全画面への遷移。完了を待つコルーチン版。toFullScreen()の結果を待ちたい場合はどうぞ
+     *
+     * サイズ変更が完了するまで一時停止します
+     * */
+    suspend fun toFullScreenSuspend() = suspendCoroutine<Unit> {
+        toFullScreen { it.resume(Unit) }
+    }
 
     /**
      * フルスクリーンを解除する。[toDefaultPlayer]と空目しないように！
      *
      * 再生画面（[draggablePlayerView]）の幅を画面の半分の値にして、マージンを設定してるだけ
      *
-     * 横画面である必要があります。
+     * @param callback 遷移が完了したら呼ばれる。コルーチン版もあります
      * */
-    fun toDefaultScreen() {
+    fun toDefaultScreen(callback: (() -> Unit)? = null) {
         isFullScreenMode = false
         // コールバックを送信
         fullscreenListenerList.forEach { function -> function.invoke(isFullScreenMode) }
@@ -441,7 +455,18 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 val maxTopMargin = (DisplaySizeTool.getDisplayHeight(context) - height) / 2
                 topMargin = maxTopMargin
             }
+            // 引数の関数を呼ぶ
+            callback?.invoke()
         }
+    }
+
+    /**
+     * 全画面解除のコルーチン版。
+     *
+     * サイズ変更が完了するまで一時停止します
+     * */
+    suspend fun toDefaultScreenSuspend() = suspendCoroutine<Unit> {
+        toDefaultScreen { it.resume(Unit) }
     }
 
     /** 通常プレイヤーへ遷移 */

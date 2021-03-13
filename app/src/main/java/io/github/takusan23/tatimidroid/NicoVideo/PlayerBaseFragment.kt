@@ -201,37 +201,41 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
      * 全画面プレイヤーへ切り替える。アスペクト比の調整などは各自やってな
      *
      * ステータスバーも非表示にする。画面も横に倒す。
+     *
+     * コルーチンになりました。これでサイズ変更が完了するまで一時停止されます
      * */
-    fun toFullScreen() {
+    suspend fun toFullScreen() {
         // 横画面にする。SENSOR版なので右に倒しても左に倒してもおｋだよ？
         requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         // ステータスバー隠す
         SystemBarVisibility.hideSystemBar(requireActivity().window)
         // BottomSheet側も全画面に切り替える
-        playerLinearLayout.toFullScreen()
+        playerLinearLayout.toFullScreenSuspend()
     }
 
     /**
      * 全画面から通常画面へ。アスペクト比の調整などは各自やってな
      *
-     * ステータスバーを表示、画面はセンサー次第
+     * ステータスバーを表示、画面はユーザーの設定に従います
+     *
+     * コルーチンになりました。これでサイズ変更が完了するまで一時停止されます
      * */
-    fun toDefaultScreen() {
-        // センサーの思いのままに
-        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+    suspend fun toDefaultScreen() {
+        // 既定値へ戻す
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         // ステータスバー表示
         SystemBarVisibility.showSystemBar(requireActivity().window)
         // BottomSheet側も全画面を無効にする
-        playerLinearLayout.toDefaultScreen()
+        playerLinearLayout.toDefaultScreenSuspend()
     }
 
     /** 終了時 */
     override fun onDestroy() {
         super.onDestroy()
+        // センサーの思いのままに
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         // ステータスバー表示
         SystemBarVisibility.showSystemBar(requireActivity().window)
-        // センサーの思いのままに
-        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
     }
 
     /**

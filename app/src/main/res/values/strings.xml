@@ -588,6 +588,4 @@
     <string name="database_backup_description">Do you want to back up? Be careful when handling backup data.</string>
     <string name="setting_cache_split_count_title">Number of simultaneous connections</string>
     <string name="setting_cache_split_count_description">The time it takes to get the cache will be faster. Perhaps. The video file is divided into several parts, downloaded, and finally combined.</string>
-    <string name="nicolive_all_room">All rooms</string>
-    <string name="nicolive_room">Rooms</string>
 </resources>

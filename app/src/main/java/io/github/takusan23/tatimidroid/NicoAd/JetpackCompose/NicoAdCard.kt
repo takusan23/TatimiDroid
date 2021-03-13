@@ -171,7 +171,7 @@ fun NicoAdTabMenu(
     onClickTabItem: (Int) -> Unit,
 ) {
     TabRow(
-        backgroundColor = if (isDarkMode(LocalContext.current)) Color.Black else Color.White,
+        backgroundColor = Color.Transparent,
         selectedTabIndex = selectTabIndex
     ) {
         TabPadding(
