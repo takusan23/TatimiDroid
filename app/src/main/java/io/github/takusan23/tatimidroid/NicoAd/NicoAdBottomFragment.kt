@@ -15,6 +15,7 @@ import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.LightColors
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * ニコニ広告の履歴とか貢献度を表示するBottomFragment
@@ -36,6 +37,10 @@ class NicoAdBottomFragment : BottomSheetDialogFragment() {
     @InternalComposeUiApi
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return ComposeView(requireContext()).apply {
+            ViewTreeLifecycleOwner.set(this, viewLifecycleOwner)
+            val newRecomposer = AtomicReference(WindowRecomposerFactory.LifecycleAware).get().createRecomposer(rootView)
+            compositionContext = newRecomposer
+
             setContent {
                 MaterialTheme(colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors) {
                     NicoAdScreen(viewModel)

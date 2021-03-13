@@ -12,8 +12,8 @@ android {
         applicationId "io.github.takusan23.tatimidroid"
         minSdkVersion 22
         targetSdkVersion 30
-        versionCode 88
-        versionName "14.2.1"
+        versionCode 89
+        versionName "14.2.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -47,8 +47,8 @@ android {
 
     // Compose関係
     composeOptions {
-        kotlinCompilerVersion kotlin_version // 1.4.31 が入ると思う。プロジェクトのbuild.gradleを開いてみて
-        kotlinCompilerExtensionVersion compose_version // 1.0.0-beta02 が入ると思う。プロジェクトのbuild.gradleを開いてみて
+        kotlinCompilerVersion kotlin_version // 1.4.30 が入ると思う。プロジェクトのbuild.gradleを開いてみて
+        kotlinCompilerExtensionVersion compose_version // 1.0.0-beta01 が入ると思う。プロジェクトのbuild.gradleを開いてみて
     }
 
 }

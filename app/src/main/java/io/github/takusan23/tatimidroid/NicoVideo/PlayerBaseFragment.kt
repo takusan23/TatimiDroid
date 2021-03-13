@@ -168,6 +168,13 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         parentFragmentManager.beginTransaction().remove(this).commit()
         // MainActivityの場合はBottomNavigationを戻す
         (requireActivity() as? MainActivity)?.setBottomNavigationHeight(0)
+        // 全画面のまま終わったとき
+        if(playerLinearLayout.isFullScreenMode){
+            // センサーの思いのままに
+            requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            // ステータスバー表示
+            SystemBarVisibility.showSystemBar(requireActivity().window)
+        }
     }
 
     /** 画面が横かどうかを返す。横ならtrue */
@@ -232,10 +239,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** 終了時 */
     override fun onDestroy() {
         super.onDestroy()
-        // センサーの思いのままに
-        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        // ステータスバー表示
-        SystemBarVisibility.showSystemBar(requireActivity().window)
+
     }
 
     /**

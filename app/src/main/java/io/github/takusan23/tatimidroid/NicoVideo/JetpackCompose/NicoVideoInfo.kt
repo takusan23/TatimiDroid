@@ -16,8 +16,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -194,12 +196,14 @@ fun NicoVideoInfoCard(
                     // 区切り線
                     Divider(modifier = Modifier.padding(5.dp))
                     /** 多分HTMLを表示する機能はないので従来のTextView登場 */
-                    AndroidView(factory = { context ->
-                        TextView(context).apply {
-                            // リンク押せるように
-                            NicoVideoDescriptionText.setLinkText(text = HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT), this, descriptionClick)
+                    AndroidView(
+                        factory = { context ->
+                            TextView(context).apply {
+                                // リンク押せるように
+                                NicoVideoDescriptionText.setLinkText(text = HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT), this, descriptionClick)
+                            }
                         }
-                    })
+                    )
                 }
             }
 

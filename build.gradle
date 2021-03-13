@@ -2,8 +2,8 @@
 
 buildscript {
     // 変数たち。
-    ext.kotlin_version = '1.4.31'
-    ext.compose_version = '1.0.0-beta02'
+    ext.kotlin_version = '1.4.30'
+    ext.compose_version = '1.0.0-beta01'
 
     repositories {
         google()
