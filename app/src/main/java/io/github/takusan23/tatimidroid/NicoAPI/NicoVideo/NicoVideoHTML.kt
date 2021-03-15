@@ -89,7 +89,7 @@ class NicoVideoHTML {
             mylistCount = videoObject.getJSONObject("count").getString("mylist"),
             isToriaezuMylist = false,
             duration = videoObject.getLong("duration"),
-            uploaderName = getUploaderName(jsonObject)
+            uploaderName = getUploaderName(jsonObject),
         )
     }
 

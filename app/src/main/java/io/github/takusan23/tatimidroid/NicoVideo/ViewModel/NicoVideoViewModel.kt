@@ -28,6 +28,7 @@ import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import org.json.JSONObject
+import java.io.File
 
 /**
  * [io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment]のViewModel。
@@ -206,6 +207,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** シリーズが設定されていればシリーズの情報が入ってくる */
     val seriesHTMLDataLiveData = MutableLiveData<NicoVideoHTMLSeriesData>()
 
+    /** キャッシュ再生時にデータの再取得が必要なときに送信するLiveData */
+    val cacheVideoJSONUpdateLiveData = MutableLiveData(false)
+
     /** コメント一覧を自動で展開しない設定かどうか */
     val isAutoCommentListShowOff = prefSetting.getBoolean("setting_nicovideo_jc_comment_auto_show_off", true)
 
@@ -238,7 +242,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     }
 
     /**
-     * 再生する関数。
+     * 再生する関数。メインスレッドで呼べよ！！！
+     *
      * @param videoId 動画ID
      * */
     fun load(videoId: String, isCache: Boolean, isEco: Boolean, useInternet: Boolean) {
@@ -259,7 +264,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         isOfflinePlay.value = when {
             useInternet -> false // オンライン
             isCache -> true // キャッシュ再生
-            NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache -> true // キャッシュ優先再生が可能
+            NicoVideoCache(context).hasCacheVideoFile(videoId) && isPriorityCache -> true // キャッシュ優先再生が可能
             else -> false // オンライン
         }
         // 強制エコノミーの設定有効なら
@@ -303,21 +308,28 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                     }
                 }
 
-                // 動画情報JSONがあるかどうか
-                if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
-                    val jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
-                    nicoVideoJSON.postValue(jsonObject)
-                    nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay.value ?: false))
-                    // 動画説明文
-                    nicoVideoDescriptionLiveData.postValue(jsonObject.getJSONObject("video").getString("description"))
-                    // ユーザー情報LiveData
-                    userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
-                    // タグLiveData
-                    tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
-                    // シリーズが設定されていればシリーズ情報を返す
-                    seriesDataLiveData.postValue(nicoVideoHTML.getSeriesData(jsonObject))
-                    // シリーズのJSON解析してデータクラスにする
-                    seriesHTMLDataLiveData.postValue(nicoVideoHTML.getSeriesHTMLData(jsonObject))
+                // 動画情報JSONがあるかどうか（この関数が新仕様JSONかどうかも判断する）
+                if (nicoVideoCache.hasCacheVideoInfoJSON(videoId)) {
+                    val jsonText = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
+                    // 2021/03/15以降のみ対応
+                    if (nicoVideoCache.checkNewJSONFormat(jsonText)) {
+                        val jsonObject = JSONObject(jsonText)
+                        nicoVideoJSON.postValue(jsonObject)
+                        nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay.value ?: false))
+                        // 動画説明文
+                        nicoVideoDescriptionLiveData.postValue(jsonObject.getJSONObject("video").getString("description"))
+                        // ユーザー情報LiveData
+                        userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
+                        // タグLiveData
+                        tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
+                        // シリーズが設定されていればシリーズ情報を返す
+                        seriesDataLiveData.postValue(nicoVideoHTML.getSeriesData(jsonObject))
+                        // シリーズのJSON解析してデータクラスにする
+                        seriesHTMLDataLiveData.postValue(nicoVideoHTML.getSeriesHTMLData(jsonObject))
+                    } else {
+                        /** JSONパーサーが2021/03/15以降のJSONにしか対応してないので、なるはやアップデートしてって表示させる */
+                        cacheVideoJSONUpdateLiveData.postValue(true)
+                    }
                 }
 
                 // コメントが有るか
@@ -795,6 +807,31 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         }
     }
 
+    /**
+     * キャッシュの動画情報JSONを更新する
+     * */
+    fun requestUpdateCacheVideoInfoJSONFile() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val videoId = playingVideoId.value ?: return@launch
+            // 動画HTML取得
+            val response = nicoVideoHTML.getHTML(videoId, userSession)
+            if (response.isSuccessful) {
+                // 動画情報更新
+                val jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
+                val videoIdFolder = File("${nicoVideoCache.getCacheFolderPath()}/${videoId}")
+                nicoVideoCache.saveVideoInfo(videoIdFolder, videoId, jsonObject.toString())
+                showToast("動画情報を更新しました")
+            } else {
+                showToast("${context?.getString(R.string.error)}\n${response.code}")
+            }
+            // LiveData更新
+            cacheVideoJSONUpdateLiveData.postValue(false)
+            // 再読み込み
+            withContext(Dispatchers.Main) {
+                load(videoId, true, isEco, useInternet)
+            }
+        }
+    }
 
     /**
      * SnackBar表示関数。予めFragmentでLiveDataをオブザーバーでつなげておいてね

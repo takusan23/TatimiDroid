@@ -426,7 +426,7 @@ class NicoVideoPlayService : Service() {
             return
         } else {
             // タイトル
-            currentVideoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+            currentVideoTitle = if (nicoVideoCache.hasCacheNewVideoInfoJSON(videoId)) {
                 JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video").getString("title")
             } else {
                 // 動画ファイルの名前

@@ -41,6 +41,7 @@ import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoRecyclerPagerAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheJSONUpdateRequestBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoPlayListBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoUploadVideoFragment
@@ -259,6 +260,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             viewBinding.fragmentNicovideoControlInclude.playerControlPlaylist.isVisible = isPlaylist
         }
 
+        // キャッシュ再生時に、JSONファイルの再取得を求めるやつ
+        viewModel.cacheVideoJSONUpdateLiveData.observe(viewLifecycleOwner) { isNeedUpdate ->
+            NicoVideoCacheJSONUpdateRequestBottomFragment().show(childFragmentManager, "update")
+        }
 
         // LiveDataの通知でExoPlayerを操作するようにしたので
         initExoPlayerControlLiveData()

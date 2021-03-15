@@ -26,6 +26,7 @@ import com.google.android.exoplayer2.video.VideoListener
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheJSONUpdateRequestBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentFragment
 import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoViewModelFactory
@@ -177,6 +178,10 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
 
     /** LiveDataを監視する。ViewModelの結果を受け取る */
     private fun setLiveData() {
+        // キャッシュ再生時に、JSONファイルの再取得を求めるやつ
+        viewModel.cacheVideoJSONUpdateLiveData.observe(viewLifecycleOwner) { isNeedUpdate ->
+            NicoVideoCacheJSONUpdateRequestBottomFragment().show(childFragmentManager, "update")
+        }
         // ミニプレイヤーなら
         viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
             // アイコン直す

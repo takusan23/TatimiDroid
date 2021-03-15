@@ -369,7 +369,9 @@ class NicoVideoMenuFragment : Fragment() {
             viewBinding.fragmentNicovideoMenuReGetCacheButton.isVisible = false
         }
         viewBinding.fragmentNicovideoMenuReGetCacheButton.setOnClickListener {
-            nicoVideoCache.getReGetVideoInfoComment(videoId, userSession, context)
+            lifecycleScope.launch {
+                nicoVideoCache.getReGetVideoInfoComment(videoId, userSession, context)
+            }
         }
     }
 

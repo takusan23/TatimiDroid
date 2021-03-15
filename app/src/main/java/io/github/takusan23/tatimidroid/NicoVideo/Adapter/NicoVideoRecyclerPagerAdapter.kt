@@ -44,7 +44,7 @@ class NicoVideoRecyclerPagerAdapter(val fragment: Fragment, val videoId: String,
         bundle.putBoolean("cache", isCache)
         // 動画情報JSONがあるかどうか。なければ動画情報Fragmentを非表示にするため
         val nicoVideoCache = NicoVideoCache(fragment.requireContext())
-        val exists = nicoVideoCache.existsCacheVideoInfoJSON(videoId)
+        val exists = nicoVideoCache.hasCacheNewVideoInfoJSON(videoId)
         // インターネット接続とキャッシュ再生で分岐
         if (isCache) {
             val commentMenuFragment = NicoVideoMenuFragment().apply {

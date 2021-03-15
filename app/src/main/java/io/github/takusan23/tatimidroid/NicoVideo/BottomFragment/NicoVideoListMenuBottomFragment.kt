@@ -394,11 +394,8 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             this.isCancelable = false
             viewBinding.bottomFragmentNicovideoListMenuReGetCacheTextView.text = getString(R.string.cache_updateing)
             // 再取得
-            nicoVideoCache.getReGetVideoInfoComment(nicoVideoData.videoId, userSession, context) {
-                // 取得できたら閉じる
-                Handler(Looper.getMainLooper()).post {
-                    this@NicoVideoListMenuBottomFragment.dismiss()
-                }
+            lifecycleScope.launch {
+                nicoVideoCache.getReGetVideoInfoComment(nicoVideoData.videoId, userSession, context)
             }
         }
 
