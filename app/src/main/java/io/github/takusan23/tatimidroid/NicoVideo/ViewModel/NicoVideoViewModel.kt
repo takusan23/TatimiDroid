@@ -820,7 +820,6 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                 val jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
                 val videoIdFolder = File("${nicoVideoCache.getCacheFolderPath()}/${videoId}")
                 nicoVideoCache.saveVideoInfo(videoIdFolder, videoId, jsonObject.toString())
-                showToast("動画情報を更新しました")
             } else {
                 showToast("${context?.getString(R.string.error)}\n${response.code}")
             }

@@ -241,6 +241,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // マイリスト画面の場合は消すに切り替える
         if (nicoVideoData.isMylist) {
             viewBinding.bottomFragmentNicovideoListMenuMylistTextView.text = getString(R.string.mylist_delete)
+            viewBinding.bottomFragmentNicovideoListMenuMylistTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_outline_delete_24px, 0, 0, 0)
             viewBinding.bottomFragmentNicovideoListMenuAtodemiruTextView.isVisible = false
         }
         // 非ログインモード時も消す
