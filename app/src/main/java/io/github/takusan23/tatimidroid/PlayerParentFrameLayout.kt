@@ -249,7 +249,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 // フリックによる遷移をしていない場合
                 if (!isMoveAnimating) {
                     // プレイヤーを操作中 または 進行中...（通常画面でもなければミニプレイヤーでもない）
-                    if (isTouchingPlayerView || progress > 0.1 && progress < 1.0) {
+                    if (isTouchingPlayerView || (!isDefaultScreen() && !isMiniPlayerCheckHard())) {
                         when (event.action) {
                             MotionEvent.ACTION_DOWN -> {
                                 touchTime = System.currentTimeMillis()

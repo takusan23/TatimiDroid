@@ -18,11 +18,20 @@ class NicoVideoRecommendAPI {
 
     /**
      * 関連動画取得APIを叩く。
-     * @param watchRecommendationRecipe parseJSON()#watchRecommendationRecipeの値。
+     * @param channelId 公式動画の場合は入れてください。
+     * @param videoId 動画ID
      * */
-    suspend fun getVideoRecommend(watchRecommendationRecipe: String) = withContext(Dispatchers.IO) {
+    suspend fun getVideoRecommend(userSession:String,videoId: String, channelId: String? = null) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
-            url("https://nvapi.nicovideo.jp/v1/recommend?recipe=$watchRecommendationRecipe&site=nicovideo&_frontendId=6")
+            // recipeIdには、video_channel_watch_recommendation（公式）とvideo_watch_recommendation（公式じゃない）がある。
+            if (videoId.contains("so")) {
+                // 公式
+                url("https://nvapi.nicovideo.jp/v1/recommend?recipeId=video_channel_watch_recommendation&videoId=$videoId&channelId=$channelId&site=nicovideo&_frontendId=6")
+            } else {
+                // 公式じゃない
+                url("https://nvapi.nicovideo.jp/v1/recommend?recipeId=video_watch_recommendation&videoId=$videoId&site=nicovideo&_frontendId=6")
+            }
+            header("Cookie", "user_session=$userSession")
             addHeader("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()

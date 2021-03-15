@@ -293,60 +293,6 @@ class NicoVideoInfoFragment : Fragment() {
     }
 
     /**
-     * いいねAPIを叩く
-     * @param like いいねする場合はtrue
-     * */
-    suspend fun sendLike(like: Boolean = true) = withContext(Dispatchers.Main) {
-        // nullチェック
-        val jsonObject = viewModel.nicoVideoJSON.value ?: return@withContext
-        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            showToast("${getString(R.string.error)}\n${throwable}") // エラーのときはToast出すなど
-        }
-        // API叩く
-        lifecycleScope.launch(errorHandler) {
-            val nicoLikeAPI = NicoLikeAPI()
-            val likeResponse = if (like) {
-                nicoLikeAPI.postLike(userSession, videoId)
-            } else {
-                nicoLikeAPI.deleteLike(userSession, videoId)
-            }
-            if (!likeResponse.isSuccessful) {
-                // 失敗時
-                showToast("${getString(R.string.error)}\n${likeResponse.code}")
-                return@launch
-            }
-            val responseString = withContext(Dispatchers.Default) {
-                likeResponse.body?.string()
-            }
-            // いいね登録なのか解除なのか
-            if (likeResponse.code == 201) {
-                // 登録
-                NicoVideoHTML().setLiked(jsonObject, true)
-                setLikeChipStatus(true)
-                // お礼メッセージ表示
-                val thanksMessage = nicoLikeAPI.parseLike(responseString)
-                if (thanksMessage != null) {
-                    withContext(Dispatchers.Main) {
-                        // nullの可能性
-                        val message = if (thanksMessage == "null") getString(R.string.like_ok) else thanksMessage
-                        multiLineSnackbar(viewBinding.fragmentNicovideoInfoLikeChip, message, Snackbar.LENGTH_INDEFINITE).apply {
-                            // お礼メッセージ読んでる途中に消されると迷惑なので自分で閉じるように
-                            setAction(R.string.close) {
-                                dismiss()
-                            }
-                            show()
-                        }
-                    }
-                }
-            } else {
-                // 解除
-                NicoVideoHTML().setLiked(jsonObject, false)
-                setLikeChipStatus(false)
-            }
-        }
-    }
-
-    /**
      * MultilineなSnackbar。Material Design的にはよろしくない
      * https://stackoverflow.com/questions/30705607/android-multiline-snackbar
      * */

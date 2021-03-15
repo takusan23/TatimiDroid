@@ -178,22 +178,6 @@ class NicoVideoCache(val context: Context?) {
     }
 
     /**
-     * 動画が暗号化されているか
-     * dmcInfoが無いときもfalse
-     * 暗号化されているときはtrue
-     * されてないときはfalse
-     * @param json js-initial-watch-dataのdata-api-data
-     * */
-    fun isEncryption(json: String): Boolean {
-        return when {
-            JSONObject(json).getJSONObject("video").isNull("dmcInfo") -> false
-            JSONObject(json).getJSONObject("video").getJSONObject("dmcInfo")
-                .has("encryption") -> true
-            else -> false
-        }
-    }
-
-    /**
      * キャッシュを削除する
      * @param videoId 動画ID
      * */
@@ -253,7 +237,7 @@ class NicoVideoCache(val context: Context?) {
     suspend fun getThumbnail(videoIdFolder: File, videoId: String, json: String, userSession: String) = withContext(Dispatchers.Default) {
         // JSONパース
         val jsonObject = JSONObject(json)
-        val thumbnailURL = jsonObject.getJSONObject("video").getString("largeThumbnailURL")
+        val thumbnailURL = NicoVideoHTML().createNicoVideoData(jsonObject, true).thum
         // 動画サムネファイル作成
         val videoIdThum = File("${videoIdFolder.path}/$videoId.jpg")
         videoIdThum.createNewFile()
@@ -284,7 +268,7 @@ class NicoVideoCache(val context: Context?) {
      * */
     suspend fun getCacheComment(videoIdFolder: File, videoId: String, json: String, userSession: String) = withContext(Dispatchers.IO) {
         // POSTするJSON作成
-        val response = NicoVideoHTML().getComment(videoId, userSession, JSONObject(json))
+        val response = NicoVideoHTML().getComment(userSession, JSONObject(json))
         if (response != null && response.isSuccessful) {
             // 動画コメントJSON作成
             val videoJSONFile = File("${videoIdFolder.path}/${videoId}_comment.json")
@@ -414,7 +398,7 @@ class NicoVideoCache(val context: Context?) {
                 val videoIdFolder = File("${getCacheFolderPath()}/${videoId}")
                 saveVideoInfo(videoIdFolder, videoId, jsonObject.toString())
                 // コメント取得
-                val commentResponse = nicoVideoHTML.getComment(videoId, userSession, jsonObject)
+                val commentResponse = nicoVideoHTML.getComment(userSession, jsonObject)
                 val commentString = commentResponse?.body?.string()
                 if (commentResponse?.isSuccessful == true && commentString != null) {
                     // コメント更新

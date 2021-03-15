@@ -8,8 +8,6 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoSeri
 import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.*
-import okhttp3.Call
-import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -17,12 +15,8 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
-import java.io.IOException
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.concurrent.timerTask
 
 /**
  * ニコ動の情報取得
@@ -33,8 +27,8 @@ class NicoVideoHTML {
     /** シングルトンなOkHttpClient */
     private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
-    // 定期実行（今回はハートビート処理）に必要なやつ
-    var heartBeatTimer = Timer()
+    /** コルーチンキャンセル用 */
+    private var heartBeatJob: Job? = null
 
     /**
      * HTML取得
@@ -67,20 +61,8 @@ class NicoVideoHTML {
                 // JSONパース
                 val jsonObject = parseJSON(videoResponse.body?.string())
                 val videoObject = jsonObject.getJSONObject("video")
-                // データクラス化
-                NicoVideoData(
-                    isCache = false,
-                    isMylist = false,
-                    title = videoObject.getString("title"),
-                    videoId = videoId,
-                    thum = videoObject.getString("thumbnailURL"),
-                    date = postedDateTimeToUnixTime(videoObject.getString("postedDateTime")),
-                    viewCount = videoObject.getString("viewCount"),
-                    commentCount = jsonObject.getJSONObject("thread").getString("commentCount"),
-                    mylistCount = videoObject.getString("mylistCount"),
-                    isToriaezuMylist = false,
-                    duration = videoObject.getLong("duration")
-                )
+                // データクラスに変換する関数を呼ぶ
+                createNicoVideoData(videoObject)
             }
         }
     }
@@ -100,11 +82,11 @@ class NicoVideoHTML {
             isMylist = false,
             title = videoObject.getString("title"),
             videoId = videoObject.getString("id"),
-            thum = videoObject.getString("thumbnailURL"),
-            date = postedDateTimeToUnixTime(videoObject.getString("postedDateTime")),
-            viewCount = videoObject.getString("viewCount"),
-            commentCount = jsonObject.getJSONObject("thread").getString("commentCount"),
-            mylistCount = videoObject.getString("mylistCount"),
+            thum = videoObject.getJSONObject("thumbnail").getString("url"),
+            date = registeredAtToUnixTime(videoObject.getString("registeredAt")),
+            viewCount = videoObject.getJSONObject("count").getString("view"),
+            commentCount = videoObject.getJSONObject("count").getString("comment"),
+            mylistCount = videoObject.getJSONObject("count").getString("mylist"),
             isToriaezuMylist = false,
             duration = videoObject.getLong("duration"),
             uploaderName = getUploaderName(jsonObject)
@@ -113,16 +95,15 @@ class NicoVideoHTML {
 
     /**
      * 動画が暗号化されているか
-     * dmcInfoが無いときもfalse
+
      * 暗号化されているときはtrue
      * されてないときはfalse
      * @param json js-initial-watch-dataのdata-api-data
      * */
     fun isEncryption(json: String): Boolean {
         return when {
-            JSONObject(json).getJSONObject("video").isNull("dmcInfo") -> false
-            JSONObject(json).getJSONObject("video").getJSONObject("dmcInfo").has("encryption") -> true
-            else -> false
+            JSONObject(json).getJSONObject("media").getJSONObject("delivery").isNull("encryption") -> false // encryption が null なら暗号化されてない
+            else -> true // はい見れない。
         }
     }
 
@@ -151,114 +132,98 @@ class NicoVideoHTML {
     }
 
     /**
-     * 動画URL取得APIを叩く。DMCとSmileサーバーと別の処理をしないといけないけどこの関数が隠した
+     * [getSessionAPI]のレスポンスJSONから動画URLを取得する。
+     *
+     * 旧鯖（Smile鯖）は2021/03/15をもって卒業したっぽい？
+     *
      * ハートビート処理はheartBeat()関数を一度呼んでください。後は勝手にハートビートをPOSTしてくれます。
      *
      * 注意
      * DMCサーバーの動画はハートビート処理が必要。
-     * Smileサーバーの動画 例(sm7518470)：ヘッダーにnicohistory?つけないと取得できない。
      *
-     * @param jsonObject parseJSON()の返り値
      * @param sessionJSONObject callSessionAPI()の戻り値。Smileサーバーならnullでいいです。
      * @return 動画URL。取得できないときはnullです。
      * */
-    fun getContentURI(jsonObject: JSONObject, sessionJSONObject: JSONObject?): String {
-        if (!jsonObject.getJSONObject("video").isNull("dmcInfo") || sessionJSONObject != null) {
-            // DMCInfoの動画
-            val data = sessionJSONObject!!.getJSONObject("data")
-            // 動画のリンク
-            val contentUrl = data.getJSONObject("session").getString("content_uri")
-            return contentUrl
-        } else {
-            // Smileサーバーの動画
-            val url =
-                jsonObject.getJSONObject("video").getJSONObject("smileInfo").getString("url")
-            return url
-        }
+    fun parseContentURI(sessionJSONObject: JSONObject?): String {
+        // 多分全部の動画がDMC鯖に移管された？（Smile鯖見つからないし）。
+        val data = sessionJSONObject!!.getJSONObject("data")
+        // 動画のリンク
+        val contentUrl = data.getJSONObject("session").getString("content_uri")
+        return contentUrl
     }
 
     /**
      * DMC サーバー or Smile　サーバー
+     *
+     * 旧鯖（Smile鯖）は2021/03/15をもって卒業したっぽい？卒業おめでとう。
+     *
      * @param jsonObject parseJSON()の戻り値
      * @return dmcサーバーならtrue
      * */
+    @Deprecated("Smile鯖が４んだ可能性。DMC鯖だけになったかも？", ReplaceWith("true"))
     fun isDMCServer(jsonObject: JSONObject): Boolean {
-        return !jsonObject.getJSONObject("video").isNull("dmcInfo")
+        return true
     }
 
     /**
-     * ハートビート用URL取得。DMCサーバーの動画はハートビートしないと切られてしまうので。
-     * 注意　DMCサーバーの動画のみ値が帰ってきます。
-     * @param jsonObject parseJSON()の戻り値
+     * [getSessionAPI]のレスポンスJSONからハートビート用URL取得する関数。DMCサーバーの動画はハートビートしないと切られてしまうので。
+     *
      * @param sessionJSONObject callSessionAPI()の戻り値
      * @return DMCの場合はハートビート用URLを返します。Smileサーバーの動画はnull
      * */
-    private fun getHeartBeatURL(jsonObject: JSONObject, sessionJSONObject: JSONObject): String? {
-        if (!jsonObject.getJSONObject("video").isNull("dmcInfo")) {
-            //DMC Info
-            val data = sessionJSONObject.getJSONObject("data")
-            val id = data.getJSONObject("session").getString("id")
-            //サーバーから切られないようにハートビートを送信する
-            val url = "https://api.dmc.nico/api/sessions/${id}?_format=json&_method=PUT"
-            return url
-        } else {
-            return null
-        }
+    private fun parseHeartBeatURL(sessionJSONObject: JSONObject): String {
+        //DMC鯖
+        val data = sessionJSONObject.getJSONObject("data")
+        val id = data.getJSONObject("session").getString("id")
+        //サーバーから切られないようにハートビートを送信する
+        return "https://api.dmc.nico/api/sessions/${id}?_format=json&_method=PUT"
     }
 
     /**
-     * ハートビートのときにPOSTする中身。
-     * @param jsonObject parseJSON()の戻り値
+     * ハートビートAPIを叩くときにPOSTする中身を返す。
      * @param sessionJSONObject callSessionAPI()の戻り値
      * @return DMCサーバーならPOSTする中身を返します。Smileサーバーならnullです。
      * */
-    private fun getSessionAPIDataObject(jsonObject: JSONObject, sessionJSONObject: JSONObject): String? {
-        if (!jsonObject.getJSONObject("video").isNull("dmcInfo")) {
-            val data = sessionJSONObject.getJSONObject("data")
-            return data.toString()
-        } else {
-            return null
-        }
+    private fun getHearBeatJSONString(sessionJSONObject: JSONObject): String {
+        val data = sessionJSONObject.getJSONObject("data")
+        return data.toString()
     }
 
     /**
-     * DMCサーバーの動画はAPIをもう一度叩くことで動画URLが取得できる。この関数である
-     * Android ニコニコ動画スレでも言われたたけどJSON複雑すぎんかこれ。
-     * なおSmileサーバーの動画はHTMLの中のJSONにアドレスがある。でもHeaderにnicoHistoryをつけないとエラー出るので注意。
-     * ハートビートは自前で用意してください。40秒間隔でpostHeartBeat()を呼べばいいです。
+     * DMCサーバーの動画はもう一回APIを叩いてURLを手に入れる。
+     *
+     * [startHeartBeat]を呼んでハートビート処理を行う必要があります。
      *
      *  @param jsonObject parseJSON()の返り値
-     *
-     *  @param videoQualityId 画質変更時は入れて。例：「archive_h264_4000kbps_1080p」。ない場合はdmcInfoから持ってきます。画質変更する場合のみ利用すればいいと思います。
-     *  @param audioQualityId 音質変更時は入れて。例：「archive_aac_192kbps」。ない場合はdmcInfoから持ってきます。音質変更する場合のみ利用すればいいと思います。
+     *  @param videoQualityId 画質変更時は入れて。例：「archive_h264_4000kbps_1080p」。ない場合はJSONから。画質変更する場合のみ利用すればいいと思います。
+     *  @param audioQualityId 音質変更時は入れて。例：「archive_aac_192kbps」。ない場合はJSONから。音質変更する場合のみ利用すればいいと思います。
      *
      *  @return APIのレスポンス。JSON形式
      * */
-    suspend fun callSessionAPI(jsonObject: JSONObject, videoQualityId: String = "", audioQualityId: String = "") = withContext(Dispatchers.IO) {
-        val dmcInfo = jsonObject.getJSONObject("video").getJSONObject("dmcInfo")
-        val sessionAPI = dmcInfo.getJSONObject("session_api")
+    suspend fun getSessionAPI(jsonObject: JSONObject, videoQualityId: String? = null, audioQualityId: String? = null) = withContext(Dispatchers.IO) {
+        val deliveryObject = jsonObject.getJSONObject("media").getJSONObject("delivery")
+        // こっから情報をとっていく
+        val sessionObject = deliveryObject.getJSONObject("movie").getJSONObject("session")
+        // 音質。引数がnullならとりあえず最高画質
+        val postAudioQualityJSONArray = if (audioQualityId != null) JSONArray().put(audioQualityId) else sessionObject.getJSONArray("audios")
+        // 画質。引数がnullならとりあえず最高画質
+        val postVideoQualityJSONArray = if (videoQualityId != null) JSONArray().put(videoQualityId) else sessionObject.getJSONArray("videos")
         //JSONつくる
         val sessionPOSTJSON = JSONObject().apply {
             put("session", JSONObject().apply {
-                put("recipe_id", sessionAPI.getString("recipe_id"))
-                put("content_id", sessionAPI.getString("content_id"))
+                put("recipe_id", sessionObject.getString("recipeId"))
+                put("content_id", sessionObject.getString("contentId"))
                 put("content_type", "movie")
                 put("content_src_id_sets", JSONArray().apply {
                     this.put(JSONObject().apply {
                         this.put("content_src_ids", JSONArray().apply {
                             this.put(JSONObject().apply {
                                 this.put("src_id_to_mux", JSONObject().apply {
-                                    if (videoQualityId.isNotEmpty() && audioQualityId.isNotEmpty()) {
-                                        // 画質変更対応Ver
-                                        this.remove("video_src_ids")
-                                        this.remove("audio_src_ids")
-                                        this.put("video_src_ids", JSONArray().put(videoQualityId))
-                                        this.put("audio_src_ids", JSONArray().put(audioQualityId))
-                                    } else {
-                                        // 画質はdmcInfoに任せた！
-                                        this.put("video_src_ids", sessionAPI.getJSONArray("videos"))
-                                        this.put("audio_src_ids", sessionAPI.getJSONArray("audios"))
-                                    }
+                                    // 画質指定
+                                    this.remove("video_src_ids")
+                                    this.remove("audio_src_ids")
+                                    this.put("video_src_ids", postVideoQualityJSONArray)
+                                    this.put("audio_src_ids", postAudioQualityJSONArray)
                                 })
                             })
                         })
@@ -279,10 +244,8 @@ class NicoVideoHTML {
                                     put("use_well_known_port", "yes")
                                     put("use_ssl", "yes")
                                     // ログインしないモード対策
-                                    val transfer_preset =
-                                        sessionAPI.getJSONArray("transfer_presets")
-                                            .optString(0, "")
-                                    put("transfer_preset", transfer_preset)
+                                    val transferPresets = sessionObject.getJSONArray("transferPresets").optString(0, "")
+                                    put("transfer_preset", transferPresets)
                                 })
                             })
                         })
@@ -291,20 +254,20 @@ class NicoVideoHTML {
                 put("content_uri", "")
                 put("session_operation_auth", JSONObject().apply {
                     put("session_operation_auth_by_signature", JSONObject().apply {
-                        put("token", sessionAPI.getString("token"))
-                        put("signature", sessionAPI.getString("signature"))
+                        put("token", sessionObject.getString("token"))
+                        put("signature", sessionObject.getString("signature"))
                     })
                 })
                 put("content_auth", JSONObject().apply {
                     put("auth_type", "ht2")
-                    put("content_key_timeout", sessionAPI.getInt("content_key_timeout"))
+                    put("content_key_timeout", sessionObject.getInt("contentKeyTimeout"))
                     put("service_id", "nicovideo")
-                    put("service_user_id", sessionAPI.getString("service_user_id"))
+                    put("service_user_id", sessionObject.getString("serviceUserId"))
                 })
                 put("client_info", JSONObject().apply {
-                    put("player_id", sessionAPI.getString("player_id"))
+                    put("player_id", sessionObject.getString("playerId"))
                 })
-                put("priority", sessionAPI.getDouble("priority"))
+                put("priority", sessionObject.getDouble("priority"))
             })
         }
         //POSTする
@@ -330,22 +293,19 @@ class NicoVideoHTML {
     /**
      * ハートビート処理を行う。これをしないとサーバーから切られてしまう。最後にdestroy()呼ぶ必要があるのはこれを終了させるため
      * 40秒ごとに送信するらしい。
-     * @param jsonObject parseJSON()の戻り値
      * @param sessionAPIJSONObject callSessionAPI()の戻り値
      * */
-    fun heartBeat(jsonObject: JSONObject, sessionAPIJSONObject: JSONObject) {
-        heartBeatTimer.cancel()
-        heartBeatTimer = Timer()
-        val heartBeatURL =
-            getHeartBeatURL(jsonObject, sessionAPIJSONObject)
-        val postData =
-            getSessionAPIDataObject(jsonObject, sessionAPIJSONObject)
-        heartBeatTimer.schedule(timerTask {
-            // ハートビート処理
-            postHeartBeat(heartBeatURL, postData) {
-                //  println("Angel Beats!")
+    fun startHeartBeat(sessionAPIJSONObject: JSONObject) {
+        val heartBeatURL = parseHeartBeatURL(sessionAPIJSONObject)
+        val postData = getHearBeatJSONString(sessionAPIJSONObject)
+        // 定期実行
+        heartBeatJob = GlobalScope.launch {
+            while (true) {
+                // 40秒ごとにハートビート処理
+                postHeartBeat(heartBeatURL, postData)
+                delay(40 * 1000)
             }
-        }, 0, 40 * 1000)
+        }
     }
 
 
@@ -378,20 +338,12 @@ class NicoVideoHTML {
      * @param jsonObject js-initial-watch-dataのdata-api-dataのJSON
      * @return 取得失敗時はnull。成功時はResponse
      * */
-    private suspend fun makeCommentAPIJSON(videoId: String, userSession: String, jsonObject: JSONObject) = withContext(Dispatchers.Default) {
-        /**
-         * dmcInfoが存在するかで分ける。たまによくない動画に当たる。ちなみにこいつ無くてもThreadIdとかuser_id取れるけど、
-         * 再生時間が取れないので無理。非公式？XML形式で返してくれるコメント取得APIを叩くことにする。
-         * 再生時間、JSONの中に入れないといけないっぽい。
-         * */
-        // userkey
-        val userkey = jsonObject.getJSONObject("context").getString("userkey")
+    private suspend fun makeCommentAPIJSON(userSession: String, jsonObject: JSONObject) = withContext(Dispatchers.Default) {
+
+        // userkey。2021/03/15のお昼ごろからJSONの中身が変わった模様
+        val userkey = jsonObject.getJSONObject("comment").getJSONObject("keys").getString("userKey")
         // user_id
-        val user_id = if (verifyLogin(jsonObject)) {
-            jsonObject.getJSONObject("viewer").getString("id")
-        } else {
-            ""
-        }
+        val user_id = if (verifyLogin(jsonObject)) jsonObject.getJSONObject("viewer").getString("id") else ""
 
         // 動画時間（分）
         // duration(再生時間
@@ -408,13 +360,12 @@ class NicoVideoHTML {
          * JSONの構成を指示してくれるJSONArray
          * threads[]の中になんのJSONを作ればいいかが書いてある。
          * */
-        val commentComposite = jsonObject.getJSONObject("commentComposite").getJSONArray("threads")
+        val commentComposite = jsonObject.getJSONObject("comment").getJSONArray("threads")
         // 投げるJSON
         val postJSONArray = JSONArray()
         for (i in 0 until commentComposite.length()) {
             val thread = commentComposite.getJSONObject(i)
-            val thread_id =
-                thread.getString("id")  //thread まじでなんでこの管理方法にしたんだ運営・・
+            val thread_id = thread.getString("id")  //thread まじでなんでこの管理方法にしたんだ運営・・
             val fork = thread.getInt("fork")    //わからん。
             val isOwnerThread = thread.getBoolean("isOwnerThread")
 
@@ -502,8 +453,8 @@ class NicoVideoHTML {
      * @param jsonObject js-initial-watch-dataのdata-api-dataのJSON
      * @return 取得失敗時はnull。成功時はResponse
      * */
-    suspend fun getComment(videoId: String, userSession: String, jsonObject: JSONObject) = withContext(Dispatchers.IO) {
-        val postData = makeCommentAPIJSON(videoId, userSession, jsonObject).toString().toRequestBody()
+    suspend fun getComment(userSession: String, jsonObject: JSONObject) = withContext(Dispatchers.IO) {
+        val postData = makeCommentAPIJSON(userSession, jsonObject).toString().toRequestBody()
         // リクエスト
         val request = Request.Builder().apply {
             url("https://nmsg.nicovideo.jp/api.json/")
@@ -563,26 +514,17 @@ class NicoVideoHTML {
     /**
      * ハートビートをPOSTする関数。非同期処理です。Smileサーバーならこの処理はいらない？
      * @param url ハートビート用APIのURL
-     * @param json getSessionAPIDataObject()の戻り値
+     * @param json [getHearBeatJSONString]の返り値
      * @param responseFun 成功時に呼ばれます。
      * */
-    fun postHeartBeat(url: String?, json: String?, responseFun: () -> Unit) {
-        val request = Request.Builder()
-            .url(url!!)
-            .post(json!!.toRequestBody("application/json".toMediaTypeOrNull()))
-            .addHeader("User-Agent", "TatimiDroid;@takusan_23")
-            .build()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    responseFun()
-                }
-            }
-        })
+    private suspend fun postHeartBeat(url: String, json: String) = withContext(Dispatchers.Default) {
+        val request = Request.Builder().apply {
+            url(url)
+            post(json.toRequestBody("application/json".toMediaTypeOrNull()))
+            addHeader("User-Agent", "TatimiDroid;@takusan_23")
+            build()
+        }.build()
+        okHttpClient.newCall(request).execute()
     }
 
     /**
@@ -611,22 +553,34 @@ class NicoVideoHTML {
      * @return 公式動画ならtrue。
      * */
     fun isOfficial(jsonObject: JSONObject): Boolean {
-        return jsonObject.getJSONObject("video").getBoolean("isOfficial")
+        return !jsonObject.isNull("channel") // channelがnull以外ならおｋ
     }
 
     /**
      * ThreadIdを返す。ニコるKey取得とかコメント取得に使って
      * @param jsonObject js-initial-watch-dataのdata-api-dataの値
-     * @param isCommunity コミュニティの方のidを取得するときはtrue。公式動画のコメント（PC版でコメントリストの下の「チャンネルコメント」のドロップダウンメニューがある）をニコる場合はtrue。省略時は自動で判断します。
+     * @param isCommunityOrOfficial コミュニティの方のidを取得するときはtrue。公式動画のコメント（PC版でコメントリストの下の「チャンネルコメント」のドロップダウンメニューがある）をニコる場合はtrue。省略時は自動で判断します。
      * @return threadId
      * */
-    fun getThreadId(jsonObject: JSONObject, isCommunityOrOfficial: Boolean = isOfficial(jsonObject)): String {
-        val idsObject = jsonObject.getJSONObject("thread").getJSONObject("ids")
-        return if (!isCommunityOrOfficial) {
-            idsObject.getString("default") // 普通の動画
-        } else {
-            idsObject.getString("community") // 公式動画
+    fun getThreadId(jsonObject: JSONObject, isCommunityOrOfficial: Boolean = isOfficial(jsonObject)): String? {
+        val threads = jsonObject.getJSONObject("comment").getJSONArray("threads")
+        for (i in 0 until threads.length()) {
+            val threadObject = threads.getJSONObject(i)
+            val threadId = threadObject.getString("id")
+            // 通常、投稿者コメ、かんたんコメント
+            val label = threadObject.getString("label")
+            when {
+                (label == "community") && isCommunityOrOfficial -> {
+                    // ちゃんねるコメント
+                    return threadId
+                }
+                (label == "default") -> {
+                    // 通常コメント
+                    return threadId
+                }
+            }
         }
+        return null
     }
 
     /**
@@ -665,42 +619,6 @@ class NicoVideoHTML {
     }
 
     /**
-     * アスペクト比が 4:3 かどうか
-     * DMCサーバーの動画である必要があります。なんかうまく行かない場合はfalseになります
-     * @param jsonObject parseJSON()の返り値
-     * @param sessionJSONObject callSessionAPI()の返り値
-     * @return アスペクト比が4:3ならtrue
-     * */
-    fun isOldAspectRate(jsonObject: JSONObject, sessionJSONObject: JSONObject): Boolean {
-        // DMCサーバーであるか。もうsmileサーバー見かけなくなったけどどうなの？
-        if (isDMCServer(jsonObject)) {
-            // 選択中の画質
-            val currentQuality = getCurrentVideoQuality(sessionJSONObject)
-            // 利用可能な画質パース
-            val videoQualityList = parseVideoQualityDMC(jsonObject)
-            // 選択中の画質を一つずつ見ていく
-            for (i in 0 until videoQualityList.length()) {
-                val qualityObject = videoQualityList.getJSONObject(i)
-                val id = qualityObject.getString("id")
-                if (id == currentQuality) {
-                    // あった！
-                    val width = qualityObject.getJSONObject("resolution").getInt("width")
-                    val height = qualityObject.getJSONObject("resolution").getInt("height")
-                    // アスペクト比が4:3か16:9か
-                    // 4:3 = 1.333... 16:9 = 1.777..
-                    val calc = width.toFloat() / height.toFloat()
-                    // 小数点第二位を捨てる
-                    val round = BigDecimal(calc.toString()).setScale(1, RoundingMode.DOWN).toDouble()
-                    return round == 1.3
-                }
-            }
-            return false
-        } else {
-            return false
-        }
-    }
-
-    /**
      * video.postedDateTimeの日付をUnixTime(ミリ秒)に変換する
      * */
     fun postedDateTimeToUnixTime(postedDateTime: String): Long {
@@ -709,20 +627,31 @@ class NicoVideoHTML {
     }
 
     /**
+     * registeredAtの形式をUnixTime（ミリ秒）に変換する
+     * */
+    fun registeredAtToUnixTime(registeredAt: String): Long {
+        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+        return simpleDateFormat.parse(registeredAt).time
+    }
+
+    /**
      * 画質一覧を返す。
-     * 注意：DMCサーバーの動画で使ってね。
+
      * @param jsonObject js-initial-watch-dataのdata-api-dataの値
-     * @return video.dmcInfo.quality.videos の値（配列）
+     * @return media.delivery.movie.videos の値（配列）
      * */
     fun parseVideoQualityDMC(jsonObject: JSONObject): JSONArray {
-        return jsonObject.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality").getJSONArray("videos")
+        return jsonObject.getJSONObject("media").getJSONObject("delivery").getJSONObject("movie").getJSONArray("videos")
     }
 
     /**
      * 音質一覧を返す
+     *
+     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
+     * @return media.delivery.movie.audios の値（配列）
      * */
     fun parseAudioQualityDMC(jsonObject: JSONObject): JSONArray {
-        return jsonObject.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality").getJSONArray("audios")
+        return jsonObject.getJSONObject("media").getJSONObject("delivery").getJSONObject("movie").getJSONArray("audios")
     }
 
     /**
@@ -738,7 +667,7 @@ class NicoVideoHTML {
                 jsonObject.getJSONObject("owner").getString("id") // ユーザーID
             }
             !jsonObject.isNull("channel") -> {
-                jsonObject.getJSONObject("channel").getString("globalId") // 公式動画の時はチャンネルIDを
+                jsonObject.getJSONObject("channel").getString("id") // 公式動画の時はチャンネルIDを
             }
             else -> "" // うｐ主が動画を消さずにアカウント消した場合は owner channel ともにnullになる。（というかアカウント消しても動画は残るんか）
         }
@@ -772,14 +701,14 @@ class NicoVideoHTML {
             val ownerObject = jsonObject.getJSONObject("channel")
             val userId = ownerObject.getString("id")
             val nickname = ownerObject.getString("name")
-            val iconURL = "https://secure-dcdn.cdn.nimg.jp/comch/channel-icon/128x128/ch$userId.jpg"
+            val iconURL = ownerObject.getJSONObject("thumbnail").getString("url")
             UserData(
                 description = "",
                 isPremium = false,
                 niconicoVersion = "",
                 followeeCount = -1,
                 followerCount = -1,
-                userId = userId.toInt(),
+                userId = userId,
                 nickName = nickname,
                 isFollowing = false,
                 currentLevel = 0,
@@ -792,14 +721,14 @@ class NicoVideoHTML {
             val ownerObject = jsonObject.getJSONObject("owner")
             val userId = ownerObject.getString("id")
             val nickname = ownerObject.getString("nickname")
-            val iconURL = ownerObject.getString("iconURL")
+            val iconURL = ownerObject.getString("iconUrl")
             UserData(
                 description = "",
                 isPremium = false,
                 niconicoVersion = "",
                 followeeCount = -1,
                 followerCount = -1,
-                userId = userId.toInt(),
+                userId = userId,
                 nickName = nickname,
                 isFollowing = false,
                 currentLevel = 0,
@@ -820,11 +749,11 @@ class NicoVideoHTML {
      * */
     fun parseTagDataList(jsonObject: JSONObject): ArrayList<NicoTagItemData> {
         val tagDataClass = arrayListOf<NicoTagItemData>()
-        val tagArray = jsonObject.getJSONArray("tags")
+        val tagArray = jsonObject.getJSONObject("tag").getJSONArray("items")
         for (i in 0 until tagArray.length()) {
             val tagObject = tagArray.getJSONObject(i)
             val tagName = tagObject.getString("name")
-            val isNicopediaExists = tagObject.getBoolean("isDictionaryExists")
+            val isNicopediaExists = tagObject.getBoolean("isNicodicArticleExists")
             val isLocked = tagObject.getBoolean("isLocked")
             tagDataClass.add(
                 NicoTagItemData(
@@ -845,17 +774,7 @@ class NicoVideoHTML {
      * @param jsonObject js-initial-watch-dataのdata-api-dataの値
      * */
     fun isLiked(jsonObject: JSONObject): Boolean {
-        return jsonObject.getJSONObject("context").getBoolean("isLiked")
-    }
-
-    /**
-     * いいねを変更をJSONに適用する関数。
-     * @param isLiked いいねしてればtrue
-     * @param jsonObject js-initial-watch-dataのdata-api-dataの値
-     * */
-    fun setLiked(jsonObject: JSONObject, isLiked: Boolean) {
-        jsonObject.getJSONObject("context").remove("isLiked")
-        jsonObject.getJSONObject("context").put("isLiked", isLiked)
+        return jsonObject.getJSONObject("video").getJSONObject("viewer").getJSONObject("like").getBoolean("isLiked")
     }
 
     /**
@@ -913,24 +832,14 @@ class NicoVideoHTML {
             val seriesJSON = jsonObject.getJSONObject("series")
             // シリーズのデータクラス
             val seriesData = getSeriesData(jsonObject)!!
+            // 前後の動画のJSON
+            val seriesVideoJSON = seriesJSON.getJSONObject("video")
             // 次の動画の情報
-            val nextVideoData = if (seriesJSON.isNull("nextVideo")) {
-                null
-            } else {
-                parseSeriesVideoData(seriesJSON.getJSONObject("nextVideo"))
-            }
+            val nextVideoData = if (seriesVideoJSON.isNull("next")) null else parseSeriesVideoData(seriesVideoJSON.getJSONObject("next"))
             // 前の動画の情報
-            val prevVideoData = if (seriesJSON.isNull("prevVideo")) {
-                null
-            } else {
-                parseSeriesVideoData(seriesJSON.getJSONObject("prevVideo"))
-            }
+            val prevVideoData = if (seriesVideoJSON.isNull("prev")) null else parseSeriesVideoData(seriesVideoJSON.getJSONObject("prev"))
             // 最初の動画
-            val firstVideoData = if (seriesJSON.isNull("firstVideo")) {
-                null
-            } else {
-                parseSeriesVideoData(seriesJSON.getJSONObject("firstVideo"))
-            }
+            val firstVideoData = if (seriesVideoJSON.isNull("first")) null else parseSeriesVideoData(seriesVideoJSON.getJSONObject("first"))
             // まとめてデータクラスへ
             NicoVideoHTMLSeriesData(seriesData, firstVideoData, nextVideoData, prevVideoData)
         } else {
@@ -1002,23 +911,12 @@ class NicoVideoHTML {
     }
 
     /**
-     * 動画情報JSONの中から動画の幅、高さを取得する関数。
-     * dmcInfoがない場合はnullになります。
-     * @return firstが幅、secondが高さになります。
-     * */
-    fun getVideoSize(jsonObject: JSONObject): Pair<Int, Int>? {
-        if (!isDMCServer(jsonObject)) return null
-        val video = jsonObject.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality").getJSONArray("videos").getJSONObject(0).getJSONObject("resolution")
-        return Pair(video.getInt("width"), video.getInt("height"))
-    }
-
-    /**
      * 終了時に呼んで
      *
      * もし動画連続再生を実装した場合、動画が切り替わる度にこの関数を呼んでください。
      * */
     fun destroy() {
-        heartBeatTimer.cancel()
+        heartBeatJob?.cancel()
     }
 
 }

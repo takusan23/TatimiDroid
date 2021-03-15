@@ -92,7 +92,7 @@ class JCNicoLiveInfoFragment : Fragment() {
                                     // ユーザー情報。ニコ動用のがそのまま使えた
                                     if (userData.value != null) {
                                         NicoVideoUserCard(userData = userData.value!!, onUserOpenClick = {
-                                            setAccountFragment(userData.value!!.userId.toString())
+                                            setAccountFragment(userData.value!!.userId)
                                         })
                                     }
                                     // コミュ、番組情報

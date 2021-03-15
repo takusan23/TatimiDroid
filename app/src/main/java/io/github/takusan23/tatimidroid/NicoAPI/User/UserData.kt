@@ -9,7 +9,7 @@ import java.io.Serializable
  * @param niconicoVersion 登録時のバージョン。GINZAとか
  * @param followeeCount フォロー中数
  * @param followerCount フォロワーの数
- * @param userId ユーザーID
+ * @param userId ユーザーID。チャンネルの場合はchが含まれるため文字列になります
  * @param nickName ユーザー名
  * @param isFollowing フォロー中？
  * @param currentLevel 現在のレベル
@@ -23,7 +23,7 @@ data class UserData(
     val niconicoVersion: String,
     val followeeCount: Int,
     val followerCount: Int,
-    val userId: Int,
+    val userId: String,
     val nickName: String,
     val isFollowing: Boolean,
     val currentLevel: Int,

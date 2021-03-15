@@ -148,22 +148,17 @@ class GetCacheService : Service() {
                 return@launch
             }
             val nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
-            val jsonObject = nicoVideoHTML.parseJSON(response?.body?.string())
-            if (!nicoVideoCache.isEncryption(jsonObject.toString())) {
+            val jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
+            if (!nicoVideoHTML.isEncryption(jsonObject.toString())) {
                 // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
                 var contentUrl = ""
-                if (nicoVideoHTML.isDMCServer(jsonObject)) {
-                    // https://api.dmc.nico/api/sessions のレスポンス
-                    val sessionAPIJSONObject = nicoVideoHTML.callSessionAPI(jsonObject)
-                    if (sessionAPIJSONObject != null) {
-                        // 動画URL
-                        contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSONObject)
-                        // ハートビート処理
-                        nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSONObject)
-                    }
-                } else {
-                    // Smileサーバー。動画URL取得
-                    contentUrl = nicoVideoHTML.getContentURI(jsonObject, null)
+                // https://api.dmc.nico/api/sessions のレスポンス
+                val sessionAPIJSONObject = nicoVideoHTML.getSessionAPI(jsonObject)
+                if (sessionAPIJSONObject != null) {
+                    // 動画URL
+                    contentUrl = nicoVideoHTML.parseContentURI(sessionAPIJSONObject)
+                    // ハートビート処理
+                    nicoVideoHTML.startHeartBeat(sessionAPIJSONObject)
                 }
                 /**
                  * キャッシュ取得

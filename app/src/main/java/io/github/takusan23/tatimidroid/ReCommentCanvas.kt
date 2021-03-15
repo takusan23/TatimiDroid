@@ -181,8 +181,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                         drawComment(it, currentPos)
                     }
                 }
+                delay(100)
             }
-            delay(100)
         }
 
 
