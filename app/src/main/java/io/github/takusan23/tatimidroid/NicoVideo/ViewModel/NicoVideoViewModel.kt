@@ -23,6 +23,7 @@ import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
+import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.coroutines.*
@@ -293,7 +294,12 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             messageLiveData.postValue(getString(R.string.xml_comment_play))
             return
         } else {
-            viewModelScope.launch(Dispatchers.IO) {
+            // エラー時
+            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                throwable.printStackTrace()
+                showToast("${getString(R.string.error)}\n${throwable}")
+            }
+            viewModelScope.launch(Dispatchers.IO + errorHandler) {
 
                 // 動画ファイルが有るか
                 if (nicoVideoCache.hasCacheVideoFile(videoId)) {
@@ -328,7 +334,10 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                         seriesHTMLDataLiveData.postValue(nicoVideoHTML.getSeriesHTMLData(jsonObject))
                     } else {
                         /** JSONパーサーが2021/03/15以降のJSONにしか対応してないので、なるはやアップデートしてって表示させる */
-                        cacheVideoJSONUpdateLiveData.postValue(true)
+                        if (isConnectionInternet(context)) {
+                            // インターネット接続時のみ表示
+                            cacheVideoJSONUpdateLiveData.postValue(true)
+                        }
                     }
                 }
 
@@ -811,7 +820,12 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
      * キャッシュの動画情報JSONを更新する
      * */
     fun requestUpdateCacheVideoInfoJSONFile() {
-        viewModelScope.launch(Dispatchers.Default) {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            throwable.printStackTrace()
+            showToast("${getString(R.string.error)}\n${throwable}")
+        }
+        viewModelScope.launch(Dispatchers.Default + errorHandler) {
             val videoId = playingVideoId.value ?: return@launch
             // 動画HTML取得
             val response = nicoVideoHTML.getHTML(videoId, userSession)
