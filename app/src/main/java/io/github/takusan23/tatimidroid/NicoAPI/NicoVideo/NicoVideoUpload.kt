@@ -24,14 +24,14 @@ class NicoVideoUpload {
      * @param userSession ユーザーセッション
      * @param page ページ。最近のサイトみたいに必要な部分だけAPIを叩いて取得するようになった。
      * */
-    suspend fun getUploadVideo(userId: String? = null, userSession: String, page: Int = 0) = withContext(Dispatchers.IO) {
+    suspend fun getUploadVideo(userId: String? = null, userSession: String, page: Int = 0,size:Int=100) = withContext(Dispatchers.IO) {
         // うらる。v1じゃないv2が存在する
         val url = if (userId == null) {
             // じぶん
-            "https://nvapi.nicovideo.jp/v1/users/me/videos?sortKey=registeredAt&sortOrder=desc&pageSize=25&page=$page"
+            "https://nvapi.nicovideo.jp/v1/users/me/videos?sortKey=registeredAt&sortOrder=desc&pageSize=$size&page=$page"
         } else {
             // ほかのひと
-            "https://nvapi.nicovideo.jp/v1/users/$userId/videos?sortKey=registeredAt&sortOrder=desc&pageSize=25&page=$page"
+            "https://nvapi.nicovideo.jp/v1/users/$userId/videos?sortKey=registeredAt&sortOrder=desc&pageSize=$size&page=$page"
         }
         val request = Request.Builder().apply {
             url(url)

@@ -307,6 +307,13 @@
 
         <Preference android:summary="@string/setting_comment_canvas_priority" />
 
+        <!-- テキストに影をつける -->
+        <EditTextPreference
+            android:defaultValue="1"
+            android:icon="@drawable/ic_comment_on"
+            android:key="setting_comment_canvas_text_shadow"
+            android:title="@string/setting_comment_canvas_text_shadow_title" />
+
         <!-- 10行確保 -->
         <SwitchPreference
             android:defaultValue="false"

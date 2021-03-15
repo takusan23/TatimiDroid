@@ -109,6 +109,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     private val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
+    /** コメントに影を付ける設定が有効ならtrue */
+    private val textShadow = prefSetting.getString("setting_comment_canvas_text_shadow", "1.0")?.toFloatOrNull() ?: 1f
+
     init {
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
@@ -257,7 +260,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     /** 色の変更 */
     fun getCommentTextPaint(command: String, fontSize: Float = this.fontsize): Paint {
         //白色テキスト
-        val paint = Paint().apply {
+        return Paint().apply {
             if (this@CommentCanvas::typeface.isInitialized) {
                 typeface = this@CommentCanvas.typeface
             }
@@ -266,8 +269,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             style = Paint.Style.FILL
             color = Color.parseColor(getColor(command))
             alpha = (commentAlpha * 225).toInt() // 0 ~ 225 の範囲で指定するため 225かける
+            // テキストに影をつける
+            setShadowLayer(textShadow, textShadow, textShadow, Color.BLACK)
         }
-        return paint
     }
 
     /** 枠取り文字のPaint */

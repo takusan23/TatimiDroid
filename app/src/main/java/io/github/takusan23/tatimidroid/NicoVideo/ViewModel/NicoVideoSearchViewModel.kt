@@ -132,14 +132,17 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
 
             // スクレイピングしてLiveDataへ送信
             searchResultTagListLiveData.postValue(searchHTML.parseTag(html))
+
+            // 動画配列
+            val searchResultVideoList = filterNGUploaderUser(searchHTML.parseHTML(html)) as ArrayList
             // ページが2ページ以降の場合はこれまでの検索結果を保持する
             if (currentSearchPage >= 2) {
                 // 保持する設定。次のページ機能で使う
-                searchResultNicoVideoDataListLiveData.value!!.addAll(searchHTML.parseHTML(html))
+                searchResultNicoVideoDataListLiveData.value!!.addAll(searchResultVideoList)
                 searchResultNicoVideoDataListLiveData.postValue(searchResultNicoVideoDataListLiveData.value!!)
             } else {
                 // 1ページ目
-                searchResultNicoVideoDataListLiveData.postValue(searchHTML.parseHTML(html))
+                searchResultNicoVideoDataListLiveData.postValue(searchResultVideoList)
             }
             // くるくるもどす
             isLoadingLiveData.postValue(false)
@@ -160,6 +163,26 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * NG機能
+     *
+     * ただし、検索結果のスクレイピングでは投稿者IDまでは取れないので、別の手を打つ必要がある
+     *
+     * - スマホ版サイトをスクレイピングする
+     *     - はいスマホ規制
+     * - 検索で返ってきた動画を一個ずつ、動画情報取得APIを叩いて投稿者情報を手に入れる
+     *     - さすがにない。無駄な通信
+     * - 予めNGにした投稿者の投稿動画の動画IDを控えておいて、控えたID一覧に一致しない動画のみを表示する
+     *     - 更新めんどいけどこれがベストプラクティス？1
+     *
+     * */
+    private fun filterNGUploaderUser(list: List<NicoVideoData>): List<NicoVideoData> {
+        // NGの投稿者の投稿してる動画ID配列
+        val ngUserUploadVideoList = listOf("sm28066128", "sm27636439")
+        // NG投稿者の投稿した動画を取り除いて返す
+        return list.filter { nicoVideoData -> !ngUserUploadVideoList.contains(nicoVideoData.videoId) }
     }
 
 }

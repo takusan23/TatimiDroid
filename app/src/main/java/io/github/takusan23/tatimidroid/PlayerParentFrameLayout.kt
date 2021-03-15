@@ -33,7 +33,8 @@ import kotlin.math.roundToInt
  *
  * [setup]関数参照
  * */
-class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : FrameLayout(context, attributeSet) {
+class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
+    FrameLayout(context, attributeSet) {
 
     /** [addOnStateChangeListener]の引数に来る定数たち */
     companion object {
@@ -48,7 +49,10 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     }
 
     /** ミニプレイヤー時の幅 */
-    private var miniPlayerWidth = if (isLandScape()) DisplaySizeTool.getDisplayWidth(context) / 3 else DisplaySizeTool.getDisplayWidth(context) / 2
+    private var miniPlayerWidth =
+        if (isLandScape()) DisplaySizeTool.getDisplayWidth(context) / 3 else DisplaySizeTool.getDisplayWidth(
+            context
+        ) / 2
 
     /** ミニプレイヤーになったときの高さ。[miniPlayerWidth]を16で割って9をかけることで16:9になるようにしている */
     private val miniPlayerHeight: Int
@@ -154,10 +158,16 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
      * @param portlateMiniPlayerWidth 省略可能。縦画面のときのミニプレイヤーの幅。省略すると画面の幅の半分
      * @param landscapeMiniPlayerWidth 省略可能。横画面のときのミニプレイヤーの幅。省略すると画面の幅の三分の一
      * */
-    fun setup(playerView: View, playerViewParent: ViewGroup, portlateMiniPlayerWidth: Int = DisplaySizeTool.getDisplayWidth(context) / 2, landscapeMiniPlayerWidth: Int = DisplaySizeTool.getDisplayWidth(context) / 3) {
+    fun setup(
+        playerView: View,
+        playerViewParent: ViewGroup,
+        portlateMiniPlayerWidth: Int = DisplaySizeTool.getDisplayWidth(context) / 2,
+        landscapeMiniPlayerWidth: Int = DisplaySizeTool.getDisplayWidth(context) / 3
+    ) {
         this.playerView = playerView
         this.playerViewParentViewGroup = playerViewParent
-        this.miniPlayerWidth = if (isLandScape()) landscapeMiniPlayerWidth else portlateMiniPlayerWidth
+        this.miniPlayerWidth =
+            if (isLandScape()) landscapeMiniPlayerWidth else portlateMiniPlayerWidth
         // 横画面時は上方向のマージンをかける
         setLandScapeTopMargin(1f)
     }
@@ -245,11 +255,10 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                         }
                     }
                 }
-
                 // フリックによる遷移をしていない場合
                 if (!isMoveAnimating) {
                     // プレイヤーを操作中 または 進行中...（通常画面でもなければミニプレイヤーでもない）
-                    if (isTouchingPlayerView || progress > 0.1 && progress < 1.0) {
+                    if (isTouchingPlayerView || (!isDefaultScreen() && !isMiniPlayerCheckHard())) {
                         when (event.action) {
                             MotionEvent.ACTION_DOWN -> {
                                 touchTime = System.currentTimeMillis()
@@ -260,7 +269,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                             }
                             MotionEvent.ACTION_UP -> {
                                 // 上のフリックでのミニプレイヤー、通常切り替えを実施済みかどうか。移動速度から
-                                val isAlreadyMoveAnimated = slidingSpeed > flickSpeed || slidingSpeed < -flickSpeed
+                                val isAlreadyMoveAnimated =
+                                    slidingSpeed > flickSpeed || slidingSpeed < -flickSpeed
                                 // タッチが短い場合は無視（0.1秒以内に処理を終えたら無視）
                                 val calcTouchTime = System.currentTimeMillis() - touchTime
                                 if (!isAlreadyMoveAnimated && calcTouchTime > 100) {
@@ -319,7 +329,10 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                                 val sabun = parentViewGroupWidth - miniPlayerWidth
                                 width = miniPlayerWidth + (sabun * (1f - progress)).toInt()
                                 // 何倍すれば縦の大きさが出るか
-                                val nanbai = DisplaySizeTool.getDisplayHeight(context) / DisplaySizeTool.getDisplayWidth(context).toFloat()
+                                val nanbai =
+                                    DisplaySizeTool.getDisplayHeight(context) / DisplaySizeTool.getDisplayWidth(
+                                        context
+                                    ).toFloat()
                                 height = (width * nanbai).toInt()
                             } else {
                                 val sabun = (parentViewGroupWidth / 2f) - miniPlayerWidth
@@ -499,7 +512,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         isMoveAnimating = true
 
         /** 開始時の進行度。途中で指を離した場合はそこからアニメーションを始める */
-        val startProgress = (playerViewParentViewGroup!!.translationY + miniPlayerHeight) / parentViewGroupHeight
+        val startProgress =
+            (playerViewParentViewGroup!!.translationY + miniPlayerHeight) / parentViewGroupHeight
 
         /** 第一引数から第２引数までの値を払い出してくれるやつ。 */
         ValueAnimator.ofFloat(startProgress, 1f).apply {
@@ -522,13 +536,15 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         /**
          * 開始時の進行度。途中で指を離した場合はそこからアニメーションを始める
          * */
-        val startProgress = (playerViewParentViewGroup!!.translationY + miniPlayerHeight) / parentViewGroupHeight
+        val startProgress =
+            (playerViewParentViewGroup!!.translationY + miniPlayerHeight) / parentViewGroupHeight
 
         /**
          * 終了地点
          * なんかしらんけどこの計算式で出せた（1.8位になると思う。この値を[toPlayerProgress]に渡せばええんじゃ？）
          * */
-        val endProgress = parentViewGroupHeight / (parentViewGroupHeight - miniPlayerHeight).toFloat()
+        val endProgress =
+            parentViewGroupHeight / (parentViewGroupHeight - miniPlayerHeight).toFloat()
 
         /**
          * 第一引数から第２引数までの値を払い出してくれるやつ。
@@ -647,6 +663,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     /**
      * 画面が横向きかどうかを返す
      * */
-    private fun isLandScape() = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    private fun isLandScape() =
+        context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
 }
