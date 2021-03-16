@@ -589,4 +589,12 @@
     <string name="setting_cache_split_count_title">同時接続数</string>
     <string name="setting_cache_split_count_description">キャッシュ取得時にかかる時間が速くなります。多分。動画ファイルをいくつかに分けてダウンロードして最後に結合してます。</string>
     <string name="setting_comment_canvas_text_shadow_title">コメントにつける影の量</string>
+    <string name="nicovideo_cache_json_update_title">動画情報の更新のお願い</string>
+    <string name="nicovideo_cache_json_update_description">
+動画情報を解析するプログラムを新しくした影響で、キャッシュで残ってる古い動画の情報を解析できなくなりました。\n
+お手数ですが、動画情報の更新をお願いします。\n
+（コメント、動画ファイルはそのままです）
+    </string>
+    <string name="nicovideo_cache_json_update_update_button">動画情報の更新</string>
+    <string name="nicovideo_cache_json_update_no_update_button">動画情報なしで視聴</string>
 </resources>

@@ -8,20 +8,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.BitmapFactory
-import android.media.session.MediaController
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.media.MediaBrowserServiceCompat
-import androidx.media.session.MediaButtonReceiver
 import androidx.preference.PreferenceManager
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
@@ -352,7 +349,7 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
      * */
     private fun createMetaData(videoId: String): MediaMetadataCompat {
         // 動画情報JSONが存在するか
-        if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+        if (nicoVideoCache.hasCacheNewVideoInfoJSON(videoId)) {
             // 動画情報JSON取得
             val videoJSON = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
             val jsonObject = JSONObject(videoJSON)

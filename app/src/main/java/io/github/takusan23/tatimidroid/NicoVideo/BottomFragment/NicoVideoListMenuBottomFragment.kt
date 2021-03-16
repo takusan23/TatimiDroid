@@ -241,6 +241,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
         // マイリスト画面の場合は消すに切り替える
         if (nicoVideoData.isMylist) {
             viewBinding.bottomFragmentNicovideoListMenuMylistTextView.text = getString(R.string.mylist_delete)
+            viewBinding.bottomFragmentNicovideoListMenuMylistTextView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_outline_delete_24px, 0, 0, 0)
             viewBinding.bottomFragmentNicovideoListMenuAtodemiruTextView.isVisible = false
         }
         // 非ログインモード時も消す
@@ -394,11 +395,8 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             this.isCancelable = false
             viewBinding.bottomFragmentNicovideoListMenuReGetCacheTextView.text = getString(R.string.cache_updateing)
             // 再取得
-            nicoVideoCache.getReGetVideoInfoComment(nicoVideoData.videoId, userSession, context) {
-                // 取得できたら閉じる
-                Handler(Looper.getMainLooper()).post {
-                    this@NicoVideoListMenuBottomFragment.dismiss()
-                }
+            lifecycleScope.launch {
+                nicoVideoCache.getReGetVideoInfoComment(nicoVideoData.videoId, userSession, context)
             }
         }
 

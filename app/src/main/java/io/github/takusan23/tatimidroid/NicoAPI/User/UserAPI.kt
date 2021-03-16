@@ -66,7 +66,7 @@ class UserAPI {
         val followerCount = user.getInt("followerCount")
         val userLevel = user.getJSONObject("userLevel")
         val currentLevel = userLevel.getInt("currentLevel") // ユーザーレベル。大人数ゲームとかはレベル条件ある
-        val userId = user.getInt("id")
+        val userId = user.getString("id")
         val nickName = user.getString("nickname")
         val isFollowing = if (jsonObject.getJSONObject("data").has("relationships")) {
             jsonObject.getJSONObject("data").getJSONObject("relationships")

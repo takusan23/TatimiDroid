@@ -589,4 +589,12 @@
     <string name="setting_cache_split_count_title">Number of simultaneous connections</string>
     <string name="setting_cache_split_count_description">The time it takes to get the cache will be faster. Perhaps. The video file is divided into several parts, downloaded, and finally combined.</string>
     <string name="setting_comment_canvas_text_shadow_title">Amount of shadow on comments</string>
+    <string name="nicovideo_cache_json_update_title">Request to update video information</string>
+    <string name="nicovideo_cache_json_update_description">
+Newly the impact the program to analyze the video information, you will not be able to analyze the information of old videos that remain in the cache.\n
+Sorry to trouble you, but please update the video information.\n
+(Comments and video files remain the same)
+    </string>
+    <string name="nicovideo_cache_json_update_update_button">Update video information</string>
+    <string name="nicovideo_cache_json_update_no_update_button">Watch without video information</string>
 </resources>

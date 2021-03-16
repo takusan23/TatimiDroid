@@ -350,7 +350,6 @@ class NicoVideoPlayService : Service() {
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             showToast("${getString(R.string.error)}\n${throwable}")
         }
-
         GlobalScope.launch(errorHandler) {
             // 動画URL
             var contentUrl = ""
@@ -365,36 +364,32 @@ class NicoVideoPlayService : Service() {
             val nicoHistory = nicoVideoHTML.getNicoHistory(response) ?: ""
             val responseString = response.body?.string()
             val jsonObject = nicoVideoHTML.parseJSON(responseString)
-            // DMCサーバーならハートビート（視聴継続メッセージ送信）をしないといけないので
-            if (nicoVideoHTML.isDMCServer(jsonObject)) {
-                // 公式アニメは暗号化されてて見れないので落とす
-                if (nicoVideoHTML.isEncryption(jsonObject.toString())) {
-                    showToast(getString(R.string.encryption_video_not_play))
-                    Handler(Looper.getMainLooper()).post {
-                        this@NicoVideoPlayService.stopSelf()
-                    }
-                    return@launch
+
+            // 公式アニメは暗号化されてて見れないので落とす
+            if (nicoVideoHTML.isEncryption(jsonObject.toString())) {
+                showToast(getString(R.string.encryption_video_not_play))
+                Handler(Looper.getMainLooper()).post {
+                    this@NicoVideoPlayService.stopSelf()
                 }
-                // https://api.dmc.nico/api/sessions のレスポンス
-                val sessionAPIResponse = if (startVideoQuality != null && startAudioQuality != null) {
-                    // 画質指定あり
-                    nicoVideoHTML.callSessionAPI(jsonObject, startVideoQuality!!, startAudioQuality!!)
-                } else {
-                    // なし。おまかせ？
-                    nicoVideoHTML.callSessionAPI(jsonObject)
-                }
-                if (sessionAPIResponse != null) {
-                    // 動画URL
-                    contentUrl = nicoVideoHTML.getContentURI(jsonObject, sessionAPIResponse)
-                    // ハートビート処理。これしないと切られる。
-                    nicoVideoHTML.heartBeat(jsonObject, sessionAPIResponse)
-                }
-            } else {
-                // Smileサーバー。動画URL取得。自動or低画質は最初の視聴ページHTMLのURLのうしろに「?eco=1」をつければ低画質が送られてくる
-                contentUrl = nicoVideoHTML.getContentURI(jsonObject, null)
+                return@launch
             }
+            // https://api.dmc.nico/api/sessions のレスポンス
+            val sessionAPIResponse = if (startVideoQuality != null && startAudioQuality != null) {
+                // 画質指定あり
+                nicoVideoHTML.getSessionAPI(jsonObject, startVideoQuality!!, startAudioQuality!!)
+            } else {
+                // なし。おまかせ？
+                nicoVideoHTML.getSessionAPI(jsonObject)
+            }
+            if (sessionAPIResponse != null) {
+                // 動画URL
+                contentUrl = nicoVideoHTML.parseContentURI(sessionAPIResponse)
+                // ハートビート処理。これしないと切られる。
+                nicoVideoHTML.startHeartBeat(sessionAPIResponse)
+            }
+
             // コメント取得
-            val commentJSON = nicoVideoHTML.getComment(videoId, userSession, jsonObject)
+            val commentJSON = nicoVideoHTML.getComment(userSession, jsonObject)
             if (commentJSON != null) {
                 currentVideoCommentList = ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.body?.string()!!, videoId))
             }
@@ -431,7 +426,7 @@ class NicoVideoPlayService : Service() {
             return
         } else {
             // タイトル
-            currentVideoTitle = if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
+            currentVideoTitle = if (nicoVideoCache.hasCacheNewVideoInfoJSON(videoId)) {
                 JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId)).getJSONObject("video").getString("title")
             } else {
                 // 動画ファイルの名前

@@ -21,6 +21,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * キャッシュ取得など。
@@ -43,6 +44,8 @@ class NicoVideoCache(val context: Context?) {
     suspend fun loadCache() = withContext(Dispatchers.IO) {
         cacheTotalSize = 0
         val list = arrayListOf<NicoVideoData>()
+        // データクラス変換のためだけ
+        val nicoVideoHTML = NicoVideoHTML()
         // ScopedStorage
         if (context?.getExternalFilesDir(null) != null) {
             val media = context.getExternalFilesDir(null)
@@ -62,7 +65,12 @@ class NicoVideoCache(val context: Context?) {
                 val videoId = videoFolder.name
                 // 動画情報JSONパース
                 val jsonString = File("${videoFolder.path}/${videoId}.json")
-                if (jsonString.exists()) {
+                // 2021/03/15以降に取得したか
+                val isNewJSONFormat = if (jsonString.exists()) {
+                    checkNewJSONFormat(jsonString.readText())
+                } else false
+
+                if (isNewJSONFormat) {
                     // まれによく落ちるので。ファイルあるって言ってんのに何で無いっていうの？
                     val jsonObject = try {
                         JSONObject(jsonString.readText())
@@ -70,41 +78,30 @@ class NicoVideoCache(val context: Context?) {
                         e.printStackTrace()
                         return@forEach
                     }
-                    // NicoVideo
-                    val video = jsonObject.getJSONObject("video")
-                    val isCache = true
-                    val title = video.getString("title")
-                    val thum = "${videoFolder.path}/${videoId}.jpg"
-                    val date = NicoVideoHTML().postedDateTimeToUnixTime(video.getString("postedDateTime"))
-                    val viewCount = video.getInt("viewCount").toString()
-                    val commentCount =
-                        jsonObject.getJSONObject("thread").getInt("commentCount").toString()
-                    val mylistCount = video.getInt("mylistCount").toString()
-                    val cacheAddedDate = it.lastModified()
-                    // 再生時間取得
-                    val duration = video.getLong("duration")
-                    // タグJSON
-                    val tagsJSONArray = arrayListOf<String>().apply {
-                        val jsonArray = jsonObject.getJSONArray("tags")
-                        for (i in 0 until jsonArray.length()) {
-                            add(jsonArray.getJSONObject(i).getString("name"))
-                        }
-                    }
-                    // 投稿者
-                    val uploaderName = NicoVideoHTML().getUploaderName(jsonObject)
                     // キャッシュ取得日時
-                    val data = NicoVideoData(isCache = isCache, isMylist = false, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = duration, cacheAddedDate = cacheAddedDate, uploaderName = uploaderName, videoTag = tagsJSONArray)
-                    list.add(data)
+                    val cacheAddedDate = it.lastModified()
+                    // タグJSON
+                    val tagsJSONArray = nicoVideoHTML.parseTagDataList(jsonObject).map { nicoTagItemData -> nicoTagItemData.tagName } as ArrayList
+                    // サムネ
+                    val thum = "${videoFolder.path}/${videoId}.jpg"
+                    // データクラス
+                    val nicoVideoData = nicoVideoHTML.createNicoVideoData(jsonObject, true).copy(
+                        cacheAddedDate = cacheAddedDate,
+                        videoTag = tagsJSONArray,
+                        thum = thum
+                    )
+                    list.add(nicoVideoData)
                 } else {
 
                     /**
-                     * 動画情報JSON、サムネイルがない場合で読み込みたいときに使う。主にニコ生TSを見るときに使って。
+                     * 動画情報JSON（2021/03/15より前に取得した場合も含めて）、サムネイルがない場合で読み込みたいときに使う。主にニコ生TSを見るときに使って。
                      * */
                     val isCache = true
                     val isMylist = false
                     val title = getCacheFolderVideoFileName(videoId) ?: it.name
                     val videoId = it.name
-                    val thum = ""
+                    val thumbFile = File("${videoFolder.path}/${videoId}.jpg")
+                    val thum = if (thumbFile.exists()) thumbFile.path else ""
                     val date = it.lastModified()
                     val viewCount = "-1"
                     val commentCount = "-1"
@@ -178,22 +175,6 @@ class NicoVideoCache(val context: Context?) {
     }
 
     /**
-     * 動画が暗号化されているか
-     * dmcInfoが無いときもfalse
-     * 暗号化されているときはtrue
-     * されてないときはfalse
-     * @param json js-initial-watch-dataのdata-api-data
-     * */
-    fun isEncryption(json: String): Boolean {
-        return when {
-            JSONObject(json).getJSONObject("video").isNull("dmcInfo") -> false
-            JSONObject(json).getJSONObject("video").getJSONObject("dmcInfo")
-                .has("encryption") -> true
-            else -> false
-        }
-    }
-
-    /**
      * キャッシュを削除する
      * @param videoId 動画ID
      * */
@@ -203,6 +184,19 @@ class NicoVideoCache(val context: Context?) {
         val videoIdFolder = File("${getCacheFolderPath()}/$videoId")
         videoIdFolder.listFiles()?.forEach { it.delete() }
         videoIdFolder.delete()
+    }
+
+    /**
+     * 2021/03/15？以降に取得したキャッシュかどうか。
+     *
+     * dmcInfoが置き換わったりしたけど、JSONの構造が良くなったと思う
+     *
+     * @param json 動画情報JSON
+     * @return 2021/03/15以降のデータの場合はtrue
+     * */
+    fun checkNewJSONFormat(json: String): Boolean {
+        val json = JSONObject(json)
+        return json.has("media")
     }
 
     /**
@@ -253,7 +247,7 @@ class NicoVideoCache(val context: Context?) {
     suspend fun getThumbnail(videoIdFolder: File, videoId: String, json: String, userSession: String) = withContext(Dispatchers.Default) {
         // JSONパース
         val jsonObject = JSONObject(json)
-        val thumbnailURL = jsonObject.getJSONObject("video").getString("largeThumbnailURL")
+        val thumbnailURL = NicoVideoHTML().createNicoVideoData(jsonObject, true).thum
         // 動画サムネファイル作成
         val videoIdThum = File("${videoIdFolder.path}/$videoId.jpg")
         videoIdThum.createNewFile()
@@ -284,7 +278,7 @@ class NicoVideoCache(val context: Context?) {
      * */
     suspend fun getCacheComment(videoIdFolder: File, videoId: String, json: String, userSession: String) = withContext(Dispatchers.IO) {
         // POSTするJSON作成
-        val response = NicoVideoHTML().getComment(videoId, userSession, JSONObject(json))
+        val response = NicoVideoHTML().getComment(userSession, JSONObject(json))
         if (response != null && response.isSuccessful) {
             // 動画コメントJSON作成
             val videoJSONFile = File("${videoIdFolder.path}/${videoId}_comment.json")
@@ -341,10 +335,31 @@ class NicoVideoCache(val context: Context?) {
     }
 
     /**
-     * 動画情報JSONがあるか。あればtrue
+     * 動画情報JSONがあるかどうか。
+     *
+     * 新仕様（2021/03/15）の動画情報JSONファイルが有るかどうかの判断では[hasCacheNewVideoInfoJSON]を使ってください。
+     *
+     * @param videoId 動画ID
      * */
-    fun existsCacheVideoInfoJSON(videoId: String): Boolean {
+    fun hasCacheVideoInfoJSON(videoId: String): Boolean {
         return File("${getCacheFolderPath()}/$videoId/$videoId.json").exists()
+    }
+
+    /**
+     * 新仕様（2021/03/15以降）に生成された動画情報JSONがある場合はtrueを返す
+     *
+     * @param videoId 動画ID
+     * */
+    fun hasCacheNewVideoInfoJSON(videoId: String): Boolean {
+        return if (hasCacheVideoFile(videoId)) {
+            // 読み込み
+            val jsonText = getCacheFolderVideoInfoText(videoId)
+            // 新仕様JSONかどうか
+            checkNewJSONFormat(jsonText)
+        } else {
+            // そもそもない
+            false
+        }
     }
 
     /**
@@ -414,7 +429,7 @@ class NicoVideoCache(val context: Context?) {
                 val videoIdFolder = File("${getCacheFolderPath()}/${videoId}")
                 saveVideoInfo(videoIdFolder, videoId, jsonObject.toString())
                 // コメント取得
-                val commentResponse = nicoVideoHTML.getComment(videoId, userSession, jsonObject)
+                val commentResponse = nicoVideoHTML.getComment(userSession, jsonObject)
                 val commentString = commentResponse?.body?.string()
                 if (commentResponse?.isSuccessful == true && commentString != null) {
                     // コメント更新

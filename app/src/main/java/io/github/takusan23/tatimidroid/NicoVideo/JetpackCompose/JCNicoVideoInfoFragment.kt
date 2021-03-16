@@ -196,7 +196,7 @@ class JCNicoVideoInfoFragment : Fragment() {
                                                     if (userData.value!!.isChannel) {
                                                         openBrowser("https://ch.nicovideo.jp/${userData.value!!.userId}")
                                                     } else {
-                                                        setAccountFragment(userData.value!!.userId.toString())
+                                                        setAccountFragment(userData.value!!.userId)
                                                     }
                                                 }
                                             )

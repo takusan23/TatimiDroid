@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.Room.Database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import io.github.takusan23.tatimidroid.Room.DAO.NGUploaderUserIdDAO
+import io.github.takusan23.tatimidroid.Room.DAO.NGUploaderVideoIdDAO
 import io.github.takusan23.tatimidroid.Room.Entity.NGUploaderVideoIdEntity
 
 /**
@@ -12,5 +13,5 @@ import io.github.takusan23.tatimidroid.Room.Entity.NGUploaderVideoIdEntity
  * */
 @Database(entities = [NGUploaderVideoIdEntity::class], version = 1)
 abstract class NGUploaderVideoIdDB : RoomDatabase() {
-    abstract fun ngUploaderUserIdDAO(): NGUploaderUserIdDAO
+    abstract fun ngUploaderVideoIdDAO(): NGUploaderVideoIdDAO
 }

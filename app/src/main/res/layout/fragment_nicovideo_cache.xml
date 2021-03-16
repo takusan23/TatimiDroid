@@ -11,13 +11,19 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/fragment_nicovideo_cache_recycler_view"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/fragment_nicovideo_cache_swipe_refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scrollbars="vertical">
+            android:layout_height="match_parent">
 
-        </androidx.recyclerview.widget.RecyclerView>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/fragment_nicovideo_cache_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical" />
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
 
     </LinearLayout>
 
@@ -89,16 +95,15 @@
                         android:id="@+id/fragment_nicovideo_cache_menu_background_repeat_image_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:visibility="gone"
                         android:layout_weight="1"
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?android:attr/selectableItemBackground"
                         android:padding="10dp"
+                        android:visibility="gone"
                         app:srcCompat="@drawable/ic_repeat_black_24dp" />
 
                     <ImageView
-                        android:visibility="gone"
                         android:id="@+id/fragment_nicovideo_cache_menu_background_shuffle_image_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -107,6 +112,7 @@
                         android:focusable="true"
                         android:foreground="?android:attr/selectableItemBackground"
                         android:padding="10dp"
+                        android:visibility="gone"
                         app:srcCompat="@drawable/ic_trending_flat_black_24dp" />
                 </LinearLayout>
             </LinearLayout>

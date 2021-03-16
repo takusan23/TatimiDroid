@@ -65,9 +65,17 @@ class NicoVideoCacheFragment : Fragment() {
 
         prefSetting = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
+        // くるくる出す
+        viewBinding.fragmentNicovideoCacheSwipeRefresh.isRefreshing = true
+        viewBinding.fragmentNicovideoCacheSwipeRefresh.setOnRefreshListener {
+            // F5
+            viewModel.init()
+        }
+
         // RecyclerView
         viewModel.recyclerViewList.observe(viewLifecycleOwner) { list ->
             initRecyclerView(list)
+            viewBinding.fragmentNicovideoCacheSwipeRefresh.isRefreshing = false
             // 中身0だった場合
             viewBinding.fragmentNicovideoCacheEmptyMessageTextView.isVisible = list.isEmpty()
         }

@@ -369,7 +369,9 @@ class NicoVideoMenuFragment : Fragment() {
             viewBinding.fragmentNicovideoMenuReGetCacheButton.isVisible = false
         }
         viewBinding.fragmentNicovideoMenuReGetCacheButton.setOnClickListener {
-            nicoVideoCache.getReGetVideoInfoComment(videoId, userSession, context)
+            lifecycleScope.launch {
+                nicoVideoCache.getReGetVideoInfoComment(videoId, userSession, context)
+            }
         }
     }
 
@@ -381,25 +383,8 @@ class NicoVideoMenuFragment : Fragment() {
             viewBinding.fragmentNicovideoMenuQualityButton.visibility = View.GONE
         } else {
             viewBinding.fragmentNicovideoMenuQualityButton.setOnClickListener {
-                // DevNicoVideoFragmentから持ってくる
-                val json = viewModel.nicoVideoJSON.value ?: return@setOnClickListener
-                // DmcInfoかSmileサーバーか
-                val isDmcInfo = viewModel.isDMCServer
-                // 画質一覧取得
-                val qualityList = if (isDmcInfo) {
-                    json.getJSONObject("video").getJSONObject("dmcInfo").getJSONObject("quality").toString()
-                } else {
-                    json.getJSONObject("video").getJSONObject("smileInfo").getJSONArray("qualityIds").toString()
-                }
                 // 画質変更BottomSheet
                 val qualityBottomFragment = NicoVideoQualityBottomFragment()
-                val bundle = Bundle().apply {
-                    putString("video_id", videoId)
-                    putBoolean("is_dmc", isDmcInfo)
-                    putString("quality", qualityList)
-                    putString("select", viewModel.currentVideoQuality)
-                }
-                qualityBottomFragment.arguments = bundle
                 qualityBottomFragment.show(parentFragmentManager, "quality")
             }
         }

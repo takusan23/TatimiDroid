@@ -20,6 +20,7 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
@@ -151,6 +152,13 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
         (parentFragment as? JCNicoVideoFragment)?.showShareSheet()
     }
 
+    /** キャッシュの動画情報、コメント更新 */
+    fun updateCacheInfoComment(){
+        viewModel.viewModelScope.launch {
+            viewModel.nicoVideoCache.getReGetVideoInfoComment(viewModel.playingVideoId.value!!, viewModel.userSession, context)
+        }
+    }
+
     // ここからレイアウト -----------------------------
     Card(
         modifier = parentCardModifier,
@@ -225,7 +233,7 @@ fun NicoVideoMenuScreen(parentFragment: Fragment) {
                         isCachePlay = viewModel.isOfflinePlay.value ?: false,
                         onClickCacheGet = { startCacheService(context, viewModel.playingVideoId.value!!, false) }, // 取得
                         onClickCacheGetEco = { startCacheService(context, viewModel.playingVideoId.value!!, true) }, // エコノミーで取得
-                        onClickCacheUpdate = { viewModel.nicoVideoCache.getReGetVideoInfoComment(viewModel.playingVideoId.value!!, viewModel.userSession, context) }, // 再取得
+                        onClickCacheUpdate = { updateCacheInfoComment() }, // 再取得
                     )
                 }
                 5 -> {

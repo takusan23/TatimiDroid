@@ -23,11 +23,13 @@ import io.github.takusan23.tatimidroid.Room.Entity.NGDBEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.Room.Init.NGDBInit
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
+import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isConnectionMobileDataInternet
 import io.github.takusan23.tatimidroid.Tool.isLoginMode
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import org.json.JSONObject
+import java.io.File
 
 /**
  * [io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment]のViewModel。
@@ -82,6 +84,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     val nicoVideoJSON = MutableLiveData<JSONObject>()
 
     /** 旧サーバー（Smile鯖）の場合はfalse。DMC（画質変更ができる）ならtrue */
+    @Deprecated("そもそもSmile鯖が４んだ可能性")
     var isDMCServer = true
 
     /** SessionAPIを叩いたレスポンスJSON */
@@ -205,11 +208,11 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** シリーズが設定されていればシリーズの情報が入ってくる */
     val seriesHTMLDataLiveData = MutableLiveData<NicoVideoHTMLSeriesData>()
 
+    /** キャッシュ再生時にデータの再取得が必要なときに送信するLiveData */
+    val cacheVideoJSONUpdateLiveData = MutableLiveData(false)
+
     /** コメント一覧を自動で展開しない設定かどうか */
     val isAutoCommentListShowOff = prefSetting.getBoolean("setting_nicovideo_jc_comment_auto_show_off", true)
-
-    /** 初回判定用フラグ */
-    var isFirst = true
 
     init {
 
@@ -240,7 +243,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     }
 
     /**
-     * 再生する関数。
+     * 再生する関数。メインスレッドで呼べよ！！！
+     *
      * @param videoId 動画ID
      * */
     fun load(videoId: String, isCache: Boolean, isEco: Boolean, useInternet: Boolean) {
@@ -261,7 +265,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         isOfflinePlay.value = when {
             useInternet -> false // オンライン
             isCache -> true // キャッシュ再生
-            NicoVideoCache(context).existsCacheVideoInfoJSON(videoId) && isPriorityCache -> true // キャッシュ優先再生が可能
+            NicoVideoCache(context).hasCacheVideoFile(videoId) && isPriorityCache -> true // キャッシュ優先再生が可能
             else -> false // オンライン
         }
         // 強制エコノミーの設定有効なら
@@ -273,7 +277,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             // キャッシュを優先的に使う&&キャッシュ取得済みの場合 もしくは　キャッシュ再生時
             isOfflinePlay.value ?: false -> cachePlay()
             // エコノミー再生？
-            isEconomy || isPreferenceEconomyMode -> coroutine(true, "", "", true)
+            isEconomy || isPreferenceEconomyMode -> coroutine(true, null, null, true)
             // それ以外：インターネットで取得
             else -> coroutine()
         }
@@ -290,7 +294,12 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             messageLiveData.postValue(getString(R.string.xml_comment_play))
             return
         } else {
-            viewModelScope.launch(Dispatchers.IO) {
+            // エラー時
+            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                throwable.printStackTrace()
+                showToast("${getString(R.string.error)}\n${throwable}")
+            }
+            viewModelScope.launch(Dispatchers.IO + errorHandler) {
 
                 // 動画ファイルが有るか
                 if (nicoVideoCache.hasCacheVideoFile(videoId)) {
@@ -305,21 +314,31 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                     }
                 }
 
-                // 動画情報JSONがあるかどうか
-                if (nicoVideoCache.existsCacheVideoInfoJSON(videoId)) {
-                    val jsonObject = JSONObject(nicoVideoCache.getCacheFolderVideoInfoText(videoId))
-                    nicoVideoJSON.postValue(jsonObject)
-                    nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay.value ?: false))
-                    // 動画説明文
-                    nicoVideoDescriptionLiveData.postValue(jsonObject.getJSONObject("video").getString("description"))
-                    // ユーザー情報LiveData
-                    userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
-                    // タグLiveData
-                    tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
-                    // シリーズが設定されていればシリーズ情報を返す
-                    seriesDataLiveData.postValue(nicoVideoHTML.getSeriesData(jsonObject))
-                    // シリーズのJSON解析してデータクラスにする
-                    seriesHTMLDataLiveData.postValue(nicoVideoHTML.getSeriesHTMLData(jsonObject))
+                // 動画情報JSONがあるかどうか（この関数が新仕様JSONかどうかも判断する）
+                if (nicoVideoCache.hasCacheVideoInfoJSON(videoId)) {
+                    val jsonText = nicoVideoCache.getCacheFolderVideoInfoText(videoId)
+                    // 2021/03/15以降のみ対応
+                    if (nicoVideoCache.checkNewJSONFormat(jsonText)) {
+                        val jsonObject = JSONObject(jsonText)
+                        nicoVideoJSON.postValue(jsonObject)
+                        nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay.value ?: false))
+                        // 動画説明文
+                        nicoVideoDescriptionLiveData.postValue(jsonObject.getJSONObject("video").getString("description"))
+                        // ユーザー情報LiveData
+                        userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
+                        // タグLiveData
+                        tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
+                        // シリーズが設定されていればシリーズ情報を返す
+                        seriesDataLiveData.postValue(nicoVideoHTML.getSeriesData(jsonObject))
+                        // シリーズのJSON解析してデータクラスにする
+                        seriesHTMLDataLiveData.postValue(nicoVideoHTML.getSeriesHTMLData(jsonObject))
+                    } else {
+                        /** JSONパーサーが2021/03/15以降のJSONにしか対応してないので、なるはやアップデートしてって表示させる */
+                        if (isConnectionInternet(context)) {
+                            // インターネット接続時のみ表示
+                            cacheVideoJSONUpdateLiveData.postValue(true)
+                        }
+                    }
                 }
 
                 // コメントが有るか
@@ -350,7 +369,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
      * @param audioQualityId 音質変更をする場合は入れてね。
      * @param smileServerLowRequest Smile鯖で低画質をリクエストする場合はtrue。
      * */
-    fun coroutine(isGetComment: Boolean = true, videoQualityId: String = "", audioQualityId: String = "", smileServerLowRequest: Boolean = false) {
+    fun coroutine(isGetComment: Boolean = true, videoQualityId: String? = null, audioQualityId: String? = null, smileServerLowRequest: Boolean = false) {
         val videoId = playingVideoId.value ?: return
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
@@ -382,61 +401,57 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
             // タグLiveData
             tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
-            isDMCServer = nicoVideoHTML.isDMCServer(jsonObject)
-            // DMC鯖ならハートビート処理が必要なので。でもほぼDMC鯖からの配信じゃない？
-            if (isDMCServer) {
-                // 公式アニメは暗号化されてて見れないので落とす。最近プレ垢限定でアニメ配信してるんだっけ？
-                if (nicoVideoHTML.isEncryption(jsonObject.toString())) {
-                    showToast(context.getString(R.string.encryption_video_not_play))
-                    // FragmentにおいたLiveDataのオブザーバーへActivity落とせってメッセージを送る
-                    messageLiveData.postValue(context.getString(R.string.encryption_video_not_play))
-                    return@launch
-                } else {
-                    // 再生可能
-                    // モバイルデータで最低画質をリクエスト！
-                    var videoQuality = videoQualityId
-                    var audioQuality = audioQualityId
-                    // 画質が指定している場合はモバイルデータ接続で最低画質の設定は無視
-                    if (videoQuality.isEmpty() && audioQuality.isEmpty()) {
-                        // モバイルデータ接続のときは強制的に低画質にする
-                        if (prefSetting.getBoolean("setting_nicovideo_low_quality", false)) {
-                            if (isConnectionMobileDataInternet(context)) {
-                                // モバイルデータ
-                                val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
-                                val audioQualityList = nicoVideoHTML.parseAudioQualityDMC(jsonObject)
-                                videoQuality = videoQualityList.getJSONObject(videoQualityList.length() - 1).getString("id")
-                                audioQuality = audioQualityList.getJSONObject(audioQualityList.length() - 1).getString("id")
-                            }
-                            if (videoQuality.isNotEmpty()) {
-                                showSnackBar("${getString(R.string.quality)}：$videoQuality")
-                            }
+
+            // 公式アニメは暗号化されてて見れないので落とす。最近プレ垢限定でアニメ配信してるんだっけ？
+            if (nicoVideoHTML.isEncryption(jsonObject.toString())) {
+                showToast(context.getString(R.string.encryption_video_not_play))
+                // FragmentにおいたLiveDataのオブザーバーへActivity落とせってメッセージを送る
+                messageLiveData.postValue(context.getString(R.string.encryption_video_not_play))
+                return@launch
+            } else {
+                // 再生可能
+                var videoQuality = videoQualityId
+                var audioQuality = audioQualityId
+                // 画質を指定している場合はモバイルデータ接続で最低画質の設定は無視
+                if (videoQuality == null && audioQuality == null) {
+                    // モバイルデータ接続のときは強制的に低画質にする
+                    if (prefSetting.getBoolean("setting_nicovideo_low_quality", false)) {
+                        if (isConnectionMobileDataInternet(context)) {
+                            // モバイルデータ
+                            val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
+                            val audioQualityList = nicoVideoHTML.parseAudioQualityDMC(jsonObject)
+                            videoQuality = videoQualityList.getJSONObject(videoQualityList.length() - 1).getString("id")
+                            audioQuality = audioQualityList.getJSONObject(audioQualityList.length() - 1).getString("id")
                         }
                     }
-                    // https://api.dmc.nico/api/sessions のレスポンス
-                    val sessionAPIResponse = nicoVideoHTML.callSessionAPI(jsonObject, videoQuality, audioQuality)
-                    if (sessionAPIResponse != null) {
-                        sessionAPIJSON = sessionAPIResponse
-                        // 動画URL
-                        contentUrl.postValue(nicoVideoHTML.getContentURI(jsonObject, sessionAPIJSON))
-                        // ハートビート処理。これしないと切られる。
-                        nicoVideoHTML.heartBeat(jsonObject, sessionAPIJSON)
-                        // 選択中の画質、音質控える
-                        currentVideoQuality = nicoVideoHTML.getCurrentVideoQuality(sessionAPIJSON)
-                        currentAudioQuality = nicoVideoHTML.getCurrentAudioQuality(sessionAPIJSON)
+                    if (videoQuality != null) {
+                        // 画質通知
+                        showSnackBar("${getString(R.string.quality)}：$videoQuality")
                     }
                 }
-            } else {
-                // Smileさば。動画URL取得。自動or低画質は最初の視聴ページHTMLのURLのうしろに「?eco=1」をつければ低画質が送られてくる
-                contentUrl.postValue(nicoVideoHTML.getContentURI(jsonObject, null))
+                // https://api.dmc.nico/api/sessions のレスポンス
+                val sessionAPIResponse = nicoVideoHTML.getSessionAPI(jsonObject, videoQuality, audioQuality)
+                if (sessionAPIResponse != null) {
+                    sessionAPIJSON = sessionAPIResponse
+                    // 動画URL
+                    contentUrl.postValue(nicoVideoHTML.parseContentURI(sessionAPIJSON))
+                    // ハートビート処理。これしないと切られる。
+                    nicoVideoHTML.startHeartBeat(sessionAPIJSON)
+                    // 選択中の画質、音質控える
+                    currentVideoQuality = nicoVideoHTML.getCurrentVideoQuality(sessionAPIJSON)
+                    currentAudioQuality = nicoVideoHTML.getCurrentAudioQuality(sessionAPIJSON)
+                }
             }
+
             // データクラスへ詰める
             nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay.value ?: false))
             // データベースへ書き込む
             insertDB()
+
             // コメント取得など
             if (false) {
                 val commentJSON = async {
-                    nicoVideoHTML.getComment(videoId, userSession, jsonObject)
+                    nicoVideoHTML.getComment(userSession, jsonObject)
                 }
                 rawCommentList = withContext(Dispatchers.Default) {
                     ArrayList(nicoVideoHTML.parseCommentJSON(commentJSON.await()?.body?.string()!!, videoId))
@@ -449,13 +464,17 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             // ニコるくん
             if (nicoVideoHTML.isPremium(jsonObject)) {
                 launch {
-                    nicoruAPI = NicoruAPI(
-                        userSession = userSession,
-                        threadId = nicoVideoHTML.getThreadId(jsonObject),
-                        isPremium = nicoVideoHTML.isPremium(jsonObject),
-                        userId = nicoVideoHTML.getUserId(jsonObject)
-                    )
-                    nicoruAPI?.init()
+                    // threadId取得
+                    val threadId = nicoVideoHTML.getThreadId(jsonObject)
+                    if (threadId != null) {
+                        nicoruAPI = NicoruAPI(
+                            userSession = userSession,
+                            threadId = threadId,
+                            isPremium = nicoVideoHTML.isPremium(jsonObject),
+                            userId = nicoVideoHTML.getUserId(jsonObject)
+                        )
+                        nicoruAPI?.init()
+                    }
                 }
             }
             // シリーズが設定されていればシリーズ情報を返す
@@ -503,9 +522,12 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** 関連動画取得 */
     private suspend fun getRecommend() = withContext(Dispatchers.Default) {
         // 関連動画取得。
-        val watchRecommendationRecipe = nicoVideoJSON.value!!.getString("watchRecommendationRecipe")
         val nicoVideoRecommendAPI = NicoVideoRecommendAPI()
-        val recommendAPIResponse = nicoVideoRecommendAPI.getVideoRecommend(watchRecommendationRecipe)
+        val recommendAPIResponse = nicoVideoRecommendAPI.getVideoRecommend(
+            userSession,
+            nicoVideoData.value!!.videoId,
+            userDataLiveData.value!!.userId
+        )
         if (!recommendAPIResponse.isSuccessful) {
             // 失敗時
             showToast("${getString(R.string.error)}\n${recommendAPIResponse.code}")
@@ -794,6 +816,35 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         }
     }
 
+    /**
+     * キャッシュの動画情報JSONを更新する
+     * */
+    fun requestUpdateCacheVideoInfoJSONFile() {
+        // エラー時
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            throwable.printStackTrace()
+            showToast("${getString(R.string.error)}\n${throwable}")
+        }
+        viewModelScope.launch(Dispatchers.Default + errorHandler) {
+            val videoId = playingVideoId.value ?: return@launch
+            // 動画HTML取得
+            val response = nicoVideoHTML.getHTML(videoId, userSession)
+            if (response.isSuccessful) {
+                // 動画情報更新
+                val jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
+                val videoIdFolder = File("${nicoVideoCache.getCacheFolderPath()}/${videoId}")
+                nicoVideoCache.saveVideoInfo(videoIdFolder, videoId, jsonObject.toString())
+            } else {
+                showToast("${context?.getString(R.string.error)}\n${response.code}")
+            }
+            // LiveData更新
+            cacheVideoJSONUpdateLiveData.postValue(false)
+            // 再読み込み
+            withContext(Dispatchers.Main) {
+                load(videoId, true, isEco, useInternet)
+            }
+        }
+    }
 
     /**
      * SnackBar表示関数。予めFragmentでLiveDataをオブザーバーでつなげておいてね

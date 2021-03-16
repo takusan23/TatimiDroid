@@ -48,7 +48,7 @@ class NicoAccountFragment : Fragment() {
         // ViewModelからでーたをうけとる
         accountViewModel.userDataLiveData.observe(viewLifecycleOwner) { data ->
             viewBinding.fragmentAccountUserNameTextView.text = data.nickName
-            viewBinding.fragmentAccountUserIdTextView.text = data.userId.toString()
+            viewBinding.fragmentAccountUserIdTextView.text = data.userId
             viewBinding.fragmentAccountVersionNameTextView.text = data.niconicoVersion
             viewBinding.fragmentAccountDescriptionTextView.text = HtmlCompat.fromHtml(data.description, HtmlCompat.FROM_HTML_MODE_COMPACT)
             viewBinding.fragmentAccountFollowCountTextView.text = "${getString(R.string.follow_count)}：${data.followeeCount}"
@@ -67,7 +67,7 @@ class NicoAccountFragment : Fragment() {
 
             // Fragmentにわたすデータ
             val bundle = Bundle().apply {
-                putString("userId", data.userId.toString())
+                putString("userId", data.userId)
             }
 
             // 投稿動画Fragmentへ遷移

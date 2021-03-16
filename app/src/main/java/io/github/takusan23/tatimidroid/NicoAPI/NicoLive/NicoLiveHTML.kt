@@ -188,7 +188,7 @@ class NicoLiveHTML {
             niconicoVersion = "",
             followeeCount = -1,
             followerCount = -1,
-            userId = userId.toInt(),
+            userId = userId,
             nickName = name,
             isFollowing = false,
             currentLevel = level,

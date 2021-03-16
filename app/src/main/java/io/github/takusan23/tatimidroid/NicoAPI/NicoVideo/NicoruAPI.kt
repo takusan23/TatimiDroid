@@ -24,7 +24,7 @@ class NicoruAPI(val userSession: String, val threadId: String, val isPremium: Bo
     private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     // nicoruKey
-    var nicoruKey: String? = null
+    private var nicoruKey: String? = null
 
     /** NicoruKeyを取得するために最初に呼んでおいてください。 */
     suspend fun init() = withContext(Dispatchers.Default) {
