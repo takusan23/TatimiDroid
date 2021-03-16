@@ -460,7 +460,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                 commentFilter(true)
             }
             // 関連動画
-            launch { getRecommend() }
+            launch { getRecommend(jsonObject) }
             // ニコるくん
             if (nicoVideoHTML.isPremium(jsonObject)) {
                 launch {
@@ -519,14 +519,21 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     }
 
 
-    /** 関連動画取得 */
-    private suspend fun getRecommend() = withContext(Dispatchers.Default) {
+    /**
+     * 関連動画取得
+     * @param jsonObject 動画情報JSON
+     * */
+    private suspend fun getRecommend(jsonObject: JSONObject) = withContext(Dispatchers.Default) {
+        // 動画情報
+        val nicoVideoData = nicoVideoHTML.createNicoVideoData(jsonObject, false) // オンライン時のみ関連動画取得するので
+        // 投稿者
+        val userData = nicoVideoHTML.parseUserData(jsonObject)
         // 関連動画取得。
         val nicoVideoRecommendAPI = NicoVideoRecommendAPI()
         val recommendAPIResponse = nicoVideoRecommendAPI.getVideoRecommend(
-            userSession,
-            nicoVideoData.value!!.videoId,
-            userDataLiveData.value!!.userId
+            userSession = userSession,
+            videoId = nicoVideoData.videoId,
+            channelId = userData?.userId,
         )
         if (!recommendAPIResponse.isSuccessful) {
             // 失敗時
