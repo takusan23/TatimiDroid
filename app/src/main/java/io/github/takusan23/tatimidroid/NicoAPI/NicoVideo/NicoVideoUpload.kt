@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.NicoAPI.NicoVideo
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
@@ -24,7 +25,7 @@ class NicoVideoUpload {
      * @param userSession ユーザーセッション
      * @param page ページ。最近のサイトみたいに必要な部分だけAPIを叩いて取得するようになった。
      * */
-    suspend fun getUploadVideo(userId: String? = null, userSession: String, page: Int = 0,size:Int=100) = withContext(Dispatchers.IO) {
+    suspend fun getUploadVideo(userId: String? = null, userSession: String, page: Int = 1, size: Int = 100) = withContext(Dispatchers.IO) {
         // うらる。v1じゃないv2が存在する
         val url = if (userId == null) {
             // じぶん
@@ -83,6 +84,36 @@ class NicoVideoUpload {
             videoList.add(data)
         }
         videoList
+    }
+
+    /**
+     * 投稿動画をすべて取得する
+     *
+     * わざと遅延させているので時間がかかると思う
+     *
+     * @param userId 投稿者のユーザーID
+     * @param userSession ユーザーセッション
+     * @return 動画一覧
+     * */
+    suspend fun getAllUploadVideo(userId: String? = null, userSession: String) = withContext(Dispatchers.Default) {
+        // 現在のページ
+        var currentPage = 1
+        // 返す配列
+        val resultVideoList = arrayListOf<NicoVideoData>()
+        while (true) {
+            val response = getUploadVideo(userId = userId, userSession = userSession, page = currentPage)
+            if (response.isSuccessful) {
+                // 成功？
+                val videoList = parseUploadVideo(response.body?.string())
+                resultVideoList.addAll(videoList)
+                currentPage++
+            } else {
+                // もうない
+                break
+            }
+            delay(500) // 0.5秒待ってから次の動画
+        }
+        return@withContext resultVideoList
     }
 
     // UnixTime（ミリ秒）に変換する関数

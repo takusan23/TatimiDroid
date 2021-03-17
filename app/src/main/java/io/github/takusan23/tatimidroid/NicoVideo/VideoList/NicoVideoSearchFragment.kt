@@ -138,6 +138,11 @@ class NicoVideoSearchFragment : Fragment() {
             search()
         }
 
+        // NG投稿者機能（仮）
+        viewBinding.fragmentNicovideoNgUploaderButton.setOnClickListener {
+
+        }
+
     }
 
     /** 検索をする。ViewModelの方も見て */

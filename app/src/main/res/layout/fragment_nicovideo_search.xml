@@ -25,7 +25,7 @@
                 android:hint="@string/serch"
                 android:inputType="text"
                 app:layout_constraintEnd_toStartOf="@+id/fragment_nicovideo_search_image_view"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_ng_uploader_button"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
@@ -38,6 +38,18 @@
                 android:src="@drawable/ic_24px"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_search_input" />
+
+            <Button
+                android:id="@+id/fragment_nicovideo_ng_uploader_button"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:padding="10dp"
+                android:text="NG投稿者（仮）"
+                app:icon="@drawable/ic_outline_settings_24px"
+                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_search_image_view"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_search_image_view" />
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
@@ -56,8 +68,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:layout_margin="5dp"
-                        app:selectionRequired="true"
                         app:checkedButton="@id/fragment_nicovideo_search_tag_button"
+                        app:selectionRequired="true"
                         app:singleSelection="true">
 
                         <Button
