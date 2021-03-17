@@ -449,7 +449,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             insertDB()
 
             // コメント取得など
-            if (false) {
+            if (isGetComment) {
                 val commentJSON = async {
                     nicoVideoHTML.getComment(userSession, jsonObject)
                 }

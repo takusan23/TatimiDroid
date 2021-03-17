@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.NGUploader.NGUploaderTool
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSearchHTML
 import io.github.takusan23.tatimidroid.R
@@ -133,8 +134,9 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
             // スクレイピングしてLiveDataへ送信
             searchResultTagListLiveData.postValue(searchHTML.parseTag(html))
 
-            // 動画配列
+            // NG投稿者機能（ベータ）
             val searchResultVideoList = filterNGUploaderUser(searchHTML.parseHTML(html)) as ArrayList
+
             // ページが2ページ以降の場合はこれまでの検索結果を保持する
             if (currentSearchPage >= 2) {
                 // 保持する設定。次のページ機能で使う
@@ -178,11 +180,9 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
      *     - 更新めんどいけどこれがベストプラクティス？1
      *
      * */
-    private fun filterNGUploaderUser(list: List<NicoVideoData>): List<NicoVideoData> {
-        // NGの投稿者の投稿してる動画ID配列
-        val ngUserUploadVideoList = listOf("sm28066128", "sm27636439")
-        // NG投稿者の投稿した動画を取り除いて返す
-        return list.filter { nicoVideoData -> !ngUserUploadVideoList.contains(nicoVideoData.videoId) }
+    private suspend fun filterNGUploaderUser(list: List<NicoVideoData>): List<NicoVideoData>  = withContext(Dispatchers.Default){
+        // staticな関数になってる
+        NGUploaderTool.filterNGUploaderVideoId(context, list)
     }
 
 }

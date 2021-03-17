@@ -19,6 +19,10 @@ interface NGUploaderVideoIdDAO {
     @Query("SELECT * FROM ng_uploader_video_id")
     fun getAllRealTime(): Flow<List<NGUploaderVideoIdEntity>>
 
+    /** 指定したユーザーの動画を返す */
+    @Query("SELECT * FROM ng_uploader_video_id WHERE user_id = :userId")
+    fun getAllFromUserId(userId: String): List<NGUploaderVideoIdEntity>
+
     /** データ更新 */
     @Update
     fun update(ngUploaderVideoIdEntity: NGUploaderVideoIdEntity)

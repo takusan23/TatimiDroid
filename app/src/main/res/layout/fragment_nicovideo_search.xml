@@ -25,13 +25,13 @@
                 android:hint="@string/serch"
                 android:inputType="text"
                 app:layout_constraintEnd_toStartOf="@+id/fragment_nicovideo_search_image_view"
-                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_ng_uploader_button"
+                app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_ng_uploader_image_view"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/fragment_nicovideo_search_image_view"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="0dp"
                 android:clickable="true"
                 android:foreground="?android:attr/selectableItemBackground"
                 android:padding="10dp"
@@ -39,19 +39,20 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_search_input" />
 
-            <Button
-                android:id="@+id/fragment_nicovideo_ng_uploader_button"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+            <ImageView
+                android:id="@+id/fragment_nicovideo_ng_uploader_image_view"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="0dp"
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
                 android:padding="10dp"
-                android:text="NG投稿者（仮）"
-                app:icon="@drawable/ic_outline_settings_24px"
-                app:layout_constraintBottom_toBottomOf="@+id/fragment_nicovideo_search_image_view"
+                android:src="@drawable/ng_uploader_icon"
+                app:layout_constraintBottom_toTopOf="@+id/horizontalScrollView"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_search_image_view" />
 
             <HorizontalScrollView
+                android:id="@+id/horizontalScrollView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:layout_constraintEnd_toEndOf="parent"

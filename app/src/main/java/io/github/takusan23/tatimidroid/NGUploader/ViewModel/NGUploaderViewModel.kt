@@ -1,11 +1,11 @@
-package io.github.takusan23.tatimidroid.NicoVideo.ViewModel
+package io.github.takusan23.tatimidroid.NGUploader.ViewModel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import io.github.takusan23.tatimidroid.Room.Entity.NGUploaderUserIdEntity
-import io.github.takusan23.tatimidroid.Tool.NGUploaderTool
+import io.github.takusan23.tatimidroid.NGUploader.NGUploaderTool
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -20,7 +20,7 @@ class NGUploaderViewModel(application: Application) : AndroidViewModel(applicati
     private val context = getApplication<Application>().applicationContext
 
     /** NG投稿者のデータベースを扱うクラス */
-    private val ngUploaderTool = NGUploaderTool(context)
+    val ngUploaderTool = NGUploaderTool(context)
 
     /** NG投稿者一覧配列が入るLiveData */
     val ngUploaderUserIdListLiveData = MutableLiveData<List<NGUploaderUserIdEntity>>()

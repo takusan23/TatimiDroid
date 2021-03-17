@@ -60,7 +60,7 @@ https://play.google.com/store/apps/details?id=io.github.takusan23.tatimidroid&hl
 
 Canary版Android Studio。Jetpack Composeを使っているんで
 
-Android Studio Arctic Fox | 2020.3.1 Canary 9
+Android Studio Arctic Fox | 2020.3.1 Canary 10
 
 ## たちみどろいどのIntent
 Intentという仕組みを利用することでたちみどろいどを他アプリから起動できます。

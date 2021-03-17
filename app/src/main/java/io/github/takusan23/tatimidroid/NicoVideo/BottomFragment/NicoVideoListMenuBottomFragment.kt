@@ -20,10 +20,12 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.NGUploader.NGUploaderTool
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSPMyListAPI
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
+import io.github.takusan23.tatimidroid.NicoAPI.User.UserData
 import io.github.takusan23.tatimidroid.NicoAPI.XMLCommentJSON
 import io.github.takusan23.tatimidroid.NicoAd.NicoAdBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoCommentOnlyFragment
@@ -98,7 +100,14 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
                 // 無い時はインターネットから取得
                 withContext(Dispatchers.IO) {
                     // データ取得
-                    nicoVideoData = nicoVideoHTML.getNicoVideoData(videoId, userSession) ?: return@withContext
+                    val response = nicoVideoHTML.getHTML(videoId, userSession)
+                    if (!response.isSuccessful) {
+                        // 失敗時
+                        showToast("${getString(R.string.error)}\n${response.code}")
+                    }
+                    // ぱーさー
+                    val jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
+                    nicoVideoData = nicoVideoHTML.createNicoVideoData(jsonObject, isCache)
                 }
             }
 
@@ -129,8 +138,24 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
 
             // ニコニ広告
             initNicoAdButton()
+
+            // NG投稿者
+            initNGUploaderButton()
         }
 
+    }
+
+    private fun initNGUploaderButton() {
+        if (prefSetting.getBoolean("nicovideo_ng_uploader_enable", false) && !isCache && videoId.contains("sm")) {
+            // 投稿者NG機能有効時 + キャッシュ以外 + 公式以外
+            viewBinding.bottomFragmentNicovideoListMenuNgUploaderTextView.setOnClickListener {
+                // NG投稿者として追加
+                val ngUploaderTool = NGUploaderTool(requireContext())
+                lifecycleScope.launch { ngUploaderTool.addNGUploaderIdFromVideoId(videoId) }
+            }
+        } else {
+            viewBinding.bottomFragmentNicovideoListMenuNgUploaderTextView.isVisible = false
+        }
     }
 
     private fun initNicoAdButton() {

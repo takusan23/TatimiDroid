@@ -29,6 +29,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
+import androidx.core.text.HtmlCompat
 import androidx.core.view.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -690,7 +691,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 }
                 else -> {
                     // 生主コメント表示
-                    viewBinding.commentFragmentUneiCommentTextview.text = comment
+                    viewBinding.commentFragmentUneiCommentTextview.text = HtmlCompat.fromHtml(comment, HtmlCompat.FROM_HTML_MODE_COMPACT)
                     uneiAnim.alert(DropPopAlertMotionLayoutFix.ALERT_DROP)
                 }
             }

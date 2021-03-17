@@ -105,6 +105,10 @@ class NicoVideoUpload {
             if (response.isSuccessful) {
                 // 成功？
                 val videoList = parseUploadVideo(response.body?.string())
+                // もうない場合は戻る
+                if (videoList.isEmpty()) {
+                    break
+                }
                 resultVideoList.addAll(videoList)
                 currentPage++
             } else {

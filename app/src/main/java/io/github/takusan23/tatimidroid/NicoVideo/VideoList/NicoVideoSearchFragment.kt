@@ -13,6 +13,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
+import io.github.takusan23.tatimidroid.NGUploader.BottomFragment.NGUploaderBottomFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoSearchHTML
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoListAdapter
@@ -139,8 +140,8 @@ class NicoVideoSearchFragment : Fragment() {
         }
 
         // NG投稿者機能（仮）
-        viewBinding.fragmentNicovideoNgUploaderButton.setOnClickListener {
-
+        viewBinding.fragmentNicovideoNgUploaderImageView.setOnClickListener {
+            NGUploaderBottomFragment().show(childFragmentManager, "ng_uploader")
         }
 
     }

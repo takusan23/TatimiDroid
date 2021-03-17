@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ShareCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.text.HtmlCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
@@ -496,7 +497,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             }
             else -> {
                 // 生主コメント表示
-                nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.text = comment
+                nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.text = HtmlCompat.fromHtml(comment,HtmlCompat.FROM_HTML_MODE_COMPACT)
                 uneiAnim.alert(DropPopAlert.ALERT_DROP)
             }
         }
