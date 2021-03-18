@@ -148,7 +148,7 @@ class JCNicoLiveCommentOnlyFragment : Fragment() {
                     onPostClick = {
                         // コメント投稿
                         scope.launch {
-                            viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value, false)
+                            viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value)
                             commentPostText.value = "" // クリアに
                         }
                     },

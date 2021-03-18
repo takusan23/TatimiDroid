@@ -161,7 +161,6 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
         val intent = Intent(context, MainActivity::class.java).apply {
             action = Intent.ACTION_MAIN
             putExtra("liveId", viewModel.nicoLiveHTML.communityId)
-            putExtra("watch_mode", "comment_post")
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Android 7.1 以降のみ対応
@@ -225,7 +224,7 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
     /** フローティングコメビュ */
     fun openFloatingCommentViewer() {
         viewModel.nicoLiveProgramData.value?.apply {
-            FloatingCommentViewer.showBubbles(context, this.programId, "comment_post", this.title, this.thum)
+            FloatingCommentViewer.showBubbles(context, this.programId, this.title, this.thum)
         }
     }
 

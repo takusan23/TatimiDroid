@@ -189,7 +189,6 @@ class NimadoActivity : AppCompatActivity() {
         val commentFragment = CommentFragment()
         val bundle = Bundle()
         bundle.putString("liveId", liveId)
-        bundle.putString("watch_mode", watchMode)
         bundle.putBoolean("isOfficial", isOfficial)
         commentFragment.arguments = bundle
 
@@ -306,7 +305,6 @@ class NimadoActivity : AppCompatActivity() {
                         val commentFragment = CommentFragment()
                         val bundle = Bundle()
                         bundle.putString("liveId", liveID)
-                        bundle.putString("watch_mode", watchMode)
                         commentFragment.arguments = bundle
                         commentFragment
                     }

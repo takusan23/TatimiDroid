@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.NicoLive
 
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.*

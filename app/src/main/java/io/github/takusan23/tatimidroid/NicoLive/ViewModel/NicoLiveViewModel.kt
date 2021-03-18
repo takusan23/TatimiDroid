@@ -340,25 +340,10 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
      * @param position コメントの位置。これらは省略が可能
      * @param color コメントの色。これらは省略が可能
      * */
-    suspend fun sendComment(comment: String, color: String = "white", size: String = "medium", position: String = "naka", isUseNicocasAPI: Boolean = false): Unit = withContext(Dispatchers.IO) {
+    suspend fun sendComment(comment: String, color: String = "white", size: String = "medium", position: String = "naka"): Unit = withContext(Dispatchers.IO) {
         if (comment != "\n") {
-            if (!isUseNicocasAPI) {
-                // 視聴セッションWebSocketにコメントを送信する
-                nicoLiveHTML.sendPOSTWebSocketComment(comment, color, size, position)
-            } else {
-                // コマンドをくっつける
-                val command = "$color $size $position"
-                // ニコキャスのAPIを叩いてコメントを投稿する
-                nicoLiveHTML.sendCommentNicocasAPI(comment, command, nicoLiveHTML.liveId, userSession, { showToast(getString(R.string.error)) }, { response ->
-                    // 成功時
-                    if (response.isSuccessful) {
-                        //成功
-                        snackbarLiveData.postValue(getString(R.string.comment_post_success))
-                    } else {
-                        showToast("${getString(R.string.error)}\n${response.code}")
-                    }
-                })
-            }
+            // 視聴セッションWebSocketにコメントを送信する
+            nicoLiveHTML.sendPOSTWebSocketComment(comment, color, size, position)
         }
     }
 

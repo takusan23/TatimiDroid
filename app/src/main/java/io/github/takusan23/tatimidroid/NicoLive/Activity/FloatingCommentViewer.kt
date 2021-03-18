@@ -48,7 +48,6 @@ class FloatingCommentViewer : AppCompatActivity() {
         supportActionBar?.hide()
 
         val liveId = intent.getStringExtra("liveId")
-        val watchMode = intent.getStringExtra("watch_mode")
 
         //Fragment設置
         val trans = supportFragmentManager.beginTransaction()
@@ -56,7 +55,6 @@ class FloatingCommentViewer : AppCompatActivity() {
         //LiveID詰める
         val bundle = Bundle()
         bundle.putString("liveId", liveId)
-        bundle.putString("watch_mode", watchMode)
         commentFragment.arguments = bundle
         trans.replace(R.id.activity_floating_comment_viewer_linearlayout, commentFragment, liveId)
         trans.commit()
@@ -85,7 +83,7 @@ class FloatingCommentViewer : AppCompatActivity() {
          *        comment_post   | コメント投稿モード
          *        nicocas        | ニコキャス式コメント投稿モード
          * */
-        fun showBubbles(context: Context?, liveId: String, watchMode: String?, title: String, thumbUrl: String) {
+        fun showBubbles(context: Context?, liveId: String, title: String, thumbUrl: String) {
             // Android Q以降で利用可能
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 GlobalScope.launch(Dispatchers.Main) {
@@ -93,7 +91,6 @@ class FloatingCommentViewer : AppCompatActivity() {
                     val intent = Intent(context, FloatingCommentViewer::class.java)
                     intent.action = Intent.ACTION_MAIN
                     intent.putExtra("liveId", liveId)
-                    intent.putExtra("watch_mode", watchMode)
                     // アイコン取得など
                     val filePath = getThumb(context, thumbUrl, liveId)
                     // 一旦Bitmapに変換したあと、Iconに変換するとうまくいく。

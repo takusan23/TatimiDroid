@@ -32,7 +32,7 @@ class ProgramListFragment : Fragment() {
         // 背景色
         viewBinding.apply {
             fragmentProgramBackdropLinearLayout.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
-            fragmentProgramBarLinearLayout?.background = ColorDrawable(getThemeColor(context))
+            fragmentProgramBarLinearLayout?.background?.setTint(getThemeColor(context))
             fragmentProgramListLinearLayout.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
             fragmentProgramNavigationView.backgroundTintList = ColorStateList.valueOf(getThemeColor(context))
         }

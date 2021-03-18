@@ -92,7 +92,7 @@ class NicoRepoAdapter(val list: ArrayList<NicoRepoDataClass>) : RecyclerView.Ada
                     // 動画
                     (context as? MainActivity)?.setNicovideoFragment(videoId = item.contentId)
                 } else {
-                    (context as? MainActivity)?.setNicoliveFragment(item.contentId, "comment_post", false)
+                    (context as? MainActivity)?.setNicoliveFragment(item.contentId, false)
                 }
             }
         }

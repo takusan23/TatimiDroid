@@ -13,8 +13,12 @@ import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
@@ -35,7 +39,7 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : Re
     private lateinit var prefSetting: SharedPreferences
     private lateinit var nicoVideoCache: NicoVideoCache
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val titleTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_title)
         val playCountTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_play_count_text_view)
         val commentCountTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_list_comment_count_text_view)
@@ -151,7 +155,8 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : Re
             thumImageView.imageTintList = null
             Glide.with(thumImageView)
                 .load(data.thum)
-                .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .transform(CenterCrop(), RoundedCorners(10))
                 .into(thumImageView)
 
         }

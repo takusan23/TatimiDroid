@@ -19,26 +19,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ScrollView
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/fragment_program_navigation_view"
+            style="@style/NavigationViewSelectColor"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <!-- Buttonを並べるより良さそう。styleでメニュー選択時の色を変えている-->
-                <com.google.android.material.navigation.NavigationView
-                    android:id="@+id/fragment_program_navigation_view"
-                    style="@style/NavigationViewSelectColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:elevation="0dp"
-                    app:menu="@menu/nicolive_program_list_menu" />
-
-            </LinearLayout>
-        </ScrollView>
+            android:layout_height="wrap_content"
+            app:elevation="0dp"
+            app:menu="@menu/nicolive_program_list_menu" />
 
     </LinearLayout>
 
@@ -47,10 +34,11 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="75dp"
-        android:background="#ffffff"
-        android:elevation="10dp"
+        android:background="@drawable/backdrop_background"
+        android:elevation="50dp"
         android:gravity="center"
         android:orientation="vertical"
+        android:outlineProvider="paddedBounds"
         android:padding="5sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -59,7 +47,7 @@
 
         <View
             android:layout_width="100sp"
-            android:layout_height="10sp"
+            android:layout_height="10dp"
             android:background="@drawable/backdrop_sheet_bar"
             android:padding="10sp" />
 

@@ -105,7 +105,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
     private fun initCommentOnlyButton() {
         viewBinding.bottomFragmentProgramInfoCommentOnlyTextView.setOnClickListener {
-            (requireActivity() as? MainActivity)?.setNicoliveFragment(liveId, "comment_post", null, true)
+            (requireActivity() as? MainActivity)?.setNicoliveFragment(liveId, null, true)
         }
     }
 
@@ -116,7 +116,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
         }
         viewBinding.bottomFragmentProgramInfoFloaingCommentViewerTextView.setOnClickListener {
             // フローティングコメビュ起動
-            FloatingCommentViewer.showBubbles(requireContext(), liveId, "comment_post", nicoLiveHTML.programTitle, nicoLiveHTML.thumb)
+            FloatingCommentViewer.showBubbles(requireContext(), liveId, nicoLiveHTML.programTitle, nicoLiveHTML.thumb)
         }
     }
 
@@ -225,11 +225,11 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
         }
         viewBinding.bottomFragmentProgramInfoPopupTextView.setOnClickListener {
             // ポップアップ再生
-            startLivePlayService(context = context, mode = "popup", liveId = liveId, isCommentPost = true, isNicocasMode = false)
+            startLivePlayService(context = context, mode = "popup", liveId = liveId)
         }
         viewBinding.bottomFragmentProgramInfoBackgroundTextView.setOnClickListener {
             // バッググラウンド再生
-            startLivePlayService(context = context, mode = "background", liveId = liveId, isCommentPost = true, isNicocasMode = false)
+            startLivePlayService(context = context, mode = "background", liveId = liveId)
         }
     }
 

@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.NicoVideo
 
 import android.content.SharedPreferences
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -101,7 +102,7 @@ class NicoVideoSelectFragment : Fragment() {
     private fun setDarkMode() {
         val darkModeSupport = DarkModeSupport(requireContext())
         viewBinding.fragmentVideoListLinearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
-        viewBinding.fragmentVideoBar?.background = ColorDrawable(getThemeColor(darkModeSupport.context))
+        viewBinding.fragmentVideoBar?.background?.setTint(getThemeColor(requireContext()))
     }
 
     /**

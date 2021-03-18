@@ -26,7 +26,6 @@ import io.github.takusan23.tatimidroid.Fragment.LoginFragment
 import io.github.takusan23.tatimidroid.Fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
 import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveCommentOnlyFragment
 import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveFragment
@@ -268,7 +267,7 @@ class MainActivity : AppCompatActivity() {
      * - comment_post (デフォルト)
      * - nicocas (コメント投稿にnicocasAPIを利用。てかこれまだ使えるの？)
      * */
-    fun setNicoliveFragment(liveId: String, watchMode: String = "comment_post", isOfficial: Boolean? = null, isCommentOnly: Boolean = false) {
+    fun setNicoliveFragment(liveId: String, isOfficial: Boolean? = null, isCommentOnly: Boolean = false) {
         val fragment: Fragment = when {
             isCommentOnly -> JCNicoLiveCommentOnlyFragment() // コメントのみ表示
             prefSetting.getBoolean("setting_nicovideo_use_old_ui", true) -> CommentFragment() // 旧UI。JetpackCompose、 Android 7 以前で表示が乱れる
@@ -277,7 +276,6 @@ class MainActivity : AppCompatActivity() {
         fragment.apply {
             arguments = Bundle().apply {
                 putString("liveId", liveId)
-                putString("watch_mode", watchMode)
                 isOfficial?.let { putBoolean("isOfficial", it) }
             }
         }
@@ -477,12 +475,7 @@ class MainActivity : AppCompatActivity() {
                 // 生放送ID
                 val liveId = nicoIDMatcher.group()
                 if (hasMailPass(this)) {
-                    //ダイアログ
-                    val bundle = Bundle()
-                    bundle.putString("liveId", liveId)
-                    val dialog = WatchModeBottomFragment()
-                    dialog.arguments = bundle
-                    dialog.show(supportFragmentManager, "watchmode")
+                    setNicoliveFragment(liveId)
                 }
             }
             communityIDMatcher.find() -> {
@@ -507,12 +500,7 @@ class MainActivity : AppCompatActivity() {
                         }
                         // パース
                         nicoLiveHTML.initNicoLiveData(nicoLiveHTML.nicoLiveHTMLtoJSONObject(responseString))
-                        //ダイアログ
-                        val bundle = Bundle()
-                        bundle.putString("liveId", nicoLiveHTML.liveId)
-                        val dialog = WatchModeBottomFragment()
-                        dialog.arguments = bundle
-                        dialog.show(supportFragmentManager, "watchmode")
+                        setNicoliveFragment(nicoLiveHTML.liveId)
                     }
                 }
             }
@@ -575,8 +563,8 @@ class MainActivity : AppCompatActivity() {
                 is JCNicoLiveFragment -> {
                     viewModel.nicoLiveProgramData.value?.apply {
                         when {
-                            isLeaveAppPopup -> startLivePlayService(context = context, mode = "popup", liveId = programId, isCommentPost = true, isNicocasMode = false, isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment, startQuality = viewModel.currentQuality)
-                            isLeaveAppBackground -> startLivePlayService(context = context, mode = "background", liveId = programId, isCommentPost = true, isNicocasMode = false, isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment, startQuality = viewModel.currentQuality)
+                            isLeaveAppPopup -> startLivePlayService(context = context, mode = "popup", liveId = programId, isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment, startQuality = viewModel.currentQuality)
+                            isLeaveAppBackground -> startLivePlayService(context = context, mode = "background", liveId = programId, isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment, startQuality = viewModel.currentQuality)
                         }
                     }
                 }

@@ -74,7 +74,6 @@ import kotlin.concurrent.timerTask
  *
  * ひつようなもの
  * liveId       | String    | 番組ID か コミュID か チャンネルID。生放送ID以外が来る可能性もある
- * watch_mode   | String    | comment_viewer comment_post nicocas のどれか
  * isOfficial   | Boolean   | 公式番組ならtrue。無くてもいいかも？
  *
  * */
@@ -90,21 +89,11 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     /** 番組ID */
     var liveId = ""
 
-    /** 視聴モード（コメント投稿機能付き）かどうか */
-    var isWatchingMode = false
-
-    /** 視聴モードがnicocasの場合 */
-    var isNicocasMode = false
-
     /** コメント表示をOFFにする場合はtrue */
     var isCommentHide = false
 
     // アンケート内容いれとく
     var enquateJSONArray = ""
-
-    // コメントコレクション
-    val commentCollectionList = arrayListOf<String>()
-    val commentCollectionYomiList = arrayListOf<String>()
 
     // アンケートView
     lateinit var enquateView: View
@@ -193,28 +182,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             viewBinding.commentFragmentCommentCanvas.typeface = customFont.typeface
         }
 
-        // argumentsから値もらう
-        var watchingmode = false
-        var nicocasmode = false
-        if (arguments?.getString("watch_mode")?.isNotEmpty() == true) {
-            isWatchingMode = false
-            when (arguments?.getString("watch_mode")) {
-                "comment_post" -> {
-                    watchingmode = true
-                    isWatchingMode = true
-                }
-                "nicocas" -> {
-                    nicocasmode = true
-                    isWatchingMode = false
-                    isNicocasMode = true
-                }
-            }
-        }
-
-        if (!watchingmode && !nicocasmode) {
-            viewBinding.fragmentNicoLiveFab.hide()
-        }
-
         if (isNimadoMode) {
             MotionLayoutTool.allTransitionEnable(viewBinding.commentFragmentMotionLayout, false)
         }
@@ -239,7 +206,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         if (prefSetting.getString("mail", "")?.contains("") != false) {
             usersession = prefSetting.getString("user_session", "") ?: ""
             // ViewModel初期化
-            viewModel = ViewModelProvider(this, NicoLiveViewModelFactory(requireActivity().application, liveId, isWatchingMode)).get(NicoLiveViewModel::class.java)
+            viewModel = ViewModelProvider(this, NicoLiveViewModelFactory(requireActivity().application, liveId, true)).get(NicoLiveViewModel::class.java)
         } else {
             showToast(getString(R.string.mail_pass_error))
             finishFragment()
@@ -1069,7 +1036,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         FloatingCommentViewer.showBubbles(
             context = requireContext(),
             liveId = liveId,
-            watchMode = arguments?.getString("watch_mode"),
             title = viewModel.programTitle,
             thumbUrl = viewModel.thumbnailURL
         )
@@ -1138,8 +1104,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             context = context,
             mode = mode,
             liveId = liveId,
-            isCommentPost = isWatchingMode,
-            isNicocasMode = isNicocasMode,
             isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
             startQuality = viewModel.currentQuality
         )
@@ -1309,7 +1273,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             val position = viewBinding.include.commentCardviewCommandPositionTextinputlayout.text.toString()
             val size = viewBinding.include.commentCardviewCommandSizeTextinputlayout.text.toString()
             // コメ送信
-            lifecycleScope.launch(Dispatchers.IO) { viewModel.sendComment(comment, color, size, position, isNicocasMode) }
+            lifecycleScope.launch(Dispatchers.IO) { viewModel.sendComment(comment, color, size, position) }
             viewBinding.include.commentCardviewCommentTextinputEdittext.setText("")
             if (!prefSetting.getBoolean("setting_command_save", false)) {
                 // コマンドを保持しない設定ならクリアボタンを押す
@@ -1329,7 +1293,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                         val position = viewBinding.include.commentCardviewCommandPositionTextinputlayout.text.toString()
                         val size = viewBinding.include.commentCardviewCommandSizeTextinputlayout.text.toString()
                         // コメ送信
-                        lifecycleScope.launch(Dispatchers.IO) { viewModel.sendComment(text, color, size, position, isNicocasMode) }
+                        lifecycleScope.launch(Dispatchers.IO) { viewModel.sendComment(text, color, size, position) }
                         // コメントリセットとコマンドリセットボタンを押す
                         viewBinding.include.commentCardviewCommentTextinputEdittext.setText("")
                         if (!prefSetting.getBoolean("setting_command_save", false)) {

@@ -141,7 +141,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                     onPostClick = {
                         // コメント投稿
                         scope.launch {
-                            viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value, false)
+                            viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value)
                             commentPostText.value = "" // クリアに
                         }
                     },
@@ -674,8 +674,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                     context = requireContext(),
                     mode = "popup",
                     liveId = viewModel.nicoLiveProgramData.value!!.programId,
-                    isCommentPost = true,
-                    isNicocasMode = false,
                     isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
                     startQuality = viewModel.currentQuality
                 )
@@ -689,8 +687,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                     context = requireContext(),
                     mode = "background",
                     liveId = viewModel.nicoLiveProgramData.value!!.programId,
-                    isCommentPost = true,
-                    isNicocasMode = false,
                     isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
                     startQuality = viewModel.currentQuality
                 )

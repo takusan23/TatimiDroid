@@ -88,8 +88,6 @@ class NicoLivePlayService : Service() {
     // 番組情報関係
     var liveId = "" // 生放送IDじゃなくてちゃんねるIDの可能性も有る
     var userSession = ""
-    var isCommentPOSTMode = false   // コメント投稿モード。ログイン状態
-    var isNicoCasMode = false       // nicocasモード。非ログイン状態
     var programTitle = ""
     var communityID = ""
     var thumbnailURL = ""
@@ -119,8 +117,6 @@ class NicoLivePlayService : Service() {
 
         playMode = intent?.getStringExtra("mode") ?: "popup"
         liveId = intent?.getStringExtra("live_id") ?: ""
-        isCommentPOSTMode = intent?.getBooleanExtra("is_comment_post", true) ?: false
-        isNicoCasMode = intent?.getBooleanExtra("is_nicocas", false) ?: false
         // 184
         val isTokumei = intent?.getBooleanExtra("is_tokumei", true) ?: true
         nicoLiveHTML.isPostTokumeiComment = isTokumei
@@ -163,12 +159,10 @@ class NicoLivePlayService : Service() {
             if (!nicoLiveHTML.hasNiconicoID(livePageResponse)) {
                 // niconicoIDがない場合（ログインが切れている場合）はログインする（この後の処理でユーザーセッションが必要）
                 NicoLogin.secureNicoLogin(this@NicoLivePlayService)
-                // 視聴モードなら再度視聴ページリクエスト
-                if (isCommentPOSTMode) {
-                    coroutine()
-                    // コルーチン終了
-                    return@launch
-                }
+                // 再度視聴ページリクエスト
+                coroutine()
+                // コルーチン終了
+                return@launch
             }
             // HTMLからJSON取得する
             val nicoLiveJSON = nicoLiveHTML.nicoLiveHTMLtoJSONObject(livePageResponse.body?.string())
@@ -445,16 +439,9 @@ class NicoLivePlayService : Service() {
             //アプリ起動
             overlayControlInclude.playerNicoliveControlFullscreen.setOnClickListener {
                 stopSelf()
-                // モード選ぶ
-                val mode = when {
-                    isCommentPOSTMode -> "comment_post"
-                    isNicoCasMode -> "nicocas"
-                    else -> "comment_viewer"
-                }
                 // アプリ起動
                 val intent = Intent(this@NicoLivePlayService, MainActivity::class.java)
                 intent.putExtra("liveId", liveId)
-                intent.putExtra("watch_mode", mode)
                 intent.putExtra("isOfficial", nicoLiveHTML.isOfficial)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
@@ -721,18 +708,8 @@ class NicoLivePlayService : Service() {
                         // Direct Reply でポップアップ画面でもコメント投稿できるようにする。ぬがあー以降で使える
                         val remoteInput = RemoteInput.getResultsFromIntent(intent)
                         val comment = remoteInput.getCharSequence("direct_reply_comment")
-                        when {
-                            isCommentPOSTMode -> {
-                                nicoLiveHTML.sendPOSTWebSocketComment(comment as String) // コメント投稿
-                                showNotification(programTitle) // 通知再設置
-                            }
-                            isNicoCasMode -> {
-                                // コメント投稿。nicocasのAPI叩く
-                                nicoLiveHTML.sendCommentNicocasAPI(comment as String, "", liveId, userSession, { showToast(getString(R.string.error)) }, {
-                                    showNotification(programTitle) // 通知再設置
-                                })
-                            }
-                        }
+                        nicoLiveHTML.sendPOSTWebSocketComment(comment as String) // コメント投稿
+                        showNotification(programTitle) // 通知再設置
                     }
                     "video_popup_fix_size" -> {
                         // ポップアップの大きさを治す
@@ -805,7 +782,7 @@ class NicoLivePlayService : Service() {
  * @param isTokumei 匿名でコメントする場合はtrue。省略時true
  * @param startQuality 画質を指定する場合は入れてね。highとか。ない場合はそのままでいいです（省略時：high）。
  * */
-fun startLivePlayService(context: Context?, mode: String, liveId: String, isCommentPost: Boolean, isNicocasMode: Boolean, isTokumei: Boolean = true, startQuality: String = "high") {
+fun startLivePlayService(context: Context?, mode: String, liveId: String, isTokumei: Boolean = true, startQuality: String = "high") {
     // ポップアップ再生の権限があるか
     if (mode == "popup") {
         if (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -825,8 +802,6 @@ fun startLivePlayService(context: Context?, mode: String, liveId: String, isComm
     val intent = Intent(context, NicoLivePlayService::class.java).apply {
         putExtra("mode", mode)
         putExtra("live_id", liveId)
-        putExtra("is_comment_post", isCommentPost)
-        putExtra("is_nicocas", isNicocasMode)
         putExtra("is_tokumei", isTokumei)
         putExtra("start_quality", startQuality)
     }

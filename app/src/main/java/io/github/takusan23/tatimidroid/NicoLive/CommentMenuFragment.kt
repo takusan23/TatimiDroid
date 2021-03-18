@@ -334,7 +334,6 @@ class CommentMenuFragment : Fragment() {
         val intent = Intent(context, MainActivity::class.java).apply {
             action = Intent.ACTION_MAIN
             putExtra("liveId", viewModel.nicoLiveHTML.communityId)
-            putExtra("watch_mode", "comment_post")
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -19,15 +18,14 @@ import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
-import com.google.android.material.button.MaterialButton
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.ProgramMenuBottomSheet
-import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.WatchModeBottomFragment
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Tool.getThemeTextColor
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import java.text.SimpleDateFormat
 import java.util.*
@@ -74,16 +72,6 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
         holder.titleTextView.text = title
         holder.communityNameTextView.text = "[${name}]"
 
-        if (isDarkMode(content)) {
-            val colorStateList = ColorStateList.valueOf(getThemeTextColor(content))
-            holder.watchModeComeView.setTextColor(colorStateList)
-            holder.watchModeComePost.setTextColor(colorStateList)
-            holder.watchModeComeCas.setTextColor(colorStateList)
-            holder.watchModeComeView.iconTint = colorStateList
-            holder.watchModeComePost.iconTint = colorStateList
-            holder.watchModeComeCas.iconTint = colorStateList
-        }
-
         if (isOnAir) {
             //放送中
             holder.timeTextView.text = time
@@ -98,8 +86,6 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
             } else {
                 holder.timeTextView.setTextColor(-1979711488)   //デフォルトのTextViewのフォント色
             }
-            // 視聴モード
-            holder.watchModeLinearLayout.visibility = View.GONE
         }
 
         /*
@@ -117,7 +103,8 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
             holder.thumbImageView.imageTintList = null
             Glide.with(holder.thumbImageView)
                 .load(thumb)
-                .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .transform(CenterCrop(), RoundedCorners(10))
                 .into(holder.thumbImageView)
         } else {
             // URLがからなので非表示
@@ -142,18 +129,10 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
     }
 
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var titleTextView: TextView = itemView.findViewById(R.id.adapter_community_title_textview)
         var timeTextView: TextView = itemView.findViewById(R.id.adapter_community_time_textview)
         var communityCard: CardView = itemView.findViewById(R.id.adapter_community_card)
-
-        // 視聴モード
-        val watchModeLinearLayout: LinearLayout = itemView.findViewById(R.id.adapter_community_watchmode_linearlayout)
-        val watchModeComeView: MaterialButton = itemView.findViewById(R.id.adapter_community_watchmode_comeview)
-        val watchModeComePost: MaterialButton = itemView.findViewById(R.id.adapter_community_watchmode_comepost)
-        val watchModeComeCas: MaterialButton = itemView.findViewById(R.id.adapter_community_watchmode_nicocas)
-        val watchModeDesc: Button = itemView.findViewById(R.id.adapter_community_watchmode_description)
         val thumbImageView: ImageView = itemView.findViewById(R.id.adapter_community_program_thumb)
         val liveMenuIconImageView: ImageView = itemView.findViewById(R.id.adapter_community_menu_icon)
         val communityNameTextView: TextView = itemView.findViewById(R.id.adapter_community_community_name_textview)
@@ -161,42 +140,12 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
 
     // 視聴モード選択ボタン初期化
     private fun initWatchModeButton(itemHolder: ViewHolder, nicoLiveProgramData: NicoLiveProgramData) {
-
-        // 新UIの場合はコメント投稿モードのみで
-        val isOldUI = prefSetting.getBoolean("setting_nicovideo_use_old_ui", true)
-
         val context = itemHolder.communityCard.context
         val mainActivity = context as MainActivity
 
-        if (isOldUI) {
-            itemHolder.apply {
-                watchModeLinearLayout.isVisible = true
-                communityCard.setOnClickListener(null)
-
-                watchModeComeView.setOnClickListener {
-                    mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "comment_viewer", nicoLiveProgramData.isOfficial)
-                }
-                watchModeComePost.setOnClickListener {
-                    mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "comment_post", nicoLiveProgramData.isOfficial)
-                }
-                watchModeComeCas.setOnClickListener {
-                    mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "nicocas", nicoLiveProgramData.isOfficial)
-                }
-                watchModeDesc.setOnClickListener {
-                    //ダイアログ
-                    val bundle = Bundle()
-                    bundle.putString("liveId", nicoLiveProgramData.programId)
-                    val dialog = WatchModeBottomFragment()
-                    dialog.arguments = bundle
-                    dialog.show((context as AppCompatActivity).supportFragmentManager, "watchmode")
-                }
-            }
-        } else {
-            itemHolder.apply {
-                watchModeLinearLayout.isVisible = false
-                communityCard.setOnClickListener {
-                    mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, "comment_post", nicoLiveProgramData.isOfficial)
-                }
+        itemHolder.apply {
+            communityCard.setOnClickListener {
+                mainActivity.setNicoliveFragment(nicoLiveProgramData.programId, nicoLiveProgramData.isOfficial)
             }
         }
     }
