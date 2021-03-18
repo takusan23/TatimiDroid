@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoAPI.Cache
 
 import android.content.Context
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File

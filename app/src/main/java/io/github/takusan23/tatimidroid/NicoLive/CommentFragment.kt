@@ -13,9 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.text.Editable
 import android.text.InputType
-import android.text.TextWatcher
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.EditorInfo
@@ -46,7 +44,6 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.*
@@ -1432,56 +1429,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
             it.setOnClickListener {
                 viewBinding.include.commentCardviewCommandColorTextinputlayout.setText(it.tag as String)
             }
-        }
-
-        if (prefSetting.getBoolean("setting_comment_collection_useage", false)) {
-            //コメントコレクション補充機能
-            if (prefSetting.getBoolean("setting_comment_collection_assist", false)) {
-                viewBinding.include.commentCardviewCommentTextinputEdittext.addTextChangedListener(object :
-                    TextWatcher {
-                    override fun afterTextChanged(p0: Editable?) {
-                    }
-
-                    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                    }
-
-                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                        viewBinding.include.commentCardviewChipgroup.removeAllViews()
-                        //コメントコレクション読み込み
-                        if (p0?.length ?: 0 >= 1) {
-                            commentCollectionYomiList.forEach {
-                                //文字列完全一致
-                                if (it.equals(p0.toString())) {
-                                    val yomi = it
-                                    val pos = commentCollectionYomiList.indexOf(it)
-                                    val comment = commentCollectionList[pos]
-                                    //Chip
-                                    val chip = Chip(context)
-                                    chip.text = comment
-                                    //押したとき
-                                    chip.setOnClickListener {
-                                        //置き換える
-                                        var text = p0.toString()
-                                        text = text.replace(yomi, comment)
-                                        viewBinding.include.commentCardviewCommentTextinputEdittext.setText(
-                                            text
-                                        )
-                                        //カーソル移動
-                                        viewBinding.include.commentCardviewCommentTextinputEdittext.setSelection(
-                                            text.length
-                                        )
-                                        //消す
-                                        viewBinding.include.commentCardviewChipgroup.removeAllViews()
-                                    }
-                                    viewBinding.include.commentCardviewChipgroup.addView(chip)
-                                }
-                            }
-                        }
-                    }
-                })
-            }
-        } else {
-            viewBinding.include.commentCardviewCommentListButton.visibility = View.GONE
         }
     }
 

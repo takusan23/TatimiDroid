@@ -243,30 +243,10 @@
 
         <SwitchPreference
             android:defaultValue="false"
-            android:icon="@drawable/ic_outline_comment_24px"
-            android:key="setting_comment_collection_useage"
-            android:summary="@string/setting_comment_collection_useage_description"
-            android:title="@string/setting_comment_collection_useage" />
-
-        <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_outline_comment_24px"
-            android:key="setting_comment_collection_assist"
-            android:summary="@string/setting_comment_collection_assist_description"
-            android:title="@string/setting_comment_collection_assist" />
-
-        <SwitchPreference
-            android:defaultValue="false"
             android:icon="@drawable/ic_aspect_ratio_24px"
             android:key="setting_display_cutout"
             android:summary="@string/setting_display_cutoutdesciprion"
             android:title="@string/setting_display_cutout_title" />
-
-        <Preference
-            android:icon="@drawable/ic_outline_stop_24px"
-            android:key="auto_admission_stop_preference"
-            android:title="@string/auto_admission_stop" />
-
 
         <Preference
             android:icon="@drawable/ic_outline_block_24px"
@@ -290,16 +270,6 @@
                 android:targetPackage="io.github.takusan23.tatimidroid" />
         </Preference>
 
-        <Preference
-            android:icon="@drawable/ic_outline_comment_24px"
-            android:key="comment_list_activity"
-            android:title="@string/comment_collection">
-            <!--Activity起動-->
-            <intent
-                android:action="android.intent.action.MAIN"
-                android:targetClass="io.github.takusan23.tatimidroid.NicoLive.Activity.CommentCollectionListActivity"
-                android:targetPackage="io.github.takusan23.tatimidroid" />
-        </Preference>
     </PreferenceCategory>
 
     <!-- コメント描画系 -->

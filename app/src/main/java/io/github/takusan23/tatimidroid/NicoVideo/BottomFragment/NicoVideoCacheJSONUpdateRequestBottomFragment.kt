@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoCacheJsonUpdateBinding
 
 /**

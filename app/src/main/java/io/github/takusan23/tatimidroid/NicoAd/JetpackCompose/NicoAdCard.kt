@@ -8,7 +8,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -26,7 +25,6 @@ import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoAdHistoryAdapter
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.NicoAdRankingAdapter
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.getBitmapCompose
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Tool.isDarkMode
 
 /**
  * ニコニ広告の累計ポイント、期間中ポイントを表示する

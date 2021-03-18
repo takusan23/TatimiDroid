@@ -1,8 +1,6 @@
 package io.github.takusan23.tatimidroid.Room.DAO
 
 import androidx.room.*
-import io.github.takusan23.tatimidroid.Room.Database.NGUploaderVideoIdDB
-import io.github.takusan23.tatimidroid.Room.Entity.NGUploaderUserIdEntity
 import io.github.takusan23.tatimidroid.Room.Entity.NGUploaderVideoIdEntity
 import kotlinx.coroutines.flow.Flow
 

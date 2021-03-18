@@ -12,7 +12,6 @@ import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.Activity.LicenceActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
-import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.Tool.RoomDBExporter
 import io.github.takusan23.tatimidroid.Tool.RoomDBImporter
 import kotlinx.coroutines.Dispatchers
@@ -54,11 +53,6 @@ class SettingsFragment : SearchPreferenceFragment() {
                 "konoapp_preference" -> {
                     // このアプリについて
                     startActivity(Intent(context, KonoApp::class.java))
-                }
-                "auto_admission_stop_preference" -> {
-                    // Service終了
-                    val intent = Intent(context, AutoAdmissionService::class.java)
-                    context?.stopService(intent)
                 }
                 "konoapp_privacy" -> {
                     // プライバシーポリシー

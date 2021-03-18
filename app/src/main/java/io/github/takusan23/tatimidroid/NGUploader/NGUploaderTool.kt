@@ -93,7 +93,7 @@ class NGUploaderTool(val context: Context) {
         if (isEnable) {
             // 定期実行。一日ごと
             val updateNGUploaderVideoListWork = PeriodicWorkRequestBuilder<UpdateNGUploaderVideoListWork>(
-                15, TimeUnit.MINUTES
+                1, TimeUnit.DAYS
             ).addTag(workTag).build()
             WorkManager.getInstance(context).enqueue(updateNGUploaderVideoListWork)
         } else {

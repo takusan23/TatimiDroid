@@ -9,7 +9,6 @@ import okhttp3.Response
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.regex.Pattern
-import kotlin.collections.ArrayList
 
 /**
  * マイリストAPI

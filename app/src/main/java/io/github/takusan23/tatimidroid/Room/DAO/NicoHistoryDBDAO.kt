@@ -1,7 +1,5 @@
 package io.github.takusan23.tatimidroid.Room.DAO
 
-import androidx.annotation.UiThread
-import androidx.annotation.WorkerThread
 import androidx.room.*
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
 

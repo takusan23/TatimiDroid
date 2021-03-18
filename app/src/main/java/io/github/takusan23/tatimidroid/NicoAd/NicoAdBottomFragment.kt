@@ -6,8 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.InternalComposeUiApi
-import androidx.compose.ui.platform.*
-import androidx.lifecycle.*
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.WindowRecomposerFactory
+import androidx.compose.ui.platform.compositionContext
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewTreeLifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoAd.JetpackCompose.NicoAdScreen
 import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModel

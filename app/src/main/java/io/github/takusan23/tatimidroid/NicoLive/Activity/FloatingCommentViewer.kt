@@ -12,10 +12,8 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
-import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveCommentOnlyFragment
 import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.DarkModeSupport
@@ -26,7 +24,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.w3c.dom.Comment
 import java.io.File
 import java.io.IOException
 import java.util.*

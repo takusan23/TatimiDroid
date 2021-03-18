@@ -1,8 +1,6 @@
 package io.github.takusan23.tatimidroid.NicoLive
 
-import android.content.Intent
 import android.content.SharedPreferences
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,11 +19,8 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveProgram
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveRanking
 import io.github.takusan23.tatimidroid.NicoAPI.NicoRepo.NicoRepoAPIX
-import io.github.takusan23.tatimidroid.NicoLive.Adapter.AutoAdmissionAdapter
 import io.github.takusan23.tatimidroid.NicoLive.Adapter.CommunityRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
-import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveCommunityBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -39,12 +34,10 @@ import kotlin.collections.ArrayList
  * */
 class CommunityListFragment : Fragment() {
 
-    var userSession = ""
-    lateinit var pref_setting: SharedPreferences
-    var recyclerViewList: ArrayList<NicoLiveProgramData> = arrayListOf()
-    var autoAdmissionRecyclerViewList: ArrayList<ArrayList<*>> = arrayListOf()
-    lateinit var communityRecyclerViewAdapter: CommunityRecyclerViewAdapter
-    lateinit var autoAdmissionAdapter: AutoAdmissionAdapter
+    private var userSession = ""
+    private lateinit var prefSetting: SharedPreferences
+    private var recyclerViewList: ArrayList<NicoLiveProgramData> = arrayListOf()
+    private lateinit var communityRecyclerViewAdapter: CommunityRecyclerViewAdapter
 
     /** findViewById駆逐 */
     private val viewBinding by lazy { FragmentNicoliveCommunityBinding.inflate(layoutInflater) }
@@ -56,35 +49,25 @@ class CommunityListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        pref_setting = PreferenceManager.getDefaultSharedPreferences(context)
-        userSession = pref_setting.getString("user_session", "") ?: ""
+        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+        userSession = prefSetting.getString("user_session", "") ?: ""
 
         initRecyclerView()
 
         viewBinding.fragmentNicoliveCommunitySwipe.setOnRefreshListener {
-            userSession = pref_setting.getString("user_session", "") ?: ""
             setNicoLoad()
         }
 
-        val pos = arguments?.getInt("page") ?: FOLLOW
         if (savedInstanceState == null) {
             // は　じ　め　て ///
             setNicoLoad()
         } else {
             // 画面回転復帰時
-            if (pos == ADMISSION) {
-                // 予約枠自動入場
-                (savedInstanceState.getSerializable("auto") as ArrayList<ArrayList<*>>).forEach {
-                    autoAdmissionRecyclerViewList.add(it)
-                }
-                autoAdmissionAdapter.notifyDataSetChanged()
-            } else {
-                // それいがい
-                (savedInstanceState.getSerializable("list") as ArrayList<NicoLiveProgramData>).forEach {
-                    recyclerViewList.add(it)
-                }
-                communityRecyclerViewAdapter.notifyDataSetChanged()
+            // それいがい
+            (savedInstanceState.getSerializable("list") as ArrayList<NicoLiveProgramData>).forEach {
+                recyclerViewList.add(it)
             }
+            communityRecyclerViewAdapter.notifyDataSetChanged()
         }
 
     }
@@ -96,8 +79,6 @@ class CommunityListFragment : Fragment() {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
             communityRecyclerViewAdapter = CommunityRecyclerViewAdapter(recyclerViewList)
-            autoAdmissionAdapter = AutoAdmissionAdapter(autoAdmissionRecyclerViewList)
-            autoAdmissionAdapter.communityListFragment = this@CommunityListFragment
             adapter = communityRecyclerViewAdapter
         }
     }
@@ -113,9 +94,6 @@ class CommunityListFragment : Fragment() {
             RANKING -> getRanking()
             GAME_MATCHING -> getProgramFromNicoNamaGame(NicoLiveGameProgram.NICONAMA_GAME_MATCHING)
             GAME_PLAYING -> getProgramFromNicoNamaGame(NicoLiveGameProgram.NICONAMA_GAME_PLAYING)
-            ADMISSION -> {
-                getAutoAdmissionList()
-            }
             CHUMOKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.FORCUS_PROGRAM)
             YOYAKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.POPULAR_BEFORE_OPEN_BROADCAST_STATUS_PROGRAM)
             KOREKARA -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.RECENT_JUST_BEFORE_BROADCAST_STATUS_PROGRAM)
@@ -292,47 +270,6 @@ class CommunityListFragment : Fragment() {
         }
     }
 
-    //予約枠自動入場一覧取得
-    fun getAutoAdmissionList() {
-        recyclerViewList.clear()
-        autoAdmissionRecyclerViewList.clear()
-        // データベースアクセス
-        lifecycleScope.launch(Dispatchers.Main) {
-            // 取り出す
-            withContext(Dispatchers.IO) {
-                val autoAdmissionList = AutoAdmissionDBInit(requireContext()).commentCollectionDB.autoAdmissionDBDAO().getAll()
-                // RecyclerViewへ
-                autoAdmissionList.forEach { data ->
-                    //未来の番組だけ読み込む（終わってるのは読み込まない）
-                    if ((Calendar.getInstance().timeInMillis / 1000L) < data.startTime.toLong()) {
-                        // RecyclerView追加
-                        val item = arrayListOf<String>()
-                        item.add("")
-                        item.add(data.name)
-                        item.add(data.liveId)
-                        item.add(data.startTime)
-                        item.add(data.lanchApp)
-                        autoAdmissionRecyclerViewList.add(item)
-                    }
-                }
-                // 予約がある場合のみService起動
-                if(autoAdmissionList.isNotEmpty()){
-                    //Service再起動
-                    val intent = Intent(context, AutoAdmissionService::class.java)
-                    context?.stopService(intent)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        context?.startForegroundService(intent)
-                    } else {
-                        context?.startService(intent)
-                    }
-                }
-            }
-            autoAdmissionAdapter.notifyDataSetChanged()
-            viewBinding.fragmentNicoliveCommunityRecyclerView.adapter = autoAdmissionAdapter
-            viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = false
-        }
-    }
-
     fun showToast(message: String) {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -362,9 +299,6 @@ class CommunityListFragment : Fragment() {
 
         /** ゲームプレイ中 */
         const val GAME_PLAYING = 5
-
-        /** 予約枠自動入場 */
-        const val ADMISSION = 6
 
         /** 放送中の注目番組 */
         const val CHUMOKU = 7

@@ -3,7 +3,6 @@ package io.github.takusan23.tatimidroid.Tool
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.R

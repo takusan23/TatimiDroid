@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="io.github.takusan23.tatimidroid">
 
     <uses-permission android:name="android.permission.INTERNET" /> <!-- インターネット -->
@@ -34,7 +33,6 @@
             android:allowEmbedded="true"
             android:documentLaunchMode="always"
             android:resizeableActivity="true" />
-        <activity android:name=".NicoLive.Activity.CommentCollectionListActivity" />
         <activity android:name=".Activity.NGListActivity" />
         <activity android:name=".Activity.KonoApp" />
         <activity android:name=".Activity.LicenceActivity" />
@@ -42,9 +40,9 @@
             android:name=".Activity.KotehanListActivity"
             android:label="@string/kotehan_list" />
 
-        <service android:name=".Service.AutoAdmissionService" />
         <service android:name=".Service.NicoLivePlayService" />
-        <service android:name=".Service.NicoVideoPlayService" /> <!-- キャッシュ連続再生用サービス -->
+        <!-- キャッシュ連続再生用サービス -->
+        <service android:name=".Service.NicoVideoPlayService" />
         <service android:name=".Service.GetCacheService" />
         <service
             android:name=".Service.BackgroundPlaylistCachePlayService"

@@ -2,18 +2,14 @@ package io.github.takusan23.tatimidroid.NicoVideo.BottomFragment
 
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.databinding.BottomFragmentNicovideoQualityBinding
-import org.json.JSONArray
 
 /**
  * ニコ動の画質変更BottomFragment

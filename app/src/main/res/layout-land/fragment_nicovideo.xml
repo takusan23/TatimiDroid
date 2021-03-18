@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <io.github.takusan23.tatimidroid.SwipeFixFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/fragment_nicovideo_motionlayout_parent_framelayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fragment_nicovideo_motionlayout_parent_framelayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <!-- こっちに制約（app:layout_constraintBottomなんとか～）みたいなのは書かなくていいらしい。 -->
     <!-- Sceneの方に制約を書く（初期状態含め） -->

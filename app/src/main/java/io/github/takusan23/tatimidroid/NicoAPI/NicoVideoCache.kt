@@ -21,7 +21,6 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * キャッシュ取得など。

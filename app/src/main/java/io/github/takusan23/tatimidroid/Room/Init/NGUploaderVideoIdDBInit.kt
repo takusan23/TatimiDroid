@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.Room.Init
 
 import android.content.Context
 import androidx.room.Room
-import io.github.takusan23.tatimidroid.Room.Database.NGUploaderUserIdDB
 import io.github.takusan23.tatimidroid.Room.Database.NGUploaderVideoIdDB
 
 /**

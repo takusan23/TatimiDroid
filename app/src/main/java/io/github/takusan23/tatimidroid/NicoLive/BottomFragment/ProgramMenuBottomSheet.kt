@@ -21,10 +21,6 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
 import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.Room.Database.AutoAdmissionDB
-import io.github.takusan23.tatimidroid.Room.Entity.AutoAdmissionDBEntity
-import io.github.takusan23.tatimidroid.Room.Init.AutoAdmissionDBInit
-import io.github.takusan23.tatimidroid.Service.AutoAdmissionService
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
 import io.github.takusan23.tatimidroid.Tool.ContentShare
 import io.github.takusan23.tatimidroid.databinding.BottomFragmentProgramMenuBinding
@@ -43,7 +39,6 @@ import org.json.JSONObject
 class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
     private lateinit var prefSetting: SharedPreferences
-    private lateinit var autoAdmissionDB: AutoAdmissionDB
     lateinit var nicoLiveProgramData: NicoLiveProgramData
 
     // データ取得
@@ -83,9 +78,6 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
                 // UI反映
                 applyUI()
 
-                // 予約枠自動入場初期化
-                initAutoAdmission()
-
                 // ポップアップ再生、バッググラウンド再生
                 initLiveServiceButton()
 
@@ -106,9 +98,6 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
                 // コメントのみ
                 initCommentOnlyButton()
-
-                // 予約枠自動入場
-                initDB()
             }
         }
 
@@ -130,103 +119,6 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
             FloatingCommentViewer.showBubbles(requireContext(), liveId, "comment_post", nicoLiveHTML.programTitle, nicoLiveHTML.thumb)
         }
     }
-
-    private fun initDB() {
-        autoAdmissionDB = AutoAdmissionDBInit(requireContext()).commentCollectionDB
-    }
-
-    private fun initAutoAdmission() {
-        // 放送中以外で表示
-        if (nicoLiveHTML.status != "ON_AIR") {
-            viewBinding.bottomFragmentProgramInfoAutoAdmissionMoreTextView.visibility = View.VISIBLE
-        }
-        // 予約枠自動入場ボタン表示・非表示
-        viewBinding.bottomFragmentProgramInfoAutoAdmissionMoreTextView.setOnClickListener {
-            viewBinding.bottomFragmentProgramInfoAutoAdmissionMoreTextView.apply {
-                if (isVisible) {
-                    setCompoundDrawablesWithIntrinsicBounds(context?.getDrawable(R.drawable.ic_expand_less_black_24dp), null, null, null)
-                } else {
-                    setCompoundDrawablesWithIntrinsicBounds(context?.getDrawable(R.drawable.ic_expand_more_24px), null, null, null)
-                }
-                viewBinding.bottomFragmentProgramInfoAutoAdmissionLinearlayout.isVisible = !viewBinding.bottomFragmentProgramInfoAutoAdmissionLinearlayout.isVisible
-            }
-        }
-        // 予約枠自動入場
-        viewBinding.bottomFragmentProgramInfoAutoAdmissionOfficialAppTextView.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_OFFICIAL_APP) }
-        viewBinding.bottomFragmentProgramInfoAutoAdmissionTatimidroidAppTextView.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_TATIMIDROID_APP) }
-        viewBinding.bottomFragmentProgramInfoAutoAdmissionPopupTextView.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_POPUP) }
-        viewBinding.bottomFragmentProgramInfoAutoAdmissionBackgroundTextView.setOnClickListener { addAutoAdmissionDB(AutoAdmissionDBEntity.LAUNCH_BACKGROUND) }
-
-        // Android 10だとバッググラウンドからActivity開けないので塞ぎ
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            viewBinding.bottomFragmentProgramInfoAutoAdmissionTatimidroidAppTextView.isVisible = false
-        }
-    }
-
-    /**
-     * 予約枠自動入場DBに追加する
-     * @param type AutoAdmissionSQLiteSQLite#LAUNCH_～から始まる定数のどれか。
-     * */
-    private fun addAutoAdmissionDB(type: String) {
-        // 書き込み済みか確認
-        lifecycleScope.launch(Dispatchers.Main) {
-            if (!isAddedDB()) {
-                // 未登録なら登録
-                withContext(Dispatchers.IO) {
-                    val autoAdmissionData = AutoAdmissionDBEntity(name = nicoLiveProgramData.title, liveId = nicoLiveProgramData.programId, startTime = nicoLiveProgramData.beginAt, lanchApp = type, description = "")
-                    autoAdmissionDB.autoAdmissionDBDAO().insert(autoAdmissionData)
-                }
-                // Service再起動
-                // Toastに表示させるアプリ名
-                val appName = when (type) {
-                    AutoAdmissionDBEntity.LAUNCH_TATIMIDROID_APP -> getString(R.string.app_name)
-                    AutoAdmissionDBEntity.LAUNCH_OFFICIAL_APP -> getString(R.string.nicolive_app)
-                    AutoAdmissionDBEntity.LAUNCH_POPUP -> getString(R.string.popup_player)
-                    AutoAdmissionDBEntity.LAUNCH_BACKGROUND -> getString(R.string.background_play)
-                    else -> getString(R.string.app_name)
-                }
-                Toast.makeText(context, "${context?.getString(R.string.added)}\n${nicoLiveProgramData.title} ${nicoLiveHTML.iso8601ToFormat(nicoLiveProgramData.beginAt.toLong())} (${appName})", Toast.LENGTH_SHORT).show()
-                //Service再起動
-                val intent = Intent(context, AutoAdmissionService::class.java)
-                context?.stopService(intent)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context?.startForegroundService(intent)
-                } else {
-                    context?.startService(intent)
-                }
-                dismiss()
-
-            } else {
-                // 登録済みなら削除できるように
-                Snackbar.make(viewBinding.bottomFragmentProgramInfoAutoAdmissionOfficialAppTextView, R.string.already_added, Snackbar.LENGTH_SHORT).apply {
-                    setAction(R.string.delete) {
-                        deleteAutoAdmissionDB()
-                        dismiss()
-                    }
-                    show()
-                }
-            }
-        }
-    }
-
-    // すでに予約枠自動入場DBに追加済みか。書き込み済みならtrue。コルーチン内で使ってね
-    private suspend fun isAddedDB() = withContext(Dispatchers.IO) {
-        autoAdmissionDB.autoAdmissionDBDAO().getLiveIdList(liveId).isNotEmpty()
-    }
-
-    // 予約枠自動入場から番組を消す
-    private fun deleteAutoAdmissionDB() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            withContext(Dispatchers.Main) {
-                autoAdmissionDB.autoAdmissionDBDAO().deleteById(liveId)
-            }
-            // Service再起動
-            val intent = Intent(context, AutoAdmissionService::class.java)
-            context?.stopService(intent)
-            context?.startService(intent)
-        }
-    }
-
 
     private fun initTSButton() {
         val timeShiftAPI = NicoLiveTimeShiftAPI()
@@ -263,8 +155,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun initCopyButton() {
-        val clipboardManager =
-            context?.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipboardManager = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         viewBinding.bottomFragmentProgramInfoCommunityCopyTextView.setOnClickListener {
             clipboardManager.setPrimaryClip(ClipData.newPlainText("communityid", nicoLiveHTML.communityId))
             //コピーしました！
@@ -318,10 +209,8 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
             viewBinding.bottomFragmentProgramInfoTitleTextView.text = nicoLiveHTML.programTitle
             viewBinding.bottomFragmentProgramInfoIdTextView.text = nicoLiveHTML.liveId
             // 時間
-            val formattedStartTime =
-                nicoLiveHTML.iso8601ToFormat(nicoLiveHTML.programOpenTime)
-            val formattedEndTime =
-                nicoLiveHTML.iso8601ToFormat(nicoLiveHTML.programEndTime)
+            val formattedStartTime = nicoLiveHTML.iso8601ToFormat(nicoLiveHTML.programOpenTime)
+            val formattedEndTime = nicoLiveHTML.iso8601ToFormat(nicoLiveHTML.programEndTime)
             viewBinding.bottomFragmentProgramInfoTimeTextView.text = "開場時刻：$formattedStartTime\n終了時刻：$formattedEndTime"
             // 項目表示
             viewBinding.bottomFragmentProgramInfoButtonsLinearlayout.isVisible = true

@@ -13,7 +13,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Entity.NicoHistoryDBEntity
 import java.text.SimpleDateFormat
-import java.util.ArrayList
+import java.util.*
 
 class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistoryDBEntity>) :
     RecyclerView.Adapter<NicoHistoryAdapter.ViewHolder>() {

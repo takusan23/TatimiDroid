@@ -1,10 +1,7 @@
 package io.github.takusan23.tatimidroid.GoogleCast
 
-import android.app.Activity
-import android.app.MediaRouteButton
 import android.content.Context
 import androidx.core.net.toUri
-import com.google.android.exoplayer2.text.Subtitle
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata

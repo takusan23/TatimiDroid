@@ -2,10 +2,8 @@ package io.github.takusan23.tatimidroid.Room.Init
 
 import android.content.Context
 import androidx.room.Room
-import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import io.github.takusan23.tatimidroid.Room.Database.NGDB
 import io.github.takusan23.tatimidroid.Room.Database.NicoHistoryDB
 
 /**

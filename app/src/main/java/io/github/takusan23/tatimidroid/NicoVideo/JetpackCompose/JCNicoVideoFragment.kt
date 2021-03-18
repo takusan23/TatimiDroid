@@ -9,7 +9,6 @@ import android.widget.SeekBar
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.core.view.doOnLayout
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams

@@ -1,17 +1,13 @@
 package io.github.takusan23.tatimidroid
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Context
 import android.view.Gravity
-import android.R.attr.gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import com.google.android.material.snackbar.Snackbar
-import android.R.id.message
-import android.content.Context
-import android.view.View
-import android.webkit.ConsoleMessage
-import android.widget.ProgressBar
 
 
 class SnackbarProgress(val context: Context, val view: View, val message: String) {

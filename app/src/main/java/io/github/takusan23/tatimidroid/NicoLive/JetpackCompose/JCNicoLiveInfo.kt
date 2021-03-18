@@ -23,7 +23,10 @@ import io.github.takusan23.tatimidroid.JetpackCompose.TagButton
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.CommunityOrChannelData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.*
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.getBitmapCompose
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardElevation
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardModifier
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardShape
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.toFormatTime
 

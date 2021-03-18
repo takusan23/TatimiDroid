@@ -19,7 +19,6 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
-import androidx.core.view.doOnLayout
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams

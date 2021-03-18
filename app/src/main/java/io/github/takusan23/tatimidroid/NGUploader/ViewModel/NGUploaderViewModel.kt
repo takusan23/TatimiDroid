@@ -4,8 +4,8 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import io.github.takusan23.tatimidroid.Room.Entity.NGUploaderUserIdEntity
 import io.github.takusan23.tatimidroid.NGUploader.NGUploaderTool
+import io.github.takusan23.tatimidroid.Room.Entity.NGUploaderUserIdEntity
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 

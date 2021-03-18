@@ -50,7 +50,6 @@ class ProgramListFragment : Fragment() {
                 R.id.nicolive_program_list_menu_top -> setFragment(CommunityListFragment.CHUMOKU)
                 R.id.nicolive_program_list_menu_korekara -> setFragment(CommunityListFragment.KOREKARA)
                 R.id.nicolive_program_list_menu_yoyaku -> setFragment(CommunityListFragment.YOYAKU)
-                R.id.nicolive_program_list_menu_auto_admission -> setFragment(CommunityListFragment.ADMISSION)
                 R.id.nicolive_program_list_menu_rookie -> setFragment(CommunityListFragment.ROOKIE)
                 R.id.nicolive_program_list_menu_nicorepo -> setFragment(CommunityListFragment.NICOREPO)
                 R.id.nicolive_program_list_menu_nicolive_jk -> {
