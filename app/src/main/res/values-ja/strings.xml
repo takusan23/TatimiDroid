@@ -597,4 +597,5 @@
     </string>
     <string name="nicovideo_cache_json_update_update_button">動画情報の更新</string>
     <string name="nicovideo_cache_json_update_no_update_button">動画情報なしで視聴</string>
+    <string name="setting_nicovideo_screen_rotation_not_pause_title">画面回転、アプリ切替時に動画を止めない</string>
 </resources>

@@ -50,7 +50,7 @@ import kotlin.math.roundToInt
  * internet     |   キャッシュ有っても強制的にインターネットを利用する場合はtrue
  * fullscreen   |   最初から全画面で再生する場合は true。
  * video_list   |   連続再生する場合は[NicoVideoData]の配列を[Bundle.putSerializable]使って入れてね
- * start_sec    |   開始位置。秒で
+ * start_pos    |   開始位置。秒で
  * */
 class JCNicoVideoFragment : PlayerBaseFragment() {
 
@@ -113,6 +113,38 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // スリープにしない
         caffeine()
 
+        // 画面回転もしていない、最初の一回のみ実行する
+        if (savedInstanceState == null) {
+            showLatestSeekSnackBar()
+            showCommentList()
+        }
+
+    }
+
+    /** コメント一覧を展開する */
+    private fun showCommentList() {
+        // コメント一覧も表示
+        lifecycleScope.launch {
+            delay(1000)
+            if (!viewModel.isFullScreenMode && !viewModel.isAutoCommentListShowOff) {
+                // フルスクリーン時 もしくは 自動で展開しない場合 は操作しない
+                viewModel.commentListShowLiveData.postValue(true)
+            }
+        }
+    }
+
+    /** キャッシュ再生時のみ。最後見たところから再生を表示させる */
+    private fun showLatestSeekSnackBar() {
+        val progress = prefSetting.getLong("progress_${viewModel.playingVideoId.value}", 0)
+        if (progress != 0L && viewModel.isOfflinePlay.value == true) {
+            // 継承元に実装あり
+            lifecycleScope.launch {
+                delay(500)
+                showSnackBar("${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", getString(R.string.play)) {
+                    viewModel.playerSetSeekMs.postValue(progress)
+                }
+            }
+        }
     }
 
     /** [JCNicoVideoInfoFragment] / [NicoVideoCommentFragment] を設置する */
@@ -315,40 +347,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         exoPlayer.playWhenReady = true
         // プログレスバー動かす。View.GONEだとなんかレイアウト一瞬バグる
         nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.VISIBLE
-
-        // 一回だけ動いてほしいのでフラグ
-        var isFirst = true
-        exoPlayer.addListener(object : Player.EventListener {
-            override fun onPlaybackStateChanged(state: Int) {
-                super.onPlaybackStateChanged(state)
-                if (isFirst) {
-                    isFirst = false
-                    if (exoPlayer.currentPosition == 0L) {
-                        // 画面回転時に２回目以降表示されると邪魔なので制御
-                        val progress = prefSetting.getLong("progress_${viewModel.playingVideoId.value}", 0)
-                        if (progress != 0L && viewModel.isOfflinePlay.value == true) {
-                            // 継承元に実装あり
-                            lifecycleScope.launch {
-                                delay(500)
-                                showSnackBar("${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", getString(R.string.play)) {
-                                    viewModel.playerSetSeekMs.postValue(progress)
-                                }
-                            }
-                        }
-                    }
-                    // コメント一覧も表示
-                    lifecycleScope.launch {
-                        delay(1000)
-                        if (!viewModel.isFullScreenMode && !viewModel.isAutoCommentListShowOff) {
-                            // フルスクリーン時 もしくは 自動で展開しない場合 は操作しない
-                            viewModel.commentListShowLiveData.postValue(true)
-                        }
-                    }
-                } else {
-                    exoPlayer.removeListener(this)
-                }
-            }
-        })
     }
 
     /** ExoPlayerを初期化する */
@@ -359,7 +357,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 // 動画時間をセットする
                 viewModel.playerDurationMs.postValue(exoPlayer.duration)
                 // 再生
-                viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
+                //viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
                 // プログレスバー
                 if (state == Player.STATE_READY || state == Player.STATE_ENDED) {
                     nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.INVISIBLE
@@ -517,33 +515,35 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
         // ポップアップ再生
         nicovideoPlayerUIBinding.includeNicovideoPlayerPopupImageView.setOnClickListener {
-            if (viewModel.playingVideoId.value != null) {
+            viewModel.nicoVideoData.value?.let { data ->
                 startVideoPlayService(
                     context = requireContext(),
                     mode = "popup",
-                    videoId = viewModel.playingVideoId.value!!,
-                    isCache = viewModel.isOfflinePlay.value!!,
+                    videoId = data.videoId,
+                    isCache = data.isCache,
                     seek = viewModel.currentPosition,
                     videoQuality = viewModel.currentVideoQuality,
                     audioQuality = viewModel.currentAudioQuality,
                     playlist = viewModel.playlistLiveData.value
                 )
+                // Fragment閉じる
                 finishFragment()
             }
         }
         // バックグラウンド再生
         nicovideoPlayerUIBinding.includeNicovideoPlayerBackgroundImageView.setOnClickListener {
-            if (viewModel.playingVideoId.value != null) {
+            viewModel.nicoVideoData.value?.let { data ->
                 startVideoPlayService(
                     context = requireContext(),
                     mode = "background",
-                    videoId = viewModel.playingVideoId.value!!,
-                    isCache = viewModel.isOfflinePlay.value!!,
+                    videoId = data.videoId,
+                    isCache = data.isCache,
                     seek = viewModel.currentPosition,
                     videoQuality = viewModel.currentVideoQuality,
                     audioQuality = viewModel.currentAudioQuality,
                     playlist = viewModel.playlistLiveData.value
                 )
+                // Fragment閉じる
                 finishFragment()
             }
         }
@@ -616,7 +616,10 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
 
     override fun onPause() {
         super.onPause()
-        viewModel.playerIsPlaying.value = false
+        // 画面回転しても一時停止しない
+        if (!prefSetting.getBoolean("setting_nicovideo_screen_rotation_not_pause", false)) {
+            viewModel.playerIsPlaying.value = false
+        }
         // キャッシュ再生の場合は位置を保存する
         if (viewModel.isOfflinePlay.value == true) {
             prefSetting.edit {

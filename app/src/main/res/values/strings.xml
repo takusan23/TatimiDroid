@@ -597,4 +597,5 @@ Sorry to trouble you, but please update the video information.\n
     </string>
     <string name="nicovideo_cache_json_update_update_button">Update video information</string>
     <string name="nicovideo_cache_json_update_no_update_button">Watch without video information</string>
+    <string name="setting_nicovideo_screen_rotation_not_pause_title">Does not stop the video when rotating the screen or switching apps</string>
 </resources>

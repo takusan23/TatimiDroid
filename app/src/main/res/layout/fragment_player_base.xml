@@ -52,7 +52,7 @@
                         android:id="@+id/fragment_player_comment_panel_compose_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:layout_scrollFlags="scroll|enterAlways" />
+                        app:layout_scrollFlags="scroll|enterAlways|snap" />
 
                 </com.google.android.material.appbar.AppBarLayout>
 

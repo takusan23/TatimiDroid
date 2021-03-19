@@ -159,6 +159,12 @@
             android:key="setting_play_type_video"
             android:summary="@string/setting_play_type_description"
             android:title="@string/setting_play_type_title" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_screen_rotation_24px"
+            android:key="setting_nicovideo_screen_rotation_not_pause"
+            android:title="@string/setting_nicovideo_screen_rotation_not_pause_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/get_cache">

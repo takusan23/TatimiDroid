@@ -215,7 +215,8 @@ class MainActivity : AppCompatActivity() {
             }
             if (!videoId.isNullOrEmpty()) {
                 // 動画
-                setNicovideoFragment(videoId)
+                val startPos = getIntExtra("start_pos", 0)
+                setNicovideoFragment(videoId = videoId, startPos = startPos)
             }
         }
     }
@@ -228,6 +229,7 @@ class MainActivity : AppCompatActivity() {
      * @param useInternet キャッシュが有っても強制的にインターネットから取得する場合はtrue
      * @param isEco エコノミーで取得する場合はtrue
      * @param startFullScreen 全画面で再生する場合はtrue
+     * @param startPos
      * @param _videoList 連続再生が決定している場合は[NicoVideoData]の配列を入れてください。なおFragment生成後でも連続再生が可能です。
      * */
     fun setNicovideoFragment(videoId: String, isCache: Boolean? = null, isEco: Boolean? = null, useInternet: Boolean? = null, startFullScreen: Boolean? = null, _videoList: ArrayList<NicoVideoData>? = null, startPos: Int? = null) {
@@ -570,9 +572,11 @@ class MainActivity : AppCompatActivity() {
                 }
                 // 動画
                 is NicoVideoFragment -> {
-                    when {
-                        isLeaveAppPopup -> startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, seek = viewModel.currentPosition)
-                        isLeaveAppBackground -> startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, seek = viewModel.currentPosition)
+                    viewModel.nicoVideoData.value?.apply {
+                        when {
+                            isLeaveAppPopup -> startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, seek = viewModel.currentPosition)
+                            isLeaveAppBackground -> startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, seek = viewModel.currentPosition)
+                        }
                     }
                 }
                 is JCNicoVideoFragment -> {

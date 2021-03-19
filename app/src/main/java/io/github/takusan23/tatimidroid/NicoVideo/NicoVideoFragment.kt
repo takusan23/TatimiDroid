@@ -68,6 +68,7 @@ import kotlin.math.roundToInt
  * eco          |   エコノミー再生するなら（?eco=1）true
  * internet     |   キャッシュ有っても強制的にインターネットを利用する場合はtrue
  * fullscreen   |   最初から全画面で再生する場合は true。
+ * start_pos    |   再生開始時間。秒で渡して
  * */
 class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
@@ -76,9 +77,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     // ViewPager
     lateinit var viewPagerAdapter: NicoVideoRecyclerPagerAdapter
-
-    // 再生時間を適用したらtrue。一度だけ動くように
-    var isRotationProgressSuccessful = false
 
     // フォント
     lateinit var font: CustomFont
@@ -90,15 +88,24 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
      * MVVM ｲｸｿﾞｵｵｵｵｵ！
      * データを置くためのクラスです。これは画面回転しても値を失うことはないです。
      * */
-    lateinit var viewModel: NicoVideoViewModel
-
-    /** 動画ID。ViewModel初期化までは空っぽ */
-    var videoId = ""
-
-    /** キャッシュ再生かどうか。ViewModel初期化までは不明 */
-    var isCache = false
-
-    private var seekTimer = Timer()
+    val viewModel by lazy {
+        // 動画ID
+        val videoId = arguments?.getString("id")
+        // キャッシュ再生
+        val isCache = arguments?.getBoolean("cache")
+        // エコノミー再生
+        val isEconomy = arguments?.getBoolean("eco") ?: false
+        // 強制的にインターネットを利用して取得
+        val useInternet = arguments?.getBoolean("internet") ?: false
+        // 全画面で開始
+        val isStartFullScreen = arguments?.getBoolean("fullscreen") ?: false
+        // 連続再生
+        val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
+        // 開始位置
+        val startPos = arguments?.getInt("start_pos")
+        // ViewModel用意
+        ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList, startPos)).get(NicoVideoViewModel::class.java)
+    }
 
     val exoPlayer by lazy { SimpleExoPlayer.Builder(requireContext()).build() }
 
@@ -132,23 +139,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // ExoPlayer初期化
         initExoPlayer()
 
-        // 動画ID
-        val videoId = arguments?.getString("id")
-        // キャッシュ再生
-        val isCache = arguments?.getBoolean("cache")
-        // エコノミー再生
-        val isEconomy = arguments?.getBoolean("eco") ?: false
-        // 強制的にインターネットを利用して取得
-        val useInternet = arguments?.getBoolean("internet") ?: false
-        // 全画面で開始
-        val isStartFullScreen = arguments?.getBoolean("fullscreen") ?: false
-        // 連続再生？
-        val videoList = arguments?.getSerializable("video_list") as? ArrayList<NicoVideoData>
-        // 開始位置
-        val startPos = arguments?.getInt("start_pos")
-
-        // ViewModel初期化
-        viewModel = ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList, startPos)).get(NicoVideoViewModel::class.java)
+        if (savedInstanceState == null) {
+            // 初回時のみ
+            showSeekLatestPosition()
+        }
 
         // 全画面モードなら
         if (viewModel.isFullScreenMode) {
@@ -173,14 +167,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             }
         }
 
-        // 動画ID変更受け取り。
-        viewModel.playingVideoId.observe(viewLifecycleOwner) {
-            this.videoId = it
-        }
-
         // キャッシュ再生かどうか。
         viewModel.isOfflinePlay.observe(viewLifecycleOwner) {
-            this.isCache = it
             // 動画変更時にやることリスト
             initViewPager(viewModel.dynamicAddFragmentList)
             viewBinding.fragmentNicovideoCommentCanvas.clearCommentList()
@@ -207,7 +195,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 val oldPosition = exoPlayer.currentPosition
                 playExoPlayer(contentUrl)
                 // 画質変更時は途中から再生。動画IDが一致してないとだめ
-                if (oldPosition > 0 && exoPlayer.currentMediaItem?.mediaId == videoId) {
+                if (oldPosition > 0 && exoPlayer.currentMediaItem?.mediaId == viewModel.playingVideoId.value) {
                     exoPlayer.seekTo(oldPosition)
                 }
                 exoPlayer.setVideoSurfaceView(viewBinding.fragmentNicovideoSurfaceView)
@@ -221,7 +209,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // 動画情報
         viewModel.nicoVideoData.observe(viewLifecycleOwner) { nicoVideoData ->
-            // ViewPager
             initUI(nicoVideoData)
         }
 
@@ -363,7 +350,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             viewModel.isOfflinePlay.value ?: false -> {
                 // キャッシュ再生
                 val dataSourceFactory = DefaultDataSourceFactory(requireContext(), "TatimiDroid;@takusan_23")
-                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.Builder().setUri(contentUrl.toUri()).setMediaId(videoId).build())
+                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.Builder().setUri(contentUrl.toUri()).setMediaId(viewModel.playingVideoId.value).build())
                 exoPlayer.setMediaSource(videoSource)
             }
             // それ以外：インターネットで取得
@@ -371,7 +358,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 // SmileサーバーはCookieつけないと見れないため
                 val dataSourceFactory = DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
                 dataSourceFactory.defaultRequestProperties.set("Cookie", viewModel.nicoHistory)
-                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.Builder().setUri(contentUrl.toUri()).setMediaId(videoId).build())
+                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.Builder().setUri(contentUrl.toUri()).setMediaId(viewModel.playingVideoId.value).build())
                 exoPlayer.setMediaSource(videoSource)
             }
         }
@@ -380,14 +367,26 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         exoPlayer.playWhenReady = true
     }
 
+    /** 最後に見たところから再生SnackBarを表示。キャッシュ再生時のみ */
+    private fun showSeekLatestPosition() {
+        val progress = prefSetting.getLong("progress_${viewModel.playingVideoId.value}", 0)
+        if (progress != 0L && viewModel.isOfflinePlay.value == true) {
+            Snackbar.make(viewBinding.fragmentNicovideoSurfaceView, "${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", Snackbar.LENGTH_LONG).apply {
+                setAction(R.string.play) {
+                    viewModel.playerSetSeekMs.postValue(progress)
+                }
+                show()
+            }
+        }
+    }
+
     /** ExoPlayerを初期化する */
     private fun initExoPlayer() {
         exoPlayer.addListener(object : Player.EventListener {
-
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
                 // 再生
-                viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
+                // viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
                 // 動画時間をセットする
                 viewModel.playerDurationMs.postValue(exoPlayer.duration)
                 if (state == Player.STATE_BUFFERING) {
@@ -399,24 +398,6 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 if (state == Player.STATE_ENDED && exoPlayer.playWhenReady) {
                     // 動画おわった。連続再生時なら次の曲へ
                     viewModel.nextVideo()
-                }
-                if (!isRotationProgressSuccessful) {
-                    // 一度だけ実行するように。画面回転前の時間を適用する
-                    isRotationProgressSuccessful = true
-                    // 前回見た位置から再生
-                    viewModel.playerSetSeekMs.value = viewModel.currentPosition
-                    if (exoPlayer.currentPosition == 0L) {
-                        // 画面回転時に２回目以降表示されると邪魔なので制御
-                        val progress = prefSetting.getLong("progress_$videoId", 0)
-                        if (progress != 0L && isCache) {
-                            Snackbar.make(viewBinding.fragmentNicovideoSurfaceView, "${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", Snackbar.LENGTH_LONG).apply {
-                                setAction(R.string.play) {
-                                    viewModel.playerSetSeekMs.postValue(progress)
-                                }
-                                show()
-                            }
-                        }
-                    }
                 }
             }
 
@@ -705,28 +686,38 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
         // ポップアップ/バッググラウンドなど
         viewBinding.fragmentNicovideoControlInclude.playerControlPopup.setOnClickListener {
-            // 連続再生
-            val playlist = if (viewModel.isPlayListMode.value!!) {
-                viewModel.playlistLiveData.value
-            } else {
-                null
-            }
             // ポップアップ再生
-            startVideoPlayService(context = context, mode = "popup", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, playlist = playlist, seek = viewModel.currentPosition)
-            // Activity落とす
-            finishFragment()
+            viewModel.nicoVideoData.value?.let { data ->
+                startVideoPlayService(
+                    context = context,
+                    mode = "popup",
+                    videoId = data.videoId,
+                    isCache = data.isCache,
+                    videoQuality = viewModel.currentVideoQuality,
+                    audioQuality = viewModel.currentAudioQuality,
+                    playlist = viewModel.playlistLiveData.value,
+                    seek = viewModel.currentPosition
+                )
+                // Fragment閉じる
+                finishFragment()
+            }
         }
         viewBinding.fragmentNicovideoControlInclude.playerControlBackground.setOnClickListener {
-            // 連続再生
-            val playlist = if (viewModel.isPlayListMode.value!!) {
-                viewModel.playlistLiveData.value
-            } else {
-                null
-            }
             // バッググラウンド再生
-            startVideoPlayService(context = context, mode = "background", videoId = videoId, isCache = isCache, videoQuality = viewModel.currentVideoQuality, audioQuality = viewModel.currentAudioQuality, playlist = playlist, seek = viewModel.currentPosition)
-            // Activity落とす
-            finishFragment()
+            viewModel.nicoVideoData.value?.let { data ->
+                startVideoPlayService(
+                    context = context,
+                    mode = "background",
+                    videoId = data.videoId,
+                    isCache = data.isCache,
+                    videoQuality = viewModel.currentVideoQuality,
+                    audioQuality = viewModel.currentAudioQuality,
+                    playlist = viewModel.playlistLiveData.value,
+                    seek = viewModel.currentPosition
+                )
+                // Fragment閉じる
+                finishFragment()
+            }
         }
 
         // 戻るキー押した時
@@ -934,19 +925,19 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /**
      * ViewPager初期化
-     * 注意：キャッシュ再生かどうか、動画IDがちゃんとある状態で実行しないとうまく動きません。
+     * 注意：[NicoVideoViewModel.isOfflinePlay]、[NicoVideoViewModel.playingVideoId]が必要
      * @param dynamicAddFragmentList 動的に追加したFragmentがある場合は入れてね。なければ省略していいです。
      * */
     private fun initViewPager(dynamicAddFragmentList: ArrayList<TabLayoutData> = arrayListOf()) {
         // このFragmentを置いたときに付けたTag
-        viewPagerAdapter = NicoVideoRecyclerPagerAdapter(this, videoId, viewModel.isOfflinePlay.value ?: false, dynamicAddFragmentList)
+        viewPagerAdapter = NicoVideoRecyclerPagerAdapter(this, viewModel.playingVideoId.value!!, viewModel.isOfflinePlay.value ?: false, dynamicAddFragmentList)
         viewBinding.fragmentNicovideoViewpager.adapter = viewPagerAdapter
         TabLayoutMediator(viewBinding.fragmentNicovideoTablayout, viewBinding.fragmentNicovideoViewpager) { tab, position ->
             tab.text = viewPagerAdapter.fragmentTabName[position]
         }.attach()
         // コメントを指定しておく。View#post{}で確実にcurrentItemが仕事するようになった。ViewPager2頼むよ～
         viewBinding.fragmentNicovideoViewpager.post {
-            viewBinding.fragmentNicovideoViewpager?.setCurrentItem(1, false)
+            viewBinding.fragmentNicovideoViewpager.setCurrentItem(1, false)
         }
         // もしTabLayoutを常時表示する場合は
         if (prefSetting.getBoolean("setting_scroll_tab_hide", false)) {
@@ -996,16 +987,16 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     override fun onPause() {
         super.onPause()
-
-        viewModel.playerIsPlaying.value = false
-        (requireActivity() as MainActivity).setVisibilityBottomNav()
-
+        // 画面回転しても一時停止しない
+        if (!prefSetting.getBoolean("setting_nicovideo_screen_rotation_not_pause", false)) {
+            viewModel.playerIsPlaying.value = false
+        }
         // コントローラー表示
         viewBinding.fragmentNicovideoMotionlayoutParentFramelayout.onSwipeTargetViewClickFunc?.invoke(null)
         // キャッシュ再生の場合は位置を保存する
-        if (isCache) {
+        if (viewModel.isOfflinePlay.value == true) {
             prefSetting.edit {
-                putLong("progress_$videoId", viewModel.playerCurrentPositionMs)
+                putLong("progress_${viewModel.nicoVideoData.value!!.videoId}", viewModel.playerCurrentPositionMs)
             }
         }
         (requireActivity() as MainActivity).setVisibilityBottomNav()
@@ -1015,8 +1006,9 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         super.onDestroy()
         // 再生位置を保管。画面回転後LiveDataで受け取る
         viewModel.playerSetSeekMs.value = exoPlayer.currentPosition
-        seekTimer.cancel()
         exoPlayer.release()
+        // BottomNav表示
+        (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
         // 牛乳を飲んで状態異常を解除
         activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }

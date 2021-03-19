@@ -654,6 +654,7 @@ class NicoVideoPlayService : Service() {
                 val intent = Intent(this@NicoVideoPlayService, MainActivity::class.java)
                 intent.putExtra("videoId", videoId)
                 intent.putExtra("cache", isCurrentVideoCache)
+                intent.putExtra("start_pos", (exoPlayer.currentPosition / 1000).toInt()) // 秒で渡す
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
             }
