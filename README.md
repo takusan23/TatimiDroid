@@ -54,6 +54,37 @@ https://play.google.com/store/apps/details?id=io.github.takusan23.tatimidroid&hl
 初回起動時はログイン画面が表示されるので、ログインしてください。  
 ログインで利用したメアド、パスワードは端末内にのみ保存され、ニコニコに再ログインが必要になったときのみ使われます。
 
+# おすすめ機能？
+
+## 生放送編
+好きな番組をホーム画面にショートカットとして追加できます。例えばニコニコ実況のNHK総合(`ch2646436`)を登録しておけば何かあったときにすぐに確認できます。  
+すべてのAndroidのバージョンで利用できます。  
+Android 7以前はホーム画面に追加ダイアログが表示されず、押したら自動的に追加されるようになっています。  
+(`CreateShortcutTool#createHomeScreenShortcut()`参照)
+
+<img src="https://imgur.com/6rBlXg1.png" width="200">
+
+登録方法
+- 旧UI
+    - 再生画面からメニュータブを選んで、ホーム画面に追加を選べば追加できます。
+
+<p>
+    <img src="https://imgur.com/UBlKtr9.png" width="200">
+    <img src="https://imgur.com/6RkIbbX.png" width="200">
+</p>
+    
+- 新UI
+    - 再生画面からちょっとスクロールして、メニュータブを押して、ホーム画面に追加を選べば追加できます。
+
+<p>
+    <img src="https://imgur.com/YeOUhZY.png" width="200">
+    <img src="https://imgur.com/1YhrcaB.png" width="200">
+</p>
+
+
+## 動画編
+考え中
+
 # 開発者向け？
 
 ## わたしのAndroid Studio

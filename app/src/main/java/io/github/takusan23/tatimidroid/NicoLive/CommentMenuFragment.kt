@@ -217,7 +217,7 @@ class CommentMenuFragment : Fragment() {
 
         // （ホーム画面に追加のやつ）
         viewBinding.fragmentCommentFragmentMenuDymanicShortcutButton.setOnClickListener {
-            createPinnedShortcut()
+            createHomeScreenShortcut()
         }
 
         //匿名非表示
@@ -326,59 +326,17 @@ class CommentMenuFragment : Fragment() {
 
     /**
      * 「ホーム画面に追加」のやつ。
-     * Android 8以降で利用できる。
      * */
-    private fun createPinnedShortcut() {
-
-        // ショートカットを押したときのインテント
-        val intent = Intent(context, MainActivity::class.java).apply {
-            action = Intent.ACTION_MAIN
-            putExtra("liveId", viewModel.nicoLiveHTML.communityId)
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Android 7.1 以降のみ対応
-            val shortcutManager = context?.getSystemService(Context.SHORTCUT_SERVICE) as ShortcutManager
-            // サポート済みのランチャーだった
-            if (shortcutManager.isRequestPinShortcutSupported) {
-                // すべての番組でホーム画面にピン留めをサポート
-                lifecycleScope.launch {
-                    val viewModel = commentFragment.viewModel
-                    // サムネイル取得！
-                    val iconBitmap = getThumb(requireContext(), viewModel.thumbnailURL, viewModel.communityId)
-                    // 一旦Bitmapに変換したあと、Iconに変換するとうまくいく。
-                    val bitmap = BitmapFactory.decodeFile(iconBitmap)
-                    val icon = Icon.createWithAdaptiveBitmap(bitmap)
-                    // Android 11から？setShortLabelの値ではなくBuilder()の第二引数がタイトルに使われるようになったらしい
-                    val name = viewModel.nicoLiveHTML.communityName
-                    val shortcut = ShortcutInfo.Builder(context, name).apply {
-                        setShortLabel(name)
-                        setLongLabel(name)
-                        setIcon(icon)
-                        setIntent(intent)
-                    }.build()
-                    shortcutManager.requestPinShortcut(shortcut, null)
-                }
-            }
-        } else {
-            /**
-             * Android 7以下も暗黙的ブロードキャストを送信することで作成できる
-             *
-             * 古いスマホならワンセグ目的で使えそうだし、ワンセグ+ニコニコ実況って使い方がいいのかも
-             * */
+    private fun createHomeScreenShortcut() {
+        viewModel.nicoLiveCommunityOrChannelDataLiveData.value?.let { communityOrChannelData ->
             lifecycleScope.launch {
-                // コミュ画像取得
-                val iconBitmap = getThumb(requireContext(), viewModel.thumbnailURL, viewModel.communityId)
-                val bitmap = BitmapFactory.decodeFile(iconBitmap)
-                // ショートカット作成ブロードキャストインテント
-                val intent = Intent("com.android.launcher.action.INSTALL_SHORTCUT").apply {
-                    putExtra(Intent.EXTRA_SHORTCUT_INTENT, intent)
-                    putExtra(Intent.EXTRA_SHORTCUT_NAME, viewModel.nicoLiveHTML.communityName)
-                    putExtra(Intent.EXTRA_SHORTCUT_ICON, bitmap)
-                }
-                // ブロードキャスト送信
-                requireContext().sendBroadcast(intent)
-                Toast.makeText(requireContext(), "ショートカットを作成しました", Toast.LENGTH_SHORT).show()
+                // ショートカット作成関数
+                CreateShortcutTool.createHomeScreenShortcut(
+                    context = requireContext(),
+                    contentId = communityOrChannelData.id,
+                    contentTitle = communityOrChannelData.name,
+                    thumbUrl = communityOrChannelData.icon
+                )
             }
         }
     }
