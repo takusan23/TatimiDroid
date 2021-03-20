@@ -1,15 +1,10 @@
 package io.github.takusan23.tatimidroid.NicoLive
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.ShortcutInfo
-import android.content.pm.ShortcutManager
 import android.content.res.ColorStateList
-import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -17,7 +12,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -27,17 +21,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
-import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.databinding.FragmentCommentMenuBinding
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.Request
-import java.io.File
-import java.io.IOException
 
 
 /**
@@ -324,9 +312,7 @@ class CommentMenuFragment : Fragment() {
 
     }
 
-    /**
-     * 「ホーム画面に追加」のやつ。
-     * */
+    /**「ホーム画面に追加」のやつ */
     private fun createHomeScreenShortcut() {
         viewModel.nicoLiveCommunityOrChannelDataLiveData.value?.let { communityOrChannelData ->
             lifecycleScope.launch {
@@ -340,35 +326,6 @@ class CommentMenuFragment : Fragment() {
             }
         }
     }
-
-    /**
-     * サムネイルをデバイスに保存する。キャッシュに保存すべきなのか永続の方に入れるべきなのかよくわからないけど、とりま永続の方に入れる
-     * */
-    private suspend fun getThumb(context: Context?, thumbUrl: String, liveId: String) = withContext(Dispatchers.IO) {
-        val request = Request.Builder().apply {
-            url(thumbUrl)
-            get()
-        }.build()
-        val response = try {
-            OkHttpClientSingleton.okHttpClient.newCall(request).execute()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-        val iconFolder = File(context?.getExternalFilesDir(null), "icon")
-        if (!iconFolder.exists()) {
-            iconFolder.mkdir()
-        }
-        val iconFile = File(iconFolder, "$liveId.jpg")
-        return@withContext try {
-            iconFile.writeBytes(response?.body?.bytes() ?: return@withContext null)
-            iconFile.path
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-    }
-
 
     private fun setValue() {
         //コメント非表示

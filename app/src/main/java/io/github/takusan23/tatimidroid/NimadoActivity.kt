@@ -32,7 +32,6 @@ import io.github.takusan23.tatimidroid.Tool.getThemeColor
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import io.github.takusan23.tatimidroid.databinding.ActivityNimadoBinding
 import okhttp3.*
-import okhttp3.Callback
 import org.jsoup.Jsoup
 import java.io.IOException
 

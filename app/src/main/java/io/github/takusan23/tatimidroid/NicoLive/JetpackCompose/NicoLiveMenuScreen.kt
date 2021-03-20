@@ -5,12 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.content.pm.ShortcutInfo
-import android.content.pm.ShortcutManager
 import android.content.res.Configuration
-import android.graphics.BitmapFactory
-import android.graphics.drawable.Icon
-import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Card
@@ -24,26 +19,20 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Activity.KotehanListActivity
 import io.github.takusan23.tatimidroid.Activity.NGListActivity
 import io.github.takusan23.tatimidroid.JetpackCompose.ShareMenuCard
 import io.github.takusan23.tatimidroid.JetpackCompose.VolumeMenu
-import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.NicoLive.BottomFragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.NicoLive.ViewModel.NicoLiveViewModel
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.*
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardElevation
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardModifier
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.parentCardShape
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Tool.CreateShortcutTool
-import io.github.takusan23.tatimidroid.Tool.OkHttpClientSingleton
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.Request
-import java.io.File
-import java.io.IOException
 
 /**
  * 生放送メニューCard。長いのでまとめた
@@ -129,32 +118,6 @@ fun NicoLiveMenuScreen(parentFragment: Fragment) {
     fun openKotehanListActivity() {
         val intent = Intent(context, KotehanListActivity::class.java)
         context.startActivity(intent)
-    }
-
-    /** サムネを取得してアプリ固有ストレージ内に保存する */
-    suspend fun getThumb(thumbnailURL: String, communityId: String) = withContext(Dispatchers.IO) {
-        val request = Request.Builder().apply {
-            url(thumbnailURL)
-            get()
-        }.build()
-        val response = try {
-            OkHttpClientSingleton.okHttpClient.newCall(request).execute()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-        val iconFolder = File(context.getExternalFilesDir(null), "icon")
-        if (!iconFolder.exists()) {
-            iconFolder.mkdir()
-        }
-        val iconFile = File(iconFolder, "$communityId.jpg")
-        return@withContext try {
-            iconFile.writeBytes(response?.body?.bytes()!!)
-            iconFile.path
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
     }
 
     /** ホーム画面にショートカット（ピン留め）をする */

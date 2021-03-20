@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.NicoVideo
 
 import android.content.SharedPreferences
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper

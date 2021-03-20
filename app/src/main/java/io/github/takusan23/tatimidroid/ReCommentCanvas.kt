@@ -9,6 +9,8 @@ import kotlinx.coroutines.*
 import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.concurrent.thread
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -23,6 +25,31 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
 
     /** 鯖からもらったコメント一覧 */
     var rawCommentList = arrayListOf<CommentJSONParse>()
+        set(value) {
+            /**
+             * コメントのvposをずらす
+             * 10秒に表示するコメントを、10秒に画面外に追加してたら手遅れなのでずらす
+             * */
+            value.forEach { commentJSON ->
+                // 固定コメントは特に何もしない
+                if (!checkUeComment(commentJSON.mail) && !commentJSON.mail.contains("shita")) {
+                    // 大きさ計測
+                    val fontSize = getCommandFontSize(commentJSON.mail).toInt()
+                    // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
+                    val measure = min(getBlackCommentTextPaint(fontSize).measureText(commentJSON.comment).toInt(), finalWidth)
+                    // アスキーアートは速度一定
+                    val isAsciiArt = commentJSON.comment.contains("\n")
+                    val commentMoveSize = if (isAsciiArt) commentMoveMinus else (commentMoveMinus + (commentJSON.comment.length / 8))
+                    // 引いておく
+                    val minusVPos = ((measure / commentMoveSize) * commentUpdateMs) / 10L
+                    (commentJSON.vpos.toInt() - minusVPos.toInt()).let { vpos ->
+                        // 0以上で。
+                        commentJSON.vpos = max(vpos, 0).toString()
+                    }
+                }
+            }
+            field = value
+        }
 
     /** 流す or 流れた コメント一覧 */
     val drawNakaCommentList = arrayListOf<ReDrawCommentData>()
@@ -189,6 +216,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }
     }
 
+    /** 描画予定コメント配列をクリアする */
     fun clearCommentList() {
         rawCommentList.clear()
         drawNakaCommentList.clear()

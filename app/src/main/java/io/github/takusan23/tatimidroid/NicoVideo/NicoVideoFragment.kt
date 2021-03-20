@@ -289,6 +289,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 viewModel.playerCurrentPositionMs = 0
             }
             // シークさせる
+            viewBinding.fragmentNicovideoCommentCanvas.currentPos = seekPos
             viewBinding.fragmentNicovideoCommentCanvas.seekComment()
         }
         // 動画の再生時間

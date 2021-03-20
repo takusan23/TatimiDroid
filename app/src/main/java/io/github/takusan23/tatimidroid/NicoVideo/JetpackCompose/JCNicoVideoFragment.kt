@@ -277,6 +277,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 viewModel.playerCurrentPositionMs = 0
             }
             // シークさせる
+            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.currentPos = seekPos
             nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.seekComment()
         }
         // 動画の再生時間

@@ -85,7 +85,7 @@ object CreateShortcutTool {
      * @param context Context
      * @param fileName ファイル名。拡張子はjpg
      * @param thumbUrl 画像URL
-     *
+     * @return アイコンのパス。失敗時はnull
      * */
     private suspend fun getThumb(context: Context?, thumbUrl: String, fileName: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {

@@ -115,7 +115,7 @@ class DownloadPocket(private val url: String, private val splitFileFolder: File,
      * 範囲リクエストを送信する。[progressFlow]は99パーセントまでしか行かないと思う（謎）
      *
      * @param startByte こっから
-     * @param endByte ここまでのバイト数を返す
+     * @param endByte ここまで
      * @param count 何個目か
      * */
     private suspend fun getVideoFile(startByte: Long, endByte: Long, count: Int) = withContext(Dispatchers.IO) {
