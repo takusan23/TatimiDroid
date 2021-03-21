@@ -16,6 +16,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:name=".Activity.TwoFactorAuthLoginActivity"
             android:label="@string/two_factor_auth" />
@@ -39,9 +40,21 @@
         <activity
             android:name=".Activity.KotehanListActivity"
             android:label="@string/kotehan_list" />
+        <!-- ニコレポウイジェット -->
+        <receiver android:name=".HomeWidget.NicoRepoHomeWidget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
 
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/nico_repo_home_widget_info" />
+        </receiver>
+
+        <service
+            android:name=".HomeWidget.NicoRepoHomeWidgetRemoteViewService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
         <service android:name=".Service.NicoLivePlayService" />
-        <!-- キャッシュ連続再生用サービス -->
         <service android:name=".Service.NicoVideoPlayService" />
         <service android:name=".Service.GetCacheService" />
         <service
@@ -52,7 +65,8 @@
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
-        </service> <!-- これ書かないと通知から操作一生こない -->
+        </service>
+        <!-- これ書かないと通知から操作一生こない -->
         <receiver android:name="androidx.media.session.MediaButtonReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
@@ -81,7 +95,8 @@
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/app_shortcut" />
-        </activity> <!-- おまけ -->
+        </activity>
+        <!-- おまけ -->
         <service
             android:name=".Service.NicoVersionHistoryDeviceControl"
             android:label="@string/nico_version_history"

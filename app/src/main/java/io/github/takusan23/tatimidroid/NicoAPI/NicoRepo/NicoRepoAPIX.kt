@@ -20,7 +20,7 @@ class NicoRepoAPIX {
     /**
      * ニコレポのAPIを叩いてレスポンスを返す関数。
      * @param userSession ユーザーセッション
-     * @param userId ゆーざーID。なければ自分のを取得する
+     * @param userId ゆーざーID。nullで自分のデータを取る
      * @return OkHttpのレスポンス。
      * */
     suspend fun getNicoRepoResponse(userSession: String, userId: String? = null) = withContext(Dispatchers.IO) {
@@ -58,10 +58,24 @@ class NicoRepoAPIX {
                     val message = nicorepoObject.getString("title")
                     val contentId = IDRegex(contentObject.getString("url"))!!  // トップレベル関数
                     val date = toUnixTime(nicorepoObject.getString("updated"))
-                    val userName = nicorepoObject.getJSONObject("actor").getString("name")
                     val thumb = contentObject.getString("image")
                     val title = contentObject.getString("name")
-                    val nicoRepoDataClass = NicoRepoDataClass(isVideo, message, contentId, date, userName, thumb, title)
+                    // ユーザー情報
+                    val userObject = nicorepoObject.getJSONObject("actor")
+                    val userName = userObject.getString("name")
+                    val userId = userObject.getString("url").replace("https://www.nicovideo.jp/user/", "")
+                    val userIcon = userObject.getString("icon")
+                    val nicoRepoDataClass = NicoRepoDataClass(
+                        isVideo = isVideo,
+                        message = message,
+                        contentId = contentId,
+                        date = date,
+                        thumbUrl = thumb,
+                        title = title,
+                        userName = userName,
+                        userId = userId,
+                        userIcon = userIcon
+                    )
                     list.add(nicoRepoDataClass)
                 }
             }
@@ -74,7 +88,16 @@ class NicoRepoAPIX {
      * */
     fun toProgramDataList(nicoRepoDataClassList: List<NicoRepoDataClass>): List<NicoLiveProgramData> {
         return nicoRepoDataClassList.map { nicoRepoDataClass ->
-            NicoLiveProgramData(nicoRepoDataClass.title, nicoRepoDataClass.accountName, nicoRepoDataClass.date.toString(), nicoRepoDataClass.date.toString(), nicoRepoDataClass.contentId, nicoRepoDataClass.accountName, "ON_AIR", nicoRepoDataClass.thumbUrl)
+            NicoLiveProgramData(
+                title = nicoRepoDataClass.title,
+                communityName = nicoRepoDataClass.userName,
+                beginAt = nicoRepoDataClass.date.toString(),
+                endAt = nicoRepoDataClass.date.toString(),
+                programId = nicoRepoDataClass.contentId,
+                broadCaster = nicoRepoDataClass.userName,
+                lifeCycle = "ON_AIR",
+                thum = nicoRepoDataClass.thumbUrl
+            )
         }
     }
 

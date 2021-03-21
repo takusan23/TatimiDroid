@@ -15,7 +15,9 @@ data class NicoRepoDataClass(
     val message: String,
     val contentId: String,
     val date: Long,
-    val accountName: String,
     val thumbUrl: String,
     val title: String,
+    val userName: String,
+    val userId: String,
+    val userIcon: String,
 )

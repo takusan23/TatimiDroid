@@ -50,7 +50,7 @@ class NicoRepoAdapter(val list: ArrayList<NicoRepoDataClass>) : RecyclerView.Ada
             // テキストセット
             val item = list[position]
             titleTextView.text = HtmlCompat.fromHtml("${item.message}<br>${item.title}", HtmlCompat.FROM_HTML_MODE_COMPACT)
-            nameTextView.text = item.accountName
+            nameTextView.text = item.userName
             dateTextView.text = toFormatTime(item.date)
 
             // さむね
