@@ -9,6 +9,7 @@ import android.content.Intent
 import android.widget.RemoteViews
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
+import java.text.SimpleDateFormat
 
 /**
  * ニコレポウイジェット
@@ -48,6 +49,10 @@ class NicoRepoHomeWidget : AppWidgetProvider() {
             val componentName = ComponentName(context, NicoRepoHomeWidget::class.java)
             val manager = AppWidgetManager.getInstance(context)
 
+            // 最終更新
+            val updateTime = SimpleDateFormat("HH:mm").format(System.currentTimeMillis())
+            views.setTextViewText(R.id.home_widget_nicorepo_latest_update_text_view, updateTime)
+
             // タイトル部分を押すとアプリが起動するように
             val mainActivityIntent = Intent(context, MainActivity::class.java)
             val mainActivityLaunchPendingIntent = PendingIntent.getActivity(context, 64, mainActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT)
@@ -56,7 +61,7 @@ class NicoRepoHomeWidget : AppWidgetProvider() {
             // 更新ボタン。このServiceに向かってブロードキャストを送信する
             val updateBroadcastIntent = Intent(context, NicoRepoHomeWidget::class.java)
             val updatePendingIntent = PendingIntent.getBroadcast(context, 128, updateBroadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-            views.setOnClickPendingIntent(R.id.home_widget_nicorepo_update_image_view, updatePendingIntent)
+            views.setOnClickPendingIntent(R.id.home_widget_nicorepo_latest_update_text_view, updatePendingIntent)
 
             // ListViewの設定。詳細は NicoRepoHomeWidgetRemoteViewService 参照
             views.setRemoteAdapter(R.id.home_widget_nicorepo_list_view, Intent(context, NicoRepoHomeWidgetRemoteViewService::class.java))

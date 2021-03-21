@@ -40,8 +40,11 @@
         <activity
             android:name=".Activity.KotehanListActivity"
             android:label="@string/kotehan_list" />
+
         <!-- ニコレポウイジェット -->
-        <receiver android:name=".HomeWidget.NicoRepoHomeWidget">
+        <receiver
+            android:name=".HomeWidget.NicoRepoHomeWidget"
+            android:label="@string/home_widget_nicorepo">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

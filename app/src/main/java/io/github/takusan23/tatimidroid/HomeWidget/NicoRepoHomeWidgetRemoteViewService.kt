@@ -113,6 +113,13 @@ class NicoRepoHomeWidgetRemoteViewService : RemoteViewsService() {
         }
     }
 
+    /**
+     * ウイジェットのListView表示で渡すデータ
+     *
+     * @param data ニコレポのデータ
+     * @param iconBitmap ユーザーアイコンのBitmap
+     * @param thumbBitmap サムネのBitmap
+     * */
     private data class NicoRepoHomeWidgetData(
         val data: NicoRepoDataClass,
         val iconBitmap: Bitmap,
