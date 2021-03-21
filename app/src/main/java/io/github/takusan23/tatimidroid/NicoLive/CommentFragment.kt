@@ -1077,6 +1077,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         exoPlayer.release()
         // 牛乳を飲んで状態異常を解除
         activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
     }
 
     override fun onDestroy() {

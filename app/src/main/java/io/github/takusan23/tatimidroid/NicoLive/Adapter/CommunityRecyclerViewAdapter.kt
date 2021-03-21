@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -48,7 +49,7 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val content = holder.timeTextView.context
+        val content = holder.dateTextView.context
         prefSetting = PreferenceManager.getDefaultSharedPreferences(content)
 
         val item = programList[position]
@@ -63,7 +64,7 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
         val isOnAir = liveNow.contains("ON_AIR") || liveNow.contains("Begun")
 
         // ニコ生版ニコニコ実況は時間が取れないので非表示へ
-        holder.timeTextView.isVisible = live_time != "-1"
+        holder.dateTextView.isVisible = live_time != "-1"
 
         //時間を文字列に
         val simpleDateFormat = SimpleDateFormat("MM/dd HH:mm:ss EEE曜日")
@@ -75,17 +76,17 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
 
         if (isOnAir) {
             //放送中
-            holder.timeTextView.text = time
-            holder.timeTextView.setTextColor(Color.RED)
+            holder.dateTextView.text = time
+            holder.dateTextView.setTextColor(Color.RED)
             // 視聴モードボタン用意
             initWatchModeButton(holder, item)
         } else {
             //予約枠
-            holder.timeTextView.text = time
+            holder.dateTextView.text = time
             if (isDarkMode(content)) {
-                holder.timeTextView.setTextColor(Color.parseColor("#ffffff"))
+                holder.dateTextView.setTextColor(Color.parseColor("#ffffff"))
             } else {
-                holder.timeTextView.setTextColor(-1979711488)   //デフォルトのTextViewのフォント色
+                holder.dateTextView.setTextColor(-1979711488)   //デフォルトのTextViewのフォント色
             }
         }
 
@@ -112,6 +113,15 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
             holder.thumbImageView.isVisible = false
         }
 
+        // ON_AIRの部分
+        holder.lifeCycleTextView.text = liveNow
+        // 色
+        holder.lifeCycleTextView.background = if (isOnAir) {
+            ColorDrawable(Color.RED)
+        } else {
+            ColorDrawable(Color.BLUE)
+        }.apply { alpha = (255 * 0.5).toInt() }
+
         // TS予約などのボタン
         holder.liveMenuIconImageView.setOnClickListener {
             val programMenuBottomSheet = ProgramMenuBottomSheet()
@@ -132,11 +142,12 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var titleTextView: TextView = itemView.findViewById(R.id.adapter_community_title_textview)
-        var timeTextView: TextView = itemView.findViewById(R.id.adapter_community_time_textview)
+        var dateTextView: TextView = itemView.findViewById(R.id.adapter_community_date_textview)
         var communityCard: CardView = itemView.findViewById(R.id.adapter_community_card)
         val thumbImageView: ImageView = itemView.findViewById(R.id.adapter_community_program_thumb)
         val liveMenuIconImageView: ImageView = itemView.findViewById(R.id.adapter_community_menu_icon)
         val communityNameTextView: TextView = itemView.findViewById(R.id.adapter_community_community_name_textview)
+        val lifeCycleTextView: TextView = itemView.findViewById(R.id.adapter_community_lifecycle_textview)
     }
 
     // 視聴モード選択ボタン初期化
