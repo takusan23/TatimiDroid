@@ -239,7 +239,9 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
         // コメント
         viewModel.commentList.observe(viewLifecycleOwner) { commentList ->
-            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.rawCommentList = commentList
+            viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
+                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.initCommentList(commentList, duration)
+            }
         }
         // 動画再生 or 動画なしモード
         if (viewModel.isCommentOnlyMode) {

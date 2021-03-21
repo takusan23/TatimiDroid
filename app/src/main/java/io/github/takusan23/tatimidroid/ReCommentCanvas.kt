@@ -7,6 +7,7 @@ import android.view.View
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.*
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -23,42 +24,17 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
 
     private val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(context) }
 
-    /** 鯖からもらったコメント一覧 */
-    var rawCommentList = arrayListOf<CommentJSONParse>()
-        set(value) {
-            /**
-             * コメントのvposをずらす
-             * 10秒に表示するコメントを、10秒に画面外に追加してたら手遅れなのでずらす
-             * */
-            value.forEach { commentJSON ->
-                // 固定コメントは特に何もしない
-                if (!checkUeComment(commentJSON.mail) && !commentJSON.mail.contains("shita")) {
-                    // 大きさ計測
-                    val fontSize = getCommandFontSize(commentJSON.mail).toInt()
-                    // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
-                    val measure = min(getBlackCommentTextPaint(fontSize).measureText(commentJSON.comment).toInt(), finalWidth)
-                    // アスキーアートは速度一定
-                    val isAsciiArt = commentJSON.comment.contains("\n")
-                    val commentMoveSize = if (isAsciiArt) commentMoveMinus else (commentMoveMinus + (commentJSON.comment.length / 8))
-                    // 引いておく
-                    val minusVPos = ((measure / commentMoveSize) * commentUpdateMs) / 10L
-                    (commentJSON.vpos.toInt() - minusVPos.toInt()).let { vpos ->
-                        // 0以上で。
-                        commentJSON.vpos = max(vpos, 0).toString()
-                    }
-                }
-            }
-            field = value
-        }
+    /** 鯖からもらったコメント一覧。[initCommentList]経由で入れられます */
+    private var rawCommentList = arrayListOf<CommentJSONParse>()
 
     /** 流す or 流れた コメント一覧 */
-    val drawNakaCommentList = arrayListOf<ReDrawCommentData>()
+    private val drawNakaCommentList = arrayListOf<ReDrawCommentData>()
 
     /** 上のコメント一覧 */
-    val drawUeCommentList = arrayListOf<ReDrawCommentData>()
+    private val drawUeCommentList = arrayListOf<ReDrawCommentData>()
 
     /** 下のコメント一覧 */
-    val drawShitaCommentList = arrayListOf<ReDrawCommentData>()
+    private val drawShitaCommentList = arrayListOf<ReDrawCommentData>()
 
     /** アスキーアート（コメントアート・職人）のために使う。最後に追加しあ高さが入る */
     private var oldHeight = 0
@@ -147,7 +123,6 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /** コルーチン */
     private val coroutineJob = Job()
 
-
     init {
         // コメントを動かす
         commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
@@ -216,6 +191,42 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }
     }
 
+    /**
+     * コメントの配列を準備する。コメントを追加する時間の計算をする
+     *
+     * @param commentList コメント配列
+     * @param videoDurationMs 動画の長さ。ミリ秒で
+     * */
+    fun initCommentList(commentList: List<CommentJSONParse>, videoDurationMs: Long) {
+        // 動画の3秒前のvposを出す
+        val endVpos = (videoDurationMs - 3000) / 10 // 100vpos = 1sec
+        /**
+         * コメントのvposをずらす
+         * 10秒に表示するコメントを、10秒に画面外に追加してたら手遅れなのでずらす
+         * */
+        commentList.forEach { commentJSON ->
+            // 固定コメントは特に何もしない
+            if (!checkUeComment(commentJSON.mail) && !commentJSON.mail.contains("shita")) {
+                // 大きさ計測
+                val fontSize = getCommandFontSize(commentJSON.mail).toInt()
+                // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
+                val measure = min(getBlackCommentTextPaint(fontSize).measureText(commentJSON.comment).toInt(), finalWidth)
+                // アスキーアートは速度一定
+                val isAsciiArt = commentJSON.comment.contains("\n")
+                val commentMoveSize = if (isAsciiArt) commentMoveMinus else (commentMoveMinus + (commentJSON.comment.length / 8))
+                // 引いておく
+                val minusVPos = ((measure / commentMoveSize) * commentUpdateMs) / 10L
+                // 0以上で。
+                commentJSON.vpos = max((commentJSON.vpos.toInt() - minusVPos.toInt()), 0).toString()
+                // 動画終了3秒前のコメントはすべてまとめる
+                if (commentJSON.vpos.toLong() > endVpos) {
+                    commentJSON.vpos = endVpos.toString()
+                }
+            }
+        }
+        rawCommentList = commentList as ArrayList<CommentJSONParse>
+    }
+
     /** 描画予定コメント配列をクリアする */
     fun clearCommentList() {
         rawCommentList.clear()
@@ -279,7 +290,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // 中コメ
         for (reDrawCommentData in drawNakaCommentList.toList()) {
             if (reDrawCommentData != null) {
-                setCommandPaint(reDrawCommentData.command, reDrawCommentData.fontSize)
+                setCommandPaint(reDrawCommentData.colorCode, reDrawCommentData.fontSize)
                 canvas.drawText(
                     reDrawCommentData.comment,
                     reDrawCommentData.rect.left.toFloat(),
@@ -302,7 +313,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // 上コメ
         for (reDrawCommentData in drawUeCommentList.toList()) {
             if (reDrawCommentData != null) {
-                setCommandPaint(reDrawCommentData.command, reDrawCommentData.fontSize)
+                setCommandPaint(reDrawCommentData.colorCode, reDrawCommentData.fontSize)
                 canvas.drawText(
                     reDrawCommentData.comment,
                     reDrawCommentData.rect.left.toFloat(),
@@ -325,7 +336,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // 下コメ
         for (reDrawCommentData in drawShitaCommentList.toList()) {
             if (reDrawCommentData != null) {
-                setCommandPaint(reDrawCommentData.command, reDrawCommentData.fontSize)
+                setCommandPaint(reDrawCommentData.colorCode, reDrawCommentData.fontSize)
                 canvas.drawText(
                     reDrawCommentData.comment,
                     reDrawCommentData.rect.left.toFloat(),
@@ -428,7 +439,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             pos = "naka",
             fontSize = fontSize.toFloat(),
             measure = measure,
-            asciiArt = asciiArt
+            asciiArt = asciiArt,
+            colorCode = getColor(command),
         )
         drawNakaCommentList.add(data)
     }
@@ -470,7 +482,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             rect = addRect,
             pos = "ue",
             measure = measure,
-            fontSize = fontSize.toFloat()
+            fontSize = fontSize.toFloat(),
+            colorCode = getColor(command),
         )
         drawUeCommentList.add(data)
     }
@@ -512,7 +525,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             rect = addRect,
             pos = "shita",
             measure = measure,
-            fontSize = fontSize.toFloat()
+            fontSize = fontSize.toFloat(),
+            colorCode = getColor(command),
         )
         drawShitaCommentList.add(data)
     }
@@ -577,12 +591,12 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
 
     /**
      * コマンドの色に合わせてPaintを切り替える
-     * @param command コマンド。
+     * @param colorCode カラーコード。16進数
      * */
-    private fun setCommandPaint(command: String, fontSize: Float) {
+    private fun setCommandPaint(colorCode: String, fontSize: Float) {
         paint.textSize = fontSize
         blackPaint.textSize = fontSize
-        paint.color = Color.parseColor(getColor(command))
+        paint.color = Color.parseColor(colorCode)
         paint.alpha = (commentAlpha * 225).toInt() // 0 ~ 225 の範囲で指定するため 225かける
         blackPaint.alpha = (commentAlpha * 225).toInt() // 0 ~ 225 の範囲で指定するため 225かける
         // テキストに影をつける
@@ -590,7 +604,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     }
 
     /**
-     * 色
+     * コマンドから色の部分を取り出してカラーコードにして返す
+     *
      * 大百科参照：https://dic.nicovideo.jp/a/%E3%82%B3%E3%83%A1%E3%83%B3%E3%83%88
      * */
     private fun getColor(command: String): String {
@@ -616,12 +631,13 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             command.contains("blue") -> "#0000FF"
             command.contains("purple") -> "#C000FF"
             command.contains("black") -> "#000000"
-            // command.contains("#") -> {
-            //     return command.split(" ").find { s -> s.contains("#") } ?: "#FFFFFF"
-            //     // return ("#.{6}?").toRegex().find(command)?.value ?: "#FFFFFF"
-            // }
+            // カラーコード直
+            command.contains("#") -> {
+                // 正規表現で出す
+                return ("#.{6}?").toRegex().find(command)?.value ?: "#FFFFFF"
+            }
             // その他
-            else -> "#ffffff"
+            else -> "#FFFFFF"
         }
     }
 
@@ -691,6 +707,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
  * @param pos ue naka shita のどれか
  * @param rect 当たり判定やコメント移動で使う
  * @param videoPos 再生位置。動画の時間
+ * @param asciiArt コメントアートならtrue
+ * @param fontSize 文字の大きさ
+ * @param measure コメントの幅
+ * @param colorCode コメントの色
  * */
 class ReDrawCommentData(
     val comment: String,
@@ -701,4 +721,5 @@ class ReDrawCommentData(
     val fontSize: Float,
     val measure: Float,
     val asciiArt: Boolean = false,
+    val colorCode: String = "#ffffff"
 )

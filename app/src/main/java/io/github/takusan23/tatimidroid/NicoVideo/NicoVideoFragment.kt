@@ -204,7 +204,9 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // コメント
         viewModel.commentList.observe(viewLifecycleOwner) { commentList ->
-            viewBinding.fragmentNicovideoCommentCanvas.rawCommentList = commentList
+            viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
+                viewBinding.fragmentNicovideoCommentCanvas.initCommentList(commentList, duration)
+            }
         }
 
         // 動画情報
