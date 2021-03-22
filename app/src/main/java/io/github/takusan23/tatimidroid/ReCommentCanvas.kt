@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.*
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
@@ -194,40 +195,49 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /**
      * コメントの配列を準備する。コメントを追加する時間の計算をする
      *
+     * 引数の配列はディープコピーされるので複数回呼んでも大丈夫？
+     *
      * @param commentList コメント配列
      * @param videoDurationMs 動画の長さ。ミリ秒で
      * */
     fun initCommentList(commentList: List<CommentJSONParse>, videoDurationMs: Long) {
-        // 動画の3秒前のvposを出す
-        val endVpos = (videoDurationMs - 3000) / 10 // 100vpos = 1sec
-        /**
-         * コメントのvposをずらす
-         * 10秒に表示するコメントを、10秒に画面外に追加してたら手遅れなのでずらす
-         * */
-        commentList.forEach { commentJSON ->
-            // 固定コメントは特に何もしない
-            if (!checkUeComment(commentJSON.mail) && !commentJSON.mail.contains("shita")) {
-                // 大きさ計測
-                val fontSize = getCommandFontSize(commentJSON.mail).toInt()
-                // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
-                val measure = min(getBlackCommentTextPaint(fontSize).measureText(commentJSON.comment).toInt(), finalWidth)
-                // アスキーアートは速度一定
-                val isAsciiArt = commentJSON.comment.contains("\n")
-                val commentMoveSize = if (isAsciiArt) commentMoveMinus else (commentMoveMinus + (commentJSON.comment.length / 8))
-                // 引いておく
-                val minusVPos = ((measure / commentMoveSize) * commentUpdateMs) / 10L
-                // 0以上で。
-                commentJSON.vpos = max((commentJSON.vpos.toInt() - minusVPos.toInt()), 0).toString()
-                // 動画終了3秒前のコメントはすべてまとめる
-                if (commentJSON.vpos.toLong() > endVpos) {
-                    commentJSON.vpos = endVpos.toString()
+        if (videoDurationMs < 0 || commentList.isEmpty()) return
+        thread {
+            // 動画の3秒前のvposを出す
+            val endVpos = (videoDurationMs - 3000) / 10 // 100vpos = 1sec
+
+            /**
+             * コメントのvposをずらす
+             * 10秒に表示するコメントを、10秒に画面外に追加してたら手遅れなのでずらす
+             *
+             * あとディープコピーしないと共有されるので
+             * */
+            val deepCopyList = commentList.map { commentJSONParse -> commentJSONParse.deepCopy(commentJSONParse) }
+            deepCopyList.forEach { commentJSON ->
+                // 固定コメントは特に何もしない
+                if (!checkUeComment(commentJSON.mail) && !commentJSON.mail.contains("shita")) {
+                    // 大きさ計測
+                    val fontSize = getCommandFontSize(commentJSON.mail).toInt()
+                    // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
+                    val measure = min(getBlackCommentTextPaint(fontSize).measureText(commentJSON.comment).toInt(), finalWidth)
+                    // アスキーアートは速度一定
+                    val isAsciiArt = commentJSON.comment.contains("\n")
+                    val commentMoveSize = if (isAsciiArt) commentMoveMinus else (commentMoveMinus + (commentJSON.comment.length / 8))
+                    // 引いておく
+                    val minusVPos = ((measure / commentMoveSize) * commentUpdateMs) / 10L
+                    // 0以上で。
+                    commentJSON.vpos = max((commentJSON.vpos.toInt() - minusVPos.toInt()), 0).toString()
+                    // 動画終了3秒前のコメントはすべてまとめる
+                    if (commentJSON.vpos.toLong() > endVpos) {
+                        commentJSON.vpos = endVpos.toString()
+                    }
                 }
             }
+            rawCommentList = deepCopyList as ArrayList<CommentJSONParse>
         }
-        rawCommentList = commentList as ArrayList<CommentJSONParse>
     }
 
-    /** 描画予定コメント配列をクリアする */
+    /** コメント配列をクリアする */
     fun clearCommentList() {
         rawCommentList.clear()
         drawNakaCommentList.clear()

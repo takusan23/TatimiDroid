@@ -105,4 +105,19 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
             }
         }
     }
+
+    /**
+     * コメントデータをコピーする。DeepCopy。参照渡しじゃない。値渡し
+     *
+     * このクラス、データクラスじゃないのでcopy()がない
+     *
+     * 深海少女　まだまだ沈む　
+     *
+     * @param argCommentJSONParse コピーするコメントクラス
+     * @return コピーした。共有されることのない
+     * */
+    fun deepCopy(argCommentJSONParse: CommentJSONParse): CommentJSONParse {
+        return CommentJSONParse(argCommentJSONParse.commentJson, argCommentJSONParse.roomName, argCommentJSONParse.videoOrLiveId)
+    }
+
 }

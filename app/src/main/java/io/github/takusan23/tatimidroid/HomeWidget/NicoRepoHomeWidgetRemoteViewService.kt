@@ -39,6 +39,7 @@ class NicoRepoHomeWidgetRemoteViewService : RemoteViewsService() {
 
             /** データを取得する処理はここ */
             override fun onDataSetChanged() {
+                // println("widget データ取得")
                 // ドキュメントにも同期処理していいよって書いてあったので遠慮なく
                 runBlocking {
                     nicoRepoList.clear()

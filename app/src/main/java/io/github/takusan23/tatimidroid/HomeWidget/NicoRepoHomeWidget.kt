@@ -74,6 +74,8 @@ class NicoRepoHomeWidget : AppWidgetProvider() {
             // ウイジェット更新
             manager.getAppWidgetIds(componentName).forEach { id ->
                 manager.updateAppWidget(id, views)
+                // ListView更新
+                manager.notifyAppWidgetViewDataChanged(id, R.id.home_widget_nicorepo_list_view)
             }
         }
     }
