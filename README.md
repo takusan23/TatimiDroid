@@ -12,8 +12,9 @@ Android 5.1以上で利用可能<br>
 
 <p align="center">
     <img width="200" src="https://imgur.com/Gg7ToYW.png">
-    <img width="230" src="https://imgur.com/L4vlRi9.png">
+    <img width="200" src="https://imgur.com/z9gEtwl.png">
     <img width="230" src="https://imgur.com/HhnLFIG.png">
+    <img width="200" src="https://imgur.com/Tun8JNr.png">
 </p>
 
 <p align="center" style="font-weight:10">↖最後の立ち見部屋かもしれない</p>

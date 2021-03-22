@@ -599,4 +599,6 @@
     <string name="nicovideo_cache_json_update_no_update_button">動画情報なしで視聴</string>
     <string name="setting_nicovideo_screen_rotation_not_pause_title">画面回転、アプリ切替時に動画を止めない</string>
     <string name="home_widget_nicorepo">ニコレポウイジェット</string>
+    <string name="setting_open_app_info_title">URLからこのアプリを起動、起動解除する</string>
+    <string name="setting_open_app_info_description">端末の設定アプリから変更可能です。開いたら、デフォルトで開く設定を見つけてください。端末によっては名前が違うかも。</string>
 </resources>

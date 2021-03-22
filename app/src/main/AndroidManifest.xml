@@ -81,17 +81,42 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
             <!-- 共有を受け取る labelが共有するときのアプリの名前になる（TwitterとかだとTwiiterじゃなくてツイートになってる部分。あれ） -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+
+            <!-- URLから起動。なんか今までやってこなかったんだけど思い出せない -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:mimeType="text/*" />
+                <!-- https://が記載されてないURLの場合はhttp扱いになるみたい -->
+                <data
+                    android:host="nico.ms"
+                    android:scheme="http" />
+                <data
+                    android:host="nico.ms"
+                    android:scheme="https" />
+                <data
+                    android:host="www.nicovideo.jp"
+                    android:scheme="https" />
+                <data
+                    android:host="live.nicovideo.jp"
+                    android:scheme="https" />
+                <data
+                    android:host="sp.nicovideo.jp"
+                    android:scheme="https" />
+                <data
+                    android:host="sp.live.nicovideo.jp"
+                    android:scheme="https" />
             </intent-filter>
 
             <!-- AppShortcut -->

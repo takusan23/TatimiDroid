@@ -65,6 +65,12 @@
             android:key="setting_rotation_sensor"
             android:summary="@string/setting_rotation_sensor_description"
             android:title="@string/setting_rotation_sensor_title" />
+
+        <Preference
+            android:icon="@drawable/ic_link_black_24dp"
+            android:key="setting_open_app_info"
+            android:summary="@string/setting_open_app_info_description"
+            android:title="@string/setting_open_app_info_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/setting_newplayer_jc_title">

@@ -107,7 +107,19 @@ class SettingsFragment : SearchPreferenceFragment() {
                     // SAFを開く
                     roomDBImporter.start()
                 }
+                "setting_open_app_info" -> {
+                    // 端末のアプリ設定画面を開く
+                    launchSettingAppInfoScreen()
+                }
             }
+        }
+    }
+
+    /** 端末設定のアプリ設定画面へ飛ばす */
+    private fun launchSettingAppInfoScreen() {
+        Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:${requireContext().packageName}".toUri()).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(this)
         }
     }
 

@@ -119,8 +119,10 @@ class MainActivity : AppCompatActivity() {
          * ただし、画面回転した場合は動かさない
          * */
         if (savedInstanceState == null) {
+            // 共有から起動
             lunchShareIntent()
-
+            // ブラウザから起動
+            launchBrowser()
             // AppShortcutから起動した際
             launchPlayer()
         }
@@ -198,6 +200,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    /** ブラウザから起動 */
+    private fun launchBrowser() {
+        val url = intent.data?.toString()
+        if (url != null) {
+            launchIdRegexPlay(url)
+        }
     }
 
     /**
@@ -427,7 +437,7 @@ class MainActivity : AppCompatActivity() {
             // URL
             val url = extras?.getCharSequence(Intent.EXTRA_TEXT) ?: ""
             // 正規表現で取り出す
-            idRegexLaunchPlay(url.toString())
+            launchIdRegexPlay(url.toString())
         }
     }
 
@@ -439,7 +449,7 @@ class MainActivity : AppCompatActivity() {
         viewBinding.activityMainContentIdEditText.setOnKeyListener { v, keyCode, event ->
             // 二回呼ばれる対策
             if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                idRegexLaunchPlay(viewBinding.activityMainContentIdEditText.text.toString())
+                launchIdRegexPlay(viewBinding.activityMainContentIdEditText.text.toString())
             }
             false
         }
@@ -459,7 +469,7 @@ class MainActivity : AppCompatActivity() {
         }
         viewBinding.activityMainConnectButton.setOnClickListener {
             // 画面切り替え
-            idRegexLaunchPlay(viewBinding.activityMainContentIdEditText.text.toString())
+            launchIdRegexPlay(viewBinding.activityMainContentIdEditText.text.toString())
         }
     }
 
@@ -467,7 +477,7 @@ class MainActivity : AppCompatActivity() {
      * 正規表現でIDを見つけて再生画面を表示させる。
      * @param text IDが含まれている文字列。
      * */
-    private fun idRegexLaunchPlay(text: String) {
+    private fun launchIdRegexPlay(text: String) {
         // 正規表現
         val nicoIDMatcher = NICOLIVE_ID_REGEX.toPattern().matcher(text)
         val communityIDMatcher = NICOCOMMUNITY_ID_REGEX.toPattern().matcher(text)
