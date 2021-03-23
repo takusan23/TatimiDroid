@@ -83,6 +83,7 @@ class NicoRepoHomeWidgetRemoteViewService : RemoteViewsService() {
                         } else {
                             putExtra("liveId", nicoRepoData.data.contentId)
                         }
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
                     }
                     setOnClickFillInIntent(R.id.home_widget_nicorepo_item_root, mainActivityIntent)
                     // ダークモード

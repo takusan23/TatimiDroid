@@ -17,6 +17,8 @@ import java.io.StringReader
  * xml形式のコメントをJSON形式に変換する。
  * */
 class XMLCommentJSON(val context: Context?) {
+    /** 保存先関係 */
+    private val nicoVideoCache = NicoVideoCache(context)
 
     /**
      * xmlのコメントをJSON形式に変換する。多分重いからコルーチン
@@ -25,9 +27,6 @@ class XMLCommentJSON(val context: Context?) {
      * */
     fun xmlToJSON(fileName: String): Deferred<Int> = GlobalScope.async {
         println(System.currentTimeMillis())
-
-        // ScopedStorage
-        val media = context?.getExternalFilesDir(null)
 
         // コメントXML
         val xmlPath = commentXmlFilePath(fileName) ?: return@async 1
@@ -95,7 +94,7 @@ class XMLCommentJSON(val context: Context?) {
         }
 
         // 保存。
-        val jsonFile = File("${media?.path}/cache/$fileName/${fileName}_comment.json")
+        val jsonFile = File("${nicoVideoCache.getCacheFolderPath()}/$fileName/${fileName}_comment.json")
         jsonFile.writeText(jsonArray.toString())
 
         println(System.currentTimeMillis())
@@ -183,10 +182,10 @@ class XMLCommentJSON(val context: Context?) {
      * @param fileName フォルダ名。基本動画ID
      * */
     fun commentXmlFilePath(fileName: String): String? {
-        // ScopedStorage
-        val media = context?.getExternalFilesDir(null)
         // ふぉるだ
-        val videoFile = File("${media?.path}/cache/$fileName")
+        val folderPath = nicoVideoCache.getCacheFolderPath()
+        // フォルダの中身を探していく
+        val videoFile = File(folderPath, fileName)
         if (videoFile.listFiles() != null) {
             videoFile.listFiles()?.forEach {
                 if (it.extension == "xml") {
@@ -202,12 +201,8 @@ class XMLCommentJSON(val context: Context?) {
      * @param fileName ファイル名。基本動画ID
      * */
     fun commentJSONFileExists(fileName: String): Boolean {
-        // ScopedStorage
-        val media = context?.getExternalFilesDir(null)
-        // コメントXML
-        val xmlFile = File("${media?.path}/cache/$fileName/${fileName}_comment.json")
         // ファイル存在するか
-        return xmlFile.exists()
+        return File("${nicoVideoCache.getCacheFolderPath()}/$fileName/$fileName.json").exists()
     }
 
 }

@@ -421,6 +421,7 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             // 再取得
             lifecycleScope.launch {
                 nicoVideoCache.getReGetVideoInfoComment(nicoVideoData.videoId, userSession, context)
+                dismiss()
             }
         }
 

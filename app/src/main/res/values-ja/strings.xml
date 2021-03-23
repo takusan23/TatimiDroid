@@ -311,8 +311,8 @@
     <string name="get_cache_video_ok">動画のキャッシュを取得しました</string>
     <string name="delete_cache">キャッシュを削除する</string>
     <string name="internet_not_connection_cache">インターネット接続がないためキャッシュ一覧を表示しています。</string>
-    <string name="cache_update_ok">番組情報、コメントを更新しました</string>
-    <string name="cache_updateing">番組情報、コメントを更新しています</string>
+    <string name="cache_update_ok">動画情報、コメントを更新しました</string>
+    <string name="cache_updateing">動画情報、コメントを更新しています</string>
     <string name="encryption_not_download">暗号化されている動画は保存できません。</string>
     <string name="add_mylist">マイリスト登録</string>
     <string name="get_cache_re_get">動画情報、コメントを再取得</string>
@@ -599,4 +599,8 @@
     <string name="home_widget_nicorepo">ニコレポウイジェット</string>
     <string name="setting_open_app_info_title">URLからこのアプリを起動、起動解除する</string>
     <string name="setting_open_app_info_description">端末の設定アプリから変更可能です。開いたら、デフォルトで開く設定を見つけてください。端末によっては名前が違うかも。</string>
+    <string name="setting_nicovideo_cache_use_sd_card_title">SDカードへ保存する</string>
+    <string name="setting_nicovideo_cache_use_sd_card_description">保存先をSDカードにします。SDカードが利用できない場合は端末内ストレージに保存されます。SDカードが刺さる新しめのAndroid端末ほしい。</string>
+    <string name="nicovideo_cache_storage_sd_card">保存先：SDカード</string>
+    <string name="nicovideo_cache_storage_device">保存先：端末内ストレージ</string>
 </resources>

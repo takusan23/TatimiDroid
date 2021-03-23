@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheJSON
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
+import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.launch
 import okhttp3.internal.format
 
@@ -33,6 +34,9 @@ class NicoVideoCacheFragmentViewModel(application: Application) : AndroidViewMod
     /** キャッシュ利用合計容量 */
     val totalUsedStorageGB = MutableLiveData<String>()
 
+    /** 保存先LiveData */
+    val storageMessage = MutableLiveData<String>()
+
     init {
         init()
     }
@@ -48,8 +52,20 @@ class NicoVideoCacheFragmentViewModel(application: Application) : AndroidViewMod
             recyclerViewList.value = list
             // フィルター適用する
             applyFilter()
+            // 保存先をLiveDataで送信する
+            sendStorageMessage()
             // 合計サイズ
             initStorageSpace()
+        }
+    }
+
+    /** 保存先メッセージをLiveDataで送信する */
+    private fun sendStorageMessage() {
+        storageMessage.value = if (nicoVideoCache.isUseSDCardFolder() && nicoVideoCache.canUseSDCard()) {
+            // SDカードを利用 で SDカードが利用可能
+            context.getString(R.string.nicovideo_cache_storage_sd_card)
+        } else {
+            context.getString(R.string.nicovideo_cache_storage_device)
         }
     }
 

@@ -131,13 +131,6 @@
 
         <SwitchPreference
             android:defaultValue="false"
-            android:icon="@drawable/ic_folder_open_black_24dp"
-            android:key="setting_nicovideo_cache_priority"
-            android:summary="@string/setting_cache_priority_description"
-            android:title="@string/setting_cache_priority_title" />
-
-        <SwitchPreference
-            android:defaultValue="false"
             android:icon="@drawable/ic_sort_black_24dp"
             android:key="setting_nicovideo_mylist_sort_itemcount"
             android:title="@string/mylist_sort_itemcount_title" />
@@ -174,6 +167,19 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/get_cache">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_folder_open_black_24dp"
+            android:key="setting_nicovideo_cache_priority"
+            android:summary="@string/setting_cache_priority_description"
+            android:title="@string/setting_cache_priority_title" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_outline_sd_card_24"
+            android:key="setting_nicovideo_cache_use_sd_card"
+            android:summary="@string/setting_nicovideo_cache_use_sd_card_description"
+            android:title="@string/setting_nicovideo_cache_use_sd_card_title" />
 
         <SeekBarPreference
             android:defaultValue="1"

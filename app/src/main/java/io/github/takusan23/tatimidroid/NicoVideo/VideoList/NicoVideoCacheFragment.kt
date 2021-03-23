@@ -79,7 +79,13 @@ class NicoVideoCacheFragment : Fragment() {
 
         // 合計容量
         viewModel.totalUsedStorageGB.observe(viewLifecycleOwner) { gb ->
-            viewBinding.fragmentNicovideoCacheStorageInfoTextView.text = "${getString(R.string.cache_usage)}：$gb GB"
+            // 保存先
+            viewModel.storageMessage.observe(viewLifecycleOwner) { storageMsg ->
+                viewBinding.fragmentNicovideoCacheStorageInfoTextView.text = """
+                ${getString(R.string.cache_usage)}：$gb GB
+                $storageMsg
+                """.trimIndent()
+            }
         }
 
         // フィルター / 並び替え BottomFragment

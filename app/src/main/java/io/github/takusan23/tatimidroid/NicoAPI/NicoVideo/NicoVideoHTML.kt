@@ -447,7 +447,7 @@ class NicoVideoHTML {
     }
 
     /**
-     * コメント取得API。コルーチン。JSON形式の方です。xmlではない（ニコるくん取れないしCommentJSONParse使い回せない）。
+     * コメント取得API。コルーチン。JSON形式の方です。
      * コメント取得くっっっっそめんどくせえ
      * @param userSession ユーザーセッション
      * @param jsonObject js-initial-watch-dataのdata-api-dataのJSON

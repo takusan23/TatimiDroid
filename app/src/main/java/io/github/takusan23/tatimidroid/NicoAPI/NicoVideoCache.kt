@@ -2,9 +2,12 @@ package io.github.takusan23.tatimidroid.NicoAPI
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.NicoAPI.Cache.CacheFilterDataClass
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
@@ -24,6 +27,7 @@ import java.util.*
 
 /**
  * キャッシュ取得など。
+ *
  * APIじゃないけど置く場所ないのでここで
  * */
 class NicoVideoCache(val context: Context?) {
@@ -33,6 +37,13 @@ class NicoVideoCache(val context: Context?) {
 
     /** キャッシュ合計サイズ。注意：loadCache()を呼ぶまで0です */
     var cacheTotalSize = 0L
+
+    /**
+     * SDカードを保存先に設定している場合はtrue。
+     *
+     * SDカードが刺さる端末ほしい（持ってるけど古い）
+     * */
+    fun isUseSDCardFolder() = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("setting_nicovideo_cache_use_sd_card", false)
 
     /**
      * キャッシュ用フォルダからデータ持ってくる。
@@ -45,14 +56,11 @@ class NicoVideoCache(val context: Context?) {
         val list = arrayListOf<NicoVideoData>()
         // データクラス変換のためだけ
         val nicoVideoHTML = NicoVideoHTML()
-        // ScopedStorage
-        if (context?.getExternalFilesDir(null) != null) {
-            val media = context.getExternalFilesDir(null)
+        // 端末固有ストレージ
+        val cacheFolderPath = getCacheFolderPath()
+        if (cacheFolderPath != null) {
             // 動画キャッシュようフォルダ作成
-            val cacheFolder = File("${media?.path}/cache")
-            if (!cacheFolder.exists()) {
-                cacheFolder.mkdir()
-            }
+            val cacheFolder = File(cacheFolderPath)
             // 一覧取得
             cacheFolder.listFiles()?.forEach {
                 it.listFiles()?.forEach {
@@ -288,15 +296,43 @@ class NicoVideoCache(val context: Context?) {
         }
     }
 
-    /** キャッシュフォルダのパス取得 */
-    fun getCacheFolderPath(): String? {
-        val media = context?.getExternalFilesDir(null)
+    /**
+     * キャッシュフォルダのパス取得
+     *
+     * @param isUseSDCard SDカードを保存先として利用する場合はtrue。ただしSDカードが刺さっていなければtrueでも変わらない。
+     * @return Contextがnullならnull
+     * */
+    fun getCacheFolderPath(isUseSDCard: Boolean = isUseSDCardFolder()): String? {
+        context ?: return null
+        // 保存可能フォルダを取得
+        val folderList = ContextCompat.getExternalFilesDirs(context, null)
+        // 保存先選定
+        val parentFolder = when {
+            isUseSDCard && canUseSDCard() -> folderList[1] // SDカードを使う設定ならこれ
+            else -> folderList[0] // SDカード未対応、もしくはあるけど端末のストレージ使う
+        }
         // 動画キャッシュようフォルダ作成
-        val cacheFolder = File(media, "cache")
+        val cacheFolder = File(parentFolder, "cache")
         if (!cacheFolder.exists()) {
             cacheFolder.mkdir()
         }
         return cacheFolder.path
+    }
+
+    /**
+     * SDカードが利用できるか。SDカードスロットないとか利用できない場合はfalse
+
+     * @return アクセスできる場合はtrue
+     * */
+    fun canUseSDCard(): Boolean {
+        context ?: return false
+        val canAccessFolderList = ContextCompat.getExternalFilesDirs(context, null)
+        if (canAccessFolderList.size <= 1) {
+            // SDカード入らない
+            return false
+        }
+        val sdCardFolder = canAccessFolderList[1]
+        return Environment.getExternalStorageState(sdCardFolder) == Environment.MEDIA_MOUNTED
     }
 
     /** キャッシュ取得の際に一時的に使えるフォルダのパス取得 */
