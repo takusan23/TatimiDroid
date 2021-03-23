@@ -962,48 +962,63 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /** アスペクト比を直す。ミニプレイヤーと全画面UIのアスペクト比も直す */
     private fun aspectRatioFix() {
-        // 画面の幅/高さ取得。Android 11に対応した
-        val displayWidth = DisplaySizeTool.getDisplayWidth(context)
-        val displayHeight = DisplaySizeTool.getDisplayHeight(context)
-        val isLandScape = commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        if (isLandScape) {
-            // 横画面時
-            val playerWidth = if (isNimadoMode) displayWidth / 4 else displayWidth / 2
-            val playerHeight = (9F / 16 * playerWidth)
-            // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
-            viewBinding.commentFragmentMotionLayout?.apply {
-                getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
-                    constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt())
-                    constrainWidth(R.id.comment_fragment_surface_view, playerWidth)
+        viewBinding.root.doOnLayout {
+            val displayWidth = viewBinding.root.width
+            val displayHeight = viewBinding.root.height
+            val isLandScape = commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            if (isLandScape) {
+                // 横画面時
+                val playerWidth = if (isNimadoMode) displayWidth / 4 else displayWidth / 2
+                val playerHeight = (9F / 16 * playerWidth)
+                // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
+                viewBinding.commentFragmentMotionLayout?.apply {
+                    getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
+                        constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt())
+                        constrainWidth(R.id.comment_fragment_surface_view, playerWidth)
+                    }
+                    // ミニプレイヤー時
+                    getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
+                        constrainHeight(R.id.comment_fragment_surface_view, (playerHeight / 1.5).toInt())
+                        constrainWidth(R.id.comment_fragment_surface_view, (playerWidth / 1.5).toInt())
+                    }
+                    getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
+                        constrainHeight(R.id.comment_fragment_surface_view, (playerHeight / 1.5).toInt())
+                        constrainWidth(R.id.comment_fragment_surface_view, (playerWidth / 1.5).toInt())
+                    }
+                    // 全画面
+                    getConstraintSet(R.id.comment_fragment_transition_fullscreen)?.apply {
+                        val fullScreenHeight = (displayWidth / 16) * 9
+                        if (fullScreenHeight > displayHeight) {
+                            // 画面外に行く
+                            val fullScreenWidth = (displayHeight / 9) * 16
+                            constrainHeight(R.id.comment_fragment_surface_view, displayHeight)
+                            constrainWidth(R.id.comment_fragment_surface_view, fullScreenWidth)
+                        } else {
+                            // おさまる
+                            constrainHeight(R.id.comment_fragment_surface_view, fullScreenHeight)
+                            constrainWidth(R.id.comment_fragment_surface_view, displayWidth)
+                        }
+                    }
                 }
-                // ミニプレイヤー時
-                getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
-                    constrainHeight(R.id.comment_fragment_surface_view, (playerHeight / 1.5).toInt())
-                    constrainWidth(R.id.comment_fragment_surface_view, (playerWidth / 1.5).toInt())
-                }
-                getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
-                    constrainHeight(R.id.comment_fragment_surface_view, (playerHeight / 1.5).toInt())
-                    constrainWidth(R.id.comment_fragment_surface_view, (playerWidth / 1.5).toInt())
-                }
-            }
-        } else {
-            // 縦画面時
-            val playerWidth = if (isNimadoMode) displayWidth / 2 else displayWidth
-            val playerHeight = (9F / 16 * playerWidth)
-            // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
-            viewBinding.commentFragmentMotionLayout?.apply {
-                getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
-                    constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt())
-                    constrainWidth(R.id.comment_fragment_surface_view, playerWidth)
-                }
-                // ミニプレイヤー時
-                getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
-                    constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt() / 2)
-                    constrainWidth(R.id.comment_fragment_surface_view, playerWidth / 2)
-                }
-                getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
-                    constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt() / 2)
-                    constrainWidth(R.id.comment_fragment_surface_view, playerWidth / 2)
+            } else {
+                // 縦画面時
+                val playerWidth = if (isNimadoMode) displayWidth / 2 else displayWidth
+                val playerHeight = (9F / 16 * playerWidth)
+                // MotionLayoutのConstraintSetの高さを変えることになるので少しめんどい
+                viewBinding.commentFragmentMotionLayout?.apply {
+                    getConstraintSet(R.id.comment_fragment_transition_start)?.apply {
+                        constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt())
+                        constrainWidth(R.id.comment_fragment_surface_view, playerWidth)
+                    }
+                    // ミニプレイヤー時
+                    getConstraintSet(R.id.comment_fragment_transition_end)?.apply {
+                        constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt() / 2)
+                        constrainWidth(R.id.comment_fragment_surface_view, playerWidth / 2)
+                    }
+                    getConstraintSet(R.id.comment_fragment_transition_finish)?.apply {
+                        constrainHeight(R.id.comment_fragment_surface_view, playerHeight.toInt() / 2)
+                        constrainWidth(R.id.comment_fragment_surface_view, playerWidth / 2)
+                    }
                 }
             }
         }

@@ -403,10 +403,19 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         if (!isAdded) return
         fragmentPlayerFrameLayout.doOnNextLayout {
             val playerHeight = fragmentPlayerFrameLayout.height
-            val playerWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(videoWidth, videoHeight, playerHeight).roundToInt()
-            nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
-                width = playerWidth
-                height = playerHeight
+            val playerWidth = fragmentPlayerFrameLayout.width
+            val calcWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(videoWidth, videoHeight, playerHeight).roundToInt()
+            if (calcWidth > fragmentPlayerFrameLayout.width) {
+                // 画面外にプレイヤーが行く
+                nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
+                    width = playerWidth
+                    height = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(videoWidth, videoHeight, playerWidth).roundToInt()
+                }
+            } else {
+                nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
+                    width = calcWidth
+                    height = playerHeight
+                }
             }
         }
     }

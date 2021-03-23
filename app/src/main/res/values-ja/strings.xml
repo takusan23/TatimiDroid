@@ -245,8 +245,6 @@
     <string name="setting_font_size_reset">フォントサイズをリセット</string>
     <string name="font_setting">フォント設定</string>
     <string name="setting_font_description">コメントビューアの文字の大きさや、フォントファイルを利用できます。</string>
-    <string name="setting_disconnect_activity_finish_title">番組が終了したらコメントビューアーを終了する</string>
-    <string name="setting_disconnect_activity_finish_description">寝落ちしても電池切れを避けることが出来ます。</string>
     <string name="tag_edit">タグ編集</string>
     <string name="community_follow">コミュニティフォロー</string>
     <string name="user_follow">ユーザーフォロー</string>

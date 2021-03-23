@@ -19,6 +19,7 @@ import androidx.annotation.RequiresApi
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
@@ -467,59 +468,69 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /** アスペクト比を直す関数 */
     private fun aspectRatioFix(width: Int, height: Int) {
-        val displayWidth = DisplaySizeTool.getDisplayWidth(requireContext())
-        val displayHeight = DisplaySizeTool.getDisplayHeight(requireContext())
-        if (isLandscape()) {
-            // 横画面
-            var playerWidth = displayWidth / 2
-            var playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, playerWidth).roundToInt()
-            // 縦動画の場合は調整する
-            if (playerHeight > displayHeight) {
-                playerWidth /= 2
-                playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, playerWidth).roundToInt()
-            }
-            // レイアウト調整。プレイヤーのFrameLayoutのサイズを変える
-            viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_start).apply {
-                constrainHeight(R.id.fragment_nicovideo_surface_view, playerHeight)
-                constrainWidth(R.id.fragment_nicovideo_surface_view, playerWidth)
-            }
-            // ミニプレイヤーも
-            viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
-                constrainHeight(R.id.fragment_nicovideo_surface_view, (playerHeight / 1.5).roundToInt())
-                constrainWidth(R.id.fragment_nicovideo_surface_view, (playerWidth / 1.5).roundToInt())
-            }
-            viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_finish).apply {
-                constrainHeight(R.id.fragment_nicovideo_surface_view, (playerHeight / 1.5).roundToInt())
-                constrainWidth(R.id.fragment_nicovideo_surface_view, (playerWidth / 1.5).roundToInt())
-            }
-            // 全画面UI
-            viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_fullscreen).apply {
-                val fullScreenWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(width, height, displayHeight).toInt()
-                constrainHeight(R.id.fragment_nicovideo_surface_view, displayHeight)
-                constrainWidth(R.id.fragment_nicovideo_surface_view, fullScreenWidth)
-            }
-        } else {
-            // 縦画面
-            var playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, displayWidth).roundToInt()
-            var playerWidth = displayWidth
-            // 縦動画の場合は調整する
-            if (playerHeight > displayWidth) {
-                playerWidth /= 2
-                playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, playerWidth).roundToInt()
-            }
-            // レイアウト調整。プレイヤーのFrameLayoutのみ。背景はプレイヤーFrameLayoutの高さに合うように制約が設定してある。幅は最大
-            viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_start).apply {
-                constrainHeight(R.id.fragment_nicovideo_surface_view, playerHeight)
-                constrainWidth(R.id.fragment_nicovideo_surface_view, playerWidth)
-            }
-            // ミニプレイヤーも
-            viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
-                constrainHeight(R.id.fragment_nicovideo_surface_view, playerHeight / 2)
-                constrainWidth(R.id.fragment_nicovideo_surface_view, playerWidth / 2)
-            }
-            viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_finish).apply {
-                constrainHeight(R.id.fragment_nicovideo_surface_view, playerHeight / 2)
-                constrainWidth(R.id.fragment_nicovideo_surface_view, playerWidth / 2)
+        viewBinding.root.doOnLayout {
+            val displayWidth = viewBinding.root.width
+            val displayHeight = viewBinding.root.height
+            if (isLandscape()) {
+                // 横画面
+                var playerWidth = displayWidth / 2
+                var playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, playerWidth).roundToInt()
+                // 縦動画の場合は調整する
+                if (playerHeight > displayHeight) {
+                    playerWidth /= 2
+                    playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, playerWidth).roundToInt()
+                }
+                // レイアウト調整。プレイヤーのFrameLayoutのサイズを変える
+                viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_start).apply {
+                    constrainHeight(R.id.fragment_nicovideo_surface_view, playerHeight)
+                    constrainWidth(R.id.fragment_nicovideo_surface_view, playerWidth)
+                }
+                // ミニプレイヤーも
+                viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
+                    constrainHeight(R.id.fragment_nicovideo_surface_view, (playerHeight / 1.5).roundToInt())
+                    constrainWidth(R.id.fragment_nicovideo_surface_view, (playerWidth / 1.5).roundToInt())
+                }
+                viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_finish).apply {
+                    constrainHeight(R.id.fragment_nicovideo_surface_view, (playerHeight / 1.5).roundToInt())
+                    constrainWidth(R.id.fragment_nicovideo_surface_view, (playerWidth / 1.5).roundToInt())
+                }
+                // 全画面UI
+                viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_fullscreen).apply {
+                    val fullScreenHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, displayWidth).toInt()
+                    if (fullScreenHeight > displayHeight) {
+                        // 画面外に行く
+                        val fullScreenWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(width, height, displayHeight).toInt()
+                        constrainHeight(R.id.fragment_nicovideo_surface_view, displayHeight)
+                        constrainWidth(R.id.fragment_nicovideo_surface_view, fullScreenWidth)
+                    } else {
+                        // おさまる
+                        constrainHeight(R.id.fragment_nicovideo_surface_view, fullScreenHeight)
+                        constrainWidth(R.id.fragment_nicovideo_surface_view, displayWidth)
+                    }
+                }
+            } else {
+                // 縦画面
+                var playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, displayWidth).roundToInt()
+                var playerWidth = displayWidth
+                // 縦動画の場合は調整する
+                if (playerHeight > displayWidth) {
+                    playerWidth /= 2
+                    playerHeight = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(width, height, playerWidth).roundToInt()
+                }
+                // レイアウト調整。プレイヤーのFrameLayoutのみ。背景はプレイヤーFrameLayoutの高さに合うように制約が設定してある。幅は最大
+                viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_start).apply {
+                    constrainHeight(R.id.fragment_nicovideo_surface_view, playerHeight)
+                    constrainWidth(R.id.fragment_nicovideo_surface_view, playerWidth)
+                }
+                // ミニプレイヤーも
+                viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_end).apply {
+                    constrainHeight(R.id.fragment_nicovideo_surface_view, playerHeight / 2)
+                    constrainWidth(R.id.fragment_nicovideo_surface_view, playerWidth / 2)
+                }
+                viewBinding.fragmentNicovideoMotionLayout.getConstraintSet(R.id.fragment_nicovideo_transition_finish).apply {
+                    constrainHeight(R.id.fragment_nicovideo_surface_view, playerHeight / 2)
+                    constrainWidth(R.id.fragment_nicovideo_surface_view, playerWidth / 2)
+                }
             }
         }
     }

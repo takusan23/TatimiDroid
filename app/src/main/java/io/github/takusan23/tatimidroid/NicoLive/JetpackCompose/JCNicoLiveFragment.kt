@@ -496,7 +496,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             }
             else -> {
                 // 生主コメント表示
-                nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.text = HtmlCompat.fromHtml(comment,HtmlCompat.FROM_HTML_MODE_COMPACT)
+                nicolivePlayerUIBinding.includeNicolivePlayerUneiCommentTextView.text = HtmlCompat.fromHtml(comment, HtmlCompat.FROM_HTML_MODE_COMPACT)
                 uneiAnim.alert(DropPopAlert.ALERT_DROP)
             }
         }
@@ -591,10 +591,19 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         if (!isAdded) return
         fragmentPlayerFrameLayout.doOnNextLayout {
             val playerHeight = fragmentPlayerFrameLayout.height
-            val playerWidth = (playerHeight / 9) * 16
-            nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
-                width = playerWidth
-                height = playerHeight
+            val playerWidth = fragmentPlayerFrameLayout.width
+            val calcWidth = (playerHeight / 9) * 16
+            if (calcWidth > fragmentPlayerFrameLayout.width) {
+                // 画面外にプレイヤーが行く
+                nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
+                    width = playerWidth
+                    height = (playerWidth / 16) * 9
+                }
+            } else {
+                nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
+                    width = calcWidth
+                    height = playerHeight
+                }
             }
         }
     }

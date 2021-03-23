@@ -547,9 +547,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
             showToast("${getString(R.string.oidashi)}\uD83C\uDD7F") // パーキングの絵文字
         }
         // Activity終了
-        if (prefSetting.getBoolean("setting_disconnect_activity_finish", false)) {
-            messageLiveData.postValue("finish")
-        }
+        messageLiveData.postValue("finish")
     }
 
     /** 延長メッセージを受け取る */
