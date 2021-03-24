@@ -22,5 +22,6 @@ data class NicoVideoData(
     val uploaderName: String? = null, // キャッシュ再生で使うからキャッシュ以外はnull
     val videoTag: ArrayList<String>? = arrayListOf(), // キャッシュ再生で使うからキャッシュ以外は省略していいよ
     val mylistId: String? = null, // マイリストのID。削除の時に使う。
-    val isToriaezuMylist: Boolean = false // とりあえずマイリストのときはtrue。他のマイリストorそもそもマイリストじゃないときはfalse
+    val isToriaezuMylist: Boolean = false, // とりあえずマイリストのときはtrue。他のマイリストorそもそもマイリストじゃないときはfalse
+    val likeCount: Int = -1, // いいね数があれば入ってる
 ) : Serializable

@@ -43,7 +43,7 @@ class NicoVideoCache(val context: Context?) {
      *
      * SDカードが刺さる端末ほしい（持ってるけど古い）
      * */
-    fun isUseSDCardFolder() = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("setting_nicovideo_cache_use_sd_card", false)
+    fun isEnableUseSDCard() = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("setting_nicovideo_cache_use_sd_card", false)
 
     /**
      * キャッシュ用フォルダからデータ持ってくる。
@@ -302,7 +302,7 @@ class NicoVideoCache(val context: Context?) {
      * @param isUseSDCard SDカードを保存先として利用する場合はtrue。ただしSDカードが刺さっていなければtrueでも変わらない。
      * @return Contextがnullならnull
      * */
-    fun getCacheFolderPath(isUseSDCard: Boolean = isUseSDCardFolder()): String? {
+    fun getCacheFolderPath(isUseSDCard: Boolean = isEnableUseSDCard()): String? {
         context ?: return null
         // 保存可能フォルダを取得
         val folderList = ContextCompat.getExternalFilesDirs(context, null)

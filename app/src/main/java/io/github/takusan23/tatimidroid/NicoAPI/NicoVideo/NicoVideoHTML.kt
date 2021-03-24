@@ -76,6 +76,7 @@ class NicoVideoHTML {
     suspend fun createNicoVideoData(jsonObject: JSONObject, isCache: Boolean = false) = withContext(Dispatchers.Default) {
         // JSON化
         val videoObject = jsonObject.getJSONObject("video")
+        val videoCountObject = videoObject.getJSONObject("count")
         // データクラス化
         NicoVideoData(
             isCache = isCache,
@@ -84,9 +85,10 @@ class NicoVideoHTML {
             videoId = videoObject.getString("id"),
             thum = videoObject.getJSONObject("thumbnail").getString("url"),
             date = registeredAtToUnixTime(videoObject.getString("registeredAt")),
-            viewCount = videoObject.getJSONObject("count").getString("view"),
-            commentCount = videoObject.getJSONObject("count").getString("comment"),
-            mylistCount = videoObject.getJSONObject("count").getString("mylist"),
+            viewCount = videoCountObject.getString("view"),
+            commentCount = videoCountObject.getString("comment"),
+            mylistCount = videoCountObject.getString("mylist"),
+            likeCount = videoCountObject.getInt("like"),
             isToriaezuMylist = false,
             duration = videoObject.getLong("duration"),
             uploaderName = getUploaderName(jsonObject),

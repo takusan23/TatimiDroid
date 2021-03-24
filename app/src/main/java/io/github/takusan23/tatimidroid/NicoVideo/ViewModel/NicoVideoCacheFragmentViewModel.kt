@@ -61,7 +61,7 @@ class NicoVideoCacheFragmentViewModel(application: Application) : AndroidViewMod
 
     /** 保存先メッセージをLiveDataで送信する */
     private fun sendStorageMessage() {
-        storageMessage.value = if (nicoVideoCache.isUseSDCardFolder() && nicoVideoCache.canUseSDCard()) {
+        storageMessage.value = if (nicoVideoCache.isEnableUseSDCard() && nicoVideoCache.canUseSDCard()) {
             // SDカードを利用 で SDカードが利用可能
             context.getString(R.string.nicovideo_cache_storage_sd_card)
         } else {

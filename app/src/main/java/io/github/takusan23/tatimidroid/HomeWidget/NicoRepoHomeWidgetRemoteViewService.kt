@@ -86,12 +86,18 @@ class NicoRepoHomeWidgetRemoteViewService : RemoteViewsService() {
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
                     }
                     setOnClickFillInIntent(R.id.home_widget_nicorepo_item_root, mainActivityIntent)
-                    // ダークモード
                     val color = if (isDarkMode(context)) Color.BLACK else Color.WHITE
                     if (isDarkMode(context)) {
+                        // ダークモード
                         setTextColor(R.id.home_widget_nicorepo_item_name_text_view, Color.WHITE)
                         setTextColor(R.id.home_widget_nicorepo_item_description_text_view, Color.WHITE)
                         setTextColor(R.id.home_widget_nicorepo_item_title_text_view, Color.WHITE)
+                    } else {
+                        // らいとてーま
+                        val defaultTextViewColor = -1979711488
+                        setTextColor(R.id.home_widget_nicorepo_item_name_text_view, defaultTextViewColor)
+                        setTextColor(R.id.home_widget_nicorepo_item_description_text_view, defaultTextViewColor)
+                        setTextColor(R.id.home_widget_nicorepo_item_title_text_view, defaultTextViewColor)
                     }
                     setInt(R.id.home_widget_nicorepo_item_root, "setBackgroundColor", color)
                 }

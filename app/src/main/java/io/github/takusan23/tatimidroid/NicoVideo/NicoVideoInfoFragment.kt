@@ -26,6 +26,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoLikeThanksMessageBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoMyListListFragment
@@ -204,7 +205,10 @@ class NicoVideoInfoFragment : Fragment() {
             viewBinding.fragmentNicovideoInfoLikeChip.isVisible = true
             // LiveData監視
             viewModel.isLikedLiveData.observe(viewLifecycleOwner) { isLiked ->
-                setLikeChipStatus(isLiked)
+                viewModel.nicoVideoData.observe(viewLifecycleOwner) { data ->
+                    // いいねボタン変更
+                    setLikeChipStatus(isLiked, data)
+                }
             }
             // お礼メッセージ監視
             viewModel.likeThanksMessageLiveData.observe(viewLifecycleOwner) {
@@ -230,18 +234,28 @@ class NicoVideoInfoFragment : Fragment() {
     }
 
     /** ハートのアイコン色とテキストを変更する関数 */
-    private fun setLikeChipStatus(liked: Boolean) {
+    private fun setLikeChipStatus(liked: Boolean, data: NicoVideoData) {
+        val isShowLikeCount = prefSetting.getBoolean("setting_nicovideo_show_like_count", false)
         requireActivity().runOnUiThread {
             // いいね済み
             if (liked) {
+                // いいね済み
                 viewBinding.fragmentNicovideoInfoLikeChip.apply {
                     chipIconTint = ColorStateList.valueOf(Color.parseColor("#ffc0cb")) // ピンク
-                    text = getString(R.string.liked) // いいね済み
+                    text = if (isShowLikeCount) {
+                        "${getString(R.string.liked)}：${data.likeCount}"
+                    } else {
+                        getString(R.string.liked)
+                    }
                 }
             } else {
                 viewBinding.fragmentNicovideoInfoLikeChip.apply {
                     chipIconTint = ColorStateList.valueOf(getThemeTextColor(context)) // テーマの色
-                    text = getString(R.string.like) // いいね済み
+                    text = if (isShowLikeCount) {
+                        "${getString(R.string.like)}：${data.likeCount}"
+                    } else {
+                        getString(R.string.like)
+                    }
                 }
             }
         }

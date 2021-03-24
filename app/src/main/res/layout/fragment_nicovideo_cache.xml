@@ -33,10 +33,13 @@
         android:layout_height="match_parent"
         app:layoutDescription="@xml/fragment_comment_cache_scene">
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/fragment_nicovideo_cache_menu_cardview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/colorAccent"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -116,7 +119,7 @@
                         app:srcCompat="@drawable/ic_trending_flat_black_24dp" />
                 </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fragment_nicovideo_cache_fab"
