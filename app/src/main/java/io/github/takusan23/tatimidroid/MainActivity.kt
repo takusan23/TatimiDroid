@@ -393,36 +393,13 @@ class MainActivity : AppCompatActivity() {
 
     // 動画一覧
     private fun showVideoListFragment() {
+        //ログイン情報があるかどうか
         if (prefSetting.getString("mail", "")?.isNotEmpty() == true || isNotLoginMode(this)) {
-            // ニコニコ動画
             setFragment(NicoVideoSelectFragment())
-            // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_NICOVIDEO)
-            //タイトル
-            supportActionBar?.title = getString(R.string.nicovideo)
         } else {
-            // ログイン画面へ切り替える か　ログインしないモードを有効にするか
-            val dialogButtonList = arrayListOf<DialogBottomSheet.DialogBottomSheetItem>().apply {
-                add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.nicovideo_init_not_login), R.drawable.ic_lock_open_black_24dp))
-                add(DialogBottomSheet.DialogBottomSheetItem(getString(R.string.nicovideo_init_login), R.drawable.ic_lock_outline_black_24dp))
-            }
-            DialogBottomSheet(getString(R.string.nicovideo_init_message), dialogButtonList) { i, bottomSheetDialogFragment ->
-                when (i) {
-                    0 -> {
-                        // 「ログイン無しで利用する」と「起動時の画面を動画にする」設定有効
-                        prefSetting.edit { putBoolean("setting_no_login", true) }
-                        prefSetting.edit { putString("setting_launch_fragment", "video") }
-                        showVideoListFragment()
-                    }
-                    1 -> {
-                        // ログインする
-                        viewBinding.mainActivityBottomNavigationView.selectedItemId = R.id.menu_login
-                        setFragment(LoginFragment())
-                        // setPage(MainActivityFragmentStateViewAdapter.MAIN_ACTIVITY_VIEWPAGER2_LOGIN)
-                        //メアド設定してね！
-                        Toast.makeText(this, getString(R.string.login_or_is_not_login_mode), Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }.show(supportFragmentManager, "nicovideo_init")
+            // ログイン画面へ切り替える
+            setFragment(LoginFragment())
+            Toast.makeText(this, getString(R.string.mail_pass_error), Toast.LENGTH_SHORT).show()
         }
     }
 

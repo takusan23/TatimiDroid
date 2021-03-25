@@ -57,20 +57,31 @@ class NicoVideoCommentFragment : Fragment() {
             initRecyclerView(list)
         }
 
-        // スクロールボタン。追従するぞい
-        viewBinding.fragmentNicovideoCommentFollowingButton.setOnClickListener {
-            // スクロール
-            scroll(viewModel.playerCurrentPositionMs)
-            // Visibilityゴーン。誰もカルロス・ゴーンの話しなくなったな
+        if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
+            // 追いかけるボタンを利用しない
             setFollowingButtonVisibility(false)
-            isAutoScroll = true
-        }
-
-        lifecycleScope.launch {
-            while (true) {
-                delay(1000)
+            lifecycleScope.launch {
+                while (true) {
+                    delay(1000)
+                    scroll(viewModel.playerCurrentPositionMs)
+                }
+            }
+        } else {
+            // 追いかけるボタンを利用する
+            // スクロールボタン。追従するぞい
+            viewBinding.fragmentNicovideoCommentFollowingButton.setOnClickListener {
                 // スクロール
-                setScrollFollowButton(viewModel.playerCurrentPositionMs)
+                scroll(viewModel.playerCurrentPositionMs)
+                // Visibilityゴーン。誰もカルロス・ゴーンの話しなくなったな
+                setFollowingButtonVisibility(false)
+                isAutoScroll = true
+            }
+            lifecycleScope.launch {
+                while (true) {
+                    delay(1000)
+                    // スクロール
+                    setScrollFollowButton(viewModel.playerCurrentPositionMs)
+                }
             }
         }
 
@@ -129,8 +140,7 @@ class NicoVideoCommentFragment : Fragment() {
 
     /**
      * RecyclerViewをスクロールする
-     * @param millSeconds 再生時間（ミリ秒！！！）。
-     * @param isCheckLastItemTime RecyclerViewに表示してるリストの中で一番最後のアイテムが現在再生中の場所に 一致していなくても スクロールする場合はtrue。名前思いつかなかったわ。
+     * @param milliSec 再生時間（ミリ秒！！！）。
      * */
     fun scroll(milliSec: Long) {
         if (!isAdded) return

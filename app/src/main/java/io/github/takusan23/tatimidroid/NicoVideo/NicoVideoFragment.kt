@@ -435,32 +435,12 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
                 // 再生中のみ
                 if (viewModel.playerIsPlaying.value == true) {
-
                     // ExoPlayerが利用できる場合は再生時間をViewModelへ渡す
                     if (viewModel.isNotPlayVideoMode.value == false) {
                         viewModel.playerCurrentPositionMs = exoPlayer.currentPosition
                     }
-
                     // シークバー動かす+ViewModelの再生時間更新
                     setProgress()
-
-                    val sec = viewModel.playerCurrentPositionMs / 1000
-                    // コメント一覧スクロールする
-                    if (prefSetting.getBoolean("setting_oikakeru_hide", false)) {
-                        requireCommentFragment()?.apply {
-                            // 追いかけるボタン利用しない
-                            scroll(viewModel.playerCurrentPositionMs)
-                            // 使わないので非表示
-                            setFollowingButtonVisibility(false)
-                        }
-                    } else {
-                        // 追いかけるボタン表示するかなどをやってる関数
-                        // 一秒ごとに動かしたい
-                        if (tempTime != sec) {
-                            tempTime = sec
-                            requireCommentFragment()?.setScrollFollowButton(viewModel.playerCurrentPositionMs)
-                        }
-                    }
                 }
             }
         }

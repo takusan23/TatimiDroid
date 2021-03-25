@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Adapter.Parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
@@ -53,8 +54,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** 設定 */
     private val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
-    /** ニコニコのログイン情報。ユーザーセッション */
-    val userSession = prefSetting.getString("user_session", "") ?: ""
+    /** ニコニコのログイン情報。ユーザーセッション。ログイン無しで利用する場合は文字列を空に */
+    val userSession = if (isLoginMode(context)) prefSetting.getString("user_session", "") ?: "" else ""
 
     /** 再生中の動画ID。動画変更の検知は[isOfflinePlay]をObserveしたほうが良いと思う（[playingVideoId]→[isOfflinePlay]の順番でLiveData通知が行く） */
     var playingVideoId = MutableLiveData<String>()
@@ -380,8 +381,6 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         viewModelScope.launch(errorHandler) {
             // smileサーバーの動画は多分最初の視聴ページHTML取得のときに?eco=1をつけないと低画質リクエストできない
             val eco = if (smileServerLowRequest) "1" else ""
-            // ログインしないならそもそもuserSessionの値を空にすれば！？
-            val userSession = if (isLoginMode(context)) userSession else ""
             val response = nicoVideoHTML.getHTML(videoId, userSession, eco)
             // 失敗したら落とす
             if (!response.isSuccessful) {
