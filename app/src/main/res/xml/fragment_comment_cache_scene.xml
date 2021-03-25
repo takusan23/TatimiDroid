@@ -14,10 +14,9 @@
             app:layout_constraintEnd_toEndOf="parent" />
         <Constraint
             android:id="@+id/fragment_nicovideo_cache_menu_cardview"
-            android:layout_width="wrap_content"
+            android:layout_width="250dp"
             android:layout_height="1dp"
             android:layout_marginEnd="16dp"
-
             android:layout_marginBottom="16dp"
             android:visibility="invisible"
             app:cardElevation="0dp"
@@ -39,7 +38,7 @@
             app:layout_constraintEnd_toEndOf="parent" />
         <Constraint
             android:id="@+id/fragment_nicovideo_cache_menu_cardview"
-            android:layout_width="wrap_content"
+            android:layout_width="250dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"

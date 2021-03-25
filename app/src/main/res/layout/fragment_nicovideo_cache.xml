@@ -56,6 +56,11 @@
                     android:padding="15dp"
                     android:text="" />
 
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorAccent" />
+
                 <TextView
                     android:id="@+id/fragment_nicovideo_cache_menu_filter_textview"
                     android:layout_width="match_parent"

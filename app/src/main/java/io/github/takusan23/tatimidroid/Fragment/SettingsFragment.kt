@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
 import io.github.takusan23.tatimidroid.Activity.KonoApp
 import io.github.takusan23.tatimidroid.Activity.LicenceActivity
+import io.github.takusan23.tatimidroid.NicoAPI.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Room.Init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.Tool.RoomDBExporter
@@ -110,6 +111,10 @@ class SettingsFragment : SearchPreferenceFragment() {
                 "setting_open_app_info" -> {
                     // 端末のアプリ設定画面を開く
                     launchSettingAppInfoScreen()
+                }
+                "setting_cache_folder_path" -> {
+                    val nicoVideoCache = NicoVideoCache(requireContext())
+                    preference.summary = nicoVideoCache.getCacheFolderPath()
                 }
             }
         }

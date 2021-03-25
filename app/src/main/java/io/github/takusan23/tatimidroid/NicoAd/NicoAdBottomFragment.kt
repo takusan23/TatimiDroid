@@ -5,13 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.material.MaterialTheme
-import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.WindowRecomposerFactory
-import androidx.compose.ui.platform.compositionContext
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewTreeLifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoAd.JetpackCompose.NicoAdScreen
 import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModel
@@ -19,7 +15,6 @@ import io.github.takusan23.tatimidroid.NicoAd.ViewModel.NicoAdViewModelFactory
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.LightColors
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * ニコニ広告の履歴とか貢献度を表示するBottomFragment
@@ -38,13 +33,8 @@ class NicoAdBottomFragment : BottomSheetDialogFragment() {
         ViewModelProvider(this, NicoAdViewModelFactory(requireActivity().application, contentId)).get(NicoAdViewModel::class.java)
     }
 
-    @InternalComposeUiApi
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return ComposeView(requireContext()).apply {
-            ViewTreeLifecycleOwner.set(this, viewLifecycleOwner)
-            val newRecomposer = AtomicReference(WindowRecomposerFactory.LifecycleAware).get().createRecomposer(rootView)
-            compositionContext = newRecomposer
-
             setContent {
                 MaterialTheme(colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors) {
                     NicoAdScreen(viewModel)

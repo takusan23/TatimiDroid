@@ -456,4 +456,6 @@ Sorry to trouble you, but please update the video information.\n
     <string name="nicovideo_cache_storage_device">Save destination: Device storage</string>
     <string name="setting_nicovideo_show_like_count_title">Show the number of likes</string>
     <string name="setting_nicovideo_show_like_count_description">I think the good thing about Nico Douga is that there are no high or low ratings, so it is disabled by default.</string>
+    <string name="setting_cache_folder_path_title">Cache save destination path</string>
+    <string name="setting_cache_folder_path_description">Press to display</string>
 </resources>

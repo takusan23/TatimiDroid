@@ -198,6 +198,12 @@
             app:min="1"
             app:showSeekBarValue="true" />
 
+        <Preference
+            android:icon="@drawable/ic_folder_open_black_24dp"
+            android:key="setting_cache_folder_path"
+            android:summary="@string/setting_cache_folder_path_description"
+            android:title="@string/setting_cache_folder_path_title" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/nicolive">

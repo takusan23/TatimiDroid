@@ -456,4 +456,6 @@
     <string name="nicovideo_cache_storage_device">保存先：端末内ストレージ</string>
     <string name="setting_nicovideo_show_like_count_title">いいね数を表示する</string>
     <string name="setting_nicovideo_show_like_count_description">高評価、低評価がないのがニコ動のいいところだと思っているので、デフォルトでは無効になってます。</string>
+    <string name="setting_cache_folder_path_title">キャッシュ保存先パス</string>
+    <string name="setting_cache_folder_path_description">押して表示します</string>
 </resources>

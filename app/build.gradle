@@ -47,8 +47,8 @@ android {
 
     // Compose関係
     composeOptions {
-        kotlinCompilerVersion kotlin_version // 1.4.30 が入ると思う。プロジェクトのbuild.gradleを開いてみて
-        kotlinCompilerExtensionVersion compose_version // 1.0.0-beta01 が入ると思う。プロジェクトのbuild.gradleを開いてみて
+        kotlinCompilerVersion kotlin_version // 1.4.31 が入ると思う。プロジェクトのbuild.gradleを開いてみて
+        kotlinCompilerExtensionVersion compose_version // 1.0.0-beta03 が入ると思う。プロジェクトのbuild.gradleを開いてみて
     }
 
 }
