@@ -119,20 +119,6 @@
     </style>
 
     <!-- BottomFragmentの角を丸くする。 -->
-    <style name="BottomSheetDialogRoundStyleBlack" parent="@style/ThemeOverlay.MaterialComponents.BottomSheetDialog">
-        <item name="bottomSheetStyle">@style/RoundBottomSheetBlack</item>
-    </style>
-
-    <style name="RoundBottomSheetBlack" parent="Widget.MaterialComponents.BottomSheet">
-        <item name="shapeAppearanceOverlay">@style/RoundShapeAppearanceBottomSheetDialog</item>
-        <item name="backgroundTint">#000</item>
-    </style>
-
-    <style name="RoundShapeAppearanceBottomSheetDialog" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSizeTopRight">16dp</item>
-        <item name="cornerSizeTopLeft">16dp</item>
-    </style>
 
 
 </resources>

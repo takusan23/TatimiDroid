@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:title="@string/nicovideo_sort_play_first" android:id="@+id/nicovideo_comment_sort_time" />
-    <item android:title="@string/nicovideo_sort_play_last" android:id="@+id/nicovideo_comment_sort_reverse_time"  />
-    <item android:title="@string/nicoru"  android:id="@+id/nicovideo_comment_nicoru" />
-    <item android:title="@string/nicovideo_sort_post_date_new"  android:id="@+id/nicovideo_date" />
-    <item android:title="@string/nicovideo_sort_post_date_old"  android:id="@+id/nicovideo_reverse_date" />
-</menu>
