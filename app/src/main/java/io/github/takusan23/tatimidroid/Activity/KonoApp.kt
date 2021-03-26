@@ -33,8 +33,8 @@ class KonoApp : AppCompatActivity() {
     /**
      * バージョンとか
      * */
-    val version = "\uD83C\uDF38 2021/03/16 \uD83C\uDF38 "
-    val codeName1 = "（GINZA）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
+    val version = "\uD83C\uDF38 2021/03/27 \uD83C\uDF38 "
+    val codeName1 = "（く）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     /** findViewById駆逐 */
     private val viewBinding by lazy { ActivityKonoAppBinding.inflate(layoutInflater) }
