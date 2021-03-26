@@ -42,6 +42,7 @@ import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoRecyclerPagerAdapter
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.KokosukiBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheJSONUpdateRequestBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoPlayListBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
@@ -52,11 +53,9 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoBinding
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.json.JSONObject
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -713,7 +712,10 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 finishFragment()
             }
         }
-
+        // ここすき機能
+        viewBinding.fragmentNicovideoControlInclude.playerControlScreenShot.setOnClickListener {
+            showKokosukiBottomFragment()
+        }
         // 戻るキー押した時
         val callback = requireActivity().onBackPressedDispatcher.addCallback(this) {
             // コメントのみの表示の際はFragment終了
@@ -793,6 +795,25 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         updateHideController(job)
     }
 
+    /**  ここすき（動画スクショ機能）BottomFragmentを表示する */
+    private fun showKokosukiBottomFragment() {
+        val data = viewModel.nicoVideoData.value ?: return
+        Toast.makeText(context, "生成中です...", Toast.LENGTH_SHORT).show()
+        // 動画は一時停止
+        viewModel.playerIsPlaying.postValue(false)
+        lifecycleScope.launch(Dispatchers.Default) {
+            // 表示する
+            KokosukiBottomFragment.show(
+                fragmentManager = childFragmentManager,
+                surfaceView = viewBinding.fragmentNicovideoSurfaceView,
+                commentCanvas = viewBinding.fragmentNicovideoCommentCanvas,
+                title = data.title,
+                contentId = data.videoId,
+                position = viewModel.currentPosition
+            )
+        }
+    }
+
     /**
      * コントローラーを消すためのコルーチン。
      * */
@@ -802,7 +823,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         lifecycleScope.launch(job) {
             // Viewを数秒後に消す
             delay(3000)
-            if (viewBinding.fragmentNicovideoControlInclude.playerControlMain?.isVisible == true) {
+            if (viewBinding.fragmentNicovideoControlInclude.playerControlMain.isVisible == true) {
                 viewBinding.fragmentNicovideoControlInclude.playerControlMain?.isVisible = false
             }
         }
@@ -831,6 +852,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             view.isEnabled = !isMiniPlayerMode
         }
         viewBinding.fragmentNicovideoControlInclude.playerControlPlaylist.isVisible = !isMiniPlayerMode && viewModel.isPlayListMode.value!!
+        viewBinding.fragmentNicovideoControlInclude.playerControlScreenShot.isVisible = !isMiniPlayerMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
     }
 
     // Progress表示

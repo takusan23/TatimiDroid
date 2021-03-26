@@ -10,7 +10,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.Adapter.Parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.NicoAPI.Login.NicoLogin
 import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.DataClass.NicoTagItemData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.*
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
