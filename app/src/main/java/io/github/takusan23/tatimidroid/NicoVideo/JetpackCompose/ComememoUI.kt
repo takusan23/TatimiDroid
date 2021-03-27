@@ -3,7 +3,6 @@ package io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.Switch
@@ -11,22 +10,22 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.takusan23.tatimidroid.R
 
 /**
- * ここすきBottomFragmentのタイトル
+ * コメメモBottomFragmentのタイトル
  * */
 @Composable
-fun KokosukiTitle() {
+fun ComememoTitle() {
     // タイトル
     Text(
-        text = "ここすき（画像として保存）",
+        text = stringResource(id = R.string.comememo_title),
         modifier = Modifier
             .padding(5.dp)
             .fillMaxWidth(),
@@ -36,12 +35,12 @@ fun KokosukiTitle() {
 }
 
 /**
- * ここすきBottomFragmentのImage。16：9
+ * コメメモBottomFragmentのImage。16：9
  *
  * @param bitmap nullのときは変わりの画像を表示させます
  * */
 @Composable
-fun KokosukiPreviewImage(bitmap: Bitmap?) {
+fun ComememoPreviewImage(bitmap: Bitmap?) {
     val imageModifier = Modifier
         .fillMaxWidth()
         .padding(10.dp)
@@ -64,10 +63,10 @@ fun KokosukiPreviewImage(bitmap: Bitmap?) {
 }
 
 /**
- * ここすきBottomFragmentの設定。
+ * コメメモBottomFragmentの設定。
  * */
 @Composable
-fun KokosukiSettingSwitch(isWriteVideoInfoAndDate: Boolean, onChange: (Boolean) -> Unit) {
+fun ComememoSettingSwitch(isWriteVideoInfoAndDate: Boolean, onChange: (Boolean) -> Unit) {
     // 設定など
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -75,7 +74,7 @@ fun KokosukiSettingSwitch(isWriteVideoInfoAndDate: Boolean, onChange: (Boolean) 
         modifier = Modifier.padding(10.dp)
     ) {
         Text(
-            text = "タイトル、ID、日付を右下に残す",
+            text = stringResource(id = R.string.comememo_is_write_info_date),
             modifier = Modifier.weight(1f)
         )
         Switch(
@@ -86,10 +85,32 @@ fun KokosukiSettingSwitch(isWriteVideoInfoAndDate: Boolean, onChange: (Boolean) 
 }
 
 /**
- * ここすきBottomFragmentの保存ボタン
+ * ファイルパスの表示
+ * @param filePath ファイルパス
  * */
 @Composable
-fun KokosukiSaveButton(onClickSaveButton: () -> Unit) {
+fun ComememoFilePathText(filePath: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(10.dp)
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
+            contentDescription = "save"
+        )
+        Text(
+            text = "${stringResource(id = R.string.save_path)}：${filePath}",
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+/**
+ * コメメモBottomFragmentの保存ボタン
+ * */
+@Composable
+fun ComememoSaveButton(onClickSaveButton: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // 保存
         Button(
@@ -99,7 +120,7 @@ fun KokosukiSaveButton(onClickSaveButton: () -> Unit) {
             onClick = { onClickSaveButton() }
         ) {
             Icon(painter = painterResource(R.drawable.ic_folder_open_black_24dp), contentDescription = "save")
-            Text(text = "保存する")
+            Text(text = stringResource(id = R.string.comememo_save))
         }
     }
 }

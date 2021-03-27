@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.Tool
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.*
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.Handler
@@ -14,17 +15,20 @@ import android.view.View
 import android.widget.Toast
 import androidx.core.view.drawToBitmap
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.PlayerCommentPictureTool.captureView
+import io.github.takusan23.tatimidroid.Tool.PlayerCommentPictureTool.makeBitmap
+import io.github.takusan23.tatimidroid.Tool.PlayerCommentPictureTool.saveMediaStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.text.SimpleDateFormat
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import android.graphics.BitmapFactory
 
 
 /**
- * ここすき機能
+ * コメメモ機能
+ *
+ * 保存先がAndroid 10以降と違うので（10以降はフォルダができる。9以前はフォルダ生成できないので散らばる）
  *
  * 映像(SurfaceView)とコメント描画(CommentCanvas)を重ねた写真を作る関数と保存する関数がある。
  *
@@ -87,15 +91,32 @@ object PlayerCommentPictureTool {
         val playerBitmap = BitmapFactory.decodeFile(playerImageFilePath, options)
         val commentBitmap = BitmapFactory.decodeFile(commentImageFilePath, options)
         // コメントBitmapを重ねる
-        val canvas = Canvas(playerBitmap)
+        val playerBitmapWidth = playerBitmap.width
+        val commentBitmapWidth = commentBitmap.width
+        // return用Bitmap
+        val resultBitmap = Bitmap.createBitmap(commentBitmap.width, commentBitmap.height, Bitmap.Config.ARGB_8888)
+        // 新UIはアスペクト比に関わらず16:9なので、4:3の場合は動画よりもコメントのほうが幅が大きいのでなおす
+        val canvas = if (playerBitmapWidth < commentBitmapWidth) {
+            // 新UI用
+            Canvas(resultBitmap).apply {
+                drawColor(Color.BLACK)
+                drawBitmap(playerBitmap, (commentBitmapWidth - playerBitmapWidth) / 2f, 0f, null)
+            }
+        } else {
+            Canvas(resultBitmap).apply {
+                drawBitmap(playerBitmap, 0f, 0f, null)
+            }
+        }
         canvas.drawBitmap(commentBitmap, 0f, 0f, null)
         // 文字を書き込む
         if (drawTextList != null) {
             writeTextToCanvas(canvas, drawTextList)
         }
+        // リサイクル
         commentBitmap.recycle()
+        playerBitmap.recycle()
         // Bitmapを返す
-        return playerBitmap
+        return resultBitmap
     }
 
     /**
@@ -114,7 +135,7 @@ object PlayerCommentPictureTool {
      * MediaStoreでフォルダを作って保存をしようとするとAndroid 10以降とそれ以前で分岐が必要になるのでやっぱこのAPIはクソ。
      *
      * */
-    suspend fun saveMediaStore(context: Context, pictureName: String, bitmap: Bitmap) = withContext(Dispatchers.Default) {
+    suspend fun saveMediaStore(context: Context, pictureName: String, bitmap: Bitmap): Uri? = withContext(Dispatchers.Default) {
         val contentResolver = context.contentResolver
         // メタデータを入れる。タイトルぐらい？
         val contentValues = ContentValues().apply {
@@ -127,11 +148,26 @@ object PlayerCommentPictureTool {
             contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/TatimiDroid")
         }
         // データを渡してUriをもらう。
-        val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return@withContext
+        val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return@withContext null
         // Bitmapをpngで保存する。jpegの方が良いの？
         val outputStream = contentResolver.openOutputStream(uri)
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
         outputStream?.close()
+        // Uriを返す
+        return@withContext uri
+    }
+
+    /**
+     * 保存先ファイルパスを返す。
+     *
+     * 注意：このパスを使ってファイルアクセスは出来ません（ScopedStorageのせいで）。MediaStoreを利用してください
+     * */
+    fun getSaveFolder(): String {
+        return if (Build.VERSION_CODES.Q <= Build.VERSION.SDK_INT) {
+            "${Environment.DIRECTORY_PICTURES}/TatimiDroid"
+        } else {
+            Environment.DIRECTORY_PICTURES
+        }
     }
 
     /**

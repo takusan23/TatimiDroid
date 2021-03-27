@@ -42,7 +42,7 @@ import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.NicoVideo.Adapter.NicoVideoRecyclerPagerAdapter
-import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.KokosukiBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.ComememoBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheJSONUpdateRequestBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoPlayListBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoSeriesFragment
@@ -55,7 +55,6 @@ import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoBinding
 import kotlinx.coroutines.*
 import org.json.JSONObject
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -712,7 +711,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 finishFragment()
             }
         }
-        // ここすき機能
+        // コメメモ機能
         viewBinding.fragmentNicovideoControlInclude.playerControlScreenShot.setOnClickListener {
             showKokosukiBottomFragment()
         }
@@ -795,7 +794,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         updateHideController(job)
     }
 
-    /**  ここすき（動画スクショ機能）BottomFragmentを表示する */
+    /**  コメメモ（動画スクショ機能）BottomFragmentを表示する */
     private fun showKokosukiBottomFragment() {
         val data = viewModel.nicoVideoData.value ?: return
         Toast.makeText(context, "生成中です...", Toast.LENGTH_SHORT).show()
@@ -803,7 +802,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         viewModel.playerIsPlaying.postValue(false)
         lifecycleScope.launch(Dispatchers.Default) {
             // 表示する
-            KokosukiBottomFragment.show(
+            ComememoBottomFragment.show(
                 fragmentManager = childFragmentManager,
                 surfaceView = viewBinding.fragmentNicovideoSurfaceView,
                 commentCanvas = viewBinding.fragmentNicovideoCommentCanvas,

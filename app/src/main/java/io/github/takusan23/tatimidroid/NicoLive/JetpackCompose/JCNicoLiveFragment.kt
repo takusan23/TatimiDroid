@@ -75,7 +75,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     private val exoPlayer by lazy { SimpleExoPlayer.Builder(requireContext()).build() }
 
     /** 共有 */
-    val contentShare = ContentShare(this)
+    private val contentShare by lazy { ContentShareTool(requireContext()) }
 
     /** ViewModel初期化。ネットワークとかUI関係ないやつはこっちに書いていきます。 */
     val viewModel by lazy {
@@ -761,20 +761,22 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     /** 画像つき共有を行う */
     fun showShareSheetMediaAttach() {
         viewModel.nicoLiveProgramData.value?.apply {
-            contentShare.shareContentAttachPicture(
-                playerView = nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView,
-                commentCanvas = nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas,
-                programId = programId,
-                programName = title,
-                fromTimeSecond = null,
-            )
+            lifecycleScope.launch {
+                contentShare.showShareContentAttachPicture(
+                    playerView = nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView,
+                    commentCanvas = nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas,
+                    contentId = programId,
+                    contentTitle = title,
+                    fromTimeSecond = null,
+                )
+            }
         }
     }
 
     /** テキストのみ共有を行う */
     fun showShareSheet() {
         viewModel.nicoLiveProgramData.value?.apply {
-            contentShare.shareContent(
+            contentShare.showShareContent(
                 programId = programId,
                 programName = title,
                 fromTimeSecond = null

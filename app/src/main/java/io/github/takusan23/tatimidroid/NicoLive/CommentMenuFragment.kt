@@ -54,7 +54,7 @@ class CommentMenuFragment : Fragment() {
     }
 
     /** 共有用 */
-    val contentShare = ContentShare(this)
+    private val contentShare by lazy { ContentShareTool(requireContext()) }
 
     /** findViewById駆逐 */
     private val viewBinding by lazy { FragmentCommentMenuBinding.inflate(layoutInflater) }
@@ -139,7 +139,7 @@ class CommentMenuFragment : Fragment() {
         }
         //（画像添付しない）共有
         viewBinding.fragmentCommentFragmentMenuShareButton.setOnClickListener {
-            contentShare.shareContent(
+            contentShare.showShareContent(
                 programId = liveId,
                 programName = viewModel.programTitle,
                 fromTimeSecond = null,
@@ -149,13 +149,15 @@ class CommentMenuFragment : Fragment() {
         //画像つき共有
         viewBinding.fragmentCommentFragmentMenuShareImageAttachButton.setOnClickListener {
             // 今いる部屋の名前入れる
-            contentShare.shareContentAttachPicture(
-                playerView = commentFragment.viewBinding.commentFragmentSurfaceView,
-                commentCanvas = commentFragment.viewBinding.commentFragmentCommentCanvas,
-                programId = viewModel.programTitle,
-                programName = liveId,
-                fromTimeSecond = null,
-            )
+            lifecycleScope.launch {
+                contentShare.showShareContentAttachPicture(
+                    playerView = commentFragment.viewBinding.commentFragmentSurfaceView,
+                    commentCanvas = commentFragment.viewBinding.commentFragmentCommentCanvas,
+                    contentId = viewModel.programTitle,
+                    contentTitle = liveId,
+                    fromTimeSecond = null,
+                )
+            }
         }
         //生放送を再生ボタン
         viewBinding.fragmentCommentFragmentMenuViewLiveButton.setOnClickListener {

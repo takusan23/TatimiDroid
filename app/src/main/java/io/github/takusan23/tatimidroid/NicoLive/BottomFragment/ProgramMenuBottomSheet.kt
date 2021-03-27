@@ -22,7 +22,7 @@ import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveTimeShiftAPI
 import io.github.takusan23.tatimidroid.NicoLive.Activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startLivePlayService
-import io.github.takusan23.tatimidroid.Tool.ContentShare
+import io.github.takusan23.tatimidroid.Tool.ContentShareTool
 import io.github.takusan23.tatimidroid.databinding.BottomFragmentProgramMenuBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +52,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
     private val viewBinding by lazy { BottomFragmentProgramMenuBinding.inflate(layoutInflater) }
 
     // 共有
-    private val contentShare = ContentShare(this)
+    private val contentShare by lazy { ContentShareTool(requireContext()) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return viewBinding.root
@@ -170,7 +170,7 @@ class ProgramMenuBottomSheet : BottomSheetDialogFragment() {
 
     private fun initShareButton() {
         viewBinding.bottomFragmentProgramInfoShareTextView.setOnClickListener {
-            contentShare.shareContent(
+            contentShare.showShareContent(
                 programId = liveId,
                 programName = nicoLiveHTML.programTitle,
                 fromTimeSecond = null

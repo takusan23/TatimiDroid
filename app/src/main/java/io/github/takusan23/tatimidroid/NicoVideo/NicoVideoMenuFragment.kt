@@ -31,7 +31,7 @@ import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.Service.startCacheService
 import io.github.takusan23.tatimidroid.Service.startVideoPlayService
-import io.github.takusan23.tatimidroid.Tool.ContentShare
+import io.github.takusan23.tatimidroid.Tool.ContentShareTool
 import io.github.takusan23.tatimidroid.Tool.MotionLayoutTool
 import io.github.takusan23.tatimidroid.Tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.Tool.isNotLoginMode
@@ -63,7 +63,7 @@ class NicoVideoMenuFragment : Fragment() {
     val viewModel: NicoVideoViewModel by viewModels({ requireParentFragment() })
 
     /** 共有 */
-    val contentShare = ContentShare(this)
+    private val contentShare by lazy { ContentShareTool(requireContext()) }
 
     /** findViewById駆逐 */
     private val viewBinding by lazy { FragmentNicovideoMenuBinding.inflate(layoutInflater) }
@@ -395,19 +395,21 @@ class NicoVideoMenuFragment : Fragment() {
     private fun initShare() {
         // 写真付き共有
         viewBinding.fragmentNicovideoMenuShareMediaAttachButton.setOnClickListener {
-            requireNicoVideoFragment().apply {
-                // 再生時間も載せる
-                val currentPos = exoPlayer.currentPosition
-                val currentTime = DateUtils.formatElapsedTime(currentPos)
-                // 共有
-                contentShare.shareContentAttachPicture(
-                    playerView = viewBinding.fragmentNicovideoSurfaceView,
-                    commentCanvas = viewBinding.fragmentNicovideoCommentCanvas,
-                    programId = videoId,
-                    programName = this.viewModel.nicoVideoData.value?.title,
-                    fromTimeSecond = null,
-                    message = currentTime
-                )
+            lifecycleScope.launch {
+                requireNicoVideoFragment().apply {
+                    // 再生時間も載せる
+                    val currentPos = exoPlayer.currentPosition
+                    val currentTime = DateUtils.formatElapsedTime(currentPos)
+                    // 共有
+                    contentShare.showShareContentAttachPicture(
+                        playerView = viewBinding.fragmentNicovideoSurfaceView,
+                        commentCanvas = viewBinding.fragmentNicovideoCommentCanvas,
+                        contentId = videoId,
+                        contentTitle = this.viewModel.nicoVideoData.value?.title,
+                        fromTimeSecond = null,
+                        message = currentTime
+                    )
+                }
             }
         }
         // 共有
@@ -417,7 +419,7 @@ class NicoVideoMenuFragment : Fragment() {
                 val currentPos = exoPlayer.currentPosition
                 val currentTime = DateUtils.formatElapsedTime(currentPos)
                 // 共有
-                contentShare.shareContent(
+                contentShare.showShareContent(
                     programId = videoId,
                     programName = this.viewModel.nicoVideoData.value?.title,
                     fromTimeSecond = null,

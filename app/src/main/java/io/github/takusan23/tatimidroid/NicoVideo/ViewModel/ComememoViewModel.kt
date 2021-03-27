@@ -9,17 +9,20 @@ import io.github.takusan23.tatimidroid.Tool.PlayerCommentPictureTool
 import kotlinx.coroutines.launch
 
 /**
- * ここすきBottomFragmentで使うViewModel
+ * コメメモBottomFragmentで使うViewModel
  *
  * @param playerImageFilePath 映像の画像のパス
  * @param commentImageFilePath コメントの画像のパス
  * */
-class KokosukiViewModel(application: Application, private val playerImageFilePath: String, private val commentImageFilePath: String, private val textList: List<String>? = null, private val fileName: String) : AndroidViewModel(application) {
+class ComememoViewModel(application: Application, private val playerImageFilePath: String, private val commentImageFilePath: String, private val textList: List<String>? = null, private val fileName: String) : AndroidViewModel(application) {
 
     private val context = application.applicationContext
 
     /** 完成したBitmapを送信するLiveData */
     val makeBitmapLiveData = MutableLiveData<Bitmap>()
+
+    /** 保存先を入れる変数 */
+    val saveFolderPath = PlayerCommentPictureTool.getSaveFolder()
 
     /**
      * Bitmapを作成する
@@ -28,6 +31,7 @@ class KokosukiViewModel(application: Application, private val playerImageFilePat
      * */
     fun makeBitmap(isWriteTextList: Boolean) {
         viewModelScope.launch {
+            makeBitmapLiveData.value?.recycle()
             makeBitmapLiveData.value = PlayerCommentPictureTool.makeBitmap(
                 playerImageFilePath = playerImageFilePath,
                 commentImageFilePath = commentImageFilePath,

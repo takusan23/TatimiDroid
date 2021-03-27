@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.ComememoFilePathText
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.Tool.PlayerCommentPictureTool
 
 /**
  * 共有メニュー
@@ -58,5 +60,6 @@ fun ShareMenuCard(
                 )
             }
         }
+        ComememoFilePathText(filePath = PlayerCommentPictureTool.getSaveFolder())
     }
 }

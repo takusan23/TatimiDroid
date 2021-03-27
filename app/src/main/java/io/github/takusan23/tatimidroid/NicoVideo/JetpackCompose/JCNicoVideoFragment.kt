@@ -28,7 +28,7 @@ import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
 import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.NicoVideoCacheJSONUpdateRequestBottomFragment
-import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.KokosukiBottomFragment
+import io.github.takusan23.tatimidroid.NicoVideo.BottomFragment.ComememoBottomFragment
 import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoCommentFragment
 import io.github.takusan23.tatimidroid.NicoVideo.PlayerBaseFragment
 import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.NicoVideoViewModelFactory
@@ -39,7 +39,6 @@ import io.github.takusan23.tatimidroid.Service.startVideoPlayService
 import io.github.takusan23.tatimidroid.Tool.*
 import io.github.takusan23.tatimidroid.databinding.IncludeNicovideoPlayerBinding
 import kotlinx.coroutines.*
-import java.text.SimpleDateFormat
 import kotlin.math.roundToInt
 
 /**
@@ -71,7 +70,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     private var isTouchSeekBar = false
 
     /** 共有 */
-    val contentShare = ContentShare(this)
+    private val contentShare by lazy { ContentShareTool(requireContext()) }
 
     /** ViewModel。データ取得など */
     val viewModel by lazy {
@@ -485,10 +484,10 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         nicovideoPlayerUIBinding.includeNicovideoPlayerRepeatImageView.setOnClickListener {
             viewModel.playerIsRepeatMode.postValue(!viewModel.playerIsRepeatMode.value!!)
         }
-        // ここすき（動画スクショ機能）。Bitmapを取得する方法が8以降にしかないので8以前は非表示
+        // コメメモ（動画スクショ機能）。Bitmapを取得する方法が8以降にしかないので8以前は非表示
         nicovideoPlayerUIBinding.includeNicovideoPlayerScreenshotImageView.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
         nicovideoPlayerUIBinding.includeNicovideoPlayerScreenshotImageView.setOnClickListener {
-            showKokosukiBottomFragment()
+            showComememoBottomFragment()
         }
         // シーク
         nicovideoPlayerUIBinding.includeNicovideoPlayerSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -589,15 +588,15 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
     }
 
-    /**  ここすき（動画スクショ機能）BottomFragmentを表示する */
-    private fun showKokosukiBottomFragment() {
+    /**  コメメモ（動画スクショ機能）BottomFragmentを表示する */
+    private fun showComememoBottomFragment() {
         val data = viewModel.nicoVideoData.value ?: return
         Toast.makeText(context, "生成中です...", Toast.LENGTH_SHORT).show()
         // 動画は一時停止
         viewModel.playerIsPlaying.postValue(false)
         lifecycleScope.launch(Dispatchers.Default) {
             // 表示する
-            KokosukiBottomFragment.show(
+            ComememoBottomFragment.show(
                 fragmentManager = childFragmentManager,
                 surfaceView = nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView,
                 commentCanvas = nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas,
@@ -634,20 +633,22 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
 
     /** 画像つき共有をする */
     fun showShareSheetMediaAttach() {
-        // 親のFragment取得
-        contentShare.shareContentAttachPicture(
-            playerView = nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView,
-            commentCanvas = nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas,
-            programId = viewModel.playingVideoId.value,
-            programName = viewModel.nicoVideoData.value?.title,
-            fromTimeSecond = (exoPlayer.currentPosition / 1000L).toInt()
-        )
+        lifecycleScope.launch {
+            // 親のFragment取得
+            contentShare.showShareContentAttachPicture(
+                playerView = nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView,
+                commentCanvas = nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas,
+                contentId = viewModel.playingVideoId.value,
+                contentTitle = viewModel.nicoVideoData.value?.title,
+                fromTimeSecond = (exoPlayer.currentPosition / 1000L).toInt()
+            )
+        }
     }
 
     /** 共有する */
     fun showShareSheet() {
         // 親のFragment取得
-        contentShare.shareContent(
+        contentShare.showShareContent(
             programId = viewModel.playingVideoId.value,
             programName = viewModel.nicoVideoData.value?.title,
             fromTimeSecond = (exoPlayer.currentPosition / 1000L).toInt()

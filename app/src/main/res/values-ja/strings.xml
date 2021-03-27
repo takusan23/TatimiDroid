@@ -458,4 +458,9 @@
     <string name="setting_nicovideo_show_like_count_description">高評価、低評価がないのがニコ動のいいところだと思っているので、デフォルトでは無効になってます。</string>
     <string name="setting_cache_folder_path_title">キャッシュ保存先パス</string>
     <string name="setting_cache_folder_path_description">押して表示します</string>
+    <string name="comememo_title">コメメモ（画像として保存）</string>
+    <string name="comememo_is_write_info_date">タイトル、ID、日付を右下に残す</string>
+    <string name="comememo_save">保存</string>
+    <string name="save_path">写真の保存先</string>
+    <string name="comememo_wait">画像を生成しています</string>
 </resources>

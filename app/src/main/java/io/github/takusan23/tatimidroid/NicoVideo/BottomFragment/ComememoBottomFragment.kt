@@ -15,15 +15,15 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.DarkColors
 import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.LightColors
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.NicoVideoSavePictureScreen
-import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.KokosukiViewModelFactory
-import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.KokosukiViewModel
+import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.ComememoScreen
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.Factory.ComememoViewModelFactory
+import io.github.takusan23.tatimidroid.NicoVideo.ViewModel.ComememoViewModel
 import io.github.takusan23.tatimidroid.Tool.PlayerCommentPictureTool
 import io.github.takusan23.tatimidroid.Tool.isDarkMode
 import java.text.SimpleDateFormat
 
 /**
- * ここすき機能（動画スクショ機能）
+ * コメメモ機能（動画スクショ機能）
  *
  * 残念ですがAndroid 7以前のユーザーは利用できません。（PixelCopy APIがない）
  *
@@ -33,7 +33,7 @@ import java.text.SimpleDateFormat
  * file_name                 | String       | 保存するときにつける画像のファイル名。拡張子はpngで
  * draw_text_list            | List<String> | 右下に文字を書きたい場合は文字列の配列を入れてね。なくてもいい
  * */
-class KokosukiBottomFragment : BottomSheetDialogFragment() {
+class ComememoBottomFragment : BottomSheetDialogFragment() {
 
     /** ViewModel */
     private val viewModel by lazy {
@@ -41,7 +41,7 @@ class KokosukiBottomFragment : BottomSheetDialogFragment() {
         val commentImageFilePath = requireArguments().getString("comment_image_file_path")!!
         val fileName = requireArguments().getString("file_name")!!
         val drawTextList = requireArguments().getStringArray("draw_text_list")?.toList()
-        ViewModelProvider(this, KokosukiViewModelFactory(requireActivity().application, playerImageFilePath, commentImageFilePath, drawTextList, fileName)).get(KokosukiViewModel::class.java)
+        ViewModelProvider(this, ComememoViewModelFactory(requireActivity().application, playerImageFilePath, commentImageFilePath, drawTextList, fileName)).get(ComememoViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -49,7 +49,7 @@ class KokosukiBottomFragment : BottomSheetDialogFragment() {
             setContent {
                 MaterialTheme(colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors) {
                     Surface {
-                        NicoVideoSavePictureScreen(viewModel) { dismiss() }
+                        ComememoScreen(viewModel) { dismiss() }
                     }
                 }
             }
@@ -65,7 +65,7 @@ class KokosukiBottomFragment : BottomSheetDialogFragment() {
     companion object {
 
         /**
-         * ここすきBottomFragmentを表示する。
+         * コメメモBottomFragmentを表示する。
          *
          * @param fragmentManager FragmentManager
          * @param surfaceView 映像を流してるSurfaceView
@@ -77,7 +77,7 @@ class KokosukiBottomFragment : BottomSheetDialogFragment() {
         suspend fun show(fragmentManager: FragmentManager, surfaceView: SurfaceView, commentCanvas: View, title: String, contentId: String, position: Long) {
             // 動画、コメントViewの保存先
             val (playerPath, commentPath) = PlayerCommentPictureTool.captureView(surfaceView, commentCanvas)
-            KokosukiBottomFragment().apply {
+            ComememoBottomFragment().apply {
                 arguments = Bundle().apply {
                     // ファイルパスとかを渡す
                     val timeFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(System.currentTimeMillis())
