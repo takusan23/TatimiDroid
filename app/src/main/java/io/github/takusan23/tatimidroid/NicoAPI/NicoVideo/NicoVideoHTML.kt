@@ -45,29 +45,6 @@ class NicoVideoHTML {
     }
 
     /**
-     * NicoVideoDataを取得する関数。
-     * @param userSession ユーザーセッション
-     * @param videoId 動画ID
-     * @return 成功しなかった場合はnullが返ってきます。
-     * */
-    suspend fun getNicoVideoData(videoId: String, userSession: String) = withContext(Dispatchers.IO) {
-        // 動画情報取得
-        val videoResponse = getHTML(videoId, userSession)
-        // 失敗時落とす
-        if (!videoResponse.isSuccessful) {
-            null
-        } else {
-            withContext(Dispatchers.Default) {
-                // JSONパース
-                val jsonObject = parseJSON(videoResponse.body?.string())
-                val videoObject = jsonObject.getJSONObject("video")
-                // データクラスに変換する関数を呼ぶ
-                createNicoVideoData(videoObject)
-            }
-        }
-    }
-
-    /**
      * js-initial-watch-dataのdata-api-dataのJSONをデータクラス（[NicoVideoData]）へ変換する。
      * なんとなくコルーチンです。
      * @param jsonObject [parseJSON]の返り値
@@ -76,6 +53,7 @@ class NicoVideoHTML {
     suspend fun createNicoVideoData(jsonObject: JSONObject, isCache: Boolean = false) = withContext(Dispatchers.Default) {
         // JSON化
         val videoObject = jsonObject.getJSONObject("video")
+        val videoCountObject = videoObject.getJSONObject("count")
         // データクラス化
         NicoVideoData(
             isCache = isCache,
@@ -84,9 +62,9 @@ class NicoVideoHTML {
             videoId = videoObject.getString("id"),
             thum = videoObject.getJSONObject("thumbnail").getString("url"),
             date = registeredAtToUnixTime(videoObject.getString("registeredAt")),
-            viewCount = videoObject.getJSONObject("count").getString("view"),
-            commentCount = videoObject.getJSONObject("count").getString("comment"),
-            mylistCount = videoObject.getJSONObject("count").getString("mylist"),
+            viewCount = videoCountObject.getString("view"),
+            commentCount = videoCountObject.getString("comment"),
+            mylistCount = videoCountObject.getString("mylist"),
             isToriaezuMylist = false,
             duration = videoObject.getLong("duration"),
             uploaderName = getUploaderName(jsonObject),
@@ -447,7 +425,7 @@ class NicoVideoHTML {
     }
 
     /**
-     * コメント取得API。コルーチン。JSON形式の方です。xmlではない（ニコるくん取れないしCommentJSONParse使い回せない）。
+     * コメント取得API。コルーチン。JSON形式の方です。
      * コメント取得くっっっっそめんどくせえ
      * @param userSession ユーザーセッション
      * @param jsonObject js-initial-watch-dataのdata-api-dataのJSON
@@ -534,7 +512,8 @@ class NicoVideoHTML {
      * @return ログイン済みならtrue
      * */
     fun verifyLogin(jsonObject: JSONObject): Boolean {
-        return jsonObject.getJSONObject("viewer").getInt("id") != 0
+        // 非ログイン時はviewerがnullになる
+        return !jsonObject.isNull("viewer")
     }
 
     /**
@@ -543,7 +522,9 @@ class NicoVideoHTML {
      * @return プレミアム会員ならtrue
      * */
     fun isPremium(jsonObject: JSONObject): Boolean {
-        return jsonObject.getJSONObject("viewer").getBoolean("isPremium")
+        return if (verifyLogin(jsonObject)) {
+            jsonObject.getJSONObject("viewer").getBoolean("isPremium")
+        } else false
     }
 
     /**
@@ -771,10 +752,16 @@ class NicoVideoHTML {
 
     /**
      * いいね済みかどうかを取得する。
+     * 非ログイン時はfalseになる
+     *
      * @param jsonObject js-initial-watch-dataのdata-api-dataの値
      * */
     fun isLiked(jsonObject: JSONObject): Boolean {
-        return jsonObject.getJSONObject("video").getJSONObject("viewer").getJSONObject("like").getBoolean("isLiked")
+        return if (verifyLogin(jsonObject)) {
+            jsonObject.getJSONObject("video").getJSONObject("viewer").getJSONObject("like").getBoolean("isLiked")
+        } else {
+            false
+        }
     }
 
     /**
