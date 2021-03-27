@@ -95,10 +95,23 @@ class NicoVideoListMenuBottomFragment : BottomSheetDialogFragment() {
             if (serializeData != null) {
                 nicoVideoData = serializeData as NicoVideoData
             } else {
-                // 無い時はインターネットから取得
-                withContext(Dispatchers.IO) {
-                    // データ取得
-                    nicoVideoData = nicoVideoHTML.getNicoVideoData(videoId, userSession) ?: return@withContext
+                // NicoVideoDataある時
+                val serializeData = arguments?.getSerializable("data")
+                if (serializeData != null) {
+                    nicoVideoData = serializeData as NicoVideoData
+                } else {
+                    // 無い時はインターネットから取得
+                    withContext(Dispatchers.IO) {
+                        // データ取得
+                        val response = nicoVideoHTML.getHTML(videoId, userSession)
+                        if (!response.isSuccessful) {
+                            // 失敗時
+                            showToast("${getString(R.string.error)}\n${response.code}")
+                        }
+                        // ぱーさー
+                        val jsonObject = nicoVideoHTML.parseJSON(response.body?.string())
+                        nicoVideoData = nicoVideoHTML.createNicoVideoData(jsonObject, isCache)
+                    }
                 }
             }
 
