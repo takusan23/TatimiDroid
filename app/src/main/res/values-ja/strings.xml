@@ -462,5 +462,5 @@
     <string name="comememo_is_write_info_date">タイトル、ID、日付を右下に残す</string>
     <string name="comememo_save">保存</string>
     <string name="save_path">写真の保存先</string>
-    <string name="comememo_wait">画像を生成しています</string>
+    <string name="comememo_generating">画像を生成しています</string>
 </resources>

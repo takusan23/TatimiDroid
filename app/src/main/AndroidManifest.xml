@@ -21,7 +21,7 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".Activity.TwoFactorAuthLoginActivity"
+            android:name=".activity.TwoFactorAuthLoginActivity"
             android:label="@string/two_factor_auth" />
 
         <meta-data
@@ -33,20 +33,20 @@
             android:label="@string/nimado"
             android:theme="@style/NimadoTheme" />
         <activity
-            android:name=".NicoLive.Activity.FloatingCommentViewer"
+            android:name=".nicolive.activity.FloatingCommentViewer"
             android:allowEmbedded="true"
             android:documentLaunchMode="always"
             android:resizeableActivity="true" />
-        <activity android:name=".Activity.NGListActivity" />
-        <activity android:name=".Activity.KonoApp" />
-        <activity android:name=".Activity.LicenceActivity" />
+        <activity android:name=".activity.NGListActivity" />
+        <activity android:name=".activity.KonoApp" />
+        <activity android:name=".activity.LicenceActivity" />
         <activity
-            android:name=".Activity.KotehanListActivity"
+            android:name=".activity.KotehanListActivity"
             android:label="@string/kotehan_list" />
 
         <!-- ニコレポウイジェット -->
         <receiver
-            android:name=".HomeWidget.NicoRepoHomeWidget"
+            android:name=".homewidget.NicoRepoHomeWidget"
             android:label="@string/home_widget_nicorepo">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -58,13 +58,13 @@
         </receiver>
 
         <service
-            android:name=".HomeWidget.NicoRepoHomeWidgetRemoteViewService"
+            android:name=".homewidget.NicoRepoHomeWidgetRemoteViewService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
-        <service android:name=".Service.NicoLivePlayService" />
-        <service android:name=".Service.NicoVideoPlayService" />
-        <service android:name=".Service.GetCacheService" />
+        <service android:name=".service.NicoLivePlayService" />
+        <service android:name=".service.NicoVideoPlayService" />
+        <service android:name=".service.GetCacheService" />
         <service
-            android:name=".Service.BackgroundPlaylistCachePlayService"
+            android:name=".service.BackgroundPlaylistCachePlayService"
             android:enabled="true"
             android:exported="true"
             android:label="@string/cache_background_play">
@@ -79,7 +79,7 @@
             </intent-filter>
         </receiver>
 
-        <service android:name=".Service.CommentGetService" />
+        <service android:name=".service.CommentGetService" />
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -129,7 +129,7 @@
         </activity>
         <!-- おまけ -->
         <service
-            android:name=".Service.NicoVersionHistoryDeviceControl"
+            android:name=".service.NicoVersionHistoryDeviceControl"
             android:label="@string/nico_version_history"
             android:permission="android.permission.BIND_CONTROLS">
             <intent-filter>

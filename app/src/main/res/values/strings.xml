@@ -462,5 +462,5 @@ Sorry to trouble you, but please update the video information.\n
     <string name="comememo_is_write_info_date">Leave the title, ID and date at the bottom right</string>
     <string name="comememo_save">Save</string>
     <string name="save_path">Where to save photos</string>
-    <string name="comememo_wait">Generating an image</string>
+    <string name="comememo_generating">Generating an image</string>
 </resources>

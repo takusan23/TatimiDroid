@@ -17,7 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import io.github.takusan23.tatimidroid.Tool.DisplaySizeTool
+import io.github.takusan23.tatimidroid.tool.DisplaySizeTool
 import okhttp3.internal.format
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine

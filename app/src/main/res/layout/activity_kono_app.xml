@@ -5,7 +5,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="bottom"
-        tools:context=".Activity.KonoApp">
+        tools:context=".activity.KonoApp">
 
     <io.github.takusan23.tatimidroid.CommentCanvas
             android:id="@+id/activty_kono_app_comment_canvas"

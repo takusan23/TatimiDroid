@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -20,24 +19,23 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceChildFragment
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
-import io.github.takusan23.tatimidroid.BottomFragment.NicoHistoryBottomFragment
-import io.github.takusan23.tatimidroid.Fragment.DialogBottomSheet
-import io.github.takusan23.tatimidroid.Fragment.LoginFragment
-import io.github.takusan23.tatimidroid.Fragment.SettingsFragment
-import io.github.takusan23.tatimidroid.NicoAPI.NicoLive.NicoLiveHTML
-import io.github.takusan23.tatimidroid.NicoAPI.NicoVideo.DataClass.NicoVideoData
-import io.github.takusan23.tatimidroid.NicoLive.CommentFragment
-import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveCommentOnlyFragment
-import io.github.takusan23.tatimidroid.NicoLive.JetpackCompose.JCNicoLiveFragment
-import io.github.takusan23.tatimidroid.NicoLive.ProgramListFragment
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoCommentOnlyFragment
-import io.github.takusan23.tatimidroid.NicoVideo.JetpackCompose.JCNicoVideoFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment
-import io.github.takusan23.tatimidroid.NicoVideo.NicoVideoSelectFragment
-import io.github.takusan23.tatimidroid.NicoVideo.VideoList.NicoVideoCacheFragment
-import io.github.takusan23.tatimidroid.Service.startLivePlayService
-import io.github.takusan23.tatimidroid.Service.startVideoPlayService
-import io.github.takusan23.tatimidroid.Tool.*
+import io.github.takusan23.tatimidroid.bottomfragment.NicoHistoryBottomFragment
+import io.github.takusan23.tatimidroid.fragment.LoginFragment
+import io.github.takusan23.tatimidroid.fragment.SettingsFragment
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
+import io.github.takusan23.tatimidroid.nicolive.CommentFragment
+import io.github.takusan23.tatimidroid.nicolive.compose.JCNicoLiveCommentOnlyFragment
+import io.github.takusan23.tatimidroid.nicolive.compose.JCNicoLiveFragment
+import io.github.takusan23.tatimidroid.nicolive.ProgramListFragment
+import io.github.takusan23.tatimidroid.nicovideo.compose.JCNicoVideoCommentOnlyFragment
+import io.github.takusan23.tatimidroid.nicovideo.compose.JCNicoVideoFragment
+import io.github.takusan23.tatimidroid.nicovideo.NicoVideoFragment
+import io.github.takusan23.tatimidroid.nicovideo.NicoVideoSelectFragment
+import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.service.startLivePlayService
+import io.github.takusan23.tatimidroid.service.startVideoPlayService
+import io.github.takusan23.tatimidroid.tool.*
 import io.github.takusan23.tatimidroid.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import java.util.*
@@ -295,7 +293,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 生放送Fragment[io.github.takusan23.tatimidroid.NicoLive.CommentFragment]、または動画Fragment[io.github.takusan23.tatimidroid.NicoVideo.NicoVideoFragment]を置くための関数
+     * 生放送Fragment[io.github.takusan23.tatimidroid.nicolive.CommentFragment]、または動画Fragment[io.github.takusan23.tatimidroid.nicovideo.NicoVideoFragment]を置くための関数
      * もしMainActivityがない場合は(Service等)、MainActivityのIntentにデータを詰めて(liveId/id)起動することで開けます。
      * @param fragment 生放送Fragment か 動画Fragment。[MainActivityPlayerFragmentInterface]を実装してほしい
      * @param tag Fragmentを探すときのタグ。いまんところこのタグでFragmentを探してるコードはないはず

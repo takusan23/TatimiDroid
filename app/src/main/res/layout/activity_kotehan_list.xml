@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".Activity.KotehanListActivity">
+    tools:context=".activity.KotehanListActivity">
 
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/activity_kotehan_list_recycler_view"
