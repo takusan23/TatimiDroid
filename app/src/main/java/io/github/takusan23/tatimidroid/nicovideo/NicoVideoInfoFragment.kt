@@ -137,6 +137,57 @@ class NicoVideoInfoFragment : Fragment() {
                     .into(viewBinding.fragmentNicovideoInfoOwnerImageview)
             }
         }
+        // シリーズ。あれば
+        viewModel.seriesHTMLDataLiveData.observe(viewLifecycleOwner) { seriesData ->
+            seriesData ?: return@observe
+
+            viewBinding.fragmentNicovideoInfoSeriesCardView.isVisible = true
+            viewBinding.fragmentNicovideoInfoSeriesNameTextView.text = seriesData.seriesData.title
+            Glide.with(viewBinding.fragmentNicovideoInfoSeriesThumbImageView)
+                .load(seriesData.seriesData.thumbUrl)
+                .apply(RequestOptions.bitmapTransform(RoundedCorners(10)))
+                .into(viewBinding.fragmentNicovideoInfoSeriesThumbImageView)
+            viewBinding.fragmentNicovideoInfoSeriesThumbImageView.imageTintList = null
+            // 連続再生開始ボタン
+            viewBinding.fragmentNicovideoInfoSeriesStartButton.setOnClickListener {
+                // シリーズ連続再生押した時
+                viewModel.addSeriesPlaylist(seriesId = seriesData.seriesData.seriesId)
+            }
+            // 最初、前後のボタン
+            if (seriesData.firstVideoData != null) {
+                viewBinding.fragmentNicovideoInfoSeriesFirstButton.text = """
+                    ${getString(R.string.nicovideo_series_first_video)}
+                    ${seriesData.firstVideoData.title}
+                """.trimIndent()
+                viewBinding.fragmentNicovideoInfoSeriesFirstButton.setOnClickListener {
+                    viewModel.load(seriesData.firstVideoData.videoId, seriesData.firstVideoData.isCache, viewModel.isEco, viewModel.useInternet)
+                }
+            } else {
+                viewBinding.fragmentNicovideoInfoSeriesFirstButton.isVisible = false
+            }
+            if (seriesData.prevVideoData != null) {
+                viewBinding.fragmentNicovideoInfoSeriesPrevButton.text = """
+                    ${getString(R.string.nicovideo_series_prev_video)}
+                    ${seriesData.prevVideoData.title}
+                """.trimIndent()
+                viewBinding.fragmentNicovideoInfoSeriesPrevButton.setOnClickListener {
+                    viewModel.load(seriesData.prevVideoData.videoId, seriesData.prevVideoData.isCache, viewModel.isEco, viewModel.useInternet)
+                }
+            } else {
+                viewBinding.fragmentNicovideoInfoSeriesPrevButton.isVisible = false
+            }
+            if (seriesData.nextVideoData != null) {
+                viewBinding.fragmentNicovideoInfoSeriesNextButton.text = """
+                    ${getString(R.string.nicovideo_series_next_video)}
+                    ${seriesData.nextVideoData.title}
+                """.trimIndent()
+                viewBinding.fragmentNicovideoInfoSeriesNextButton.setOnClickListener {
+                    viewModel.load(seriesData.nextVideoData.videoId, seriesData.nextVideoData.isCache, viewModel.isEco, viewModel.useInternet)
+                }
+            } else {
+                viewBinding.fragmentNicovideoInfoSeriesNextButton.isVisible = false
+            }
+        }
         // タグ
         viewModel.tagListLiveData.observe(viewLifecycleOwner) { tagList ->
             //たぐ

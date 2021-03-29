@@ -31,6 +31,7 @@ import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
 import io.github.takusan23.tatimidroid.nicovideo.compose.NicoVideoUserCard
 import io.github.takusan23.tatimidroid.nicovideo.NicoAccountFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.tool.isDarkMode
 
 /**
@@ -86,6 +87,12 @@ class JCNicoLiveInfoFragment : Fragment() {
                                             isRegisteredTimeShift = isRegisteredTimeShift.value,
                                             isAllowTSRegister = isAllowTSRegister.value!!,
                                             onClickTimeShift = { registerTimeShift() },
+                                            descriptionClick = { link, type ->
+                                                if (type == NicoVideoDescriptionText.DESCRIPTION_TYPE_URL) {
+                                                    val intent = Intent(Intent.ACTION_VIEW, link.toUri())
+                                                    startActivity(intent)
+                                                }
+                                            }
                                         )
                                     }
                                     // ユーザー情報。ニコ動用のがそのまま使えた

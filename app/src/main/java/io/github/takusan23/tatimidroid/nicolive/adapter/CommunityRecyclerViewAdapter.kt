@@ -21,6 +21,7 @@ import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -31,13 +32,14 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.tool.isDarkMode
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.properties.Delegates
 
 /**
  * 番組一覧表示で使うRecyclerViewAdapter
+ *
+ * @param isDisableCache キャッシュを利用しない（毎度取りに行く）
  * */
-class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramData>) : RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
-
-    private lateinit var prefSetting: SharedPreferences
+class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramData>, val isDisableCache: Boolean = false) : RecyclerView.Adapter<CommunityRecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.adapter_community_layout, parent, false)
@@ -50,7 +52,6 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val content = holder.dateTextView.context
-        prefSetting = PreferenceManager.getDefaultSharedPreferences(content)
 
         val item = programList[position]
         val title = item.title
@@ -103,11 +104,16 @@ class CommunityRecyclerViewAdapter(val programList: ArrayList<NicoLiveProgramDat
         // サムネ
         if (thumb.isNotEmpty()) {
             holder.thumbImageView.imageTintList = null
-            Glide.with(holder.thumbImageView)
-                .load(thumb)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .transform(CenterCrop(), RoundedCorners(10))
-                .into(holder.thumbImageView)
+            Glide.with(holder.thumbImageView).load(thumb).apply {
+                if (isDisableCache) {
+                    // キャッシュを利用しない
+                    diskCacheStrategy(DiskCacheStrategy.NONE)
+                    skipMemoryCache(false)
+                }
+                transition(DrawableTransitionOptions.withCrossFade())
+                transform(CenterCrop(), RoundedCorners(10))
+                into(holder.thumbImageView)
+            }
         } else {
             // URLがからなので非表示
             holder.thumbImageView.isVisible = false

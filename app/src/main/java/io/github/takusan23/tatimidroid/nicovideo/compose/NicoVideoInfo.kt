@@ -270,7 +270,7 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
                         setHasFixedSize(true)
                         isNestedScrollingEnabled = false // これしないと関連動画スクロールした状態でミニプレイヤーに遷移できない
                         layoutManager = LinearLayoutManager(context)
-                        adapter = NicoVideoListAdapter(nicoVideoDataList)
+                        adapter = NicoVideoListAdapter(nicoVideoDataList, isUseComposeAndroidView = true)
                     }
                 }
             )
@@ -432,7 +432,7 @@ fun NicoVideoSeriesCard(
                         bitmap = bitmap.asImageBitmap(),
                         modifier = Modifier
                             .height(40.dp)
-                            .clip(RoundedCornerShape(5.dp)),
+                            .clip(RoundedCornerShape(2.dp)),
                         contentDescription = null,
                     )
                 }

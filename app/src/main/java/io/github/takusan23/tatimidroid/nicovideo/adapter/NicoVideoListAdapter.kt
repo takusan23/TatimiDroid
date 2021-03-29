@@ -30,8 +30,10 @@ import java.util.*
 /**
  * ニコ動の動画を一覧で表示するときに使うAdapter。
  * ランキング、視聴履歴の一覧から関連動画等色んな所で使ってる。
+ *
+ * @param isUseComposeAndroidView ComposeViewにAndroidViewを使ってRecyclerViewを使っている場合はtrueにしてください。クロスフェードをオフにします
  * */
-class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : RecyclerView.Adapter<NicoVideoListAdapter.ViewHolder>() {
+class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>, private val isUseComposeAndroidView: Boolean = false) : RecyclerView.Adapter<NicoVideoListAdapter.ViewHolder>() {
 
     private lateinit var prefSetting: SharedPreferences
     private lateinit var nicoVideoCache: NicoVideoCache
@@ -150,12 +152,13 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>) : Re
 
             // サムネイル
             thumImageView.imageTintList = null
-            Glide.with(thumImageView)
-                .load(data.thum)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .transform(CenterCrop(), RoundedCorners(10))
-                .into(thumImageView)
-
+            Glide.with(thumImageView).load(data.thum).apply {
+                if(!isUseComposeAndroidView){
+                    transition(DrawableTransitionOptions.withCrossFade())
+                }
+                transform(CenterCrop(), RoundedCorners(10))
+                into(thumImageView)
+            }
         }
     }
 

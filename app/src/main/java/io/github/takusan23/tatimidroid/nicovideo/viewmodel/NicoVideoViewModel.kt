@@ -206,7 +206,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     val seriesDataLiveData = MutableLiveData<NicoVideoSeriesData>()
 
     /** シリーズが設定されていればシリーズの情報が入ってくる */
-    val seriesHTMLDataLiveData = MutableLiveData<NicoVideoHTMLSeriesData>()
+    val seriesHTMLDataLiveData = MutableLiveData<NicoVideoHTMLSeriesData?>()
 
     /** キャッシュ再生時にデータの再取得が必要なときに送信するLiveData */
     val cacheVideoJSONUpdateLiveData = MutableLiveData(false)

@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.nicolive.compose
 
+import android.text.util.Linkify
 import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -28,6 +29,7 @@ import io.github.takusan23.tatimidroid.nicovideo.compose.parentCardElevation
 import io.github.takusan23.tatimidroid.nicovideo.compose.parentCardModifier
 import io.github.takusan23.tatimidroid.nicovideo.compose.parentCardShape
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.tool.toFormatTime
 
 /**
@@ -45,6 +47,7 @@ fun NicoLiveInfoCard(
     isRegisteredTimeShift: Boolean,
     isAllowTSRegister: Boolean,
     onClickTimeShift: () -> Unit,
+    descriptionClick: (id: String, type: String) -> Unit,
 ) {
     // 動画説明文表示状態
     var expanded by remember { mutableStateOf(false) }
@@ -121,7 +124,7 @@ fun NicoLiveInfoCard(
                     AndroidView(factory = { context ->
                         TextView(context).apply {
                             // リンク押せるように
-                            text = HtmlCompat.fromHtml(programDescription, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                            NicoVideoDescriptionText.setLinkText(text = HtmlCompat.fromHtml(programDescription, HtmlCompat.FROM_HTML_MODE_COMPACT), this, descriptionClick)
                         }
                     })
                 }

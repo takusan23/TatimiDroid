@@ -463,4 +463,5 @@ Sorry to trouble you, but please update the video information.\n
     <string name="comememo_save">Save</string>
     <string name="save_path">Where to save photos</string>
     <string name="comememo_generating">Generating an image</string>
+    <string name="video_upload_count">Number of videos</string>
 </resources>

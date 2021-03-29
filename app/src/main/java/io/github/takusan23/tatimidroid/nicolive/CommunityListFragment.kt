@@ -78,7 +78,7 @@ class CommunityListFragment : Fragment() {
             recyclerViewList = ArrayList()
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(context)
-            communityRecyclerViewAdapter = CommunityRecyclerViewAdapter(recyclerViewList)
+            communityRecyclerViewAdapter = CommunityRecyclerViewAdapter(recyclerViewList, isDisableCache = true)
             adapter = communityRecyclerViewAdapter
         }
     }

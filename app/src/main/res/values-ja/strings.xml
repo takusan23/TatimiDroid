@@ -463,4 +463,5 @@
     <string name="comememo_save">保存</string>
     <string name="save_path">写真の保存先</string>
     <string name="comememo_generating">画像を生成しています</string>
+    <string name="video_upload_count">投稿数</string>
 </resources>
