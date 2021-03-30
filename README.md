@@ -94,6 +94,16 @@ Canary版Android Studio。Jetpack Composeを使っているんで
 
 Android Studio Arctic Fox | 2020.3.1 Canary 12
 
+## ビルド方法
+
+興味があればどうぞ。
+
+https://tatimidroid.negitoro.dev/dev/build
+
+ビルド方法のドキュメントのリポジトリはここです
+
+https://github.com/takusan23/tatimidroid_docs
+
 ## たちみどろいどのIntent
 Intentという仕組みを利用することでたちみどろいどを他アプリから起動できます。
 MainActivityを指したIntentを飛ばしてください。
