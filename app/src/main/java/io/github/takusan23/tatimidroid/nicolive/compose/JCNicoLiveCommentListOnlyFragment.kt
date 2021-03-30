@@ -23,7 +23,7 @@ import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.nicolive.CommentRoomFragment
 import io.github.takusan23.tatimidroid.nicolive.CommentViewFragment
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
-import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModelFactory
+import io.github.takusan23.tatimidroid.nicolive.viewmodel.factory.NicoLiveViewModelFactory
 import io.github.takusan23.tatimidroid.nicovideo.compose.DarkColors
 import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
 import io.github.takusan23.tatimidroid.R

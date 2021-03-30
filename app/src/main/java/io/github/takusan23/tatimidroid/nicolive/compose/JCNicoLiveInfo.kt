@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.nicolive.compose
 
-import android.text.util.Linkify
 import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -29,6 +28,7 @@ import io.github.takusan23.tatimidroid.nicovideo.compose.parentCardElevation
 import io.github.takusan23.tatimidroid.nicovideo.compose.parentCardModifier
 import io.github.takusan23.tatimidroid.nicovideo.compose.parentCardShape
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveKonomiTagData
 import io.github.takusan23.tatimidroid.tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.tool.toFormatTime
 
@@ -331,10 +331,12 @@ fun NicoLiveTagCard(
  * 好みタグ表示Card。いまいちよくわからん機能
  *
  * @param konomiTagList 好みタグの文字列配列。いまんところ文字列の配列でいいや（そもそもこの機能いる？）
+ * @param onClickEditButton 編集ボタンを押したとき
  * */
 @Composable
 fun NicoLiveKonomiCard(
-    konomiTagList: ArrayList<String>
+    konomiTagList: List<NicoLiveKonomiTagData>,
+    onClickEditButton: () -> Unit
 ) {
     Card(
         modifier = parentCardModifier,
@@ -350,7 +352,14 @@ fun NicoLiveKonomiCard(
                     painter = painterResource(id = R.drawable.ic_outline_favorite_border_24),
                     contentDescription = null,
                 )
-                Text(text = stringResource(id = R.string.konomi_tag))
+                Text(
+                    text = stringResource(id = R.string.konomi_tag),
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = { onClickEditButton() }) {
+                    Icon(painter = painterResource(id = R.drawable.ic_outline_create_24px), contentDescription = null)
+                    Text(text = stringResource(id = R.string.nicolive_konomi_tag_edit))
+                }
             }
             Divider(modifier = Modifier.padding(5.dp))
             // 0件の場合
@@ -361,8 +370,8 @@ fun NicoLiveKonomiCard(
                     textAlign = TextAlign.Center
                 )
             } else {
-                konomiTagList.forEach { text ->
-                    Text(text = text, modifier = Modifier.padding(10.dp))
+                konomiTagList.forEach { konomiTag ->
+                    Text(text = konomiTag.name, modifier = Modifier.padding(10.dp))
                     Divider()
                 }
             }

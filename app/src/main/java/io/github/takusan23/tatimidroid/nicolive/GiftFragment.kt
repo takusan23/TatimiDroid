@@ -13,7 +13,7 @@ import com.google.android.material.tabs.TabLayout
 import io.github.takusan23.tatimidroid.nicolive.adapter.GiftHistoryRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.nicolive.adapter.GiftRankingRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveGiftViewModel
-import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveGiftViewModelFactory
+import io.github.takusan23.tatimidroid.nicolive.viewmodel.factory.NicoLiveGiftViewModelFactory
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.tool.getThemeColor

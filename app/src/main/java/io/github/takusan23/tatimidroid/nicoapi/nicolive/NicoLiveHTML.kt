@@ -22,6 +22,7 @@ import java.io.IOException
 import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 
 /**
@@ -114,8 +115,7 @@ class NicoLiveHTML {
                 addHeader("Cookie", "user_session=$userSession")
             }
         }.build()
-        val response = okHttpClient.newCall(request).execute()
-        response
+        okHttpClient.newCall(request).execute()
     }
 
     /**
@@ -251,17 +251,26 @@ class NicoLiveHTML {
     }
 
     /**
-     * 好みタグを取得する。文字列配列
+     * 好みタグを取得する。[NicoLiveKonomiTagData]の配列
+     *
      * @param nicoLiveJSON nicoLiveHTMLtoJSONObject()の値
      * */
-    fun getKonomiTagList(nicoLiveJSON: JSONObject): ArrayList<String> {
+    fun getKonomiTagList(nicoLiveJSON: JSONObject): ArrayList<NicoLiveKonomiTagData> {
+        // 配列
+        val konomiTagList = arrayListOf<NicoLiveKonomiTagData>()
         val konomi = nicoLiveJSON.getJSONObject("programBroadcaster").getJSONArray("konomiTags")
-        val result = arrayListOf<String>()
         for (i in 0 until konomi.length()) {
             val text = konomi.getJSONObject(i).getString("text")
-            result.add(text)
+            val id = konomi.getJSONObject(i).getString("nicopediaArticleId")
+            konomiTagList.add(
+                NicoLiveKonomiTagData(
+                    followersCount = -1,
+                    name = text,
+                    tagId = id
+                )
+            )
         }
-        return result
+        return konomiTagList
     }
 
     /**

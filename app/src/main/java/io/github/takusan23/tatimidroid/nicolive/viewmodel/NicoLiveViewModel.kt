@@ -12,12 +12,9 @@ import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.nicoapi.community.CommunityAPI
 import io.github.takusan23.tatimidroid.nicoapi.login.NicoLogin
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.*
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveComment
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveTagAPI
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveTimeShiftAPI
 import io.github.takusan23.tatimidroid.nicoapi.user.UserData
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.*
 import io.github.takusan23.tatimidroid.room.entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.room.entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.room.init.KotehanDBInit
@@ -90,7 +87,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     val nicoLiveTagDataListLiveData = MutableLiveData<NicoLiveTagData>()
 
     /** 好みタグの文字列配列LiveData */
-    val nicoLiveKonomiTagListLiveData = MutableLiveData<ArrayList<String>>()
+    val nicoLiveKonomiTagListLiveData = MutableLiveData<List<NicoLiveKonomiTagData>>()
 
     /** コメントを送るLiveData。ただ配列に入れる処理はこっちが担当するので、コメントが来た時に処理したい場合はどうぞ（RecyclerView更新など） */
     val commentReceiveLiveData = MutableLiveData<CommentJSONParse>()

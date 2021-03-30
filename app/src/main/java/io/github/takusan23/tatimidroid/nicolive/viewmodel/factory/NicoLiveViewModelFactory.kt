@@ -1,8 +1,9 @@
-package io.github.takusan23.tatimidroid.nicolive.viewmodel
+package io.github.takusan23.tatimidroid.nicolive.viewmodel.factory
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
 
 /**
  * [NicoLiveViewModel]は生放送ID（とかいろいろ）を引数にほしいので独自に用意

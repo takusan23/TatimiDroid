@@ -464,4 +464,14 @@
     <string name="save_path">写真の保存先</string>
     <string name="comememo_generating">画像を生成しています</string>
     <string name="video_upload_count">投稿数</string>
+    <string name="nicolive_konomi_tag_following">フォロー中の好みタグ</string>
+    <string name="nicolive_konomi_tag_edit">好みタグを編集</string>
+    <string name="nicolive_menu_konomi_tag">好みタグから番組を探す</string>
+    <string name="nicolive_konomitag_following_tag">フォロー中のタグ</string>
+    <string name="nicolive_konomitag_recomment_tag">おすすめタグ</string>
+    <string name="nicolive_konomitag_broadcaster_following_tag">放送者フォロー中</string>
+    <string name="nicolive_konomitag_remove_follow_ok">好みタグをフォロー解除しました</string>
+    <string name="nicolive_konomitag_follow_ok">好みタグをフォローしました</string>
+    <string name="nicolive_konomitag_follow">フォローする</string>
+    <string name="nicolive_konomitag_remove_follow">フォロー解除する</string>
 </resources>

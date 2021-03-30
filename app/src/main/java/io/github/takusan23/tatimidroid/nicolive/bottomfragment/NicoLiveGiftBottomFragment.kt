@@ -11,7 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.nicolive.compose.NicoLiveGiftScreen
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveGiftViewModel
-import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveGiftViewModelFactory
+import io.github.takusan23.tatimidroid.nicolive.viewmodel.factory.NicoLiveGiftViewModelFactory
 import io.github.takusan23.tatimidroid.nicovideo.compose.DarkColors
 import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
 import io.github.takusan23.tatimidroid.tool.isDarkMode

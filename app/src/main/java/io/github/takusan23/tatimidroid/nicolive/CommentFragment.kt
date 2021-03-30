@@ -53,7 +53,7 @@ import io.github.takusan23.tatimidroid.nicolive.activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.nicolive.adapter.NicoLivePagerAdapter
 import io.github.takusan23.tatimidroid.nicolive.bottomfragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
-import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModelFactory
+import io.github.takusan23.tatimidroid.nicolive.viewmodel.factory.NicoLiveViewModelFactory
 import io.github.takusan23.tatimidroid.service.startLivePlayService
 import io.github.takusan23.tatimidroid.tool.*
 import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveBinding

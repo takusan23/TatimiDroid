@@ -11,7 +11,7 @@ import io.github.takusan23.tatimidroid.nicolive.adapter.CommunityRecyclerViewAda
 import io.github.takusan23.tatimidroid.nicolive.NicoLiveJKProgramListFragment.Companion.NICOLIVE_JK_PROGRAMLIST_OFFICIAL
 import io.github.takusan23.tatimidroid.nicolive.NicoLiveJKProgramListFragment.Companion.NICOLIVE_JK_PROGRAMLIST_TAG
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveJKProgramListViewModel
-import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveJKProgramListViewModelFactory
+import io.github.takusan23.tatimidroid.nicolive.viewmodel.factory.NicoLiveJKProgramListViewModelFactory
 import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveCommunityBinding
 
 /**

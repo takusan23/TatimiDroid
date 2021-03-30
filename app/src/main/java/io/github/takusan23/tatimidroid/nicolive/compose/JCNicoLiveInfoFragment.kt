@@ -31,6 +31,8 @@ import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
 import io.github.takusan23.tatimidroid.nicovideo.compose.NicoVideoUserCard
 import io.github.takusan23.tatimidroid.nicovideo.NicoAccountFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveKonomiTagData
+import io.github.takusan23.tatimidroid.nicolive.bottomfragment.NicoLiveKonomiTagEditBottomFragment
 import io.github.takusan23.tatimidroid.tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.tool.isDarkMode
 
@@ -131,7 +133,7 @@ class JCNicoLiveInfoFragment : Fragment() {
                                         )
                                     }
                                     // 好みタグ
-                                    NicoLiveKonomiCard(konomiTagList = konomiTagList.value)
+                                    NicoLiveKonomiCard(konomiTagList = konomiTagList.value, onClickEditButton = { showKonomiTagEditBottomFragment() })
 
                                     // メニュー
                                     NicoLiveMenuScreen(requireParentFragment())
@@ -155,6 +157,15 @@ class JCNicoLiveInfoFragment : Fragment() {
                 }
             }
         }
+    }
+
+    /** 好みタグの編集画面を出す。*/
+    private fun showKonomiTagEditBottomFragment() {
+        NicoLiveKonomiTagEditBottomFragment().apply {
+            arguments = Bundle().apply {
+                putString("broadcaster_user_id", viewModel.nicoLiveUserDataLiveData.value?.userId)
+            }
+        }.show(parentFragmentManager, "konomi_tag")
     }
 
     /**

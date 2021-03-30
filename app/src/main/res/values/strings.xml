@@ -464,4 +464,14 @@ Sorry to trouble you, but please update the video information.\n
     <string name="save_path">Where to save photos</string>
     <string name="comememo_generating">Generating an image</string>
     <string name="video_upload_count">Number of videos</string>
+    <string name="nicolive_konomi_tag_following">Konomi tag being followed</string>
+    <string name="nicolive_konomi_tag_edit">Edit konomi tag</string>
+    <string name="nicolive_menu_konomi_tag">Search for programs by konomi tags</string>
+    <string name="nicolive_konomitag_following_tag">Tags you are following</string>
+    <string name="nicolive_konomitag_recomment_tag">Recommended tags</string>
+    <string name="nicolive_konomitag_broadcaster_following_tag">Broadcaster following</string>
+    <string name="nicolive_konomitag_follow_ok">I followed my favorite tags</string>
+    <string name="nicolive_konomitag_remove_follow_ok">Unfollowed favorite tags</string>
+    <string name="nicolive_konomitag_follow">Follow</string>
+    <string name="nicolive_konomitag_remove_follow">Unfollow</string>
 </resources>
