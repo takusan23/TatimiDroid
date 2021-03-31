@@ -25,6 +25,7 @@ import io.github.takusan23.tatimidroid.nicolive.bottomfragment.NicoLiveTagBottom
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveProgramInfoBinding
+import io.github.takusan23.tatimidroid.nicolive.bottomfragment.NicoLiveKonomiTagEditBottomFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -159,6 +160,36 @@ class ProgramInfoFragment : Fragment() {
                 }
                 viewBinding.fragmentProgramInfoTagLinearLayout.addView(button)
             }
+        }
+
+        /**
+         * 好みタグ機能。なお好みタグから選んで番組へ入るとなぜかニコニ広告みたいに通知が行く模様。じゃあ使わんわ
+         * */
+        viewModel.nicoLiveKonomiTagListLiveData.observe(viewLifecycleOwner) { konomiTag ->
+            if (konomiTag.isEmpty()) {
+                // 未設定であることを教える
+                viewBinding.fragmentProgramInfoKonomiTagEmpty.isVisible = true
+            } else {
+                // JSONパース
+                viewBinding.fragmentProgramInfoKonomiTagLinearLayout.removeAllViews()
+                konomiTag.forEach { data ->
+                    //ボタン作成
+                    val button = MaterialButton(requireContext(), null).apply {
+                        text = data.name
+                        isAllCaps = false
+                    }
+                    viewBinding.fragmentProgramInfoKonomiTagLinearLayout.addView(button)
+                }
+            }
+        }
+
+        // 好みタグ編集ボタン
+        viewBinding.fragmentProgramInfoKonomiTagEditButton.setOnClickListener {
+            NicoLiveKonomiTagEditBottomFragment().apply {
+                arguments = Bundle().apply {
+                    putString("broadcaster_user_id", viewModel.nicoLiveUserDataLiveData.value?.userId)
+                }
+            }.show(childFragmentManager, "edit")
         }
 
     }
@@ -298,26 +329,6 @@ class ProgramInfoFragment : Fragment() {
                 viewBinding.fragmentProgramInfoTimeshiftButton.isEnabled = canTSReserve
                 if (!canTSReserve) {
                     viewBinding.fragmentProgramInfoTimeshiftButton.text = getString(R.string.disabled_ts_reservation)
-                }
-            }
-
-            /**
-             * 好みタグ機能。なお好みタグから選んで番組へ入るとなぜかニコニ広告みたいに通知が行く模様。じゃあ使わんわ
-             * */
-            val konomiTagList = jsonObject.getJSONObject("programBroadcaster").getJSONArray("konomiTags")
-            if (konomiTagList.length() == 0) {
-                // 未設定であることを教える
-                viewBinding.fragmentProgramInfoKonomiTagEmpty.isVisible = true
-            } else {
-                // JSONパース
-                for (i in 0 until konomiTagList.length()) {
-                    val tagText = konomiTagList.getJSONObject(i).getString("text")
-                    //ボタン作成
-                    val button = MaterialButton(requireContext(), null).apply {
-                        text = tagText
-                        isAllCaps = false
-                    }
-                    viewBinding.fragmentProgramInfoKonomiTagLinearLayout.addView(button)
                 }
             }
 

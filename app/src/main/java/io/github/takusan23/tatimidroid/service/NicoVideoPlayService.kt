@@ -535,6 +535,7 @@ class NicoVideoPlayService : Service() {
             overlayVideoControlInclude.apply {
                 playerControlPopup.isVisible = false
                 playerControlBackground.isVisible = false
+                playerControlScreenShot.isVisible = false
             }
             // 番組名、ID設定
             overlayVideoControlInclude.apply {

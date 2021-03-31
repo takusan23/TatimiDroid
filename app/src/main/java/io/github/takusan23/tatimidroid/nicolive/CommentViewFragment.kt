@@ -53,8 +53,10 @@ class CommentViewFragment : Fragment() {
             adapter = commentRecyclerViewAdapter
             itemAnimator = null
             //区切り線いれる
-            val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
-            addItemDecoration(itemDecoration)
+            if (itemDecorationCount == 0) {
+                val itemDecoration = DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+                addItemDecoration(itemDecoration)
+            }
         }
 
         // スクロールボタン。追従するぞい

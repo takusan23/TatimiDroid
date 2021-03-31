@@ -882,7 +882,7 @@ class NicoVideoHTML {
      * @return 画面の幅とアスペクト比を考えて出した高さ。
      * */
     fun calcVideoHeightDisplaySize(videoWidth: Int, videoHeight: Int, displayWidth: Int): Float {
-        return videoHeight.toFloat() / videoWidth * displayWidth
+        return  videoHeight.toFloat() / videoWidth * displayWidth
     }
 
     /**
@@ -895,7 +895,7 @@ class NicoVideoHTML {
      * @return 画面の幅とアスペクト比を考えて出した幅。
      * */
     fun calcVideoWidthDisplaySize(videoWidth: Int, videoHeight: Int, displayHeight: Int): Float {
-        return videoWidth.toFloat() / videoHeight * displayHeight
+        return  videoWidth.toFloat() / videoHeight * displayHeight
     }
 
     /**

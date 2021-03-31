@@ -12,8 +12,8 @@ android {
         applicationId "io.github.takusan23.tatimidroid"
         minSdkVersion 22
         targetSdkVersion 30
-        versionCode 94
-        versionName "15.0.0 beta1"
+        versionCode 95
+        versionName "15.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -98,7 +98,7 @@ dependencies {
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     // MotionLayout
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.0-alpha2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.0-beta01'
     // MediaSession
     implementation "androidx.media:media:1.2.1"
     //GoogleCast
@@ -119,7 +119,7 @@ dependencies {
     // Preference
     implementation "androidx.preference:preference:1.1.1"
     // OkHttp
-    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
     // Material Design
     implementation 'com.google.android.material:material:1.4.0-alpha01'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

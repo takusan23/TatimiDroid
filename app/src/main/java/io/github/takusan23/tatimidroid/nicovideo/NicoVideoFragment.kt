@@ -448,7 +448,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun aspectRatioFix(width: Int, height: Int) {
         viewBinding.root.doOnLayout {
             val displayWidth = viewBinding.root.width
-            val displayHeight = viewBinding.root.height
+            val displayHeight =viewBinding.root.height
             if (isLandscape()) {
                 // 横画面
                 var playerWidth = displayWidth / 2

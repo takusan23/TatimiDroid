@@ -3,18 +3,26 @@ package io.github.takusan23.tatimidroid.homewidget
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.text.HtmlCompat
 import androidx.preference.PreferenceManager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoAPIX
 import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoDataClass
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.tool.isDarkMode
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * ホーム画面に置くウイジェットでListViewを使うときに使う
@@ -48,13 +56,28 @@ class NicoRepoHomeWidgetRemoteViewService : RemoteViewsService() {
                     if (response.isSuccessful) {
                         nicoRepoAPIX.parseNicoRepoResponse(response.body?.string()).forEach { data ->
                             // Glide。同期処理
-                            val iconAsync = async { Glide.with(context).asBitmap().load(data.userIcon).transform(RoundedCorners(20)).submit().get() }
-                            val thumbAsync = async { Glide.with(context).asBitmap().load(data.thumbUrl).submit().get() }
+                            val iconAsync = async { getBitmapUseGlide(data.userIcon, 20) }
+                            val thumbAsync = async { getBitmapUseGlide(data.thumbUrl, 0) }
                             val iconBitmap = iconAsync.await()
                             val thumbBitmap = thumbAsync.await()
                             nicoRepoList.add(NicoRepoHomeWidgetData(data, iconBitmap, thumbBitmap))
                         }
                     }
+                }
+            }
+
+            /** 同期的にGlideを利用してBitmapを取得する */
+            private fun getBitmapUseGlide(url: String, roundedCorners: Int): Bitmap {
+                return try {
+                    if (roundedCorners > 0) {
+                        Glide.with(context).asBitmap().load(url).transform(RoundedCorners(roundedCorners)).submit().get()
+                    } else {
+                        Glide.with(context).asBitmap().load(url).submit().get()
+                    }
+                } catch (e: Exception) {
+                    // エラー時の処理。このURLだとGlideがうまく動かない「https://secure-dcdn.cdn.nimg.jp/comch/community-icon/128x128/co5306436.jpg?1614315796」
+                    e.printStackTrace()
+                    context.getDrawable(R.drawable.ic_do_not_disturb_alt_black_24dp)!!.toBitmap(100, 100)
                 }
             }
 

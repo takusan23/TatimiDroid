@@ -3,8 +3,10 @@ package io.github.takusan23.tatimidroid.activity
 import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.button.MaterialButton
 import io.github.takusan23.tatimidroid.adapter.MenuRecyclerAdapter
@@ -16,6 +18,9 @@ import io.github.takusan23.tatimidroid.tool.LanguageTool
 import io.github.takusan23.tatimidroid.tool.getThemeColor
 import io.github.takusan23.tatimidroid.tool.isDarkMode
 import io.github.takusan23.tatimidroid.databinding.ActivityKonoAppBinding
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 /**
  * このアプリについて。
@@ -33,7 +38,7 @@ class KonoApp : AppCompatActivity() {
     /**
      * バージョンとか
      * */
-    val version = "\uD83C\uDF38 2021/03/27 \uD83C\uDF38 "
+    val version = "\uD83C\uDF38 2021/03/31 \uD83C\uDF38 "
     val codeName1 = "（く）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     /** findViewById駆逐 */
@@ -58,7 +63,9 @@ class KonoApp : AppCompatActivity() {
         viewBinding.activityKonoAppCodenameTextView.text = "$appVersion\n$version\n$codeName1"
 
         viewBinding.activityKonoAppCardView.setOnClickListener {
+            Toast.makeText(this, "新生活頑張って", Toast.LENGTH_SHORT).show()
             runEasterEgg()
+            runSakura()
         }
 
         // リンク集展開/非表示など
@@ -96,6 +103,22 @@ class KonoApp : AppCompatActivity() {
             layoutManager = LinearLayoutManager(context)
             val menuAdapter = MenuRecyclerAdapter(menuList)
             adapter = menuAdapter
+        }
+    }
+
+    /** 桜を流す */
+    private fun runSakura() {
+        val sakura = "\uD83C\uDF38"
+        lifecycleScope.launch {
+            repeat(20) {
+                val drawText = sakura.repeat(Random.nextInt(1, 10))
+                val size = "small"
+                val commentJSON = CommentJSONParse("{}", "arena", "sm157")
+                commentJSON.comment = drawText
+                commentJSON.mail = size
+                viewBinding.activtyKonoAppCommentCanvas.postComment(drawText, commentJSON)
+                delay(100)
+            }
         }
     }
 
@@ -140,7 +163,7 @@ class KonoApp : AppCompatActivity() {
         val commentJSON = CommentJSONParse("{}", "arena", "sm157")
         commentJSON.comment = aa
         commentJSON.mail = "$color $size"
-        viewBinding.activtyKonoAppCommentCanvas.postCommentAsciiArt(aa.split("\n"), commentJSON)
+        viewBinding.activtyKonoAppCommentCanvasSecond.postCommentAsciiArt(aa.split("\n"), commentJSON)
     }
 
     /**
