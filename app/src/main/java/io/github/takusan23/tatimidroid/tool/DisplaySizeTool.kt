@@ -9,8 +9,10 @@ import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 
+
 /**
  * 画面の大きさを取得する関数。
+ *
  * Android 11から新しい方法で取得する用になって長くなるので関数にまとめた
  * */
 object DisplaySizeTool {
@@ -19,6 +21,7 @@ object DisplaySizeTool {
      * 画面の幅を返す関数。
      * Android 11から取得方法が変わってしまった。
      * @param context こんてきすと
+     * @param isIncludeSystemBar システムバーを含んだ高さが必要な場合はtrue
      * @return 画面の幅。Width
      * */
     fun getDisplayWidth(context: Context?): Int {
@@ -33,6 +36,7 @@ object DisplaySizeTool {
      * 画面の高さを返す関数。
      * Android 11から取得方法が変わってしまった。
      * @param context こんてきすと
+     * @param isIncludeSystemBar システムバーを含んだ高さが必要な場合はtrue。デフォtrue
      * @return 画面の高さ。Height
      * */
     fun getDisplayHeight(context: Context?): Int {
@@ -76,5 +80,31 @@ object DisplaySizeTool {
         // Display#getHeight()と同じようになる
         return Size(metrics.bounds.width() - insetsWidth, metrics.bounds.height() - insetsHeight)
     }
+
+    /**
+     * ステータスバーの高さを返す
+     * */
+    fun getStatusBarHeight(context: Context?): Int {
+        context ?: return 0
+        val resourceId: Int = context.resources.getIdentifier("status_bar_height", "dimen", "android")
+        if (resourceId > 0) {
+            return context.resources.getDimensionPixelSize(resourceId)
+        }
+        return 0
+    }
+
+    /**
+     * ナビゲーションバーの高さを返す
+     * */
+    fun getNavigationBarHeight(context: Context?): Int {
+        context ?: return 0
+        val resources = context.getResources();
+        val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        if (resourceId > 0) {
+            return resources.getDimensionPixelSize(resourceId)
+        }
+        return 0
+    }
+
 
 }

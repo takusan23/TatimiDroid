@@ -49,10 +49,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
     }
 
     /** ミニプレイヤー時の幅 */
-    private var miniPlayerWidth =
-        if (isLandScape()) DisplaySizeTool.getDisplayWidth(context) / 3 else DisplaySizeTool.getDisplayWidth(
-            context
-        ) / 2
+    private var miniPlayerWidth = if (isLandScape()) DisplaySizeTool.getDisplayWidth(context) / 3 else DisplaySizeTool.getDisplayWidth(context) / 2
 
     /** ミニプレイヤーになったときの高さ。[miniPlayerWidth]を16で割って9をかけることで16:9になるようにしている */
     private val miniPlayerHeight: Int
@@ -166,8 +163,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
     ) {
         this.playerView = playerView
         this.playerViewParentViewGroup = playerViewParent
-        this.miniPlayerWidth =
-            if (isLandScape()) landscapeMiniPlayerWidth else portlateMiniPlayerWidth
+        this.miniPlayerWidth = if (isLandScape()) landscapeMiniPlayerWidth else portlateMiniPlayerWidth
         // 横画面時は上方向のマージンをかける
         setLandScapeTopMargin(1f)
     }
@@ -460,8 +456,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
         // コールバックを送信
         fullscreenListenerList.forEach { function -> function.invoke(isFullScreenMode) }
         playerView!!.updateLayoutParams<LinearLayout.LayoutParams> {
-            // 幅を治す
-            width = DisplaySizeTool.getDisplayWidth(context) / 2
+            // 幅を治す。マルチウィンドウ対策
+            width = if (isLandScape()) DisplaySizeTool.getDisplayWidth(context) / 2 else DisplaySizeTool.getDisplayWidth(context)
             height = (width / 16) * 9
             // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
             if (isLandScape()) {

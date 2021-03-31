@@ -963,8 +963,8 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     /** アスペクト比を直す。ミニプレイヤーと全画面UIのアスペクト比も直す */
     private fun aspectRatioFix() {
         viewBinding.root.doOnLayout {
-            val displayWidth = viewBinding.root.width
-            val displayHeight = viewBinding.root.height
+            val displayWidth = requireActivity().window.decorView.width
+            val displayHeight = requireActivity().window.decorView.height
             val isLandScape = commentActivity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             if (isLandScape) {
                 // 横画面時
