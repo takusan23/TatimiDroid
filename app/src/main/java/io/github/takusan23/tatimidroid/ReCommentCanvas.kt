@@ -202,6 +202,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * */
     fun initCommentList(commentList: List<CommentJSONParse>, videoDurationMs: Long) {
         if (videoDurationMs < 0 || commentList.isEmpty()) return
+        clearCommentList()
         thread {
             // 動画の3秒前のvposを出す
             val endVpos = (videoDurationMs - 3000) / 10 // 100vpos = 1sec

@@ -23,6 +23,7 @@ import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -203,9 +204,16 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // コメント
         viewModel.commentList.observe(viewLifecycleOwner) { commentList ->
-            viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
-                viewBinding.fragmentNicovideoCommentCanvas.initCommentList(commentList, duration)
-            }
+            // ついでに動画の再生時間を取得する。非同期
+            viewModel.playerDurationMs.observe(viewLifecycleOwner, object : Observer<Long> {
+                override fun onChanged(t: Long?) {
+                    if (t != null && t > 0) {
+                        viewBinding.fragmentNicovideoCommentCanvas.initCommentList(commentList, t)
+                        // 一回取得したらコールバック無効化。SAM変換をするとthisの指すものが変わってしまう
+                        viewModel.playerDurationMs.removeObserver(this)
+                    }
+                }
+            })
         }
 
         // 動画情報
@@ -367,6 +375,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // 準備と再生
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
+        viewModel.playerIsPlaying.postValue(true)
     }
 
     /** 最後に見たところから再生SnackBarを表示。キャッシュ再生時のみ */
