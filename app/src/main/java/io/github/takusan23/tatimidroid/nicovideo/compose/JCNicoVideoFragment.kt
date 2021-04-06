@@ -27,21 +27,19 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
-import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoCacheJSONUpdateRequestBottomFragment
-import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.ComememoBottomFragment
-import io.github.takusan23.tatimidroid.nicovideo.NicoVideoCommentFragment
-import io.github.takusan23.tatimidroid.fragment.PlayerBaseFragment
-import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoViewModelFactory
-import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.PlayerParentFrameLayout
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.databinding.IncludeNicovideoPlayerBinding
+import io.github.takusan23.tatimidroid.fragment.PlayerBaseFragment
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
+import io.github.takusan23.tatimidroid.nicovideo.NicoVideoCommentFragment
+import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.ComememoBottomFragment
+import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoCacheJSONUpdateRequestBottomFragment
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
 import io.github.takusan23.tatimidroid.tool.*
-import io.github.takusan23.tatimidroid.databinding.IncludeNicovideoPlayerBinding
 import kotlinx.coroutines.*
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.roundToInt
 
 /**
