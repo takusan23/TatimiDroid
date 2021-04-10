@@ -508,8 +508,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
         isMoveAnimating = true
 
         /** 開始時の進行度。途中で指を離した場合はそこからアニメーションを始める */
-        val startProgress =
-            (playerViewParentViewGroup!!.translationY + miniPlayerHeight) / parentViewGroupHeight
+        val startProgress = (playerViewParentViewGroup!!.translationY + miniPlayerHeight) / parentViewGroupHeight
 
         /** 第一引数から第２引数までの値を払い出してくれるやつ。 */
         ValueAnimator.ofFloat(startProgress, 1f).apply {

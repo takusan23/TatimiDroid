@@ -438,7 +438,11 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
                 // 再生時間をコメント描画Canvasへ入れ続ける
                 viewBinding.fragmentNicovideoCommentCanvas.currentPos = viewModel.playerCurrentPositionMs
-                viewBinding.fragmentNicovideoCommentCanvas.isPlaying = viewModel.playerIsPlaying.value!!
+                viewBinding.fragmentNicovideoCommentCanvas.isPlaying = if (viewModel.isNotPlayVideoMode.value == false) {
+                    exoPlayer.isPlaying
+                } else {
+                    viewModel.playerIsPlaying.value!!
+                }
 
                 // 再生中のみ
                 if (viewModel.playerIsPlaying.value == true) {

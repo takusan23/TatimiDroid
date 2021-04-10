@@ -190,7 +190,13 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 delay(100)
                 // 再生時間をコメント描画Canvasへ入れ続ける
                 nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.currentPos = viewModel.playerCurrentPositionMs
-                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isPlaying = viewModel.playerIsPlaying.value!!
+                // 再生中かどうか
+                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isPlaying = if (viewModel.isNotPlayVideoMode.value == false) {
+                    // 動画バッファー中かも？
+                    exoPlayer.isPlaying
+                } else {
+                    viewModel.playerIsPlaying.value!!
+                }
                 // 再生中のみ
                 if (viewModel.playerIsPlaying.value == true) {
                     // ExoPlayerが利用できる場合は再生時間をViewModelへ渡す
@@ -223,7 +229,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             nicovideoPlayerUIBinding.includeNicovideoPlayerCloseImageView.setImageDrawable(getCurrentStateIcon())
             // 画面回転前がミニプレイヤーだったらミニプレイヤーにする
             if (isMiniPlayerMode) {
-                toMiniPlayer() // これ直したい
+                toMiniPlayer()
             }
         }
         // Activity終了などのメッセージ受け取り
@@ -532,6 +538,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 } else {
                     viewModel.playerSetSeekMs.postValue(viewModel.currentPosition + (seekValue * 1000))
                 }
+                // ダブルタップでミニプレイヤーへの遷移が始まるので戻す
+                toDefaultPlayer()
             }
         }
         // コメントキャンバス非表示

@@ -58,6 +58,9 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** コメント一覧スクロール時に見え隠れするやつ */
     private val fragmentCommentHostAppbar by lazy { viewBinding.fragmentPlayerCommentPanelComposeViewParentAppBarLayout }
 
+    /** ミニプレイヤー無効かどうか */
+    val isDisableMiniPlayerMode by lazy { prefSetting.getBoolean("setting_nicovideo_jc_disable_mini_player", false) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return viewBinding.root
     }
@@ -86,7 +89,6 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         playerLinearLayout.setup(fragmentPlayerFrameLayout, viewBinding.fragmentPlayerBaseFragmentParentLinearLayout)
 
         // ミニプレイヤー無効化
-        val isDisableMiniPlayerMode = prefSetting.getBoolean("setting_nicovideo_jc_disable_mini_player", false)
         playerLinearLayout.isDisableMiniPlayerMode = isDisableMiniPlayerMode
 
         // コールバック。これは変更通知
@@ -169,7 +171,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         // MainActivityの場合はBottomNavigationを戻す
         (requireActivity() as? MainActivity)?.setBottomNavigationHeight(0)
         // 全画面のまま終わったとき
-        if(playerLinearLayout.isFullScreenMode){
+        if (playerLinearLayout.isFullScreenMode) {
             // センサーの思いのままに
             requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             // ステータスバー表示
