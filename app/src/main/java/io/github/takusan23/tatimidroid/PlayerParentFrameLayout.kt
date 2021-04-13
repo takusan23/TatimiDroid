@@ -265,9 +265,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
                             }
                             MotionEvent.ACTION_UP -> {
                                 // 上のフリックでのミニプレイヤー、通常切り替えを実施済みかどうか。移動速度から
-                                val isAlreadyMoveAnimated =
-                                    slidingSpeed > flickSpeed || slidingSpeed < -flickSpeed
-                                // タッチが短い場合は無視（0.1秒以内に処理を終えたら無視）
+                                val isAlreadyMoveAnimated = slidingSpeed > flickSpeed || slidingSpeed < -flickSpeed
+                                // タッチが短い場合の対応
                                 val calcTouchTime = System.currentTimeMillis() - touchTime
                                 if (!isAlreadyMoveAnimated && calcTouchTime > 100) {
                                     // 画面の半分以上か以下か
@@ -282,6 +281,13 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
                                         } else {
                                             toMiniPlayer()
                                         }
+                                    }
+                                } else {
+                                    // タッチが短い場合はアニメーション無しで戻す
+                                    if (event.y < (parentViewGroupHeight / 2)) {
+                                        toPlayerProgress(0f)
+                                    } else {
+                                        toPlayerProgress(1f)
                                     }
                                 }
                             }

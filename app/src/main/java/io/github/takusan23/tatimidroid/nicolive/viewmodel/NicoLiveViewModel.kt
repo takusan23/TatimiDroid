@@ -14,6 +14,7 @@ import io.github.takusan23.tatimidroid.nicoapi.login.NicoLogin
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.*
 import io.github.takusan23.tatimidroid.nicoapi.user.UserData
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.dataclass.QualityData
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.*
 import io.github.takusan23.tatimidroid.room.entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.room.entity.NicoHistoryDBEntity
@@ -146,8 +147,8 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** 現在の画質 */
     var currentQuality = ""
 
-    /** 選択可能な画質 */
-    var qualityListJSONArray = JSONArray()
+    /** 画質データクラス */
+    var qualityDataListLiveData = MutableLiveData<List<QualityData>>()
 
     /** HLSアドレス */
     val hlsAddressLiveData = MutableLiveData<String>()
@@ -205,9 +206,6 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
 
     /** TS予約が可能かどうか */
     val isAllowTSRegister = MutableLiveData(true)
-
-    /** 初回判定用フラグ。初回のみぴょこってプレイヤーが出てくるあれをやるために */
-    var isFirst = true
 
     init {
         // 匿名でコメントを投稿する場合
@@ -486,7 +484,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                     // 画質一覧と今の画質
                     currentQuality = nicoLiveHTML.getCurrentQuality(message)
                     // 選択可能な画質
-                    qualityListJSONArray = nicoLiveHTML.getQualityListJSONArray(message)
+                    setQualityList(nicoLiveHTML.getQualityListJSONArray(message))
                     // 二回目以降画質変更を通知する
                     if (isNotFirstQualityMessage) {
                         changeQualityLiveData.postValue(nicoLiveHTML.getCurrentQuality(message))
@@ -532,6 +530,38 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                 //番組終了
                 programEnd(message)
             }
+        }
+    }
+
+    /** 画質のデータクラスを作成する */
+    private fun setQualityList(qualityListJSONArray: JSONArray) {
+        val qualityList = arrayListOf<QualityData>()
+        repeat(qualityListJSONArray.length()) { index ->
+            val text = qualityListJSONArray.getString(index)
+            qualityList.add(
+                QualityData(
+                    title = getQualityText(text),
+                    id = text,
+                    isAvailable = true,
+                    isSelected = text == currentQuality,
+                )
+            )
+        }
+        qualityDataListLiveData.postValue(qualityList)
+    }
+
+    /** 画質名を変換する */
+    private fun getQualityText(text: String): String {
+        return when (text) {
+            "abr" -> getString(R.string.quality_auto)
+            "super_high" -> "3Mbps"
+            "high" -> "2Mbps"
+            "normal" -> "1Mbps"
+            "low" -> "384kbps"
+            "super_low" -> "192kbps"
+            "audio_high" -> getString(R.string.quality_audio)
+            "6Mbps1080p30fps" -> "6Mbps 1080p 30fps"
+            else -> text
         }
     }
 

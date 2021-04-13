@@ -207,7 +207,7 @@ class NicoVideoCache(val context: Context?) {
     }
 
     /**
-     * 動画をダウンロードする[DownloadPocket]クラスを返す
+     * 動画をダウンロードする[DownloadPocket]インスタンスを返す
      * */
     suspend fun getVideoDownloader(tmpFileFolder: File, videoIdFolder: File, videoId: String, url: String, userSession: String, nicoHistory: String, splitCount: Int) = withContext(Dispatchers.IO) {
         // 動画mp4ファイル作成
