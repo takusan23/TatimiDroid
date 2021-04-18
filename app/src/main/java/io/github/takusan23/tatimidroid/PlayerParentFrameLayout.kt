@@ -148,6 +148,9 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
     /** タッチ開始時間。ミリ秒 */
     private var touchTime = 0L
 
+    /** デフォルト時のプレイヤーサイズ。 */
+    var defaultPlayerWidth = 0
+
     /**
      * 初期設定を行いますので利用前にこの関数をよんでください
      * @param playerView サイズ変更を行うView。これはアスペクト比の調整のために使う。VideoViewとかSurfaceViewとか？
@@ -164,6 +167,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
         this.playerView = playerView
         this.playerViewParentViewGroup = playerViewParent
         this.miniPlayerWidth = if (isLandScape()) landscapeMiniPlayerWidth else portlateMiniPlayerWidth
+        // 通常時のプレイヤーサイズ
+        defaultPlayerWidth = playerViewParent.width / 2
         // 横画面時は上方向のマージンをかける
         setLandScapeTopMargin(1f)
     }
@@ -207,7 +212,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
                 val progress = fixYPos / (parentViewGroupHeight - miniPlayerHeight).toFloat()
 
                 /** 進行途中の場合はtrue */
-                isProgress = progress < 1f && progress > 0f
+                isProgress = this@PlayerParentFrameLayout.progress < 1f && this@PlayerParentFrameLayout.progress > 0f
 
                 // フリック時の処理。早くフリックしたときにミニプレイヤー、通常画面へ素早く切り替える
                 when (event.action) {
@@ -253,42 +258,38 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
                 }
                 // フリックによる遷移をしていない場合
                 if (!isMoveAnimating) {
-                    // プレイヤーを操作中 または 進行中...（通常画面でもなければミニプレイヤーでもない）
-                    if (isTouchingPlayerView || (!isDefaultScreen() && !isMiniPlayerCheckHard())) {
-                        when (event.action) {
-                            MotionEvent.ACTION_DOWN -> {
-                                touchTime = System.currentTimeMillis()
-                            }
-                            MotionEvent.ACTION_MOVE -> {
-                                // サイズ変更
+                    when (event.action) {
+                        MotionEvent.ACTION_DOWN -> {
+                            touchTime = System.currentTimeMillis()
+                        }
+                        MotionEvent.ACTION_MOVE -> {
+                            // サイズ変更
+                            if (isProgress) {
                                 toPlayerProgress(progress)
+                            } else {
+                                if (isTouchingPlayerView) {
+                                    toPlayerProgress(progress)
+                                }
                             }
-                            MotionEvent.ACTION_UP -> {
-                                // 上のフリックでのミニプレイヤー、通常切り替えを実施済みかどうか。移動速度から
-                                val isAlreadyMoveAnimated = slidingSpeed > flickSpeed || slidingSpeed < -flickSpeed
-                                // タッチが短い場合の対応
-                                val calcTouchTime = System.currentTimeMillis() - touchTime
-                                if (!isAlreadyMoveAnimated && calcTouchTime > 100) {
-                                    // 画面の半分以上か以下か
-                                    if (event.y < (parentViewGroupHeight / 2)) {
-                                        // 以上。上半分で離した場合は上に戻す
-                                        toDefaultPlayer()
-                                    } else {
-                                        // 以下。下半分で戻した場合はミニプレイヤーへ
-                                        if (translationY > (parentViewGroupHeight - miniPlayerHeight) + (miniPlayerHeight / 2)) {
-                                            // ミニプレイヤーでも更に半分進んだ場合は終了アニメへ
-                                            toDestroyPlayer()
-                                        } else {
-                                            toMiniPlayer()
-                                        }
-                                    }
+                        }
+                        MotionEvent.ACTION_UP -> {
+                            if (this@PlayerParentFrameLayout.progress > 0.5f) {
+                                // 半分より下
+                                if (!alternativeIsMiniPlayer()) {
+                                    // とりあえずミニプレイヤーへ
+                                    toMiniPlayer()
                                 } else {
-                                    // タッチが短い場合はアニメーション無しで戻す
-                                    if (event.y < (parentViewGroupHeight / 2)) {
-                                        toPlayerProgress(0f)
+                                    if (translationY > (parentViewGroupHeight - miniPlayerHeight) + (miniPlayerHeight / 2)) {
+                                        // ミニプレイヤーでも更に半分進んだ場合は終了アニメへ
+                                        toDestroyPlayer()
                                     } else {
-                                        toPlayerProgress(1f)
+                                        toMiniPlayer()
                                     }
+                                }
+                            } else {
+                                // 半分より上
+                                if (!alternativeIsDefaultScreen()) {
+                                    toDefaultPlayer()
                                 }
                             }
                         }
@@ -310,7 +311,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
      * */
     private fun toPlayerProgress(argProgress: Float) {
         playerViewParentViewGroup?.apply {
-            // 進捗具合。小数点3桁ぐらいまでにする
             this@PlayerParentFrameLayout.progress = argProgress
 
             val maxTransitionX = (parentViewGroupWidth - miniPlayerWidth).toFloat()
@@ -331,10 +331,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
                                 val sabun = parentViewGroupWidth - miniPlayerWidth
                                 width = miniPlayerWidth + (sabun * (1f - progress)).toInt()
                                 // 何倍すれば縦の大きさが出るか
-                                val nanbai =
-                                    DisplaySizeTool.getDisplayHeight(context) / DisplaySizeTool.getDisplayWidth(
-                                        context
-                                    ).toFloat()
+                                val nanbai = DisplaySizeTool.getDisplayHeight(context) / DisplaySizeTool.getDisplayWidth(context).toFloat()
                                 height = (width * nanbai).toInt()
                             } else {
                                 val sabun = (parentViewGroupWidth / 2f) - miniPlayerWidth
@@ -487,7 +484,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
     /** 通常プレイヤーへ遷移 */
     fun toDefaultPlayer() {
         // 同じなら無視
-        if (isDefaultScreen()) return
+        if (alternativeIsDefaultScreen()) return
 
         isMoveAnimating = true
 
@@ -509,7 +506,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
     /** ミニプレイヤーへ遷移する */
     fun toMiniPlayer() {
         // 同じなら無視
-        if (isMiniPlayerCheckHard() || isDisableMiniPlayerMode) return
+        if (alternativeIsMiniPlayer() || isDisableMiniPlayerMode) return
 
         isMoveAnimating = true
 
@@ -648,6 +645,9 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
      * */
     fun isDefaultScreen() = progress == 0.0f
 
+    /** [isDefaultScreen]の代替関数 */
+    fun alternativeIsDefaultScreen() = playerView!!.width == defaultPlayerWidth
+
     /**
      * ミニプレイヤーのときはtrueを返す
      * ユーザー操作時は小数点以下が出るので小数点1桁まで
@@ -660,6 +660,10 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
      * なお、判断基準はミニプレイヤーが真ん中を超えたか超えてないか。
      * */
     fun isMiniPlayerCheckSoft() = progress > 0.5f
+
+    /** [isMiniPlayerCheckHard]の代替関数 */
+    fun alternativeIsMiniPlayer() = playerView!!.width == miniPlayerWidth
+
 
     /**
      * 画面が横向きかどうかを返す
