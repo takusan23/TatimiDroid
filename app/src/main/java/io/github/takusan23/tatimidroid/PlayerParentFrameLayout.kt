@@ -33,8 +33,7 @@ import kotlin.math.roundToInt
  *
  * [setup]関数参照
  * */
-class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
-    FrameLayout(context, attributeSet) {
+class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : FrameLayout(context, attributeSet) {
 
     /** [addOnStateChangeListener]の引数に来る定数たち */
     companion object {
@@ -157,18 +156,20 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
      * @param playerViewParent [playerView]が乗っているViewGroup。こいつを[View.setTranslationY]などを使って動かす。
      * @param portlateMiniPlayerWidth 省略可能。縦画面のときのミニプレイヤーの幅。省略すると画面の幅の半分
      * @param landscapeMiniPlayerWidth 省略可能。横画面のときのミニプレイヤーの幅。省略すると画面の幅の三分の一
+     * @param landscapeDefaultPlayerWidth 横画面時のプレイヤーサイズ。21:9なら、3:1
      * */
     fun setup(
         playerView: View,
         playerViewParent: ViewGroup,
         portlateMiniPlayerWidth: Int = DisplaySizeTool.getDisplayWidth(context) / 2,
-        landscapeMiniPlayerWidth: Int = DisplaySizeTool.getDisplayWidth(context) / 3
+        landscapeMiniPlayerWidth: Int = DisplaySizeTool.getDisplayWidth(context) / 3,
+        landscapeDefaultPlayerWidth: Int = playerView.width / 2
     ) {
         this.playerView = playerView
         this.playerViewParentViewGroup = playerViewParent
         this.miniPlayerWidth = if (isLandScape()) landscapeMiniPlayerWidth else portlateMiniPlayerWidth
         // 通常時のプレイヤーサイズ
-        defaultPlayerWidth = playerViewParent.width / 2
+        defaultPlayerWidth = landscapeDefaultPlayerWidth
         // 横画面時は上方向のマージンをかける
         setLandScapeTopMargin(1f)
     }
@@ -273,23 +274,27 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
                             }
                         }
                         MotionEvent.ACTION_UP -> {
-                            if (this@PlayerParentFrameLayout.progress > 0.5f) {
-                                // 半分より下
-                                if (!alternativeIsMiniPlayer()) {
-                                    // とりあえずミニプレイヤーへ
-                                    toMiniPlayer()
-                                } else {
-                                    if (translationY > (parentViewGroupHeight - miniPlayerHeight) + (miniPlayerHeight / 2)) {
-                                        // ミニプレイヤーでも更に半分進んだ場合は終了アニメへ
-                                        toDestroyPlayer()
-                                    } else {
+                            val isAlreadyMoveAnimated = slidingSpeed > flickSpeed || slidingSpeed < -flickSpeed
+                            if (!isAlreadyMoveAnimated) {
+                                // フリックによるプレイヤー遷移を行っていない
+                                if (this@PlayerParentFrameLayout.progress > 0.5f) {
+                                    // 半分より下
+                                    if (!alternativeIsMiniPlayer()) {
+                                        // とりあえずミニプレイヤーへ
                                         toMiniPlayer()
+                                    } else {
+                                        if (translationY > (parentViewGroupHeight - miniPlayerHeight) + (miniPlayerHeight / 2)) {
+                                            // ミニプレイヤーでも更に半分進んだ場合は終了アニメへ
+                                            toDestroyPlayer()
+                                        } else {
+                                            toMiniPlayer()
+                                        }
                                     }
-                                }
-                            } else {
-                                // 半分より上
-                                if (!alternativeIsDefaultScreen()) {
-                                    toDefaultPlayer()
+                                } else {
+                                    // 半分より上
+                                    if (!alternativeIsDefaultScreen()) {
+                                        toDefaultPlayer()
+                                    }
                                 }
                             }
                         }
@@ -334,7 +339,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
                                 val nanbai = DisplaySizeTool.getDisplayHeight(context) / DisplaySizeTool.getDisplayWidth(context).toFloat()
                                 height = (width * nanbai).toInt()
                             } else {
-                                val sabun = (parentViewGroupWidth / 2f) - miniPlayerWidth
+                                val sabun = defaultPlayerWidth - miniPlayerWidth
                                 width = miniPlayerWidth + (sabun * (1f - progress)).toInt()
                                 height = (width / 16) * 9
                             }
@@ -367,21 +372,14 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
                  * [addOnStateChangeListener]を呼ぶ
                  * */
                 when {
-                    isDefaultScreen() -> {
+                    alternativeIsDefaultScreen() -> {
                         // 違ったら入れる
                         if (currentState != PLAYER_STATE_DEFAULT) {
                             stateChangeListenerList.forEach { it.invoke(PLAYER_STATE_DEFAULT) }
                             currentState = PLAYER_STATE_DEFAULT
                         }
                     }
-                    isMiniPlayerCheckHard() -> {
-                        // 違ったら入れる
-                        if (currentState != PLAYER_STATE_MINI) {
-                            stateChangeListenerList.forEach { it.invoke(PLAYER_STATE_MINI) }
-                            currentState = PLAYER_STATE_MINI
-                        }
-                    }
-                    translationY.roundToInt() == parentViewGroupHeight -> {
+                    alternativeIsMiniPlayer() && translationY.toInt() == parentViewGroupHeight -> {
                         // まだ終了済みではない
                         if (!isAlreadyDestroyed) {
                             // 違ったら入れる
@@ -390,6 +388,13 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
                                 isAlreadyDestroyed = true
                                 currentState = PLAYER_STATE_DESTROY
                             }
+                        }
+                    }
+                    alternativeIsMiniPlayer() -> {
+                        // 違ったら入れる
+                        if (currentState != PLAYER_STATE_MINI) {
+                            stateChangeListenerList.forEach { it.invoke(PLAYER_STATE_MINI) }
+                            currentState = PLAYER_STATE_MINI
                         }
                     }
                 }
@@ -484,7 +489,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
     /** 通常プレイヤーへ遷移 */
     fun toDefaultPlayer() {
         // 同じなら無視
-        if (alternativeIsDefaultScreen()) return
+        // if (alternativeIsDefaultScreen()) return
 
         isMoveAnimating = true
 
@@ -505,8 +510,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
 
     /** ミニプレイヤーへ遷移する */
     fun toMiniPlayer() {
-        // 同じなら無視
-        if (alternativeIsMiniPlayer() || isDisableMiniPlayerMode) return
+        // 無効なら無視
+        if (isDisableMiniPlayerMode) return
 
         isMoveAnimating = true
 
@@ -534,15 +539,13 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) :
         /**
          * 開始時の進行度。途中で指を離した場合はそこからアニメーションを始める
          * */
-        val startProgress =
-            (playerViewParentViewGroup!!.translationY + miniPlayerHeight) / parentViewGroupHeight
+        val startProgress = (playerViewParentViewGroup!!.translationY + miniPlayerHeight) / parentViewGroupHeight
 
         /**
          * 終了地点
          * なんかしらんけどこの計算式で出せた（1.8位になると思う。この値を[toPlayerProgress]に渡せばええんじゃ？）
          * */
-        val endProgress =
-            parentViewGroupHeight / (parentViewGroupHeight - miniPlayerHeight).toFloat()
+        val endProgress = parentViewGroupHeight / (parentViewGroupHeight - miniPlayerHeight).toFloat()
 
         /**
          * 第一引数から第２引数までの値を払い出してくれるやつ。
