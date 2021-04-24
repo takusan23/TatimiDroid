@@ -371,15 +371,34 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * @param addPos シーク時なんかに使う。コメントの位置を先に進めるときに
      * */
     fun drawComment(commentJSONParse: CommentJSONParse, videoPos: Long, addPos: Int = 0) {
+        val isUe = checkUeComment(commentJSONParse.mail)
+        val isShita = commentJSONParse.mail.contains("shita")
+        val commentList = commentJSONParse.comment.split("\n")
         when {
             // うえ
-            checkUeComment(commentJSONParse.mail) -> drawUeComment(commentJSONParse, videoPos)
+            isUe -> {
+                oldHeight = 0
+                commentList.forEach { comment ->
+                    commentJSONParse.comment = comment
+                    drawUeComment(commentJSONParse, videoPos)
+                }
+            }
             // した
-            commentJSONParse.mail.contains("shita") -> drawShitaComment(commentJSONParse, videoPos)
-            // 複数行の中コメ
-            commentJSONParse.comment.contains("\n") -> drawAsciiArtNakaComment(commentJSONParse.comment.split("\n"), commentJSONParse, videoPos, addPos)
+            isShita -> {
+                oldHeight = 0
+                commentList.reversed().forEach { comment ->
+                    commentJSONParse.comment = comment
+                    drawNakaComment(commentJSONParse, videoPos, addPos, commentList.size > 1, commentList.size)
+                }
+            }
             // 通常
-            else -> drawNakaComment(commentJSONParse, videoPos, addPos)
+            else -> {
+                oldHeight = 0
+                commentList.forEach { comment ->
+                    commentJSONParse.comment = comment
+                    drawNakaComment(commentJSONParse, videoPos, addPos, commentList.size > 1, commentList.size)
+                }
+            }
         }
     }
 
