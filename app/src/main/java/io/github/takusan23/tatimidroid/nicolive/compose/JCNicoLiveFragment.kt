@@ -33,6 +33,11 @@ import com.google.android.material.button.MaterialButton
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.PlayerParentFrameLayout
+import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.databinding.IncludeNicoliveEnquateBinding
+import io.github.takusan23.tatimidroid.databinding.IncludeNicolivePlayerBinding
+import io.github.takusan23.tatimidroid.fragment.PlayerBaseFragment
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.nicolive.CommentRoomFragment
 import io.github.takusan23.tatimidroid.nicolive.CommentViewFragment
@@ -40,13 +45,8 @@ import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.factory.NicoLiveViewModelFactory
 import io.github.takusan23.tatimidroid.nicovideo.compose.DarkColors
 import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
-import io.github.takusan23.tatimidroid.fragment.PlayerBaseFragment
-import io.github.takusan23.tatimidroid.PlayerParentFrameLayout
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.service.startLivePlayService
 import io.github.takusan23.tatimidroid.tool.*
-import io.github.takusan23.tatimidroid.databinding.IncludeNicoliveEnquateBinding
-import io.github.takusan23.tatimidroid.databinding.IncludeNicolivePlayerBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
@@ -510,7 +510,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     /** ExoPlayerで生放送を再生する */
     private fun playExoPlayer(address: String) {
         // ExoPlayer
-        exoPlayer.stop()
         // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
         if (viewModel.currentQuality == "audio_high") {
             nicolivePlayerUIBinding.includeNicolivePlayerAudioOnlyTextView.visibility = View.VISIBLE

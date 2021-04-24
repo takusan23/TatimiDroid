@@ -97,6 +97,13 @@
             android:key="setting_nicovideo_jc_disable_mini_player"
             android:summary="無効にすると、戻るキーがプレイヤー終了になります。"
             android:title="ミニプレイヤーを無効にする" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_aspect_ratio_24px"
+            android:key="setting_nicovideo_jc_cinema_wide_aspect"
+            android:summary="@string/setting_nicovideo_jc_cinema_wide_aspect_description"
+            android:title="@string/setting_nicovideo_jc_cinema_wide_aspect_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/video">

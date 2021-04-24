@@ -273,6 +273,11 @@ class NicoLiveHTML {
         return konomiTagList
     }
 
+    /** 番組が終了している場合は戻り値がENDEDになる */
+    fun getProgramStatus(nicoLiveJSON: JSONObject): String {
+        return nicoLiveJSON.getJSONObject("program").getString("status")
+    }
+
     /**
      * ログインが有効かどうか。
      * @param response [getNicoLiveHTML]の戻り値

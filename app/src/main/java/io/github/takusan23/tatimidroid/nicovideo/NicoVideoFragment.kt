@@ -380,7 +380,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
     /** 最後に見たところから再生SnackBarを表示。キャッシュ再生時のみ */
     private fun showSeekLatestPosition() {
-        val progress = prefSetting.getLong("progress_${viewModel.playingVideoId.value}", 0)
+        val videoId = viewModel.nicoVideoData.value?.videoId ?: viewModel.playingVideoId.value
+        val progress = prefSetting.getLong("progress_$videoId", 0)
         if (progress != 0L && viewModel.isOfflinePlay.value == true) {
             Snackbar.make(viewBinding.fragmentNicovideoSurfaceView, "${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", Snackbar.LENGTH_LONG).apply {
                 setAction(R.string.play) {
@@ -1024,7 +1025,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // キャッシュ再生の場合は位置を保存する
         if (viewModel.isOfflinePlay.value == true) {
             prefSetting.edit {
-                putLong("progress_${viewModel.nicoVideoData.value!!.videoId}", viewModel.playerCurrentPositionMs)
+                val videoId = viewModel.nicoVideoData.value?.videoId ?: viewModel.playingVideoId.value
+                putLong("progress_$videoId", viewModel.playerCurrentPositionMs)
             }
         }
         (requireActivity() as MainActivity).setVisibilityBottomNav()

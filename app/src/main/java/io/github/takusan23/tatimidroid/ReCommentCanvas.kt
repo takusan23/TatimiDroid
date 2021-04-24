@@ -6,9 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.*
-import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -176,10 +174,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                 // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
                 // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
                 val isAddable = drewedList.toList()
-                    .none { id -> if (it.commentNo.isEmpty()) it.vpos.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
+                    .none { id -> if (it.commentNo.isEmpty()) it.dateUsec.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
                 if (isAddable) {
-                    // コメントIDない場合はvposで代替する
-                    drewedList.add(if (it.commentNo.isEmpty()) it.vpos.toLong() else it.commentNo.toLong())
+                    // コメントIDない場合はdate_usecで代替する
+                    drewedList.add(if (it.commentNo.isEmpty()) it.dateUsec.toLong() else it.commentNo.toLong())
                     // コメント登録。
                     drawComment(it, currentPos)
                 }
@@ -275,10 +273,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                     // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
                     // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
                     val isAddable = drewedList.toList()
-                        .none { id -> if (it.commentNo.isEmpty()) it.vpos.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
+                        .none { id -> if (it.commentNo.isEmpty()) it.dateUsec.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
                     if (isAddable) {
-                        // コメントIDない場合はvposで代替する
-                        drewedList.add(if (it.commentNo.isEmpty()) it.vpos.toLong() else it.commentNo.toLong())
+                        // コメントIDない場合はdate_usecで代替する
+                        drewedList.add(if (it.commentNo.isEmpty()) it.dateUsec.toLong() else it.commentNo.toLong())
                         // コメントが長いときは早く流す
                         val speed = commentMoveMinus + (it.comment.length / 8)
                         // コメント登録。

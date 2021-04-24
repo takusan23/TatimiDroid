@@ -9,13 +9,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.nicoapi.community.CommunityAPI
+import io.github.takusan23.tatimidroid.nicoapi.dataclass.QualityData
 import io.github.takusan23.tatimidroid.nicoapi.login.NicoLogin
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.*
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.*
 import io.github.takusan23.tatimidroid.nicoapi.user.UserData
-import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.nicoapi.dataclass.QualityData
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.*
 import io.github.takusan23.tatimidroid.room.entity.KotehanDBEntity
 import io.github.takusan23.tatimidroid.room.entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.room.init.KotehanDBInit
@@ -207,6 +207,9 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** TS予約が可能かどうか */
     val isAllowTSRegister = MutableLiveData(true)
 
+    /** タイムシフト再生中？ */
+    val isWatchingTimeShiftLiveData = MutableLiveData(false)
+
     init {
         // 匿名でコメントを投稿する場合
         nicoLiveHTML.isPostTokumeiComment = prefSetting.getBoolean("nicolive_post_tokumei", true)
@@ -243,12 +246,18 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             nicoLiveProgramData.postValue(nicoLiveHTML.getProgramData(jsonObject))
             nicoLiveProgramDescriptionLiveData.postValue(nicoLiveHTML.getProgramDescription(jsonObject))
             nicoLiveUserDataLiveData.postValue(nicoLiveHTML.getUserData(jsonObject))
-            nicoLiveTagDataListLiveData.postValue(nicoLiveHTML.getTagList(jsonObject))
+            val tagList = nicoLiveHTML.getTagList(jsonObject)
+            // 6M (フルHD)が利用可能な場合はToastを出す
+            checkFullHDQuality(tagList)
+            nicoLiveTagDataListLiveData.postValue(tagList)
             nicoLiveKonomiTagListLiveData.postValue(nicoLiveHTML.getKonomiTagList(jsonObject))
             nicoLiveHTML.getCommunityOrChannelData(jsonObject).apply {
                 nicoLiveCommunityOrChannelDataLiveData.postValue(this)
                 isCommunityOrChannelFollowLiveData.postValue(isFollow)
             }
+            // TS視聴中かどうか
+            val isEnded = nicoLiveHTML.getProgramStatus(jsonObject) == "ENDED"
+            isWatchingTimeShiftLiveData.postValue(nicoLiveHTML.isPremium(jsonObject) && isEnded)
             // 履歴に追加
             launch { insertDB() }
             // WebSocketへ接続
@@ -299,6 +308,15 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
         }
 */
 
+    }
+
+    /** フルHD対応番組の場合はToastを出す */
+    private fun checkFullHDQuality(tagData: NicoLiveTagData) {
+        tagData.tagList.forEach { nicoTagItemData ->
+            if (nicoTagItemData.tagName == "フルHD配信") {
+                showToast(getString(R.string.nicolive_support_full_hd))
+            }
+        }
     }
 
     /**

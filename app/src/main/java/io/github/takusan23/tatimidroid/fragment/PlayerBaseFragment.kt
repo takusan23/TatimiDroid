@@ -10,16 +10,16 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
-import io.github.takusan23.tatimidroid.tool.DisplaySizeTool
+import io.github.takusan23.tatimidroid.databinding.FragmentPlayerBaseBinding
 import io.github.takusan23.tatimidroid.tool.InternetConnectionCheck
 import io.github.takusan23.tatimidroid.tool.SystemBarVisibility
 import io.github.takusan23.tatimidroid.tool.getThemeColor
-import io.github.takusan23.tatimidroid.databinding.FragmentPlayerBaseBinding
 
 /**
  * 動画、生放送のFragmentのベースになるFragment。これを継承して作っていきたい。
@@ -71,22 +71,39 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         // ダークモード対策
         viewBinding.fragmentPlayerBaseFragmentParentLinearLayout.background = ColorDrawable(getThemeColor(context))
         fragmentCommentHostAppbar.background = ColorDrawable(getThemeColor(context))
-        // BottomSheet初期化。画面の半分ぐらい
-        val displayWidth = DisplaySizeTool.getDisplayWidth(requireContext())
-        // プレイヤー用意
-        if (isLandscape()) {
-            viewBinding.fragmentPlayerBasePlayerFrameLayout.updateLayoutParams<LinearLayout.LayoutParams> {
-                width = displayWidth / 2
-                height = (width / 16) * 9
+
+
+        viewBinding.root.doOnNextLayout {
+
+            val displayWidth = viewBinding.root.width
+
+            // 21:9モード
+            val isCinemaWideAspectRate = prefSetting.getBoolean("setting_nicovideo_jc_cinema_wide_aspect", false)
+            val playerDefaultWidth = if (isCinemaWideAspectRate) {
+                displayWidth / 1.5f
+            } else {
+                displayWidth / 2f
+            }.toInt()
+
+            // プレイヤー用意
+            if (isLandscape()) {
+                viewBinding.fragmentPlayerBasePlayerFrameLayout.updateLayoutParams<LinearLayout.LayoutParams> {
+                    width = playerDefaultWidth
+                    height = (width / 16) * 9
+                }
+            } else {
+                viewBinding.fragmentPlayerBasePlayerFrameLayout.updateLayoutParams<LinearLayout.LayoutParams> {
+                    width = displayWidth
+                    height = (width / 16) * 9
+                }
             }
-        } else {
-            viewBinding.fragmentPlayerBasePlayerFrameLayout.updateLayoutParams<LinearLayout.LayoutParams> {
-                width = displayWidth
-                height = (width / 16) * 9
-            }
+            // プレイヤー（PlayerParentFrameLayout）セットアップ
+            playerLinearLayout.setup(
+                playerView = fragmentPlayerFrameLayout,
+                playerViewParent = viewBinding.fragmentPlayerBaseFragmentParentLinearLayout,
+                landscapeDefaultPlayerWidth = playerDefaultWidth
+            )
         }
-        // プレイヤー（PlayerParentFrameLayout）セットアップ
-        playerLinearLayout.setup(fragmentPlayerFrameLayout, viewBinding.fragmentPlayerBaseFragmentParentLinearLayout)
 
         // ミニプレイヤー無効化
         playerLinearLayout.isDisableMiniPlayerMode = isDisableMiniPlayerMode
