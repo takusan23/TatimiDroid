@@ -114,7 +114,7 @@
     <string name="setting_rotation_sensor_title">センサーを利用して強制画面回転（実験的）</string>
     <string name="setting_rotation_sensor_description">画面回転無効時でもセンサーを利用して画面回転をします。</string>
     <string name="nimado">二窓コメビュ（実験的）</string>
-    <string name="setting_comment_speed_description">デフォルトは3です</string>
+    <string name="setting_comment_speed_description">デフォルトは5です</string>
     <string name="setting_comment_speed_title">コメントの移動する大きさ</string>
     <string name="entyou_message">延長を確認しました。</string>
     <string name="end_time">終了時刻</string>
@@ -478,4 +478,5 @@
     <string name="setting_nicovideo_jc_cinema_wide_aspect_description">細長い</string>
     <string name="nicolive_support_full_hd">この番組はフルHDでの視聴が可能です。 画質変更から6Mを選んでください。</string>
     <string name="setting_nicovideo_jc_show_fps_title">FPSを表示する</string>
+    <string name="setting_nicovideo_jc_show_fps_description">開発者向け。onDraw()を一秒間に呼んだ回数を表示します。</string>
 </resources>

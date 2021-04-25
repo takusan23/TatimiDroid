@@ -330,7 +330,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                         // 動画説明文
                         nicoVideoDescriptionLiveData.postValue(jsonObject.getJSONObject("video").getString("description"))
                         // ユーザー情報LiveData
-                        userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
+                        nicoVideoHTML.parseUserData(jsonObject)?.let { data -> userDataLiveData.postValue(data) }
                         // タグLiveData
                         tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
                         // シリーズが設定されていればシリーズ情報を返す
@@ -401,7 +401,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             // いいね済みかどうか
             isLikedLiveData.postValue(nicoVideoHTML.isLiked(jsonObject))
             // ユーザー情報LiveData
-            userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
+            nicoVideoHTML.parseUserData(jsonObject)?.let { data -> userDataLiveData.postValue(data) }
             // タグLiveData
             tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
 

@@ -108,6 +108,7 @@
         <SwitchPreference
             android:defaultValue="false"
             android:key="setting_nicovideo_jc_show_fps"
+            android:summary="@string/setting_nicovideo_jc_show_fps_description"
             android:title="@string/setting_nicovideo_jc_show_fps_title" />
     </PreferenceCategory>
 
@@ -365,7 +366,7 @@
             android:title="@string/setting_comment_canvas_timer_title" />
 
         <SwitchPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:icon="@drawable/ic_sports_esports_24px"
             android:key="setting_comment_canvas_speed_fps_enable"
             android:summary="@string/setting_comment_canvas_fps_enable_description"
@@ -387,7 +388,7 @@
             android:title="@string/setting_comment_canvas_alpha_title" />
 
         <EditTextPreference
-            android:defaultValue="3"
+            android:defaultValue="5"
             android:icon="@drawable/ic_speed_24px"
             android:key="setting_comment_speed"
             android:summary="@string/setting_comment_speed_description"
