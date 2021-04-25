@@ -116,9 +116,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         //文字サイズ計算。端末によって変わるので
         fontsize = 20 * resources.displayMetrics.scaledDensity
         // コメントの更新頻度をfpsで設定するかどうか
-        val enableCommentSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
+        val enableCommentSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", true)
         // コメントの流れる速度
-        val speed = prefSetting.getString("setting_comment_speed", "3")?.toInt() ?: 3
+        val speed = prefSetting.getString("setting_comment_speed", "5")?.toInt() ?: 5
         // コメントキャンバスの更新頻度
         val update = if (enableCommentSpeedFPS) {
             // fpsで設定
@@ -127,7 +127,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             (1000 / fps)
         } else {
             // ミリ秒で指定
-            prefSetting.getString("setting_comment_canvas_timer", "16")?.toIntOrNull() ?: 10
+            prefSetting.getString("setting_comment_canvas_timer", "16")?.toIntOrNull() ?: 16
         }.toLong()
         // コメントの透明度
         commentAlpha = prefSetting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F

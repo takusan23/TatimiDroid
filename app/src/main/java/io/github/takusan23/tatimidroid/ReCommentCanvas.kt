@@ -98,7 +98,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      *
      * でふぉは-5です。
      * */
-    private val commentMoveMinus by lazy { prefSetting.getString("setting_comment_speed", "3")?.toInt() ?: 3 }
+    private val commentMoveMinus by lazy { prefSetting.getString("setting_comment_speed", "5")?.toInt() ?: 5 }
 
     /**
      * 16ミリ秒ごと[commentMoveMinus]分動かす。
@@ -745,12 +745,11 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * */
     private fun getCommentCanvasUpdateMs(): Long {
         // コメントの更新頻度をfpsで設定するかどうか
-        val enableCommentSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
+        val enableCommentSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", true)
         // コメントキャンバスの更新頻度
         return if (enableCommentSpeedFPS) {
             // fpsで設定
-            val fps =
-                prefSetting.getString("setting_comment_canvas_speed_fps", "60")?.toIntOrNull() ?: 60
+            val fps = prefSetting.getString("setting_comment_canvas_speed_fps", "60")?.toIntOrNull() ?: 60
             // 1000で割る （例：1000/60=16....）
             (1000 / fps)
         } else {
