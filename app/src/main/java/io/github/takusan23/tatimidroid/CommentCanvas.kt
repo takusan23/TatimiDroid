@@ -127,7 +127,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             (1000 / fps)
         } else {
             // ミリ秒で指定
-            prefSetting.getString("setting_comment_canvas_timer", "10")?.toIntOrNull() ?: 10
+            prefSetting.getString("setting_comment_canvas_timer", "16")?.toIntOrNull() ?: 10
         }.toLong()
         // コメントの透明度
         commentAlpha = prefSetting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F

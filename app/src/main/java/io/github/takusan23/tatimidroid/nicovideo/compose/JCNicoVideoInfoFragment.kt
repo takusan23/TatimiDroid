@@ -24,14 +24,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicovideo.NicoAccountFragment
 import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoLikeBottomFragment
 import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoLikeThanksMessageBottomFragment
-import io.github.takusan23.tatimidroid.nicovideo.NicoAccountFragment
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoMyListListFragment
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoSearchFragment
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.tool.isDarkMode
 

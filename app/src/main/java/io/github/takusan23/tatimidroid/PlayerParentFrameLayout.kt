@@ -10,17 +10,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import androidx.core.view.doOnLayout
-import androidx.core.view.isVisible
-import androidx.core.view.updateLayoutParams
+import androidx.core.view.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import io.github.takusan23.tatimidroid.tool.DisplaySizeTool
 import okhttp3.internal.format
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.roundToInt
 
 
@@ -151,7 +147,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     var defaultPlayerWidth = 0
 
     /**
-     * 初期設定を行いますので利用前にこの関数をよんでください
+     * 初期設定を行いますので利用前にこの関数をよんでください。あとViewのサイズが取得可能になったときに呼ぶ必要があります。
      * @param playerView サイズ変更を行うView。これはアスペクト比の調整のために使う。VideoViewとかSurfaceViewとか？
      * @param playerViewParent [playerView]が乗っているViewGroup。こいつを[View.setTranslationY]などを使って動かす。
      * @param portlateMiniPlayerWidth 省略可能。縦画面のときのミニプレイヤーの幅。省略すると[playerViewParent]の半分
@@ -420,6 +416,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 // そして現在かけるべきマージンを計算
                 val currentTopMargin = maxTopMargin * progress
                 topMargin = currentTopMargin.roundToInt()
+
             }
         }
     }
@@ -433,8 +430,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         isFullScreenMode = true
         // コールバックを送信
         fullscreenListenerList.forEach { function -> function.invoke(isFullScreenMode) }
-        playerViewParentViewGroup!!.doOnLayout {
-            playerView!!.updateLayoutParams<LinearLayout.LayoutParams> {
+        playerView?.doOnPreDraw {
+            playerView?.updateLayoutParams<LinearLayout.LayoutParams> {
                 // 幅を治す
                 width = DisplaySizeTool.getDisplayWidth(context)
                 height = DisplaySizeTool.getDisplayHeight(context)
@@ -444,15 +441,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 callback?.invoke()
             }
         }
-    }
-
-    /**
-     * 全画面への遷移。完了を待つコルーチン版。toFullScreen()の結果を待ちたい場合はどうぞ
-     *
-     * サイズ変更が完了するまで一時停止します
-     * */
-    suspend fun toFullScreenSuspend() = suspendCoroutine<Unit> {
-        toFullScreen { it.resume(Unit) }
     }
 
     /**
@@ -478,15 +466,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
             // 引数の関数を呼ぶ
             callback?.invoke()
         }
-    }
-
-    /**
-     * 全画面解除のコルーチン版。
-     *
-     * サイズ変更が完了するまで一時停止します
-     * */
-    suspend fun toDefaultScreenSuspend() = suspendCoroutine<Unit> {
-        toDefaultScreen { it.resume(Unit) }
     }
 
     /** 通常プレイヤーへ遷移 */

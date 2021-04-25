@@ -211,7 +211,7 @@
     <string name="setting_mobile_data_show_cache">モバイルデータでインターネットに接続している場合はキャッシュ一覧をを表示させる</string>
     <string name="setting_comment_canvas">コメント描画設定</string>
     <string name="setting_comment_canvas_timer_title">コメント描画の更新頻度の変更</string>
-    <string name="setting_comment_canvas_timer_description">デフォルトは10です</string>
+    <string name="setting_comment_canvas_timer_description">デフォルトは16です</string>
     <string name="not_found_video">動画が見つからなかったよ</string>
     <string name="setting_comment_only_title">コメントのみを表示させる</string>
     <string name="setting_comment_only_description">動画は再生せずにコメント画面のみを表示させます</string>
@@ -477,4 +477,5 @@
     <string name="setting_nicovideo_jc_cinema_wide_aspect_title">21対9のアスペクト比に最適化する</string>
     <string name="setting_nicovideo_jc_cinema_wide_aspect_description">細長い</string>
     <string name="nicolive_support_full_hd">この番組はフルHDでの視聴が可能です。 画質変更から6Mを選んでください。</string>
+    <string name="setting_nicovideo_jc_show_fps_title">FPSを表示する</string>
 </resources>

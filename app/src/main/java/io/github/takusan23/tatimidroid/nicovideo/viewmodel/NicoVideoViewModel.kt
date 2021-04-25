@@ -417,15 +417,12 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                 var audioQuality = audioQualityId
                 // 画質を指定している場合はモバイルデータ接続で最低画質の設定は無視
                 if (videoQuality == null && audioQuality == null) {
-                    // モバイルデータ接続のときは強制的に低画質にする
-                    if (prefSetting.getBoolean("setting_nicovideo_low_quality", false)) {
-                        if (isConnectionMobileDataInternet(context)) {
-                            // モバイルデータ
-                            val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
-                            val audioQualityList = nicoVideoHTML.parseAudioQualityDMC(jsonObject)
-                            videoQuality = videoQualityList.getJSONObject(videoQualityList.length() - 1).getString("id")
-                            audioQuality = audioQualityList.getJSONObject(audioQualityList.length() - 1).getString("id")
-                        }
+                    // モバイルデータ接続のときは強制的に低画質にする か エコノミー時は低画質
+                    if ((prefSetting.getBoolean("setting_nicovideo_low_quality", false) && isConnectionMobileDataInternet(context)) || smileServerLowRequest) {
+                        val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
+                        val audioQualityList = nicoVideoHTML.parseAudioQualityDMC(jsonObject)
+                        videoQuality = videoQualityList.getJSONObject(videoQualityList.length() - 1).getString("id")
+                        audioQuality = audioQualityList.getJSONObject(audioQualityList.length() - 1).getString("id")
                     }
                     if (videoQuality != null) {
                         // 画質通知

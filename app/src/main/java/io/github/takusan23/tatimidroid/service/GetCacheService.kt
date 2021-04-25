@@ -9,9 +9,9 @@ import android.os.Looper
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoHTML
-import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoHTML
 import io.github.takusan23.tatimidroid.tool.LanguageTool
 import io.github.takusan23.tatimidroid.tool.isLoginMode
 import kotlinx.coroutines.*
@@ -126,6 +126,7 @@ class GetCacheService : Service() {
     private fun coroutine(position: Int = 0) {
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            throwable.printStackTrace()
             showToast("${getString(R.string.error)}\n${throwable}")
         }
         cacheCoroutineJob = GlobalScope.launch(errorHandler) {

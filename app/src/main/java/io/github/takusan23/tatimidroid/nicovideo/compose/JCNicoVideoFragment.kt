@@ -456,6 +456,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // プレイヤー部分の表示設定
         val hideJob = Job()
         nicovideoPlayerUIBinding.root.setOnClickListener {
+            // シークテキストは消す
+            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextButton.isVisible = false
             hideJob.cancelChildren()
             // ConstraintLayoutのGroup機能でまとめてVisibility変更。
             nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = if (nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility == View.VISIBLE) {
@@ -603,6 +605,14 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // 全画面モードなら
         if (viewModel.isFullScreenMode) {
             setFullScreen()
+        }
+        // FPSを表示するか
+        if (prefSetting.getBoolean("setting_nicovideo_jc_show_fps", false)) {
+            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isCalcFPS = true
+            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.addFPSCallBack { fps ->
+                // FPSコールバック
+                nicovideoPlayerUIBinding.includeNicovideoPlayerFpsTextView.text = "FPS\n$fps"
+            }
         }
         // センサーによる画面回転
         if (prefSetting.getBoolean("setting_rotation_sensor", false)) {

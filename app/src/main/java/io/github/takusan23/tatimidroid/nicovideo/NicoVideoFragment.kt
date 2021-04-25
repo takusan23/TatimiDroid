@@ -37,23 +37,23 @@ import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
-import io.github.takusan23.tatimidroid.adapter.parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
+import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.adapter.parcelable.TabLayoutData
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoBinding
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicovideo.adapter.NicoVideoRecyclerPagerAdapter
 import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.ComememoBottomFragment
 import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoCacheJSONUpdateRequestBottomFragment
 import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoPlayListBottomFragment
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoUploadVideoFragment
-import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
-import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
 import io.github.takusan23.tatimidroid.tool.*
-import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoBinding
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.util.*
@@ -635,15 +635,17 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             onSwipeTargetViewDoubleClickFunc = { ev ->
                 // player_control_parentでコントローラーのUIが表示されてなくてもスキップできるように
                 if (ev != null) {
-                    val skip = if (ev.x > viewBinding.fragmentNicovideoControlInclude.playerControlCenterParent.width / 2) {
-                        // 半分より右
-                        (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
-                    } else {
+                    val skipMs = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
+                    val isLeft = ev.x < viewBinding.fragmentNicovideoControlInclude.playerControlCenterParent.width / 2
+                    val seekMs = if (isLeft) {
                         // 半分より左
-                        -(prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+                        viewModel.playerCurrentPositionMs - skipMs * 1000
+                    } else {
+                        // 半分より右
+                        viewModel.playerCurrentPositionMs + skipMs * 1000
                     }
                     // LivaData経由でシークしろと通知飛ばす
-                    viewModel.playerSetSeekMs.postValue(viewModel.playerCurrentPositionMs + skip)
+                    viewModel.playerSetSeekMs.postValue(seekMs)
                     updateHideController(job)
                 }
             }

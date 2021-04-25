@@ -34,16 +34,16 @@ import com.google.android.exoplayer2.video.VideoListener
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.databinding.OverlayVideoPlayerLayoutBinding
 import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
 import io.github.takusan23.tatimidroid.nicoapi.XMLCommentJSON
-import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.tool.InternetConnectionCheck
 import io.github.takusan23.tatimidroid.tool.LanguageTool
 import io.github.takusan23.tatimidroid.tool.isLoginMode
-import io.github.takusan23.tatimidroid.databinding.OverlayVideoPlayerLayoutBinding
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.Serializable
@@ -853,7 +853,7 @@ class NicoVideoPlayService : Service() {
         } else {
             getString(R.string.background_video_player)
         }
-        mediaSessionCompat = MediaSessionCompat(this, "nicovideo")
+        mediaSessionCompat = MediaSessionCompat(this, "tatimidroid_nicovideo_service")
         // メタデータ
         val mediaMetadataCompat = MediaMetadataCompat.Builder().apply {
             putString(MediaMetadataCompat.METADATA_KEY_TITLE, "$currentVideoTitle / $currentVideoId")

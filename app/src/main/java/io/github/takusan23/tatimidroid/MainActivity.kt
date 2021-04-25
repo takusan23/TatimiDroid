@@ -20,23 +20,23 @@ import androidx.preference.PreferenceManager
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceChildFragment
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
 import io.github.takusan23.tatimidroid.bottomfragment.NicoHistoryBottomFragment
+import io.github.takusan23.tatimidroid.databinding.ActivityMainBinding
 import io.github.takusan23.tatimidroid.fragment.LoginFragment
 import io.github.takusan23.tatimidroid.fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicolive.CommentFragment
+import io.github.takusan23.tatimidroid.nicolive.ProgramListFragment
 import io.github.takusan23.tatimidroid.nicolive.compose.JCNicoLiveCommentOnlyFragment
 import io.github.takusan23.tatimidroid.nicolive.compose.JCNicoLiveFragment
-import io.github.takusan23.tatimidroid.nicolive.ProgramListFragment
-import io.github.takusan23.tatimidroid.nicovideo.compose.JCNicoVideoCommentOnlyFragment
-import io.github.takusan23.tatimidroid.nicovideo.compose.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.nicovideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.nicovideo.NicoVideoSelectFragment
+import io.github.takusan23.tatimidroid.nicovideo.compose.JCNicoVideoCommentOnlyFragment
+import io.github.takusan23.tatimidroid.nicovideo.compose.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.service.startLivePlayService
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
 import io.github.takusan23.tatimidroid.tool.*
-import io.github.takusan23.tatimidroid.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import java.util.*
 

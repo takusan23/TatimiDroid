@@ -122,6 +122,18 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /** コルーチン */
     private val coroutineJob = Job()
 
+    /** FPSを計算するか。計算結果は[addFPSCallBack]で受け取れます */
+    var isCalcFPS = false
+
+    /** FPS。一秒間に何回画面を更新したか */
+    private var fpsCount = 0
+
+    /** FPS取得時の時間 */
+    private var startTimeMs = System.currentTimeMillis()
+
+    /** FPSコールバック関数の配列 */
+    private val fpsCallBackList = arrayListOf<((fps: Int) -> Unit)>()
+
     init {
         // コメントを動かす
         commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
@@ -131,8 +143,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                     .filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
                     if (reDrawCommentData != null) {
                         // 文字が長いときは早くする。アスキーアートのときは速度一定
-                        val speed =
-                            if (reDrawCommentData.asciiArt) commentMoveMinus else commentMoveMinus + (reDrawCommentData.comment.length / 8)
+                        val speed = if (reDrawCommentData.asciiArt) commentMoveMinus else commentMoveMinus + (reDrawCommentData.comment.length / 8)
                         reDrawCommentData.rect.left -= speed
                         reDrawCommentData.rect.right -= speed
                         // なお画面外は消す
@@ -236,6 +247,11 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }
     }
 
+    /** FPSコールバックを追加する関数 */
+    fun addFPSCallBack(fpsFunc: ((fps: Int) -> Unit)) {
+        fpsCallBackList.add(fpsFunc)
+    }
+
     /** コメント配列をクリアする */
     fun clearCommentList() {
         rawCommentList.clear()
@@ -289,12 +305,16 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }
     }
 
+
     /** [invalidate]呼ぶとここに来る */
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         // 「ぬるぽ」「ガッ」なんて知らんわ
         if (canvas == null) return
+
+        // FPS算出
+        onDrawFPSCounter()
 
         // 中コメ
         for (reDrawCommentData in drawNakaCommentList.toList()) {
@@ -362,6 +382,20 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                 if (watashiHaDeveloper) {
                     canvas.drawRect(reDrawCommentData.rect, strokePaint)
                 }
+            }
+        }
+    }
+
+    /** [onDraw]内で利用してください。FPSを数えます */
+    private fun onDrawFPSCounter() {
+        // 有効時のみ
+        if (isCalcFPS) {
+            if (System.currentTimeMillis() - startTimeMs > 1000) {
+                fpsCallBackList.forEach { it.invoke(fpsCount) }
+                fpsCount = 0
+                startTimeMs = System.currentTimeMillis()
+            } else {
+                fpsCount += 1
             }
         }
     }
@@ -711,8 +745,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * */
     private fun getCommentCanvasUpdateMs(): Long {
         // コメントの更新頻度をfpsで設定するかどうか
-        val enableCommentSpeedFPS =
-            prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
+        val enableCommentSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
         // コメントキャンバスの更新頻度
         return if (enableCommentSpeedFPS) {
             // fpsで設定
@@ -722,7 +755,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             (1000 / fps)
         } else {
             // ミリ秒で指定
-            prefSetting.getString("setting_comment_canvas_timer", "10")?.toIntOrNull() ?: 10
+            prefSetting.getString("setting_comment_canvas_timer", "16")?.toIntOrNull() ?: 10
         }.toLong()
     }
 
