@@ -227,20 +227,24 @@
         app:layout_constraintStart_toStartOf="@+id/include_nicovideo_player_black_view"
         app:layout_constraintTop_toTopOf="@+id/include_nicovideo_player_black_view" />
 
-    <TextView
-        android:id="@+id/include_nicovideo_player_seek_text_view"
+    <Button
+        android:id="@+id/include_nicovideo_player_seek_text_button"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#80000000"
+        android:clickable="false"
+        android:enabled="false"
         android:padding="10dp"
-        android:visibility="gone"
         android:textColor="#ffffff"
         android:textSize="16sp"
+        android:visibility="gone"
+        app:backgroundTint="#80000000"
+        app:iconTint="#ffffff"
         app:layout_constraintBottom_toBottomOf="@+id/include_nicovideo_player_black_view"
         app:layout_constraintEnd_toEndOf="@+id/include_nicovideo_player_black_view"
         app:layout_constraintStart_toStartOf="@+id/include_nicovideo_player_black_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicovideo_player_black_view" />
-
+        app:layout_constraintTop_toTopOf="@+id/include_nicovideo_player_black_view"
+        app:strokeColor="#ffffff" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/include_nicovideo_player_control_group"

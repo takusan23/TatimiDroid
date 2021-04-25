@@ -26,6 +26,7 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
+import com.google.android.material.button.MaterialButton
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.PlayerParentFrameLayout
@@ -618,8 +619,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         lifecycleScope.launch {
             val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
             val timeFormat = DateUtils.formatElapsedTime(seekMs / 1000)
-            val icon = if (isBack) requireContext().getDrawable(R.drawable.seek_back_run) else requireContext().getDrawable(R.drawable.seek_run)
-            icon?.setTint(Color.WHITE)
+            val seekIcon = if (isBack) requireContext().getDrawable(R.drawable.seek_back_run) else requireContext().getDrawable(R.drawable.seek_run)
+            seekIcon?.setTint(Color.WHITE)
             val message = if (isBack) {
                 """
                 -= $seekValue
@@ -631,12 +632,18 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 $timeFormat
                 """.trimIndent()
             }
-            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextView.isVisible = true
-            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextView.text = message
-            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextView.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null)
-            // 1秒間出す
-            delay(1000)
-            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextView.isVisible = false
+            // UI表示中なら消す
+            nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = View.INVISIBLE
+            // シーク用テキスト。実はButton
+            (nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextButton as MaterialButton).apply {
+                text = message
+                icon = seekIcon
+                iconSize = 100
+                isVisible = true
+                // 1秒間出す
+                delay(1000)
+                isVisible = false
+            }
         }
     }
 
