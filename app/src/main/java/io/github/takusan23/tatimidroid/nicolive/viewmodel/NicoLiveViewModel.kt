@@ -257,17 +257,18 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             }
             // TS視聴中かどうか
             val isEnded = nicoLiveHTML.getProgramStatus(jsonObject) == "ENDED"
-            isWatchingTimeShiftLiveData.postValue(nicoLiveHTML.isPremium(jsonObject) && isEnded)
+            val isWatchingTS = nicoLiveHTML.isPremium(jsonObject) && isEnded
+            isWatchingTimeShiftLiveData.postValue(isWatchingTS)
+            // コメント人数を定期的に数える
+            activeUserClear()
+            // 経過時間
+            setLiveTime()
             // 履歴に追加
             launch { insertDB() }
             // WebSocketへ接続
             connectWebSocket(jsonObject)
             // getPlayerStatus叩く
             // launch { getPlayerStatus() }
-            // コメント人数を定期的に数える
-            activeUserClear()
-            // 経過時間
-            setLiveTime()
             // TS予約が許可されているか
             checkIsAllowTSRegister(jsonObject)
 
@@ -295,19 +296,10 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
                 updateRecyclerViewLiveData.postValue("update")
             }
         }
+    }
 
-/*
-        // アンケテスト用
-        viewModelScope.launch {
-            delay(1000)
-            receiveCommentFun("{chat:{ content: \"/vote start てｓｔ あ え\", date: ${System.currentTimeMillis()} , premium: 3}}", "Arena", false)
-            delay(1000)
-            receiveCommentFun("{chat:{ content: \"/vote showresult per 10 10\", date: ${System.currentTimeMillis()} , premium: 3}}", "Arena", false)
-            delay(5000)
-            receiveCommentFun("{chat:{ content: \"/vote stop\", date: ${System.currentTimeMillis()} , premium: 3}}", "Arena", false)
-        }
-*/
-
+    private fun initTSWatching(jsonObject: JSONObject) {
+        val programData = nicoLiveHTML.getProgramData(jsonObject)
     }
 
     /** フルHD対応番組の場合はToastを出す */

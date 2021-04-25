@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.nicovideo.compose
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
@@ -379,7 +380,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 viewModel.playerDurationMs.postValue(exoPlayer.duration)
                 // 再生
                 //viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
-                // プログレスバー
+                // くるくる
                 if (state == Player.STATE_READY || state == Player.STATE_ENDED) {
                     nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.INVISIBLE
                 } else {
@@ -533,11 +534,14 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 val isLeft = motionEvent.x <= nicovideoPlayerUIBinding.root.width / 2
                 // どれだけシークするの？
                 val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
-                if (isLeft) {
-                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition - (seekValue * 1000))
+                val seekMs = if (isLeft) {
+                    viewModel.currentPosition - (seekValue * 1000)
                 } else {
-                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition + (seekValue * 1000))
+                    viewModel.currentPosition + (seekValue * 1000)
                 }
+                // シークしたTextViewを出す
+                showSeekText(isLeft, seekMs)
+                viewModel.playerSetSeekMs.postValue(seekMs)
                 // ダブルタップでミニプレイヤーへの遷移が始まるので戻す
                 toDefaultPlayer()
             }
@@ -602,6 +606,37 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // センサーによる画面回転
         if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
             RotationSensor(requireActivity(), lifecycle)
+        }
+    }
+
+    /**
+     * シークテキストを出す
+     * @param isBack 後ろに進んだ場合はtrue。前に進んだ場合はfalse
+     * @param seekMs シーク後の時間。ミリ秒
+     * */
+    private fun showSeekText(isBack: Boolean, seekMs: Long) {
+        lifecycleScope.launch {
+            val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
+            val timeFormat = DateUtils.formatElapsedTime(seekMs / 1000)
+            val icon = if (isBack) requireContext().getDrawable(R.drawable.seek_back_run) else requireContext().getDrawable(R.drawable.seek_run)
+            icon?.setTint(Color.WHITE)
+            val message = if (isBack) {
+                """
+                -= $seekValue
+                $timeFormat
+                """.trimIndent()
+            } else {
+                """
+                += $seekValue
+                $timeFormat
+                """.trimIndent()
+            }
+            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextView.isVisible = true
+            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextView.text = message
+            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextView.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null)
+            // 1秒間出す
+            delay(1000)
+            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextView.isVisible = false
         }
     }
 
