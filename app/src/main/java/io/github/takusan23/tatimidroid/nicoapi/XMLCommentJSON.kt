@@ -202,7 +202,7 @@ class XMLCommentJSON(val context: Context?) {
      * */
     fun commentJSONFileExists(fileName: String): Boolean {
         // ファイル存在するか
-        return File("${nicoVideoCache.getCacheFolderPath()}/$fileName/$fileName.json").exists()
+        return File("${nicoVideoCache.getCacheFolderPath()}/$fileName/${fileName}_comment.json").exists()
     }
 
 }

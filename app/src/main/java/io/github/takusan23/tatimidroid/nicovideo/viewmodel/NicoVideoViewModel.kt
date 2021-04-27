@@ -8,17 +8,18 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.adapter.parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.adapter.parcelable.TabLayoutData
+import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
+import io.github.takusan23.tatimidroid.nicoapi.XMLCommentJSON
+import io.github.takusan23.tatimidroid.nicoapi.dataclass.QualityData
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoTagItemData
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.*
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoHTMLSeriesData
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoSeriesData
-import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
 import io.github.takusan23.tatimidroid.nicoapi.user.UserData
-import io.github.takusan23.tatimidroid.nicoapi.XMLCommentJSON
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.room.entity.NGDBEntity
 import io.github.takusan23.tatimidroid.room.entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.room.init.NGDBInit
@@ -28,6 +29,7 @@ import io.github.takusan23.tatimidroid.tool.isConnectionMobileDataInternet
 import io.github.takusan23.tatimidroid.tool.isLoginMode
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
@@ -104,6 +106,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
 
     /** 動画説明文LiveData */
     val nicoVideoDescriptionLiveData = MutableLiveData<String>()
+
+    /** 画質一覧LiveData。映像のみ */
+    val qualityDataListLiveData = MutableLiveData<List<QualityData>>()
 
     /** いいね済みかどうか。キャッシュ再生では使えない。 */
     val isLikedLiveData = MutableLiveData(false)
@@ -325,7 +330,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                         // 動画説明文
                         nicoVideoDescriptionLiveData.postValue(jsonObject.getJSONObject("video").getString("description"))
                         // ユーザー情報LiveData
-                        userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
+                        nicoVideoHTML.parseUserData(jsonObject)?.let { data -> userDataLiveData.postValue(data) }
                         // タグLiveData
                         tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
                         // シリーズが設定されていればシリーズ情報を返す
@@ -396,7 +401,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             // いいね済みかどうか
             isLikedLiveData.postValue(nicoVideoHTML.isLiked(jsonObject))
             // ユーザー情報LiveData
-            userDataLiveData.postValue(nicoVideoHTML.parseUserData(jsonObject))
+            nicoVideoHTML.parseUserData(jsonObject)?.let { data -> userDataLiveData.postValue(data) }
             // タグLiveData
             tagListLiveData.postValue(nicoVideoHTML.parseTagDataList(jsonObject))
 
@@ -412,15 +417,12 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                 var audioQuality = audioQualityId
                 // 画質を指定している場合はモバイルデータ接続で最低画質の設定は無視
                 if (videoQuality == null && audioQuality == null) {
-                    // モバイルデータ接続のときは強制的に低画質にする
-                    if (prefSetting.getBoolean("setting_nicovideo_low_quality", false)) {
-                        if (isConnectionMobileDataInternet(context)) {
-                            // モバイルデータ
-                            val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
-                            val audioQualityList = nicoVideoHTML.parseAudioQualityDMC(jsonObject)
-                            videoQuality = videoQualityList.getJSONObject(videoQualityList.length() - 1).getString("id")
-                            audioQuality = audioQualityList.getJSONObject(audioQualityList.length() - 1).getString("id")
-                        }
+                    // モバイルデータ接続のときは強制的に低画質にする か エコノミー時は低画質
+                    if ((prefSetting.getBoolean("setting_nicovideo_low_quality", false) && isConnectionMobileDataInternet(context)) || smileServerLowRequest) {
+                        val videoQualityList = nicoVideoHTML.parseVideoQualityDMC(jsonObject)
+                        val audioQualityList = nicoVideoHTML.parseAudioQualityDMC(jsonObject)
+                        videoQuality = videoQualityList.getJSONObject(videoQualityList.length() - 1).getString("id")
+                        audioQuality = audioQualityList.getJSONObject(audioQualityList.length() - 1).getString("id")
                     }
                     if (videoQuality != null) {
                         // 画質通知
@@ -441,6 +443,8 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                 }
             }
 
+            // 画質一覧をLiveDataへ送信
+            setQualityList(nicoVideoHTML.parseVideoQualityDMC(jsonObject))
             // データクラスへ詰める
             nicoVideoData.postValue(nicoVideoHTML.createNicoVideoData(jsonObject, isOfflinePlay.value ?: false))
             // データベースへ書き込む
@@ -480,6 +484,28 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             // シリーズのJSON解析してデータクラスにする
             seriesHTMLDataLiveData.postValue(nicoVideoHTML.getSeriesHTMLData(jsonObject))
         }
+    }
+
+    /** 画質一覧をLiveDataへ入れる */
+    private fun setQualityList(parseVideoQualityDMC: JSONArray) {
+        val qualityDataList = arrayListOf<QualityData>()
+        repeat(parseVideoQualityDMC.length()) { index ->
+            val qualityJSONObject = parseVideoQualityDMC.getJSONObject(index)
+            val id = qualityJSONObject.getString("id")
+            val isAvailable = qualityJSONObject.getBoolean("isAvailable")
+            val label = qualityJSONObject.getJSONObject("metadata").getString("label")
+            val isSelected = id == currentVideoQuality
+            qualityDataList.add(
+                QualityData(
+                    title = label,
+                    id = id,
+                    isSelected = isSelected,
+                    isAvailable = isAvailable
+                )
+            )
+        }
+        // 送信
+        qualityDataListLiveData.postValue(qualityDataList)
     }
 
     /**

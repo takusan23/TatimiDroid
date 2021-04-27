@@ -8,11 +8,11 @@ import android.os.Looper
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.nicoapi.cache.CacheFilterDataClass
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoHTML
-import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.cache.CacheFilterDataClass
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
+import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoCacheFilterBottomFragment
 import io.github.takusan23.tatimidroid.tool.DownloadPocket
 import io.github.takusan23.tatimidroid.tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
@@ -207,7 +207,7 @@ class NicoVideoCache(val context: Context?) {
     }
 
     /**
-     * 動画をダウンロードする[DownloadPocket]クラスを返す
+     * 動画をダウンロードする[DownloadPocket]インスタンスを返す
      * */
     suspend fun getVideoDownloader(tmpFileFolder: File, videoIdFolder: File, videoId: String, url: String, userSession: String, nicoHistory: String, splitCount: Int) = withContext(Dispatchers.IO) {
         // 動画mp4ファイル作成
@@ -386,7 +386,7 @@ class NicoVideoCache(val context: Context?) {
      * @param videoId 動画ID
      * */
     fun hasCacheNewVideoInfoJSON(videoId: String): Boolean {
-        return if (hasCacheVideoFile(videoId)) {
+        return if (hasCacheVideoInfoJSON(videoId)) {
             // 読み込み
             val jsonText = getCacheFolderVideoInfoText(videoId)
             // 新仕様JSONかどうか

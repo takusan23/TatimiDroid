@@ -23,6 +23,7 @@ import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -36,23 +37,23 @@ import com.google.android.exoplayer2.video.VideoListener
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
-import io.github.takusan23.tatimidroid.adapter.parcelable.TabLayoutData
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.MainActivityPlayerFragmentInterface
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
+import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.adapter.parcelable.TabLayoutData
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoBinding
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicovideo.adapter.NicoVideoRecyclerPagerAdapter
 import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.ComememoBottomFragment
 import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoCacheJSONUpdateRequestBottomFragment
 import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoPlayListBottomFragment
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoSeriesFragment
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoUploadVideoFragment
-import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
-import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
 import io.github.takusan23.tatimidroid.tool.*
-import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoBinding
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.util.*
@@ -203,9 +204,16 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // コメント
         viewModel.commentList.observe(viewLifecycleOwner) { commentList ->
-            viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
-                viewBinding.fragmentNicovideoCommentCanvas.initCommentList(commentList, duration)
-            }
+            // ついでに動画の再生時間を取得する。非同期
+            viewModel.playerDurationMs.observe(viewLifecycleOwner, object : Observer<Long> {
+                override fun onChanged(t: Long?) {
+                    if (t != null && t > 0) {
+                        viewBinding.fragmentNicovideoCommentCanvas.initCommentList(commentList, t)
+                        // 一回取得したらコールバック無効化。SAM変換をするとthisの指すものが変わってしまう
+                        viewModel.playerDurationMs.removeObserver(this)
+                    }
+                }
+            })
         }
 
         // 動画情報
@@ -367,11 +375,13 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // 準備と再生
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
+        viewModel.playerIsPlaying.postValue(true)
     }
 
     /** 最後に見たところから再生SnackBarを表示。キャッシュ再生時のみ */
     private fun showSeekLatestPosition() {
-        val progress = prefSetting.getLong("progress_${viewModel.playingVideoId.value}", 0)
+        val videoId = viewModel.nicoVideoData.value?.videoId ?: viewModel.playingVideoId.value
+        val progress = prefSetting.getLong("progress_$videoId", 0)
         if (progress != 0L && viewModel.isOfflinePlay.value == true) {
             Snackbar.make(viewBinding.fragmentNicovideoSurfaceView, "${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", Snackbar.LENGTH_LONG).apply {
                 setAction(R.string.play) {
@@ -429,7 +439,11 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
                 // 再生時間をコメント描画Canvasへ入れ続ける
                 viewBinding.fragmentNicovideoCommentCanvas.currentPos = viewModel.playerCurrentPositionMs
-                viewBinding.fragmentNicovideoCommentCanvas.isPlaying = viewModel.playerIsPlaying.value!!
+                viewBinding.fragmentNicovideoCommentCanvas.isPlaying = if (viewModel.isNotPlayVideoMode.value == false) {
+                    exoPlayer.isPlaying
+                } else {
+                    viewModel.playerIsPlaying.value!!
+                }
 
                 // 再生中のみ
                 if (viewModel.playerIsPlaying.value == true) {
@@ -621,15 +635,17 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
             onSwipeTargetViewDoubleClickFunc = { ev ->
                 // player_control_parentでコントローラーのUIが表示されてなくてもスキップできるように
                 if (ev != null) {
-                    val skip = if (ev.x > viewBinding.fragmentNicovideoControlInclude.playerControlCenterParent.width / 2) {
-                        // 半分より右
-                        (prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
-                    } else {
+                    val skipMs = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
+                    val isLeft = ev.x < viewBinding.fragmentNicovideoControlInclude.playerControlCenterParent.width / 2
+                    val seekMs = if (isLeft) {
                         // 半分より左
-                        -(prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5) * 1000 // 秒→ミリ秒
+                        viewModel.playerCurrentPositionMs - skipMs * 1000
+                    } else {
+                        // 半分より右
+                        viewModel.playerCurrentPositionMs + skipMs * 1000
                     }
                     // LivaData経由でシークしろと通知飛ばす
-                    viewModel.playerSetSeekMs.postValue(viewModel.playerCurrentPositionMs + skip)
+                    viewModel.playerSetSeekMs.postValue(seekMs)
                     updateHideController(job)
                 }
             }
@@ -1011,7 +1027,8 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         // キャッシュ再生の場合は位置を保存する
         if (viewModel.isOfflinePlay.value == true) {
             prefSetting.edit {
-                putLong("progress_${viewModel.nicoVideoData.value!!.videoId}", viewModel.playerCurrentPositionMs)
+                val videoId = viewModel.nicoVideoData.value?.videoId ?: viewModel.playingVideoId.value
+                putLong("progress_$videoId", viewModel.playerCurrentPositionMs)
             }
         }
         (requireActivity() as MainActivity).setVisibilityBottomNav()

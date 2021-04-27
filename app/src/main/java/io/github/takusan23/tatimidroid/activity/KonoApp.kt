@@ -9,15 +9,15 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.button.MaterialButton
-import io.github.takusan23.tatimidroid.adapter.MenuRecyclerAdapter
-import io.github.takusan23.tatimidroid.adapter.MenuRecyclerAdapterDataClass
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.adapter.MenuRecyclerAdapter
+import io.github.takusan23.tatimidroid.adapter.MenuRecyclerAdapterDataClass
+import io.github.takusan23.tatimidroid.databinding.ActivityKonoAppBinding
 import io.github.takusan23.tatimidroid.tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.tool.LanguageTool
 import io.github.takusan23.tatimidroid.tool.getThemeColor
 import io.github.takusan23.tatimidroid.tool.isDarkMode
-import io.github.takusan23.tatimidroid.databinding.ActivityKonoAppBinding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -38,7 +38,7 @@ class KonoApp : AppCompatActivity() {
     /**
      * バージョンとか
      * */
-    val version = "\uD83C\uDF38 2021/03/31 \uD83C\uDF38 "
+    val version = "\uD83C\uDF38 2021/04/26 \uD83C\uDF38 "
     val codeName1 = "（く）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     /** findViewById駆逐 */

@@ -6,9 +6,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.*
-import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -100,7 +98,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      *
      * でふぉは-5です。
      * */
-    private val commentMoveMinus by lazy { prefSetting.getString("setting_comment_speed", "3")?.toInt() ?: 3 }
+    private val commentMoveMinus by lazy { prefSetting.getString("setting_comment_speed", "5")?.toInt() ?: 5 }
 
     /**
      * 16ミリ秒ごと[commentMoveMinus]分動かす。
@@ -124,6 +122,18 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /** コルーチン */
     private val coroutineJob = Job()
 
+    /** FPSを計算するか。計算結果は[addFPSCallBack]で受け取れます */
+    var isCalcFPS = false
+
+    /** FPS。一秒間に何回画面を更新したか */
+    private var fpsCount = 0
+
+    /** FPS取得時の時間 */
+    private var startTimeMs = System.currentTimeMillis()
+
+    /** FPSコールバック関数の配列 */
+    private val fpsCallBackList = arrayListOf<((fps: Int) -> Unit)>()
+
     init {
         // コメントを動かす
         commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
@@ -133,8 +143,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                     .filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
                     if (reDrawCommentData != null) {
                         // 文字が長いときは早くする。アスキーアートのときは速度一定
-                        val speed =
-                            if (reDrawCommentData.asciiArt) commentMoveMinus else commentMoveMinus + (reDrawCommentData.comment.length / 8)
+                        val speed = if (reDrawCommentData.asciiArt) commentMoveMinus else commentMoveMinus + (reDrawCommentData.comment.length / 8)
                         reDrawCommentData.rect.left -= speed
                         reDrawCommentData.rect.right -= speed
                         // なお画面外は消す
@@ -176,10 +185,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                 // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
                 // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
                 val isAddable = drewedList.toList()
-                    .none { id -> if (it.commentNo.isEmpty()) it.vpos.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
+                    .none { id -> if (it.commentNo.isEmpty()) it.dateUsec.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
                 if (isAddable) {
-                    // コメントIDない場合はvposで代替する
-                    drewedList.add(if (it.commentNo.isEmpty()) it.vpos.toLong() else it.commentNo.toLong())
+                    // コメントIDない場合はdate_usecで代替する
+                    drewedList.add(if (it.commentNo.isEmpty()) it.dateUsec.toLong() else it.commentNo.toLong())
                     // コメント登録。
                     drawComment(it, currentPos)
                 }
@@ -202,6 +211,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * */
     fun initCommentList(commentList: List<CommentJSONParse>, videoDurationMs: Long) {
         if (videoDurationMs < 0 || commentList.isEmpty()) return
+        clearCommentList()
         thread {
             // 動画の3秒前のvposを出す
             val endVpos = (videoDurationMs - 3000) / 10 // 100vpos = 1sec
@@ -235,6 +245,11 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             }
             rawCommentList = deepCopyList as ArrayList<CommentJSONParse>
         }
+    }
+
+    /** FPSコールバックを追加する関数 */
+    fun addFPSCallBack(fpsFunc: ((fps: Int) -> Unit)) {
+        fpsCallBackList.add(fpsFunc)
     }
 
     /** コメント配列をクリアする */
@@ -274,10 +289,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                     // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
                     // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
                     val isAddable = drewedList.toList()
-                        .none { id -> if (it.commentNo.isEmpty()) it.vpos.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
+                        .none { id -> if (it.commentNo.isEmpty()) it.dateUsec.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
                     if (isAddable) {
-                        // コメントIDない場合はvposで代替する
-                        drewedList.add(if (it.commentNo.isEmpty()) it.vpos.toLong() else it.commentNo.toLong())
+                        // コメントIDない場合はdate_usecで代替する
+                        drewedList.add(if (it.commentNo.isEmpty()) it.dateUsec.toLong() else it.commentNo.toLong())
                         // コメントが長いときは早く流す
                         val speed = commentMoveMinus + (it.comment.length / 8)
                         // コメント登録。
@@ -290,12 +305,16 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }
     }
 
+
     /** [invalidate]呼ぶとここに来る */
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         // 「ぬるぽ」「ガッ」なんて知らんわ
         if (canvas == null) return
+
+        // FPS算出
+        onDrawFPSCounter()
 
         // 中コメ
         for (reDrawCommentData in drawNakaCommentList.toList()) {
@@ -367,20 +386,53 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }
     }
 
+    /** [onDraw]内で利用してください。FPSを数えます */
+    private fun onDrawFPSCounter() {
+        // 有効時のみ
+        if (isCalcFPS) {
+            if (System.currentTimeMillis() - startTimeMs > 1000) {
+                fpsCallBackList.forEach { it.invoke(fpsCount) }
+                fpsCount = 0
+                startTimeMs = System.currentTimeMillis()
+            } else {
+                fpsCount += 1
+            }
+        }
+    }
+
     /**
      * コメントを登録する
      * @param addPos シーク時なんかに使う。コメントの位置を先に進めるときに
      * */
     fun drawComment(commentJSONParse: CommentJSONParse, videoPos: Long, addPos: Int = 0) {
+        val isUe = checkUeComment(commentJSONParse.mail)
+        val isShita = commentJSONParse.mail.contains("shita")
+        val commentList = commentJSONParse.comment.split("\n")
         when {
             // うえ
-            checkUeComment(commentJSONParse.mail) -> drawUeComment(commentJSONParse, videoPos)
+            isUe -> {
+                oldHeight = 0
+                commentList.forEach { comment ->
+                    commentJSONParse.comment = comment
+                    drawUeComment(commentJSONParse, videoPos)
+                }
+            }
             // した
-            commentJSONParse.mail.contains("shita") -> drawShitaComment(commentJSONParse, videoPos)
-            // 複数行の中コメ
-            commentJSONParse.comment.contains("\n") -> drawAsciiArtNakaComment(commentJSONParse.comment.split("\n"), commentJSONParse, videoPos, addPos)
+            isShita -> {
+                oldHeight = 0
+                commentList.reversed().forEach { comment ->
+                    commentJSONParse.comment = comment
+                    drawNakaComment(commentJSONParse, videoPos, addPos, commentList.size > 1, commentList.size)
+                }
+            }
             // 通常
-            else -> drawNakaComment(commentJSONParse, videoPos, addPos)
+            else -> {
+                oldHeight = 0
+                commentList.forEach { comment ->
+                    commentJSONParse.comment = comment
+                    drawNakaComment(commentJSONParse, videoPos, addPos, commentList.size > 1, commentList.size)
+                }
+            }
         }
     }
 
@@ -693,18 +745,16 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
      * */
     private fun getCommentCanvasUpdateMs(): Long {
         // コメントの更新頻度をfpsで設定するかどうか
-        val enableCommentSpeedFPS =
-            prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", false)
+        val enableCommentSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", true)
         // コメントキャンバスの更新頻度
         return if (enableCommentSpeedFPS) {
             // fpsで設定
-            val fps =
-                prefSetting.getString("setting_comment_canvas_speed_fps", "60")?.toIntOrNull() ?: 60
+            val fps = prefSetting.getString("setting_comment_canvas_speed_fps", "60")?.toIntOrNull() ?: 60
             // 1000で割る （例：1000/60=16....）
             (1000 / fps)
         } else {
             // ミリ秒で指定
-            prefSetting.getString("setting_comment_canvas_timer", "10")?.toIntOrNull() ?: 10
+            prefSetting.getString("setting_comment_canvas_timer", "16")?.toIntOrNull() ?: 10
         }.toLong()
     }
 

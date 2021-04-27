@@ -115,7 +115,7 @@
     <string name="setting_rotation_sensor_description">The screen is rotated using the sensor even when the screen rotation is disabled.</string>
     <string name="nimado">2-window comment view</string>
     <string name="setting_comment_speed_title">Movement size of comment</string>
-    <string name="setting_comment_speed_description">The default is 3</string>
+    <string name="setting_comment_speed_description">The default is 5</string>
     <string name="entyou_message">I confirmed the extension.</string>
     <string name="end_time">End time</string>
     <string name="iyayo_hidden">Hide 184 (anonymous) comments</string>
@@ -211,7 +211,7 @@
     <string name="setting_mobile_data_show_cache">If you are connected to the Internet with mobile data, display the cache list</string>
     <string name="setting_comment_canvas">Comment drawing settings</string>
     <string name="setting_comment_canvas_timer_title">Change the update frequency of comment drawing</string>
-    <string name="setting_comment_canvas_timer_description">Default is 10</string>
+    <string name="setting_comment_canvas_timer_description">Default is 16</string>
     <string name="not_found_video">I couldn\'t find the video</string>
     <string name="setting_comment_only_title">Show only comments</string>
     <string name="setting_comment_only_description">Display only the comment screen without playing the video</string>
@@ -474,4 +474,9 @@ Sorry to trouble you, but please update the video information.\n
     <string name="nicolive_konomitag_remove_follow_ok">Unfollowed favorite tags</string>
     <string name="nicolive_konomitag_follow">Follow</string>
     <string name="nicolive_konomitag_remove_follow">Unfollow</string>
+    <string name="setting_nicovideo_jc_cinema_wide_aspect_title">Optimize for 21:9 aspect ratio</string>
+    <string name="setting_nicovideo_jc_cinema_wide_aspect_description">Elongated</string>
+    <string name="nicolive_support_full_hd">This program can be viewed in full HD. Select 6M from the image quality change.</string>
+    <string name="setting_nicovideo_jc_show_fps_title">Show FPS</string>
+    <string name="setting_nicovideo_jc_show_fps_description">For developers. Displays the number of times onDraw () is called per second.</string>
 </resources>

@@ -3,7 +3,6 @@ package io.github.takusan23.tatimidroid.nicolive.adapter
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -18,7 +17,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.view.isVisible
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -26,13 +24,12 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.nicolive.bottomfragment.ProgramMenuBottomSheet
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.tool.isDarkMode
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.properties.Delegates
 
 /**
  * 番組一覧表示で使うRecyclerViewAdapter

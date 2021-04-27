@@ -10,16 +10,18 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.*
-import io.github.takusan23.tatimidroid.tool.DisplaySizeTool
+import io.github.takusan23.tatimidroid.databinding.FragmentPlayerBaseBinding
 import io.github.takusan23.tatimidroid.tool.InternetConnectionCheck
 import io.github.takusan23.tatimidroid.tool.SystemBarVisibility
 import io.github.takusan23.tatimidroid.tool.getThemeColor
-import io.github.takusan23.tatimidroid.databinding.FragmentPlayerBaseBinding
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * 動画、生放送のFragmentのベースになるFragment。これを継承して作っていきたい。
@@ -35,7 +37,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     private val viewBinding by lazy { FragmentPlayerBaseBinding.inflate(layoutInflater) }
 
     /** プレイヤーのレイアウト。ミニプレイヤー切り替えとかはここ */
-    val playerLinearLayout by lazy { viewBinding.root }
+    val playerFrameLayout by lazy { viewBinding.root }
 
     /** Fragmentを置くFrameLayout */
     val fragmentHostFrameLayout by lazy { viewBinding.fragmentPlayerBaseFragmentFrameLayout }
@@ -58,6 +60,9 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
     /** コメント一覧スクロール時に見え隠れするやつ */
     private val fragmentCommentHostAppbar by lazy { viewBinding.fragmentPlayerCommentPanelComposeViewParentAppBarLayout }
 
+    /** ミニプレイヤー無効かどうか */
+    val isDisableMiniPlayerMode by lazy { prefSetting.getBoolean("setting_nicovideo_jc_disable_mini_player", false) }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return viewBinding.root
     }
@@ -68,29 +73,44 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         // ダークモード対策
         viewBinding.fragmentPlayerBaseFragmentParentLinearLayout.background = ColorDrawable(getThemeColor(context))
         fragmentCommentHostAppbar.background = ColorDrawable(getThemeColor(context))
-        // BottomSheet初期化。画面の半分ぐらい
-        val displayWidth = DisplaySizeTool.getDisplayWidth(requireContext())
-        // プレイヤー用意
-        if (isLandscape()) {
-            viewBinding.fragmentPlayerBasePlayerFrameLayout.updateLayoutParams<LinearLayout.LayoutParams> {
-                width = displayWidth / 2
-                height = (width / 16) * 9
+
+
+        viewBinding.root.doOnNextLayout {
+            val displayWidth = viewBinding.root.width
+
+            // 21:9モード
+            val isCinemaWideAspectRate = prefSetting.getBoolean("setting_nicovideo_jc_cinema_wide_aspect", false)
+            val playerDefaultWidth = if (isCinemaWideAspectRate) {
+                displayWidth / 1.5f
+            } else {
+                displayWidth / 2f
+            }.toInt()
+
+            // プレイヤー用意
+            if (isLandscape()) {
+                viewBinding.fragmentPlayerBasePlayerFrameLayout.updateLayoutParams<LinearLayout.LayoutParams> {
+                    width = playerDefaultWidth
+                    height = (width / 16) * 9
+                }
+            } else {
+                viewBinding.fragmentPlayerBasePlayerFrameLayout.updateLayoutParams<LinearLayout.LayoutParams> {
+                    width = displayWidth
+                    height = (width / 16) * 9
+                }
             }
-        } else {
-            viewBinding.fragmentPlayerBasePlayerFrameLayout.updateLayoutParams<LinearLayout.LayoutParams> {
-                width = displayWidth
-                height = (width / 16) * 9
-            }
+            // プレイヤー（PlayerParentFrameLayout）セットアップ
+            playerFrameLayout.setup(
+                playerView = fragmentPlayerFrameLayout,
+                playerViewParent = viewBinding.fragmentPlayerBaseFragmentParentLinearLayout,
+                landscapeDefaultPlayerWidth = playerDefaultWidth
+            )
         }
-        // プレイヤー（PlayerParentFrameLayout）セットアップ
-        playerLinearLayout.setup(fragmentPlayerFrameLayout, viewBinding.fragmentPlayerBaseFragmentParentLinearLayout)
 
         // ミニプレイヤー無効化
-        val isDisableMiniPlayerMode = prefSetting.getBoolean("setting_nicovideo_jc_disable_mini_player", false)
-        playerLinearLayout.isDisableMiniPlayerMode = isDisableMiniPlayerMode
+        playerFrameLayout.isDisableMiniPlayerMode = isDisableMiniPlayerMode
 
         // コールバック。これは変更通知
-        playerLinearLayout.addOnStateChangeListener { state ->
+        playerFrameLayout.addOnStateChangeListener { state ->
             // 終了の時
             if (state == PlayerParentFrameLayout.PLAYER_STATE_DESTROY) {
                 finishFragment()
@@ -99,20 +119,20 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
             onBottomSheetStateChane(state, isMiniPlayerMode())
         }
         // コールバック。これは進捗具合
-        playerLinearLayout.addOnProgressListener { progress ->
+        playerFrameLayout.addOnProgressListener { progress ->
             onBottomSheetProgress(progress)
         }
         // バックキーのイベント
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             when {
-                playerLinearLayout.isDisableMiniPlayerMode -> finishFragment()
+                playerFrameLayout.isDisableMiniPlayerMode -> finishFragment()
                 !isMiniPlayerMode() -> toMiniPlayer()
                 else -> isEnabled = false
             }
         }
         // BottomNavを消してみる
         (requireActivity() as? MainActivity)?.apply {
-            playerLinearLayout.setupBottomNavigation(this.viewBinding.mainActivityBottomNavigationView, this@PlayerBaseFragment.lifecycle)
+            playerFrameLayout.setupBottomNavigation(this.viewBinding.mainActivityBottomNavigationView, this@PlayerBaseFragment.lifecycle)
         }
     }
 
@@ -141,17 +161,17 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
 
     /** ミニプレイヤー状態かどうかを返す */
     override fun isMiniPlayerMode(): Boolean {
-        return playerLinearLayout.isMiniPlayerCheckSoft()
+        return playerFrameLayout.isMiniPlayerCheckSoft()
     }
 
     /** ミニプレイヤーモードへ */
     fun toMiniPlayer() {
-        playerLinearLayout.toMiniPlayer()
+        playerFrameLayout.toMiniPlayer()
     }
 
     /** 通常モードへ */
     fun toDefaultPlayer() {
-        playerLinearLayout.toDefaultPlayer()
+        playerFrameLayout.toDefaultPlayer()
     }
 
     /** 現在の状態（ミニプレイヤー等）に合わせたアイコンを返す */
@@ -169,7 +189,7 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
         // MainActivityの場合はBottomNavigationを戻す
         (requireActivity() as? MainActivity)?.setBottomNavigationHeight(0)
         // 全画面のまま終わったとき
-        if(playerLinearLayout.isFullScreenMode){
+        if (playerFrameLayout.isFullScreenMode) {
             // センサーの思いのままに
             requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             // ステータスバー表示
@@ -211,13 +231,15 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
      *
      * コルーチンになりました。これでサイズ変更が完了するまで一時停止されます
      * */
-    suspend fun toFullScreen() {
-        // 横画面にする。SENSOR版なので右に倒しても左に倒してもおｋだよ？
-        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        // ステータスバー隠す
-        SystemBarVisibility.hideSystemBar(requireActivity().window)
-        // BottomSheet側も全画面に切り替える
-        playerLinearLayout.toFullScreenSuspend()
+    suspend fun toFullScreen() = suspendCoroutine<Unit> { suspend ->
+        viewBinding.root.doOnNextLayout {
+            // 横画面にする。SENSOR版なので右に倒しても左に倒してもおｋだよ？
+            requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            // ステータスバー隠す
+            SystemBarVisibility.hideSystemBar(requireActivity().window)
+            // BottomSheet側も全画面に切り替える
+            playerFrameLayout.toFullScreen { suspend.resume(Unit) }
+        }
     }
 
     /**
@@ -227,13 +249,13 @@ open class PlayerBaseFragment : Fragment(), MainActivityPlayerFragmentInterface 
      *
      * コルーチンになりました。これでサイズ変更が完了するまで一時停止されます
      * */
-    suspend fun toDefaultScreen() {
+    suspend fun toDefaultScreen() = suspendCoroutine<Unit> { suspend ->
         // 既定値へ戻す
         requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         // ステータスバー表示
         SystemBarVisibility.showSystemBar(requireActivity().window)
         // BottomSheet側も全画面を無効にする
-        playerLinearLayout.toDefaultScreenSuspend()
+        playerFrameLayout.toDefaultScreen { suspend.resume(Unit) }
     }
 
     /** 終了時 */

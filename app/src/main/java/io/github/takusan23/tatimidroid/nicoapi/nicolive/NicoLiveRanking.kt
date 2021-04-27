@@ -11,7 +11,10 @@ import java.net.URLDecoder
 
 /**
  * ニコ生のランキングを取得する。最近までヘッダーにランキングがあることに気付かなかった。
+ *
  * なおPC版ではなくスマホ版のサイトから取得している。(スマホ版はJSONがHTMLの中にある。PC版は無いので)
+ *
+ * ユーザーエージェントがスマホじゃないとパソコン版のページへ転送する仕様になったらしい。
  * */
 class NicoLiveRanking {
 
@@ -26,7 +29,8 @@ class NicoLiveRanking {
     suspend fun getRankingHTML() = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             url("https://sp.live.nicovideo.jp/ranking")
-            header("User-Agent", "TatimiDroid;@takusan_23")
+            // スマホのユーザーエージェントを指定してスマホ版ページを得る
+            header("User-Agent", "Mozilla/5.0 (Linux; Android 8.0; Pixel 2;TatimiDroid;@takusan_23) ")
             get()
         }.build()
         okHttpClient.newCall(request).execute()

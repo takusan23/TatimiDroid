@@ -112,7 +112,7 @@ class NicoLiveComment {
      * @param whenValue 指定した時間のコメントが欲しい場合は指定してください。一番古いコメントのdateとdate_usecを取って{date}.{date_usec}すれば取れると思う
      * @param onMessageFunc コメントが来た時に呼ばれる高階関数
      * */
-    fun connectCommentServerWebSocket(commentServerData: CommentServerData, requestHistoryCommentCount: Int = -100, whenValue: Double? = null, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
+    fun connectCommentServerWebSocket(commentServerData: CommentServerData, requestHistoryCommentCount: Int = -100, whenValue: Float? = null, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
         // 過去コメントか流れてきたコメントか
         var historyComment = requestHistoryCommentCount
         // 過去コメントだとtrue
@@ -128,7 +128,7 @@ class NicoLiveComment {
                 val sendJSONObject = JSONObject()
                 val jsonObject = JSONObject().apply {
                     put("version", "20061206")
-                    put("service", "LIVE")
+                    // put("service", "LIVE")
                     put("thread", commentServerData.threadId)
                     put("scores", 1)
                     put("res_from", historyComment)

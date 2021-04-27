@@ -260,8 +260,9 @@ class NicoVideoHTML {
             .build()
         val response = okHttpClient.newCall(request).execute()
         if (response.isSuccessful) {
-            val responseString = response.body?.string()
-            val jsonObject = JSONObject(responseString)
+            val responseBody = response.body
+            val jsonObject = JSONObject(responseBody?.string())
+            responseBody?.close()
             jsonObject
         } else {
             null
@@ -282,6 +283,7 @@ class NicoVideoHTML {
             while (true) {
                 // 40秒ごとにハートビート処理
                 postHeartBeat(heartBeatURL, postData)
+                // println("Angel Beats!")
                 delay(40 * 1000)
             }
         }
@@ -503,7 +505,9 @@ class NicoVideoHTML {
             addHeader("User-Agent", "TatimiDroid;@takusan_23")
             build()
         }.build()
-        okHttpClient.newCall(request).execute()
+        okHttpClient.newCall(request).execute().apply {
+            body?.close() // もしかして：必要
+        }
     }
 
     /**
@@ -882,7 +886,7 @@ class NicoVideoHTML {
      * @return 画面の幅とアスペクト比を考えて出した高さ。
      * */
     fun calcVideoHeightDisplaySize(videoWidth: Int, videoHeight: Int, displayWidth: Int): Float {
-        return  videoHeight.toFloat() / videoWidth * displayWidth
+        return videoHeight.toFloat() / videoWidth * displayWidth
     }
 
     /**
@@ -895,7 +899,7 @@ class NicoVideoHTML {
      * @return 画面の幅とアスペクト比を考えて出した幅。
      * */
     fun calcVideoWidthDisplaySize(videoWidth: Int, videoHeight: Int, displayHeight: Int): Float {
-        return  videoWidth.toFloat() / videoHeight * displayHeight
+        return videoWidth.toFloat() / videoHeight * displayHeight
     }
 
     /**

@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -136,15 +138,17 @@ fun NicoLiveCommentInputButton(
             if (!isHideCommentLayout.value) {
                 // コマンドパネル
                 IconButton(onClick = { isShowCommandPanel.value = !isShowCommandPanel.value }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_paint_black),
-                        tint = Color.White,
-                        contentDescription = "コマンドパネル"
-                    )
+                    Column {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_outline_settings_24px),
+                            tint = Color.White,
+                            contentDescription = "設定",
+                        )
+                    }
                 }
                 // コメント入力
                 OutlinedTextField(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
                     value = comment,
                     onValueChange = { onCommentChange(it) },
                     label = {

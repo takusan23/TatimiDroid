@@ -153,10 +153,25 @@ class DownloadPocket(private val url: String, private val splitFileFolder: File,
     /** すべてのファイルを一つにまとめて完成 */
     private suspend fun multipleFileToOneFile() = withContext(Dispatchers.Default) {
         // 最終的なファイル
-        splitFileFolder.listFiles()
-            ?.sortedBy { file -> file.extension } // 並び替え。男女男男女男女
-            ?.map { file -> file.readBytes() } // readBytes()は2GBまでしか対応してない(さすがにないやろ)
-            ?.forEach { bytes -> resultVideoFile.appendBytes(bytes) }
+        val fileList = splitFileFolder.listFiles()?.sortedBy { file -> file.extension } ?: return@withContext // 並び替え。男女男男女男女
+        val resultFileOutputStream = resultVideoFile.outputStream()
+        // 書き込み先ファイルのOutputStream
+        fileList.forEach { file ->
+            val inputStream = file.inputStream()
+            val byteArray = ByteArray(1024 * 1024)
+            // KotlinのreadBytes()使ったらOOM吐いたので古典的な方法で
+            while (true) {
+                val read = inputStream.read(byteArray)
+                if (read == -1) {
+                    // もう取れない
+                    break
+                }
+                resultFileOutputStream.write(byteArray, 0, read)
+            }
+            inputStream.close()
+        }
+        // とじる
+        resultFileOutputStream.close()
         // フォルダを消す
         splitFileFolder.deleteRecursively()
         // 100パーセントにして送信

@@ -1,6 +1,7 @@
 package io.github.takusan23.tatimidroid.nicovideo.compose
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +15,7 @@ import androidx.core.net.toUri
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -24,20 +26,21 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
+import com.google.android.material.button.MaterialButton
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
-import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoCacheJSONUpdateRequestBottomFragment
-import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.ComememoBottomFragment
-import io.github.takusan23.tatimidroid.nicovideo.NicoVideoCommentFragment
-import io.github.takusan23.tatimidroid.fragment.PlayerBaseFragment
-import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoViewModelFactory
-import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.PlayerParentFrameLayout
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.databinding.IncludeNicovideoPlayerBinding
+import io.github.takusan23.tatimidroid.fragment.PlayerBaseFragment
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
+import io.github.takusan23.tatimidroid.nicovideo.NicoVideoCommentFragment
+import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.ComememoBottomFragment
+import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoCacheJSONUpdateRequestBottomFragment
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
 import io.github.takusan23.tatimidroid.tool.*
-import io.github.takusan23.tatimidroid.databinding.IncludeNicovideoPlayerBinding
 import kotlinx.coroutines.*
 import kotlin.math.roundToInt
 
@@ -189,7 +192,13 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 delay(100)
                 // 再生時間をコメント描画Canvasへ入れ続ける
                 nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.currentPos = viewModel.playerCurrentPositionMs
-                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isPlaying = viewModel.playerIsPlaying.value!!
+                // 再生中かどうか
+                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isPlaying = if (viewModel.isNotPlayVideoMode.value == false) {
+                    // 動画バッファー中かも？
+                    exoPlayer.isPlaying
+                } else {
+                    viewModel.playerIsPlaying.value!!
+                }
                 // 再生中のみ
                 if (viewModel.playerIsPlaying.value == true) {
                     // ExoPlayerが利用できる場合は再生時間をViewModelへ渡す
@@ -222,7 +231,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             nicovideoPlayerUIBinding.includeNicovideoPlayerCloseImageView.setImageDrawable(getCurrentStateIcon())
             // 画面回転前がミニプレイヤーだったらミニプレイヤーにする
             if (isMiniPlayerMode) {
-                toMiniPlayer() // これ直したい
+                toMiniPlayer()
             }
         }
         // Activity終了などのメッセージ受け取り
@@ -242,9 +251,16 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
         // コメント
         viewModel.commentList.observe(viewLifecycleOwner) { commentList ->
-            viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
-                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.initCommentList(commentList, duration)
-            }
+            // ついでに動画の再生時間を取得する。非同期
+            viewModel.playerDurationMs.observe(viewLifecycleOwner, object : Observer<Long> {
+                override fun onChanged(t: Long?) {
+                    if (t != null && t > 0) {
+                        nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.initCommentList(commentList, t)
+                        // 一回取得したらコールバック無効化。SAM変換をするとthisの指すものが変わってしまう
+                        viewModel.playerDurationMs.removeObserver(this)
+                    }
+                }
+            })
         }
         // 動画再生 or 動画なしモード
         if (viewModel.isCommentOnlyMode) {
@@ -351,6 +367,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // 準備と再生
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
+        viewModel.playerIsPlaying.postValue(true)
         // プログレスバー動かす。View.GONEだとなんかレイアウト一瞬バグる
         nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.VISIBLE
     }
@@ -364,7 +381,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 viewModel.playerDurationMs.postValue(exoPlayer.duration)
                 // 再生
                 //viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
-                // プログレスバー
+                // くるくる
                 if (state == Player.STATE_READY || state == Player.STATE_ENDED) {
                     nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.INVISIBLE
                 } else {
@@ -439,6 +456,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // プレイヤー部分の表示設定
         val hideJob = Job()
         nicovideoPlayerUIBinding.root.setOnClickListener {
+            // シークテキストは消す
+            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextButton.isVisible = false
             hideJob.cancelChildren()
             // ConstraintLayoutのGroup機能でまとめてVisibility変更。
             nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = if (nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility == View.VISIBLE) {
@@ -518,11 +537,16 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 val isLeft = motionEvent.x <= nicovideoPlayerUIBinding.root.width / 2
                 // どれだけシークするの？
                 val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
-                if (isLeft) {
-                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition - (seekValue * 1000))
+                val seekMs = if (isLeft) {
+                    viewModel.currentPosition - (seekValue * 1000)
                 } else {
-                    viewModel.playerSetSeekMs.postValue(viewModel.currentPosition + (seekValue * 1000))
+                    viewModel.currentPosition + (seekValue * 1000)
                 }
+                // シークしたTextViewを出す
+                showSeekText(isLeft, seekMs)
+                viewModel.playerSetSeekMs.postValue(seekMs)
+                // ダブルタップでミニプレイヤーへの遷移が始まるので戻す
+                toDefaultPlayer()
             }
         }
         // コメントキャンバス非表示
@@ -582,9 +606,54 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         if (viewModel.isFullScreenMode) {
             setFullScreen()
         }
+        // FPSを表示するか
+        if (prefSetting.getBoolean("setting_nicovideo_jc_show_fps", false)) {
+            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isCalcFPS = true
+            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.addFPSCallBack { fps ->
+                // FPSコールバック
+                nicovideoPlayerUIBinding.includeNicovideoPlayerFpsTextView.text = "FPS\n$fps"
+            }
+        }
         // センサーによる画面回転
         if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
             RotationSensor(requireActivity(), lifecycle)
+        }
+    }
+
+    /**
+     * シークテキストを出す
+     * @param isBack 後ろに進んだ場合はtrue。前に進んだ場合はfalse
+     * @param seekMs シーク後の時間。ミリ秒
+     * */
+    private fun showSeekText(isBack: Boolean, seekMs: Long) {
+        lifecycleScope.launch {
+            val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
+            val timeFormat = DateUtils.formatElapsedTime(seekMs / 1000)
+            val seekIcon = if (isBack) requireContext().getDrawable(R.drawable.seek_back_run) else requireContext().getDrawable(R.drawable.seek_run)
+            seekIcon?.setTint(Color.WHITE)
+            val message = if (isBack) {
+                """
+                -= $seekValue
+                $timeFormat
+                """.trimIndent()
+            } else {
+                """
+                += $seekValue
+                $timeFormat
+                """.trimIndent()
+            }
+            // UI表示中なら消す
+            nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = View.INVISIBLE
+            // シーク用テキスト。実はButton
+            (nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextButton as MaterialButton).apply {
+                text = message
+                icon = seekIcon
+                iconSize = 100
+                isVisible = true
+                // 1秒間出す
+                delay(1000)
+                isVisible = false
+            }
         }
     }
 

@@ -47,17 +47,16 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.takusan23.tatimidroid.*
+import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveBinding
+import io.github.takusan23.tatimidroid.databinding.IncludeNicoliveEnquateBinding
 import io.github.takusan23.tatimidroid.googlecast.GoogleCast
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.nicolive.activity.FloatingCommentViewer
 import io.github.takusan23.tatimidroid.nicolive.adapter.NicoLivePagerAdapter
-import io.github.takusan23.tatimidroid.nicolive.bottomfragment.NicoLiveQualitySelectBottomSheet
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.factory.NicoLiveViewModelFactory
 import io.github.takusan23.tatimidroid.service.startLivePlayService
 import io.github.takusan23.tatimidroid.tool.*
-import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveBinding
-import io.github.takusan23.tatimidroid.databinding.IncludeNicoliveEnquateBinding
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -290,7 +289,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 exoPlayer.release()
             } else {
                 setPlayVideoView()
-                initQualityChangeBottomFragment(viewModel.currentQuality, viewModel.qualityListJSONArray)
             }
         }
 
@@ -332,7 +330,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
                 setCommentOnlyMode(true)
             } else {
                 setPlayVideoView()
-                initQualityChangeBottomFragment(viewModel.currentQuality, viewModel.qualityListJSONArray)
                 googleCast.apply {
                     hlsAddress = address
                     resume()
@@ -718,19 +715,6 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
     private fun showQualityChangeSnackBar(selectQuality: String?) {
         // 画質変更した。SnackBarでユーザーに教える
         multiLineSnackbar(viewBinding.commentFragmentSurfaceView, "${getString(R.string.successful_quality)}\n→${selectQuality}")
-    }
-
-    // 画質変更BottomFragment初期化
-    private fun initQualityChangeBottomFragment(selectQuality: String?, qualityTypesJSONArray: JSONArray) {
-        // 画質変更BottomFragmentに詰める。なんかUIスレッドにしないとだめっぽい？
-        activity?.runOnUiThread {
-            val bundle = Bundle()
-            bundle.putString("select_quality", selectQuality)
-            bundle.putString("quality_list", qualityTypesJSONArray.toString())
-            bundle.putString("liveId", liveId)
-            val nicoLiveQualitySelectBottomSheet = NicoLiveQualitySelectBottomSheet()
-            nicoLiveQualitySelectBottomSheet.arguments = bundle
-        }
     }
 
     /** ViewPager2初期化 */

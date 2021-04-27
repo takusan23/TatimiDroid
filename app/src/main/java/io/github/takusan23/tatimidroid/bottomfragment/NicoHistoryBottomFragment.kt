@@ -6,13 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.adapter.NicoHistoryAdapter
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.adapter.NicoHistoryAdapter
+import io.github.takusan23.tatimidroid.databinding.BottomFragmentHistoryBinding
 import io.github.takusan23.tatimidroid.room.entity.NicoHistoryDBEntity
 import io.github.takusan23.tatimidroid.room.init.NicoHistoryDBInit
-import io.github.takusan23.tatimidroid.databinding.BottomFragmentHistoryBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -124,6 +125,9 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
             nicoHistoryAdapter = NicoHistoryAdapter(recyclerViewList)
             nicoHistoryAdapter.editText = editText
             adapter = nicoHistoryAdapter
+            if (itemDecorationCount == 0) {
+                addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
+            }
         }
         nicoHistoryAdapter.bottomSheetDialogFragment = this
     }

@@ -5,9 +5,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.github.takusan23.tatimidroid.R
@@ -15,8 +14,10 @@ import io.github.takusan23.tatimidroid.room.entity.NicoHistoryDBEntity
 import java.text.SimpleDateFormat
 import java.util.*
 
-class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistoryDBEntity>) :
-    RecyclerView.Adapter<NicoHistoryAdapter.ViewHolder>() {
+/**
+ * 端末内履歴のRecyclerViewのAdapter
+ * */
+class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistoryDBEntity>) : RecyclerView.Adapter<NicoHistoryAdapter.ViewHolder>() {
 
     lateinit var editText: EditText
     lateinit var bottomSheetDialogFragment: BottomSheetDialogFragment
@@ -42,7 +43,7 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistor
         holder.dateTextView.text = unixToDataFormat(date).toString()
 
         //コミュIDをいれる
-        holder.cardView.setOnClickListener {
+        holder.parentConstraintLayout.setOnClickListener {
             if (::editText.isInitialized) {
                 val text = if (type == "live") {
                     communityId
@@ -57,7 +58,7 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistor
             }
         }
         // 長押しで番組ID
-        holder.cardView.setOnLongClickListener {
+        holder.parentConstraintLayout.setOnLongClickListener {
             if (::editText.isInitialized) {
                 editText.setText(id)
             }
@@ -84,18 +85,10 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistor
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        var titleTextView: TextView
-        var dateTextView: TextView
-        var parentLinearLayout: LinearLayout
-        var cardView: CardView
-        var typeIcon: ImageView
+        val parentConstraintLayout = itemView.findViewById<ConstraintLayout>(R.id.adapter_nico_history_parent)
+        val titleTextView = itemView.findViewById<TextView>(R.id.adapter_nico_history_title)
+        val dateTextView = itemView.findViewById<TextView>(R.id.adapter_nico_history_date)
+        var typeIcon = itemView.findViewById<ImageView>(R.id.adapter_nico_history_icon)
 
-        init {
-            parentLinearLayout = itemView.findViewById(R.id.adapter_nico_history_parent)
-            titleTextView = itemView.findViewById(R.id.adapter_nico_history_title)
-            dateTextView = itemView.findViewById(R.id.adapter_nico_history_date)
-            cardView = itemView.findViewById(R.id.adapter_nico_hisotry_cardview)
-            typeIcon = itemView.findViewById(R.id.adapter_nico_history_icon)
-        }
     }
 }

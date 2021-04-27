@@ -227,17 +227,50 @@
         app:layout_constraintStart_toStartOf="@+id/include_nicovideo_player_black_view"
         app:layout_constraintTop_toTopOf="@+id/include_nicovideo_player_black_view" />
 
+    <Button
+        android:id="@+id/include_nicovideo_player_seek_text_button"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:enabled="false"
+        android:padding="10dp"
+        android:textColor="#ffffff"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:backgroundTint="#80000000"
+        app:iconTint="#ffffff"
+        app:layout_constraintBottom_toBottomOf="@+id/include_nicovideo_player_black_view"
+        app:layout_constraintEnd_toEndOf="@+id/include_nicovideo_player_black_view"
+        app:layout_constraintStart_toStartOf="@+id/include_nicovideo_player_black_view"
+        app:layout_constraintTop_toTopOf="@+id/include_nicovideo_player_black_view"
+        app:strokeColor="#ffffff" />
+
+    <TextView
+        android:id="@+id/include_nicovideo_player_fps_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#ffffff"
+        android:textSize="10sp"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="@+id/include_nicovideo_player_repeat_image_view"
+        app:layout_constraintEnd_toStartOf="@+id/include_nicovideo_player_screenshot_image_view"
+        app:layout_constraintTop_toTopOf="@+id/include_nicovideo_player_repeat_image_view" />
+
     <androidx.constraintlayout.widget.Group
         android:id="@+id/include_nicovideo_player_control_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="include_nicovideo_player_duration_text_view,include_nicovideo_player_black_view,include_nicovideo_player_title_text_view,include_nicovideo_player_prev_image_view,include_nicovideo_player_close_image_view,include_nicovideo_player_pause_image_view,include_nicovideo_player_video_id_text_view,include_nicovideo_player_current_time_text_view,include_nicovideo_player_next_image_view,include_nicovideo_player_seek_bar,include_nicovideo_player_network_image_view,include_nicovideo_player_repeat_image_view,include_nicovideo_player_popup_image_view,include_nicovideo_player_background_image_view,include_nicovideo_player_comment_hide_image_view,include_nicovideo_full_screen_image_view,include_nicovideo_player_screenshot_image_view" />
+        app:constraint_referenced_ids="include_nicovideo_player_duration_text_view,include_nicovideo_player_black_view,include_nicovideo_player_title_text_view,include_nicovideo_player_prev_image_view,include_nicovideo_player_close_image_view,include_nicovideo_player_pause_image_view,include_nicovideo_player_video_id_text_view,include_nicovideo_player_current_time_text_view,include_nicovideo_player_next_image_view,include_nicovideo_player_seek_bar,include_nicovideo_player_network_image_view,include_nicovideo_player_repeat_image_view,include_nicovideo_player_popup_image_view,include_nicovideo_player_background_image_view,include_nicovideo_player_comment_hide_image_view,include_nicovideo_full_screen_image_view,include_nicovideo_player_screenshot_image_view,include_nicovideo_player_fps_text_view" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/include_nicovideo_player_mini_player_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="include_nicovideo_player_next_image_view,include_nicovideo_player_prev_image_view,include_nicovideo_player_pause_image_view,include_nicovideo_player_repeat_image_view,include_nicovideo_player_network_image_view,include_nicovideo_player_duration_text_view,include_nicovideo_player_seek_bar,include_nicovideo_player_popup_image_view,include_nicovideo_player_background_image_view,include_nicovideo_player_comment_hide_image_view,include_nicovideo_full_screen_image_view,include_nicovideo_player_screenshot_image_view" />
+        app:constraint_referenced_ids="include_nicovideo_player_next_image_view,include_nicovideo_player_prev_image_view,include_nicovideo_player_pause_image_view,include_nicovideo_player_repeat_image_view,include_nicovideo_player_network_image_view,include_nicovideo_player_duration_text_view,include_nicovideo_player_seek_bar,include_nicovideo_player_popup_image_view,include_nicovideo_player_background_image_view,include_nicovideo_player_comment_hide_image_view,include_nicovideo_full_screen_image_view,include_nicovideo_player_screenshot_image_view,include_nicovideo_player_fps_text_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
