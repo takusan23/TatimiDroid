@@ -358,6 +358,14 @@
             android:key="setting_comment_canvas_min_line_value"
             android:title="@string/setting_comment_canvas_min_line_value_title" />
 
+        <!-- 10行確保 -->
+        <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_comment_on"
+            android:key="setting_comment_canvas_omakase"
+            android:summary="FPSの設定以外は自動で設定します。"
+            android:title="コメント表示設定をおまかせする" />
+
         <EditTextPreference
             android:defaultValue="16"
             android:icon="@drawable/ic_outline_query_builder_24px"

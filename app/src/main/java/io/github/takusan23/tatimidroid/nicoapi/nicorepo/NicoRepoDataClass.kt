@@ -5,7 +5,7 @@ package io.github.takusan23.tatimidroid.nicoapi.nicorepo
  * @param isVideo 動画ならtrue、生放送ならfalse
  * @param message ニコレポで表示するメッセージ
  * @param title 動画、生放送のタイトル
- * @param accountName アカウント名
+ * @param userName アカウント名
  * @param contentId 動画ID、生放送ID
  * @param date じかん
  * @param thumbUrl サムネURL

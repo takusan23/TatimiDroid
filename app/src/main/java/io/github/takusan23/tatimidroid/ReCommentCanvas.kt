@@ -93,12 +93,24 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     private val drewedList = arrayListOf<Long>()
     private var tmpPosition = 0L
 
+    /** コメントの表示時間等を自動設定 */
+    private val isOmakaseSetting by lazy { prefSetting.getBoolean("setting_comment_canvas_omakase", false) }
+
     /**
      * コメントの移動する大きさ。
-     *
-     * でふぉは-5です。
      * */
-    private val commentMoveMinus by lazy { prefSetting.getString("setting_comment_speed", "5")?.toInt() ?: 5 }
+    private val commentMoveMinus by lazy {
+        prefSetting.getString("setting_comment_speed", "5")?.toInt() ?: 5
+/*
+        if (isOmakaseSetting) {
+            val updateMs = getCommentCanvasUpdateMs()
+            val moveValue = (finalWidth / 10) / updateMs
+            moveValue.toInt()
+        } else {
+            prefSetting.getString("setting_comment_speed", "5")?.toInt() ?: 5
+        }
+*/
+    }
 
     /**
      * 16ミリ秒ごと[commentMoveMinus]分動かす。
@@ -135,6 +147,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     private val fpsCallBackList = arrayListOf<((fps: Int) -> Unit)>()
 
     init {
+
+        // 表示時間
+        val drawTimeSec = 5
+
         // コメントを動かす
         commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
             if (isPlaying) {
@@ -143,9 +159,27 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                     .filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
                     if (reDrawCommentData != null) {
                         // 文字が長いときは早くする。アスキーアートのときは速度一定
-                        val speed = if (reDrawCommentData.asciiArt) commentMoveMinus else commentMoveMinus + (reDrawCommentData.comment.length / 8)
-                        reDrawCommentData.rect.left -= speed
-                        reDrawCommentData.rect.right -= speed
+                        // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
+                        val measure = reDrawCommentData.measure.toInt()
+                        // 動かす範囲
+                        val widthMinusCommentMeasure = max(finalWidth - measure, measure)
+                        println(
+                            """
+                            widthMinusCommentMeasure = ${widthMinusCommentMeasure}
+                            comment = ${reDrawCommentData.comment}
+                            -----
+                        """.trimIndent()
+                        )
+                        // 5秒表示させるので
+                        val _1fps_move_value = (widthMinusCommentMeasure / (drawTimeSec * commentUpdateMs)).toInt()
+
+/*
+                        val _1fps_final_width = finalWidth - commentUpdateMs
+                        val _1fps_comment_width = (measure / _1fps_final_width).toInt()
+                        val speed = (_1fps_comment_width * (0.016 * 5)).toInt()
+*/
+                        reDrawCommentData.rect.left -= _1fps_move_value
+                        reDrawCommentData.rect.right -= _1fps_move_value
                         // なお画面外は消す
                         if (reDrawCommentData.rect.right < 0) {
                             drawNakaCommentList.remove(reDrawCommentData)
