@@ -359,26 +359,6 @@
             android:key="setting_comment_canvas_min_line_value"
             android:title="@string/setting_comment_canvas_min_line_value_title" />
 
-<!--
-        <EditTextPreference
-            android:defaultValue="16"
-            android:icon="@drawable/ic_outline_query_builder_24px"
-            android:key="setting_comment_canvas_timer"
-            android:summary="@string/setting_comment_canvas_timer_description"
-            android:title="@string/setting_comment_canvas_timer_title" />
--->
-
-
-<!--
-        <EditTextPreference
-            android:defaultValue="60"
-            android:dependency="setting_comment_canvas_speed_fps_enable"
-            android:icon="@drawable/ic_outline_query_builder_24px"
-            android:key="setting_comment_canvas_speed_fps"
-            android:summary="@string/setting_comment_canvas_fps_description"
-            android:title="@string/setting_comment_canvas_fps_title" />
--->
-
         <SwitchPreference
             android:defaultValue="false"
             android:icon="@drawable/ic_sports_esports_24px"
@@ -391,7 +371,6 @@
             android:dependency="setting_comment_canvas_edit_fps_enable"
             android:icon="@drawable/ic_outline_query_builder_24px"
             android:key="setting_comment_canvas_edit_fps"
-            android:summary=""
             android:title="FPSの編集" />
 
         <EditTextPreference
@@ -407,15 +386,6 @@
             android:key="setting_comment_alpha"
             android:summary="@string/setting_comment_canvas_alpha_descripton"
             android:title="@string/setting_comment_canvas_alpha_title" />
-
-<!--
-        <EditTextPreference
-            android:defaultValue="5"
-            android:icon="@drawable/ic_speed_24px"
-            android:key="setting_comment_speed"
-            android:summary="@string/setting_comment_speed_description"
-            android:title="@string/setting_comment_speed_title" />
--->
 
     </PreferenceCategory>
 

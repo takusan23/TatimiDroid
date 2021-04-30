@@ -20,7 +20,7 @@ import kotlinx.coroutines.withContext
 import java.util.*
 
 /**
- * 端末内履歴[NicoHistoryDB]を表示するボトムシート
+ * 端末内履歴[io.github.takusan23.tatimidroid.room.database.NicoHistoryDB]を表示するボトムシート
  * */
 class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
 
