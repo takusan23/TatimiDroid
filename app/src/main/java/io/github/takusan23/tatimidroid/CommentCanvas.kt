@@ -137,8 +137,6 @@ class CommentCanvas(ctx: Context?, attrs: AttributeSet?) : View(ctx, attrs) {
         textSize = 20 * resources.displayMetrics.scaledDensity
         style = Paint.Style.FILL
         color = Color.WHITE
-        // テキストに影をつける
-        setShadowLayer(textShadow, textShadow, textShadow, Color.BLACK)
     }
 
     /** コメントに影を付ける量 */
@@ -292,6 +290,8 @@ class CommentCanvas(ctx: Context?, attrs: AttributeSet?) : View(ctx, attrs) {
         // 0 ~ 225 の範囲で指定するため 225かける。日経225
         paint.alpha = (commentAlpha * 225).toInt()
         blackPaint.alpha = (commentAlpha * 225).toInt()
+        // 影
+        paint.setShadowLayer(textShadow, textShadow, textShadow, Color.BLACK)
     }
 
     // 色

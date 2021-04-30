@@ -7,8 +7,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import io.github.takusan23.tatimidroid.nguploader.NGUploaderTool
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nguploader.NGUploaderTool
 
 /**
  * NG投稿者の投稿した動画一覧を更新する
@@ -55,7 +55,7 @@ class UpdateNGUploaderVideoListWork(private val context: Context, workerParams: 
         notification.apply {
             setContentTitle("NG投稿者更新通知")
             setContentText("定期実行が完了しました。")
-            setSmallIcon(R.drawable.ic_do_not_disturb_alt_black_24dp)
+            setSmallIcon(R.drawable.ng_uploader_icon)
         }
         // 投稿
         notificationManager.notify(NOTIFIACTION_ID, notification.build())

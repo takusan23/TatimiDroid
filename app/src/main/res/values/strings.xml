@@ -479,4 +479,13 @@ Sorry to trouble you, but please update the video information.\n
     <string name="nicolive_support_full_hd">This program can be viewed in full HD. Select 6M from the image quality change.</string>
     <string name="setting_nicovideo_jc_show_fps_title">Show FPS</string>
     <string name="setting_nicovideo_jc_show_fps_description">For developers. Displays the number of times onDraw () is called per second.</string>
+    <string name="setting_comment_canvas_edit_fps_enable_title">Manually set FPS (screen update frequency)</string>
+    <string name="setting_comment_canvas_edit_fps_enable_description">When turned off, the refresh rate of the terminal will be used automatically.</string>
+    <string name="setting_comment_canvas_edit_fps_title">FPS settings</string>
+    <string name="setting_comment_canvas_show_time_title">Comment display time</string>
+    <string name="setting_comment_canvas_show_time_description">The default is 5 seconds.</string>
+    <string name="local_history_total_count">Total history</string>
+    <string name="local_history_video_count">Video views</string>
+    <string name="local_history_live_count">Live broadcast views</string>
+    <string name="local_history_show_count">Number of displays</string>
 </resources>

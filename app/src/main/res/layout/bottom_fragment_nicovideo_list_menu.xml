@@ -57,7 +57,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clickable="true"
-                android:drawableStart="@drawable/ic_outline_block_24px"
+                android:drawableStart="@drawable/ng_uploader_icon"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground"
                 android:padding="10dp"

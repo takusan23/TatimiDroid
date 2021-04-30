@@ -19,7 +19,7 @@ import java.util.*
  * */
 class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistoryDBEntity>) : RecyclerView.Adapter<NicoHistoryAdapter.ViewHolder>() {
 
-    lateinit var editText: EditText
+    private var editText: EditText? = null
     lateinit var bottomSheetDialogFragment: BottomSheetDialogFragment
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -44,13 +44,13 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistor
 
         //コミュIDをいれる
         holder.parentConstraintLayout.setOnClickListener {
-            if (::editText.isInitialized) {
+            if (editText != null) {
                 val text = if (type == "live") {
                     communityId
                 } else {
                     id // 動画用に
                 }
-                editText.setText(text)
+                editText!!.setText(text)
             }
             //けす
             if (::bottomSheetDialogFragment.isInitialized) {
@@ -59,9 +59,7 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistor
         }
         // 長押しで番組ID
         holder.parentConstraintLayout.setOnLongClickListener {
-            if (::editText.isInitialized) {
-                editText.setText(id)
-            }
+            editText?.setText(id)
             //けす
             if (::bottomSheetDialogFragment.isInitialized) {
                 bottomSheetDialogFragment.dismiss()
@@ -71,9 +69,9 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistor
 
         // アイコン
         val icon = if (type == "video") {
-            holder.typeIcon.context.getDrawable(R.drawable.ic_local_movies_24px)
+            holder.typeIcon.context.getDrawable(R.drawable.video_icon)
         } else {
-            holder.typeIcon.context.getDrawable(R.drawable.ic_outline_live_tv_24px_black)
+            holder.typeIcon.context.getDrawable(R.drawable.live_icon)
         }
         holder.typeIcon.setImageDrawable(icon)
     }

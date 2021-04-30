@@ -479,4 +479,13 @@
     <string name="nicolive_support_full_hd">この番組はフルHDでの視聴が可能です。 画質変更から6Mを選んでください。</string>
     <string name="setting_nicovideo_jc_show_fps_title">FPSを表示する</string>
     <string name="setting_nicovideo_jc_show_fps_description">開発者向け。onDraw()を一秒間に呼んだ回数を表示します。</string>
+    <string name="setting_comment_canvas_edit_fps_enable_description">OFFにすると端末のリフレッシュレートが自動で使われます。</string>
+    <string name="setting_comment_canvas_edit_fps_enable_title">FPS（画面更新頻度）を手動で設定する</string>
+    <string name="setting_comment_canvas_edit_fps_title">FPSの設定</string>
+    <string name="setting_comment_canvas_show_time_title">コメント表示時間</string>
+    <string name="setting_comment_canvas_show_time_description">デフォルトは5秒です。</string>
+    <string name="local_history_total_count">履歴合計数</string>
+    <string name="local_history_video_count">動画視聴回数</string>
+    <string name="local_history_live_count">生放送視聴回数</string>
+    <string name="local_history_show_count">表示数</string>
 </resources>

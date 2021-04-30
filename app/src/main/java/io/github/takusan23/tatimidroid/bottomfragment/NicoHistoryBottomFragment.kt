@@ -5,31 +5,36 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.adapter.NicoHistoryAdapter
+import io.github.takusan23.tatimidroid.adapter.NicoHistoryHorizontalAdapter
+import io.github.takusan23.tatimidroid.bottomfragment.viewmodel.NicoHistoryViewModel
 import io.github.takusan23.tatimidroid.databinding.BottomFragmentHistoryBinding
 import io.github.takusan23.tatimidroid.room.entity.NicoHistoryDBEntity
-import io.github.takusan23.tatimidroid.room.init.NicoHistoryDBInit
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.*
 
 /**
  * 端末内履歴[io.github.takusan23.tatimidroid.room.database.NicoHistoryDB]を表示するボトムシート
  * */
 class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
 
-    lateinit var editText: EditText
-    lateinit var nicoHistoryAdapter: NicoHistoryAdapter
+    /** IDを入力するために */
+    var editText: EditText? = null
+
+    /** 履歴一覧 */
     var recyclerViewList = arrayListOf<NicoHistoryDBEntity>()
+
+    /** 横スクロールするやつの配列 */
+    var countTextList = arrayListOf<String>()
 
     /** findViewById駆逐 */
     private val viewBinding by lazy { BottomFragmentHistoryBinding.inflate(layoutInflater) }
+
+    /** ViewModel */
+    private val viewModel by viewModels<NicoHistoryViewModel>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return viewBinding.root
@@ -41,12 +46,17 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
         // RecyclerView初期化
         initRecyclerView()
 
-        // 読み込み。初回のみ実行してあとはChip押したとき読み込む
-        if (recyclerViewList.size == 0) {
-            loadHistory()
+        // 履歴受け取り
+        viewModel.historyListLiveData.observe(viewLifecycleOwner) { list ->
+            recyclerViewList.clear()
+            recyclerViewList.addAll(list)
+            viewBinding.bottomFragmentHistoryRecyclerview.adapter?.notifyDataSetChanged()
         }
-        // 件数表示
-        showDBCount()
+        viewModel.countTextListLiveData.observe(viewLifecycleOwner) { list ->
+            countTextList.clear()
+            countTextList.addAll(list)
+            viewBinding.bottomFragmentHistoryHorizontalRecyclerView.adapter?.notifyDataSetChanged()
+        }
 
         // chip押したとき
         viewBinding.bottomFragmentHistoryLiveChip.setOnClickListener { loadHistory() }
@@ -56,80 +66,44 @@ class NicoHistoryBottomFragment : BottomSheetDialogFragment() {
 
     }
 
-    // 件数表示
-    private fun showDBCount() {
-        viewBinding.bottomFragmentHistoryTextView.text = "${getString(R.string.history)}：${recyclerViewList.size}"
-    }
 
     /**
      * 履歴DB読み込み。
      * */
     private fun loadHistory() {
-        recyclerViewList.clear()
-        lifecycleScope.launch(Dispatchers.Main) {
-            withContext(Dispatchers.IO) {
-                // DBから取り出す
-                NicoHistoryDBInit.getInstance(requireContext()).nicoHistoryDBDAO().getAll().forEach { history ->
-                    recyclerViewList.add(0, history)
-                }
-                // 動画、生放送フィルター
-                val isVideo = viewBinding.bottomFragmentHistoryVideoChip.isChecked
-                val isLive = viewBinding.bottomFragmentHistoryLiveChip.isChecked
-                when {
-                    isVideo && isLive -> {
-                        recyclerViewList = recyclerViewList.filter { history ->
-                            history.type == "video" || history.type == "live"
-                        } as ArrayList<NicoHistoryDBEntity>
-                    }
-                    isVideo -> {
-                        recyclerViewList = recyclerViewList.filter { history ->
-                            history.type == "video"
-                        } as ArrayList<NicoHistoryDBEntity>
-                    }
-                    isLive -> {
-                        recyclerViewList = recyclerViewList.filter { history ->
-                            history.type == "live"
-                        } as ArrayList<NicoHistoryDBEntity>
-                    }
-                }
-                // 今日のみ
-                if (viewBinding.bottomFragmentHistoryTodayChip.isChecked) {
-                    // から
-                    val calender = Calendar.getInstance()
-                    calender.set(Calendar.HOUR, 0)
-                    calender.set(Calendar.MINUTE, 0)
-                    calender.set(Calendar.SECOND, 0)
-                    val from = calender.time.time / 1000L
-                    // まで
-                    val to = System.currentTimeMillis() / 1000L
-                    recyclerViewList = recyclerViewList.filter { history ->
-                        history.unixTime in from..to // 範囲に入ってるか
-                    } as ArrayList<NicoHistoryDBEntity>
-                }
-                // 重複を表示しない
-                if (viewBinding.bottomFragmentHistoryDistinctChip.isChecked) {
-                    recyclerViewList = recyclerViewList.distinctBy { history -> history.userId } as ArrayList<NicoHistoryDBEntity>
-                }
-            }
-            // 結果表示
-            initRecyclerView()
-            showDBCount()
-        }
+        // 動画、生放送フィルター
+        val isVideo = viewBinding.bottomFragmentHistoryVideoChip.isChecked
+        val isLive = viewBinding.bottomFragmentHistoryLiveChip.isChecked
+        val isFilterToDay = viewBinding.bottomFragmentHistoryTodayChip.isChecked
+        val isRemoveDistinct = viewBinding.bottomFragmentHistoryDistinctChip.isChecked
+        // ViewModel側で処理をする
+        viewModel.getHistoryList(
+            isFilterToDay = isFilterToDay,
+            isRemoveDistinct = isRemoveDistinct,
+            isIncludeLive = isLive,
+            isIncludeVideo = isVideo,
+        )
     }
 
     private fun initRecyclerView() {
         viewBinding.bottomFragmentHistoryRecyclerview.apply {
             setHasFixedSize(true)
-            val mLayoutManager = LinearLayoutManager(context)
-            layoutManager = mLayoutManager
-            nicoHistoryAdapter = NicoHistoryAdapter(recyclerViewList)
-            nicoHistoryAdapter.editText = editText
-            adapter = nicoHistoryAdapter
+            layoutManager = LinearLayoutManager(context)
+            adapter = NicoHistoryAdapter(recyclerViewList).apply {
+                editText = this@NicoHistoryBottomFragment.editText
+                bottomSheetDialogFragment = this@NicoHistoryBottomFragment
+            }
             if (itemDecorationCount == 0) {
                 addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
             }
         }
-        nicoHistoryAdapter.bottomSheetDialogFragment = this
+        // 横スクロール版
+        viewBinding.bottomFragmentHistoryHorizontalRecyclerView.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+            adapter = NicoHistoryHorizontalAdapter(countTextList)
+            isNestedScrollingEnabled = false
+        }
     }
 
 }
