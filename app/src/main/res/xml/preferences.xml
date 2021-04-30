@@ -352,34 +352,24 @@
             android:summary="@string/setting_comment_canvas_min_line_description"
             android:title="@string/setting_comment_canvas_min_line_title" />
 
+        <!-- 10行確保 -->
         <EditTextPreference
             android:defaultValue="10"
             android:dependency="setting_comment_canvas_min_line"
             android:key="setting_comment_canvas_min_line_value"
             android:title="@string/setting_comment_canvas_min_line_value_title" />
 
-        <!-- 10行確保 -->
-        <SwitchPreference
-            android:defaultValue="false"
-            android:icon="@drawable/ic_comment_on"
-            android:key="setting_comment_canvas_omakase"
-            android:summary="FPSの設定以外は自動で設定します。"
-            android:title="コメント表示設定をおまかせする" />
-
+<!--
         <EditTextPreference
             android:defaultValue="16"
             android:icon="@drawable/ic_outline_query_builder_24px"
             android:key="setting_comment_canvas_timer"
             android:summary="@string/setting_comment_canvas_timer_description"
             android:title="@string/setting_comment_canvas_timer_title" />
+-->
 
-        <SwitchPreference
-            android:defaultValue="true"
-            android:icon="@drawable/ic_sports_esports_24px"
-            android:key="setting_comment_canvas_speed_fps_enable"
-            android:summary="@string/setting_comment_canvas_fps_enable_description"
-            android:title="@string/setting_comment_canvas_fps_enable_title" />
 
+<!--
         <EditTextPreference
             android:defaultValue="60"
             android:dependency="setting_comment_canvas_speed_fps_enable"
@@ -387,6 +377,29 @@
             android:key="setting_comment_canvas_speed_fps"
             android:summary="@string/setting_comment_canvas_fps_description"
             android:title="@string/setting_comment_canvas_fps_title" />
+-->
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_sports_esports_24px"
+            android:key="setting_comment_canvas_edit_fps_enable"
+            android:summary="OFFにすると端末のリフレッシュレートをそのまま使います"
+            android:title="FPS（一秒間に何回画面を更新するか）を手動で設定する" />
+
+        <EditTextPreference
+            android:defaultValue="60"
+            android:dependency="setting_comment_canvas_edit_fps_enable"
+            android:icon="@drawable/ic_outline_query_builder_24px"
+            android:key="setting_comment_canvas_edit_fps"
+            android:summary=""
+            android:title="FPSの編集" />
+
+        <EditTextPreference
+            android:defaultValue="5"
+            android:icon="@drawable/ic_outline_query_builder_24px"
+            android:key="setting_comment_canvas_show_time"
+            android:summary="デフォルトで5秒です"
+            android:title="コメント表示時間" />
 
         <EditTextPreference
             android:defaultValue="1.0"
@@ -395,12 +408,14 @@
             android:summary="@string/setting_comment_canvas_alpha_descripton"
             android:title="@string/setting_comment_canvas_alpha_title" />
 
+<!--
         <EditTextPreference
             android:defaultValue="5"
             android:icon="@drawable/ic_speed_24px"
             android:key="setting_comment_speed"
             android:summary="@string/setting_comment_speed_description"
             android:title="@string/setting_comment_speed_title" />
+-->
 
     </PreferenceCategory>
 

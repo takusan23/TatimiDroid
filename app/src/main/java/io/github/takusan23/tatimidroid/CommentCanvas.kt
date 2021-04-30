@@ -2,8 +2,10 @@ package io.github.takusan23.tatimidroid
 
 import android.content.Context
 import android.graphics.*
+import android.os.Build
 import android.util.AttributeSet
 import android.view.View
+import android.view.WindowManager
 import androidx.preference.PreferenceManager
 import java.util.*
 import java.util.regex.Pattern
@@ -15,7 +17,7 @@ import kotlin.random.Random
  * コメントを流すView。
  * バージョン３
  * */
-class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
+class CommentCanvas(ctx: Context?, attrs: AttributeSet?) : View(ctx, attrs) {
 
 /*
     //白色テキストPaint
@@ -33,14 +35,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     //色とか
     val commandList = arrayListOf<String>()
 
-    // コメントの色を部屋の色にする設定が有効ならtrue
-    var isCommentColorRoom = false
-
     //いまコメントが流れてる座標を保存する
     val commentFlowingXList = arrayListOf<Int>()
     val commentFlowingYList = arrayListOf<Int>()
-
-    var fontsize = 40F
 
     //コメントのレールの配列を入れるための配列
     val commentPositionList = arrayListOf<ArrayList<Long>>()
@@ -73,6 +70,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
     var commentLines = arrayListOf<Long>()
 
+    private val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+
     /** 定期実行 */
     private val timer = Timer()
 
@@ -94,49 +93,72 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     /** コメントを流さないときはtrue */
     var isPause = false
 
-
     // 透明度の設定（重そう小並感）
-    var commentAlpha = 1.0F
+    val commentAlpha by lazy { prefSetting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F }
 
     /** デバッグ用。当たり判定を可視化？ */
-    var isShowDrawTextRect = false
+    val isShowDrawTextRect by lazy { prefSetting.getBoolean("dev_setting_comment_canvas_text_rect", false) }
 
-    /** てｓｔ */
-    lateinit var typeface: Typeface
+    /** コメント表示時間 */
+    private val commentDrawTime by lazy { prefSetting.getString("setting_comment_canvas_show_time", "5")?.toInt() ?: 5 }
+
+    /** 1秒で何回画面を更新するか。多分60FPSがデフォ */
+    private val fps by lazy {
+        // FPSを手動で変更するのかどうか
+        val isEditFPS = prefSetting.getBoolean("setting_comment_canvas_edit_fps_enable", false)
+        if (isEditFPS) {
+            // ユーザー定義
+            prefSetting.getString("setting_comment_canvas_edit_fps", "60")?.toFloat() ?: 60f
+        } else {
+            // 端末のリフレッシュレートを取得
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                context.display?.refreshRate!!
+            } else {
+                (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.refreshRate
+            }
+        }
+    }
+
+    /** 何ミリ秒で画面を更新するか */
+    private val commentUpdateMs by lazy { (1000 / fps).toLong() }
+
+    /** 黒枠 */
+    private val blackPaint = Paint().apply {
+        isAntiAlias = true
+        strokeWidth = 2.0f
+        style = Paint.Style.STROKE
+        textSize = 20 * resources.displayMetrics.scaledDensity
+        color = Color.parseColor("#000000")
+    }
+
+    /** 白色 */
+    private val paint = Paint().apply {
+        isAntiAlias = true
+        textSize = 20 * resources.displayMetrics.scaledDensity
+        style = Paint.Style.FILL
+        color = Color.WHITE
+        // テキストに影をつける
+        setShadowLayer(textShadow, textShadow, textShadow, Color.BLACK)
+    }
+
+    /** フォント変更 */
+    var typeFace: Typeface? = null
+        set(value) {
+            paint.typeface = value
+            blackPaint.typeface = value
+            field = value
+        }
+
 
     /** アスキーアート（コメントアート・職人）のために使う。最後に追加しあ高さが入る */
     private var oldHeight = 0
 
-    private val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-
-    /** コメントに影を付ける設定が有効ならtrue */
-    private val textShadow = prefSetting.getString("setting_comment_canvas_text_shadow", "1.0")?.toFloatOrNull() ?: 1f
+    /** コメントに影を付ける量 */
+    private val textShadow by lazy { prefSetting.getString("setting_comment_canvas_text_shadow", "1.0")?.toFloat() ?: 1f }
 
     init {
-        //文字サイズ計算。端末によって変わるので
-        fontsize = 20 * resources.displayMetrics.scaledDensity
-        // コメントの更新頻度をfpsで設定するかどうか
-        val enableCommentSpeedFPS = prefSetting.getBoolean("setting_comment_canvas_speed_fps_enable", true)
-        // コメントの流れる速度
-        val speed = prefSetting.getString("setting_comment_speed", "5")?.toInt() ?: 5
-        // コメントキャンバスの更新頻度
-        val update = if (enableCommentSpeedFPS) {
-            // fpsで設定
-            val fps = prefSetting.getString("setting_comment_canvas_speed_fps", "60")?.toIntOrNull() ?: 60
-            // 1000で割る （例：1000/60=16....）
-            (1000 / fps)
-        } else {
-            // ミリ秒で指定
-            prefSetting.getString("setting_comment_canvas_timer", "16")?.toIntOrNull() ?: 16
-        }.toLong()
-        // コメントの透明度
-        commentAlpha = prefSetting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F
-        // コメントの色を部屋の色にする設定が有効ならtrue
-        isCommentColorRoom = prefSetting.getBoolean("setting_command_room_color", false)
-        // 開発者用項目
-        isShowDrawTextRect = prefSetting.getBoolean("dev_setting_comment_canvas_text_rect", false) ?: false
         // 定期実行
-        timer.schedule(update, update) {
+        timer.schedule(commentUpdateMs, commentUpdateMs) {
 
             // コメント移動止めるやつ
             if (isPause) {
@@ -145,15 +167,15 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
             // コメントを移動させる
             commentObjList.toList().forEach { obj ->
-                if (obj.asciiArt) {
-                    // AAの場合は速度を固定する
-                    obj.xPos -= speed
-                    obj.rect?.left = obj.rect?.left?.minus(speed)
-                    obj.rect?.right = obj.rect?.right?.minus(speed)
-                } else {
-                    obj.xPos -= speed + (obj.comment.length / 8)
-                    obj.rect?.left = obj.rect?.left?.minus(speed + (obj.comment.length / 8))
-                    obj.rect?.right = obj.rect?.right?.minus(speed + (obj.comment.length / 8))
+                // コメントの幅
+                val measure = obj.measure.toInt()
+                // 動かす範囲。画面外含めて
+                val widthMinusCommentMeasure = width + measure + measure
+                // FPSと表示時間を掛けて、コメントの幅で割ればおｋ
+                val moveSize = (widthMinusCommentMeasure / (commentDrawTime * fps)).toInt()
+                obj.rect?.apply {
+                    left -= moveSize
+                    right -= moveSize
                 }
             }
 
@@ -198,17 +220,20 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         super.onDraw(canvas)
         // コメントを描画する。
         commentObjList.toList().forEach { obj ->
-            if (obj == null) return
-            if ((obj.rect?.right ?: 0) > 0) {
-                when {
-                    obj.command.contains("big") -> {
-                        drawComment(canvas, obj, obj.fontSize)
-                    }
-                    obj.command.contains("small") -> {
-                        drawComment(canvas, obj, obj.fontSize)
-                    }
-                    else -> {
-                        drawComment(canvas, obj, obj.fontSize)
+            if (obj != null) {
+                obj.rect?.apply {
+                    if (right > 0) {
+                        when {
+                            obj.command.contains("big") -> {
+                                drawComment(canvas, obj, obj.fontSize)
+                            }
+                            obj.command.contains("small") -> {
+                                drawComment(canvas, obj, obj.fontSize)
+                            }
+                            else -> {
+                                drawComment(canvas, obj, obj.fontSize)
+                            }
+                        }
                     }
                 }
             }
@@ -216,15 +241,19 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         // 上付きコメントを描画する
         ueCommentList.toList().forEach {
             if (it == null) return // なんかnullの時がある？
+            // Paintへ色をセット
+            setCommandPaint(getColor(it.command), it.fontSize)
             drawComment(canvas, it, it.fontSize)
         }
         // 下付きコメントを描画する
         sitaCommentList.toList().reversed().forEach {
             if (it == null) return // なんかnullの時がある？
+            // Paintへ色をセット
+            setCommandPaint(getColor(it.command), it.fontSize)
             // 上付きコメントを反転させるなどして下付きコメントを実現してるのでちょっとややこしい（なんか当たり判定がうまく行かなくて上付きを使いまわしている）。
             // あと10引いてるのはなんか埋まるから。
-            canvas?.drawText(it.comment, it.xPos, (height - 10) - it.yPos, getBlackCommentTextPaint(it.fontSize))
-            canvas?.drawText(it.comment, it.xPos, (height - 10) - it.yPos, getCommentTextPaint(it.command, it.fontSize))
+            canvas?.drawText(it.comment, it.xPos, (height - 10) - it.yPos, blackPaint)
+            canvas?.drawText(it.comment, it.xPos, (height - 10) - it.yPos, paint)
         }
     }
 
@@ -235,13 +264,15 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
      * @param commentObject CommentObject。コメント描画に使う
      * @param fontSize 文字サイズ。big/smallのときはこの関数では扱わないので呼ぶ前に引数に入れてね。
      * */
-    private fun drawComment(canvas: Canvas?, obj: CommentObject?, fontSize: Float = obj?.fontSize ?: fontsize) {
+    private fun drawComment(canvas: Canvas?, obj: CommentObject?, fontSize: Float) {
         // まあnullになることはない。けど一応
         if (obj?.command != null && obj?.comment != null) {
+            // Paintへ色をセット
+            setCommandPaint(getColor(obj.command), obj.fontSize)
             // わく
-            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getBlackCommentTextPaint(fontSize))
+            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, blackPaint)
             // もじ
-            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, getCommentTextPaint(obj.command, fontSize))
+            canvas?.drawText(obj.comment, obj.xPos, obj.yPos, paint)
             // 私が検証で使う。基本使わん
             if (isShowDrawTextRect || obj.yourpost) {
                 val checkRect = Rect(obj.xPos.toInt() - 5, (obj.yPos - obj.fontSize).toInt() + 5, (obj.xPos + obj.commentMeasure).toInt() + 5, (obj.yPos).toInt() + 10)
@@ -258,12 +289,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
 
     /** 色の変更 */
-    fun getCommentTextPaint(command: String, fontSize: Float = this.fontsize): Paint {
+    private fun getCommentTextPaint(command: String, fontSize: Float): Paint {
         //白色テキスト
-        return Paint().apply {
-            if (this@CommentCanvas::typeface.isInitialized) {
-                typeface = this@CommentCanvas.typeface
-            }
+        return paint.apply {
             isAntiAlias = true
             textSize = fontSize
             style = Paint.Style.FILL
@@ -275,12 +303,9 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
     }
 
     /** 枠取り文字のPaint */
-    fun getBlackCommentTextPaint(fontSize: Float = this.fontsize): Paint {
+    private fun getBlackCommentTextPaint(fontSize: Float): Paint {
         //黒色テキスト
-        val blackPaint = Paint().apply {
-            if (this@CommentCanvas::typeface.isInitialized) {
-                typeface = this@CommentCanvas.typeface
-            }
+        return blackPaint.apply {
             isAntiAlias = true
             strokeWidth = 2.0f
             style = Paint.Style.STROKE
@@ -288,12 +313,24 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
             color = Color.parseColor("#000000")
             alpha = (commentAlpha * 225).toInt() // 0 ~ 225 の範囲で指定するため 225かける
         }
-        return blackPaint
+    }
+
+    /**
+     * コマンドの色にをPaintへセットする
+     * @param colorCode カラーコード。16進数
+     * */
+    private fun setCommandPaint(colorCode: String, fontSize: Float) {
+        paint.textSize = fontSize
+        blackPaint.textSize = fontSize
+        paint.color = Color.parseColor(colorCode)
+        // 0 ~ 225 の範囲で指定するため 225かける。日経225
+        paint.alpha = (commentAlpha * 225).toInt()
+        blackPaint.alpha = (commentAlpha * 225).toInt()
     }
 
     // 色
     // 大百科参照：https://dic.nicovideo.jp/a/%E3%82%B3%E3%83%A1%E3%83%B3%E3%83%88
-    fun getColor(command: String): String {
+    private fun getColor(command: String): String {
         val colorCodeRegex = Pattern.compile("^#(?:[0-9a-fA-F]{3}){1,2}\$")
         return when {
             // プレ垢限定色。
@@ -403,7 +440,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         // 現在最大何行書けるか
         val currentCommentLine = finalHeight / defaultFontSize
 
-        fontsize = when {
+        var fontsize = when {
             // ポップアップ再生 / 10行コメント確保ーモード時
             isPopupView || isTenLineSetting -> {
                 (finalHeight / 10).toFloat()
@@ -482,16 +519,17 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     addRect.bottom = (addRect.top + commandFontSize).toInt()
                 }
                 val commentObj = CommentObject(
-                    comment,
-                    addRect.left.toFloat(),
-                    addRect.bottom.toFloat(),
-                    System.currentTimeMillis(),
-                    measure,
-                    command,
-                    asciiArt,
-                    addRect,
-                    commandFontSize,
-                    commentJSONParse.yourPost
+                    comment = comment,
+                    xPos = addRect.left.toFloat(),
+                    yPos = addRect.bottom.toFloat(),
+                    unixTime = System.currentTimeMillis(),
+                    commentMeasure = measure,
+                    command = command,
+                    asciiArt = asciiArt,
+                    rect = addRect,
+                    fontSize = commandFontSize,
+                    yourpost = commentJSONParse.yourPost,
+                    measure = measure,
                 )
                 ueCommentList.add(commentObj)
             }
@@ -530,19 +568,19 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                     val range = (height / commandFontSize)
                     addRect.top = (Random.nextInt(1, range.toInt()) * commandFontSize).toInt()
                     addRect.bottom = (addRect.top + commandFontSize).toInt()
-                    // println("$comment ${addRect.top} $range")
                 }
                 val commentObj = CommentObject(
-                    comment,
-                    addRect.left.toFloat(),
-                    addRect.top.toFloat(),
-                    System.currentTimeMillis(),
-                    measure,
-                    command,
-                    asciiArt,
-                    addRect,
-                    commandFontSize,
-                    commentJSONParse.yourPost
+                    comment = comment,
+                    xPos = addRect.left.toFloat(),
+                    yPos = addRect.top.toFloat(),
+                    unixTime = System.currentTimeMillis(),
+                    commentMeasure = measure,
+                    command = command,
+                    asciiArt = asciiArt,
+                    rect = addRect,
+                    fontSize = commandFontSize,
+                    yourpost = commentJSONParse.yourPost,
+                    measure = measure,
                 )
                 sitaCommentList.add(commentObj)
             }
@@ -591,16 +629,17 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
                 }
 
                 val commentObj = CommentObject(
-                    comment,
-                    addRect.left.toFloat(),
-                    addRect.bottom.toFloat(),
-                    System.currentTimeMillis(),
-                    measure,
-                    command,
-                    asciiArt,
-                    addRect,
-                    commandFontSize,
-                    commentJSONParse.yourPost
+                    comment = comment,
+                    xPos = addRect.left.toFloat(),
+                    yPos = addRect.bottom.toFloat(),
+                    unixTime = System.currentTimeMillis(),
+                    commentMeasure = measure,
+                    command = command,
+                    asciiArt = asciiArt,
+                    rect = addRect,
+                    fontSize = commandFontSize,
+                    yourpost = commentJSONParse.yourPost,
+                    measure = measure,
                 )
                 commentObjList.add(commentObj)
             }
@@ -799,20 +838,7 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
 
 
     fun returnNumberList(pos: Int): Int {
-        var size = (fontsize).toInt()
-        when (pos) {
-            1 -> size = (fontsize).toInt()
-            2 -> size = (fontsize * 2).toInt()
-            3 -> size = (fontsize * 3).toInt()
-            4 -> size = (fontsize * 4).toInt()
-            5 -> size = (fontsize * 5).toInt()
-            6 -> size = (fontsize * 6).toInt()
-            7 -> size = (fontsize * 7).toInt()
-            8 -> size = (fontsize * 8).toInt()
-            9 -> size = (fontsize * 9).toInt()
-            10 -> size = (fontsize * 10).toInt()
-        }
-        return size
+        return 0
     }
 
     /**
@@ -828,7 +854,8 @@ class CommentCanvas(context: Context?, attrs: AttributeSet?) : View(context, att
         var asciiArt: Boolean = false,
         var rect: Rect? = null,
         var fontSize: Float,
-        var yourpost: Boolean
+        var yourpost: Boolean,
+        val measure: Float,
     )
 
 }

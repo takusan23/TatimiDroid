@@ -620,7 +620,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         val font = CustomFont(requireContext())
         if (font.isApplyFontFileToCommentCanvas) {
             // フォント設定
-            nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.typeface = font.typeface
+            nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.typeFace = font.typeface
         }
     }
 
