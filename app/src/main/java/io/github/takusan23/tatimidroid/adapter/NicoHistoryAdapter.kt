@@ -19,7 +19,7 @@ import java.util.*
  * */
 class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistoryDBEntity>) : RecyclerView.Adapter<NicoHistoryAdapter.ViewHolder>() {
 
-    private var editText: EditText? = null
+    var editText: EditText? = null
     lateinit var bottomSheetDialogFragment: BottomSheetDialogFragment
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

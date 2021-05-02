@@ -416,7 +416,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 // そして現在かけるべきマージンを計算
                 val currentTopMargin = maxTopMargin * progress
                 topMargin = currentTopMargin.roundToInt()
-
             }
         }
     }
@@ -631,7 +630,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     fun isDefaultScreen() = progress == 0.0f
 
     /** [isDefaultScreen]の代替関数 */
-    fun alternativeIsDefaultScreen() = playerView!!.width == defaultPlayerWidth
+    fun alternativeIsDefaultScreen() = playerView?.width == defaultPlayerWidth
 
     /**
      * ミニプレイヤーのときはtrueを返す
@@ -647,7 +646,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     fun isMiniPlayerCheckSoft() = progress > 0.5f
 
     /** [isMiniPlayerCheckHard]の代替関数 */
-    fun alternativeIsMiniPlayer() = playerView!!.width == miniPlayerWidth
+    fun alternativeIsMiniPlayer() = playerView?.width == miniPlayerWidth
 
 
     /**

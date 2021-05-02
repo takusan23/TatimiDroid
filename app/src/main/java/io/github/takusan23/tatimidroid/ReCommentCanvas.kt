@@ -222,39 +222,42 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     fun initCommentList(commentList: List<CommentJSONParse>, videoDurationMs: Long) {
         if (videoDurationMs < 0 || commentList.isEmpty()) return
         clearCommentList()
-        thread {
-            // 動画の3秒前のvposを出す
-            val endVpos = (videoDurationMs - 3000) / 10 // 100vpos = 1sec
+        // View#getWidth()が0返すのでpost
+        post {
+            thread {
+                // 動画の3秒前のvposを出す
+                val endVpos = (videoDurationMs - 3000) / 10 // 100vpos = 1sec
 
-            /**
-             * コメントのvposをずらす
-             * 10秒に表示するコメントを、10秒に画面外に追加してたら手遅れなのでずらす
-             *
-             * あとディープコピーしないと共有されるので
-             * */
-            val deepCopyList = commentList.map { commentJSONParse -> commentJSONParse.deepCopy(commentJSONParse) }
-            deepCopyList.forEach { commentJSON ->
-                // 固定コメントは特に何もしない
-                if (!checkUeComment(commentJSON.mail) && !commentJSON.mail.contains("shita")) {
-                    // 大きさ計測
-                    val fontSize = getCommandFontSize(commentJSON.mail).toInt()
-                    // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
-                    val measure = min(getBlackCommentTextPaint(fontSize).measureText(commentJSON.comment).toInt(), finalWidth)
-                    // 動かす範囲。画面外含めて
-                    val widthMinusCommentMeasure = finalWidth + measure + measure
-                    // FPSと表示時間を掛けて、コメントの幅で割ればおｋ
-                    val moveSize = (widthMinusCommentMeasure / (commentDrawTime * fps)).toInt()
-                    // 引いておく
-                    val minusVPos = ((measure / moveSize) * commentUpdateMs) / 10L
-                    // 0以上で。
-                    commentJSON.vpos = max((commentJSON.vpos.toInt() - minusVPos.toInt()), 0).toString()
-                    // 動画終了3秒前のコメントはすべてまとめる
-                    if (commentJSON.vpos.toLong() > endVpos) {
-                        commentJSON.vpos = endVpos.toString()
+                /**
+                 * コメントのvposをずらす
+                 * 10秒に表示するコメントを、10秒に画面外に追加してたら手遅れなのでずらす
+                 *
+                 * あとディープコピーしないと共有されるので
+                 * */
+                val deepCopyList = commentList.map { commentJSONParse -> commentJSONParse.deepCopy(commentJSONParse) }
+                deepCopyList.forEach { commentJSON ->
+                    // 固定コメントは特に何もしない
+                    if (!checkUeComment(commentJSON.mail) && !commentJSON.mail.contains("shita")) {
+                        // 大きさ計測
+                        val fontSize = getCommandFontSize(commentJSON.mail).toInt()
+                        // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
+                        val measure = min(getBlackCommentTextPaint(fontSize).measureText(commentJSON.comment).toInt(), finalWidth)
+                        // 動かす範囲。画面外含めて
+                        val widthMinusCommentMeasure = finalWidth + measure + measure
+                        // FPSと表示時間を掛けて、コメントの幅で割ればおｋ
+                        val moveSize = (widthMinusCommentMeasure / (commentDrawTime * fps)).toInt()
+                        // 引いておく
+                        val minusVPos = ((measure / moveSize) * commentUpdateMs) / 10L
+                        // 0以上で。
+                        commentJSON.vpos = max((commentJSON.vpos.toInt() - minusVPos.toInt()), 0).toString()
+                        // 動画終了3秒前のコメントはすべてまとめる
+                        if (commentJSON.vpos.toLong() > endVpos) {
+                            commentJSON.vpos = endVpos.toString()
+                        }
                     }
                 }
+                rawCommentList = deepCopyList as ArrayList<CommentJSONParse>
             }
-            rawCommentList = deepCopyList as ArrayList<CommentJSONParse>
         }
     }
 
