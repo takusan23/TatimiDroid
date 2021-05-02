@@ -135,6 +135,9 @@ class MainActivity : AppCompatActivity() {
         // 履歴ボタン・接続ボタン等初期化
         initButton()
 
+        // クラッシュレポート保存など
+        initCrashReportGenerator()
+
         // 画面切り替え
         viewBinding.mainActivityBottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -198,6 +201,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    /** クラッシュレポートを回収する */
+    private fun initCrashReportGenerator() {
+        if (CrashReportGenerator.isEnableSaveCrashReport(this)) {
+            CrashReportGenerator.initCrashReportGenerator(this)
+        }
     }
 
     /** ブラウザから起動 */

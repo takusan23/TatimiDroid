@@ -112,7 +112,8 @@ class CommentCanvas(ctx: Context?, attrs: AttributeSet?) : View(ctx, attrs) {
         } else {
             // 端末のリフレッシュレートを取得
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                context.display?.refreshRate!!
+                // Context#getDisplay()を使うとポップアップ時に４ぬ
+                display?.refreshRate ?: 60f // 取れない場合は60
             } else {
                 (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.refreshRate
             }
