@@ -4,6 +4,7 @@ import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
@@ -100,7 +101,7 @@ class NicoVideoUpload {
         var currentPage = 1
         // 返す配列
         val resultVideoList = arrayListOf<NicoVideoData>()
-        while (true) {
+        while (isActive) {
             val response = getUploadVideo(userId = userId, userSession = userSession, page = currentPage)
             if (response.isSuccessful) {
                 // 成功？

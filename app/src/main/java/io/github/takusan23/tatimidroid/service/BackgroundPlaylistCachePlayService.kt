@@ -24,10 +24,10 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
 import io.github.takusan23.tatimidroid.nicoapi.cache.CacheJSON
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoHTML
-import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
-import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.*
 import org.json.JSONObject
 
@@ -344,7 +344,6 @@ class BackgroundPlaylistCachePlayService : MediaBrowserServiceCompat() {
     /**
      * 動画IDからメタデータを生成する関数。
      * @param videoId 動画ID
-     * @param duration 動画の長さ。ミリ秒
      * @return メタデータ。
      * */
     private fun createMetaData(videoId: String): MediaMetadataCompat {

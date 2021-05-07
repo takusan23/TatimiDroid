@@ -959,6 +959,7 @@ class NicoVideoPlayService : Service() {
             windowManager.removeView(viewBinding!!.root)
         }
         seekTimer.cancel()
+        nicoVideoHTML.destroy()
     }
 
     /**

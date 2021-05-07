@@ -434,7 +434,7 @@ class NicoVideoFragment : Fragment(), MainActivityPlayerFragmentInterface {
         var tempTime = 0L
         // コルーチンでらくらく定期実行
         lifecycleScope.launch {
-            while (true) {
+            while (isActive) {
                 delay(100)
 
                 // 再生時間をコメント描画Canvasへ入れ続ける
