@@ -71,7 +71,7 @@ class NicoVideoSelectFragment : Fragment() {
                 R.id.nicovideo_select_menu_ranking -> setFragment(NicoVideoRankingFragment())
                 R.id.nicovideo_select_menu_mylist -> setFragment(NicoVideoMyListFragment())
                 R.id.nicovideo_select_menu_history -> setFragment(NicoVideoHistoryFragment())
-                R.id.nicovideo_select_menu_search -> setFragment(NicoVideoSearchFragment())
+                R.id.nicovideo_select_menu_search -> setFragment(NicoVideoSearchFragment_())
                 R.id.nicovideo_select_menu_nicorepo -> setFragment(NicoVideoNicoRepoFragment())
                 R.id.nicovideo_select_menu_account -> setFragment(NicoAccountFragment())
                 R.id.nicovideo_select_menu_post -> {

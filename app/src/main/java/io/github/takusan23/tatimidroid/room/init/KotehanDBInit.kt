@@ -9,9 +9,6 @@ import io.github.takusan23.tatimidroid.room.database.KotehanDB
  * */
 object KotehanDBInit {
 
-    /** [KotehanDB]のデータベースの名前 */
-    const val KOTEHAN_DB_NAME = "KotehanDB"
-
     private lateinit var kotehanDB: KotehanDB
 
     /**
