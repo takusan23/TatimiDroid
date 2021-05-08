@@ -12,13 +12,13 @@ import androidx.activity.addCallback
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.nicovideo.fragment.*
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoListBinding
+import io.github.takusan23.tatimidroid.nicovideo.fragment.*
 import io.github.takusan23.tatimidroid.tool.DarkModeSupport
 import io.github.takusan23.tatimidroid.tool.getThemeColor
 import io.github.takusan23.tatimidroid.tool.isConnectionInternet
 import io.github.takusan23.tatimidroid.tool.isNotLoginMode
-import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoListBinding
 
 /**
  * ランキング、マイリスト等を表示するFragmentを乗せるFragment。
@@ -71,7 +71,7 @@ class NicoVideoSelectFragment : Fragment() {
                 R.id.nicovideo_select_menu_ranking -> setFragment(NicoVideoRankingFragment())
                 R.id.nicovideo_select_menu_mylist -> setFragment(NicoVideoMyListFragment())
                 R.id.nicovideo_select_menu_history -> setFragment(NicoVideoHistoryFragment())
-                R.id.nicovideo_select_menu_search -> setFragment(NicoVideoSearchFragment_())
+                R.id.nicovideo_select_menu_search -> setFragment(NicoVideoSearchFragment())
                 R.id.nicovideo_select_menu_nicorepo -> setFragment(NicoVideoNicoRepoFragment())
                 R.id.nicovideo_select_menu_account -> setFragment(NicoAccountFragment())
                 R.id.nicovideo_select_menu_post -> {

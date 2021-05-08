@@ -24,7 +24,7 @@
                 android:hint="@string/serch"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
-                app:layout_constraintEnd_toStartOf="@+id/fragment_nicovideo_search_image_view"
+                app:layout_constraintEnd_toStartOf="@+id/fragment_nicovideo_search_history_image_view"
                 app:layout_constraintStart_toEndOf="@+id/fragment_nicovideo_ng_uploader_image_view"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -49,6 +49,18 @@
                 android:src="@drawable/ng_uploader_icon"
                 app:layout_constraintBottom_toTopOf="@+id/horizontalScrollView"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_search_image_view" />
+
+            <ImageView
+                android:id="@+id/fragment_nicovideo_search_history_image_view"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:padding="10dp"
+                android:src="@drawable/ic_history_24px"
+                app:layout_constraintBottom_toTopOf="@+id/horizontalScrollView"
+                app:layout_constraintEnd_toStartOf="@+id/fragment_nicovideo_search_image_view"
                 app:layout_constraintTop_toTopOf="@+id/fragment_nicovideo_search_image_view" />
 
             <HorizontalScrollView

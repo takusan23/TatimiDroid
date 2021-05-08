@@ -7,16 +7,12 @@ import androidx.lifecycle.viewModelScope
 import io.github.takusan23.tatimidroid.room.entity.SearchHistoryDBEntity
 import io.github.takusan23.tatimidroid.room.init.SearchHistoryDBInit
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
- * ニコ動の検索Fragmentで使うViewModel
- *
- * 検索履歴など
+ * 検索履歴を表示するBottomFragmentのViewModel
  * */
-class NicoVideoSearchViewModel_(application: Application) : AndroidViewModel(application) {
+class NicoVideoSearchHistoryViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Context */
     private val context = application.applicationContext
@@ -35,16 +31,9 @@ class NicoVideoSearchViewModel_(application: Application) : AndroidViewModel(app
 
     init {
         // データベースの中身をLiveDataで送信
-        // Flowでデータベース変更通知を受け取るように
-        viewModelScope.launch (Dispatchers.IO){
-            searchHistoryDAO.realtimeGetAll().collect{
-                searchHistoryAllListLiveData.postValue(it)
-            }
-        }
-        viewModelScope.launch(Dispatchers.IO){
-            searchHistoryDAO.realtimeGetPinnedSearchHistory().collect {
-                searchHistoryPinnedListLiveData.postValue(it)
-            }
+        viewModelScope.launch(Dispatchers.IO) {
+            searchHistoryPinnedListLiveData.postValue(searchHistoryDAO.getPinnedSearchHistory().reversed())
+            searchHistoryAllListLiveData.postValue(searchHistoryDAO.getAll().reversed())
         }
     }
 
