@@ -48,7 +48,13 @@ android {
     // Compose関係
     composeOptions {
         kotlinCompilerVersion kotlin_version // 1.4.32 が入ると思う。プロジェクトのbuild.gradleを開いてみて
-        kotlinCompilerExtensionVersion compose_version // 1.0.0-beta04 が入ると思う。プロジェクトのbuild.gradleを開いてみて
+        kotlinCompilerExtensionVersion compose_version // 1.0.0-beta06 が入ると思う。プロジェクトのbuild.gradleを開いてみて
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
     }
 
 }

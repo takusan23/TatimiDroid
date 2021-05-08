@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.room.dao
 
 import androidx.room.*
 import io.github.takusan23.tatimidroid.room.entity.SearchHistoryDBEntity
-import kotlinx.coroutines.flow.Flow
 
 /**
  * 検索DBへアクセスするときに使う関数など
@@ -34,12 +33,11 @@ interface SearchHistoryDAO {
     @Query("SELECT * FROM search_history WHERE pin = 1")
     fun getPinnedSearchHistory(): List<SearchHistoryDBEntity>
 
-    /** リアルタイムでピン止めしてあるデータを取得する */
-    @Query("SELECT * FROM search_history WHERE pin = 1")
-    fun realtimeGetPinnedSearchHistory(): Flow<List<SearchHistoryDBEntity>>
-
-    /** リアルタイムで全データ取得 */
-    @Query("SELECT * FROM search_history")
-    fun realtimeGetAll(): Flow<List<SearchHistoryDBEntity>>
+    /**
+     * 指定した検索ワードのデータベースの中身を返す
+     * @param searchText 検索ワード
+     * */
+    @Query("SELECT * FROM search_history WHERE text = :searchText")
+    fun getHistoryEntity(searchText: String): SearchHistoryDBEntity?
 
 }

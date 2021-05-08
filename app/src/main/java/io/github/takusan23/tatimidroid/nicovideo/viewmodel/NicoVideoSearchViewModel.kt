@@ -177,16 +177,28 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
      * */
     private fun insertSearchHistoryDB(searchText: String, isTagSearch: Boolean, sortName: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val insertData = SearchHistoryDBEntity(
-                pin = false,
-                addTime = System.currentTimeMillis(),
-                description = "",
-                service = "video",
-                sort = sortName,
-                text = searchText,
-                isTagSearch = isTagSearch,
-            )
-            searchHistoryDAO.insert(insertData)
+            // すでにあれば上書き。なければ追加
+            val alreadyHistory = searchHistoryDAO.getHistoryEntity(searchText)
+            if (alreadyHistory != null) {
+                val updateEntity = alreadyHistory.copy(
+                    sort = sortName,
+                    text = searchText,
+                    isTagSearch = isTagSearch,
+                    addTime = System.currentTimeMillis(),
+                )
+                searchHistoryDAO.update(updateEntity)
+            } else {
+                val insertHistory = SearchHistoryDBEntity(
+                    pin = false,
+                    addTime = System.currentTimeMillis(),
+                    description = "",
+                    service = "video",
+                    sort = sortName,
+                    text = searchText,
+                    isTagSearch = isTagSearch,
+                )
+                searchHistoryDAO.insert(insertHistory)
+            }
         }
     }
 

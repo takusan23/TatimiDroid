@@ -32,8 +32,9 @@ class NicoVideoSearchHistoryViewModel(application: Application) : AndroidViewMod
     init {
         // データベースの中身をLiveDataで送信
         viewModelScope.launch(Dispatchers.IO) {
-            searchHistoryPinnedListLiveData.postValue(searchHistoryDAO.getPinnedSearchHistory().reversed())
-            searchHistoryAllListLiveData.postValue(searchHistoryDAO.getAll().reversed())
+            // 日付の新しい順に並び替え
+            searchHistoryPinnedListLiveData.postValue(searchHistoryDAO.getPinnedSearchHistory().sortedByDescending { searchHistoryDBEntity -> searchHistoryDBEntity.addTime })
+            searchHistoryAllListLiveData.postValue(searchHistoryDAO.getAll().sortedByDescending { searchHistoryDBEntity -> searchHistoryDBEntity.addTime })
         }
     }
 
@@ -50,14 +51,10 @@ class NicoVideoSearchHistoryViewModel(application: Application) : AndroidViewMod
         }
     }
 
-    /**
-     * 検索履歴を削除する
-     *
-     * @param searchHistoryDBEntity 削除対象
-     * */
-    fun deleteSearchResult(searchHistoryDBEntity: SearchHistoryDBEntity) {
+    /** 検索履歴をすべて飛ばす */
+    fun deleteAll(){
         viewModelScope.launch(Dispatchers.IO) {
-            searchHistoryDAO.delete(searchHistoryDBEntity)
+            searchHistoryDAO.deleteAll()
         }
     }
 

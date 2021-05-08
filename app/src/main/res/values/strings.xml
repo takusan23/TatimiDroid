@@ -488,4 +488,5 @@ Sorry to trouble you, but please update the video information.\n
     <string name="local_history_video_count">Video views</string>
     <string name="local_history_live_count">Live broadcast views</string>
     <string name="local_history_show_count">Number of displays</string>
+    <string name="search_history">Search history</string>
 </resources>
