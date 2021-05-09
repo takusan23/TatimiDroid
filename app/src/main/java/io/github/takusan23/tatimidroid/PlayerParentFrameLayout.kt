@@ -640,7 +640,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     fun isDefaultScreen() = progress == 0.0f
 
     /** [isDefaultScreen]の代替関数 */
-    fun alternativeIsDefaultScreen() = playerView?.width == defaultPlayerWidth
+    fun alternativeIsDefaultScreen() = playerView?.width == if (!isFullScreenMode) defaultPlayerWidth else parentViewGroupWidth
 
     /**
      * ミニプレイヤーのときはtrueを返す
@@ -657,7 +657,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
 
     /** [isMiniPlayerCheckHard]の代替関数 */
     fun alternativeIsMiniPlayer() = playerView?.width == miniPlayerWidth
-
 
     /**
      * 画面が横向きかどうかを返す

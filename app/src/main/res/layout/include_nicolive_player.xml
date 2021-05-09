@@ -24,159 +24,14 @@
         app:layout_constraintStart_toStartOf="@id/include_nicolive_player_surface_view"
         app:layout_constraintTop_toTopOf="@id/include_nicolive_player_surface_view" />
 
-    <View
-        android:id="@+id/include_nicolive_player_black_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="#80000000"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/include_nicolive_player_close_image_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        app:layout_constraintStart_toStartOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_black_view"
-        app:srcCompat="@drawable/ic_expand_more_24px"
-        app:tint="#fff" />
-
-    <TextView
-        android:id="@+id/include_nicolive_player_title_text_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:ellipsize="marquee"
-        android:marqueeRepeatLimit="marquee_forever"
-        android:singleLine="true"
-        android:textColor="#fff"
-        app:layout_constraintEnd_toEndOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintStart_toEndOf="@+id/include_nicolive_player_close_image_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_black_view"
-        tools:text="生放送タイトル" />
-
-    <TextView
-        android:id="@+id/include_nicolive_player_video_id_text_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:singleLine="true"
-        android:textColor="#fff"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="@+id/include_nicolive_player_title_text_view"
-        app:layout_constraintStart_toStartOf="@+id/include_nicolive_player_title_text_view"
-        app:layout_constraintTop_toBottomOf="@+id/include_nicolive_player_title_text_view"
-        tools:text="生放送ID" />
-
-    <ImageView
-        android:id="@+id/include_nicovideo_full_screen_image_view"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:padding="10dp"
-        app:layout_constraintEnd_toEndOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintTop_toBottomOf="@+id/include_nicolive_player_video_id_text_view"
-        app:srcCompat="@drawable/ic_fullscreen_black_24dp"
-        app:tint="#fff" />
-
-    <ImageView
-        android:id="@+id/include_nicolive_player_network_image_view"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:padding="10dp"
-        app:layout_constraintEnd_toStartOf="@+id/include_nicovideo_full_screen_image_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicovideo_full_screen_image_view"
-        app:srcCompat="@drawable/ic_wifi_black_24dp"
-        app:tint="#fff" />
-
-    <ImageView
-        android:id="@+id/include_nicolive_player_popup_image_view"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:padding="10dp"
-        app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_comment_hide_image_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_comment_hide_image_view"
-        app:srcCompat="@drawable/ic_popup_icon" />
-
-    <ImageView
-        android:id="@+id/include_nicolive_player_background_image_view"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:padding="10dp"
-        app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_popup_image_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_popup_image_view"
-        app:srcCompat="@drawable/ic_background_icon" />
-
-    <ImageView
-        android:id="@+id/include_nicolive_player_comment_hide_image_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_network_image_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_network_image_view"
-        app:srcCompat="@drawable/ic_comment_on"
-        app:tint="#fff" />
-
-
-    <TextView
-        android:id="@+id/include_nicolive_player_audio_only_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:drawableTop="@drawable/ic_tatimidroid_playlist_play_black"
-        android:drawableTint="#ffffff"
-        android:gravity="center"
-        android:text="@string/audio_only_play"
-        android:textColor="#ffffff"
-        android:textStyle="italic"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintEnd_toEndOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintStart_toStartOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_black_view"
-        tools:visibility="visible" />
-
-    <!--
-
-        <SeekBar
-        android:id="@+id/include_nicolive_player_seek_bar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        app:layout_constraintBottom_toBottomOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_duration_text_view"
-        app:layout_constraintStart_toEndOf="@+id/include_nicolive_player_current_time_text_view" />
-
-    -->
-
-    <TextView
-        android:id="@+id/include_nicolive_player_current_time_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:text="00:00"
-        android:textColor="#fff"
-        app:layout_constraintBottom_toBottomOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintStart_toStartOf="@+id/include_nicolive_player_black_view" />
-
-    <TextView
-        android:id="@+id/include_nicolive_player_duration_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:text="00:00"
-        android:textColor="#fff"
-        app:layout_constraintBottom_toBottomOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintEnd_toEndOf="@+id/include_nicolive_player_black_view" />
-
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/include_nicolive_player_compose_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintStart_toStartOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_black_view">
+        android:layout_height="match_parent">
 
         <TextView
             android:id="@+id/include_nicolive_player_info_comment_text_view"
@@ -207,31 +62,11 @@
     <FrameLayout
         android:id="@+id/include_nicolive_player_enquate_frame_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintStart_toStartOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_black_view" />
+        android:layout_height="match_parent" />
 
     <FrameLayout
         android:id="@+id/include_nicolive_player_webview_frame_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintEnd_toStartOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintStart_toStartOf="@+id/include_nicolive_player_black_view"
-        app:layout_constraintTop_toTopOf="@+id/include_nicolive_player_black_view" />
-
-    <androidx.constraintlayout.widget.Group
-        android:id="@+id/include_nicolive_player_control_group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:constraint_referenced_ids="include_nicolive_player_duration_text_view,include_nicolive_player_black_view,include_nicolive_player_title_text_view,include_nicolive_player_close_image_view,include_nicolive_player_video_id_text_view,include_nicolive_player_current_time_text_view,include_nicolive_player_network_image_view,include_nicolive_player_popup_image_view,include_nicolive_player_background_image_view,include_nicolive_player_comment_hide_image_view,include_nicovideo_full_screen_image_view" />
-
-    <androidx.constraintlayout.widget.Group
-        android:id="@+id/include_nicolive_player_mini_player_group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:constraint_referenced_ids="include_nicolive_player_network_image_view,include_nicolive_player_duration_text_view,include_nicolive_player_popup_image_view,include_nicolive_player_background_image_view,include_nicolive_player_comment_hide_image_view,include_nicovideo_full_screen_image_view" />
+        android:layout_height="match_parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

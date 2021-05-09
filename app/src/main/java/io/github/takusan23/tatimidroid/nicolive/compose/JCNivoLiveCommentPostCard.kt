@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -27,8 +25,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.takusan23.tatimidroid.nicoapi.CommentColorList
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.CommentColorList
 
 
 /** まっしろなテキストフィールド */
@@ -96,16 +94,17 @@ fun NicoLiveCommentInputButton(
 
     // margin代わり
     Column(
-        modifier = Modifier.background(
-            colorResource(id = R.color.colorPrimary),
-            RoundedCornerShape(
-                // コメント入力テキストボックス表示中は角を丸くしない
-                topStart = if (!isHideCommentLayout.value) 0.dp else 20.dp,
-                topEnd = 0.dp,
-                bottomStart = 0.dp,
-                bottomEnd = 0.dp
-            )
-        ),
+        modifier = Modifier
+            .background(
+                colorResource(id = R.color.colorPrimary),
+                RoundedCornerShape(
+                    // コメント入力テキストボックス表示中は角を丸くしない
+                    topStart = if (!isHideCommentLayout.value) 0.dp else 20.dp,
+                    topEnd = 0.dp,
+                    bottomStart = 0.dp,
+                    bottomEnd = 0.dp
+                )
+            ),
     ) {
         // コマンドパネル
         if (isShowCommandPanel.value && !isHideCommentLayout.value) {
@@ -148,7 +147,9 @@ fun NicoLiveCommentInputButton(
                 }
                 // コメント入力
                 OutlinedTextField(
-                    modifier = Modifier.weight(1f).align(Alignment.CenterVertically),
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.CenterVertically),
                     value = comment,
                     onValueChange = { onCommentChange(it) },
                     label = {

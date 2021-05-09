@@ -345,7 +345,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
      * @param position コメントの位置。これらは省略が可能
      * @param color コメントの色。これらは省略が可能
      * */
-    suspend fun sendComment(comment: String, color: String = "white", size: String = "medium", position: String = "naka"): Unit = withContext(Dispatchers.IO) {
+    fun sendComment(comment: String, color: String = "white", size: String = "medium", position: String = "naka") {
         if (comment != "\n") {
             // 視聴セッションWebSocketにコメントを送信する
             nicoLiveHTML.sendPOSTWebSocketComment(comment, color, size, position)
