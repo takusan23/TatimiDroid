@@ -170,6 +170,16 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         defaultPlayerWidth = if (isLandScape()) landscapeDefaultPlayerWidth else portlateDefaultPlayerWidth
         // 横画面時は上方向のマージンをかける
         setLandScapeTopMargin(1f)
+
+        // ミニプレイヤー時にキーボードをしまうとおかしくなるので修正
+        var prevHeight = parentViewGroupHeight
+        playerViewParentViewGroup?.viewTreeObserver?.addOnGlobalLayoutListener {
+            // 画面サイズが変更になった
+            if (alternativeIsMiniPlayer() && prevHeight != parentViewGroupHeight) {
+                prevHeight = parentViewGroupHeight
+                toMiniPlayer()
+            }
+        }
     }
 
     /**

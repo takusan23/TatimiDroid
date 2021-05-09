@@ -35,25 +35,47 @@ class NicoVideoSearchHistoryBottomFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // 検索履歴一覧表示
-        viewModel.searchHistoryAllListLiveData.observe(viewLifecycleOwner) { list ->
+        viewModel.searchHistoryLiveData.observe(viewLifecycleOwner) { list ->
             viewBinding.bottomFragmentSearchHistoryRecyclerView.apply {
                 setHasFixedSize(true)
                 layoutManager = LinearLayoutManager(requireContext())
-                adapter = NicoVideoSearchHistoryAdapter(list) { history ->
-                    // 検索
-                    parentViewModel.search(
-                        searchText = history.text,
-                        isTagSearch = history.isTagSearch,
-                        sortName = history.sort
-                    )
-                    dismiss()
-                }
+                adapter = NicoVideoSearchHistoryAdapter(
+                    historyList = list,
+                    onClick = { history ->
+                        // 検索
+                        parentViewModel.search(
+                            searchText = history.text,
+                            isTagSearch = history.isTagSearch,
+                            sortName = history.sort
+                        )
+                        dismiss()
+                    },
+                    onPinClick = {
+                        // ピン留め
+                        viewModel.setPin(it, !it.pin)
+                        filter()
+                    }
+                )
                 if (itemDecorationCount == 0) {
                     addItemDecoration(DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL))
                 }
             }
         }
 
+        // 条件変更
+        viewBinding.bottomFragmentSearchHistoryPinChip.setOnCheckedChangeListener { _, _ -> filter() }
+        viewBinding.bottomFragmentSearchHistoryTagChip.setOnCheckedChangeListener { _, _ -> filter() }
+        viewBinding.bottomFragmentSearchHistoryKeywordChip.setOnCheckedChangeListener { _, _ -> filter() }
+
+    }
+
+    /** ViewModelにあるfilter関数を呼ぶ関数 */
+    private fun filter() {
+        viewModel.filter(
+            viewBinding.bottomFragmentSearchHistoryPinChip.isChecked,
+            viewBinding.bottomFragmentSearchHistoryTagChip.isChecked,
+            viewBinding.bottomFragmentSearchHistoryKeywordChip.isChecked,
+        )
     }
 
 }

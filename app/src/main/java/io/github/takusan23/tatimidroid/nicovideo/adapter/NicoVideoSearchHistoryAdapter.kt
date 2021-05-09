@@ -13,14 +13,19 @@ import java.text.SimpleDateFormat
 
 /**
  * 検索履歴一覧表示で使うAdapter
+ *
+ * @param historyList 検索履歴
+ * @param onClick 項目押したら呼ばれる関数
+ * @param onPinClick ピンを押したとき、解除したときに呼ばれる関数
  * */
-class NicoVideoSearchHistoryAdapter(private val historyList: List<SearchHistoryDBEntity>, private val onClick: (SearchHistoryDBEntity) -> Unit) : RecyclerView.Adapter<NicoVideoSearchHistoryAdapter.ViewHolder>() {
+class NicoVideoSearchHistoryAdapter(private val historyList: List<SearchHistoryDBEntity>, private val onClick: (SearchHistoryDBEntity) -> Unit, private val onPinClick: (SearchHistoryDBEntity) -> Unit) : RecyclerView.Adapter<NicoVideoSearchHistoryAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val typeImageView = itemView.findViewById<ImageView>(R.id.adapter_nicovideo_search_history_type_icon_image_view)
         val titleTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_search_history_title_text_view)
         val dateTextView = itemView.findViewById<TextView>(R.id.adapter_nicovideo_search_history_date_text_view)
         val parent = itemView.findViewById<ConstraintLayout>(R.id.adapter_nicovideo_search_history_parent)
+        val pinImageView = itemView.findViewById<ImageView>(R.id.adapter_nicovideo_search_history_pin_image_view)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -40,6 +45,16 @@ class NicoVideoSearchHistoryAdapter(private val historyList: List<SearchHistoryD
 
             // 押したら引数の関数を呼ぶ
             parent.setOnClickListener { onClick(history) }
+
+            // ピン留めしているか
+            if (history.pin) {
+                pinImageView.setImageDrawable(context.getDrawable(R.drawable.ic_baseline_done_24))
+            } else {
+                pinImageView.setImageDrawable(context.getDrawable(R.drawable.ic_push_pin_black_24dp))
+            }
+
+            // ピンを押したときに呼ばれる
+            pinImageView.setOnClickListener { onPinClick(history) }
 
         }
     }

@@ -23,18 +23,45 @@ class NicoVideoSearchHistoryViewModel(application: Application) : AndroidViewMod
     /** DAO */
     private val searchHistoryDAO = searchHistoryDB.searchHistoryDAO()
 
-    /** 検索履歴でピン止め済みの履歴を送信するLiveData */
-    val searchHistoryPinnedListLiveData = MutableLiveData<List<SearchHistoryDBEntity>>()
+    /** [filter]の結果を送信するLiveData */
+    val searchHistoryLiveData = MutableLiveData<List<SearchHistoryDBEntity>>()
 
-    /** 検索履歴すべてを送信するLiveData */
-    val searchHistoryAllListLiveData = MutableLiveData<List<SearchHistoryDBEntity>>()
+    /** 検索履歴の配列 */
+    private val historyList = arrayListOf<SearchHistoryDBEntity>()
 
     init {
+        // データ取得
+        filter()
+    }
+
+    /**
+     * DBから取得してフィルターを通す
+     *
+     * @param isPinnedOnly ピン留めのみを取得
+     * @param isIncludeTagSearch タグ検索を含めるか
+     * @param isIncludeKeywordSearch キーワード検索を含めるか
+     * */
+    fun filter(
+        isPinnedOnly: Boolean = false,
+        isIncludeTagSearch: Boolean = true,
+        isIncludeKeywordSearch: Boolean = true,
+    ) {
         // データベースの中身をLiveDataで送信
         viewModelScope.launch(Dispatchers.IO) {
             // 日付の新しい順に並び替え
-            searchHistoryPinnedListLiveData.postValue(searchHistoryDAO.getPinnedSearchHistory().sortedByDescending { searchHistoryDBEntity -> searchHistoryDBEntity.addTime })
-            searchHistoryAllListLiveData.postValue(searchHistoryDAO.getAll().sortedByDescending { searchHistoryDBEntity -> searchHistoryDBEntity.addTime })
+            var resultHistoryList = searchHistoryDAO.getAll().sortedByDescending { searchHistoryDBEntity -> searchHistoryDBEntity.addTime }
+            // ピン留めのみ
+            if (isPinnedOnly) {
+                resultHistoryList = resultHistoryList.filter { searchHistoryDBEntity -> searchHistoryDBEntity.pin } as ArrayList<SearchHistoryDBEntity>
+            }
+            // タグ検索のみとか
+            resultHistoryList = when {
+                isIncludeTagSearch && isIncludeKeywordSearch -> resultHistoryList.filter { true }
+                isIncludeTagSearch -> resultHistoryList.filter { it.isTagSearch }
+                isIncludeKeywordSearch -> resultHistoryList.filter { !it.isTagSearch }
+                else -> resultHistoryList
+            } as ArrayList<SearchHistoryDBEntity>
+            searchHistoryLiveData.postValue(resultHistoryList)
         }
     }
 
@@ -52,7 +79,7 @@ class NicoVideoSearchHistoryViewModel(application: Application) : AndroidViewMod
     }
 
     /** 検索履歴をすべて飛ばす */
-    fun deleteAll(){
+    fun deleteAll() {
         viewModelScope.launch(Dispatchers.IO) {
             searchHistoryDAO.deleteAll()
         }

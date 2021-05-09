@@ -9,6 +9,7 @@
         android:id="@+id/bottom_fragment_history_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:drawableStart="@drawable/ic_history_24px"
         android:gravity="center_vertical"
         android:padding="10sp"
         android:text="@string/nico_history"
