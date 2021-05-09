@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid
 
-import android.app.NotificationManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -108,9 +107,6 @@ class MainActivity : AppCompatActivity() {
             supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(darkModeSupport.context)))
         }
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(1234)
-
         /**
          * 共有から起動した
          *
@@ -121,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             lunchShareIntent()
             // ブラウザから起動
             launchBrowser()
-            // AppShortcutから起動した際
+            // ホーム画面に追加から起動した際
             launchPlayer()
         }
 

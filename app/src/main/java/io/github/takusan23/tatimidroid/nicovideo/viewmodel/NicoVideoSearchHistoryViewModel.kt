@@ -26,9 +26,6 @@ class NicoVideoSearchHistoryViewModel(application: Application) : AndroidViewMod
     /** [filter]の結果を送信するLiveData */
     val searchHistoryLiveData = MutableLiveData<List<SearchHistoryDBEntity>>()
 
-    /** 検索履歴の配列 */
-    private val historyList = arrayListOf<SearchHistoryDBEntity>()
-
     init {
         // データ取得
         filter()
