@@ -174,8 +174,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         // ミニプレイヤー時にキーボードをしまうとおかしくなるので修正
         var prevHeight = parentViewGroupHeight
         playerViewParentViewGroup?.viewTreeObserver?.addOnGlobalLayoutListener {
-            // 画面サイズが変更になった
-            if (alternativeIsMiniPlayer() && prevHeight != parentViewGroupHeight) {
+            // 画面サイズが変更になった。操作中じゃないときに
+            if (alternativeIsMiniPlayer() && prevHeight != parentViewGroupHeight && !isTouchingPlayerView) {
                 prevHeight = parentViewGroupHeight
                 toMiniPlayer()
             }
@@ -201,7 +201,11 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         playerViewParentViewGroup?.apply {
 
             /** プレイヤータッチしているか */
-            isTouchingPlayerView = isTouchingPlayerView(event)
+            isTouchingPlayerView = if (event.action == MotionEvent.ACTION_UP) {
+                false // 指離してるならもうfalse
+            } else {
+                isTouchingPlayerView(event)
+            }
 
             // 操作無効時はreturn
             if (isDisableMiniPlayerMode) return
@@ -221,7 +225,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 val progress = fixYPos / (parentViewGroupHeight - miniPlayerHeight).toFloat()
 
                 /** 進行途中の場合はtrue */
-                isProgress = this@PlayerParentFrameLayout.progress < 1f && this@PlayerParentFrameLayout.progress > 0f
+                isProgress = progress < 1.0f && progress > 0.0f
 
                 // フリック時の処理。早くフリックしたときにミニプレイヤー、通常画面へ素早く切り替える
                 when (event.action) {
@@ -464,8 +468,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         // コールバックを送信
         fullscreenListenerList.forEach { function -> function.invoke(isFullScreenMode) }
         playerView!!.updateLayoutParams<LinearLayout.LayoutParams> {
-            // 幅を治す。マルチウィンドウ対策
-            width = if (isLandScape()) DisplaySizeTool.getDisplayWidth(context) / 2 else DisplaySizeTool.getDisplayWidth(context)
+            // 幅を治す
+            width = defaultPlayerWidth
             height = (width / 16) * 9
             // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
             if (isLandScape()) {

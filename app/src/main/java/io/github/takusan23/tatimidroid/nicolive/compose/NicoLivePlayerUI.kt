@@ -183,7 +183,11 @@ fun NicoLivePlayerUI(
                     }
                     // 真ん中。アンケートとか
                     Box(
-                        modifier = Modifier.weight(1f),
+                        modifier = if (!isInputingComment.value) {
+                            Modifier.weight(1f)
+                        } else {
+                            Modifier
+                        },
                         contentAlignment = Alignment.Center,
                     ) { }
                     // 再生時間など

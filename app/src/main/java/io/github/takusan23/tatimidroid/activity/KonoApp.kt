@@ -3,7 +3,6 @@ package io.github.takusan23.tatimidroid.activity
 import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -38,7 +37,7 @@ class KonoApp : AppCompatActivity() {
     /**
      * バージョンとか
      * */
-    val version = "\uD83C\uDF8F 2021/05/03 \uD83C\uDF8F"
+    val version = "\uD83C\uDF8F 2021/05/10 \uD83C\uDF8F"
     val codeName1 = "（く）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     /** findViewById駆逐 */
@@ -63,7 +62,7 @@ class KonoApp : AppCompatActivity() {
         viewBinding.activityKonoAppCodenameTextView.text = "$appVersion\n$version\n$codeName1"
 
         viewBinding.activityKonoAppCardView.setOnClickListener {
-            Toast.makeText(this, "ゴールデンウィーク？", Toast.LENGTH_SHORT).show()
+            //  Toast.makeText(this, "ゴールデンウィーク？", Toast.LENGTH_SHORT).show()
             runEasterEgg()
             runBackground()
         }

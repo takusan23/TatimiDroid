@@ -134,7 +134,13 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                     isConnectedWiFi = isConnectionWiFiInternet(requireContext()),
                     isShowCommentCanvas = isShowDrawComment.value,
                     isAudioOnlyMode = viewModel.currentQuality == "audio_high",
-                    onClickMiniPlayer = { if (isMiniPlayerMode.value) toDefaultPlayer() else toMiniPlayer() },
+                    onClickMiniPlayer = {
+                        when {
+                            isDisableMiniPlayerMode -> finishFragment()
+                            isMiniPlayerMode.value -> toDefaultPlayer()
+                            else -> toMiniPlayer()
+                        }
+                    },
                     onClickFullScreen = { if (viewModel.isFullScreenMode) setDefaultScreen() else setFullScreen() },
                     onClickNetwork = { showNetworkTypeMessage() },
                     onClickCommentDraw = {
@@ -282,7 +288,9 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
             // 画面回転前がミニプレイヤーだったらミニプレイヤーにする
             if (isMiniPlayerMode) {
-                toMiniPlayer() // これ直したい
+                playerFrameLayout.post {
+                    toMiniPlayer() // これ直したい
+                }
             }
         }
         // Activity終了などのメッセージ受け取り
@@ -575,7 +583,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 if (isFirst) {
                     isFirst = false
                     // 通常画面へ。なおこいつのせいで画面回転前がミニプレイヤーでもミニプレイヤーにならない
-                    toDefaultPlayer()
+                    // toDefaultPlayer()
                     // コメント一覧も表示
                     lifecycleScope.launch {
                         delay(1000)
