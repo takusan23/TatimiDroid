@@ -177,7 +177,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
             // 画面サイズが変更になった。操作中じゃないときに
             if (alternativeIsMiniPlayer() && prevHeight != parentViewGroupHeight && !isTouchingPlayerView) {
                 prevHeight = parentViewGroupHeight
-                toMiniPlayer()
+                toPlayerProgress(1f)
             }
         }
     }
