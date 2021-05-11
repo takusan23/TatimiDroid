@@ -201,11 +201,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         playerViewParentViewGroup?.apply {
 
             /** プレイヤータッチしているか */
-            isTouchingPlayerView = if (event.action == MotionEvent.ACTION_UP) {
-                false // 指離してるならもうfalse
-            } else {
-                isTouchingPlayerView(event)
-            }
+            isTouchingPlayerView = isTouchingPlayerView(event)
+
 
             // 操作無効時はreturn
             if (isDisableMiniPlayerMode) return
@@ -225,7 +222,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 val progress = fixYPos / (parentViewGroupHeight - miniPlayerHeight).toFloat()
 
                 /** 進行途中の場合はtrue */
-                isProgress = progress < 1.0f && progress > 0.0f
+                isProgress = this@PlayerParentFrameLayout.progress < 1f && this@PlayerParentFrameLayout.progress > 0f
 
                 // フリック時の処理。早くフリックしたときにミニプレイヤー、通常画面へ素早く切り替える
                 when (event.action) {

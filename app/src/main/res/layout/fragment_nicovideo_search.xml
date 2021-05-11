@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             app:layout_scrollFlags="scroll|enterAlways">
 
-            <EditText
+            <AutoCompleteTextView
                 android:id="@+id/fragment_nicovideo_search_input"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

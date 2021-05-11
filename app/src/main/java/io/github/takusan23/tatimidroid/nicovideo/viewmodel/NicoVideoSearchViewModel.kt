@@ -47,6 +47,9 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
     /** 読み込み中LiveData */
     val isLoadingLiveData = MutableLiveData(false)
 
+    /** サジェストを送信するLiveData */
+    val suggestListLiveData = MutableLiveData<List<String>>()
+
     /** 終了（動画がもう取れない）ならtrue */
     var isEnd = false
 
@@ -68,6 +71,9 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
     /** タグ検索かどうか */
     var currentSearchIsTagSearch: Boolean? = null
         private set
+
+    /** サジェストAPIを叩きすぎないよう */
+    private var prevSuggestText = ""
 
     /**
      * 検索する関数
@@ -198,6 +204,29 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
                     isTagSearch = isTagSearch,
                 )
                 searchHistoryDAO.insert(insertHistory)
+            }
+        }
+    }
+
+    /**
+     * サジェストAPIを叩く
+     * */
+    fun getSuggest(searchText: String) {
+        // 叩きすぎないよう
+        if (prevSuggestText != searchText && searchText.isNotEmpty()) {
+            prevSuggestText = searchText
+            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                showToast("${context.getString(R.string.error)}${throwable}")
+            }
+            viewModelScope.launch(Dispatchers.Default + errorHandler) {
+                val response = searchHTML.getSearchSuggest(userSession, searchText)
+                if (!response.isSuccessful) {
+                    // 失敗時
+                    showToast("${context.getString(R.string.error)}\n${response.code}")
+                    return@launch
+                }
+                val suggestList = searchHTML.parseSearchSuggest(response.body?.string())
+                suggestListLiveData.postValue(suggestList)
             }
         }
     }
