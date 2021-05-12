@@ -110,7 +110,7 @@ class NicoVideoSearchFragment : Fragment() {
         }
 
         // サジェスト
-        val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_list_item_1, arrayListOf<String>())
+        val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_list_item_1, arrayListOf())
         viewBinding.fragmentNicovideoSearchInput.apply {
             threshold = 1
             setAdapter(adapter)
