@@ -7,9 +7,10 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoRankingHTML
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nguploader.NGUploaderTool
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoRankingHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import kotlinx.coroutines.*
 
 /**
@@ -21,10 +22,10 @@ class NicoVideoRankingViewModel(application: Application) : AndroidViewModel(app
     private val context = getApplication<Application>().applicationContext
 
     /** ランキングの配列 */
-    val rankingVideoList = MutableLiveData<ArrayList<NicoVideoData>>()
+    val rankingVideoList = MutableLiveData<List<NicoVideoData>>()
 
     /** ランキングのタグ配列 */
-    val rankingTagList = MutableLiveData<ArrayList<String>>()
+    val rankingTagList = MutableLiveData<List<String>>()
 
     /** コルーチンキャンセル用 */
     private val coroutineJob = Job()
@@ -52,8 +53,13 @@ class NicoVideoRankingViewModel(application: Application) : AndroidViewModel(app
             }
             // パース
             val responseString = response.body?.string() ?: return@launch
-            rankingVideoList.postValue(nicoVideoRankingHTML.parseRankingVideo(responseString))
-            rankingTagList.postValue(ArrayList(nicoVideoRankingHTML.parseRankingGenreTag(responseString)))
+            val rawVideoList = nicoVideoRankingHTML.parseRankingVideo(responseString)
+            if (rawVideoList != null) {
+                rankingVideoList.postValue(NGUploaderTool.filterNGUploaderVideoId(context, rawVideoList))
+                rankingTagList.postValue(ArrayList(nicoVideoRankingHTML.parseRankingGenreTag(responseString)))
+            } else {
+                showToast(context.getString(R.string.error))
+            }
         }
     }
 

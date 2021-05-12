@@ -188,7 +188,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     private fun setTimer() {
         // 勝手に終了してくれるコルーチンコンテキスト
         lifecycleScope.launch {
-            while (true) {
+            while (isActive) {
                 delay(100)
                 // 再生時間をコメント描画Canvasへ入れ続ける
                 nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.currentPos = viewModel.playerCurrentPositionMs

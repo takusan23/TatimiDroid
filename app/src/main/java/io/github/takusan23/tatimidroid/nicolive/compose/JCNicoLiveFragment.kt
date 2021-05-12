@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid.nicolive.compose
 
-import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -33,12 +32,10 @@ import com.google.android.material.button.MaterialButton
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.CommentJSONParse
-import io.github.takusan23.tatimidroid.PlayerParentFrameLayout
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.databinding.IncludeNicoliveEnquateBinding
 import io.github.takusan23.tatimidroid.databinding.IncludeNicolivePlayerBinding
 import io.github.takusan23.tatimidroid.fragment.PlayerBaseFragment
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.nicolive.CommentRoomFragment
 import io.github.takusan23.tatimidroid.nicolive.CommentViewFragment
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
@@ -47,8 +44,6 @@ import io.github.takusan23.tatimidroid.nicovideo.compose.DarkColors
 import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
 import io.github.takusan23.tatimidroid.service.startLivePlayService
 import io.github.takusan23.tatimidroid.tool.*
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -105,63 +100,130 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // 累計来場者、コメント投稿数、アクテイブ人数表示UI設定
         setStatisticsUI()
 
+        // プレイヤーUI
+        setPlayerUICompose()
+
         // スリープにしない
         caffeine()
 
+    }
+
+    private fun setPlayerUICompose() {
+        nicolivePlayerUIBinding.includeNicolivePlayerComposeView.setContent {
+
+            // 番組情報
+            val programData = viewModel.nicoLiveProgramData.observeAsState()
+            // 経過時間
+            val duration = viewModel.programTimeLiveData.observeAsState()
+            // 終了時刻
+            val endTime = viewModel.formattedProgramEndTime.observeAsState()
+            // ミニプレイヤーかどうか
+            val isMiniPlayerMode = viewModel.isMiniPlayerMode.observeAsState(false)
+            // コメント描画
+            val isShowDrawComment = remember { mutableStateOf(nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible) }
+
+            if (programData.value != null) {
+                NicoLivePlayerUI(
+                    liveTitle = programData.value!!.title,
+                    liveId = programData.value!!.programId,
+                    programEndTime = endTime.value,
+                    programCurrentTime = duration.value,
+                    isMiniPlayer = isMiniPlayerMode.value,
+                    isDisableMiniPlayerMode = isDisableMiniPlayerMode,
+                    isFullScreen = viewModel.isFullScreenMode,
+                    isConnectedWiFi = isConnectionWiFiInternet(requireContext()),
+                    isShowCommentCanvas = isShowDrawComment.value,
+                    isAudioOnlyMode = viewModel.currentQuality == "audio_high",
+                    onClickMiniPlayer = {
+                        when {
+                            isDisableMiniPlayerMode -> finishFragment()
+                            isMiniPlayerMode.value -> toDefaultPlayer()
+                            else -> toMiniPlayer()
+                        }
+                    },
+                    onClickFullScreen = { if (viewModel.isFullScreenMode) setDefaultScreen() else setFullScreen() },
+                    onClickNetwork = { showNetworkTypeMessage() },
+                    onClickCommentDraw = {
+                        nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible = !nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
+                        isShowDrawComment.value = nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
+                    },
+                    onClickPopUpPlayer = {
+                        startLivePlayService(
+                            context = requireContext(),
+                            mode = "popup",
+                            liveId = programData.value!!.programId,
+                            isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
+                            startQuality = viewModel.currentQuality
+                        )
+                        finishFragment()
+                    },
+                    onClickBackgroundPlayer = {
+                        startLivePlayService(
+                            context = requireContext(),
+                            mode = "background",
+                            liveId = programData.value!!.programId,
+                            isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
+                            startQuality = viewModel.currentQuality
+                        )
+                        finishFragment()
+                    },
+                    onClickCommentPost = { comment -> viewModel.sendComment(comment) }
+                )
+            }
+        }
     }
 
     /** Jetpack Composeで作成したコメント投稿UIを追加する */
     @ExperimentalAnimationApi
     private fun setCommentPostUI() {
         // コメント一覧展開ボタンを設置する
-        bottomComposeView.apply {
-            setContent {
-                // コメント展開するかどうか
-                val isComment = viewModel.commentListShowLiveData.observeAsState(initial = false)
-                // コルーチン
-                val scope = rememberCoroutineScope()
-                // コメント本文
-                val commentPostText = remember { mutableStateOf("") }
-                // 匿名で投稿するか
-                val isTokumeiPost = remember { mutableStateOf(viewModel.nicoLiveHTML.isPostTokumeiComment) }
-                // 文字の大きさ
-                val commentSize = remember { mutableStateOf("medium") }
-                // 文字の位置
-                val commentPos = remember { mutableStateOf("naka") }
-                // 文字の色
-                val commentColor = remember { mutableStateOf("white") }
-                // 複数行コメントを許可している場合はtrue。falseならEnterキーでコメント送信
-                val isAcceptMultiLineComment = !prefSetting.getBoolean("setting_enter_post", true)
+        bottomComposeView.setContent {
+            // コメント展開するかどうか
+            val isComment = viewModel.commentListShowLiveData.observeAsState(initial = false)
+            // コルーチン
+            val scope = rememberCoroutineScope()
+            // コメント本文
+            val commentPostText = remember { mutableStateOf("") }
+            // 匿名で投稿するか
+            val isTokumeiPost = remember { mutableStateOf(viewModel.nicoLiveHTML.isPostTokumeiComment) }
+            // 文字の大きさ
+            val commentSize = remember { mutableStateOf("medium") }
+            // 文字の位置
+            val commentPos = remember { mutableStateOf("naka") }
+            // 文字の色
+            val commentColor = remember { mutableStateOf("white") }
+            // 複数行コメントを許可している場合はtrue。falseならEnterキーでコメント送信
+            val isAcceptMultiLineComment = !prefSetting.getBoolean("setting_enter_post", true)
 
-                NicoLiveCommentInputButton(
-                    onClick = { viewModel.commentListShowLiveData.postValue(!isComment.value) },
-                    isComment = isComment.value,
-                    comment = commentPostText.value,
-                    onCommentChange = { commentPostText.value = it },
-                    onPostClick = {
-                        // コメント投稿
-                        scope.launch {
-                            viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value)
-                            commentPostText.value = "" // クリアに
-                        }
-                    },
-                    position = commentPos.value,
-                    size = commentSize.value,
-                    color = commentColor.value,
-                    onPosValueChange = { commentPos.value = it },
-                    onSizeValueChange = { commentSize.value = it },
-                    onColorValueChange = { commentColor.value = it },
-                    is184 = isTokumeiPost.value,
-                    onTokumeiChange = {
-                        // 匿名、生ID切り替わった時
-                        isTokumeiPost.value = !isTokumeiPost.value
-                        prefSetting.edit { putBoolean("nicolive_post_tokumei", it) }
-                        viewModel.nicoLiveHTML.isPostTokumeiComment = it
-                    },
-                    isMultiLine = isAcceptMultiLineComment,
-                )
-            }
+            NicoLiveCommentInputButton(
+                onClick = { viewModel.commentListShowLiveData.postValue(!isComment.value) },
+                isComment = isComment.value,
+                comment = commentPostText.value,
+                onCommentChange = { commentPostText.value = it },
+                onPostClick = {
+                    // コメント投稿
+                    scope.launch {
+                        viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value)
+                        commentPostText.value = "" // クリアに
+                    }
+                },
+                position = commentPos.value,
+                size = commentSize.value,
+                color = commentColor.value,
+                onPosValueChange = { commentPos.value = it },
+                onSizeValueChange = { commentSize.value = it },
+                onColorValueChange = { commentColor.value = it },
+                is184 = isTokumeiPost.value,
+                onTokumeiChange = {
+                    // 匿名、生ID切り替わった時
+                    isTokumeiPost.value = !isTokumeiPost.value
+                    prefSetting.edit { putBoolean("nicolive_post_tokumei", it) }
+                    viewModel.nicoLiveHTML.isPostTokumeiComment = it
+                },
+                isMultiLine = isAcceptMultiLineComment,
+            )
         }
+
     }
 
     private fun setStatisticsUI() {
@@ -224,11 +286,11 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     private fun setLiveData() {
         // ミニプレイヤーなら
         viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
-            // アイコン直す
-            nicolivePlayerUIBinding.includeNicolivePlayerCloseImageView.setImageDrawable(getCurrentStateIcon())
             // 画面回転前がミニプレイヤーだったらミニプレイヤーにする
             if (isMiniPlayerMode) {
-                toMiniPlayer() // これ直したい
+                playerFrameLayout.post {
+                    toMiniPlayer() // これ直したい
+                }
             }
         }
         // Activity終了などのメッセージ受け取り
@@ -241,18 +303,12 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         viewModel.snackbarLiveData.observe(viewLifecycleOwner) {
             showSnackBar(it, null, null)
         }
-        // 番組情報
-        viewModel.nicoLiveProgramData.observe(viewLifecycleOwner) { data ->
-            setLiveInfo(data)
-        }
         // 新ニコニコ実況の番組と発覚した場合
         viewModel.isNicoJKLiveData.observe(viewLifecycleOwner) { nicoJKId ->
-            // バックグラウンド再生無いので非表示
-            nicolivePlayerUIBinding.includeNicolivePlayerBackgroundImageView.isVisible = false
             // 映像を受信しないモードをtrueへ
             viewModel.isNotReceiveLive.postValue(true)
             // 通常画面へ
-            toDefaultPlayer()
+            playerFrameLayout.post { toDefaultPlayer() }
             // コメント一覧も表示
             lifecycleScope.launch {
                 delay(1000)
@@ -287,14 +343,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
         viewModel.stopEnquateLiveData.observe(viewLifecycleOwner) { stop ->
             nicolivePlayerUIBinding.includeNicolivePlayerEnquateFrameLayout.removeAllViews()
-        }
-        // 経過時間
-        viewModel.programTimeLiveData.observe(viewLifecycleOwner) { programTime ->
-            nicolivePlayerUIBinding.includeNicolivePlayerCurrentTimeTextView.text = programTime
-        }
-        // 終了時刻
-        viewModel.formattedProgramEndTime.observe(viewLifecycleOwner) { endTime ->
-            nicolivePlayerUIBinding.includeNicolivePlayerDurationTextView.text = endTime
         }
         // HLSアドレス取得
         viewModel.hlsAddressLiveData.observe(viewLifecycleOwner) { address ->
@@ -512,10 +560,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         // ExoPlayer
         // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
         if (viewModel.currentQuality == "audio_high") {
-            nicolivePlayerUIBinding.includeNicolivePlayerAudioOnlyTextView.visibility = View.VISIBLE
             nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.background = ColorDrawable(Color.BLACK)
         } else {
-            nicolivePlayerUIBinding.includeNicolivePlayerAudioOnlyTextView.visibility = View.INVISIBLE
             nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.background = null
         }
         // アスペクト比治す
@@ -537,7 +583,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 if (isFirst) {
                     isFirst = false
                     // 通常画面へ。なおこいつのせいで画面回転前がミニプレイヤーでもミニプレイヤーにならない
-                    toDefaultPlayer()
+                    // toDefaultPlayer()
                     // コメント一覧も表示
                     lifecycleScope.launch {
                         delay(1000)
@@ -607,108 +653,19 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
     }
 
-    /** 番組情報をUIに反映させる */
-    private fun setLiveInfo(data: NicoLiveProgramData) {
-        nicolivePlayerUIBinding.apply {
-            includeNicolivePlayerTitleTextView.text = data.title
-            includeNicolivePlayerVideoIdTextView.text = data.programId
-        }
-    }
-
     /** コメント描画設定を適用 */
     private fun setCommentCanvas() {
         val font = CustomFont(requireContext())
         if (font.isApplyFontFileToCommentCanvas) {
             // フォント設定
-            nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.typeface = font.typeface
+            nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.typeFace = font.typeface
         }
     }
 
     /** プレイヤーのUIをFragmentに追加する */
-    @SuppressLint("ClickableViewAccessibility")
     private fun setPlayerUI() {
         // ここは動画と一緒
         addPlayerFrameLayout(nicolivePlayerUIBinding.root)
-        // プレイヤー部分の表示設定
-        val hideJob = Job()
-        nicolivePlayerUIBinding.root.setOnClickListener {
-            hideJob.cancelChildren()
-            // ConstraintLayoutのGroup機能でまとめてVisibility変更。
-            nicolivePlayerUIBinding.includeNicolivePlayerControlGroup.visibility = if (nicolivePlayerUIBinding.includeNicolivePlayerControlGroup.visibility == View.VISIBLE) {
-                View.INVISIBLE
-            } else {
-                View.VISIBLE
-            }
-            // ちょっと強引
-            if (isMiniPlayerMode()) {
-                // ConstraintLayoutのGroup機能でまとめてVisibility変更。
-                nicolivePlayerUIBinding.includeNicolivePlayerMiniPlayerGroup.visibility = View.INVISIBLE
-            }
-            // 遅延させて
-            lifecycleScope.launch(hideJob) {
-                delay(3000)
-                nicolivePlayerUIBinding.includeNicolivePlayerControlGroup.visibility = View.INVISIBLE
-            }
-        }
-        // 初回時もちょっとまってから消す
-        lifecycleScope.launch(hideJob) {
-            delay(3000)
-            nicolivePlayerUIBinding.includeNicolivePlayerControlGroup.visibility = View.INVISIBLE
-        }
-        // プレイヤー右上のアイコンにWi-Fiアイコンがあるけどあれ、どの方法で再生してるかだから。キャッシュならフォルダーになる
-        val playingTypeDrawable = InternetConnectionCheck.getConnectionTypeDrawable(requireContext())
-        nicolivePlayerUIBinding.includeNicolivePlayerNetworkImageView.setImageDrawable(playingTypeDrawable)
-        nicolivePlayerUIBinding.includeNicolivePlayerNetworkImageView.setOnClickListener { showNetworkTypeMessage() }
-        // ミニプレイヤー切り替えボタン
-        nicolivePlayerUIBinding.includeNicolivePlayerCloseImageView.setOnClickListener {
-            if (isMiniPlayerMode()) {
-                toDefaultPlayer()
-            } else {
-                toMiniPlayer()
-            }
-        }
-        // コメントキャンバス非表示
-        nicolivePlayerUIBinding.includeNicolivePlayerCommentHideImageView.setOnClickListener {
-            val drawable = if (!nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible) requireContext().getDrawable(R.drawable.ic_comment_on) else requireContext().getDrawable(R.drawable.ic_comment_off)
-            nicolivePlayerUIBinding.includeNicolivePlayerCommentHideImageView.setImageDrawable(drawable)
-            nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.apply {
-                isVisible = !isVisible
-            }
-        }
-        // ポップアップ再生
-        nicolivePlayerUIBinding.includeNicolivePlayerPopupImageView.setOnClickListener {
-            if (viewModel.nicoLiveProgramData.value != null) {
-                startLivePlayService(
-                    context = requireContext(),
-                    mode = "popup",
-                    liveId = viewModel.nicoLiveProgramData.value!!.programId,
-                    isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
-                    startQuality = viewModel.currentQuality
-                )
-                finishFragment()
-            }
-        }
-        // バックグラウンド再生
-        nicolivePlayerUIBinding.includeNicolivePlayerBackgroundImageView.setOnClickListener {
-            if (viewModel.nicoLiveProgramData.value != null) {
-                startLivePlayService(
-                    context = requireContext(),
-                    mode = "background",
-                    liveId = viewModel.nicoLiveProgramData.value!!.programId,
-                    isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
-                    startQuality = viewModel.currentQuality
-                )
-                finishFragment()
-            }
-        }
-        // 全画面
-        nicolivePlayerUIBinding.includeNicovideoFullScreenImageView.setOnClickListener {
-            if (viewModel.isFullScreenMode) {
-                setDefaultScreen()
-            } else {
-                setFullScreen()
-            }
-        }
         // 全画面モードなら
         if (viewModel.isFullScreenMode) {
             setFullScreen()
@@ -723,7 +680,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     private fun setFullScreen() {
         lifecycleScope.launch {
             viewModel.isFullScreenMode = true
-            nicolivePlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
             // コメント / 動画情報Fragmentを非表示にする
             toFullScreen()
             // アスペクト比治すなど
@@ -735,7 +691,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     private fun setDefaultScreen() {
         lifecycleScope.launch {
             viewModel.isFullScreenMode = false
-            nicolivePlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
             // コメント / 動画情報Fragmentを表示にする
             toDefaultScreen()
             // アスペクト比治すなど
@@ -745,16 +700,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
 
     override fun onBottomSheetStateChane(state: Int, isMiniPlayer: Boolean) {
         super.onBottomSheetStateChane(state, isMiniPlayer)
-        // 展開 or ミニプレイヤー のみ
-        if (state == PlayerParentFrameLayout.PLAYER_STATE_DEFAULT || state == PlayerParentFrameLayout.PLAYER_STATE_MINI) {
-            // (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
-            // 一応UI表示
-            nicolivePlayerUIBinding.root.performClick()
-            // アイコン直す
-            nicolivePlayerUIBinding.includeNicolivePlayerCloseImageView.setImageDrawable(getCurrentStateIcon())
-            // ViewModelへ状態通知
-            viewModel.isMiniPlayerMode.value = isMiniPlayerMode()
-        }
+        // ViewModelへ状態通知
+        viewModel.isMiniPlayerMode.value = isMiniPlayerMode()
     }
 
     /** 画像つき共有を行う */

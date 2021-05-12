@@ -8,12 +8,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.nicoapi.jk.NicoLiveJKHTML
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.nicolive.NicoLiveJKProgramListFragment.Companion.NICOLIVE_JK_PROGRAMLIST_OFFICIAL
 import io.github.takusan23.tatimidroid.nicolive.NicoLiveJKProgramListFragment.Companion.NICOLIVE_JK_PROGRAMLIST_TAG
-import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
@@ -57,7 +58,7 @@ class NicoLiveJKProgramListViewModel(application: Application, private val type:
             // エラー時
             showToast("${getString(R.string.error)}\n${throwable}")
         }
-        viewModelScope.launch(errorHandler) {
+        viewModelScope.launch(errorHandler + Dispatchers.Default) {
             // HTMLリクエスト
             val response = nicoLiveJKHTML.getNicoLiveJKProgramList(userSession)
             if (!response.isSuccessful) {

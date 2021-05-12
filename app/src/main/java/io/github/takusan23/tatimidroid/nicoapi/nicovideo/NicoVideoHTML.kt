@@ -280,7 +280,7 @@ class NicoVideoHTML {
         val postData = getHearBeatJSONString(sessionAPIJSONObject)
         // 定期実行
         heartBeatJob = GlobalScope.launch {
-            while (true) {
+            while (isActive) {
                 // 40秒ごとにハートビート処理
                 postHeartBeat(heartBeatURL, postData)
                 // println("Angel Beats!")

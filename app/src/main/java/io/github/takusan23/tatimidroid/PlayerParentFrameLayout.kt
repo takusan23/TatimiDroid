@@ -170,6 +170,16 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         defaultPlayerWidth = if (isLandScape()) landscapeDefaultPlayerWidth else portlateDefaultPlayerWidth
         // 横画面時は上方向のマージンをかける
         setLandScapeTopMargin(1f)
+
+        // ミニプレイヤー時にキーボードをしまうとおかしくなるので修正
+        var prevHeight = parentViewGroupHeight
+        playerViewParentViewGroup?.viewTreeObserver?.addOnGlobalLayoutListener {
+            // 画面サイズが変更になった。操作中じゃないときに
+            if (alternativeIsMiniPlayer() && prevHeight != parentViewGroupHeight && !isTouchingPlayerView) {
+                prevHeight = parentViewGroupHeight
+                toPlayerProgress(1f)
+            }
+        }
     }
 
     /**
@@ -192,6 +202,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
 
             /** プレイヤータッチしているか */
             isTouchingPlayerView = isTouchingPlayerView(event)
+
 
             // 操作無効時はreturn
             if (isDisableMiniPlayerMode) return
@@ -416,7 +427,6 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
                 // そして現在かけるべきマージンを計算
                 val currentTopMargin = maxTopMargin * progress
                 topMargin = currentTopMargin.roundToInt()
-
             }
         }
     }
@@ -455,8 +465,8 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
         // コールバックを送信
         fullscreenListenerList.forEach { function -> function.invoke(isFullScreenMode) }
         playerView!!.updateLayoutParams<LinearLayout.LayoutParams> {
-            // 幅を治す。マルチウィンドウ対策
-            width = if (isLandScape()) DisplaySizeTool.getDisplayWidth(context) / 2 else DisplaySizeTool.getDisplayWidth(context)
+            // 幅を治す
+            width = defaultPlayerWidth
             height = (width / 16) * 9
             // 横画面時はプレイヤーを真ん中にしたい。ので上方向のマージンを設定して真ん中にする
             if (isLandScape()) {
@@ -631,7 +641,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     fun isDefaultScreen() = progress == 0.0f
 
     /** [isDefaultScreen]の代替関数 */
-    fun alternativeIsDefaultScreen() = playerView!!.width == defaultPlayerWidth
+    fun alternativeIsDefaultScreen() = playerView?.width == if (!isFullScreenMode) defaultPlayerWidth else parentViewGroupWidth
 
     /**
      * ミニプレイヤーのときはtrueを返す
@@ -647,8 +657,7 @@ class PlayerParentFrameLayout(context: Context, attributeSet: AttributeSet) : Fr
     fun isMiniPlayerCheckSoft() = progress > 0.5f
 
     /** [isMiniPlayerCheckHard]の代替関数 */
-    fun alternativeIsMiniPlayer() = playerView!!.width == miniPlayerWidth
-
+    fun alternativeIsMiniPlayer() = playerView?.width == miniPlayerWidth
 
     /**
      * 画面が横向きかどうかを返す

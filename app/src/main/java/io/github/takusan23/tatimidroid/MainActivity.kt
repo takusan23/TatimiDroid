@@ -1,6 +1,5 @@
 package io.github.takusan23.tatimidroid
 
-import android.app.NotificationManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -108,9 +107,6 @@ class MainActivity : AppCompatActivity() {
             supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(darkModeSupport.context)))
         }
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(1234)
-
         /**
          * 共有から起動した
          *
@@ -121,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             lunchShareIntent()
             // ブラウザから起動
             launchBrowser()
-            // AppShortcutから起動した際
+            // ホーム画面に追加から起動した際
             launchPlayer()
         }
 
@@ -134,6 +130,9 @@ class MainActivity : AppCompatActivity() {
 
         // 履歴ボタン・接続ボタン等初期化
         initButton()
+
+        // クラッシュレポート保存など
+        initCrashReportGenerator()
 
         // 画面切り替え
         viewBinding.mainActivityBottomNavigationView.setOnNavigationItemSelectedListener { item ->
@@ -198,6 +197,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    /** クラッシュレポートを回収する */
+    private fun initCrashReportGenerator() {
+        if (CrashReportGenerator.isEnableSaveCrashReport(this)) {
+            CrashReportGenerator.initCrashReportGenerator(this)
+        }
     }
 
     /** ブラウザから起動 */

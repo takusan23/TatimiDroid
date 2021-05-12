@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -32,6 +31,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.compose.OrigamiLayout
 import io.github.takusan23.tatimidroid.compose.TagButton
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoTagItemData
@@ -39,7 +39,6 @@ import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoHTMLSeriesData
 import io.github.takusan23.tatimidroid.nicoapi.user.UserData
 import io.github.takusan23.tatimidroid.nicovideo.adapter.NicoVideoListAdapter
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.tool.*
 import kotlinx.coroutines.launch
 
@@ -135,13 +134,13 @@ fun NicoVideoInfoCard(
                     // タイトル
                     Text(
                         text = nicoVideoData?.title ?: "",
-                        style = TextStyle(fontSize = 18.sp),
+                        fontSize = 20.sp,
                         maxLines = 2,
                     )
                     // 動画ID表示
                     Text(
                         text = nicoVideoData?.videoId ?: "",
-                        style = TextStyle(fontSize = 12.sp),
+                        fontSize = 12.sp,
                     )
                 }
                 // いいねぼたん

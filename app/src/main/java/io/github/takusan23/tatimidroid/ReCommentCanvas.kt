@@ -2,8 +2,10 @@ package io.github.takusan23.tatimidroid
 
 import android.content.Context
 import android.graphics.*
+import android.os.Build
 import android.util.AttributeSet
 import android.view.View
+import android.view.WindowManager
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.*
 import java.util.*
@@ -36,7 +38,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     private val drawShitaCommentList = arrayListOf<ReDrawCommentData>()
 
     /** アスキーアート（コメントアート・職人）のために使う。最後に追加しあ高さが入る */
-    private var oldHeight = 0
+    private var prevHeight = 0
+
+    /** アスキーアート（コメントアート・職人）のために使う。最後に追加した移動速度[ReDrawCommentData.commentUpdateMsMoveSize]が入る*/
+    private var prevCommentUpdateMsMoveSize = 0
 
     /** 黒枠 */
     private val blackPaint = Paint().apply {
@@ -44,7 +49,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         strokeWidth = 2.0f
         style = Paint.Style.STROKE
         textSize = 20 * resources.displayMetrics.scaledDensity
-        color = Color.parseColor("#000000")
+        color = Color.BLACK
     }
 
     /** 白色 */
@@ -65,9 +70,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     /** コメントの枠を表示する際はtrue。PC版とかで自分のコメントに枠が付くあれ。 */
     val watashiHaDeveloper by lazy { prefSetting.getBoolean("dev_setting_comment_canvas_text_rect", false) }
 
-    /**
-     * フォント変更
-     * */
+    /** フォント変更 */
     var typeFace: Typeface? = null
         set(value) {
             paint.typeface = value
@@ -93,24 +96,34 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     private val drewedList = arrayListOf<Long>()
     private var tmpPosition = 0L
 
-    /**
-     * コメントの移動する大きさ。
-     *
-     * でふぉは-5です。
-     * */
-    private val commentMoveMinus by lazy { prefSetting.getString("setting_comment_speed", "5")?.toInt() ?: 5 }
+    /** コメント表示時間 */
+    private val commentDrawTime by lazy { prefSetting.getString("setting_comment_canvas_show_time", "5")?.toInt() ?: 5 }
 
-    /**
-     * 16ミリ秒ごと[commentMoveMinus]分動かす。
-     *
-     * 1秒60回(60fps)になる(1000ms/60fps=16)
-     * */
-    private val commentUpdateMs by lazy { getCommentCanvasUpdateMs() }
+    /** 1秒で何回画面を更新するか。多分60FPSがデフォ */
+    private val fps by lazy {
+        // FPSを手動で変更するのかどうか
+        val isEditFPS = prefSetting.getBoolean("setting_comment_canvas_edit_fps_enable", false)
+        if (isEditFPS) {
+            // ユーザー定義
+            prefSetting.getString("setting_comment_canvas_edit_fps", "60")?.toFloat() ?: 60f
+        } else {
+            // 端末のリフレッシュレートを取得
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // Context#getDisplay()を使うとポップアップ時に４ぬ
+                display?.refreshRate ?: 60f // 取れない場合は60
+            } else {
+                (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.refreshRate
+            }
+        }
+    }
+
+    /** 何ミリ秒で画面を更新するか */
+    private val commentUpdateMs by lazy { (1000 / fps).toLong() }
 
     /** コメントの透明度 */
-    val commentAlpha = prefSetting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F
+    private val commentAlpha = prefSetting.getString("setting_comment_alpha", "1.0")?.toFloat() ?: 1.0F
 
-    /** コメントに影を付ける設定が有効ならtrue */
+    /** コメントに影を付ける量 */
     private val textShadow = prefSetting.getString("setting_comment_canvas_text_shadow", "1.0")?.toFloatOrNull() ?: 1f
 
     /**
@@ -142,10 +155,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                 for (reDrawCommentData in drawNakaCommentList.toList()
                     .filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
                     if (reDrawCommentData != null) {
-                        // 文字が長いときは早くする。アスキーアートのときは速度一定
-                        val speed = if (reDrawCommentData.asciiArt) commentMoveMinus else commentMoveMinus + (reDrawCommentData.comment.length / 8)
-                        reDrawCommentData.rect.left -= speed
-                        reDrawCommentData.rect.right -= speed
+                        reDrawCommentData.rect.left -= reDrawCommentData.commentUpdateMsMoveSize
+                        reDrawCommentData.rect.right -= reDrawCommentData.commentUpdateMsMoveSize
                         // なお画面外は消す
                         if (reDrawCommentData.rect.right < 0) {
                             drawNakaCommentList.remove(reDrawCommentData)
@@ -212,38 +223,42 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     fun initCommentList(commentList: List<CommentJSONParse>, videoDurationMs: Long) {
         if (videoDurationMs < 0 || commentList.isEmpty()) return
         clearCommentList()
-        thread {
-            // 動画の3秒前のvposを出す
-            val endVpos = (videoDurationMs - 3000) / 10 // 100vpos = 1sec
+        // View#getWidth()が0返すのでpost
+        post {
+            thread {
+                // 動画の3秒前のvposを出す
+                val endVpos = (videoDurationMs - 3000) / 10 // 100vpos = 1sec
 
-            /**
-             * コメントのvposをずらす
-             * 10秒に表示するコメントを、10秒に画面外に追加してたら手遅れなのでずらす
-             *
-             * あとディープコピーしないと共有されるので
-             * */
-            val deepCopyList = commentList.map { commentJSONParse -> commentJSONParse.deepCopy(commentJSONParse) }
-            deepCopyList.forEach { commentJSON ->
-                // 固定コメントは特に何もしない
-                if (!checkUeComment(commentJSON.mail) && !commentJSON.mail.contains("shita")) {
-                    // 大きさ計測
-                    val fontSize = getCommandFontSize(commentJSON.mail).toInt()
-                    // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
-                    val measure = min(getBlackCommentTextPaint(fontSize).measureText(commentJSON.comment).toInt(), finalWidth)
-                    // アスキーアートは速度一定
-                    val isAsciiArt = commentJSON.comment.contains("\n")
-                    val commentMoveSize = if (isAsciiArt) commentMoveMinus else (commentMoveMinus + (commentJSON.comment.length / 8))
-                    // 引いておく
-                    val minusVPos = ((measure / commentMoveSize) * commentUpdateMs) / 10L
-                    // 0以上で。
-                    commentJSON.vpos = max((commentJSON.vpos.toInt() - minusVPos.toInt()), 0).toString()
-                    // 動画終了3秒前のコメントはすべてまとめる
-                    if (commentJSON.vpos.toLong() > endVpos) {
-                        commentJSON.vpos = endVpos.toString()
+                /**
+                 * コメントのvposをずらす
+                 * 10秒に表示するコメントを、10秒に画面外に追加してたら手遅れなのでずらす
+                 *
+                 * あとディープコピーしないと共有されるので
+                 * */
+                val deepCopyList = commentList.map { commentJSONParse -> commentJSONParse.deepCopy(commentJSONParse) }
+                deepCopyList.forEach { commentJSON ->
+                    // 固定コメントは特に何もしない
+                    if (!checkUeComment(commentJSON.mail) && !commentJSON.mail.contains("shita")) {
+                        // 大きさ計測
+                        val fontSize = getCommandFontSize(commentJSON.mail).toInt()
+                        // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
+                        val measure = min(getBlackCommentTextPaint(fontSize).measureText(commentJSON.comment).toInt(), finalWidth)
+                        // 動かす範囲。画面外含めて
+                        val widthMinusCommentMeasure = finalWidth + measure + measure
+                        // FPSと表示時間を掛けて、コメントの幅で割ればおｋ
+                        val moveSize = (widthMinusCommentMeasure / (commentDrawTime * fps)).toInt()
+                        // 引いておく
+                        val minusVPos = ((measure / moveSize) * commentUpdateMs) / 10L
+                        // 0以上で。
+                        commentJSON.vpos = max((commentJSON.vpos.toInt() - minusVPos.toInt()), 0).toString()
+                        // 動画終了3秒前のコメントはすべてまとめる
+                        if (commentJSON.vpos.toLong() > endVpos) {
+                            commentJSON.vpos = endVpos.toString()
+                        }
                     }
                 }
+                rawCommentList = deepCopyList as ArrayList<CommentJSONParse>
             }
-            rawCommentList = deepCopyList as ArrayList<CommentJSONParse>
         }
     }
 
@@ -276,27 +291,30 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             drawNakaCommentList.clear()
             drawUeCommentList.clear()
             drawShitaCommentList.clear()
-            // １秒でどれだけ移動させるか。1000ミリ秒に何回呼ばれるかを求めて後は移動分掛ける
-            val moveValue = (1000 / commentUpdateMs).toInt() * commentMoveMinus
-            // 画面のサイズ分取り出す？
-            repeat((finalWidth.toFloat() / moveValue).roundToInt()) { sec ->
-                val currentPos = currentPos
+            // コメント表示時間さかのぼって描画
+            repeat(commentDrawTime) { sec ->
                 val currentPosSec = currentPos / 1000
                 val drawList = rawCommentList.filter { commentJSONParse ->
                     (commentJSONParse.vpos.toLong() / 100L) == (currentPosSec - sec)
                 }
-                drawList.forEach {
+                drawList.forEach { commentJSON ->
                     // 追加可能か（livedl等TSのコメントはコメントIDが無い？のでvposで代替する）
                     // なんかしらんけど負荷がかかりすぎるとここで ConcurrentModificationException 吐くので Array#toList() を使う
                     val isAddable = drewedList.toList()
-                        .none { id -> if (it.commentNo.isEmpty()) it.dateUsec.toLong() == id else it.commentNo.toLong() == id } // 条件に合わなければtrue
+                        .none { id -> if (commentJSON.commentNo.isEmpty()) commentJSON.dateUsec.toLong() == id else commentJSON.commentNo.toLong() == id } // 条件に合わなければtrue
                     if (isAddable) {
                         // コメントIDない場合はdate_usecで代替する
-                        drewedList.add(if (it.commentNo.isEmpty()) it.dateUsec.toLong() else it.commentNo.toLong())
-                        // コメントが長いときは早く流す
-                        val speed = commentMoveMinus + (it.comment.length / 8)
+                        drewedList.add(if (commentJSON.commentNo.isEmpty()) commentJSON.dateUsec.toLong() else commentJSON.commentNo.toLong())
+                        // 大きさ計測
+                        val fontSize = getCommandFontSize(commentJSON.mail).toInt()
+                        // 画面外まではみ出るコメントは強制的にコメントキャンバスの幅に合わせる
+                        val measure = min(getBlackCommentTextPaint(fontSize).measureText(commentJSON.comment).toInt(), finalWidth)
+                        // 動かす範囲。画面外含めて
+                        val widthMinusCommentMeasure = finalWidth + measure + measure
+                        // 1秒で動かす大きさ
+                        val moveSize = (widthMinusCommentMeasure / commentDrawTime)
                         // コメント登録。
-                        drawComment(it, currentPos + (sec * 1000), (sec * moveValue) + speed)
+                        drawComment(commentJSON, currentPos + (sec * 1000), (sec * moveSize))
                     }
                 }
             }
@@ -304,7 +322,6 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             postInvalidate()
         }
     }
-
 
     /** [invalidate]呼ぶとここに来る */
     override fun onDraw(canvas: Canvas?) {
@@ -411,7 +428,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         when {
             // うえ
             isUe -> {
-                oldHeight = 0
+                prevHeight = 0
                 commentList.forEach { comment ->
                     commentJSONParse.comment = comment
                     drawUeComment(commentJSONParse, videoPos)
@@ -419,34 +436,20 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             }
             // した
             isShita -> {
-                oldHeight = 0
+                prevHeight = 0
                 commentList.reversed().forEach { comment ->
                     commentJSONParse.comment = comment
-                    drawNakaComment(commentJSONParse, videoPos, addPos, commentList.size > 1, commentList.size)
+                    drawShitaComment(commentJSONParse, videoPos)
                 }
             }
             // 通常
             else -> {
-                oldHeight = 0
+                prevHeight = 0
                 commentList.forEach { comment ->
                     commentJSONParse.comment = comment
                     drawNakaComment(commentJSONParse, videoPos, addPos, commentList.size > 1, commentList.size)
                 }
             }
-        }
-    }
-
-    /**
-     * 複数行コメントな中コメントを描画します。
-     * @param commentJSONList コメントを改行コードで分割した配列。[String.split]で\n区切りで分割してね
-     * */
-    private fun drawAsciiArtNakaComment(commentList: List<String>, commentJSON: CommentJSONParse, videoPos: Long, addPos: Int = 0) {
-        // たかさ初期化
-        oldHeight = 0
-        commentList.forEach { comment ->
-            commentJSON.comment = comment
-            // アスキーアートで登録
-            drawNakaComment(commentJSON, videoPos, addPos, true, commentList.size)
         }
     }
 
@@ -472,9 +475,9 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         if (isAsciiArtUseHeightMax) {
             // 画面外に収まらないコメントの場合
             // コメントアート、アスキーアート
-            addRect.top = oldHeight
+            addRect.top = prevHeight
             addRect.bottom = addRect.top + fontSize
-            oldHeight = addRect.bottom
+            prevHeight = addRect.bottom
         } else {
             // 全パターん
             val tmpList = drawNakaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.rect.top }
@@ -492,6 +495,22 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                 addRect.bottom = addRect.top + fontSize
             }
         }
+        // 動かす範囲。画面外含めて
+        val widthMinusCommentMeasure = finalWidth + measure + measure
+        // FPSと表示時間を掛けて、コメントの幅で割ればおｋ
+        val moveSize = (widthMinusCommentMeasure / (commentDrawTime * fps)).toInt()
+        // CAは同じ速度にする
+        val aaSupportMoveSize = when {
+            asciiArt && prevCommentUpdateMsMoveSize == 0 -> {
+                prevCommentUpdateMsMoveSize = moveSize
+                moveSize
+            }
+            asciiArt -> prevCommentUpdateMsMoveSize
+            else -> {
+                prevCommentUpdateMsMoveSize = 0
+                moveSize
+            }
+        }
         // 配列に入れる
         val data = ReDrawCommentData(
             comment = comment,
@@ -503,6 +522,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             measure = measure,
             asciiArt = asciiArt,
             colorCode = getColor(command),
+            commentUpdateMsMoveSize = aaSupportMoveSize,
         )
         drawNakaCommentList.add(data)
     }
@@ -536,6 +556,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             addRect.top = randomValue
             addRect.bottom = addRect.top + fontSize
         }
+        // 動かす範囲。画面外含めて
+        val widthMinusCommentMeasure = finalWidth + measure + measure
+        // FPSと表示時間を掛けて、コメントの幅で割ればおｋ
+        val moveSize = (widthMinusCommentMeasure / (commentDrawTime * fps)).toInt()
         // 配列に入れる
         val data = ReDrawCommentData(
             comment = comment,
@@ -546,6 +570,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             measure = measure,
             fontSize = fontSize.toFloat(),
             colorCode = getColor(command),
+            commentUpdateMsMoveSize = moveSize,
         )
         drawUeCommentList.add(data)
     }
@@ -579,6 +604,10 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             addRect.bottom = randomValue + fontSize
             addRect.top = randomValue
         }
+        // 動かす範囲。画面外含めて
+        val widthMinusCommentMeasure = finalWidth + measure + measure
+        // FPSと表示時間を掛けて、コメントの幅で割ればおｋ
+        val moveSize = (widthMinusCommentMeasure / (commentDrawTime * fps)).toInt()
         // 配列に入れる
         val data = ReDrawCommentData(
             comment = comment,
@@ -589,6 +618,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             measure = measure,
             fontSize = fontSize.toFloat(),
             colorCode = getColor(command),
+            commentUpdateMsMoveSize = moveSize,
         )
         drawShitaCommentList.add(data)
     }
@@ -633,15 +663,6 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         }
     }
 
-    /**
-     * 指定したフォントサイズのPaintを生成する関数
-     * */
-    private fun getBlackCommentTextPaint(fontSize: Int): Paint {
-        val paint = Paint()
-        paint.textSize = fontSize.toFloat()
-        return paint
-    }
-
     /** 高さをランダムで決める */
     private fun randomValue(fontSize: Float): Int {
         return if (finalHeight > fontSize) {
@@ -652,15 +673,25 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     }
 
     /**
-     * コマンドの色に合わせてPaintを切り替える
+     * 指定したフォントサイズのPaintを生成する関数
+     * */
+    private fun getBlackCommentTextPaint(fontSize: Int): Paint {
+        val paint = Paint()
+        paint.textSize = fontSize.toFloat()
+        return paint
+    }
+
+    /**
+     * コマンドの色にをPaintへセットする
      * @param colorCode カラーコード。16進数
      * */
     private fun setCommandPaint(colorCode: String, fontSize: Float) {
         paint.textSize = fontSize
         blackPaint.textSize = fontSize
         paint.color = Color.parseColor(colorCode)
-        paint.alpha = (commentAlpha * 225).toInt() // 0 ~ 225 の範囲で指定するため 225かける
-        blackPaint.alpha = (commentAlpha * 225).toInt() // 0 ~ 225 の範囲で指定するため 225かける
+        // 0 ~ 225 の範囲で指定するため 225かける。日経225
+        paint.alpha = (commentAlpha * 225).toInt()
+        blackPaint.alpha = (commentAlpha * 225).toInt()
         // テキストに影をつける
         paint.setShadowLayer(textShadow, textShadow, textShadow, Color.BLACK)
     }
@@ -771,6 +802,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
  * @param fontSize 文字の大きさ
  * @param measure コメントの幅
  * @param colorCode コメントの色
+ * @param commentUpdateMsMoveSize [commentUpdateMs]でどれだけ動かすか
  * */
 class ReDrawCommentData(
     val comment: String,
@@ -781,5 +813,6 @@ class ReDrawCommentData(
     val fontSize: Float,
     val measure: Float,
     val asciiArt: Boolean = false,
-    val colorCode: String = "#ffffff"
+    val colorCode: String = "#ffffff",
+    val commentUpdateMsMoveSize: Int,
 )

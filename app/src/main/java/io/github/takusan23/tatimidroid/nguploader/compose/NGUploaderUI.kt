@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat
 fun NGUploaderTitle() {
     Column {
         Text(
-            text = "NG投稿者機能（ベータ）",
+            text = "NG投稿者機能（実験中）",
             modifier = Modifier
                 .padding(5.dp)
                 .fillMaxWidth(),
@@ -73,7 +73,7 @@ fun NGUploaderDescription() {
     Text(
         text = """
             NG投稿者として登録すると、その投稿者が投稿した動画のIDを定期的に取得します。
-            取得した動画IDが検索結果に入っていれば除外して表示します。
+            取得した動画IDが検索結果、ランキングに入っていれば除外して表示します。
             動画一覧のメニューを押してNG投稿者登録が可能です。
         """.trimIndent(),
         modifier = Modifier

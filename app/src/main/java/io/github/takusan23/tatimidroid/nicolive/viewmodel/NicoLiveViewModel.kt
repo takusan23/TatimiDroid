@@ -345,7 +345,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
      * @param position コメントの位置。これらは省略が可能
      * @param color コメントの色。これらは省略が可能
      * */
-    suspend fun sendComment(comment: String, color: String = "white", size: String = "medium", position: String = "naka"): Unit = withContext(Dispatchers.IO) {
+    fun sendComment(comment: String, color: String = "white", size: String = "medium", position: String = "naka") {
         if (comment != "\n") {
             // 視聴セッションWebSocketにコメントを送信する
             nicoLiveHTML.sendPOSTWebSocketComment(comment, color, size, position)
@@ -376,7 +376,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     private fun setLiveTime() {
         // 1秒ごとに
         viewModelScope.launch {
-            while (true) {
+            while (isActive) {
                 delay(1000)
                 // 現在の時間
                 val nowUnixTime = System.currentTimeMillis() / 1000L
@@ -392,7 +392,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             // とりあえず一回目は10秒後計算
             delay(10000)
             calcToukei()
-            while (true) {
+            while (isActive) {
                 // あとは一分間間隔で計算する
                 delay(60000)
                 calcToukei()

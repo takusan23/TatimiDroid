@@ -3,7 +3,6 @@ package io.github.takusan23.tatimidroid.activity
 import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -38,7 +37,7 @@ class KonoApp : AppCompatActivity() {
     /**
      * バージョンとか
      * */
-    val version = "\uD83C\uDF38 2021/04/26 \uD83C\uDF38 "
+    val version = "\uD83C\uDF8F 2021/05/13 \uD83C\uDF8F"
     val codeName1 = "（く）" // https://dic.nicovideo.jp/a/ニコニコ動画の変遷
 
     /** findViewById駆逐 */
@@ -63,9 +62,9 @@ class KonoApp : AppCompatActivity() {
         viewBinding.activityKonoAppCodenameTextView.text = "$appVersion\n$version\n$codeName1"
 
         viewBinding.activityKonoAppCardView.setOnClickListener {
-            Toast.makeText(this, "新生活頑張って", Toast.LENGTH_SHORT).show()
+            //  Toast.makeText(this, "ゴールデンウィーク？", Toast.LENGTH_SHORT).show()
             runEasterEgg()
-            runSakura()
+            runBackground()
         }
 
         // リンク集展開/非表示など
@@ -106,12 +105,12 @@ class KonoApp : AppCompatActivity() {
         }
     }
 
-    /** 桜を流す */
-    private fun runSakura() {
-        val sakura = "\uD83C\uDF38"
+    /** 桜とかを流す */
+    private fun runBackground() {
+        val drawText = "\uD83D\uDC1F"
         lifecycleScope.launch {
             repeat(20) {
-                val drawText = sakura.repeat(Random.nextInt(1, 10))
+                val drawText = drawText.repeat(Random.nextInt(1, 10))
                 val size = "small"
                 val commentJSON = CommentJSONParse("{}", "arena", "sm157")
                 commentJSON.comment = drawText

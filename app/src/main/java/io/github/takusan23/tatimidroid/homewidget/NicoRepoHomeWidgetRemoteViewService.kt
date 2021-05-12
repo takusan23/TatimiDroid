@@ -3,26 +3,20 @@ package io.github.takusan23.tatimidroid.homewidget
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.drawable.Drawable
+import android.text.format.DateUtils
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.text.HtmlCompat
 import androidx.preference.PreferenceManager
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoAPIX
 import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoDataClass
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.tool.isDarkMode
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * ホーム画面に置くウイジェットでListViewを使うときに使う
@@ -96,6 +90,8 @@ class NicoRepoHomeWidgetRemoteViewService : RemoteViewsService() {
                     setTextViewText(R.id.home_widget_nicorepo_item_name_text_view, nicoRepoData.data.userName)
                     setTextViewText(R.id.home_widget_nicorepo_item_description_text_view, HtmlCompat.fromHtml(nicoRepoData.data.message, HtmlCompat.FROM_HTML_MODE_COMPACT))
                     setTextViewText(R.id.home_widget_nicorepo_item_title_text_view, nicoRepoData.data.title)
+                    // 1時間前みたいな表記にする
+                    setTextViewText(R.id.home_widget_nicorepo_item_time_text_view, DateUtils.getRelativeTimeSpanString(nicoRepoData.data.date))
                     // 画像
                     setImageViewBitmap(R.id.home_widget_nicorepo_item_avater_image_view, nicoRepoData.iconBitmap)
                     setImageViewBitmap(R.id.home_widget_nicorepo_item_thumb_image_view, nicoRepoData.thumbBitmap)

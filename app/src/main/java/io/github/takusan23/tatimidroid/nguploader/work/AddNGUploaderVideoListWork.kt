@@ -7,8 +7,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import io.github.takusan23.tatimidroid.nguploader.NGUploaderTool
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nguploader.NGUploaderTool
 
 /**
  * NG投稿者に追加したときに、その投稿者が投稿した動画を取得する。
@@ -59,7 +59,7 @@ class AddNGUploaderVideoListWork(private val context: Context, private val param
         notification.apply {
             setContentTitle("NG投稿者追加通知")
             setContentText("動画をNGに追加しました。${count}件")
-            setSmallIcon(R.drawable.ic_do_not_disturb_alt_black_24dp)
+            setSmallIcon(R.drawable.ng_uploader_icon)
         }
         // 投稿
         notificationManager.notify(NOTIFIACTION_ID, notification.build())

@@ -519,7 +519,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
             if (lastVpos != null) {
                 playerDurationMs.postValue(lastVpos * 10) // 100vpos = 1s なので 10かけて 1000ms = 1s にする
             }
-            while (true) {
+            while (isActive) {
                 // プログレスバー進める
                 delay(100)
                 // 再生中 でなお 動画の時間がわかってるとき のみプログレスバーを進める

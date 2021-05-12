@@ -5,6 +5,7 @@ import io.github.takusan23.tatimidroid.tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import org.json.JSONObject
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
 import java.util.*
@@ -142,6 +143,39 @@ class NicoVideoSearchHTML {
             "再生時間が短い順" -> Pair("l", "a")
             else -> Pair("h", "d")
         }
+    }
+
+    /**
+     * 検索候補、サジェストを取得するAPIを叩く関数
+     *
+     * @param searchText 検索ワード
+     * @param userSession ユーザーセッション
+     * */
+    suspend fun getSearchSuggest(userSession: String, searchText: String) = withContext(Dispatchers.IO) {
+        val request = Request.Builder().apply {
+            url("https://sug.search.nicovideo.jp/suggestion/expand/$searchText")
+            addHeader("Cookie", "user_session=$userSession")
+            addHeader("User-Agent", "TatimiDroid;@takusan_23")
+            get()
+        }.build()
+        okHttpClient.newCall(request).execute()
+    }
+
+    /**
+     * [getSearchSuggest]で取得したJSONをパースする関数
+     *
+     * @param responseString レスポンスボデー
+     * @return 文字列配列
+     * */
+    suspend fun parseSearchSuggest(responseString: String?) = withContext(Dispatchers.Default) {
+        // サジェスト結果
+        val suggestList = arrayListOf<String>()
+        val jsonObject = JSONObject(responseString)
+        val jsonArray = jsonObject.getJSONArray("candidates")
+        for (i in 0 until jsonArray.length()) {
+            suggestList.add(jsonArray.getString(i))
+        }
+        suggestList
     }
 
 }

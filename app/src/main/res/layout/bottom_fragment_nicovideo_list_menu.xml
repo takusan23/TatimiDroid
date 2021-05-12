@@ -57,11 +57,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clickable="true"
-                android:drawableStart="@drawable/ic_outline_block_24px"
+                android:drawableStart="@drawable/ng_uploader_icon"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground"
                 android:padding="10dp"
-                android:text="NG投稿者として登録（検索から非表示）" />
+                android:text="NG投稿者として登録（検索、ランキングから非表示）" />
 
             <TextView
                 android:id="@+id/bottom_fragment_nicovideo_list_menu_mylist_text_view"

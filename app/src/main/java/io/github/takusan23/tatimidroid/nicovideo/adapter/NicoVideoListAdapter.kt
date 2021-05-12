@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.nicovideo.adapter
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,10 +18,10 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
-import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
-import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
+import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
 import io.github.takusan23.tatimidroid.tool.AnniversaryDate
 import io.github.takusan23.tatimidroid.tool.calcAnniversary
@@ -101,7 +102,7 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>, priv
             }
             // 再生時間。ない場合がある
             if (data.duration != null && data.duration > 0) {
-                val formatTime = SimpleDateFormat("mm:ss").format(data.duration * 1000)
+                val formatTime = DateUtils.formatElapsedTime(data.duration)
                 durationTextView.isVisible = true
                 durationTextView.text = formatTime
             } else {
@@ -153,7 +154,7 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>, priv
             // サムネイル
             thumImageView.imageTintList = null
             Glide.with(thumImageView).load(data.thum).apply {
-                if(!isUseComposeAndroidView){
+                if (!isUseComposeAndroidView) {
                     transition(DrawableTransitionOptions.withCrossFade())
                 }
                 transform(CenterCrop(), RoundedCorners(10))

@@ -7,20 +7,22 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.PopupMenu
-import android.widget.Toast
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
-import io.github.takusan23.tatimidroid.nguploader.bottomfragment.NGUploaderBottomFragment
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoSearchHTML
-import io.github.takusan23.tatimidroid.nicovideo.adapter.NicoVideoListAdapter
-import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoSearchViewModel
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.tool.getThemeColor
 import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoSearchBinding
+import io.github.takusan23.tatimidroid.nguploader.bottomfragment.NGUploaderBottomFragment
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoSearchHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
+import io.github.takusan23.tatimidroid.nicovideo.adapter.AllShowDropDownMenuAdapter
+import io.github.takusan23.tatimidroid.nicovideo.adapter.NicoVideoListAdapter
+import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoSearchHistoryBottomFragment
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoSearchViewModel
+import io.github.takusan23.tatimidroid.tool.getThemeColor
 
 /**
  * ニコ動検索Fragment
@@ -71,6 +73,10 @@ class NicoVideoSearchFragment : Fragment() {
             viewBinding.fragmentNicovideoSearchRecyclerView.apply {
                 (layoutManager as LinearLayoutManager).scrollToPositionWithOffset(position, yPos)
             }
+            // 検索ワードなどをTextViewへ入れる
+            viewBinding.fragmentNicovideoSearchInput.setText(viewModel.currentSearchWord ?: "")
+            viewBinding.fragmentNicovideoSearchSortChip.text = viewModel.currentSearchSortName ?: ""
+            viewBinding.fragmentNicovideoSearchToggleGroup.check(if (viewModel.currentSearchIsTagSearch == true) R.id.fragment_nicovideo_search_tag_button else R.id.fragment_nicovideo_search_word_button)
         }
 
         // 検索結果タグ配列
@@ -92,8 +98,6 @@ class NicoVideoSearchFragment : Fragment() {
             }
         }
 
-        // 検索ワード
-        viewBinding.fragmentNicovideoSearchInput.setText(viewModel.currentSearchWord ?: "")
 
         // 読み込み中LiveData
         viewModel.isLoadingLiveData.observe(viewLifecycleOwner) { isLoading ->
@@ -104,6 +108,27 @@ class NicoVideoSearchFragment : Fragment() {
         viewBinding.fragmentNicovideoSearchImageView.setOnClickListener {
             search()
         }
+
+        // サジェスト
+        val adapter = AllShowDropDownMenuAdapter(requireContext(), android.R.layout.simple_list_item_1, arrayListOf())
+        viewBinding.fragmentNicovideoSearchInput.apply {
+            threshold = 1
+            setAdapter(adapter)
+            setOnItemClickListener { parent, view, position, id ->
+                // サジェスト押したら検索
+                adapter.getItem(position)?.let { viewModel.search(it) }
+                // フォーカスを外す
+                clearFocus()
+            }
+        }
+        // サジェスト結果を受け取る
+        viewModel.suggestListLiveData.observe(viewLifecycleOwner) { suggestList ->
+            adapter.clear()
+            adapter.addAll(suggestList)
+        }
+
+        // サジェスト送信
+        viewBinding.fragmentNicovideoSearchInput.addTextChangedListener { text -> viewModel.getSuggest(text.toString()) }
 
         // argumentの値を使って検索。
         val searchText = arguments?.getString("search")
@@ -135,13 +160,17 @@ class NicoVideoSearchFragment : Fragment() {
         }
 
         // たぐ、並び替えメニュー押しても検索できるように
-        viewBinding.fragmentNicovideoSearchToggleGroup.addOnButtonCheckedListener { group, checkedId, isChecked ->
-            search()
-        }
+        viewBinding.fragmentNicovideoSearchTagButton.setOnClickListener { search() }
+        viewBinding.fragmentNicovideoSearchWordButton.setOnClickListener { search() }
 
         // NG投稿者機能（仮）
         viewBinding.fragmentNicovideoNgUploaderImageView.setOnClickListener {
             NGUploaderBottomFragment().show(childFragmentManager, "ng_uploader")
+        }
+
+        // 検索履歴
+        viewBinding.fragmentNicovideoSearchHistoryImageView.setOnClickListener {
+            NicoVideoSearchHistoryBottomFragment().show(childFragmentManager, "history")
         }
 
     }
@@ -206,22 +235,5 @@ class NicoVideoSearchFragment : Fragment() {
             false
         }
     }
-
-    private fun showToast(message: String) {
-        if (isAdded) {
-            activity?.runOnUiThread {
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-/*
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putSerializable("list", recyclerViewList)
-        outState.putInt("page", page)
-    }
-*/
-
 
 }

@@ -10,10 +10,6 @@ import io.github.takusan23.tatimidroid.room.database.NicoHistoryDB
  * 端末内履歴データベース初期化（いやデータベース吹っ飛ばすって意味じゃなくて初期設定的な）
  * */
 object NicoHistoryDBInit {
-
-    /** [NicoHistoryDB]のデータベースの名前 */
-    const val NICO_HISTORY_DB_NAME = "NicoHistory.db"
-
     private lateinit var nicoHistoryDB: NicoHistoryDB
 
     /**

@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.fragment.app.Fragment
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.tool.getThemeColor
 import io.github.takusan23.tatimidroid.databinding.FragmentProgramListBinding
+import io.github.takusan23.tatimidroid.tool.getThemeColor
 
 /**
  * 番組一覧Fragmentを乗せるFragment
@@ -69,9 +69,8 @@ class ProgramListFragment : Fragment() {
      * Fragmentを置く関数
      * */
     private fun setFragment(fragment: Fragment) {
-        if (!isAdded) return
-        requireActivity().runOnUiThread {
-            parentFragmentManager.beginTransaction().replace(viewBinding.fragmentProgramListLinearLayout.id, fragment).commit()
+        if (isAdded) {
+            childFragmentManager.beginTransaction().replace(R.id.fragment_program_list_linear_layout, fragment).commit()
             // 縦画面時、親はMotionLayoutになるんだけど、横画面時はLinearLayoutなのでキャストが必要
             (viewBinding.fragmentProgramListParent as? MotionLayout)?.transitionToStart()
         }
@@ -84,8 +83,7 @@ class ProgramListFragment : Fragment() {
      * */
     private fun setCommunityListFragment(page: Int) {
         // Fragmentが設置されてなければ落とす
-        if (!isAdded) return
-        activity?.runOnUiThread {
+        if (isAdded) {
             val communityListFragment = CommunityListFragment()
             val bundle = Bundle()
             bundle.putInt("page", page)

@@ -15,10 +15,11 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.CommentJSONParse
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoCommentBinding
 import io.github.takusan23.tatimidroid.nicovideo.adapter.NicoVideoAdapter
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
-import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoCommentBinding
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 
@@ -61,7 +62,7 @@ class NicoVideoCommentFragment : Fragment() {
             // 追いかけるボタンを利用しない
             setFollowingButtonVisibility(false)
             lifecycleScope.launch {
-                while (true) {
+                while (isActive) {
                     delay(1000)
                     scroll(viewModel.playerCurrentPositionMs)
                 }
@@ -77,7 +78,7 @@ class NicoVideoCommentFragment : Fragment() {
                 isAutoScroll = true
             }
             lifecycleScope.launch {
-                while (true) {
+                while (isActive) {
                     delay(1000)
                     // スクロール
                     setScrollFollowButton(viewModel.playerCurrentPositionMs)

@@ -352,33 +352,33 @@
             android:summary="@string/setting_comment_canvas_min_line_description"
             android:title="@string/setting_comment_canvas_min_line_title" />
 
+        <!-- 10行確保 -->
         <EditTextPreference
             android:defaultValue="10"
             android:dependency="setting_comment_canvas_min_line"
             android:key="setting_comment_canvas_min_line_value"
             android:title="@string/setting_comment_canvas_min_line_value_title" />
 
-        <EditTextPreference
-            android:defaultValue="16"
-            android:icon="@drawable/ic_outline_query_builder_24px"
-            android:key="setting_comment_canvas_timer"
-            android:summary="@string/setting_comment_canvas_timer_description"
-            android:title="@string/setting_comment_canvas_timer_title" />
-
         <SwitchPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:icon="@drawable/ic_sports_esports_24px"
-            android:key="setting_comment_canvas_speed_fps_enable"
-            android:summary="@string/setting_comment_canvas_fps_enable_description"
-            android:title="@string/setting_comment_canvas_fps_enable_title" />
+            android:key="setting_comment_canvas_edit_fps_enable"
+            android:summary="@string/setting_comment_canvas_edit_fps_enable_description"
+            android:title="@string/setting_comment_canvas_edit_fps_enable_title" />
 
         <EditTextPreference
             android:defaultValue="60"
-            android:dependency="setting_comment_canvas_speed_fps_enable"
+            android:dependency="setting_comment_canvas_edit_fps_enable"
             android:icon="@drawable/ic_outline_query_builder_24px"
-            android:key="setting_comment_canvas_speed_fps"
-            android:summary="@string/setting_comment_canvas_fps_description"
-            android:title="@string/setting_comment_canvas_fps_title" />
+            android:key="setting_comment_canvas_edit_fps"
+            android:title="@string/setting_comment_canvas_edit_fps_title" />
+
+        <EditTextPreference
+            android:defaultValue="5"
+            android:icon="@drawable/ic_outline_query_builder_24px"
+            android:key="setting_comment_canvas_show_time"
+            android:summary="@string/setting_comment_canvas_show_time_description"
+            android:title="@string/setting_comment_canvas_show_time_title" />
 
         <EditTextPreference
             android:defaultValue="1.0"
@@ -386,13 +386,6 @@
             android:key="setting_comment_alpha"
             android:summary="@string/setting_comment_canvas_alpha_descripton"
             android:title="@string/setting_comment_canvas_alpha_title" />
-
-        <EditTextPreference
-            android:defaultValue="5"
-            android:icon="@drawable/ic_speed_24px"
-            android:key="setting_comment_speed"
-            android:summary="@string/setting_comment_speed_description"
-            android:title="@string/setting_comment_speed_title" />
 
     </PreferenceCategory>
 
@@ -480,15 +473,30 @@
     </PreferenceCategory>
 
     <Preference
-        android:fragment="io.github.takusan23.tatimidroid.fragment.setting.DevSettingFragment"
-        android:icon="@drawable/ic_policy_black"
-        android:key="dev_setting"
-        android:summary="フリとかじゃなくて"
-        android:title="開発者用実験項目" />
-
-    <Preference
         android:icon="@drawable/ic_outline_delete_24px"
         android:key="delete_history"
         android:title="@string/delete_history_db_title" />
+
+    <PreferenceCategory
+        android:summary="フリとかじゃなくて"
+        android:title="開発者用設定"
+        app:initialExpandedChildrenCount="0">
+
+        <Preference
+            android:fragment="io.github.takusan23.tatimidroid.fragment.setting.DevSettingFragment"
+            android:icon="@drawable/ic_policy_black"
+            android:title="実験的" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="dev_setting_save_crash_report"
+            android:summary="Android/dataに保存されます"
+            android:title="クラッシュレポートを保存する" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="dev_setting_comment_canvas_text_rect"
+            android:title="テキストに枠を付けて検証する" />
+    </PreferenceCategory>
 
 </PreferenceScreen>

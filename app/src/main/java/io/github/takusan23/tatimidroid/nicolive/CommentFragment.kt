@@ -178,7 +178,7 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         customFont = CustomFont(context)
         // CommentCanvasにも適用するかどうか
         if (customFont.isApplyFontFileToCommentCanvas) {
-            viewBinding.commentFragmentCommentCanvas.typeface = customFont.typeface
+            viewBinding.commentFragmentCommentCanvas.typeFace = customFont.typeface
         }
 
         if (isNimadoMode) {

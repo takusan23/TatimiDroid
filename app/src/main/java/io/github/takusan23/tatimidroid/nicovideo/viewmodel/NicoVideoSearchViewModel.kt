@@ -8,10 +8,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.nguploader.NGUploaderTool
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoSearchHTML
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nguploader.NGUploaderTool
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoSearchHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
+import io.github.takusan23.tatimidroid.room.entity.SearchHistoryDBEntity
+import io.github.takusan23.tatimidroid.room.init.SearchHistoryDBInit
 import kotlinx.coroutines.*
 
 /**
@@ -33,6 +35,9 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
     /** ニコ動検索とスクレイピング */
     private val searchHTML = NicoVideoSearchHTML()
 
+    /** 検索履歴DBのDAO */
+    private val searchHistoryDAO = SearchHistoryDBInit.getInstance(context).searchHistoryDAO()
+
     /** 検索結果を送信するLiveData */
     val searchResultNicoVideoDataListLiveData = MutableLiveData<ArrayList<NicoVideoData>>()
 
@@ -41,6 +46,9 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
 
     /** 読み込み中LiveData */
     val isLoadingLiveData = MutableLiveData(false)
+
+    /** サジェストを送信するLiveData */
+    val suggestListLiveData = MutableLiveData<List<String>>()
 
     /** 終了（動画がもう取れない）ならtrue */
     var isEnd = false
@@ -63,6 +71,9 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
     /** タグ検索かどうか */
     var currentSearchIsTagSearch: Boolean? = null
         private set
+
+    /** サジェストAPIを叩きすぎないよう */
+    private var prevSuggestText = ""
 
     /**
      * 検索する関数
@@ -145,6 +156,8 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
             } else {
                 // 1ページ目
                 searchResultNicoVideoDataListLiveData.postValue(searchResultVideoList)
+                // データベースに追加
+                insertSearchHistoryDB(searchText, isTagSearch, sortName)
             }
             // くるくるもどす
             isLoadingLiveData.postValue(false)
@@ -157,6 +170,63 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
             if (!isEnd) {
                 currentSearchPage++
                 search(currentSearchWord!!, currentSearchPage, currentSearchIsTagSearch!!, currentSearchSortName!!)
+            }
+        }
+    }
+
+    /**
+     * 検索履歴のデータベースに追加する
+     *
+     * @param searchText 検索ワード
+     * @param isTagSearch タグ検索ならtrue
+     * @param sortName [NicoVideoSearchHTML.NICOVIDEO_SEARCH_ORDER]を参照
+     * */
+    private fun insertSearchHistoryDB(searchText: String, isTagSearch: Boolean, sortName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            // すでにあれば上書き。なければ追加
+            val alreadyHistory = searchHistoryDAO.getHistoryEntity(searchText)
+            if (alreadyHistory != null) {
+                val updateEntity = alreadyHistory.copy(
+                    sort = sortName,
+                    text = searchText,
+                    isTagSearch = isTagSearch,
+                    addTime = System.currentTimeMillis(),
+                )
+                searchHistoryDAO.update(updateEntity)
+            } else {
+                val insertHistory = SearchHistoryDBEntity(
+                    pin = false,
+                    addTime = System.currentTimeMillis(),
+                    description = "",
+                    service = "video",
+                    sort = sortName,
+                    text = searchText,
+                    isTagSearch = isTagSearch,
+                )
+                searchHistoryDAO.insert(insertHistory)
+            }
+        }
+    }
+
+    /**
+     * サジェストAPIを叩く
+     * */
+    fun getSuggest(searchText: String) {
+        // 叩きすぎないよう
+        if (prevSuggestText != searchText && searchText.isNotEmpty()) {
+            prevSuggestText = searchText
+            val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+                showToast("${context.getString(R.string.error)}${throwable}")
+            }
+            viewModelScope.launch(Dispatchers.Default + errorHandler) {
+                val response = searchHTML.getSearchSuggest(userSession, searchText)
+                if (!response.isSuccessful) {
+                    // 失敗時
+                    showToast("${context.getString(R.string.error)}\n${response.code}")
+                    return@launch
+                }
+                val suggestList = searchHTML.parseSearchSuggest(response.body?.string())
+                suggestListLiveData.postValue(suggestList)
             }
         }
     }
@@ -180,7 +250,7 @@ class NicoVideoSearchViewModel(application: Application) : AndroidViewModel(appl
      *     - 更新めんどいけどこれがベストプラクティス？1
      *
      * */
-    private suspend fun filterNGUploaderUser(list: List<NicoVideoData>): List<NicoVideoData>  = withContext(Dispatchers.Default){
+    private suspend fun filterNGUploaderUser(list: List<NicoVideoData>): List<NicoVideoData> = withContext(Dispatchers.Default) {
         // staticな関数になってる
         NGUploaderTool.filterNGUploaderVideoId(context, list)
     }
