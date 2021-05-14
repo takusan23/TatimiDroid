@@ -278,6 +278,8 @@ class NicoVideoHTML {
     fun startHeartBeat(sessionAPIJSONObject: JSONObject) {
         val heartBeatURL = parseHeartBeatURL(sessionAPIJSONObject)
         val postData = getHearBeatJSONString(sessionAPIJSONObject)
+        // 既存のハートビート処理はキャンセル
+        heartBeatJob?.cancel()
         // 定期実行
         heartBeatJob = GlobalScope.launch {
             while (isActive) {
