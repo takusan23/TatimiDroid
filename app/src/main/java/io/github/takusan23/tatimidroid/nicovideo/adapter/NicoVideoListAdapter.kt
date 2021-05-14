@@ -115,7 +115,7 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>, priv
                 val playType = prefSetting.getString("setting_play_type_video", "default") ?: "default"
 
                 // 連続再生を利用するか。trueで利用
-                val isDefaultPlaylistMode = prefSetting.getBoolean("setting_nicovideo_default_playlist_mode_v2", true)
+                val isDefaultPlaylistMode = prefSetting.getBoolean("setting_nicovideo_default_playlist_mode_v2", false)
 
                 when (playType) {
                     "default" -> {
