@@ -1,9 +1,8 @@
 package io.github.takusan23.tatimidroid.fragment.setting
 
-import android.app.Activity
-import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
@@ -12,12 +11,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.tool.CustomFont
 import io.github.takusan23.tatimidroid.databinding.FragmentFontSettingBinding
+import io.github.takusan23.tatimidroid.tool.CustomFont
 import java.io.File
 
 /**
@@ -25,13 +25,31 @@ import java.io.File
  * */
 class FontSettingFragment : Fragment() {
 
-    // SAFのリクエスト判断用
-    val fontFileOpenCode = 845
-
     lateinit var prefSetting: SharedPreferences
 
     /** findViewById駆逐 */
     private val viewBinding by lazy { FragmentFontSettingBinding.inflate(layoutInflater) }
+
+    /** onActivityResultを駆逐 */
+    private val fontSelectCallBack = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        // ファイル名を取得
+        val fileName = getFileName(uri)
+        // 削除
+        resetFont()
+        // コピー先フォルダー。ScopedStorageです。
+        val fontFolder = File("${requireContext().getExternalFilesDir(null)}/font")
+        fontFolder.mkdir()
+        // ふぁいるこぴー。
+        val scopedStorageFontFile = File("${fontFolder}/$fileName")
+        scopedStorageFontFile.createNewFile()
+        scopedStorageFontFile.outputStream().use {
+            requireContext().contentResolver?.openInputStream(uri)?.copyTo(it)
+        }
+        // ファイル名
+        viewBinding.fragmentFontSettingFontFileSelectButton.text = "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
+        // 更新
+        updatePreview()
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return viewBinding.root
@@ -59,12 +77,13 @@ class FontSettingFragment : Fragment() {
 
         // フォント選択SAF
         viewBinding.fragmentFontSettingFontFileSelectButton.setOnClickListener {
-            // フォント選択
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-            intent.apply {
-                type = "font/*"
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // フォント選択。Android 10以降はMIME Typeでフォントを指定可能
+                fontSelectCallBack.launch(arrayOf("font/*"))
+            } else {
+                // MIME Typeが対応してないので
+                fontSelectCallBack.launch(arrayOf("*/*"))
             }
-            startActivityForResult(intent, fontFileOpenCode)
         }
         // フォントファイル削除
         viewBinding.fragmentFontSettingFontFileResetButton.setOnClickListener {
@@ -83,37 +102,12 @@ class FontSettingFragment : Fragment() {
 
         // フォントファイルをCommentCanvasにも適用するか
         viewBinding.fragmentFontSettingApplyCommentCanvasSwitch.isChecked = prefSetting.getBoolean("setting_comment_canvas_font_file", false)
-        viewBinding.fragmentFontSettingApplyCommentCanvasSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
-            prefSetting.edit { putBoolean("setting_comment_canvas_font_file", isChecked) }
-        }
+        viewBinding.fragmentFontSettingApplyCommentCanvasSwitch.setOnCheckedChangeListener { buttonView, isChecked -> prefSetting.edit { putBoolean("setting_comment_canvas_font_file", isChecked) } }
 
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == fontFileOpenCode && resultCode == Activity.RESULT_OK && data!!.data != null) {
-            // リクエストがフォント、選択が成功している場合
-            // 削除
-            resetFont()
-            // コピー先フォルダー。ScopedStorageです。
-            val fontFolder = File("${context?.getExternalFilesDir(null)}/font")
-            fontFolder.mkdir()
-            // ふぁいるこぴー。
-            val fileName = getFileName(data.data)
-            val scopedStorageFontFile = File("${fontFolder}/$fileName")
-            scopedStorageFontFile.createNewFile()
-            scopedStorageFontFile.outputStream().use {
-                context?.contentResolver?.openInputStream(data.data!!)?.copyTo(it)
-            }
-            // ファイル名
-            viewBinding.fragmentFontSettingFontFileSelectButton.text = "${getString(R.string.setting_select_font)}\n${getSelectFontName()}"
-            // 更新
-            updatePreview()
-        }
     }
 
     // プレビューの更新をするとき
-    fun updatePreview() {
+    private fun updatePreview() {
         viewBinding.fragmentFontSettingInclude.adapterRoomNameTextView.text = "ここがIDです"
         viewBinding.fragmentFontSettingInclude.adapterCommentTextView.text = "ここがコメントです"
         // カスタムフォント、フォントサイズとか
@@ -132,9 +126,8 @@ class FontSettingFragment : Fragment() {
         }
     }
 
-
     // フォントサイズのEditText初期化
-    fun fontSizeEditTextInit() {
+    private fun fontSizeEditTextInit() {
         val customFont = CustomFont(context)
         viewBinding.fragmentFontSettingFontSizeIdEditText.setText(customFont.userIdFontSize.toString())
         viewBinding.fragmentFontSettingFontSizeCommentEditText.setText(customFont.commentFontSize.toString())
@@ -144,7 +137,7 @@ class FontSettingFragment : Fragment() {
     }
 
     // EditTextを監視して保存するやーつ
-    fun setTextWatcher(textView: TextView, preferenceName: String) {
+    private fun setTextWatcher(textView: TextView, preferenceName: String) {
         textView.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 prefSetting.edit {
@@ -181,20 +174,16 @@ class FontSettingFragment : Fragment() {
     }
 
     // 選択中のフォントの名前
-    fun getSelectFontName(): CharSequence? {
+    private fun getSelectFontName(): String {
         val fontFolder = File("${context?.getExternalFilesDir(null)}/font")
-        if (fontFolder.listFiles()?.size ?: 0 <= 0) {
+        if (fontFolder.listFiles()?.isEmpty() == true) {
             return "未設定"
         }
         return fontFolder.listFiles()?.get(0)?.name ?: ""
     }
 
     // Uriからファイル名取得。取得失敗時は空の文字が
-    fun getFileName(uri: Uri?): String {
-        var fileName = ""
-        if (uri == null) {
-            return fileName
-        }
+    private fun getFileName(uri: Uri): String {
         val cursor = context?.contentResolver?.query(
             uri,
             arrayOf(MediaStore.MediaColumns.DISPLAY_NAME),
@@ -204,7 +193,7 @@ class FontSettingFragment : Fragment() {
         )
         cursor?.moveToFirst()
         // 取得
-        fileName = cursor?.getString(0) ?: ""
+        var fileName = cursor?.getString(0) ?: ""
         cursor?.close()
         return fileName
     }
