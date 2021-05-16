@@ -2,8 +2,7 @@ package io.github.takusan23.tatimidroid.nicoapi.nicolive
 
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.CommentServerData
 import io.github.takusan23.tatimidroid.tool.OkHttpClientSingleton
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import okhttp3.Request
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
@@ -25,14 +24,16 @@ class NicoLiveComment {
     private val okHttpClient = OkHttpClientSingleton.okHttpClient
 
     // 接続済みWebSocketアドレスが入る
-    val connectedWebSocketAddressList = arrayListOf<String>()
+    private val connectedWebSocketAddressList = arrayListOf<String>()
 
     /** 接続中の[CommentServerData]が入る配列。なお重複は消してます */
-    val connectionCommentServerDataList = arrayListOf<CommentServerData>()
+    private val connectionCommentServerDataList = arrayListOf<CommentServerData>()
 
     // 接続済みWebSocketClientが入る
-    val connectionWebSocketClientList = arrayListOf<WebSocketClient>()
+    private val connectionWebSocketClientList = arrayListOf<WebSocketClient>()
 
+    // タイムシフトコメント取得関数用。定期的にコメントを取りに行ってるのでキャンセル用に
+    private var tsCommentTimerJob: Job? = null
 
     /**
      * 公式番組は視聴セッションWebSocketから流れてきたmessageServerUriとかを使ってこれ「connectionWebSocket()」使って
@@ -109,10 +110,10 @@ class NicoLiveComment {
      * なおこの関数ではすでに接続済みかどうかの判定はしてません。というか多分いらないはず（部屋割り時代は定期的に部屋があるか確認してたので必要だった）
      * @param commentServerData コメントサーバーの情報が入ったデータクラス。threadId,部屋の名前,threadKeyがあれば作成可能です
      * @param requestHistoryCommentCount コメントの取得する量。負の値で
-     * @param whenValue 指定した時間のコメントが欲しい場合は指定してください。一番古いコメントのdateとdate_usecを取って{date}.{date_usec}すれば取れると思う
      * @param onMessageFunc コメントが来た時に呼ばれる高階関数
+     * @param onOpen WebSocketが接続できたら呼ばれる
      * */
-    fun connectCommentServerWebSocket(commentServerData: CommentServerData, requestHistoryCommentCount: Int = -100, whenValue: Float? = null, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
+    fun connectCommentServerWebSocket(commentServerData: CommentServerData, requestHistoryCommentCount: Int = -100, onOpen: (() -> Unit)? = null, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
         // 過去コメントか流れてきたコメントか
         var historyComment = requestHistoryCommentCount
         // 過去コメントだとtrue
@@ -125,25 +126,8 @@ class NicoLiveComment {
         val webSocketClient = object : WebSocketClient(uri, protocol, headerMap) {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 //スレッド番号、過去コメントなど必要なものを最初に送る
-                val sendJSONObject = JSONObject()
-                val jsonObject = JSONObject().apply {
-                    put("version", "20061206")
-                    // put("service", "LIVE")
-                    put("thread", commentServerData.threadId)
-                    put("scores", 1)
-                    put("res_from", historyComment)
-                    put("nicoru", 0)
-                    put("with_global", 1)
-                    put("user_id", commentServerData.userId)
-                    put("threadkey", commentServerData.threadKey)
-                    put("waybackkey", "")
-                    if (whenValue != null) {
-                        // 過去コメント
-                        put("when", whenValue)
-                    }
-                }
-                sendJSONObject.put("thread", jsonObject)
-                this.send(sendJSONObject.toString())
+                onOpen?.invoke()
+                this.send(createSendJson(commentServerData, historyComment))
             }
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
@@ -176,13 +160,90 @@ class NicoLiveComment {
     }
 
     /**
+     * [CommentServerData]からコメントサーバーへ投げるJSONを作成して返す
+     * @param commentServerData サーバー情報
+     * @param historyComment 取得するコメント数
+     * @return WebSocketに投げるJSON
+     * */
+    private fun createSendJson(commentServerData: CommentServerData, historyComment: Int = -100): String {
+        val sendJSONObject = JSONObject()
+        val jsonObject = JSONObject().apply {
+            put("version", "20061206")
+            // put("service", "LIVE")
+            put("thread", commentServerData.threadId)
+            put("scores", 1)
+            put("res_from", -100)
+            put("nicoru", 0)
+            put("with_global", 1)
+            put("user_id", commentServerData.userId)
+            //  put("threadkey", commentServerData.threadKey)
+            put("waybackkey", "")
+            if (commentServerData.whenValue != null) {
+                // 過去コメント
+                put("when", commentServerData.whenValue)
+            }
+        }
+        sendJSONObject.put("thread", jsonObject)
+        return sendJSONObject.toString()
+    }
+
+    /**
+     * タイムシフト再生用の[connectCommentServerWebSocket]
+     *
+     * タイムシフト再生時の挙動は、定期的にJSONを投げているっぽい。JSONを投げるとそこから一分間のコメントが帰ってくる？
+     *
+     * whenに時間を入れる。番組開始時刻+5分を足した時間を秒にして送信すると、5分までのコメントが帰ってくる
+     *
+     * @param startTime 番組開始時間。
+     * @param commentServerData サーバー情報
+     * @param onMessageFunc コメントが来たら呼ばれる関数
+     * @param requestHistoryCommentCount 過去コメ取得数
+     * */
+    fun connectCommentServerWebSocketTimeShiftVersion(commentServerData: CommentServerData, startTime: Long, requestHistoryCommentCount: Int = -100, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
+        // 今残ってるWebSocket接続もキャンセル
+        destroy()
+        // とりあえず既存のタイマーはキャンセル
+        tsCommentTimerJob?.cancel()
+        // 最後にコメントくれ～って送信した時間。
+        var lastCommentRequestTime = startTime
+
+        /** タイムシフトコメントをリクエストする関数 */
+        fun getComment(lastTime: Long) {
+            // 時間を指定してコメントを取得する。
+            val postCommentServerData = commentServerData.copy(whenValue = lastTime)
+            // 多分配列の0番目が上でつないだWebSocketClient
+            val client = connectionWebSocketClientList.first()
+            // コメントサーバーにリクエストする
+            client.send(createSendJson(postCommentServerData, requestHistoryCommentCount))
+        }
+
+        // WebSocketにとりあえず接続する。この段階ではコメントが流れてこない。WebSocketClientが欲しいのでそれだけ。来たコメントはここに来る
+        connectCommentServerWebSocket(
+            commentServerData,
+            0,
+            onOpen = {
+                // 定期実行する
+                tsCommentTimerJob = GlobalScope.launch {
+                    while (isActive) {
+                        lastCommentRequestTime += 60
+                        // タイムシフトコメントリクエスト
+                        getComment(lastCommentRequestTime)
+                        // 1分間隔で
+                        delay(60 * 1000)
+                    }
+                }
+            },
+            onMessageFunc = { commentText, roomMane, isHistory -> onMessageFunc(commentText, roomMane, isHistory) }
+        )
+    }
+
+    /**
      * 終了時に呼んでね
      * */
     fun destroy() {
-        connectionWebSocketClientList.forEach {
-            it.close()
-        }
+        connectionWebSocketClientList.forEach { it.close() }
         connectedWebSocketAddressList.clear()
+        tsCommentTimerJob?.cancel()
     }
 
 }

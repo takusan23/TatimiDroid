@@ -44,6 +44,9 @@ import kotlinx.coroutines.delay
  * @param onClickNetwork ネットワーク状態ボタンを押したときに呼ばれる
  * @param onClickPopUpPlayer ポップアップ再生ボタンを押したときに呼ばれる
  * @param isAudioOnlyMode 音声のみの再生時はtrueにしてね
+ * @param isTimeShiftMode タイムシフト再生時はtrueにしてね。シークバーを出します
+ * @param tsCurrentPosition タイムシフト再生中は0Fから1Fの値が払い出される。
+ * @param onSeek シークバーいじったら呼ばれる
  * */
 @Composable
 fun NicoLivePlayerUI(
@@ -57,6 +60,8 @@ fun NicoLivePlayerUI(
     isConnectedWiFi: Boolean = false,
     isShowCommentCanvas: Boolean = true,
     isAudioOnlyMode: Boolean = false,
+    isTimeShiftMode: Boolean = false,
+    tsCurrentPosition: Float = 0f,
     onClickMiniPlayer: () -> Unit,
     onClickFullScreen: () -> Unit,
     onClickNetwork: () -> Unit,
@@ -64,6 +69,7 @@ fun NicoLivePlayerUI(
     onClickPopUpPlayer: () -> Unit,
     onClickBackgroundPlayer: () -> Unit,
     onClickCommentPost: (String) -> Unit,
+    onSeek: (Float) -> Unit = { }
 ) {
 
     // プレイヤー押したらプレイヤーUIを非表示にしたいので
@@ -193,11 +199,23 @@ fun NicoLivePlayerUI(
                     // 再生時間など
                     Row(modifier = Modifier.padding(10.dp)) {
                         if (programCurrentTime != null) {
-                            Text(text = programCurrentTime)
+                            Text(text = programCurrentTime, modifier = Modifier.align(alignment = Alignment.CenterVertically))
                         }
-                        Spacer(modifier = Modifier.weight(1f))
+                        if (isTimeShiftMode && !isMiniPlayer) {
+                            // TS再生用にシークバーを出す
+                            Slider(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 5.dp, end = 5.dp),
+                                value = tsCurrentPosition,
+                                onValueChange = { onSeek(it) },
+                            )
+                        } else {
+                            // ダイナモ感覚　ダイナモ感覚 YO YO YO YEAR!
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                         if (programEndTime != null) {
-                            Text(text = programEndTime)
+                            Text(text = programEndTime, modifier = Modifier.align(alignment = Alignment.CenterVertically))
                         }
                     }
                     // コメント投稿エリア。全画面再生時のみ

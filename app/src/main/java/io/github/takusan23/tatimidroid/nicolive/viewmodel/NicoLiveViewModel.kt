@@ -24,6 +24,7 @@ import io.github.takusan23.tatimidroid.room.init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.tool.isConnectionMobileDataInternet
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.internal.toLongOrDefault
 import org.json.JSONArray
 import org.json.JSONObject
@@ -210,6 +211,9 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** タイムシフト再生中？ */
     val isWatchingTimeShiftLiveData = MutableLiveData(false)
 
+    /** TS再生中なら、再生時間 */
+    var tsCurrentPositionLiveData = MutableLiveData(0L)
+
     init {
         // 匿名でコメントを投稿する場合
         nicoLiveHTML.isPostTokumeiComment = prefSetting.getBoolean("nicolive_post_tokumei", true)
@@ -243,7 +247,8 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             programTitle = nicoLiveHTML.programTitle
             communityId = nicoLiveHTML.communityId
             thumbnailURL = nicoLiveHTML.thumb
-            nicoLiveProgramData.postValue(nicoLiveHTML.getProgramData(jsonObject))
+            val programData = nicoLiveHTML.getProgramData(jsonObject)
+            nicoLiveProgramData.postValue(programData)
             nicoLiveProgramDescriptionLiveData.postValue(nicoLiveHTML.getProgramDescription(jsonObject))
             nicoLiveUserDataLiveData.postValue(nicoLiveHTML.getUserData(jsonObject))
             val tagList = nicoLiveHTML.getTagList(jsonObject)
@@ -259,14 +264,24 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             val isEnded = nicoLiveHTML.getProgramStatus(jsonObject) == "ENDED"
             val isWatchingTS = nicoLiveHTML.isPremium(jsonObject) && isEnded
             isWatchingTimeShiftLiveData.postValue(isWatchingTS)
+            if (isWatchingTS) {
+                // TS再生用意
+                initTSWatching(jsonObject)
+                // 経過時間計算
+                setTSLiveTime()
+                // WebSocketへ接続
+                connectWebSocket(jsonObject, true)
+            } else {
+                // 通常の生配信
+                // 経過時間
+                setLiveTime()
+                // WebSocketへ接続
+                connectWebSocket(jsonObject)
+            }
             // コメント人数を定期的に数える
             activeUserClear()
-            // 経過時間
-            setLiveTime()
             // 履歴に追加
             launch { insertDB() }
-            // WebSocketへ接続
-            connectWebSocket(jsonObject)
             // getPlayerStatus叩く
             // launch { getPlayerStatus() }
             // TS予約が許可されているか
@@ -298,8 +313,16 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
         }
     }
 
+    /**
+     * TS再生準備
+     *
+     * @param jsonObject [NicoLiveHTML.nicoLiveHTMLtoJSONObject]
+     * */
     private fun initTSWatching(jsonObject: JSONObject) {
+        // 番組情報
         val programData = nicoLiveHTML.getProgramData(jsonObject)
+        // TS視聴中メッセージ
+        showToast("タイムシフト再生中です。")
     }
 
     /** フルHD対応番組の場合はToastを出す */
@@ -379,9 +402,67 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             while (isActive) {
                 delay(1000)
                 // 現在の時間
-                val nowUnixTime = System.currentTimeMillis() / 1000L
-                programTimeLiveData.postValue(calcLiveTime(nowUnixTime))
+                val currentTimeSec = System.currentTimeMillis() / 1000L
+                programTimeLiveData.postValue(calcLiveTime(currentTimeSec - nicoLiveHTML.programStartTime))
             }
+        }
+    }
+
+    /** 経過時間計算。こっちはTS用 */
+    private fun setTSLiveTime() {
+        // 1秒ごとに
+        viewModelScope.launch {
+            while (isActive) {
+                delay(1000)
+                var tsCurrentPos = tsCurrentPositionLiveData.value ?: 0
+                // 足す
+                tsCurrentPos += 1
+                // 現在の時間
+                programTimeLiveData.postValue(calcLiveTime(tsCurrentPos))
+                tsCurrentPositionLiveData.postValue(tsCurrentPos)
+            }
+        }
+    }
+
+    /**
+     * タイムシフト専用
+     * 現在の再生時間をFloatの0fから1fに変換する（なんかJetpack ComposeのシークバーがFloatなので。計算式をComposeで書くわけにも行かないので）
+     *
+     * ちなみにUnixTime（Long）をFloatにすると桁が足りなくて出来ない
+     *
+     * @param percent 0から1まで
+     * */
+    fun floatToLiveTimeLong(percent: Float): Long {
+        val programData = nicoLiveProgramData.value ?: return 0L
+        return ((programData.endAt.toLong() - programData.beginAt.toLong()) * percent).toLong()
+    }
+
+    /**
+     * タイムシフト専用
+     * 再生時間を0fから1fまでに変換する。Jetpack ComposeのSliderがFloatしか扱えないせいで
+     *
+     * @param position 再生時間。秒
+     * */
+    fun liveTimeLongToFloat(position: Long): Float {
+        val programData = nicoLiveProgramData.value ?: return 1f
+        return (position.toFloat() / (programData.endAt.toLong() - programData.beginAt.toLong()))
+    }
+
+    /**
+     * タイムシフト再生時のみ。シークをする関数
+     * @param position シーク位置。現実世界の時間で
+     * */
+    fun tsSeekPosition(position: Long) {
+        // まず再生時間を更新
+        tsCurrentPositionLiveData.postValue(position)
+        // HLSアドレスを加工してLiveData送信
+        val hlsAddress = hlsAddressLiveData.value
+        if (hlsAddress != null) {
+            // startのパラメーターに再生時間を入れる。
+            val httpUrl = hlsAddress.toHttpUrl().newBuilder().setQueryParameter("start", "$position").build().toString()
+            hlsAddressLiveData.postValue(httpUrl)
+            // コメント鯖再接続
+
         }
     }
 
@@ -468,14 +549,13 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
 
     /**
      * 相対時間を計算する。25:25みたいなこと。
-     * @param unixTime 基準時間。
+     * @param position 時間。秒で
      * */
-    private fun calcLiveTime(unixTime: Long): String {
+    private fun calcLiveTime(position: Long): String {
         // 経過時間 - 番組開始時間
-        val calc = unixTime - nicoLiveHTML.programStartTime
-        val date = Date(calc * 1000L)
+        val date = Date(position * 1000L)
         //時間はUNIX時間から計算する
-        val hour = (calc / 60 / 60)
+        val hour = (position / 60 / 60)
         val simpleDateFormat = SimpleDateFormat("mm:ss")
         return "$hour:${simpleDateFormat.format(date.time)}"
     }
@@ -483,8 +563,12 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
     /**
      * WebSocketへ接続する関数
      * @param jsonObject [NicoLiveHTML.nicoLiveHTMLtoJSONObject]のJSONObject
+     * @param isTSWatching TS再生時はtrue
      * */
-    private fun connectWebSocket(jsonObject: JSONObject) {
+    private fun connectWebSocket(jsonObject: JSONObject, isTSWatching: Boolean = false) {
+        val programData = nicoLiveHTML.getProgramData(jsonObject)
+        val startTime = programData.beginAt.toLong()
+
         nicoLiveHTML.connectWebSocket(jsonObject) { command, message ->
             // WebSocketへ接続してHLSアドレス、コメント鯖の情報をもらう
             when (command) {
@@ -512,11 +596,17 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                         null
                     }
                     val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
+                    // タイムシフト視聴中ならパラメーターを算出する。TS見てないならnull
+                    val whenValue = if (isTSWatching) startTime + (tsCurrentPositionLiveData.value ?: 0) else null
                     // コメントサーバーへ接続する
-                    val commentServerData = CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey, nicoLiveHTML.userId)
-                    nicoLiveComment.connectCommentServerWebSocket(commentServerData, -100, null, ::receiveCommentFun)
+                    val commentServerData = CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey, nicoLiveHTML.userId, whenValue)
+                    if (isTSWatching) {
+                        nicoLiveComment.connectCommentServerWebSocketTimeShiftVersion(commentServerData, startTime, -100, ::receiveCommentFun)
+                    } else {
+                        nicoLiveComment.connectCommentServerWebSocket(commentServerData = commentServerData, requestHistoryCommentCount = -100, onMessageFunc = ::receiveCommentFun)
+                    }
                     // 流量制限コメント鯖へ接続する
-                    if (!nicoLiveHTML.isOfficial) {
+                    if (!nicoLiveHTML.isOfficial && !isTSWatching) {
                         viewModelScope.launch(Dispatchers.Default) {
                             connectionStoreCommentServer(nicoLiveHTML.userId, yourPostKey)
                         }

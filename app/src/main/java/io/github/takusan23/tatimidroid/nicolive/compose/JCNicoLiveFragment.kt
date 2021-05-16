@@ -121,6 +121,10 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             val isMiniPlayerMode = viewModel.isMiniPlayerMode.observeAsState(false)
             // コメント描画
             val isShowDrawComment = remember { mutableStateOf(nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible) }
+            // TS再生時なら再生時間
+            val tsCurrentPosition = viewModel.tsCurrentPositionLiveData.observeAsState(initial = 0L)
+            // TS再生中？
+            val isWatchingTS = viewModel.isWatchingTimeShiftLiveData.observeAsState(initial = false)
 
             if (programData.value != null) {
                 NicoLivePlayerUI(
@@ -134,6 +138,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                     isConnectedWiFi = isConnectionWiFiInternet(requireContext()),
                     isShowCommentCanvas = isShowDrawComment.value,
                     isAudioOnlyMode = viewModel.currentQuality == "audio_high",
+                    isTimeShiftMode = isWatchingTS.value,
+                    tsCurrentPosition = viewModel.liveTimeLongToFloat(tsCurrentPosition.value),
                     onClickMiniPlayer = {
                         when {
                             isDisableMiniPlayerMode -> finishFragment()
@@ -167,7 +173,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                         )
                         finishFragment()
                     },
-                    onClickCommentPost = { comment -> viewModel.sendComment(comment) }
+                    onClickCommentPost = { comment -> viewModel.sendComment(comment) },
+                    onSeek = { viewModel.tsSeekPosition(viewModel.floatToLiveTimeLong(it)) } // TS再生時のシークバー
                 )
             }
         }
