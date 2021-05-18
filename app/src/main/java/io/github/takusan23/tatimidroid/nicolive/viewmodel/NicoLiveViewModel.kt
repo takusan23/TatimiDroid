@@ -601,13 +601,10 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                         null
                     }
                     val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一
-                    // タイムシフト視聴中ならパラメーターを算出する。TS見てないならnull
-                    val whenValue = if (isTSWatching) startTime + (tsCurrentPositionLiveData.value ?: 0) else null
                     // コメントサーバーへ接続する
                     val commentServerData = CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey, nicoLiveHTML.userId)
                     if (isTSWatching) {
-                        nicoLiveTimeShiftComment.connect(commentServerData, startTime, -100, startTime + 60, ::receiveCommentFun)
-                        // nicoLiveComment.connectCommentServerWebSocketTimeShiftVersion(commentServerData, startTime, -100, ::receiveCommentFun)
+                        nicoLiveTimeShiftComment.connect(commentServerData, startTime, ::receiveCommentFun)
                     } else {
                         nicoLiveComment.connectCommentServerWebSocket(commentServerData = commentServerData, requestHistoryCommentCount = -100, onMessageFunc = ::receiveCommentFun)
                     }

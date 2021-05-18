@@ -92,7 +92,7 @@ Android 7以前はホーム画面に追加ダイアログが表示されず、�
 
 Canary版Android Studio。Jetpack Composeを使っているんで
 
-Android Studio Arctic Fox | 2020.3.1 Canary 15
+Android Studio Arctic Fox | 2020.3.1 Beta 1
 
 ## ビルド方法
 
