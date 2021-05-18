@@ -214,6 +214,9 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** TS再生中なら、再生時間 */
     var tsCurrentPositionLiveData = MutableLiveData(0L)
 
+    /** TS再生中のみ利用するクラス */
+    private var nicoLiveTimeShiftComment = NicoLiveTimeShiftComment()
+
     init {
         // 匿名でコメントを投稿する場合
         nicoLiveHTML.isPostTokumeiComment = prefSetting.getBoolean("nicolive_post_tokumei", true)
@@ -420,6 +423,8 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
                 // 現在の時間
                 programTimeLiveData.postValue(calcLiveTime(tsCurrentPos))
                 tsCurrentPositionLiveData.postValue(tsCurrentPos)
+                // コメント再現で
+                nicoLiveTimeShiftComment.currentPositionSec = tsCurrentPos
             }
         }
     }
@@ -599,9 +604,10 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                     // タイムシフト視聴中ならパラメーターを算出する。TS見てないならnull
                     val whenValue = if (isTSWatching) startTime + (tsCurrentPositionLiveData.value ?: 0) else null
                     // コメントサーバーへ接続する
-                    val commentServerData = CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey, nicoLiveHTML.userId, whenValue)
+                    val commentServerData = CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey, nicoLiveHTML.userId)
                     if (isTSWatching) {
-                        nicoLiveComment.connectCommentServerWebSocketTimeShiftVersion(commentServerData, startTime, -100, ::receiveCommentFun)
+                        nicoLiveTimeShiftComment.connect(commentServerData, startTime, -100, startTime + 60, ::receiveCommentFun)
+                        // nicoLiveComment.connectCommentServerWebSocketTimeShiftVersion(commentServerData, startTime, -100, ::receiveCommentFun)
                     } else {
                         nicoLiveComment.connectCommentServerWebSocket(commentServerData = commentServerData, requestHistoryCommentCount = -100, onMessageFunc = ::receiveCommentFun)
                     }
@@ -1072,5 +1078,6 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
         super.onCleared()
         nicoLiveHTML.destroy()
         nicoLiveComment.destroy()
+        nicoLiveTimeShiftComment.destroy()
     }
 }

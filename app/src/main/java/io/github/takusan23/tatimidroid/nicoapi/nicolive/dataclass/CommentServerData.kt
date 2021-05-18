@@ -9,7 +9,6 @@ import java.io.Serializable
  * @param roomName 部屋の名前
  * @param userId ユーザーID。なんで必要なのかは知らん。nullでも多分いい
  * @param threadKey 視聴セッションのWebSocketのときは「yourPostKey」ってのがJSONで流れてくるので指定して欲しい。nullても動く。ただ自分が投稿できたかの結果「yourpost」が取れない
- * @param whenValue タイムシフト用。指定した時刻（現実世界）までのコメントを返す。
  * */
 data class CommentServerData(
     val webSocketUri: String,
@@ -17,5 +16,4 @@ data class CommentServerData(
     val roomName: String,
     val threadKey: String? = null,
     val userId: String? = null,
-    val whenValue: Long? = null,
 ) : Serializable

@@ -165,22 +165,22 @@ class NicoLiveComment {
      * @param historyComment 取得するコメント数
      * @return WebSocketに投げるJSON
      * */
-    private fun createSendJson(commentServerData: CommentServerData, historyComment: Int = -100): String {
+    fun createSendJson(commentServerData: CommentServerData, historyComment: Int = -100, whenValue: Long? = null): String {
         val sendJSONObject = JSONObject()
         val jsonObject = JSONObject().apply {
             put("version", "20061206")
             // put("service", "LIVE")
             put("thread", commentServerData.threadId)
             put("scores", 1)
-            put("res_from", -100)
+            put("res_from", historyComment)
             put("nicoru", 0)
             put("with_global", 1)
             put("user_id", commentServerData.userId)
             //  put("threadkey", commentServerData.threadKey)
             put("waybackkey", "")
-            if (commentServerData.whenValue != null) {
+            if (whenValue != null) {
                 // 過去コメント
-                put("when", commentServerData.whenValue)
+                put("when", whenValue)
             }
         }
         sendJSONObject.put("thread", jsonObject)
@@ -199,6 +199,7 @@ class NicoLiveComment {
      * @param onMessageFunc コメントが来たら呼ばれる関数
      * @param requestHistoryCommentCount 過去コメ取得数
      * */
+    @Deprecated("別クラスが担当")
     fun connectCommentServerWebSocketTimeShiftVersion(commentServerData: CommentServerData, startTime: Long, requestHistoryCommentCount: Int = -100, onMessageFunc: (commentText: String, roomMane: String, isHistory: Boolean) -> Unit) {
         // 今残ってるWebSocket接続もキャンセル
         destroy()
@@ -210,7 +211,7 @@ class NicoLiveComment {
         /** タイムシフトコメントをリクエストする関数 */
         fun getComment(lastTime: Long) {
             // 時間を指定してコメントを取得する。
-            val postCommentServerData = commentServerData.copy(whenValue = lastTime)
+            val postCommentServerData = commentServerData.copy()
             // 多分配列の0番目が上でつないだWebSocketClient
             val client = connectionWebSocketClientList.first()
             // コメントサーバーにリクエストする
