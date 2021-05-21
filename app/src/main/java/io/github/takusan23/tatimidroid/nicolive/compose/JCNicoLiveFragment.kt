@@ -12,7 +12,6 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ShareCompat
 import androidx.core.content.edit
@@ -122,7 +121,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             // コメント描画
             val isShowDrawComment = remember { mutableStateOf(nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible) }
             // TS再生時なら再生時間
-            val tsCurrentPosition = viewModel.tsCurrentPositionLiveData.observeAsState(initial = 0L)
+            val tsCurrentPosition = viewModel.timeShiftCurrentPositionLiveData.observeAsState(initial = 0L)
             // TS再生中？
             val isWatchingTS = viewModel.isWatchingTimeShiftLiveData.observeAsState(initial = false)
 
@@ -181,14 +180,11 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     }
 
     /** Jetpack Composeで作成したコメント投稿UIを追加する */
-    @ExperimentalAnimationApi
     private fun setCommentPostUI() {
         // コメント一覧展開ボタンを設置する
         bottomComposeView.setContent {
             // コメント展開するかどうか
             val isComment = viewModel.commentListShowLiveData.observeAsState(initial = false)
-            // コルーチン
-            val scope = rememberCoroutineScope()
             // コメント本文
             val commentPostText = remember { mutableStateOf("") }
             // 匿名で投稿するか
@@ -201,6 +197,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             val commentColor = remember { mutableStateOf("white") }
             // 複数行コメントを許可している場合はtrue。falseならEnterキーでコメント送信
             val isAcceptMultiLineComment = !prefSetting.getBoolean("setting_enter_post", true)
+            // タイムシフト視聴中はテキストボックス出さない
+            val isTimeShiftWatching = viewModel.isWatchingTimeShiftLiveData.observeAsState(initial = false)
 
             NicoLiveCommentInputButton(
                 onClick = { viewModel.commentListShowLiveData.postValue(!isComment.value) },
@@ -209,14 +207,13 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 onCommentChange = { commentPostText.value = it },
                 onPostClick = {
                     // コメント投稿
-                    scope.launch {
-                        viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value)
-                        commentPostText.value = "" // クリアに
-                    }
+                    viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value)
+                    commentPostText.value = "" // クリアに
                 },
                 position = commentPos.value,
                 size = commentSize.value,
                 color = commentColor.value,
+                isTimeShiftMode = isTimeShiftWatching.value,
                 onPosValueChange = { commentPos.value = it },
                 onSizeValueChange = { commentSize.value = it },
                 onColorValueChange = { commentColor.value = it },
@@ -565,7 +562,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     /** ExoPlayerで生放送を再生する */
     private fun playExoPlayer(address: String) {
         // ExoPlayer
-        // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
+        // 音声のみの再生はSurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
         if (viewModel.currentQuality == "audio_high") {
             nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.background = ColorDrawable(Color.BLACK)
         } else {
@@ -586,6 +583,11 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         exoPlayer.addListener(object : Player.EventListener {
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
+
+                // タイムシフト再生時は再生時間をViewModelでカウントするので再生状態をViewModelにわたす
+                val isPlaying = (state == Player.STATE_READY || state == Player.STATE_ENDED)
+                viewModel.isTimeShiftPlaying.postValue((viewModel.isWatchingTimeShiftLiveData.value == true) && isPlaying)
+
                 // 一度だけ
                 if (isFirst) {
                     isFirst = false

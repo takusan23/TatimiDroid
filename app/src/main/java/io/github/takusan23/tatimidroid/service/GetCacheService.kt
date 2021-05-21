@@ -64,6 +64,9 @@ class GetCacheService : Service() {
     /** キャンセル用Broadcast */
     private lateinit var broadcastReceiver: BroadcastReceiver
 
+    /** APIまとめ */
+    private val nicoVideoHTML = NicoVideoHTML()
+
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
@@ -131,7 +134,6 @@ class GetCacheService : Service() {
         }
         cacheCoroutineJob = GlobalScope.launch(errorHandler) {
             // キャッシュ取得クラス
-            val nicoVideoHTML = NicoVideoHTML()
             val nicoVideoCache = NicoVideoCache(this@GetCacheService)
             // ID
             val videoId = cacheList[position].first
@@ -282,6 +284,8 @@ class GetCacheService : Service() {
         notificationManager.cancel(DOWNLOAD_PROGRESS_NOTIFICATION_ID)
         // 一時保管フォルダも一応消す
         NicoVideoCache(this).getCacheTempFolderPath()?.let { path -> File(path).deleteRecursively() }
+        // ハートビート切断
+        nicoVideoHTML.destroy()
     }
 
     /**

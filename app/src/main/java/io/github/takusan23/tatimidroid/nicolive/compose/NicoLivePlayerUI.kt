@@ -219,7 +219,7 @@ fun NicoLivePlayerUI(
                         }
                     }
                     // コメント投稿エリア。全画面再生時のみ
-                    if (isFullScreen && !isMiniPlayer) {
+                    if (isFullScreen && !isMiniPlayer && !isTimeShiftMode) {
                         OutlinedTextField(
                             modifier = Modifier
                                 .fillMaxWidth()

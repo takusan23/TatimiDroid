@@ -211,8 +211,11 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** タイムシフト再生中？ */
     val isWatchingTimeShiftLiveData = MutableLiveData(false)
 
-    /** TS再生中なら、再生時間 */
-    var tsCurrentPositionLiveData = MutableLiveData(0L)
+    /** タイムシフト再生中なら、再生時間 */
+    var timeShiftCurrentPositionLiveData = MutableLiveData(0L)
+
+    /** タイムシフト用。生放送を再生しているか。 */
+    var isTimeShiftPlaying = MutableLiveData(true)
 
     /** TS再生中のみ利用するクラス */
     private var nicoLiveTimeShiftComment = NicoLiveTimeShiftComment()
@@ -316,24 +319,28 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
         }
     }
 
-    /**
-     * TS再生準備
-     *
-     * @param jsonObject [NicoLiveHTML.nicoLiveHTMLtoJSONObject]
-     * */
-    private fun initTSWatching(jsonObject: JSONObject) {
-        // 番組情報
-        val programData = nicoLiveHTML.getProgramData(jsonObject)
-        // TS視聴中メッセージ
-        showToast("タイムシフト再生中です。")
-    }
-
     /** フルHD対応番組の場合はToastを出す */
     private fun checkFullHDQuality(tagData: NicoLiveTagData) {
         tagData.tagList.forEach { nicoTagItemData ->
             if (nicoTagItemData.tagName == "フルHD配信") {
                 showToast(getString(R.string.nicolive_support_full_hd))
             }
+        }
+    }
+
+    /**
+     * TS再生準備
+     *
+     * @param jsonObject [NicoLiveHTML.nicoLiveHTMLtoJSONObject]
+     * */
+    private fun initTSWatching(jsonObject: JSONObject) {
+        if (nicoLiveHTML.isPremium(jsonObject)) {
+            // TS視聴中メッセージ
+            showToast("タイムシフト再生中です。")
+        }else{
+            // プレ垢になってね
+            // Activity終了
+            messageLiveData.postValue("finish")
         }
     }
 
@@ -416,15 +423,21 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
         // 1秒ごとに
         viewModelScope.launch {
             while (isActive) {
+                var tsCurrentPos = timeShiftCurrentPositionLiveData.value ?: 0
+                // 再生中のみ時間を足す
+                if (isTimeShiftPlaying.value == true) {
+                    // 足す
+                    tsCurrentPos += 1
+                    // 現在の時間
+                    programTimeLiveData.postValue(calcLiveTime(tsCurrentPos))
+                    timeShiftCurrentPositionLiveData.postValue(tsCurrentPos)
+                }
+                // タイムシフトコメント再現
+                nicoLiveTimeShiftComment.apply {
+                    currentPositionSec = tsCurrentPos
+                    isPlaying = isTimeShiftPlaying.value ?: true
+                }
                 delay(1000)
-                var tsCurrentPos = tsCurrentPositionLiveData.value ?: 0
-                // 足す
-                tsCurrentPos += 1
-                // 現在の時間
-                programTimeLiveData.postValue(calcLiveTime(tsCurrentPos))
-                tsCurrentPositionLiveData.postValue(tsCurrentPos)
-                // コメント再現で
-                nicoLiveTimeShiftComment.currentPositionSec = tsCurrentPos
             }
         }
     }
@@ -459,7 +472,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
      * */
     fun tsSeekPosition(position: Long) {
         // まず再生時間を更新
-        tsCurrentPositionLiveData.postValue(position)
+        timeShiftCurrentPositionLiveData.postValue(position)
         // HLSアドレスを加工してLiveData送信
         val hlsAddress = hlsAddressLiveData.value
         if (hlsAddress != null) {
@@ -467,7 +480,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
             val httpUrl = hlsAddress.toHttpUrl().newBuilder().setQueryParameter("start", "$position").build().toString()
             hlsAddressLiveData.postValue(httpUrl)
             // コメント鯖再接続
-
+            nicoLiveTimeShiftComment.seek(position)
         }
     }
 
@@ -492,15 +505,15 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
      * */
     fun calcToukei(showSnackBar: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
-            val calender = Calendar.getInstance()
-            calender.add(Calendar.MINUTE, -1)
-            val unixTime = calender.timeInMillis / 1000L
-            // 今のUnixTime
-            val nowUnixTime = System.currentTimeMillis() / 1000L
+
+            // 最後のコメントを取得
+            val lastCommentDate = commentList.last().date.toLong()
+            // そこから一分前の時間を計算
+            val prevTime = lastCommentDate - 60
             // 範囲内のコメントを取得する
             val timeList = commentList.toList().filter { comment ->
                 if (comment != null && comment.date.toFloatOrNull() != null) {
-                    comment.date.toLong() in unixTime..nowUnixTime
+                    comment.date.toLong() in prevTime..lastCommentDate
                 } else {
                     false
                 }
@@ -604,7 +617,7 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                     // コメントサーバーへ接続する
                     val commentServerData = CommentServerData(commentMessageServerUri, commentThreadId, commentRoomName, yourPostKey, nicoLiveHTML.userId)
                     if (isTSWatching) {
-                        nicoLiveTimeShiftComment.connect(commentServerData, startTime, ::receiveCommentFun)
+                        nicoLiveTimeShiftComment.connectCommentServerTimeShift(commentServerData, startTime, ::receiveCommentFun)
                     } else {
                         nicoLiveComment.connectCommentServerWebSocket(commentServerData = commentServerData, requestHistoryCommentCount = -100, onMessageFunc = ::receiveCommentFun)
                     }

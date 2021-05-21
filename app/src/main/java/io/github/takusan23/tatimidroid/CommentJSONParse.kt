@@ -33,17 +33,11 @@ class CommentJSONParse(val commentJson: String, var roomName: String, val videoO
         if (jsonObject.has("chat")) {
             val chatObject = jsonObject.getJSONObject("chat")
             comment = chatObject.optString("content", "")
-            if (chatObject.has("no")) {
-                commentNo = chatObject.getString("no")
-            }
+            commentNo = chatObject.optString("no", "")
             userId = chatObject.optString("user_id", "")
             date = chatObject.getString("date")
-            if (chatObject.has("date_usec")) {
-                dateUsec = chatObject.getString("date_usec")
-            }
-            if (chatObject.has("vpos")) {
-                vpos = chatObject.getString("vpos")
-            }
+            dateUsec = chatObject.optString("date_usec", "")
+            vpos = chatObject.optString("vpos", "")
             //プレミアムかどうかはJSONにpremiumがあればいい（一般にはないので存在チェックいる）
             if (chatObject.has("premium")) {
                 when (chatObject.getString("premium")) {

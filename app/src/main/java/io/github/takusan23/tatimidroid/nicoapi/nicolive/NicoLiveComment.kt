@@ -165,7 +165,7 @@ class NicoLiveComment {
      * @param historyComment 取得するコメント数
      * @return WebSocketに投げるJSON
      * */
-    fun createSendJson(commentServerData: CommentServerData, historyComment: Int = -100, whenValue: Long? = null): String {
+    fun createSendJson(commentServerData: CommentServerData, historyComment: Int = -100, whenValue: Long? = null, isTimeShiftMode: Boolean = false): String {
         val sendJSONObject = JSONObject()
         val jsonObject = JSONObject().apply {
             put("version", "20061206")
@@ -176,7 +176,10 @@ class NicoLiveComment {
             put("nicoru", 0)
             put("with_global", 1)
             put("user_id", commentServerData.userId)
-            //  put("threadkey", commentServerData.threadKey)
+            // タイムシフト視聴時は threadkey つけると resultcode:9 が返ってくる
+            if (!isTimeShiftMode) {
+                put("threadkey", commentServerData.threadKey)
+            }
             put("waybackkey", "")
             if (whenValue != null) {
                 // 過去コメント

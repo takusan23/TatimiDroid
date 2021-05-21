@@ -55,6 +55,7 @@ private fun getWhiteColorOutlinedTextField() = TextFieldDefaults.outlinedTextFie
  * @param onPostClick 投稿ボタン押した時
  * @param isMultiLine 複数行コメントを送信する場合はtrue。falseの場合はEnterキーを送信キーに変更します。
  * @param isHideCommentInputLayout コメント入力テキストボックス非表示にするかどうか
+ * @param isTimeShiftMode タイムシフト再生中はtrue。コメント、番組情報切り替えボタンのみを表示させます。
  * @param onHideCommentInputLayoutChange コメント入力テキストボックスの表示が切り替わったら呼ばれる
  * @param onPosValueChange 固定位置が変わったら呼ばれる
  * @param onSizeValueChange 大きさが変わったら呼ばれる
@@ -76,10 +77,11 @@ fun NicoLiveCommentInputButton(
     isShowCommentInfoChangeButton: Boolean = true,
     isMultiLine: Boolean,
     isHideCommentInputLayout: Boolean = false,
-    onHideCommentInputLayoutChange: (Boolean) -> Unit = {},
+    isTimeShiftMode: Boolean = false,
     position: String,
     size: String,
     color: String,
+    onHideCommentInputLayoutChange: (Boolean) -> Unit = {},
     onPosValueChange: (String) -> Unit,
     onSizeValueChange: (String) -> Unit,
     onColorValueChange: (String) -> Unit,
@@ -92,14 +94,13 @@ fun NicoLiveCommentInputButton(
     // コマンドパネル表示するか
     val isShowCommandPanel = remember { mutableStateOf(false) }
 
-    // margin代わり
     Column(
         modifier = Modifier
             .background(
                 colorResource(id = R.color.colorPrimary),
                 RoundedCornerShape(
                     // コメント入力テキストボックス表示中は角を丸くしない
-                    topStart = if (!isHideCommentLayout.value) 0.dp else 20.dp,
+                    topStart = if (!isHideCommentLayout.value && !isTimeShiftMode) 0.dp else 20.dp,
                     topEnd = 0.dp,
                     bottomStart = 0.dp,
                     bottomEnd = 0.dp
@@ -120,64 +121,66 @@ fun NicoLiveCommentInputButton(
                 onTokumeiChange = onTokumeiChange
             )
         }
-        // コメント投稿欄
         Row(
             modifier = Modifier.padding(5.dp),
             verticalAlignment = Alignment.CenterVertically, // 真ん中にする
         ) {
-            // コメント投稿エリア収納
-            IconButton(onClick = { isHideCommentLayout.value = !isHideCommentLayout.value }) {
-                Icon(
-                    painter = if (isHideCommentLayout.value) painterResource(id = R.drawable.ic_outline_create_24px) else painterResource(id = R.drawable.ic_outline_keyboard_arrow_right_24),
-                    tint = Color.White,
-                    contentDescription = "コメント投稿UI表示"
-                )
-            }
-            // コメント入力展開するか
-            if (!isHideCommentLayout.value) {
-                // コマンドパネル
-                IconButton(onClick = { isShowCommandPanel.value = !isShowCommandPanel.value }) {
-                    Column {
+            // コメント投稿欄。タイムシフト再生時はそもそも表示しない
+            if (!isTimeShiftMode) {
+                // コメント投稿エリア収納
+                IconButton(onClick = { isHideCommentLayout.value = !isHideCommentLayout.value }) {
+                    Icon(
+                        painter = if (isHideCommentLayout.value) painterResource(id = R.drawable.ic_outline_create_24px) else painterResource(id = R.drawable.ic_outline_keyboard_arrow_right_24),
+                        tint = Color.White,
+                        contentDescription = "コメント投稿UI表示"
+                    )
+                }
+                // コメント入力展開するか
+                if (!isHideCommentLayout.value) {
+                    // コマンドパネル
+                    IconButton(onClick = { isShowCommandPanel.value = !isShowCommandPanel.value }) {
+                        Column {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_outline_settings_24px),
+                                tint = Color.White,
+                                contentDescription = "設定",
+                            )
+                        }
+                    }
+                    // コメント入力
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterVertically),
+                        value = comment,
+                        onValueChange = { onCommentChange(it) },
+                        label = {
+                            Text(
+                                text = if (is184) {
+                                    stringResource(id = R.string.comment)
+                                } else {
+                                    // 生IDで投稿する旨を表示
+                                    "${stringResource(id = R.string.comment)} ${stringResource(id = R.string.disabled_tokumei_comment)}"
+                                }
+                            )
+                        },
+                        textStyle = TextStyle(color = Color.White),
+                        colors = getWhiteColorOutlinedTextField(),
+                        // 複数行投稿が無効な場合はEnterキーを送信、そうじゃない場合は改行へ
+                        keyboardOptions = if (!isMultiLine) KeyboardOptions(imeAction = ImeAction.Send) else KeyboardOptions.Default,
+                        keyboardActions = KeyboardActions(onSend = {
+                            // 送信！
+                            onPostClick()
+                        })
+                    )
+                    // 投稿ボタン
+                    IconButton(onClick = { onPostClick() }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_outline_settings_24px),
+                            painter = painterResource(id = R.drawable.ic_send_black),
                             tint = Color.White,
-                            contentDescription = "設定",
+                            contentDescription = stringResource(id = R.string.comment_post)
                         )
                     }
-                }
-                // コメント入力
-                OutlinedTextField(
-                    modifier = Modifier
-                        .weight(1f)
-                        .align(Alignment.CenterVertically),
-                    value = comment,
-                    onValueChange = { onCommentChange(it) },
-                    label = {
-                        Text(
-                            text = if (is184) {
-                                stringResource(id = R.string.comment)
-                            } else {
-                                // 生IDで投稿する旨を表示
-                                "${stringResource(id = R.string.comment)} ${stringResource(id = R.string.disabled_tokumei_comment)}"
-                            }
-                        )
-                    },
-                    textStyle = TextStyle(color = Color.White),
-                    colors = getWhiteColorOutlinedTextField(),
-                    // 複数行投稿が無効な場合はEnterキーを送信、そうじゃない場合は改行へ
-                    keyboardOptions = if (!isMultiLine) KeyboardOptions(imeAction = ImeAction.Send) else KeyboardOptions.Default,
-                    keyboardActions = KeyboardActions(onSend = {
-                        // 送信！
-                        onPostClick()
-                    })
-                )
-                // 投稿ボタン
-                IconButton(onClick = { onPostClick() }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_send_black),
-                        tint = Color.White,
-                        contentDescription = stringResource(id = R.string.comment_post)
-                    )
                 }
             }
             // ボタン
