@@ -69,6 +69,9 @@ class NicoLiveTimeShiftComment {
     /** シークでコメントをFlowで受け取るのでそのコルーチンのJob */
     private var seekCommentReceiveJob: Job? = null
 
+    /** 接続を維持するために定期的になんか投げないといけないのでそのための */
+    private var heartBeatJob: Job? = null
+
     /**
      * タイムシフト視聴特化コメント鯖接続関数
      * */
@@ -92,6 +95,15 @@ class NicoLiveTimeShiftComment {
                  * */
                 val jsonString = nicoLiveComment.createSendJson(commentServerData, 1, programBeginTime + 60, true)
                 send(jsonString)
+
+                // WebSocketとの接続を維持するためになんか投げておく
+                heartBeatJob = GlobalScope.launch {
+                    while (isActive) {
+                        delay(60 * 1000)
+                        webSocketClient?.sendPing()
+                    }
+                }
+
             }
 
             override fun onMessage(message: String?) {
@@ -148,7 +160,9 @@ class NicoLiveTimeShiftComment {
                             if (date - programBeginTime == currentPositionSec) {
                                 // 最後のコメント番号から一分後までのコメントを取得
                                 val jsonString = nicoLiveComment.createSendJson(commentServerData, lastCommentNo, data.date.toLong() + 60, true)
-                                webSocketClient?.send(jsonString)
+                                if (webSocketClient?.isOpen == true) {
+                                    webSocketClient?.send(jsonString)
+                                }
                             }
                         }
                     }
@@ -158,6 +172,11 @@ class NicoLiveTimeShiftComment {
         }
     }
 
+    /**
+     * シークする。
+     *
+     * @param seekPos 再生時間。秒。こっちは番組開始からの時間でいいよ
+     * */
     fun seek(seekPos: Long) {
         if (commentServerData == null && programBeginTime == null) return
         // 時間移動
@@ -172,7 +191,9 @@ class NicoLiveTimeShiftComment {
                     val commentDate = commentData.date.toLong()
                     // WebSocketへ送信
                     val jsonString = nicoLiveComment.createSendJson(commentServerData!!, commentNo, commentDate + 60, true)
-                    webSocketClient?.send(jsonString)
+                    if (webSocketClient?.isOpen == true) {
+                        webSocketClient?.send(jsonString)
+                    }
                 } else {
                     // 失敗する時がある
                 }
@@ -189,6 +210,7 @@ class NicoLiveTimeShiftComment {
         commentTimer?.cancel()
         jsonPostTimer?.cancel()
         seekCommentReceiveJob?.cancel()
+        heartBeatJob?.cancel()
     }
 
 }

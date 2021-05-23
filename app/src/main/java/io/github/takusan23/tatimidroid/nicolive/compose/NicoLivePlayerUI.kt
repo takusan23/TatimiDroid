@@ -23,6 +23,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.compose.NumberSlider
+import io.github.takusan23.tatimidroid.tool.TimeFormatTool
 import kotlinx.coroutines.delay
 
 /**
@@ -45,15 +47,14 @@ import kotlinx.coroutines.delay
  * @param onClickPopUpPlayer ポップアップ再生ボタンを押したときに呼ばれる
  * @param isAudioOnlyMode 音声のみの再生時はtrueにしてね
  * @param isTimeShiftMode タイムシフト再生時はtrueにしてね。シークバーを出します
- * @param tsCurrentPosition タイムシフト再生中は0Fから1Fの値が払い出される。
- * @param onSeek シークバーいじったら呼ばれる
+ * @param currentPosition 番組経過時間。番組開始時間から数えて
+ * @param onTsSeek タイムシフト再生中のみ。シークバーいじったら呼ばれる。0からの整数
+ * @param duration タイムシフト再生時のみ。番組の時間。秒で
  * */
 @Composable
 fun NicoLivePlayerUI(
     liveTitle: String,
     liveId: String,
-    programCurrentTime: String?,
-    programEndTime: String?,
     isMiniPlayer: Boolean,
     isDisableMiniPlayerMode: Boolean,
     isFullScreen: Boolean = false,
@@ -61,7 +62,8 @@ fun NicoLivePlayerUI(
     isShowCommentCanvas: Boolean = true,
     isAudioOnlyMode: Boolean = false,
     isTimeShiftMode: Boolean = false,
-    tsCurrentPosition: Float = 0f,
+    currentPosition: Long = 0L,
+    duration: Long = 0L,
     onClickMiniPlayer: () -> Unit,
     onClickFullScreen: () -> Unit,
     onClickNetwork: () -> Unit,
@@ -69,7 +71,7 @@ fun NicoLivePlayerUI(
     onClickPopUpPlayer: () -> Unit,
     onClickBackgroundPlayer: () -> Unit,
     onClickCommentPost: (String) -> Unit,
-    onSeek: (Float) -> Unit = { }
+    onTsSeek: (Long) -> Unit = { }
 ) {
 
     // プレイヤー押したらプレイヤーUIを非表示にしたいので
@@ -78,6 +80,8 @@ fun NicoLivePlayerUI(
     val commentPostText = remember { mutableStateOf("") }
     // コメント入力中かどうか
     val isInputingComment = remember { mutableStateOf(false) }
+    // タイムシフトのシークバーの値
+    val seekBar = remember { mutableStateOf(currentPosition) }
 
     // 一定時間後にfalseにする
     LaunchedEffect(key1 = isShowPlayerUI.value, block = {
@@ -198,25 +202,25 @@ fun NicoLivePlayerUI(
                     ) { }
                     // 再生時間など
                     Row(modifier = Modifier.padding(10.dp)) {
-                        if (programCurrentTime != null) {
-                            Text(text = programCurrentTime, modifier = Modifier.align(alignment = Alignment.CenterVertically))
-                        }
+                        Text(text = TimeFormatTool.liveTimeFormat(currentPosition), modifier = Modifier.align(alignment = Alignment.CenterVertically))
                         if (isTimeShiftMode && !isMiniPlayer) {
-                            // TS再生用にシークバーを出す
-                            Slider(
+                            // TS再生用にシークバーを出す。整数用にSliderを作った
+                            NumberSlider(
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(start = 5.dp, end = 5.dp),
-                                value = tsCurrentPosition,
-                                onValueChange = { onSeek(it) },
+                                currentValue = seekBar.value,
+                                maxValue = duration,
+                                onValueChange = {
+                                    seekBar.value = it
+                                    onTsSeek(it)
+                                },
                             )
                         } else {
                             // ダイナモ感覚　ダイナモ感覚 YO YO YO YEAR!
                             Spacer(modifier = Modifier.weight(1f))
                         }
-                        if (programEndTime != null) {
-                            Text(text = programEndTime, modifier = Modifier.align(alignment = Alignment.CenterVertically))
-                        }
+                        Text(text = TimeFormatTool.liveTimeFormat(duration), modifier = Modifier.align(alignment = Alignment.CenterVertically))
                     }
                     // コメント投稿エリア。全画面再生時のみ
                     if (isFullScreen && !isMiniPlayer && !isTimeShiftMode) {

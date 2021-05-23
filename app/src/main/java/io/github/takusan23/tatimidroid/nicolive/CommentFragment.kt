@@ -315,13 +315,13 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
         }
 
         // 経過時間
-        viewModel.programTimeLiveData.observe(viewLifecycleOwner) { programTime ->
-            viewBinding.playerNicoliveControlTime.text = programTime
+        viewModel.programCurrentPositionSecLiveData.observe(viewLifecycleOwner) { currentPosSec ->
+            viewBinding.playerNicoliveControlTime.text = TimeFormatTool.liveTimeFormat(currentPosSec)
         }
 
-        // 終了時刻
-        viewModel.formattedProgramEndTime.observe(viewLifecycleOwner) { endTime ->
-            viewBinding.playerNicoliveControlEndTime.text = endTime
+        // 場組の期間
+        viewModel.programDurationTimeLiveData.observe(viewLifecycleOwner) { duration ->
+            viewBinding.playerNicoliveControlEndTime.text = TimeFormatTool.liveTimeFormat(duration)
         }
 
         // HLSアドレス取得

@@ -109,72 +109,73 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
 
     private fun setPlayerUICompose() {
         nicolivePlayerUIBinding.includeNicolivePlayerComposeView.setContent {
+            MaterialTheme(
+                // ダークモード。動的にテーマ変更できるようになるんか？
+                colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
+            ) {
+                // 番組情報
+                val programData = viewModel.nicoLiveProgramData.observeAsState()
+                // 経過時間
+                val currentPosSec = viewModel.programCurrentPositionSecLiveData.observeAsState(initial = 0)
+                // 番組の期間（放送時間）
+                val duration = viewModel.programDurationTimeLiveData.observeAsState(initial = 0)
+                // ミニプレイヤーかどうか
+                val isMiniPlayerMode = viewModel.isMiniPlayerMode.observeAsState(false)
+                // コメント描画
+                val isShowDrawComment = remember { mutableStateOf(nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible) }
+                // TS再生中？
+                val isWatchingTS = viewModel.isWatchingTimeShiftLiveData.observeAsState(initial = false)
 
-            // 番組情報
-            val programData = viewModel.nicoLiveProgramData.observeAsState()
-            // 経過時間
-            val duration = viewModel.programTimeLiveData.observeAsState()
-            // 終了時刻
-            val endTime = viewModel.formattedProgramEndTime.observeAsState()
-            // ミニプレイヤーかどうか
-            val isMiniPlayerMode = viewModel.isMiniPlayerMode.observeAsState(false)
-            // コメント描画
-            val isShowDrawComment = remember { mutableStateOf(nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible) }
-            // TS再生時なら再生時間
-            val tsCurrentPosition = viewModel.timeShiftCurrentPositionLiveData.observeAsState(initial = 0L)
-            // TS再生中？
-            val isWatchingTS = viewModel.isWatchingTimeShiftLiveData.observeAsState(initial = false)
-
-            if (programData.value != null) {
-                NicoLivePlayerUI(
-                    liveTitle = programData.value!!.title,
-                    liveId = programData.value!!.programId,
-                    programEndTime = endTime.value,
-                    programCurrentTime = duration.value,
-                    isMiniPlayer = isMiniPlayerMode.value,
-                    isDisableMiniPlayerMode = isDisableMiniPlayerMode,
-                    isFullScreen = viewModel.isFullScreenMode,
-                    isConnectedWiFi = isConnectionWiFiInternet(requireContext()),
-                    isShowCommentCanvas = isShowDrawComment.value,
-                    isAudioOnlyMode = viewModel.currentQuality == "audio_high",
-                    isTimeShiftMode = isWatchingTS.value,
-                    tsCurrentPosition = viewModel.liveTimeLongToFloat(tsCurrentPosition.value),
-                    onClickMiniPlayer = {
-                        when {
-                            isDisableMiniPlayerMode -> finishFragment()
-                            isMiniPlayerMode.value -> toDefaultPlayer()
-                            else -> toMiniPlayer()
-                        }
-                    },
-                    onClickFullScreen = { if (viewModel.isFullScreenMode) setDefaultScreen() else setFullScreen() },
-                    onClickNetwork = { showNetworkTypeMessage() },
-                    onClickCommentDraw = {
-                        nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible = !nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
-                        isShowDrawComment.value = nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
-                    },
-                    onClickPopUpPlayer = {
-                        startLivePlayService(
-                            context = requireContext(),
-                            mode = "popup",
-                            liveId = programData.value!!.programId,
-                            isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
-                            startQuality = viewModel.currentQuality
-                        )
-                        finishFragment()
-                    },
-                    onClickBackgroundPlayer = {
-                        startLivePlayService(
-                            context = requireContext(),
-                            mode = "background",
-                            liveId = programData.value!!.programId,
-                            isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
-                            startQuality = viewModel.currentQuality
-                        )
-                        finishFragment()
-                    },
-                    onClickCommentPost = { comment -> viewModel.sendComment(comment) },
-                    onSeek = { viewModel.tsSeekPosition(viewModel.floatToLiveTimeLong(it)) } // TS再生時のシークバー
-                )
+                if (programData.value != null) {
+                    NicoLivePlayerUI(
+                        liveTitle = programData.value!!.title,
+                        liveId = programData.value!!.programId,
+                        isMiniPlayer = isMiniPlayerMode.value,
+                        isDisableMiniPlayerMode = isDisableMiniPlayerMode,
+                        isFullScreen = viewModel.isFullScreenMode,
+                        isConnectedWiFi = isConnectionWiFiInternet(requireContext()),
+                        isShowCommentCanvas = isShowDrawComment.value,
+                        isAudioOnlyMode = viewModel.currentQuality == "audio_high",
+                        isTimeShiftMode = isWatchingTS.value,
+                        onClickMiniPlayer = {
+                            when {
+                                isDisableMiniPlayerMode -> finishFragment()
+                                isMiniPlayerMode.value -> toDefaultPlayer()
+                                else -> toMiniPlayer()
+                            }
+                        },
+                        onClickFullScreen = { if (viewModel.isFullScreenMode) setDefaultScreen() else setFullScreen() },
+                        onClickNetwork = { showNetworkTypeMessage() },
+                        onClickCommentDraw = {
+                            nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible = !nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
+                            isShowDrawComment.value = nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
+                        },
+                        onClickPopUpPlayer = {
+                            startLivePlayService(
+                                context = requireContext(),
+                                mode = "popup",
+                                liveId = programData.value!!.programId,
+                                isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
+                                startQuality = viewModel.currentQuality
+                            )
+                            finishFragment()
+                        },
+                        onClickBackgroundPlayer = {
+                            startLivePlayService(
+                                context = requireContext(),
+                                mode = "background",
+                                liveId = programData.value!!.programId,
+                                isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
+                                startQuality = viewModel.currentQuality
+                            )
+                            finishFragment()
+                        },
+                        onClickCommentPost = { comment -> viewModel.sendComment(comment) },
+                        currentPosition = currentPosSec.value,
+                        duration = duration.value,
+                        onTsSeek = { viewModel.tsSeekPosition(it) } // TS再生時のシークバー
+                    )
+                }
             }
         }
     }
