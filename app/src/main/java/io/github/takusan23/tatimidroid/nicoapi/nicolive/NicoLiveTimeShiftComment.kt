@@ -74,6 +74,10 @@ class NicoLiveTimeShiftComment {
 
     /**
      * タイムシフト視聴特化コメント鯖接続関数
+     *
+     * @param commentServerData コメント鯖データ
+     * @param onMessageFunc コメント来たときに呼ばれる高階関数
+     * @param programBeginTime 番組開始時間
      * */
     fun connectCommentServerTimeShift(
         commentServerData: CommentServerData,
@@ -99,8 +103,8 @@ class NicoLiveTimeShiftComment {
                 // WebSocketとの接続を維持するためになんか投げておく
                 heartBeatJob = GlobalScope.launch {
                     while (isActive) {
-                        delay(60 * 1000)
                         webSocketClient?.sendPing()
+                        delay(60 * 1000)
                     }
                 }
 
@@ -140,7 +144,7 @@ class NicoLiveTimeShiftComment {
             while (isActive) {
                 if (isPlaying) {
                     // 秒単位で流す。投稿日時から開始時間を引けば何秒のときに流せばいいのか出るので
-                    val drawCommentList = commentJSONList.filter { comment -> comment.date.toLongOrDefault(0) - programBeginTime == currentPositionSec }
+                    val drawCommentList = commentJSONList.toList().filter { comment -> comment.date.toLongOrDefault(0) - programBeginTime == currentPositionSec }
                     if (drawCommentList.isNotEmpty()) {
                         // 公開関数を呼ぶ
                         drawCommentList.forEach { comment ->
@@ -201,7 +205,9 @@ class NicoLiveTimeShiftComment {
         }
         // シーク時間から-1番目のコメントをリクエスト
         val jsonString = nicoLiveComment.createSendJson(commentServerData!!, -1, lastPostTimeSec, true)
-        webSocketClient?.send(jsonString)
+        if (webSocketClient?.isOpen == true) {
+            webSocketClient?.send(jsonString)
+        }
     }
 
     /** 終了時に呼んでください */

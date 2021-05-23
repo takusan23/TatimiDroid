@@ -316,12 +316,12 @@ class CommentFragment : Fragment(), MainActivityPlayerFragmentInterface {
 
         // 経過時間
         viewModel.programCurrentPositionSecLiveData.observe(viewLifecycleOwner) { currentPosSec ->
-            viewBinding.playerNicoliveControlTime.text = TimeFormatTool.liveTimeFormat(currentPosSec)
+            viewBinding.playerNicoliveControlTime.text = TimeFormatTool.timeFormat(currentPosSec)
         }
 
         // 場組の期間
         viewModel.programDurationTimeLiveData.observe(viewLifecycleOwner) { duration ->
-            viewBinding.playerNicoliveControlEndTime.text = TimeFormatTool.liveTimeFormat(duration)
+            viewBinding.playerNicoliveControlEndTime.text = TimeFormatTool.timeFormat(duration)
         }
 
         // HLSアドレス取得

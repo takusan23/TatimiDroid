@@ -211,9 +211,6 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** タイムシフト再生中？ */
     val isWatchingTimeShiftLiveData = MutableLiveData(false)
 
-    /** タイムシフト再生中なら、再生時間 */
-    var timeShiftCurrentPositionLiveData = MutableLiveData(0L)
-
     /** タイムシフト用。生放送を再生しているか。 */
     var isTimeShiftPlaying = MutableLiveData(true)
 
@@ -414,7 +411,8 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
                 delay(1000)
                 // 現在の時間
                 val currentTimeSec = System.currentTimeMillis() / 1000L
-                programCurrentPositionSecLiveData.postValue(currentTimeSec)
+                val programData = nicoLiveProgramData.value?.beginAt?.toLong() ?: 0
+                programCurrentPositionSecLiveData.postValue(currentTimeSec - programData)
             }
         }
     }
@@ -422,16 +420,15 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     /** 経過時間計算。こっちはTS用 */
     private fun setTSLiveTime() {
         // 1秒ごとに
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             while (isActive) {
-                var tsCurrentPos = timeShiftCurrentPositionLiveData.value ?: 0
+                var tsCurrentPos = programCurrentPositionSecLiveData.value ?: 0
                 // 再生中のみ時間を足す
                 if (isTimeShiftPlaying.value == true) {
                     // 足す
                     tsCurrentPos += 1
                     // 現在の時間
-                    programCurrentPositionSecLiveData.postValue(tsCurrentPos)
-                    timeShiftCurrentPositionLiveData.postValue(tsCurrentPos)
+                    programCurrentPositionSecLiveData.value = tsCurrentPos
                 }
                 // タイムシフトコメント再現
                 nicoLiveTimeShiftComment.apply {
@@ -444,36 +441,12 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     }
 
     /**
-     * タイムシフト専用
-     * Floatの0fから1fまでを再生時間に変換する（なんかJetpack ComposeのシークバーがFloatなので。計算式をComposeで書くわけにも行かないので）
-     *
-     * ちなみにUnixTime（Long）をFloatにすると桁が足りなくて出来ない
-     *
-     * @param percent 0から1まで
-     * */
-    fun floatToLiveTimeLong(percent: Float): Long {
-        val programData = nicoLiveProgramData.value ?: return 0L
-        return ((programData.endAt.toLong() - programData.beginAt.toLong()) * percent).toLong()
-    }
-
-    /**
-     * タイムシフト専用
-     * 現在の再生時間をFloatの0fから1fに変換する（なんかJetpack ComposeのシークバーがFloatなので。計算式をComposeで書くわけにも行かないので）
-     *
-     * @param position 再生時間。秒
-     * */
-    fun liveTimeLongToFloat(position: Long): Float {
-        val programData = nicoLiveProgramData.value ?: return 1f
-        return (position.toFloat() / (programData.endAt.toLong() - programData.beginAt.toLong()))
-    }
-
-    /**
      * タイムシフト再生時のみ。シークをする関数
      * @param position シーク位置。現実世界の時間で
      * */
     fun tsSeekPosition(position: Long) {
         // まず再生時間を更新
-        timeShiftCurrentPositionLiveData.postValue(position)
+        programCurrentPositionSecLiveData.value = position
         // HLSアドレスを加工してLiveData送信
         val hlsAddress = hlsAddressLiveData.value
         if (hlsAddress != null) {

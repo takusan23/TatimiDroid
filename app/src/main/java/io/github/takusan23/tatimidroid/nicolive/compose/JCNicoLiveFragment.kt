@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
+import android.view.ViewTreeObserver
 import android.webkit.WebView
 import android.widget.LinearLayout
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -17,7 +18,6 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
-import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.ViewModelProvider
@@ -71,6 +71,9 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     /** 共有 */
     private val contentShare by lazy { ContentShareTool(requireContext()) }
 
+    /** レイアウト変更コールバック */
+    private var onGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+
     /** ViewModel初期化。ネットワークとかUI関係ないやつはこっちに書いていきます。 */
     val viewModel by lazy {
         val liveId = arguments?.getString("liveId")!!
@@ -89,6 +92,9 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
 
         // LiveData監視
         setLiveData()
+
+        // アスペクト比調整
+        setOnLayoutChangeAspectRatioFix()
 
         // Fragment設置
         setFragment()
@@ -236,7 +242,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         fragmentCommentHostTopComposeView.apply {
             setContent {
                 MaterialTheme(
-                    // ダークモード。動的にテーマ変更できるようになるんか？
                     colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
                 ) {
                     Surface {
@@ -555,11 +560,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
     }
 
-    override fun onBottomSheetProgress(progress: Float) {
-        super.onBottomSheetProgress(progress)
-        aspectRatioFix()
-    }
-
     /** ExoPlayerで生放送を再生する */
     private fun playExoPlayer(address: String) {
         // ExoPlayer
@@ -569,8 +569,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         } else {
             nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.background = null
         }
-        // アスペクト比治す
-        aspectRatioFix()
         // HLS受け取り
         val mediaItem = MediaItem.fromUri(address.toUri())
         exoPlayer.setMediaItem(mediaItem)
@@ -641,26 +639,38 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         })
     }
 
-    /** アスペクト比を治す。サイズ変更の度によぶ必要あり。めんどいので16:9固定で */
-    private fun aspectRatioFix() {
+    /**
+     * アスペクト比を治す。一度だけ呼べばいいです（レイアウト変更を検知して自動で変更するため）
+     * */
+    private fun setOnLayoutChangeAspectRatioFix() {
         if (!isAdded) return
-        fragmentPlayerFrameLayout.doOnNextLayout {
+        // 既存のコールバックは消す
+        if (onGlobalLayoutListener != null) {
+            fragmentPlayerFrameLayout.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
+        }
+
+        var prevHeight = 0
+        onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
             val playerHeight = fragmentPlayerFrameLayout.height
             val playerWidth = fragmentPlayerFrameLayout.width
-            val calcWidth = (playerHeight / 9) * 16
-            if (calcWidth > fragmentPlayerFrameLayout.width) {
-                // 画面外にプレイヤーが行く
-                nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
-                    width = playerWidth
-                    height = (playerWidth / 16) * 9
-                }
-            } else {
-                nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
-                    width = calcWidth
-                    height = playerHeight
+            if (prevHeight != playerHeight) {
+                prevHeight = playerHeight
+                val calcWidth = (playerHeight / 9) * 16
+                if (calcWidth > fragmentPlayerFrameLayout.width) {
+                    // 画面外にプレイヤーが行く
+                    nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
+                        width = playerWidth
+                        height = (playerWidth / 16) * 9
+                    }
+                } else {
+                    nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
+                        width = calcWidth
+                        height = playerHeight
+                    }
                 }
             }
         }
+        fragmentPlayerFrameLayout.viewTreeObserver.addOnGlobalLayoutListener(onGlobalLayoutListener)
     }
 
     /** コメント描画設定を適用 */
@@ -692,8 +702,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             viewModel.isFullScreenMode = true
             // コメント / 動画情報Fragmentを非表示にする
             toFullScreen()
-            // アスペクト比治すなど
-            aspectRatioFix()
         }
     }
 
@@ -703,8 +711,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             viewModel.isFullScreenMode = false
             // コメント / 動画情報Fragmentを表示にする
             toDefaultScreen()
-            // アスペクト比治すなど
-            aspectRatioFix()
         }
     }
 

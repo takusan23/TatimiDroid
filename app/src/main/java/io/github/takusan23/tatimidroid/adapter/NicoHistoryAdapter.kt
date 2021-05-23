@@ -39,7 +39,7 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistor
         val title = item.title
         val communityId = item.userId
 
-        holder.titleTextView.text = "$title / $id"
+        holder.titleTextView.text = "$title\n$id"
         holder.dateTextView.text = unixToDataFormat(date).toString()
 
         //コミュIDをいれる
@@ -77,7 +77,7 @@ class NicoHistoryAdapter(private val arrayListArrayAdapter: ArrayList<NicoHistor
     }
 
     fun unixToDataFormat(unixTime: Long): String? {
-        val simpleDateFormat = SimpleDateFormat("yyy/MM/dd HH:mm:ss")
+        val simpleDateFormat = SimpleDateFormat("yyy/MM/dd\nHH:mm:ss")
         return simpleDateFormat.format(unixTime * 1000)
     }
 

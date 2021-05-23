@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
  * @param modifier 大きさなど
  * @param onValueChange 値が変更されたら呼ばれる
  * @param currentValue 現在の値
+ * @param onValueChangeFinished シーク終わったら呼ばれる
  * */
 @Composable
 fun NumberSlider(
@@ -22,11 +23,13 @@ fun NumberSlider(
     maxValue: Long = 10L,
     currentValue: Long = 5L,
     onValueChange: (Long) -> Unit,
+    onValueChangeFinished: () -> Unit = {},
 ) {
 
     /** [currentValue]を0fから1fまでに変換する */
     fun longToProgress(currentValue: Long, maxValue: Long): Float {
-        return (currentValue.toFloat() / maxValue)
+        val calc = (currentValue.toFloat() / maxValue)
+        return if (calc.isNaN()) 0f else calc
     }
 
     /** [currentValue]を整数に戻す */
@@ -37,6 +40,7 @@ fun NumberSlider(
     Slider(
         modifier = modifier,
         value = longToProgress(currentValue, maxValue),
+        onValueChangeFinished = onValueChangeFinished,
         onValueChange = { progress -> onValueChange(progressToLong(progress, maxValue)) }
     )
 }

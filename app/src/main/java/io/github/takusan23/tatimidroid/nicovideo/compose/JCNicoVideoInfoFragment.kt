@@ -54,7 +54,6 @@ class JCNicoVideoInfoFragment : Fragment() {
             // Jetpack Compose
             setContent {
                 MaterialTheme(
-                    // ダークモード。動的にテーマ変更できるようになるんか？
                     colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
                 ) {
                     Surface {

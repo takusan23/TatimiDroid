@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.nicolive.compose
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -71,7 +72,7 @@ fun NicoLivePlayerUI(
     onClickPopUpPlayer: () -> Unit,
     onClickBackgroundPlayer: () -> Unit,
     onClickCommentPost: (String) -> Unit,
-    onTsSeek: (Long) -> Unit = { }
+    onTsSeek: (Long) -> Unit = { },
 ) {
 
     // プレイヤー押したらプレイヤーUIを非表示にしたいので
@@ -80,8 +81,14 @@ fun NicoLivePlayerUI(
     val commentPostText = remember { mutableStateOf("") }
     // コメント入力中かどうか
     val isInputingComment = remember { mutableStateOf(false) }
-    // タイムシフトのシークバーの値
-    val seekBar = remember { mutableStateOf(currentPosition) }
+    // シーク中かどうか
+    val isTouchingSlider = remember { mutableStateOf(false) }
+    // 再生位置
+    val seekBarValue = remember { mutableStateOf(currentPosition) }
+    // シーク操作中は引数の値が更新されても無視
+    if (!isTouchingSlider.value) {
+        seekBarValue.value = currentPosition
+    }
 
     // 一定時間後にfalseにする
     LaunchedEffect(key1 = isShowPlayerUI.value, block = {
@@ -96,9 +103,12 @@ fun NicoLivePlayerUI(
     Surface(
         contentColor = Color.White, // アイコンとかテキストの色をまとめて指定
         color = Color.Transparent,
-        modifier = Modifier.clickable {
-            isShowPlayerUI.value = !isShowPlayerUI.value
-        }
+        modifier = Modifier
+            .clickable(
+                indication = null, // Rippleいらんわ
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = { isShowPlayerUI.value = !isShowPlayerUI.value },
+            )
     ) {
         Box(
             modifier = Modifier
@@ -202,25 +212,29 @@ fun NicoLivePlayerUI(
                     ) { }
                     // 再生時間など
                     Row(modifier = Modifier.padding(10.dp)) {
-                        Text(text = TimeFormatTool.liveTimeFormat(currentPosition), modifier = Modifier.align(alignment = Alignment.CenterVertically))
+                        Text(text = TimeFormatTool.timeFormat(currentPosition), modifier = Modifier.align(alignment = Alignment.CenterVertically))
                         if (isTimeShiftMode && !isMiniPlayer) {
                             // TS再生用にシークバーを出す。整数用にSliderを作った
                             NumberSlider(
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(start = 5.dp, end = 5.dp),
-                                currentValue = seekBar.value,
                                 maxValue = duration,
+                                currentValue = seekBarValue.value,
+                                onValueChangeFinished = {
+                                    isTouchingSlider.value = false
+                                    onTsSeek(seekBarValue.value)
+                                },
                                 onValueChange = {
-                                    seekBar.value = it
-                                    onTsSeek(it)
+                                    isTouchingSlider.value = true
+                                    seekBarValue.value = it
                                 },
                             )
                         } else {
                             // ダイナモ感覚　ダイナモ感覚 YO YO YO YEAR!
                             Spacer(modifier = Modifier.weight(1f))
                         }
-                        Text(text = TimeFormatTool.liveTimeFormat(duration), modifier = Modifier.align(alignment = Alignment.CenterVertically))
+                        Text(text = TimeFormatTool.timeFormat(duration), modifier = Modifier.align(alignment = Alignment.CenterVertically))
                     }
                     // コメント投稿エリア。全画面再生時のみ
                     if (isFullScreen && !isMiniPlayer && !isTimeShiftMode) {

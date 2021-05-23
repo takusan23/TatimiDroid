@@ -153,7 +153,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             if (isPlaying) {
                 // 画面外のコメントは描画しない
                 for (reDrawCommentData in drawNakaCommentList.toList()
-                    .filter { reDrawCommentData -> reDrawCommentData.rect?.right ?: 0 > -reDrawCommentData.measure }) {
+                    .filter { reDrawCommentData -> reDrawCommentData?.rect?.right ?: 0 > -reDrawCommentData.measure }) {
                     if (reDrawCommentData != null && reDrawCommentData.rect != null) {
                         reDrawCommentData.rect.left -= reDrawCommentData.commentUpdateMsMoveSize
                         reDrawCommentData.rect.right -= reDrawCommentData.commentUpdateMsMoveSize
@@ -483,9 +483,9 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             prevHeight = addRect.bottom
         } else {
             // 全パターん
-            val tmpList = drawNakaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.rect?.top }
+            val tmpList = drawNakaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData?.rect?.top }
             for (reDrawCommentData in tmpList) {
-                if (reDrawCommentData.rect != null) {
+                if (reDrawCommentData?.rect != null) {
                     if (Rect.intersects(reDrawCommentData.rect, addRect)) {
                         // あたっているので下へ
                         addRect.top = reDrawCommentData.rect.bottom
@@ -547,9 +547,9 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // 当たり判定計算
         val addRect = Rect(lect, 0, (lect + measure).toInt(), fontSize)
         // 全パターん
-        val tmpList = drawUeCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.rect?.top }
+        val tmpList = drawUeCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData?.rect?.top }
         for (reDrawCommentData in tmpList) {
-            if (reDrawCommentData.rect != null) {
+            if (reDrawCommentData?.rect != null) {
                 if (Rect.intersects(reDrawCommentData.rect, addRect)) {
                     // あたっているので下へ
                     addRect.top = reDrawCommentData.rect.bottom
@@ -599,7 +599,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // 全パターん
         val tmpList = drawShitaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.videoPos }
         for (reDrawCommentData in tmpList) {
-            if (reDrawCommentData.rect != null) {
+            if (reDrawCommentData?.rect != null) {
                 if (Rect.intersects(reDrawCommentData.rect, addRect)) {
                     // あたっているので下へ
                     addRect.top = (reDrawCommentData.rect.top - reDrawCommentData.fontSize).roundToInt()

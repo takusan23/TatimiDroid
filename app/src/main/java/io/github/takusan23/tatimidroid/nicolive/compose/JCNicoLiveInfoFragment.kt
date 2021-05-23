@@ -22,17 +22,16 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.nicoad.NicoAdBottomFragment
 import io.github.takusan23.tatimidroid.nicolive.bottomfragment.NicoLiveGiftBottomFragment
+import io.github.takusan23.tatimidroid.nicolive.bottomfragment.NicoLiveKonomiTagEditBottomFragment
 import io.github.takusan23.tatimidroid.nicolive.bottomfragment.NicoLiveTagBottomFragment
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
+import io.github.takusan23.tatimidroid.nicovideo.NicoAccountFragment
 import io.github.takusan23.tatimidroid.nicovideo.compose.DarkColors
 import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
 import io.github.takusan23.tatimidroid.nicovideo.compose.NicoVideoUserCard
-import io.github.takusan23.tatimidroid.nicovideo.NicoAccountFragment
-import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveKonomiTagData
-import io.github.takusan23.tatimidroid.nicolive.bottomfragment.NicoLiveKonomiTagEditBottomFragment
 import io.github.takusan23.tatimidroid.tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.tool.isDarkMode
 
@@ -48,7 +47,6 @@ class JCNicoLiveInfoFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 MaterialTheme(
-                    // ダークモード。動的にテーマ変更できるようになるんか？
                     colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
                 ) {
 
