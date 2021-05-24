@@ -368,7 +368,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                         videoWidth = width
                     }
                     // アスペクト比調整
-                    println(width)
                     setOnLayoutChangeAspectRatioFix(width, height)
                 }
             }
@@ -474,13 +473,13 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                             isFullScreen = viewModel.isFullScreenMode,
                             isConnectedWiFi = isConnectionWiFiInternet(requireContext()),
                             isShowCommentCanvas = isShowDrawComment.value,
+                            isRepeat = isRepeat.value,
+                            isCachePlay = videoData.value!!.isCache,
                             isLoading = isLoading.value,
                             isPlaylistMode = isPlaylistMode.value,
                             isPlaying = isPlaying.value,
-                            duration = duration.value.toLong() / 1000,
                             currentPosition = currentPosition.value.toLong() / 1000,
-                            isCachePlay = videoData.value!!.isCache,
-                            isRepeat = isRepeat.value,
+                            duration = duration.value.toLong() / 1000,
                             onClickMiniPlayer = {
                                 if (isMiniPlayerMode()) {
                                     toDefaultPlayer()
@@ -496,6 +495,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                                 }
                             },
                             onClickNetwork = { showNetworkTypeMessage() },
+                            onClickRepeat = { viewModel.playerIsRepeatMode.postValue(!viewModel.playerIsRepeatMode.value!!) },
                             onClickCommentDraw = {
                                 nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible = !nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible;
                                 isShowDrawComment.value = nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible
@@ -529,18 +529,9 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                                 finishFragment()
                             },
                             onClickPicture = { showComememoBottomFragment() },
-                            onClickRepeat = { viewModel.playerIsRepeatMode.postValue(!viewModel.playerIsRepeatMode.value!!) },
-                            onClickPlayType = { },
                             onClickPauseOrPlay = { viewModel.playerIsPlaying.postValue(!viewModel.playerIsPlaying.value!!) },
                             onClickPrev = { viewModel.prevVideo() },
                             onClickNext = { viewModel.nextVideo() },
-                            onSeek = { progress ->
-                                // コメントシークに対応させる
-                                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.seekComment()
-                                // ExoPlayer再開
-                                viewModel.playerCurrentPositionMsLiveData.value = progress * 1000
-                                viewModel.playerSetSeekMs.value = progress * 1000
-                            },
                             onDoubleClickSeek = { isPrev ->
                                 val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
                                 val seekMs = if (isPrev) {
@@ -551,7 +542,14 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                                 viewModel.playerCurrentPositionMsLiveData.value = seekMs
                                 viewModel.playerSetSeekMs.value = seekMs
                             },
-                            onTouchingSeek = { isTouchSeekBar = it }
+                            onSeek = { progress ->
+                                // コメントシークに対応させる
+                                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.seekComment()
+                                // ExoPlayer再開
+                                viewModel.playerCurrentPositionMsLiveData.value = progress * 1000
+                                viewModel.playerSetSeekMs.value = progress * 1000
+                            },
+                            onTouchingSeek = { isTouchSeekBar = it },
                         )
                     }
                 }

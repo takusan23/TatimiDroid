@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="1dp"
-    android:background="#ffffff"
     android:foreground="?android:attr/selectableItemBackground"
     android:orientation="vertical"
     android:padding="2dp">
@@ -33,7 +32,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
-                android:text="テスト" />
+                android:text="テスト"
+                android:textColor="#ffffff" />
 
             <TextView
                 android:id="@+id/home_widget_nicorepo_item_description_text_view"
@@ -41,6 +41,8 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:text="動画を投稿しました"
+                android:textColor="#ffffff"
+                android:textColorLink="#ffffff"
                 android:textSize="8sp" />
         </LinearLayout>
 
@@ -50,6 +52,7 @@
             android:layout_height="wrap_content"
             android:maxLines="1"
             android:text="1時間前"
+            android:textColor="#ffffff"
             android:textSize="8sp" />
 
     </LinearLayout>
@@ -75,6 +78,7 @@
             android:maxLines="2"
             android:padding="2dp"
             android:text="Part1"
+            android:textColor="#ffffff"
             android:textSize="10sp" />
     </LinearLayout>
 </LinearLayout>

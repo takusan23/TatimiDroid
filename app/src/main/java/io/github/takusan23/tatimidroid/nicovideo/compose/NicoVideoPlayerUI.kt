@@ -1,10 +1,10 @@
 package io.github.takusan23.tatimidroid.nicovideo.compose
 
 import android.os.Build
-import android.view.MotionEvent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -79,7 +80,6 @@ fun NicoVideoPlayerUI(
     onClickFullScreen: () -> Unit,
     onClickNetwork: () -> Unit,
     onClickRepeat: () -> Unit,
-    onClickPlayType: () -> Unit,
     onClickCommentDraw: () -> Unit,
     onClickPopUpPlayer: () -> Unit,
     onClickBackgroundPlayer: () -> Unit,
@@ -103,13 +103,8 @@ fun NicoVideoPlayerUI(
     if (!isTouchingSlider.value) {
         seekBarValue.value = currentPosition
     }
-
-    // ダブルクリックの期間
-    val doubleClickDurationMs = 200
-    // 最後にクリックした時間
-    val prevClickTime = remember { mutableStateOf(0L) }
-    // ダブルタップ判定
-    fun isDoubleClick() = System.currentTimeMillis() - prevClickTime.value < doubleClickDurationMs
+    // クリック位置。X座標
+    val clickXPos = remember { mutableStateOf(0f) }
 
     // 一定時間後にfalseにする
     LaunchedEffect(key1 = isShowPlayerUI.value, block = {
@@ -128,20 +123,14 @@ fun NicoVideoPlayerUI(
             contentColor = Color.White, // アイコンとかテキストの色をまとめて指定
             color = Color.Transparent,
             modifier = Modifier
-                .clickable(
-                    indication = null, // Rippleいらんわ
-                    interactionSource = remember { MutableInteractionSource() },
-                    onClick = { isShowPlayerUI.value = !isShowPlayerUI.value  },
-                )
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { isShowPlayerUI.value = !isShowPlayerUI.value },
+                        onDoubleTap = { onDoubleClickSeek(clickXPos.value < (maxWidth.value / 2)) }
+                    )
+                }
                 .pointerInteropFilter { motionEvent ->
-                    if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                        // 200ms以内に2回クリックできればシーク
-                        if (isDoubleClick()) {
-                            val isPrev = motionEvent.x < (maxWidth.value / 2)
-                            onDoubleClickSeek(isPrev)
-                        }
-                        prevClickTime.value = System.currentTimeMillis()
-                    }
+                    clickXPos.value = motionEvent.x
                     false
                 }
         ) {
@@ -225,20 +214,18 @@ fun NicoVideoPlayerUI(
                                 }
                                 IconButton(onClick = { onClickNetwork() }) {
                                     Icon(
-                                        painter = if (isConnectedWiFi) painterResource(id = R.drawable.ic_wifi_black_24dp) else painterResource(id = R.drawable.ic_signal_cellular_alt_black_24dp),
-                                        contentDescription = "ミニプレイヤーへ"
+                                        painter = when {
+                                            isCachePlay -> painterResource(id = R.drawable.ic_cache_icon_list)
+                                            isConnectedWiFi -> painterResource(id = R.drawable.ic_wifi_black_24dp)
+                                            else -> painterResource(id = R.drawable.ic_signal_cellular_alt_black_24dp)
+                                        },
+                                        contentDescription = "海鮮"
                                     )
                                 }
                                 IconButton(onClick = { onClickRepeat() }) {
                                     Icon(
                                         painter = if (isRepeat) painterResource(id = R.drawable.ic_repeat_one_24px) else painterResource(id = R.drawable.ic_repeat_black_24dp),
-                                        contentDescription = "ミニプレイヤーへ"
-                                    )
-                                }
-                                IconButton(onClick = { onClickPlayType() }) {
-                                    Icon(
-                                        painter = if (isCachePlay) painterResource(id = R.drawable.ic_cache_icon_list) else painterResource(id = R.drawable.ic_signal_cellular_alt_black_24dp),
-                                        contentDescription = "再生の種類"
+                                        contentDescription = "リピートモード"
                                     )
                                 }
                                 IconButton(onClick = { onClickFullScreen() }) {

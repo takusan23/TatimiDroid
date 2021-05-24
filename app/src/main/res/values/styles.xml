@@ -118,7 +118,4 @@
         <item name="itemIconTint">@color/navigation_item_text_color</item>
     </style>
 
-    <!-- BottomFragmentの角を丸くする。 -->
-
-
 </resources>
