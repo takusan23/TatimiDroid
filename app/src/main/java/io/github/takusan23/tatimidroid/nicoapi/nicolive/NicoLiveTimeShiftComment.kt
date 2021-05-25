@@ -11,6 +11,7 @@ import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
 import org.java_websocket.protocols.IProtocol
 import org.java_websocket.protocols.Protocol
+import org.json.JSONObject
 import java.net.URI
 import java.util.*
 
@@ -73,6 +74,12 @@ class NicoLiveTimeShiftComment {
     private var heartBeatJob: Job? = null
 
     /**
+     * WebSocketにコメントをリクエストした際に返ってくる最後のコメント番号を控える
+     * [CommentJSONParse]に[CommentJSONParse.commentNo]あるやんけｗって思うけど公式番組にはないので。
+     * */
+    private var lastCommentNo = 0
+
+    /**
      * タイムシフト視聴特化コメント鯖接続関数
      *
      * @param commentServerData コメント鯖データ
@@ -113,6 +120,14 @@ class NicoLiveTimeShiftComment {
             override fun onMessage(message: String?) {
                 // 受け取る
                 if (message != null) {
+
+                    // thread オブジェクトを取得
+                    val jsonObject = JSONObject(message)
+                    if (jsonObject.has("thread")) {
+                        // コメントをリクエストすると、最後のコメントの番号が最初に流れてくるJSONに入ってくるので
+                        lastCommentNo = jsonObject.getJSONObject("thread").getInt("last_res")
+                    }
+
                     // 配列に一旦収納。このあとのcommentTimerで高階関数をいい感じに呼ぶ
                     val commentJSONParse = CommentJSONParse(message, commentServerData.roomName, "")
                     commentJSONList.add(commentJSONParse)
@@ -139,8 +154,6 @@ class NicoLiveTimeShiftComment {
          * */
         commentTimer = GlobalScope.launch {
 
-            var lastCommentNo = -1
-
             while (isActive) {
                 if (isPlaying) {
                     // 秒単位で流す。投稿日時から開始時間を引けば何秒のときに流せばいいのか出るので
@@ -151,22 +164,14 @@ class NicoLiveTimeShiftComment {
                             onMessageFunc(comment.commentJson, commentServerData.roomName, false)
                         }
                     }
-                    // コメント番号を使ってコメントをすべて受け取れたか判断
-                    val commentNo = commentJSONList.lastOrNull()?.commentNo?.toIntOrNull()
-                    if (commentNo != null && lastCommentNo != commentNo) {
-                        // まだコメントを取得しきれてない（最後のコメントの番号が一致してないときはまだ受け取り中）
-                        lastCommentNo = commentNo
-                    } else {
-                        // リクエストしたコメントがすべて配列に入った。
-                        // 最後のコメントの時間になったらJSONをコメント鯖に投げて追加リクエスト
-                        commentJSONList.lastOrNull()?.let { data ->
-                            val date = data.date.toLongOrNull() ?: return@let
-                            if (date - programBeginTime == currentPositionSec) {
-                                // 最後のコメント番号から一分後までのコメントを取得
-                                val jsonString = nicoLiveComment.createSendJson(commentServerData, lastCommentNo, data.date.toLong() + 60, true)
-                                if (webSocketClient?.isOpen == true) {
-                                    webSocketClient?.send(jsonString)
-                                }
+                    // 最後のコメントの時間になったらJSONをコメント鯖に投げて追加リクエスト
+                    commentJSONList.lastOrNull()?.let { data ->
+                        val date = data.date.toLongOrNull() ?: return@let
+                        if (date - programBeginTime == currentPositionSec) {
+                            // 最後のコメント番号から一分後までのコメントを取得
+                            val jsonString = nicoLiveComment.createSendJson(commentServerData, lastCommentNo + 1, data.date.toLong() + 60, true)
+                            if (webSocketClient?.isOpen == true) {
+                                webSocketClient?.send(jsonString)
                             }
                         }
                     }
@@ -191,7 +196,7 @@ class NicoLiveTimeShiftComment {
             commentFlow.collectIndexed { index, commentData ->
                 if (index == 2) {
                     // -1番目のコメントが来たので、次のコメント番号から一分間のコメントを貰いに行く
-                    val commentNo = commentData.commentNo.toInt() + 1
+                    val commentNo = lastCommentNo + 1
                     val commentDate = commentData.date.toLong()
                     // WebSocketへ送信
                     val jsonString = nicoLiveComment.createSendJson(commentServerData!!, commentNo, commentDate + 60, true)

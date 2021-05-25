@@ -333,10 +333,14 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
     private fun initTSWatching(jsonObject: JSONObject) {
         if (nicoLiveHTML.isPremium(jsonObject)) {
             // TS視聴中メッセージ
-            showToast("（実験的）タイムシフト再生中です。")
+            showToast(getString(R.string.nicolive_timeshift_mode))
+            // 番組終了時間が公式だとWebSocketで流れてこない
+            val programData = nicoLiveHTML.getProgramData(jsonObject)
+            val programDuration = programData.endAt.toLong() - programData.beginAt.toLong()
+            programDurationTimeLiveData.postValue(programDuration)
         } else {
             // プレ垢になってね
-            showToast("タイムシフトはプレミアム会員特典です。入ってね。")
+            showToast(getString(R.string.nicolive_timeshift_premium))
             // Activity終了
             messageLiveData.postValue("finish")
         }
@@ -481,7 +485,7 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
         viewModelScope.launch(Dispatchers.IO) {
             if (commentList.isNotEmpty()) {
                 // 一番新しいコメントを取得。
-                val lastCommentDate = commentList.first().date.toLong()
+                val lastCommentDate = commentList.first().date.toLongOrNull() ?: 0
                 // そこから一分前の時間を計算
                 val prevTime = lastCommentDate - 60
                 // 範囲内のコメントを取得する
@@ -578,10 +582,11 @@ ${getString(R.string.one_minute_statistics_comment_length)}：$commentLengthAver
                     // コメントサーバーの情報
                     val commentMessageServerUri = nicoLiveHTML.getCommentServerWebSocketAddress(message)
                     val commentThreadId = nicoLiveHTML.getCommentServerThreadId(message)
-                    val yourPostKey = if (isLoginMode) {
-                        // ログイン時のみyourPostKeyが取れる
+                    val yourPostKey = if (isLoginMode && !isTSWatching) {
+                        // ログイン時のみyourPostKeyが取れる。タイムシフト時は使わない？
                         nicoLiveHTML.getCommentYourPostKey(message)
                     } else {
+                        // タイムシフト時はnullでいいっぽい
                         null
                     }
                     val commentRoomName = getString(R.string.room_integration) // ユーザーならコミュIDだけどもう立ちみないので部屋統合で統一

@@ -163,6 +163,8 @@ class NicoLiveComment {
      * [CommentServerData]からコメントサーバーへ投げるJSONを作成して返す
      * @param commentServerData サーバー情報
      * @param historyComment 取得するコメント数
+     * @param isTimeShiftMode タイムシフト再生時はtrue
+     * @param whenValue 現実時間。番組開始時間から見ての時間ではない。タイムシフトのときのみ使う。それ以外はnull
      * @return WebSocketに投げるJSON
      * */
     fun createSendJson(commentServerData: CommentServerData, historyComment: Int = -100, whenValue: Long? = null, isTimeShiftMode: Boolean = false): String {

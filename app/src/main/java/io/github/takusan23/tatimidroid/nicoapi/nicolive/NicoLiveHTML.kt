@@ -66,8 +66,8 @@ class NicoLiveHTML {
     var supplierName = ""    // 放送者名
     var status = ""         // ON_AIR　とか
     var thumb = ""          // サムネイル
-    var programOpenTime = 0L    // 番組開始時間
-    var programStartTime = 0L    // 番組開場時間
+    var programOpenTime = 0L    // 番組開場時間
+    var programStartTime = 0L    // 番組開始時間
     var programEndTime = 0L     // 番組終了時間
 
     /** 匿名でコメントを投稿する場合はtrue */
@@ -156,7 +156,7 @@ class NicoLiveHTML {
      * */
     fun getProgramData(nicoLiveJSON: JSONObject): NicoLiveProgramData {
         initNicoLiveData(nicoLiveJSON)
-        return NicoLiveProgramData(programTitle, communityName, programOpenTime.toString(), programEndTime.toString(), liveId, supplierName, status, thumb, isOfficial)
+        return NicoLiveProgramData(programTitle, communityName, programStartTime.toString(), programEndTime.toString(), liveId, supplierName, status, thumb, isOfficial)
     }
 
     /**
