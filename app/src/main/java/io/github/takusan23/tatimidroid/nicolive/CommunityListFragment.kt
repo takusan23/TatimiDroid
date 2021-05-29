@@ -12,16 +12,16 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.nicoapi.login.NicoLogin
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveGameProgram
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveProgram
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveRanking
-import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoAPIX
-import io.github.takusan23.tatimidroid.nicolive.adapter.CommunityRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveCommunityBinding
+import io.github.takusan23.tatimidroid.nicoapi.login.NicoLogin
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveGameProgram
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveProgramHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveRankingHTML
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
+import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoAPIX
+import io.github.takusan23.tatimidroid.nicolive.adapter.CommunityRecyclerViewAdapter
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -88,16 +88,16 @@ class CommunityListFragment : Fragment() {
         // 読み込むTL
         val pos = arguments?.getInt("page") ?: FOLLOW
         when (pos) {
-            FOLLOW -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.FAVOURITE_PROGRAM)
+            FOLLOW -> getProgramDataFromNicoLiveTopPage(NicoLiveProgramHTML.FAVOURITE_PROGRAM)
             NICOREPO -> getProgramDataFromNicorepo()
-            RECOMMEND -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.RECOMMEND_PROGRAM)
+            RECOMMEND -> getProgramDataFromNicoLiveTopPage(NicoLiveProgramHTML.RECOMMEND_PROGRAM)
             RANKING -> getRanking()
             GAME_MATCHING -> getProgramFromNicoNamaGame(NicoLiveGameProgram.NICONAMA_GAME_MATCHING)
             GAME_PLAYING -> getProgramFromNicoNamaGame(NicoLiveGameProgram.NICONAMA_GAME_PLAYING)
-            CHUMOKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.FORCUS_PROGRAM)
-            YOYAKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.POPULAR_BEFORE_OPEN_BROADCAST_STATUS_PROGRAM)
-            KOREKARA -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.RECENT_JUST_BEFORE_BROADCAST_STATUS_PROGRAM)
-            ROOKIE -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.ROOKIE_PROGRAM)
+            CHUMOKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgramHTML.FORCUS_PROGRAM)
+            YOYAKU -> getProgramDataFromNicoLiveTopPage(NicoLiveProgramHTML.POPULAR_BEFORE_OPEN_BROADCAST_STATUS_PROGRAM)
+            KOREKARA -> getProgramDataFromNicoLiveTopPage(NicoLiveProgramHTML.RECENT_JUST_BEFORE_BROADCAST_STATUS_PROGRAM)
+            ROOKIE -> getProgramDataFromNicoLiveTopPage(NicoLiveProgramHTML.ROOKIE_PROGRAM)
         }
     }
 
@@ -138,7 +138,7 @@ class CommunityListFragment : Fragment() {
      * */
     private fun getRanking() {
         recyclerViewList.clear()
-        val nicoLiveRanking = NicoLiveRanking()
+        val nicoLiveRanking = NicoLiveRankingHTML()
         // 例外を捕まえる。これでtry/catchをそれぞれ書かなくても済む？
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             // エラー
@@ -166,11 +166,11 @@ class CommunityListFragment : Fragment() {
 
     /**
      * ニコ生TOPページから番組を取得してRecyclerViewに入れる。フォロー中番組など
-     * @param jsonObjectName [NicoLiveProgram.FAVOURITE_PROGRAM] 等入れてね。
+     * @param jsonObjectName [NicoLiveProgramHTML.FAVOURITE_PROGRAM] 等入れてね。
      * */
     private fun getProgramDataFromNicoLiveTopPage(jsonObjectName: String) {
         recyclerViewList.clear()
-        val nicoLiveProgram = NicoLiveProgram()
+        val nicoLiveProgram = NicoLiveProgramHTML()
         // 例外を捕まえる。これでtry/catchをそれぞれ書かなくても済む？
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             // エラー

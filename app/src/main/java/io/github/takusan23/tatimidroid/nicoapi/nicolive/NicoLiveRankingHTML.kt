@@ -16,7 +16,7 @@ import java.net.URLDecoder
  *
  * ユーザーエージェントがスマホじゃないとパソコン版のページへ転送する仕様になったらしい。
  * */
-class NicoLiveRanking {
+class NicoLiveRankingHTML {
 
     /** シングルトンなOkHttpClient */
     private val okHttpClient = OkHttpClientSingleton.okHttpClient

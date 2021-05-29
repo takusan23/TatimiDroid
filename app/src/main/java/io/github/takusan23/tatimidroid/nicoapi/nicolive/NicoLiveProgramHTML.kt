@@ -18,7 +18,7 @@ import org.jsoup.Jsoup
  *
  * **んなことよりニコ生TOPページの一番上に朝鮮中央テレビミラーとか馬の放送とかいらんやろ。ランキングとか置けよ**
  * */
-class NicoLiveProgram {
+class NicoLiveProgramHTML {
 
     /** シングルトンなOkHttpClient */
     private val okHttpClient = OkHttpClientSingleton.okHttpClient

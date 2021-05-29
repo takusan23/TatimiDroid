@@ -3,13 +3,13 @@ package io.github.takusan23.tatimidroid
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material.*
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -30,8 +30,7 @@ import io.github.takusan23.tatimidroid.nicolive.compose.JCNicoLiveCommentOnlyFra
 import io.github.takusan23.tatimidroid.nicolive.compose.JCNicoLiveFragment
 import io.github.takusan23.tatimidroid.nicovideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.nicovideo.NicoVideoSelectFragment
-import io.github.takusan23.tatimidroid.nicovideo.compose.JCNicoVideoCommentOnlyFragment
-import io.github.takusan23.tatimidroid.nicovideo.compose.JCNicoVideoFragment
+import io.github.takusan23.tatimidroid.nicovideo.compose.*
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.service.startLivePlayService
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
@@ -78,7 +77,7 @@ import java.util.*
  * */
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var prefSetting: SharedPreferences
+    private val prefSetting by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
 
     /** findViewById駆逐 */
     val viewBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
@@ -93,10 +92,37 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        prefSetting = PreferenceManager.getDefaultSharedPreferences(this)
 
         val darkModeSupport = DarkModeSupport(this)
         darkModeSupport.setMainActivityTheme(this)
+
+/*
+        // Jetpack Compose
+        setContent {
+            MaterialTheme(colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors) {
+                // ナビゲーション
+                val navController = rememberNavController()
+
+                Scaffold(
+                    topBar = { MainActivityIDInput(onClickHistoryButton = {}, onClickPlayButton = {}) }, // ID入力欄
+                    bottomBar = { MainActivityNavigation { route -> navController.navigate(route) } } // 下のBottomNavigation
+                ) {
+                    // 画面切り替え
+                    NavHost(
+                        navController = navController,
+                        startDestination = "cache",
+                    ) {
+                        composable("nicolive") { JCNicoLiveListScreen() }
+                        composable("nicovideo") { JCNicoVideoListScreen() }
+                        composable("cache") { Text(text = "cache") }
+                        composable("login") { Text(text = "login") }
+                        composable("setting") { Text(text = "setting") }
+                    }
+                }
+            }
+        }
+        return
+*/
 
         setContentView(viewBinding.root)
         setSupportActionBar(viewBinding.activityMainToolBar)

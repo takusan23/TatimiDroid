@@ -5,11 +5,21 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.fragment.app.Fragment
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.databinding.FragmentProgramListBinding
+import io.github.takusan23.tatimidroid.nicolive.compose.NicoLiveProgramListScreen
+import io.github.takusan23.tatimidroid.nicovideo.compose.DarkColors
+import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
 import io.github.takusan23.tatimidroid.tool.getThemeColor
+import io.github.takusan23.tatimidroid.tool.isDarkMode
 
 /**
  * 番組一覧Fragmentを乗せるFragment
@@ -21,12 +31,25 @@ class ProgramListFragment : Fragment() {
     /** findViewById駆逐 */
     private val viewBinding by lazy { FragmentProgramListBinding.inflate(layoutInflater) }
 
+    @ExperimentalMaterialApi
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return viewBinding.root
+        return ComposeView(requireContext()).apply {
+            setContent {
+                MaterialTheme(colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors) {
+                    Surface {
+                        NicoLiveProgramListScreen { nicoLiveProgramData ->
+                            (requireActivity() as MainActivity).setNicoliveFragment(nicoLiveProgramData.programId, nicoLiveProgramData.isOfficial, false)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        return
 
         // 背景色
         viewBinding.apply {

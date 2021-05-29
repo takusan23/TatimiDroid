@@ -34,7 +34,7 @@ class NicoLiveKonomiTagViewModel(application: Application) : AndroidViewModel(ap
     /** フォロー中好みタグを返すLiveData */
     val followingKonomiTagListLiveData = MutableLiveData<List<NicoLiveKonomiTagData>>()
 
-    /** 動画一覧を返す */
+    /** 番組一覧を返す */
     val konomiTagProgramListLiveData = MutableLiveData<List<NicoLiveProgramData>>()
 
     /** 前回検索したタグのID */
