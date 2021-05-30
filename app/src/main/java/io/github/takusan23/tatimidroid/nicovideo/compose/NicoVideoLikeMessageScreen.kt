@@ -15,10 +15,10 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
  * ニコニコ動画のいいねのメッセージ表示用UI
  *
  * @param nicoVideoViewModel ニコ動FragmentのViewModel
- * @param onCloseClick 閉じる押したとき呼ばれる
+ * @param onClickClose 閉じる押したとき呼ばれる
  * */
 @Composable
-fun NicoVideoLikeMessageScreen(nicoVideoViewModel: NicoVideoViewModel, onCloseClick: () -> Unit) {
+fun NicoVideoLikeMessageScreen(nicoVideoViewModel: NicoVideoViewModel, onClickClose: () -> Unit, onClickShare: () -> Unit) {
     Column(modifier = Modifier.padding(10.dp)) {
         val thanksMessage = nicoVideoViewModel.likeThanksMessageLiveData.observeAsState()
         val userData = nicoVideoViewModel.userDataLiveData.observeAsState()
@@ -36,8 +36,10 @@ fun NicoVideoLikeMessageScreen(nicoVideoViewModel: NicoVideoViewModel, onCloseCl
                 userName = userData.value!!.nickName,
                 modifier = Modifier.weight(1f)
             )
+            // 共有ボタン
+            NicoVideoLikeThanksShareButton(onClick = { onClickShare() })
             // 閉じるボタン
-            NicoVideoLikeCloseButton(onClick = { onCloseClick() })
+            NicoVideoLikeCloseButton(onClick = { onClickClose() })
         }
     }
 }

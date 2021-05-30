@@ -76,12 +76,33 @@ fun NicoVideoLikeUser(iconUrl: String, userName: String, modifier: Modifier = Mo
 fun NicoVideoLikeCloseButton(onClick: () -> Unit) {
     Button(
         onClick = { onClick() },
-        modifier = Modifier.clip(RoundedCornerShape(50)) // 50パーセント
+        modifier = Modifier
+            .padding(start = 5.dp, end = 5.dp)
+            .clip(RoundedCornerShape(50)) // 50パーセント
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_clear_black),
             contentDescription = stringResource(id = R.string.close)
         )
         Text(text = stringResource(id = R.string.close))
+    }
+}
+
+/**
+ * お礼メッセージ共有ボタン
+ * @param onClick 共有押したとき
+ * */
+@Composable
+fun NicoVideoLikeThanksShareButton(onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = { onClick() },
+        modifier = Modifier.padding(start = 5.dp, end = 5.dp),
+        shape = RoundedCornerShape(50) // 50パーセント
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_share),
+            contentDescription = stringResource(id = R.string.share)
+        )
+        Text(text = stringResource(id = R.string.share))
     }
 }

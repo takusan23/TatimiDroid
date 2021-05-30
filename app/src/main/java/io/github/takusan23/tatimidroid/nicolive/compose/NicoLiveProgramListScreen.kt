@@ -1,11 +1,12 @@
 package io.github.takusan23.tatimidroid.nicolive.compose
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.BackdropValue
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.rememberBackdropScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -13,17 +14,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.compose.MenuItem
+import io.github.takusan23.tatimidroid.compose.SimpleBackdrop
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveProgramListViewModel
-import io.github.takusan23.tatimidroid.tool.isDarkMode
 import kotlinx.coroutines.launch
 
 /**
@@ -56,11 +55,9 @@ fun NicoLiveProgramListScreen(onClickProgram: (NicoLiveProgramData) -> Unit, onC
     /** Backdropを閉じる */
     fun closeMenu() = scope.launch { backdropScaffoldState.reveal() }
 
-    BackdropScaffold(
+    // 簡略化したカスタム版Backdrop
+    SimpleBackdrop(
         scaffoldState = backdropScaffoldState,
-        appBar = { },
-        backLayerBackgroundColor = if (isDarkMode(context)) Color.Black else Color.White,
-        frontLayerElevation = 10.dp,
         backLayerContent = {
             LazyColumn {
                 item {
@@ -177,64 +174,41 @@ fun NicoLiveProgramListScreen(onClickProgram: (NicoLiveProgramData) -> Unit, onC
             }
         },
         frontLayerContent = {
-            Column {
-                // 開くボタン
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .clickable { if (backdropScaffoldState.isRevealed) openMenu() else closeMenu() }
-                ) {
-                    // 棒
-                    Box(
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(10.dp)
-                            .padding(bottom = 5.dp)
-                            .background(color = MaterialTheme.colors.primary, shape = RoundedCornerShape(50))
+            when (currentPage.value) {
+                stringResource(id = R.string.nicolive_menu_konomi_tag) -> {
+                    // 好みタグだけ特殊なので
+                    NicoLiveKonomiTagScreen(
+                        onClickProgram = { onClickProgram(it) },
+                        onClickMenu = { onClickMenu(it) }
                     )
-                    Text(text = stringResource(id = R.string.dropdown_title))
                 }
-
-                when (currentPage.value) {
-                    stringResource(id = R.string.nicolive_menu_konomi_tag) -> {
-                        // 好みタグだけ特殊なので
-                        NicoLiveKonomiTagScreen(
-                            onClickProgram = { onClickProgram(it) },
-                            onClickMenu = { onClickMenu(it) }
-                        )
-                    }
-                    else -> {
-                        // その他のフォロー中番組とか
-                        if (programList.value == null || isLoading.value) {
-                            // 読み込み中
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        } else {
-                            NicoLiveProgramList(
-                                list = programList.value!!,
-                                onClickProgram = { nicoLiveProgramData ->
-                                    // 視聴画面へ
-                                    if (nicoLiveProgramData.lifeCycle != "RELEASED") {
-                                        onClickProgram(nicoLiveProgramData)
-                                    }
-                                },
-                                onClickMenu = { nicoLiveProgramData ->
-                                    // メニュー画面へ
-                                    onClickMenu(nicoLiveProgramData)
-                                },
-                            )
+                else -> {
+                    // その他のフォロー中番組とか
+                    if (programList.value == null || isLoading.value) {
+                        // 読み込み中
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
+                    } else {
+                        NicoLiveProgramList(
+                            list = programList.value!!,
+                            onClickProgram = { nicoLiveProgramData ->
+                                // 視聴画面へ
+                                if (nicoLiveProgramData.lifeCycle != "RELEASED") {
+                                    onClickProgram(nicoLiveProgramData)
+                                }
+                            },
+                            onClickMenu = { nicoLiveProgramData ->
+                                // メニュー画面へ
+                                onClickMenu(nicoLiveProgramData)
+                            },
+                        )
                     }
                 }
             }
         }
     )
-
 }

@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.nicovideo.bottomfragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -32,11 +33,18 @@ class NicoVideoLikeThanksMessageBottomFragment : BottomSheetDialogFragment() {
                 MaterialTheme(colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors) {
                     // これでくくらないとなんかダークモード時に文字が白にならない
                     Surface {
-                        NicoVideoLikeMessageScreen(nicoVideoViewModel = viewModel) {
-                            // 二回目（画面回転時）に表示させない
-                            viewModel.isAlreadyShowThanksMessage = true
-                            dismiss()
-                        }
+                        NicoVideoLikeMessageScreen(
+                            nicoVideoViewModel = viewModel,
+                            onClickShare = {
+                                // 共有押したとき
+                                showShareSheet(viewModel.likeThanksMessageLiveData.value!!)
+                            },
+                            onClickClose = {
+                                // 二回目（画面回転時）に表示させない
+                                viewModel.isAlreadyShowThanksMessage = true
+                                dismiss()
+                            }
+                        )
                     }
                 }
             }
@@ -49,6 +57,16 @@ class NicoVideoLikeThanksMessageBottomFragment : BottomSheetDialogFragment() {
         // 閉じれんように
         isCancelable = false
 
+    }
+
+    /** 共有シートを表示させる */
+    private fun showShareSheet(shareText: String) {
+        val shareIntent = Intent.createChooser(Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            type = "text/plain"
+        }, null)
+        requireContext().startActivity(shareIntent)
     }
 
 }
