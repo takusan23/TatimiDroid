@@ -34,15 +34,15 @@ import com.google.android.exoplayer2.upstream.TransferListener
 import io.github.takusan23.tatimidroid.CommentCanvas
 import io.github.takusan23.tatimidroid.CommentJSONParse
 import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.databinding.OverlayPlayerLayoutBinding
 import io.github.takusan23.tatimidroid.nicoapi.login.NicoLogin
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.CommentServerData
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveComment
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
-import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.CommentServerData
 import io.github.takusan23.tatimidroid.tool.DisplaySizeTool
 import io.github.takusan23.tatimidroid.tool.LanguageTool
 import io.github.takusan23.tatimidroid.tool.isConnectionMobileDataInternet
-import io.github.takusan23.tatimidroid.databinding.OverlayPlayerLayoutBinding
 import kotlinx.coroutines.*
 
 
@@ -777,8 +777,6 @@ class NicoLivePlayService : Service() {
  * @param context Context
  * @param mode "popup"（ポップアップ再生）か"background"(バッググラウンド再生)のどっちか。
  * @param liveId 生放送ID
- * @param isCommentPost コメント投稿モードならtrue
- * @param isNicocasMode ニコキャス式湖面投稿モードならtrue
  * @param isTokumei 匿名でコメントする場合はtrue。省略時true
  * @param startQuality 画質を指定する場合は入れてね。highとか。ない場合はそのままでいいです（省略時：high）。
  * */

@@ -1,16 +1,19 @@
 package io.github.takusan23.tatimidroid.nicolive.compose
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import io.github.takusan23.tatimidroid.compose.TabPadding
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.compose.FillTextButton
+import io.github.takusan23.tatimidroid.compose.TabPadding
 
 /**
  * ニコ生のメニューCardのTab
@@ -229,168 +232,123 @@ fun NicoLiveButtonMenu(
             .fillMaxWidth()
     ) {
         // 画質変更
-        TextButton(onClick = { onClickQualityChange() }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_photo_filter_24px),
-                    contentDescription = stringResource(id = R.string.quality)
-                )
-                Text(
-                    text = stringResource(id = R.string.quality),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickQualityChange() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_photo_filter_24px),
+                contentDescription = stringResource(id = R.string.quality)
+            )
+            Text(
+                text = stringResource(id = R.string.quality),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // ホーム画面に追加
-        TextButton(onClick = { onClickHomeScreenPin() }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_add_to_home_screen_24),
-                    contentDescription = stringResource(id = R.string.add_homescreen)
-                )
-                Text(
-                    text = stringResource(id = R.string.add_homescreen),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickHomeScreenPin() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_add_to_home_screen_24),
+                contentDescription = stringResource(id = R.string.add_homescreen)
+            )
+            Text(
+                text = stringResource(id = R.string.add_homescreen),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // 画面回転
-        TextButton(onClick = { onClickScreenRotation() }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_screen_rotation_24px),
-                    contentDescription = stringResource(id = R.string.landscape_portrait)
-                )
-                Text(
-                    text = stringResource(id = R.string.landscape_portrait),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickScreenRotation() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_screen_rotation_24px),
+                contentDescription = stringResource(id = R.string.landscape_portrait)
+            )
+            Text(
+                text = stringResource(id = R.string.landscape_portrait),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // フローティングコメビュ起動。なおAndroid 10以前は利用できないように
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            TextButton(onClick = { onClickLaunchFloatingCommentViewer() }) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_library_books_24px),
-                        contentDescription = stringResource(id = R.string.floating_comment_viewer)
-                    )
-                    Text(
-                        text = stringResource(id = R.string.floating_comment_viewer),
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(5.dp),
-                    )
-                }
+            FillTextButton(onClick = { onClickLaunchFloatingCommentViewer() }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_library_books_24px),
+                    contentDescription = stringResource(id = R.string.floating_comment_viewer)
+                )
+                Text(
+                    text = stringResource(id = R.string.floating_comment_viewer),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
+                )
             }
         }
         // 番組IDコピー
-        TextButton(onClick = { onClickCopyProgramId() }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_content_paste_black_24dp),
-                    contentDescription = stringResource(id = R.string.copy_program_id)
-                )
-                Text(
-                    text = stringResource(id = R.string.copy_program_id),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickCopyProgramId() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_content_paste_black_24dp),
+                contentDescription = stringResource(id = R.string.copy_program_id)
+            )
+            Text(
+                text = stringResource(id = R.string.copy_program_id),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // コミュIDコピー
         TextButton(onClick = { onClickCopyCommunityId() }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_content_paste_black_24dp),
-                    contentDescription = stringResource(id = R.string.copy_communityid)
-                )
-                Text(
-                    text = stringResource(id = R.string.copy_communityid),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.ic_content_paste_black_24dp),
+                contentDescription = stringResource(id = R.string.copy_communityid)
+            )
+            Text(
+                text = stringResource(id = R.string.copy_communityid),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // ブラウザで開く
         TextButton(onClick = { onClickOpenBrowser() }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
-                    contentDescription = stringResource(id = R.string.open_browser)
-                )
-                Text(
-                    text = stringResource(id = R.string.open_browser),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
+                contentDescription = stringResource(id = R.string.open_browser)
+            )
+            Text(
+                text = stringResource(id = R.string.open_browser),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // NG一覧
         TextButton(onClick = { onClickNGList() }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_block_24px),
-                    contentDescription = stringResource(id = R.string.ng_list)
-                )
-                Text(
-                    text = stringResource(id = R.string.ng_list),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_block_24px),
+                contentDescription = stringResource(id = R.string.ng_list)
+            )
+            Text(
+                text = stringResource(id = R.string.ng_list),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // コテハン
         TextButton(onClick = { onClickKotehanList() }) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_account_box_24),
-                    contentDescription = stringResource(id = R.string.kotehan_list)
-                )
-                Text(
-                    text = stringResource(id = R.string.kotehan_list),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_account_box_24),
+                contentDescription = stringResource(id = R.string.kotehan_list)
+            )
+            Text(
+                text = stringResource(id = R.string.kotehan_list),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
     }
 }

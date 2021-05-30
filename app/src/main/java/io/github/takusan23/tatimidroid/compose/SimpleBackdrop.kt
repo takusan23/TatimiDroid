@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.tool.isDarkMode
@@ -19,10 +20,15 @@ import kotlinx.coroutines.launch
 
 /**
  * Backdropに押したら展開機能を付け足したりしたやつ
+ * @param backLayerContent 後ろ側に描画するUI
+ * @param frontLayerContent 表側に描画するUI
+ * @param openText ここを押して展開のテキスト
+ * @param scaffoldState BackDropの状態
  * */
 @ExperimentalMaterialApi
 @Composable
 fun SimpleBackdrop(
+    openText: String = stringResource(id = R.string.dropdown_title),
     scaffoldState: BackdropScaffoldState = rememberBackdropScaffoldState(BackdropValue.Concealed),
     backLayerContent: @Composable () -> Unit,
     frontLayerContent: @Composable () -> Unit,
@@ -50,18 +56,20 @@ fun SimpleBackdrop(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
                         .clickable { if (scaffoldState.isRevealed) openMenu() else closeMenu() }
                 ) {
                     // 棒
                     Box(
                         modifier = Modifier
                             .width(100.dp)
-                            .height(10.dp)
-                            .padding(bottom = 5.dp)
+                            .height(20.dp)
+                            .padding(bottom = 5.dp, top = 5.dp)
                             .background(color = MaterialTheme.colors.primary, shape = RoundedCornerShape(50))
                     )
-                    Text(text = stringResource(id = R.string.dropdown_title))
+                    Text(
+                        text = openText,
+                        textAlign = TextAlign.Center
+                    )
                 }
                 frontLayerContent()
             }

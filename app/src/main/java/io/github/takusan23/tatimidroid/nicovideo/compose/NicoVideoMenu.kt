@@ -1,16 +1,22 @@
 package io.github.takusan23.tatimidroid.nicovideo.compose
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Icon
+import androidx.compose.material.ScrollableTabRow
+import androidx.compose.material.Switch
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import io.github.takusan23.tatimidroid.compose.TabPadding
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.compose.FillTextButton
+import io.github.takusan23.tatimidroid.compose.TabPadding
 
 /**
  * メニューのタブの部分だけ
@@ -134,46 +140,30 @@ fun NicoVideoMylistsMenu(onClickAddMylist: () -> Unit, onClickAddAtodemiru: () -
             .fillMaxWidth(),
     ) {
         // マイリスト追加
-        TextButton(
-            onClick = { onClickAddMylist() },
-        )
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
-                    contentDescription = stringResource(id = R.string.add_mylist)
-                )
-                Text(
-                    text = stringResource(id = R.string.add_mylist),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickAddMylist() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
+                contentDescription = stringResource(id = R.string.add_mylist)
+            )
+            Text(
+                text = stringResource(id = R.string.add_mylist),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // あとでみる（旧：とりあえずマイリスト）
-        TextButton(
-            onClick = { onClickAddAtodemiru() },
-        )
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
-                    contentDescription = stringResource(id = R.string.add_atodemiru)
-                )
-                Text(
-                    text = stringResource(id = R.string.add_atodemiru),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickAddAtodemiru() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
+                contentDescription = stringResource(id = R.string.add_atodemiru)
+            )
+            Text(
+                text = stringResource(id = R.string.add_atodemiru),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
     }
 }
@@ -206,156 +196,108 @@ fun NicoVideoOtherButtonMenu(
             .fillMaxWidth(),
     ) {
         // 画質変更
-        TextButton(onClick = { onClickQualityChange() })
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_photo_filter_24px),
-                    contentDescription = stringResource(id = R.string.quality)
-                )
-                Text(
-                    text = stringResource(id = R.string.quality),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickQualityChange() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_photo_filter_24px),
+                contentDescription = stringResource(id = R.string.quality)
+            )
+            Text(
+                text = stringResource(id = R.string.quality),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // ニコニ広告
-        TextButton(onClick = { onClickShowNicoAd() })
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_money_24px),
-                    contentDescription = stringResource(id = R.string.nicoads)
-                )
-                Text(
-                    text = stringResource(id = R.string.nicoads),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickShowNicoAd() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_money_24px),
+                contentDescription = stringResource(id = R.string.nicoads)
+            )
+            Text(
+                text = stringResource(id = R.string.nicoads),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // 画面回転
-        TextButton(onClick = { onClickScreenRotation() })
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_screen_rotation_24px),
-                    contentDescription = stringResource(id = R.string.landscape_portrait)
-                )
-                Text(
-                    text = stringResource(id = R.string.landscape_portrait),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickScreenRotation() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_screen_rotation_24px),
+                contentDescription = stringResource(id = R.string.landscape_portrait)
+            )
+            Text(
+                text = stringResource(id = R.string.landscape_portrait),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // 動画IDコピー
-        TextButton(onClick = { onClickCopyVideoId() })
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_content_paste_black_24dp),
-                    contentDescription = stringResource(id = R.string.video_id_copy)
-                )
-                Text(
-                    text = stringResource(id = R.string.video_id_copy),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickCopyVideoId() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_content_paste_black_24dp),
+                contentDescription = stringResource(id = R.string.video_id_copy)
+            )
+            Text(
+                text = stringResource(id = R.string.video_id_copy),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // ブラウザで開く
-        TextButton(onClick = { onClickOpenBrowser() })
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
-                    contentDescription = stringResource(id = R.string.open_browser)
-                )
-                Text(
-                    text = stringResource(id = R.string.open_browser),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickOpenBrowser() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
+                contentDescription = stringResource(id = R.string.open_browser)
+            )
+            Text(
+                text = stringResource(id = R.string.open_browser),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // NG一覧
-        TextButton(onClick = { onClickNgList() })
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_block_24px),
-                    contentDescription = stringResource(id = R.string.ng_list)
-                )
-                Text(
-                    text = stringResource(id = R.string.ng_list),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickNgList() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_block_24px),
+                contentDescription = stringResource(id = R.string.ng_list)
+            )
+            Text(
+                text = stringResource(id = R.string.ng_list),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // コテハン
-        TextButton(onClick = { onClickKotehanList() })
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_outline_account_box_24),
-                    contentDescription = stringResource(id = R.string.kotehan)
-                )
-                Text(
-                    text = stringResource(id = R.string.kotehan_list),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickKotehanList() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_account_box_24),
+                contentDescription = stringResource(id = R.string.kotehan)
+            )
+            Text(
+                text = stringResource(id = R.string.kotehan_list),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
         // スキップ秒数
-        TextButton(onClick = { onClickSkipSetting() })
-        {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_redo_black_24dp),
-                    contentDescription = stringResource(id = R.string.skip_setting)
-                )
-                Text(
-                    text = stringResource(id = R.string.skip_setting),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                )
-            }
+        FillTextButton(onClick = { onClickSkipSetting() }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_redo_black_24dp),
+                contentDescription = stringResource(id = R.string.skip_setting)
+            )
+            Text(
+                text = stringResource(id = R.string.skip_setting),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp),
+            )
         }
     }
 }
@@ -383,59 +325,44 @@ fun NicoVideoCacheMenu(
         // キャッシュ再生 か それ以外
         if (isCachePlay) {
             // 情報更新ボタン表示
-            TextButton(onClick = { onClickCacheUpdate() }) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_refresh_black_24dp),
-                        contentDescription = stringResource(id = R.string.get_cache_re_get)
-                    )
-                    Text(
-                        text = stringResource(id = R.string.get_cache_re_get),
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(5.dp),
-                    )
-                }
+            FillTextButton(onClick = { onClickCacheUpdate() }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_refresh_black_24dp),
+                    contentDescription = stringResource(id = R.string.get_cache_re_get)
+                )
+                Text(
+                    text = stringResource(id = R.string.get_cache_re_get),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
+                )
             }
         } else {
             // 取得ボタン
-            TextButton(onClick = { onClickCacheGet() }) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
-                        contentDescription = stringResource(id = R.string.get_cache)
-                    )
-                    Text(
-                        text = stringResource(id = R.string.get_cache),
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(5.dp),
-                    )
-                }
+            FillTextButton(onClick = { onClickCacheGet() }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
+                    contentDescription = stringResource(id = R.string.get_cache)
+                )
+                Text(
+                    text = stringResource(id = R.string.get_cache),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
+                )
             }
             // 取得ボタン（エコノミー）
-            TextButton(onClick = { onClickCacheGetEco() }) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
-                        contentDescription = stringResource(id = R.string.get_cache_eco)
-                    )
-                    Text(
-                        text = stringResource(id = R.string.get_cache_eco),
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(5.dp),
-                    )
-                }
+            FillTextButton(onClick = { onClickCacheGetEco() }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
+                    contentDescription = stringResource(id = R.string.get_cache_eco)
+                )
+                Text(
+                    text = stringResource(id = R.string.get_cache_eco),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp),
+                )
             }
         }
     }
