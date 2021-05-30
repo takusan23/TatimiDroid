@@ -29,9 +29,13 @@ import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveKonomiTagViewM
  * 好みタグで番組を検索する画面
  *
  * @param onClickProgram 番組押したときに呼ばれる。引数は番組のデータクラス
+ * @param onClickMenu メニュー押したときに呼ばれる
  * */
 @Composable
-fun NicoLiveKonomiTagScreen(onClickProgram: (NicoLiveProgramData) -> Unit) {
+fun NicoLiveKonomiTagScreen(
+    onClickProgram: (NicoLiveProgramData) -> Unit,
+    onClickMenu: (NicoLiveProgramData) -> Unit
+) {
     // ViewModel
     val viewModel = viewModel<NicoLiveKonomiTagViewModel>()
     // フォロー中好みタグ一覧
@@ -54,7 +58,11 @@ fun NicoLiveKonomiTagScreen(onClickProgram: (NicoLiveProgramData) -> Unit) {
         }
         // 好みタグが登録されている番組
         if (konomiTagProgramList.value != null) {
-            NicoLiveProgramList(list = konomiTagProgramList.value!!) { nicoLiveProgramData -> onClickProgram(nicoLiveProgramData) }
+            NicoLiveProgramList(
+                list = konomiTagProgramList.value!!,
+                onClickProgram = { nicoLiveProgramData -> onClickProgram(nicoLiveProgramData) },
+                onClickMenu = { nicoLiveProgramData -> onClickMenu(nicoLiveProgramData) }
+            )
         }
     }
 

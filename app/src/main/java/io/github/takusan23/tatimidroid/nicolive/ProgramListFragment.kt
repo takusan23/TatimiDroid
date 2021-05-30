@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.databinding.FragmentProgramListBinding
+import io.github.takusan23.tatimidroid.nicolive.bottomfragment.ProgramMenuBottomSheet
 import io.github.takusan23.tatimidroid.nicolive.compose.NicoLiveProgramListScreen
 import io.github.takusan23.tatimidroid.nicovideo.compose.DarkColors
 import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
@@ -37,9 +38,17 @@ class ProgramListFragment : Fragment() {
             setContent {
                 MaterialTheme(colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors) {
                     Surface {
-                        NicoLiveProgramListScreen { nicoLiveProgramData ->
-                            (requireActivity() as MainActivity).setNicoliveFragment(nicoLiveProgramData.programId, nicoLiveProgramData.isOfficial, false)
-                        }
+                        NicoLiveProgramListScreen(
+                            onClickProgram = { nicoLiveProgramData ->
+                                (requireActivity() as MainActivity).setNicoliveFragment(nicoLiveProgramData.programId, nicoLiveProgramData.isOfficial, false)
+                            },
+                            onClickMenu = { nicoLiveProgramData ->
+                                // とりあえず
+                                ProgramMenuBottomSheet().apply {
+                                    arguments = Bundle().apply { putString("liveId", nicoLiveProgramData.programId) }
+                                }.show(childFragmentManager, "menu")
+                            }
+                        )
                     }
                 }
             }

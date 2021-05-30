@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.compose
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
@@ -26,7 +27,7 @@ fun OrigamiLayout(
     // Viewで言うところのViewGroupの自作
     Layout(
         content = content,
-        modifier = modifier
+        modifier = modifier.animateContentSize()
     ) { measurables, constraints ->
         // この中に入るCompose（子供Compose）の幅とかの情報の配列にする
         // なんかConstraints()のmaxのところはMAX_VALUE入れといてminには0を入れてあげれば大きさが取れるようになる

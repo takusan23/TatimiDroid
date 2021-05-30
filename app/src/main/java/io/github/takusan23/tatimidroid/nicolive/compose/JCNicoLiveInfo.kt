@@ -1,6 +1,8 @@
 package io.github.takusan23.tatimidroid.nicolive.compose
 
 import android.widget.TextView
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,17 +20,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.compose.OrigamiLayout
 import io.github.takusan23.tatimidroid.compose.TagButton
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.CommunityOrChannelData
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveKonomiTagData
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoTagItemData
 import io.github.takusan23.tatimidroid.nicovideo.compose.getBitmapCompose
 import io.github.takusan23.tatimidroid.nicovideo.compose.parentCardElevation
 import io.github.takusan23.tatimidroid.nicovideo.compose.parentCardModifier
 import io.github.takusan23.tatimidroid.nicovideo.compose.parentCardShape
-import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveKonomiTagData
 import io.github.takusan23.tatimidroid.tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.tool.toFormatTime
 
@@ -40,6 +42,7 @@ import io.github.takusan23.tatimidroid.tool.toFormatTime
  * @param isAllowTSRegister タイムシフト予約が利用可能かどうか。falseの場合はTS予約ボタンを非表示にします
  * @param onClickTimeShift タイムシフト予約ボタンを押した時
  * */
+@ExperimentalAnimationApi
 @Composable
 fun NicoLiveInfoCard(
     nicoLiveProgramData: NicoLiveProgramData,
@@ -116,7 +119,7 @@ fun NicoLiveInfoCard(
                 }
             }
             // 詳細表示
-            if (expanded) {
+            AnimatedVisibility (expanded) {
                 Column {
                     // 区切り線
                     Divider(modifier = Modifier.padding(5.dp))

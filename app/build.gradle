@@ -10,7 +10,7 @@ android {
     compileSdkVersion 30
     defaultConfig {
         applicationId "io.github.takusan23.tatimidroid"
-        minSdkVersion 22
+        minSdkVersion 21
         targetSdkVersion 30
         versionCode 105
         versionName "15.2.0"
@@ -48,7 +48,8 @@ android {
     // Compose関係
     composeOptions {
         kotlinCompilerVersion kotlin_version // 1.4.32 が入ると思う。プロジェクトのbuild.gradleを開いてみて
-        kotlinCompilerExtensionVersion compose_version // 1.0.0-beta07 が入ると思う。プロジェクトのbuild.gradleを開いてみて
+        kotlinCompilerExtensionVersion compose_version
+        // 1.0.0-beta07 が入ると思う。プロジェクトのbuild.gradleを開いてみて
     }
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
@@ -77,6 +78,8 @@ dependencies {
     implementation "androidx.compose.ui:ui-tooling:$compose_version"
     // Navigation
     implementation "androidx.navigation:navigation-compose:2.4.0-alpha01"
+    // SwipeToRefresh
+    implementation "com.google.accompanist:accompanist-swiperefresh:0.10.0"
 
     // Jetpack Compose --- ここまで
 

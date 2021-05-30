@@ -222,32 +222,4 @@ class NicoLiveProgramListViewModel(application: Application) : AndroidViewModel(
         return context.getString(resourceId)
     }
 
-
-    companion object {
-        /** フォロー中番組 */
-        const val FOLLOW = 0
-
-        /** ニコレポ */
-        const val NICOREPO = 1
-
-        /** おすすめ */
-        const val RECOMMEND = 2
-
-        /** ランキング */
-        const val RANKING = 3
-
-        /** 放送中の注目番組 */
-        const val CHUMOKU = 7
-
-        /** 人気の予約されている番組 */
-        const val YOYAKU = 8
-
-        /** これから */
-        const val KOREKARA = 9
-
-        /** ルーキー番組 */
-        const val ROOKIE = 10
-
-    }
-
 }

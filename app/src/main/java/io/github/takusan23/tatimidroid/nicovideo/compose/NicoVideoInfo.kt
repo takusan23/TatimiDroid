@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.nicovideo.compose
 
 import android.text.format.DateUtils
 import android.widget.TextView
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,7 +48,7 @@ import kotlinx.coroutines.launch
  * */
 
 /** [NicoVideoInfoCard]とかの親のCardに指定するModifier */
-val parentCardModifier = Modifier.padding(5.dp)
+val parentCardModifier = Modifier.animateContentSize().padding(5.dp)
 
 /** [NicoVideoInfoCard]とかの親のCardに指定する丸み */
 val parentCardShape = RoundedCornerShape(3.dp)
