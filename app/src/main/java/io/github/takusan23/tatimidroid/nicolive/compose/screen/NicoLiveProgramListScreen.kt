@@ -1,10 +1,7 @@
 package io.github.takusan23.tatimidroid.nicolive.compose
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.BackdropValue
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.rememberBackdropScaffoldState
 import androidx.compose.runtime.Composable
@@ -12,13 +9,12 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.compose.FillLoadingScreen
 import io.github.takusan23.tatimidroid.compose.MenuItem
 import io.github.takusan23.tatimidroid.compose.SimpleBackdrop
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
@@ -186,12 +182,7 @@ fun NicoLiveProgramListScreen(onClickProgram: (NicoLiveProgramData) -> Unit, onC
                     // その他のフォロー中番組とか
                     if (programList.value == null || isLoading.value) {
                         // 読み込み中
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
+                        FillLoadingScreen()
                     } else {
                         NicoLiveProgramList(
                             list = programList.value!!,

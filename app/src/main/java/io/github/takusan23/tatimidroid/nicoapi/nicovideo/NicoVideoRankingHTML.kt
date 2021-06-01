@@ -25,7 +25,7 @@ class NicoVideoRankingHTML {
     /** URLたち */
     companion object {
         /** ランキングURL。ジャンルの並びは本家と同じだと */
-        val NICOVIDEO_RANKING_GENRE = arrayListOf(
+        val NICOVIDEO_RANKING_GENRE = listOf(
             "genre/all",
             "hot-topic",
             "genre/entertainment",
@@ -47,7 +47,7 @@ class NicoVideoRankingHTML {
         )
 
         /** ランキング集計期間 */
-        val NICOVIDEO_RANKING_TIME = arrayListOf(
+        val NICOVIDEO_RANKING_TIME = listOf(
             "hour",
             "24h",
             "week",

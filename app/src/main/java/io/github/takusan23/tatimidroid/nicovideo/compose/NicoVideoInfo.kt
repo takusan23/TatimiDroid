@@ -48,7 +48,9 @@ import kotlinx.coroutines.launch
  * */
 
 /** [NicoVideoInfoCard]とかの親のCardに指定するModifier */
-val parentCardModifier = Modifier.animateContentSize().padding(5.dp)
+val parentCardModifier = Modifier
+    .animateContentSize()
+    .padding(5.dp)
 
 /** [NicoVideoInfoCard]とかの親のCardに指定する丸み */
 val parentCardShape = RoundedCornerShape(3.dp)
@@ -162,31 +164,11 @@ fun NicoVideoInfoCard(
             }
 
             // マイリスト数とかコメント数とか
-            Row {
-                Row {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_play_arrow_24px),
-                        contentDescription = stringResource(id = R.string.view_count)
-                    )
-                    Text(text = nicoVideoData?.viewCount ?: "0")
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Row {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_outline_comment_24px),
-                        contentDescription = stringResource(id = R.string.comment_count)
-                    )
-                    Text(text = nicoVideoData?.commentCount ?: "0")
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Row {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
-                        contentDescription = stringResource(id = R.string.mylist_count)
-                    )
-                    Text(text = nicoVideoData?.mylistCount ?: "0")
-                }
-            }
+            NicoVideoCountText(
+                viewCount = nicoVideoData?.viewCount?.toInt() ?: 0,
+                commentCount = nicoVideoData?.commentCount?.toInt() ?: 0,
+                mylistCount = nicoVideoData?.mylistCount?.toInt() ?: 0
+            )
 
             // 詳細表示
             if (expanded.value) {
@@ -204,7 +186,47 @@ fun NicoVideoInfoCard(
                     )
                 }
             }
+        }
+    }
+}
 
+/**
+ * 再生数、マイリスト数、コメント数を表示するやつ
+ *
+ * @param viewCount 再生数
+ * @param mylistCount マイリスト数
+ * @param commentCount コメント数
+ * */
+@Composable
+fun NicoVideoCountText(
+    viewCount: Int,
+    commentCount: Int,
+    mylistCount: Int
+) {
+    // マイリスト数とかコメント数とか
+    Row {
+        Row {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_play_arrow_24px),
+                contentDescription = stringResource(id = R.string.view_count)
+            )
+            Text(text = viewCount.toString())
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Row {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_outline_comment_24px),
+                contentDescription = stringResource(id = R.string.comment_count)
+            )
+            Text(text = commentCount.toString())
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Row {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
+                contentDescription = stringResource(id = R.string.mylist_count)
+            )
+            Text(text = mylistCount.toString())
         }
     }
 }

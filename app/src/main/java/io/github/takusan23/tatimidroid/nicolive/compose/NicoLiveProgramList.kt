@@ -69,10 +69,6 @@ fun NicoLiveProgramListItem(
         ) {
 
             val thumb = getBitmapCompose(url = nicoLiveProgramData.thum)?.asImageBitmap()
-            val thumbModifier = Modifier
-                .width(100.dp)
-                .aspectRatio(1.7f)
-                .clip(shape = RoundedCornerShape(5.dp))
 
             // 放送中か
             val isOpen = nicoLiveProgramData.lifeCycle == "ON_AIR"
@@ -80,7 +76,12 @@ fun NicoLiveProgramListItem(
             val lifecycleColor = if (isOpen) Color(0xffe53935) else Color(0xff1e88e5)
 
             // さむね
-            Box(modifier = thumbModifier) {
+            Box(
+                modifier = Modifier
+                    .width(100.dp)
+                    .aspectRatio(1.7f)
+                    .clip(shape = RoundedCornerShape(5.dp))
+            ) {
                 if (thumb != null) {
                     Image(
                         bitmap = thumb,

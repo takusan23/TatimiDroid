@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.nguploader.NGUploaderTool
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoRankingHTML
@@ -21,6 +22,11 @@ class NicoVideoRankingViewModel(application: Application) : AndroidViewModel(app
     /** Context */
     private val context = getApplication<Application>().applicationContext
 
+    private val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
+
+    /** ランキングページスクレイピング */
+    private val nicoVideoRankingHTML = NicoVideoRankingHTML()
+
     /** ランキングの配列 */
     val rankingVideoList = MutableLiveData<List<NicoVideoData>>()
 
@@ -29,6 +35,53 @@ class NicoVideoRankingViewModel(application: Application) : AndroidViewModel(app
 
     /** コルーチンキャンセル用 */
     private val coroutineJob = Job()
+
+    /** ランキングのジャンル一覧。[NicoVideoRankingHTML.NICOVIDEO_RANKING_GENRE] のURL一覧と一致している */
+    val RANKING_GENRE = listOf(
+        "全ジャンル",
+        "話題",
+        "エンターテインメント",
+        "ラジオ",
+        "音楽・サウンド",
+        "ダンス",
+        "動物",
+        "自然",
+        "料理",
+        "旅行・アウトドア",
+        "乗り物",
+        "スポーツ",
+        "社会・政治・時事",
+        "技術・工作",
+        "解説・講座",
+        "アニメ",
+        "ゲーム",
+        "その他"
+    )
+
+    /** ランキングの集計時間。[NicoVideoRankingHTML.NICOVIDEO_RANKING_TIME] の配列の中身と一致している。 */
+    val RANKING_TIME = listOf(
+        "毎時",
+        "２４時間",
+        "週間",
+        "月間",
+        "全期間"
+    )
+
+    /** 最後に開いたランキングのジャンル。なければ全ジャンル */
+    val lastOpenGenre = prefSetting.getString("nicovideo_ranking_genre", RANKING_GENRE[0])!!
+
+    /** 最後に開いたランキングの集計時間。なければ毎時 */
+    val lastOpenTime = prefSetting.getString("nicovideo_ranking_time", RANKING_TIME[0])!!
+
+    init {
+        // とりあえず最後に開いたランキングでも
+        val rankingGenrePos = RANKING_GENRE.indexOf(lastOpenGenre)
+        val rankingTimePos = RANKING_TIME.indexOf(lastOpenTime)
+        // その他 -> genre/other へ変換する
+        val genre = NicoVideoRankingHTML.NICOVIDEO_RANKING_GENRE[rankingGenrePos]
+        val time = NicoVideoRankingHTML.NICOVIDEO_RANKING_GENRE[rankingTimePos]
+        loadRanking(genre, time)
+    }
 
     /**
      * ランキングのHTMLをスクレイピングして配列に入れる
@@ -45,7 +98,6 @@ class NicoVideoRankingViewModel(application: Application) : AndroidViewModel(app
             showToast("${context.getString(R.string.error)}\n${throwable}")
         }
         viewModelScope.launch(errorHandler + coroutineJob + Dispatchers.Default) {
-            val nicoVideoRankingHTML = NicoVideoRankingHTML()
             val response = nicoVideoRankingHTML.getRankingHTML(genre, time, tag)
             if (!response.isSuccessful) {
                 showToast("${context.getString(R.string.error)}\n${response.code}")

@@ -120,9 +120,9 @@ class NicoVideoSeriesAPI {
                 }
             }
         }
-        val viewCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-view").map { it.text() }
-        val mylistCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-mylist").map { it.text() }
-        val commentCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-comment").map { it.text() }
+        val viewCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-view").map { it.text().replace(",", "") }
+        val mylistCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-mylist").map { it.text().replace(",", "") }
+        val commentCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-comment").map { it.text().replace(",", "") }
         val durationList = document.getElementsByClass("VideoLength").map {
             // SimpleDataFormatで(mm:ss)をパースしたい場合はタイムゾーンをUTCにすればいけます。これで動画時間を秒に変換できる
             val simpleDateFormat = SimpleDateFormat("mm:ss").apply {

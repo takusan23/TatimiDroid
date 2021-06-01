@@ -80,19 +80,30 @@ class NicoVideoSearchHTML {
                 val videoId = it.attr("data-video-id")
                 val thum = it.getElementsByTag("img")[0].attr("data-original")
                 val date = toUnixTime(it.getElementsByClass("time")[0].text())
-                val viewCount =
-                    it.getElementsByClass("count view")[0].getElementsByClass("value")[0].text()
-                val commentCount =
-                    it.getElementsByClass("count comment")[0].getElementsByClass("value")[0].text()
-                val mylistCount =
-                    it.getElementsByClass("count mylist")[0].getElementsByClass("value")[0].text()
+                val viewCount = it.getElementsByClass("count view")[0].getElementsByClass("value")[0].text().replace(",","")
+                val commentCount = it.getElementsByClass("count comment")[0].getElementsByClass("value")[0].text().replace(",","")
+                val mylistCount = it.getElementsByClass("count mylist")[0].getElementsByClass("value")[0].text().replace(",","")
                 val videoLength = it.getElementsByClass("videoLength")[0].text()
                 // SimpleDataFormatで(mm:ss)をパースしたい場合はタイムゾーンをUTCにすればいけます。これで動画時間を秒に変換できる
                 val simpleDateFormat = SimpleDateFormat("mm:ss").apply {
                     timeZone = TimeZone.getTimeZone("UTC")
                 }
                 val duration = simpleDateFormat.parse(videoLength).time / 1000
-                val data = NicoVideoData(isCache = false, isMylist = false, title = title, videoId = videoId, thum = thum, date = date, viewCount = viewCount, commentCount = commentCount, mylistCount = mylistCount, mylistItemId = "", mylistAddedDate = null, duration = duration, cacheAddedDate = null)
+                val data = NicoVideoData(
+                    isCache = false,
+                    isMylist = false,
+                    title = title,
+                    videoId = videoId,
+                    thum = thum,
+                    date = date,
+                    viewCount = viewCount,
+                    commentCount = commentCount,
+                    mylistCount = mylistCount,
+                    mylistItemId = "",
+                    mylistAddedDate = null,
+                    duration = duration,
+                    cacheAddedDate = null
+                )
                 list.add(data)
             }
         }

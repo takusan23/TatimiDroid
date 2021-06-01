@@ -24,6 +24,7 @@ import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoListMenuBottomFragment
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
 import io.github.takusan23.tatimidroid.tool.AnniversaryDate
+import io.github.takusan23.tatimidroid.tool.KiribanTool
 import io.github.takusan23.tatimidroid.tool.calcAnniversary
 import java.text.SimpleDateFormat
 import java.util.*
@@ -92,9 +93,37 @@ class NicoVideoListAdapter(val nicoVideoDataList: ArrayList<NicoVideoData>, priv
             titleTextView.text = "${data.title}\n${data.videoId}"
             // 再生回数、マイリスト数、コメント数がすべて-1以外なら表示させる（ニコレポは再生回数取れない）
             if (data.viewCount != "-1" && data.mylistCount != "-1" && data.commentCount != "-1") {
-                playCountTextView.text = data.viewCount
-                commentCountTextView.text = data.commentCount
-                mylistCountTextView.text = data.mylistCount
+                // キリ番判定機
+                val isPlayCountKiriban = KiribanTool.checkKiriban(data.viewCount.toInt())
+                val isCommentCountKiriban = KiribanTool.checkKiriban(data.commentCount.toInt())
+                val isMylistCountKiriban = KiribanTool.checkKiriban(data.mylistCount.toInt())
+                playCountTextView.apply {
+                    if (isPlayCountKiriban) {
+                        text = "${data.viewCount}←キリ番"
+                        setTextColor(Color.RED)
+                    } else {
+                        text = data.viewCount
+                        setTextColor(titleTextView.textColors)
+                    }
+                }
+                commentCountTextView.apply {
+                    if (isCommentCountKiriban) {
+                        text = "${data.commentCount}←キリ番"
+                        setTextColor(Color.RED)
+                    } else {
+                        text = data.commentCount
+                        setTextColor(titleTextView.textColors)
+                    }
+                }
+                mylistCountTextView.apply {
+                    if (isMylistCountKiriban) {
+                        text = "${data.mylistCount}←キリ番"
+                        setTextColor(Color.RED)
+                    } else {
+                        text = data.mylistCount
+                        setTextColor(titleTextView.textColors)
+                    }
+                }
             } else {
                 playCountTextView.text = "-"
                 commentCountTextView.text = "-"

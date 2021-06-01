@@ -2,9 +2,11 @@ package io.github.takusan23.tatimidroid.nicolive.compose
 
 import android.content.Intent
 import android.provider.CalendarContract
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -20,6 +22,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.compose.FillLoadingScreen
 import io.github.takusan23.tatimidroid.compose.FillTextButton
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
 import io.github.takusan23.tatimidroid.nicolive.activity.FloatingCommentViewer
@@ -42,12 +45,7 @@ fun NicoLiveProgramListMenu(viewModel: NicoLiveProgramListMenuViewModel) {
 
     if (nicoLiveProgramData.value == null) {
         // 取得中
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
+        FillLoadingScreen()
     } else {
         // 各メニュー
         LazyColumn {

@@ -3,7 +3,12 @@ package io.github.takusan23.tatimidroid.tool
 import android.content.Context
 import androidx.preference.PreferenceManager
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.text.SimpleDateFormat
+
+
+
 
 
 /**
@@ -42,7 +47,11 @@ object CrashReportGenerator {
             // ファイルに書き込む
             File(crashReportFolder, "crash_$crashReportDate.txt").apply {
                 createNewFile()
-                val crashReport = e.stackTrace.joinToString(separator = "\n")
+                val stringWriter = StringWriter()
+                val printWriter = PrintWriter(stringWriter)
+                e.printStackTrace(printWriter)
+                printWriter.flush()
+                val crashReport = stringWriter.toString()
                 writeText(crashReport)
             }
             // Androidのクラッシュダイアログを表示

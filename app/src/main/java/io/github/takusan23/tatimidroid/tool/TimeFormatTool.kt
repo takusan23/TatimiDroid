@@ -27,8 +27,14 @@ object TimeFormatTool {
      * @param unixTime UnixTime
      * @return MM/dd HH:mm:ss EEE曜日
      * */
-    fun unixTimeToFormatDate(unixTime: Long): String {
-        return SimpleDateFormat("MM/dd HH:mm:ss EEE曜日").format(unixTime)
-    }
+    fun unixTimeToFormatDate(unixTime: Long) = SimpleDateFormat("MM月dd日 HH:mm:ss EEE曜日").format(unixTime)
+
+    /**
+     * [unixTimeToFormatDate]に、先頭にyyyyを付けたバージョン
+     *
+     * @param unixTime UnixTime
+     * @return yyyy/MM/dd HH:mm:ss EEE曜日
+     * */
+    fun unixTimeToFormatDateYearEdition(unixTime: Long) = SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss EEE曜日").format(unixTime)
 
 }
