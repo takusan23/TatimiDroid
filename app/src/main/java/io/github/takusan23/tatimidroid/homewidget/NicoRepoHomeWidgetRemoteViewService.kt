@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.homewidget
 
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.text.format.DateUtils
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
@@ -14,7 +13,6 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoAPIX
 import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoDataClass
-import io.github.takusan23.tatimidroid.tool.isDarkMode
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
@@ -105,20 +103,6 @@ class NicoRepoHomeWidgetRemoteViewService : RemoteViewsService() {
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
                     }
                     setOnClickFillInIntent(R.id.home_widget_nicorepo_item_root, mainActivityIntent)
-                    val color = if (isDarkMode(context)) Color.BLACK else Color.WHITE
-                    if (isDarkMode(context)) {
-                        // ダークモード
-                        setTextColor(R.id.home_widget_nicorepo_item_name_text_view, Color.WHITE)
-                        setTextColor(R.id.home_widget_nicorepo_item_description_text_view, Color.WHITE)
-                        setTextColor(R.id.home_widget_nicorepo_item_title_text_view, Color.WHITE)
-                    } else {
-                        // らいとてーま
-                        val defaultTextViewColor = -1979711488
-                        setTextColor(R.id.home_widget_nicorepo_item_name_text_view, defaultTextViewColor)
-                        setTextColor(R.id.home_widget_nicorepo_item_description_text_view, defaultTextViewColor)
-                        setTextColor(R.id.home_widget_nicorepo_item_title_text_view, defaultTextViewColor)
-                    }
-                    setInt(R.id.home_widget_nicorepo_item_root, "setBackgroundColor", color)
                 }
             }
 

@@ -12,7 +12,7 @@ import java.io.Serializable
  * @param isOfficial 公式かどうか
  * @param lifeCycle ON_AIR が放送中
  * @param thum サムネ
- * @param beginAt UnixTime。何故か文字列だけどLongに変換してどうぞ。ミリ秒ではなく秒です。
+ * @param beginAt 番組開始時間。UnixTime。何故か文字列だけどLongに変換してどうぞ。ミリ秒ではなく秒です。
  * @param endAt UnixTime。これもLongに変換できると思う。ミリ秒ではなく秒。
  * */
 data class NicoLiveProgramData(

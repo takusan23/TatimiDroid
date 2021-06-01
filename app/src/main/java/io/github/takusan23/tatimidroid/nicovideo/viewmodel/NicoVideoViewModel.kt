@@ -168,10 +168,13 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     var isCommentOnlyMode = prefSetting.getBoolean("setting_nicovideo_comment_only", false)
 
     /** 映像なしでコメントを流すコメント描画のみ、映像なしモード。ニコニコ実況みたいな */
-    val isNotPlayVideoMode = MutableLiveData<Boolean>(false)
+    val isNotPlayVideoMode = MutableLiveData(false)
 
     /** プレイヤーの再生状態を通知するLiveData。これ経由で一時停止等を操作する。trueで再生 */
     val playerIsPlaying = MutableLiveData(true)
+
+    /** 現在の再生位置。ミリ秒。LiveData版 */
+    val playerCurrentPositionMsLiveData = MutableLiveData(0L)
 
     /**
      * 現在の再生位置。LiveDataではないので定期的に値を入れてください。ミリ秒
@@ -188,6 +191,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
 
     /** 動画の時間を通知するLiveData。ミリ秒 */
     val playerDurationMs = MutableLiveData<Long>()
+
+    /** 再生中ならfalse。バッファリング中（先読みとか）はtrue。*/
+    val playerIsLoading = MutableLiveData(false)
 
     /** 音量調整をLiveData経由で行う。1fまで */
     val volumeControlLiveData = MutableLiveData<Float>()
@@ -257,6 +263,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
         playerSetSeekMs.postValue(0)
         notVideoPlayModeCoroutineContext.cancelChildren()
         playerCurrentPositionMs = 0
+        playerCurrentPositionMsLiveData.postValue(0)
 
         // 動画ID変更を通知
         playingVideoId.value = videoId
@@ -538,6 +545,7 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
                         }
                     }
                 }
+                playerCurrentPositionMsLiveData.postValue(playerCurrentPositionMs)
             }
         }
     }

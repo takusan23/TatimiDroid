@@ -8,6 +8,8 @@ import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoSeri
 import io.github.takusan23.tatimidroid.nicoapi.user.UserData
 import io.github.takusan23.tatimidroid.tool.OkHttpClientSingleton
 import kotlinx.coroutines.*
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -15,6 +17,7 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -278,6 +281,8 @@ class NicoVideoHTML {
     fun startHeartBeat(sessionAPIJSONObject: JSONObject) {
         val heartBeatURL = parseHeartBeatURL(sessionAPIJSONObject)
         val postData = getHearBeatJSONString(sessionAPIJSONObject)
+        // 既存のハートビート処理はキャンセル
+        heartBeatJob?.cancel()
         // 定期実行
         heartBeatJob = GlobalScope.launch {
             while (isActive) {
@@ -493,21 +498,28 @@ class NicoVideoHTML {
     }
 
     /**
-     * ハートビートをPOSTする関数。非同期処理です。Smileサーバーならこの処理はいらない？
+     * ハートビートをPOSTする関数。非同期処理です
      * @param url ハートビート用APIのURL
      * @param json [getHearBeatJSONString]の返り値
      * @param responseFun 成功時に呼ばれます。
      * */
-    private suspend fun postHeartBeat(url: String, json: String) = withContext(Dispatchers.Default) {
+    private fun postHeartBeat(url: String, json: String) {
         val request = Request.Builder().apply {
             url(url)
             post(json.toRequestBody("application/json".toMediaTypeOrNull()))
             addHeader("User-Agent", "TatimiDroid;@takusan_23")
             build()
         }.build()
-        okHttpClient.newCall(request).execute().apply {
-            body?.close() // もしかして：必要
-        }
+        // エラーでまくる？なんで？なので非同期処理に切り替える
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+
+            }
+        })
     }
 
     /**

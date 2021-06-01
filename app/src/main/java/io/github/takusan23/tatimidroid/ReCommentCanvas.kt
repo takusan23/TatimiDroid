@@ -68,7 +68,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     }
 
     /** コメントの枠を表示する際はtrue。PC版とかで自分のコメントに枠が付くあれ。 */
-    val watashiHaDeveloper by lazy { prefSetting.getBoolean("dev_setting_comment_canvas_text_rect", false) }
+    val watashiHaDeveloper = prefSetting.getBoolean("dev_setting_comment_canvas_text_rect", false)
 
     /** フォント変更 */
     var typeFace: Typeface? = null
@@ -97,7 +97,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     private var tmpPosition = 0L
 
     /** コメント表示時間 */
-    private val commentDrawTime by lazy { prefSetting.getString("setting_comment_canvas_show_time", "5")?.toInt() ?: 5 }
+    private val commentDrawTime = prefSetting.getString("setting_comment_canvas_show_time", "5")?.toInt() ?: 5
 
     /** 1秒で何回画面を更新するか。多分60FPSがデフォ */
     private val fps by lazy {
@@ -114,7 +114,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             } else {
                 (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.refreshRate
             }
-        }
+        }.toInt()
     }
 
     /** 何ミリ秒で画面を更新するか */
@@ -153,8 +153,8 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             if (isPlaying) {
                 // 画面外のコメントは描画しない
                 for (reDrawCommentData in drawNakaCommentList.toList()
-                    .filter { reDrawCommentData -> reDrawCommentData.rect.right > -reDrawCommentData.measure }) {
-                    if (reDrawCommentData != null) {
+                    .filter { reDrawCommentData -> reDrawCommentData?.rect?.right ?: 0 > -reDrawCommentData.measure }) {
+                    if (reDrawCommentData != null && reDrawCommentData.rect != null) {
                         reDrawCommentData.rect.left -= reDrawCommentData.commentUpdateMsMoveSize
                         reDrawCommentData.rect.right -= reDrawCommentData.commentUpdateMsMoveSize
                         // なお画面外は消す
@@ -166,14 +166,14 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                 // 上コメ、下コメは３秒間表示させる
                 drawUeCommentList.toList().forEach { reDrawCommentData ->
                     // マイナスの値は許されない。これしないとループ再生時に固定コメントが残る
-                    val calc = currentPos - reDrawCommentData.videoPos
+                    val calc = currentPos - reDrawCommentData?.videoPos
                     if (calc > 3000 || calc < -1) {
                         drawUeCommentList.remove(reDrawCommentData)
                     }
                 }
                 drawShitaCommentList.toList().forEach { reDrawCommentData ->
                     // マイナスの値は許されない。これしないとループ再生時に固定コメントが残る
-                    val calc = currentPos - reDrawCommentData.videoPos
+                    val calc = currentPos - reDrawCommentData?.videoPos
                     if (calc > 3000 || calc < -1) {
                         drawShitaCommentList.remove(reDrawCommentData)
                     }
@@ -246,14 +246,17 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
                         // 動かす範囲。画面外含めて
                         val widthMinusCommentMeasure = finalWidth + measure + measure
                         // FPSと表示時間を掛けて、コメントの幅で割ればおｋ
-                        val moveSize = (widthMinusCommentMeasure / (commentDrawTime * fps)).toInt()
-                        // 引いておく
-                        val minusVPos = ((measure / moveSize) * commentUpdateMs) / 10L
-                        // 0以上で。
-                        commentJSON.vpos = max((commentJSON.vpos.toInt() - minusVPos.toInt()), 0).toString()
-                        // 動画終了3秒前のコメントはすべてまとめる
-                        if (commentJSON.vpos.toLong() > endVpos) {
-                            commentJSON.vpos = endVpos.toString()
+                        val moveSize = (widthMinusCommentMeasure / (commentDrawTime * fps))
+                        // なんか0で割る時があるっぽい？私は再現できなかった。；；
+                        if (moveSize > 0) {
+                            // 引いておく
+                            val minusVPos = ((measure / moveSize) * commentUpdateMs) / 10L
+                            // 0以上で。
+                            commentJSON.vpos = max((commentJSON.vpos.toInt() - minusVPos.toInt()), 0).toString()
+                            // 動画終了3秒前のコメントはすべてまとめる
+                            if (commentJSON.vpos.toLong() > endVpos) {
+                                commentJSON.vpos = endVpos.toString()
+                            }
                         }
                     }
                 }
@@ -335,7 +338,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
 
         // 中コメ
         for (reDrawCommentData in drawNakaCommentList.toList()) {
-            if (reDrawCommentData != null) {
+            if (reDrawCommentData != null && reDrawCommentData.rect != null) {
                 setCommandPaint(reDrawCommentData.colorCode, reDrawCommentData.fontSize)
                 canvas.drawText(
                     reDrawCommentData.comment,
@@ -358,7 +361,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
 
         // 上コメ
         for (reDrawCommentData in drawUeCommentList.toList()) {
-            if (reDrawCommentData != null) {
+            if (reDrawCommentData != null && reDrawCommentData.rect != null) {
                 setCommandPaint(reDrawCommentData.colorCode, reDrawCommentData.fontSize)
                 canvas.drawText(
                     reDrawCommentData.comment,
@@ -381,7 +384,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
 
         // 下コメ
         for (reDrawCommentData in drawShitaCommentList.toList()) {
-            if (reDrawCommentData != null) {
+            if (reDrawCommentData != null && reDrawCommentData.rect != null) {
                 setCommandPaint(reDrawCommentData.colorCode, reDrawCommentData.fontSize)
                 canvas.drawText(
                     reDrawCommentData.comment,
@@ -480,12 +483,14 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
             prevHeight = addRect.bottom
         } else {
             // 全パターん
-            val tmpList = drawNakaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.rect.top }
+            val tmpList = drawNakaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData?.rect?.top }
             for (reDrawCommentData in tmpList) {
-                if (Rect.intersects(reDrawCommentData.rect, addRect)) {
-                    // あたっているので下へ
-                    addRect.top = reDrawCommentData.rect.bottom
-                    addRect.bottom = (addRect.top + fontSize)
+                if (reDrawCommentData?.rect != null) {
+                    if (Rect.intersects(reDrawCommentData.rect, addRect)) {
+                        // あたっているので下へ
+                        addRect.top = reDrawCommentData.rect.bottom
+                        addRect.bottom = (addRect.top + fontSize)
+                    }
                 }
             }
             // なお画面外突入時はランダム
@@ -542,12 +547,14 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // 当たり判定計算
         val addRect = Rect(lect, 0, (lect + measure).toInt(), fontSize)
         // 全パターん
-        val tmpList = drawUeCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.rect.top }
+        val tmpList = drawUeCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData?.rect?.top }
         for (reDrawCommentData in tmpList) {
-            if (Rect.intersects(reDrawCommentData.rect, addRect)) {
-                // あたっているので下へ
-                addRect.top = reDrawCommentData.rect.bottom
-                addRect.bottom = (addRect.top + reDrawCommentData.fontSize).roundToInt()
+            if (reDrawCommentData?.rect != null) {
+                if (Rect.intersects(reDrawCommentData.rect, addRect)) {
+                    // あたっているので下へ
+                    addRect.top = reDrawCommentData.rect.bottom
+                    addRect.bottom = (addRect.top + reDrawCommentData.fontSize).roundToInt()
+                }
             }
         }
         // なお画面外突入時はランダム
@@ -592,10 +599,12 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
         // 全パターん
         val tmpList = drawShitaCommentList.toList().sortedBy { reDrawCommentData -> reDrawCommentData.videoPos }
         for (reDrawCommentData in tmpList) {
-            if (Rect.intersects(reDrawCommentData.rect, addRect)) {
-                // あたっているので下へ
-                addRect.top = (reDrawCommentData.rect.top - reDrawCommentData.fontSize).roundToInt()
-                addRect.bottom = (reDrawCommentData.rect.bottom - reDrawCommentData.fontSize).roundToInt()
+            if (reDrawCommentData?.rect != null) {
+                if (Rect.intersects(reDrawCommentData.rect, addRect)) {
+                    // あたっているので下へ
+                    addRect.top = (reDrawCommentData.rect.top - reDrawCommentData.fontSize).roundToInt()
+                    addRect.bottom = (reDrawCommentData.rect.bottom - reDrawCommentData.fontSize).roundToInt()
+                }
             }
         }
         // なお画面外突入時はランダム
@@ -808,7 +817,7 @@ class ReDrawCommentData(
     val comment: String,
     val command: String,
     val videoPos: Long,
-    val rect: Rect,
+    val rect: Rect?,
     val pos: String,
     val fontSize: Float,
     val measure: Float,

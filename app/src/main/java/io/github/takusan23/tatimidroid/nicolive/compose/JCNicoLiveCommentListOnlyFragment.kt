@@ -173,7 +173,6 @@ class JCNicoLiveCommentOnlyFragment : Fragment() {
         viewBinding.fragmentNicoliveCommentOnlyInfoComposeView.apply {
             setContent {
                 MaterialTheme(
-                    // ダークモード。動的にテーマ変更できるようになるんか？
                     colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
                 ) {
                     Surface {

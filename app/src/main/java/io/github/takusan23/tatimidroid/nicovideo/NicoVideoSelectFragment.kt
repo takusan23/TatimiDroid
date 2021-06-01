@@ -112,15 +112,17 @@ class NicoVideoSelectFragment : Fragment() {
     fun setFragment(fragment: Fragment, popbackstack: String? = null) {
         // Handler(UIスレッド指定)で実行するとダークモード、画面切り替えに耐えるアプリが作れる。
         Handler(Looper.getMainLooper()).post {
-            // 縦画面時親はMotionLayoutになるんだけど、横画面時はLinearLayoutなのでキャストが必要
-            (viewBinding.fragmentNicovideoListMotionlayout as? MotionLayout)?.transitionToStart()
-            childFragmentManager.beginTransaction().apply {
-                replace(viewBinding.fragmentVideoListLinearlayout.id, fragment)
-                // fragmentを積み上げる。
-                if (popbackstack != null) {
-                    addToBackStack(popbackstack)
+            if (isAdded) {
+                // 縦画面時親はMotionLayoutになるんだけど、横画面時はLinearLayoutなのでキャストが必要
+                (viewBinding.fragmentNicovideoListMotionlayout as? MotionLayout)?.transitionToStart()
+                childFragmentManager.beginTransaction().apply {
+                    replace(viewBinding.fragmentVideoListLinearlayout.id, fragment)
+                    // fragmentを積み上げる。
+                    if (popbackstack != null) {
+                        addToBackStack(popbackstack)
+                    }
+                    commit()
                 }
-                commit()
             }
         }
     }

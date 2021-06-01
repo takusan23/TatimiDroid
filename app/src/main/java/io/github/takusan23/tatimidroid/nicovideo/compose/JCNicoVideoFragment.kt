@@ -1,18 +1,20 @@
 package io.github.takusan23.tatimidroid.nicovideo.compose
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.os.Bundle
 import android.text.format.DateUtils
 import android.view.View
-import android.widget.SeekBar
+import android.view.ViewTreeObserver
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Observer
@@ -26,7 +28,6 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.video.VideoListener
-import com.google.android.material.button.MaterialButton
 import io.github.takusan23.droppopalert.DropPopAlert
 import io.github.takusan23.droppopalert.toDropPopAlert
 import io.github.takusan23.tatimidroid.PlayerParentFrameLayout
@@ -41,7 +42,10 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
 import io.github.takusan23.tatimidroid.tool.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**
@@ -75,6 +79,9 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     /** 共有 */
     private val contentShare by lazy { ContentShareTool(requireContext()) }
 
+    /** レイアウト変更コールバック */
+    private var onGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+
     /** ViewModel。データ取得など */
     val viewModel by lazy {
         // 動画ID
@@ -95,6 +102,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList, startPos)).get(NicoVideoViewModel::class.java)
     }
 
+    @ExperimentalFoundationApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -143,9 +151,9 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     private fun showLatestSeekSnackBar() {
         val progress = prefSetting.getLong("progress_${viewModel.playingVideoId.value}", 0)
         if (progress != 0L && viewModel.isOfflinePlay.value == true) {
-            // 継承元に実装あり
             lifecycleScope.launch {
                 delay(500)
+                // 継承元に実装あり
                 showSnackBar("${getString(R.string.last_time_position_message)}(${DateUtils.formatElapsedTime(progress / 1000L)})", getString(R.string.play)) {
                     viewModel.playerSetSeekMs.postValue(progress)
                 }
@@ -205,14 +213,11 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                     if (viewModel.isNotPlayVideoMode.value == false) {
                         viewModel.playerCurrentPositionMs = exoPlayer.currentPosition
                     }
-                    // シークバー動かす + ViewModelの再生時間更新
+                    // シークバー操作中でなければ
                     if (!isTouchSeekBar) {
-                        // シークバー操作中でなければ
-                        nicovideoPlayerUIBinding.includeNicovideoPlayerSeekBar.progress = (viewModel.playerCurrentPositionMs / 1000L).toInt()
+                        // ViewModelの再生時間更新
                         viewModel.currentPosition = viewModel.playerCurrentPositionMs
-                        // 再生時間TextView
-                        val formattedTime = DateUtils.formatElapsedTime(viewModel.playerCurrentPositionMs / 1000L)
-                        nicovideoPlayerUIBinding.includeNicovideoPlayerCurrentTimeTextView.text = formattedTime
+                        viewModel.playerCurrentPositionMsLiveData.value = viewModel.currentPosition
                     }
                 }
             }
@@ -227,8 +232,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         }
         // ミニプレイヤーなら
         viewModel.isMiniPlayerMode.observe(viewLifecycleOwner) { isMiniPlayerMode ->
-            // アイコン直す
-            nicovideoPlayerUIBinding.includeNicovideoPlayerCloseImageView.setImageDrawable(getCurrentStateIcon())
             // 画面回転前がミニプレイヤーだったらミニプレイヤーにする
             if (isMiniPlayerMode) {
                 toMiniPlayer()
@@ -243,11 +246,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // SnackBarを表示しろメッセージを受け取る
         viewModel.snackbarLiveData.observe(viewLifecycleOwner) {
             showSnackBar(it, null, null)
-        }
-        // 動画情報
-        viewModel.nicoVideoData.observe(viewLifecycleOwner) { nicoVideoData ->
-            // ViewPager
-            setVideoInfo(nicoVideoData)
         }
         // コメント
         viewModel.commentList.observe(viewLifecycleOwner) { commentList ->
@@ -280,12 +278,6 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         // 一時停止、再生になったとき
         viewModel.playerIsPlaying.observe(viewLifecycleOwner) { isPlaying ->
             exoPlayer.playWhenReady = isPlaying
-            val drawable = if (isPlaying) {
-                context?.getDrawable(R.drawable.ic_pause_black_24dp)
-            } else {
-                context?.getDrawable(R.drawable.ic_play_arrow_24px)
-            }
-            nicovideoPlayerUIBinding.includeNicovideoPlayerPauseImageView.setImageDrawable(drawable)
             nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isPlaying = isPlaying
         }
         // シークしたとき
@@ -301,46 +293,20 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
             nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.currentPos = seekPos
             nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.seekComment()
         }
-        // 動画の再生時間
-        viewModel.playerDurationMs.observe(viewLifecycleOwner) { duration ->
-            if (duration > 0) {
-                nicovideoPlayerUIBinding.includeNicovideoPlayerSeekBar.max = (duration / 1000).toInt()
-                nicovideoPlayerUIBinding.includeNicovideoPlayerDurationTextView.text = DateUtils.formatElapsedTime(duration / 1000)
-            }
-        }
         // リピートモードが変わったとき
         viewModel.playerIsRepeatMode.observe(viewLifecycleOwner) { isRepeatMode ->
-            if (isRepeatMode) {
+            exoPlayer.repeatMode = if (isRepeatMode) {
                 // リピート有効時
-                exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-                nicovideoPlayerUIBinding.includeNicovideoPlayerRepeatImageView.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_one_24px))
-                prefSetting.edit { putBoolean("nicovideo_repeat_on", true) }
+                Player.REPEAT_MODE_ONE
             } else {
                 // リピート無効時
-                exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                nicovideoPlayerUIBinding.includeNicovideoPlayerRepeatImageView.setImageDrawable(context?.getDrawable(R.drawable.ic_repeat_black_24dp))
-                prefSetting.edit { putBoolean("nicovideo_repeat_on", false) }
+                Player.REPEAT_MODE_OFF
             }
+            prefSetting.edit { putBoolean("nicovideo_repeat_on", isRepeatMode) }
         }
         // 音量調整
         viewModel.volumeControlLiveData.observe(viewLifecycleOwner) { volume ->
             exoPlayer.volume = volume
-        }
-        // 次の動画、前の動画
-        viewModel.isPlayListMode.observe(viewLifecycleOwner) { isPlaylist ->
-            val prevIcon = if (isPlaylist) requireContext().getDrawable(R.drawable.ic_skip_previous_black_24dp) else requireContext().getDrawable(R.drawable.ic_undo_black_24dp)
-            val nextIcon = if (isPlaylist) requireContext().getDrawable(R.drawable.ic_skip_next_black_24dp) else requireContext().getDrawable(R.drawable.ic_redo_black_24dp)
-            nicovideoPlayerUIBinding.includeNicovideoPlayerPrevImageView.setImageDrawable(prevIcon)
-            nicovideoPlayerUIBinding.includeNicovideoPlayerNextImageView.setImageDrawable(nextIcon)
-        }
-    }
-
-    /** UIに動画情報を反映させる */
-    private fun setVideoInfo(nicoVideoData: NicoVideoData) {
-        nicovideoPlayerUIBinding.apply {
-            includeNicovideoPlayerTitleTextView.text = nicoVideoData.title
-            includeNicovideoPlayerTitleTextView.isSelected = true // marquee動かすために
-            includeNicovideoPlayerVideoIdTextView.text = nicoVideoData.videoId
         }
     }
 
@@ -368,8 +334,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
         viewModel.playerIsPlaying.postValue(true)
-        // プログレスバー動かす。View.GONEだとなんかレイアウト一瞬バグる
-        nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.VISIBLE
+        // プログレスバー動かす
+        viewModel.playerIsLoading.postValue(true)
     }
 
     /** ExoPlayerを初期化する */
@@ -379,13 +345,11 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                 super.onPlaybackStateChanged(state)
                 // 動画時間をセットする
                 viewModel.playerDurationMs.postValue(exoPlayer.duration)
-                // 再生
-                //viewModel.playerIsPlaying.postValue(exoPlayer.playWhenReady)
                 // くるくる
                 if (state == Player.STATE_READY || state == Player.STATE_ENDED) {
-                    nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.INVISIBLE
+                    viewModel.playerIsLoading.postValue(false)
                 } else {
-                    nicovideoPlayerUIBinding.includeNicovideoPlayerProgress.visibility = View.VISIBLE
+                    viewModel.playerIsLoading.postValue(true)
                 }
                 // 動画おわった。連続再生時なら次の曲へ
                 if (state == Player.STATE_ENDED && exoPlayer.playWhenReady) {
@@ -403,41 +367,60 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                         videoHeight = height
                         videoWidth = width
                     }
-                    aspectRatioFix(width, height)
+                    // アスペクト比調整
+                    setOnLayoutChangeAspectRatioFix(width, height)
                 }
             }
         })
     }
 
-    override fun onBottomSheetProgress(progress: Float) {
-        super.onBottomSheetProgress(progress)
-        aspectRatioFix(viewModel.videoWidth, viewModel.videoHeight)
-    }
-
     /**
-     * アスペクト比を治す。サイズ変更の度によぶ必要あり。
-     * @param height 動画の高さ
-     * @param width 動画の幅
+     * 画面サイズが変わったらアスペクト比を直す。一回だけ呼べばいいです。
+     * @param videoHeight 動画の高さ
+     * @param videoWidth 動画の幅
      * */
-    private fun aspectRatioFix(videoWidth: Int, videoHeight: Int) {
+    private fun setOnLayoutChangeAspectRatioFix(videoWidth: Int, videoHeight: Int) {
         if (!isAdded) return
-        fragmentPlayerFrameLayout.doOnNextLayout {
+        // 既存のコールバックは消す
+        if (onGlobalLayoutListener != null) {
+            fragmentPlayerFrameLayout.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
+        }
+
+        // 前のViewの高さ
+        var prevHeight = 0
+
+        /** アスペクト比調整 */
+        fun aspectRateFix() {
             val playerHeight = fragmentPlayerFrameLayout.height
             val playerWidth = fragmentPlayerFrameLayout.width
-            val calcWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(videoWidth, videoHeight, playerHeight).roundToInt()
-            if (calcWidth > fragmentPlayerFrameLayout.width) {
-                // 画面外にプレイヤーが行く
-                nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
-                    width = playerWidth
-                    height = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(videoWidth, videoHeight, playerWidth).roundToInt()
-                }
-            } else {
-                nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
-                    width = calcWidth
-                    height = playerHeight
+            // サイズが違うときのみ
+            if (prevHeight != playerHeight) {
+                prevHeight = playerHeight
+                val calcWidth = viewModel.nicoVideoHTML.calcVideoWidthDisplaySize(videoWidth, videoHeight, playerHeight).roundToInt()
+                if (calcWidth > fragmentPlayerFrameLayout.width) {
+                    // 画面外にプレイヤーが行く
+                    nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
+                        width = playerWidth
+                        height = viewModel.nicoVideoHTML.calcVideoHeightDisplaySize(videoWidth, videoHeight, playerWidth).roundToInt()
+                    }
+                } else {
+                    nicovideoPlayerUIBinding.includeNicovideoPlayerSurfaceView.updateLayoutParams {
+                        width = calcWidth
+                        height = playerHeight
+                    }
                 }
             }
         }
+
+        // とりあえず呼ぶ
+        aspectRateFix()
+
+        onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+            // サイズ変更時も呼ぶ
+            aspectRateFix()
+        }
+        // コールバック追加
+        fragmentPlayerFrameLayout.viewTreeObserver.addOnGlobalLayoutListener(onGlobalLayoutListener)
     }
 
     /** コメント描画設定。フォント設定など */
@@ -450,210 +433,135 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     }
 
     /** プレイヤーFrameLayoutにUIを追加する */
+    @ExperimentalFoundationApi
     @SuppressLint("ClickableViewAccessibility")
     private fun setPlayerUI() {
         addPlayerFrameLayout(nicovideoPlayerUIBinding.root)
-        // プレイヤー部分の表示設定
-        val hideJob = Job()
-        nicovideoPlayerUIBinding.root.setOnClickListener {
-            // シークテキストは消す
-            nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextButton.isVisible = false
-            hideJob.cancelChildren()
-            // ConstraintLayoutのGroup機能でまとめてVisibility変更。
-            nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = if (nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility == View.VISIBLE) {
-                View.INVISIBLE
-            } else {
-                View.VISIBLE
-            }
-            if (isMiniPlayerMode()) {
-                // ConstraintLayoutのGroup機能でまとめてVisibility変更。
-                nicovideoPlayerUIBinding.includeNicovideoPlayerMiniPlayerGroup.visibility = View.INVISIBLE
-            }
-            // 遅延させて
-            lifecycleScope.launch(hideJob) {
-                delay(3000)
-                nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = View.INVISIBLE
-            }
-        }
-        // 初回時もちょっとまってから消す
-        lifecycleScope.launch(hideJob) {
-            delay(3000)
-            nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = View.INVISIBLE
-        }
-        // プレイヤー右上のアイコンにWi-Fiアイコンがあるけどあれ、どの方法で再生してるかだから。キャッシュならフォルダーになる
-        val playingTypeDrawable = when {
-            viewModel.isOfflinePlay.value ?: false -> requireContext().getDrawable(R.drawable.ic_folder_open_black_24dp)
-            else -> InternetConnectionCheck.getConnectionTypeDrawable(requireContext())
-        }
-        nicovideoPlayerUIBinding.includeNicovideoPlayerNetworkImageView.setImageDrawable(playingTypeDrawable)
-        nicovideoPlayerUIBinding.includeNicovideoPlayerNetworkImageView.setOnClickListener { showNetworkTypeMessage() }
-        // ミニプレイヤー切り替えボタン
-        nicovideoPlayerUIBinding.includeNicovideoPlayerCloseImageView.setOnClickListener {
-            if (isMiniPlayerMode()) {
-                toDefaultPlayer()
-            } else {
-                toMiniPlayer()
-            }
-        }
-        // 一時停止
-        nicovideoPlayerUIBinding.includeNicovideoPlayerPauseImageView.setOnClickListener {
-            viewModel.playerIsPlaying.postValue(!viewModel.playerIsPlaying.value!!)
-        }
-        // リピートモード変更
-        nicovideoPlayerUIBinding.includeNicovideoPlayerRepeatImageView.setOnClickListener {
-            viewModel.playerIsRepeatMode.postValue(!viewModel.playerIsRepeatMode.value!!)
-        }
-        // コメメモ（動画スクショ機能）。Bitmapを取得する方法が8以降にしかないので8以前は非表示
-        nicovideoPlayerUIBinding.includeNicovideoPlayerScreenshotImageView.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-        nicovideoPlayerUIBinding.includeNicovideoPlayerScreenshotImageView.setOnClickListener {
-            showComememoBottomFragment()
-        }
-        // シーク
-        nicovideoPlayerUIBinding.includeNicovideoPlayerSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    // シークいじったら時間反映されるように
-                    val formattedTime = DateUtils.formatElapsedTime((seekBar?.progress ?: 0).toLong())
-                    nicovideoPlayerUIBinding.includeNicovideoPlayerCurrentTimeTextView.text = formattedTime
+        // Composeで作ったプレイヤーのUIを用意
+        nicovideoPlayerUIBinding.includeNicovideoPlayerComposeView.apply {
+            setContent {
+                MaterialTheme(
+                    colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
+                ) {
+
+                    // 動画情報
+                    val videoData = viewModel.nicoVideoData.observeAsState()
+                    // ミニプレイヤーかどうか
+                    val isMiniPlayerMode = viewModel.isMiniPlayerMode.observeAsState(false)
+                    // コメント描画
+                    val isShowDrawComment = remember { mutableStateOf(nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible) }
+                    // 連続再生かどうか
+                    val isPlaylistMode = viewModel.isPlayListMode.observeAsState(initial = false)
+                    // 再生中かどうか
+                    val isPlaying = viewModel.playerIsPlaying.observeAsState(initial = false)
+                    // 再生時間
+                    val currentPosition = viewModel.playerCurrentPositionMsLiveData.observeAsState(initial = 0)
+                    // リピート再生？
+                    val isRepeat = viewModel.playerIsRepeatMode.observeAsState(initial = true)
+                    // 動画の長さ
+                    val duration = viewModel.playerDurationMs.observeAsState(initial = 0)
+                    // ローディング
+                    val isLoading = viewModel.playerIsLoading.observeAsState(initial = false)
+
+                    // 時間
+                    if (videoData.value != null) {
+                        NicoVideoPlayerUI(
+                            videoTitle = videoData.value!!.title,
+                            videoId = videoData.value!!.videoId,
+                            isMiniPlayer = isMiniPlayerMode.value,
+                            isDisableMiniPlayerMode = isDisableMiniPlayerMode,
+                            isFullScreen = viewModel.isFullScreenMode,
+                            isConnectedWiFi = isConnectionWiFiInternet(requireContext()),
+                            isShowCommentCanvas = isShowDrawComment.value,
+                            isRepeat = isRepeat.value,
+                            isCachePlay = videoData.value!!.isCache,
+                            isLoading = isLoading.value,
+                            isPlaylistMode = isPlaylistMode.value,
+                            isPlaying = isPlaying.value,
+                            currentPosition = currentPosition.value.toLong() / 1000,
+                            duration = duration.value.toLong() / 1000,
+                            onClickMiniPlayer = {
+                                if (isMiniPlayerMode()) {
+                                    toDefaultPlayer()
+                                } else {
+                                    toMiniPlayer()
+                                }
+                            },
+                            onClickFullScreen = {
+                                if (viewModel.isFullScreenMode) {
+                                    setDefaultScreen()
+                                } else {
+                                    setFullScreen()
+                                }
+                            },
+                            onClickNetwork = { showNetworkTypeMessage() },
+                            onClickRepeat = { viewModel.playerIsRepeatMode.postValue(!viewModel.playerIsRepeatMode.value!!) },
+                            onClickCommentDraw = {
+                                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible = !nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible;
+                                isShowDrawComment.value = nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible
+                            },
+                            onClickPopUpPlayer = {
+                                startVideoPlayService(
+                                    context = requireContext(),
+                                    mode = "popup",
+                                    videoId = videoData.value!!.videoId,
+                                    isCache = videoData.value!!.isCache,
+                                    seek = viewModel.currentPosition,
+                                    videoQuality = viewModel.currentVideoQuality,
+                                    audioQuality = viewModel.currentAudioQuality,
+                                    playlist = viewModel.playlistLiveData.value
+                                )
+                                // Fragment閉じる
+                                finishFragment()
+                            },
+                            onClickBackgroundPlayer = {
+                                startVideoPlayService(
+                                    context = requireContext(),
+                                    mode = "background",
+                                    videoId = videoData.value!!.videoId,
+                                    isCache = videoData.value!!.isCache,
+                                    seek = viewModel.currentPosition,
+                                    videoQuality = viewModel.currentVideoQuality,
+                                    audioQuality = viewModel.currentAudioQuality,
+                                    playlist = viewModel.playlistLiveData.value
+                                )
+                                // Fragment閉じる
+                                finishFragment()
+                            },
+                            onClickPicture = { showComememoBottomFragment() },
+                            onClickPauseOrPlay = { viewModel.playerIsPlaying.postValue(!viewModel.playerIsPlaying.value!!) },
+                            onClickPrev = { viewModel.prevVideo() },
+                            onClickNext = { viewModel.nextVideo() },
+                            onDoubleClickSeek = { isPrev ->
+                                val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
+                                val seekMs = if (isPrev) {
+                                    viewModel.currentPosition - (seekValue * 1000)
+                                } else {
+                                    viewModel.currentPosition + (seekValue * 1000)
+                                }
+                                viewModel.playerCurrentPositionMsLiveData.value = seekMs
+                                viewModel.playerSetSeekMs.value = seekMs
+                            },
+                            onSeek = { progress ->
+                                // コメントシークに対応させる
+                                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.seekComment()
+                                // ExoPlayer再開
+                                viewModel.playerCurrentPositionMsLiveData.value = progress * 1000
+                                viewModel.playerSetSeekMs.value = progress * 1000
+                            },
+                            onTouchingSeek = { isTouchSeekBar = it },
+                        )
+                    }
                 }
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                isTouchSeekBar = true
-
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                isTouchSeekBar = false
-                // コメントシークに対応させる
-                nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.seekComment()
-                // ExoPlayer再開
-                viewModel.playerSetSeekMs.postValue((seekBar?.progress ?: 0) * 1000L)
-            }
-        })
-        // ダブルタップ
-        nicovideoPlayerUIBinding.root.setOnDoubleClickListener { motionEvent, isDoubleClick ->
-            if (motionEvent != null && isDoubleClick) {
-                val isLeft = motionEvent.x <= nicovideoPlayerUIBinding.root.width / 2
-                // どれだけシークするの？
-                val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
-                val seekMs = if (isLeft) {
-                    viewModel.currentPosition - (seekValue * 1000)
-                } else {
-                    viewModel.currentPosition + (seekValue * 1000)
-                }
-                // シークしたTextViewを出す
-                showSeekText(isLeft, seekMs)
-                viewModel.playerSetSeekMs.postValue(seekMs)
-                // ダブルタップでミニプレイヤーへの遷移が始まるので戻す
-                toDefaultPlayer()
-            }
-        }
-        // コメントキャンバス非表示
-        nicovideoPlayerUIBinding.includeNicovideoPlayerCommentHideImageView.setOnClickListener {
-            val drawable = if (!nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible) requireContext().getDrawable(R.drawable.ic_comment_on) else requireContext().getDrawable(R.drawable.ic_comment_off)
-            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentHideImageView.setImageDrawable(drawable)
-            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.apply {
-                isVisible = !isVisible
-            }
-        }
-        // ポップアップ再生
-        nicovideoPlayerUIBinding.includeNicovideoPlayerPopupImageView.setOnClickListener {
-            viewModel.nicoVideoData.value?.let { data ->
-                startVideoPlayService(
-                    context = requireContext(),
-                    mode = "popup",
-                    videoId = data.videoId,
-                    isCache = data.isCache,
-                    seek = viewModel.currentPosition,
-                    videoQuality = viewModel.currentVideoQuality,
-                    audioQuality = viewModel.currentAudioQuality,
-                    playlist = viewModel.playlistLiveData.value
-                )
-                // Fragment閉じる
-                finishFragment()
-            }
-        }
-        // バックグラウンド再生
-        nicovideoPlayerUIBinding.includeNicovideoPlayerBackgroundImageView.setOnClickListener {
-            viewModel.nicoVideoData.value?.let { data ->
-                startVideoPlayService(
-                    context = requireContext(),
-                    mode = "background",
-                    videoId = data.videoId,
-                    isCache = data.isCache,
-                    seek = viewModel.currentPosition,
-                    videoQuality = viewModel.currentVideoQuality,
-                    audioQuality = viewModel.currentAudioQuality,
-                    playlist = viewModel.playlistLiveData.value
-                )
-                // Fragment閉じる
-                finishFragment()
-            }
-        }
-        // 押した時
-        nicovideoPlayerUIBinding.includeNicovideoPlayerPrevImageView.setOnClickListener { viewModel.prevVideo() }
-        nicovideoPlayerUIBinding.includeNicovideoPlayerNextImageView.setOnClickListener { viewModel.nextVideo() }
-        // 全画面UI
-        nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setOnClickListener {
-            if (viewModel.isFullScreenMode) {
-                setDefaultScreen()
-            } else {
-                setFullScreen()
             }
         }
         // 全画面モードなら
         if (viewModel.isFullScreenMode) {
             setFullScreen()
         }
-        // FPSを表示するか
-        if (prefSetting.getBoolean("setting_nicovideo_jc_show_fps", false)) {
-            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isCalcFPS = true
-            nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.addFPSCallBack { fps ->
-                // FPSコールバック
-                nicovideoPlayerUIBinding.includeNicovideoPlayerFpsTextView.text = "FPS\n$fps"
-            }
-        }
         // センサーによる画面回転
         if (prefSetting.getBoolean("setting_rotation_sensor", false)) {
             RotationSensor(requireActivity(), lifecycle)
-        }
-    }
-
-    /**
-     * シークテキストを出す
-     * @param isBack 後ろに進んだ場合はtrue。前に進んだ場合はfalse
-     * @param seekMs シーク後の時間。ミリ秒
-     * */
-    private fun showSeekText(isBack: Boolean, seekMs: Long) {
-        lifecycleScope.launch {
-            val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
-            val timeFormat = DateUtils.formatElapsedTime(seekMs / 1000)
-            val seekIcon = if (isBack) requireContext().getDrawable(R.drawable.seek_back_run) else requireContext().getDrawable(R.drawable.seek_run)
-            seekIcon?.setTint(Color.WHITE)
-            val message = if (isBack) {
-                """
-                -= $seekValue
-                $timeFormat
-                """.trimIndent()
-            } else {
-                """
-                += $seekValue
-                $timeFormat
-                """.trimIndent()
-            }
-            // UI表示中なら消す
-            nicovideoPlayerUIBinding.includeNicovideoPlayerControlGroup.visibility = View.INVISIBLE
-            // シーク用テキスト。実はButton
-            (nicovideoPlayerUIBinding.includeNicovideoPlayerSeekTextButton as MaterialButton).apply {
-                text = message
-                icon = seekIcon
-                iconSize = 100
-                isVisible = true
-                // 1秒間出す
-                delay(1000)
-                isVisible = false
-            }
         }
     }
 
@@ -680,11 +588,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     private fun setFullScreen() {
         lifecycleScope.launch {
             viewModel.isFullScreenMode = true
-            nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_exit_black_24dp))
             // コメント / 動画情報Fragmentを非表示にする
             toFullScreen()
-            // アスペクト比治すなど
-            aspectRatioFix(viewModel.videoWidth, viewModel.videoHeight)
         }
     }
 
@@ -692,11 +597,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     private fun setDefaultScreen() {
         lifecycleScope.launch {
             viewModel.isFullScreenMode = false
-            nicovideoPlayerUIBinding.includeNicovideoFullScreenImageView.setImageDrawable(requireContext().getDrawable(R.drawable.ic_fullscreen_black_24dp))
             // コメント / 動画情報Fragmentを表示にする
             toDefaultScreen()
-            // アスペクト比治すなど
-            aspectRatioFix(viewModel.videoWidth, viewModel.videoHeight)
         }
     }
 
@@ -750,11 +652,8 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         super.onBottomSheetStateChane(state, isMiniPlayer)
         // 展開 or ミニプレイヤー のみ
         if (state == PlayerParentFrameLayout.PLAYER_STATE_DEFAULT || state == PlayerParentFrameLayout.PLAYER_STATE_MINI) {
-            // (requireActivity() as? MainActivity)?.setVisibilityBottomNav()
             // 一応UI表示
             nicovideoPlayerUIBinding.root.performClick()
-            // アイコン直す
-            nicovideoPlayerUIBinding.includeNicovideoPlayerCloseImageView.setImageDrawable(getCurrentStateIcon())
             // ViewModelへ状態通知
             viewModel.isMiniPlayerMode.value = isMiniPlayerMode()
         }

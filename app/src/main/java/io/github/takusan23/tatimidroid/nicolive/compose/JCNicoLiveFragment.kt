@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
+import android.view.ViewTreeObserver
 import android.webkit.WebView
 import android.widget.LinearLayout
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -12,13 +13,11 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ShareCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
-import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.ViewModelProvider
@@ -72,6 +71,9 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
     /** 共有 */
     private val contentShare by lazy { ContentShareTool(requireContext()) }
 
+    /** レイアウト変更コールバック */
+    private var onGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+
     /** ViewModel初期化。ネットワークとかUI関係ないやつはこっちに書いていきます。 */
     val viewModel by lazy {
         val liveId = arguments?.getString("liveId")!!
@@ -90,6 +92,9 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
 
         // LiveData監視
         setLiveData()
+
+        // アスペクト比調整
+        setOnLayoutChangeAspectRatioFix()
 
         // Fragment設置
         setFragment()
@@ -110,78 +115,83 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
 
     private fun setPlayerUICompose() {
         nicolivePlayerUIBinding.includeNicolivePlayerComposeView.setContent {
+            MaterialTheme(
+                // ダークモード。動的にテーマ変更できるようになるんか？
+                colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
+            ) {
+                // 番組情報
+                val programData = viewModel.nicoLiveProgramData.observeAsState()
+                // 経過時間
+                val currentPosSec = viewModel.programCurrentPositionSecLiveData.observeAsState(initial = 0)
+                // 番組の期間（放送時間）
+                val duration = viewModel.programDurationTimeLiveData.observeAsState(initial = 0)
+                // ミニプレイヤーかどうか
+                val isMiniPlayerMode = viewModel.isMiniPlayerMode.observeAsState(false)
+                // コメント描画
+                val isShowDrawComment = remember { mutableStateOf(nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible) }
+                // TS再生中？
+                val isWatchingTS = viewModel.isWatchingTimeShiftLiveData.observeAsState(initial = false)
 
-            // 番組情報
-            val programData = viewModel.nicoLiveProgramData.observeAsState()
-            // 経過時間
-            val duration = viewModel.programTimeLiveData.observeAsState()
-            // 終了時刻
-            val endTime = viewModel.formattedProgramEndTime.observeAsState()
-            // ミニプレイヤーかどうか
-            val isMiniPlayerMode = viewModel.isMiniPlayerMode.observeAsState(false)
-            // コメント描画
-            val isShowDrawComment = remember { mutableStateOf(nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible) }
-
-            if (programData.value != null) {
-                NicoLivePlayerUI(
-                    liveTitle = programData.value!!.title,
-                    liveId = programData.value!!.programId,
-                    programEndTime = endTime.value,
-                    programCurrentTime = duration.value,
-                    isMiniPlayer = isMiniPlayerMode.value,
-                    isDisableMiniPlayerMode = isDisableMiniPlayerMode,
-                    isFullScreen = viewModel.isFullScreenMode,
-                    isConnectedWiFi = isConnectionWiFiInternet(requireContext()),
-                    isShowCommentCanvas = isShowDrawComment.value,
-                    isAudioOnlyMode = viewModel.currentQuality == "audio_high",
-                    onClickMiniPlayer = {
-                        when {
-                            isDisableMiniPlayerMode -> finishFragment()
-                            isMiniPlayerMode.value -> toDefaultPlayer()
-                            else -> toMiniPlayer()
-                        }
-                    },
-                    onClickFullScreen = { if (viewModel.isFullScreenMode) setDefaultScreen() else setFullScreen() },
-                    onClickNetwork = { showNetworkTypeMessage() },
-                    onClickCommentDraw = {
-                        nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible = !nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
-                        isShowDrawComment.value = nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
-                    },
-                    onClickPopUpPlayer = {
-                        startLivePlayService(
-                            context = requireContext(),
-                            mode = "popup",
-                            liveId = programData.value!!.programId,
-                            isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
-                            startQuality = viewModel.currentQuality
-                        )
-                        finishFragment()
-                    },
-                    onClickBackgroundPlayer = {
-                        startLivePlayService(
-                            context = requireContext(),
-                            mode = "background",
-                            liveId = programData.value!!.programId,
-                            isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
-                            startQuality = viewModel.currentQuality
-                        )
-                        finishFragment()
-                    },
-                    onClickCommentPost = { comment -> viewModel.sendComment(comment) }
-                )
+                if (programData.value != null) {
+                    NicoLivePlayerUI(
+                        liveTitle = programData.value!!.title,
+                        liveId = programData.value!!.programId,
+                        isMiniPlayer = isMiniPlayerMode.value,
+                        isDisableMiniPlayerMode = isDisableMiniPlayerMode,
+                        isFullScreen = viewModel.isFullScreenMode,
+                        isConnectedWiFi = isConnectionWiFiInternet(requireContext()),
+                        isShowCommentCanvas = isShowDrawComment.value,
+                        isAudioOnlyMode = viewModel.currentQuality == "audio_high",
+                        isTimeShiftMode = isWatchingTS.value,
+                        onClickMiniPlayer = {
+                            when {
+                                isDisableMiniPlayerMode -> finishFragment()
+                                isMiniPlayerMode.value -> toDefaultPlayer()
+                                else -> toMiniPlayer()
+                            }
+                        },
+                        onClickFullScreen = { if (viewModel.isFullScreenMode) setDefaultScreen() else setFullScreen() },
+                        onClickNetwork = { showNetworkTypeMessage() },
+                        onClickCommentDraw = {
+                            nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible = !nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
+                            isShowDrawComment.value = nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
+                        },
+                        onClickPopUpPlayer = {
+                            startLivePlayService(
+                                context = requireContext(),
+                                mode = "popup",
+                                liveId = programData.value!!.programId,
+                                isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
+                                startQuality = viewModel.currentQuality
+                            )
+                            finishFragment()
+                        },
+                        onClickBackgroundPlayer = {
+                            startLivePlayService(
+                                context = requireContext(),
+                                mode = "background",
+                                liveId = programData.value!!.programId,
+                                isTokumei = viewModel.nicoLiveHTML.isPostTokumeiComment,
+                                startQuality = viewModel.currentQuality
+                            )
+                            finishFragment()
+                        },
+                        onClickCommentPost = { comment -> viewModel.sendComment(comment) },
+                        currentPosition = currentPosSec.value,
+                        duration = duration.value,
+                        onTsSeek = { viewModel.tsSeekPosition(it) } // TS再生時のシークバー
+                    )
+                }
             }
         }
     }
 
     /** Jetpack Composeで作成したコメント投稿UIを追加する */
-    @ExperimentalAnimationApi
     private fun setCommentPostUI() {
         // コメント一覧展開ボタンを設置する
         bottomComposeView.setContent {
             // コメント展開するかどうか
             val isComment = viewModel.commentListShowLiveData.observeAsState(initial = false)
-            // コルーチン
-            val scope = rememberCoroutineScope()
             // コメント本文
             val commentPostText = remember { mutableStateOf("") }
             // 匿名で投稿するか
@@ -194,6 +204,8 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             val commentColor = remember { mutableStateOf("white") }
             // 複数行コメントを許可している場合はtrue。falseならEnterキーでコメント送信
             val isAcceptMultiLineComment = !prefSetting.getBoolean("setting_enter_post", true)
+            // タイムシフト視聴中はテキストボックス出さない
+            val isTimeShiftWatching = viewModel.isWatchingTimeShiftLiveData.observeAsState(initial = false)
 
             NicoLiveCommentInputButton(
                 onClick = { viewModel.commentListShowLiveData.postValue(!isComment.value) },
@@ -202,14 +214,13 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 onCommentChange = { commentPostText.value = it },
                 onPostClick = {
                     // コメント投稿
-                    scope.launch {
-                        viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value)
-                        commentPostText.value = "" // クリアに
-                    }
+                    viewModel.sendComment(commentPostText.value, commentColor.value, commentSize.value, commentPos.value)
+                    commentPostText.value = "" // クリアに
                 },
                 position = commentPos.value,
                 size = commentSize.value,
                 color = commentColor.value,
+                isTimeShiftMode = isTimeShiftWatching.value,
                 onPosValueChange = { commentPos.value = it },
                 onSizeValueChange = { commentSize.value = it },
                 onColorValueChange = { commentColor.value = it },
@@ -231,7 +242,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         fragmentCommentHostTopComposeView.apply {
             setContent {
                 MaterialTheme(
-                    // ダークモード。動的にテーマ変更できるようになるんか？
                     colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
                 ) {
                     Surface {
@@ -550,22 +560,15 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         }
     }
 
-    override fun onBottomSheetProgress(progress: Float) {
-        super.onBottomSheetProgress(progress)
-        aspectRatioFix()
-    }
-
     /** ExoPlayerで生放送を再生する */
     private fun playExoPlayer(address: String) {
         // ExoPlayer
-        // 音声のみの再生はその旨（むね）を表示して、SurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
+        // 音声のみの再生はSurfaceViewを暗黒へ。わーわー言うとりますが、お時間でーす
         if (viewModel.currentQuality == "audio_high") {
             nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.background = ColorDrawable(Color.BLACK)
         } else {
             nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.background = null
         }
-        // アスペクト比治す
-        aspectRatioFix()
         // HLS受け取り
         val mediaItem = MediaItem.fromUri(address.toUri())
         exoPlayer.setMediaItem(mediaItem)
@@ -579,6 +582,11 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         exoPlayer.addListener(object : Player.EventListener {
             override fun onPlaybackStateChanged(state: Int) {
                 super.onPlaybackStateChanged(state)
+
+                // タイムシフト再生時は再生時間をViewModelでカウントするので再生状態をViewModelにわたす
+                val isPlaying = (state == Player.STATE_READY || state == Player.STATE_ENDED)
+                viewModel.isTimeShiftPlaying.postValue((viewModel.isWatchingTimeShiftLiveData.value == true) && isPlaying)
+
                 // 一度だけ
                 if (isFirst) {
                     isFirst = false
@@ -631,26 +639,38 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
         })
     }
 
-    /** アスペクト比を治す。サイズ変更の度によぶ必要あり。めんどいので16:9固定で */
-    private fun aspectRatioFix() {
+    /**
+     * アスペクト比を治す。一度だけ呼べばいいです（レイアウト変更を検知して自動で変更するため）
+     * */
+    private fun setOnLayoutChangeAspectRatioFix() {
         if (!isAdded) return
-        fragmentPlayerFrameLayout.doOnNextLayout {
+        // 既存のコールバックは消す
+        if (onGlobalLayoutListener != null) {
+            fragmentPlayerFrameLayout.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
+        }
+
+        var prevHeight = 0
+        onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
             val playerHeight = fragmentPlayerFrameLayout.height
             val playerWidth = fragmentPlayerFrameLayout.width
-            val calcWidth = (playerHeight / 9) * 16
-            if (calcWidth > fragmentPlayerFrameLayout.width) {
-                // 画面外にプレイヤーが行く
-                nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
-                    width = playerWidth
-                    height = (playerWidth / 16) * 9
-                }
-            } else {
-                nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
-                    width = calcWidth
-                    height = playerHeight
+            if (prevHeight != playerHeight) {
+                prevHeight = playerHeight
+                val calcWidth = (playerHeight / 9) * 16
+                if (calcWidth > fragmentPlayerFrameLayout.width) {
+                    // 画面外にプレイヤーが行く
+                    nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
+                        width = playerWidth
+                        height = (playerWidth / 16) * 9
+                    }
+                } else {
+                    nicolivePlayerUIBinding.includeNicolivePlayerSurfaceView.updateLayoutParams {
+                        width = calcWidth
+                        height = playerHeight
+                    }
                 }
             }
         }
+        fragmentPlayerFrameLayout.viewTreeObserver.addOnGlobalLayoutListener(onGlobalLayoutListener)
     }
 
     /** コメント描画設定を適用 */
@@ -682,8 +702,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             viewModel.isFullScreenMode = true
             // コメント / 動画情報Fragmentを非表示にする
             toFullScreen()
-            // アスペクト比治すなど
-            aspectRatioFix()
         }
     }
 
@@ -693,8 +711,6 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
             viewModel.isFullScreenMode = false
             // コメント / 動画情報Fragmentを表示にする
             toDefaultScreen()
-            // アスペクト比治すなど
-            aspectRatioFix()
         }
     }
 

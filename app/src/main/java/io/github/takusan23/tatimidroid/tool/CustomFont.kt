@@ -18,51 +18,39 @@ class CustomFont(val context: Context?) {
 
     private var prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
 
-    // フォントがあるフォルダー
+    /** フォントがあるフォルダー */
     private var fontFolder: File = File("${context?.getExternalFilesDir(null)}/font")
 
-    // フォントフォルダーには一つのファイル（フォントファイル）しか存在しないでーす
-    private lateinit var fontFile: File
+    /** TypeFace */
+    var typeface: Typeface? = null
 
-    // TypeFace
-    lateinit var typeface: Typeface
+    /** フォントサイズ（ゆーざーID） */
+    var userIdFontSize = prefSetting.getFloat("setting_font_size_id", 12f)
 
-    // フォントサイズ（ゆーざーID）
-    var userIdFontSize = 12F
-
-    // フォントサイズ（コメント）
-    var commentFontSize = 14F
+    /** フォントサイズ（コメント） */
+    var commentFontSize = prefSetting.getFloat("setting_font_size_comment", 14f)
 
     init {
         // フォントフォルダーには一つのファイル（フォントファイル）しか存在しないでーす
-        if (fontFolder.exists() && fontFolder.listFiles().isNotEmpty()) {
+        if (fontFolder.exists() && fontFolder.listFiles() != null && fontFolder.listFiles()!!.isNotEmpty()) {
             // ファイルが存在する場合はTypeFaceつくる
-            fontFile = fontFolder.listFiles()[0]
+            val fontFile = fontFolder.listFiles()!![0]
             typeface = Typeface.createFromFile(fontFile)
         }
-        // フォントサイズ取得
-        userIdFontSize = prefSetting.getFloat("setting_font_size_id", 12F)
-        commentFontSize = prefSetting.getFloat("setting_font_size_comment", 14F)
     }
-
 
     /**
      * TextViewにフォントを設定する
      * */
     fun setTextViewFont(textView: TextView) {
-        if (!::typeface.isInitialized) {
-            //TypeFace初期化できないときデフォルトを指定
-            textView.typeface = Typeface.DEFAULT
-        } else {
-            textView.typeface = typeface
-        }
+        textView.typeface = typeface ?: Typeface.DEFAULT
     }
 
     /**
      * PaintにTypeFaceを設定する
      * */
     fun setPaintTypeFace(paint: Paint) {
-        if (!::typeface.isInitialized) {
+        if (typeface == null) {
             //TypeFace初期化できない とき終了
             return
         }

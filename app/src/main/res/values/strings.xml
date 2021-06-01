@@ -492,4 +492,6 @@ Sorry to trouble you, but please update the video information.\n
     <string name="nicovideo_search_history_pin">Pinning only</string>
     <string name="nicovideo_search_history_tag">Tag search</string>
     <string name="nicovideo_search_history_keyword">Keyword search</string>
+    <string name="nicolive_timeshift_mode">Start (experimental) time-shift playback</string>
+    <string name="nicolive_timeshift_premium">Cannot be used unless you are a premium member</string>
 </resources>

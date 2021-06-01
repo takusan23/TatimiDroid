@@ -104,12 +104,6 @@
             android:key="setting_nicovideo_jc_cinema_wide_aspect"
             android:summary="@string/setting_nicovideo_jc_cinema_wide_aspect_description"
             android:title="@string/setting_nicovideo_jc_cinema_wide_aspect_title" />
-
-        <SwitchPreference
-            android:defaultValue="false"
-            android:key="setting_nicovideo_jc_show_fps"
-            android:summary="@string/setting_nicovideo_jc_show_fps_description"
-            android:title="@string/setting_nicovideo_jc_show_fps_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/video">
@@ -163,9 +157,9 @@
             android:title="@string/setting_nicovideo_show_like_count_title" />
 
         <SwitchPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:icon="@drawable/ic_tatimidroid_list_icon_black"
-            android:key="setting_nicovideo_default_playlist_mode"
+            android:key="setting_nicovideo_default_playlist_mode_v2"
             android:summary="@string/setting_nicovideo_default_playlist_mode_description"
             android:title="@string/setting_nicovideo_default_playlist_mode_title" />
 

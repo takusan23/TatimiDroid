@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.nicolive.compose
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,6 +24,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.compose.NumberSlider
+import io.github.takusan23.tatimidroid.tool.TimeFormatTool
 import kotlinx.coroutines.delay
 
 /**
@@ -44,19 +47,24 @@ import kotlinx.coroutines.delay
  * @param onClickNetwork ネットワーク状態ボタンを押したときに呼ばれる
  * @param onClickPopUpPlayer ポップアップ再生ボタンを押したときに呼ばれる
  * @param isAudioOnlyMode 音声のみの再生時はtrueにしてね
+ * @param isTimeShiftMode タイムシフト再生時はtrueにしてね。シークバーを出します
+ * @param currentPosition 番組経過時間。番組開始時間から数えて
+ * @param onTsSeek タイムシフト再生中のみ。シークバーいじったら呼ばれる。0からの整数
+ * @param duration タイムシフト再生時のみ。番組の時間。秒で
  * */
 @Composable
 fun NicoLivePlayerUI(
     liveTitle: String,
     liveId: String,
-    programCurrentTime: String?,
-    programEndTime: String?,
     isMiniPlayer: Boolean,
     isDisableMiniPlayerMode: Boolean,
     isFullScreen: Boolean = false,
     isConnectedWiFi: Boolean = false,
     isShowCommentCanvas: Boolean = true,
     isAudioOnlyMode: Boolean = false,
+    isTimeShiftMode: Boolean = false,
+    currentPosition: Long = 0L,
+    duration: Long = 0L,
     onClickMiniPlayer: () -> Unit,
     onClickFullScreen: () -> Unit,
     onClickNetwork: () -> Unit,
@@ -64,6 +72,7 @@ fun NicoLivePlayerUI(
     onClickPopUpPlayer: () -> Unit,
     onClickBackgroundPlayer: () -> Unit,
     onClickCommentPost: (String) -> Unit,
+    onTsSeek: (Long) -> Unit = { },
 ) {
 
     // プレイヤー押したらプレイヤーUIを非表示にしたいので
@@ -72,6 +81,14 @@ fun NicoLivePlayerUI(
     val commentPostText = remember { mutableStateOf("") }
     // コメント入力中かどうか
     val isInputingComment = remember { mutableStateOf(false) }
+    // シーク中かどうか
+    val isTouchingSlider = remember { mutableStateOf(false) }
+    // 再生位置
+    val seekBarValue = remember { mutableStateOf(currentPosition) }
+    // シーク操作中は引数の値が更新されても無視
+    if (!isTouchingSlider.value) {
+        seekBarValue.value = currentPosition
+    }
 
     // 一定時間後にfalseにする
     LaunchedEffect(key1 = isShowPlayerUI.value, block = {
@@ -86,9 +103,12 @@ fun NicoLivePlayerUI(
     Surface(
         contentColor = Color.White, // アイコンとかテキストの色をまとめて指定
         color = Color.Transparent,
-        modifier = Modifier.clickable {
-            isShowPlayerUI.value = !isShowPlayerUI.value
-        }
+        modifier = Modifier
+            .clickable(
+                indication = null, // Rippleいらんわ
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = { isShowPlayerUI.value = !isShowPlayerUI.value },
+            )
     ) {
         Box(
             modifier = Modifier
@@ -192,16 +212,32 @@ fun NicoLivePlayerUI(
                     ) { }
                     // 再生時間など
                     Row(modifier = Modifier.padding(10.dp)) {
-                        if (programCurrentTime != null) {
-                            Text(text = programCurrentTime)
+                        Text(text = TimeFormatTool.timeFormat(currentPosition), modifier = Modifier.align(alignment = Alignment.CenterVertically))
+                        if (isTimeShiftMode && !isMiniPlayer) {
+                            // TS再生用にシークバーを出す。整数用にSliderを作った
+                            NumberSlider(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 5.dp, end = 5.dp),
+                                maxValue = duration,
+                                currentValue = seekBarValue.value,
+                                onValueChangeFinished = {
+                                    isTouchingSlider.value = false
+                                    onTsSeek(seekBarValue.value)
+                                },
+                                onValueChange = {
+                                    isTouchingSlider.value = true
+                                    seekBarValue.value = it
+                                },
+                            )
+                        } else {
+                            // ダイナモ感覚　ダイナモ感覚 YO YO YO YEAR!
+                            Spacer(modifier = Modifier.weight(1f))
                         }
-                        Spacer(modifier = Modifier.weight(1f))
-                        if (programEndTime != null) {
-                            Text(text = programEndTime)
-                        }
+                        Text(text = TimeFormatTool.timeFormat(duration), modifier = Modifier.align(alignment = Alignment.CenterVertically))
                     }
                     // コメント投稿エリア。全画面再生時のみ
-                    if (isFullScreen && !isMiniPlayer) {
+                    if (isFullScreen && !isMiniPlayer && !isTimeShiftMode) {
                         OutlinedTextField(
                             modifier = Modifier
                                 .fillMaxWidth()
