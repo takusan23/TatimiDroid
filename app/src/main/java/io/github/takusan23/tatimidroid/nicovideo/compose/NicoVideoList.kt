@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -92,19 +93,23 @@ fun NicoVideoListItem(
                     Image(
                         bitmap = thumb,
                         contentDescription = nicoVideoData.thum,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
                 }
                 // 再生時間
-                Text(
-                    text = TimeFormatTool.timeFormat(nicoVideoData.duration ?: 0),
-                    Modifier
+                Box(
+                    modifier = Modifier
+                        .padding(3.dp)
                         .align(Alignment.BottomEnd)
-                        .padding(5.dp)
-                        .background(Color.Black.copy(alpha = 0.5f)),
-                    fontSize = 10.sp,
-                    color = Color.White
-                )
+                        .background(Color.Black.copy(alpha = 0.5f))
+                ) {
+                    Text(
+                        text = TimeFormatTool.timeFormat(nicoVideoData.duration ?: 0),
+                        fontSize = 12.sp,
+                        color = Color.White
+                    )
+                }
             }
             // タイトル名など
             Column(
