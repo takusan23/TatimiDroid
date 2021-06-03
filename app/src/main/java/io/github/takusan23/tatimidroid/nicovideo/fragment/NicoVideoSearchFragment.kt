@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.takusan23.tatimidroid.MainActivity
 import io.github.takusan23.tatimidroid.nicovideo.compose.screen.NicoVideoSearchScreen
 
 /**
@@ -22,7 +23,11 @@ class NicoVideoSearchFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                NicoVideoSearchScreen(viewModel = viewModel(), onClickMenu = {}, onClickVideo = {})
+                NicoVideoSearchScreen(
+                    viewModel = viewModel(),
+                    onClickMenu = {},
+                    onClickVideo = { (requireActivity() as? MainActivity)?.setNicovideoFragment(it.videoId, it.isCache, false, true) },
+                )
             }
         }
     }

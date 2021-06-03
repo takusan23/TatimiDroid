@@ -5,35 +5,30 @@ import androidx.compose.runtime.livedata.observeAsState
 import io.github.takusan23.tatimidroid.compose.FillLoadingScreen
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicovideo.compose.NicoVideoList
-import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoHistoryViewModel
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoSeriesViewModel
 
 /**
- * ニコ動の視聴履歴画面。Composeでできている
- *
- * @param viewModel 履歴ViewModel
- * @param onClickVideo 動画押したときに呼ばれる
- * @param onClickMenu メニュー押したときに呼ばれる
+ * シリーズの動画一覧画面。Composeでできている
  * */
 @Composable
-fun NicoVideoHistoryScreen(
-    viewModel: NicoVideoHistoryViewModel,
-    onClickVideo: (NicoVideoData) -> Unit,
-    onClickMenu: (NicoVideoData) -> Unit
+fun NicoVideoSeriesVideoListScreen(
+    viewModel: NicoVideoSeriesViewModel,
+    onVideoClick: (NicoVideoData) -> Unit,
+    onMenuClick: (NicoVideoData) -> Unit
 ) {
     // 読み込み中
     val isLoading = viewModel.loadingLiveData.observeAsState(initial = true)
     // 動画一覧
-    val videoList = viewModel.historyListLiveData.observeAsState()
+    val videoList = viewModel.nicoVideoDataListLiveData.observeAsState()
 
     if (isLoading.value || videoList.value == null) {
-        // 読み込み中
         FillLoadingScreen()
     } else {
-        // 履歴一覧
         NicoVideoList(
             list = videoList.value!!,
-            onVideoClick = { onClickVideo(it) },
-            onMenuClick = { onClickMenu(it) }
+            onVideoClick = { onVideoClick(it) },
+            onMenuClick = { onMenuClick(it) }
         )
     }
+
 }

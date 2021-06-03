@@ -56,8 +56,8 @@ fun NicoVideoRankingScreen(
         if (videoList.value != null) {
             NicoVideoList(
                 list = videoList.value!!,
-                onClickVideo = { onClickVideo(it) },
-                onClickMenu = { onClickMenu(it) }
+                onVideoClick = { onClickVideo(it) },
+                onMenuClick = { onClickMenu(it) }
             )
         }
     }

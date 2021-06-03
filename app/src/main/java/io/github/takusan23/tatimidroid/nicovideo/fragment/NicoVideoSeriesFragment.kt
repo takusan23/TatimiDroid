@@ -4,14 +4,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.recyclerview.widget.LinearLayoutManager
+import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoSeriesBinding
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicovideo.adapter.NicoVideoListAdapter
-import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoSeriesViewModelFactory
+import io.github.takusan23.tatimidroid.nicovideo.compose.screen.NicoVideoSeriesVideoListScreen
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoSeriesViewModel
-import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoSeriesBinding
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoSeriesViewModelFactory
 
 /**
  * シリーズの動画一覧Fragment
@@ -36,7 +40,17 @@ class NicoVideoSeriesFragment : Fragment() {
     private val viewBinding by lazy { FragmentNicovideoSeriesBinding.inflate(layoutInflater) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return viewBinding.root
+        return ComposeView(requireContext()).apply {
+            setContent {
+                val seriesId = arguments?.getString("series_id")!!
+
+                NicoVideoSeriesVideoListScreen(
+                    viewModel = viewModel(factory = NicoVideoSeriesViewModelFactory(requireActivity().application, seriesId)),
+                    onMenuClick = { },
+                    onVideoClick = { (requireActivity() as? MainActivity)?.setNicovideoFragment(it.videoId, it.isCache, false, true) },
+                )
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

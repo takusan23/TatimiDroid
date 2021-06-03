@@ -31,8 +31,8 @@ fun NicoVideoMylistVideoListScreen(
         // 動画一覧
         NicoVideoList(
             list = videoList.value!!,
-            onClickVideo = { onClickVideo(it) },
-            onClickMenu = { onClickMenu(it) }
+            onVideoClick = { onClickVideo(it) },
+            onMenuClick = { onClickMenu(it) }
         )
     }
 }

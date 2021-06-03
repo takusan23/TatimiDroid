@@ -6,9 +6,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoAPIX
 import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoDataClass
-import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,16 +30,11 @@ class NicoRepoViewModel(application: Application, val userId: String? = null) : 
     /** ニコニコのログイン情報。ユーザーセッション */
     private val userSession = prefSetting.getString("user_session", "") ?: ""
 
-    /**
-     * [io.github.takusan23.tatimidroid.nicoapi.NicoRepoAPIX.parseNicoRepoResponseToNicoLiveProgramData]系の結果が入るLiveData。
-     * [Any]で型情報がないので、isで型を確認して使ってください。
-     *
-     * [io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData]か[io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData]です。
-     * */
+    /** ニコレポデータ */
     val nicoRepoDataListLiveData = MutableLiveData<ArrayList<NicoRepoDataClass>>()
 
     /** とりあえずAPIを叩いてパースした結果を持っておく。このあとフィルターで初期状態の配列がほしいので */
-    var nicoRepoDataListRaw = arrayListOf<NicoRepoDataClass>()
+    private var nicoRepoDataListRaw = arrayListOf<NicoRepoDataClass>()
 
     /** 読み込み中LiveData */
     val loadingLiveData = MutableLiveData(false)

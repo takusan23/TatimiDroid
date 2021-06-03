@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -42,6 +43,8 @@ fun NicoVideoSearchScreen(
     val isLoading = viewModel.isLoadingLiveData.observeAsState(initial = false)
     // 動画一覧
     val searchResultVideoList = viewModel.searchResultNicoVideoDataListLiveData.observeAsState()
+    // 関連タグ一覧
+    val recommendTagList = viewModel.searchResultTagListLiveData.observeAsState()
     // サジェスト一覧
     val suggestList = viewModel.suggestListLiveData.observeAsState(initial = listOf())
     // 検索ワード
@@ -67,12 +70,14 @@ fun NicoVideoSearchScreen(
                 searchWord.value = it
                 viewModel.getSuggest(it)
             },
-            onNGUploaderClick = { /*TODO*/ },
-            onHistoryClick = { /*TODO*/ },
+            onNGUploaderClick = {},
+            onHistoryClick = {},
             onSearch = { search(1) },
-            onFocusChange = { isFocus -> isInputting.value = isFocus
-                            println(isFocus)},
-            onSearchTypeClick = { isTagSearch.value = it }
+            onFocusChange = { isFocus -> isInputting.value = isFocus },
+            onSearchTypeClick = {
+                isTagSearch.value = it
+                search(1)
+            }
         )
         if (isInputting.value) {
             // サジェストはキーボード操作中のみ
@@ -85,12 +90,17 @@ fun NicoVideoSearchScreen(
                 }
             )
         } else {
+            // 関連タグ
+            if (recommendTagList.value != null) {
+                NicoVideoSearchRecommendTag(tagList = recommendTagList.value!!)
+            }
             // 動画一覧
             if (searchResultVideoList.value != null) {
                 NicoVideoList(
                     list = searchResultVideoList.value!!,
-                    onClickVideo = { onClickVideo(it) },
-                    onClickMenu = { onClickMenu(it) },
+                    onVideoClick = { onClickVideo(it) },
+                    onMenuClick = { onClickMenu(it) },
+                    onLastScroll = { search(viewModel.currentSearchPage + 1) }
                 )
             }
         }
@@ -247,6 +257,22 @@ private fun NicoVideoSearchTagOrKeywordToggleSwitch(
                     contentDescription = "tag",
                     tint = if (isTagSearch) MaterialTheme.colors.primary else LocalContentColor.current,
                 )
+            }
+        }
+    }
+}
+
+/**
+ * ニコ動検索の関連タグを表示する
+ *
+ * @param tagList タグの配列
+ * */
+@Composable
+private fun NicoVideoSearchRecommendTag(tagList: List<String>) {
+    LazyRow {
+        items(tagList) { tag ->
+            OutlinedButton(onClick = { }, modifier = Modifier.padding(2.dp)) {
+                Text(text = tag)
             }
         }
     }

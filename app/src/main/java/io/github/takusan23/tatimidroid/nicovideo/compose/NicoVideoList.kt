@@ -28,16 +28,16 @@ import io.github.takusan23.tatimidroid.tool.TimeFormatTool
  * 動画一覧表示で使うやつ
  *
  * @param list 動画情報の配列
- * @param onLastScroll 最後までスクロールすると呼ばれる。省略可能
- * @param onClickVideo 押したとき
- * @param onClickMenu メニュー押したとき
+ * @param onLastScroll 最後までスクロールすると呼ぶ。呼び続けますので各自APIを叩きすぎないように気をつけてください。
+ * @param onVideoClick 押したとき
+ * @param onMenuClick メニュー押したとき
  * */
 @Composable
 fun NicoVideoList(
     list: List<NicoVideoData>,
     onLastScroll: () -> Unit = {},
-    onClickVideo: (NicoVideoData) -> Unit,
-    onClickMenu: (NicoVideoData) -> Unit
+    onVideoClick: (NicoVideoData) -> Unit,
+    onMenuClick: (NicoVideoData) -> Unit
 ) {
     // スクロール制御用
     val state = rememberLazyListState()
@@ -53,8 +53,8 @@ fun NicoVideoList(
         items(list) { data ->
             NicoVideoListItem(
                 data,
-                onClickVideo = { onClickVideo(it) },
-                onClickMenu = { onClickMenu(it) }
+                onVideoClick = { onVideoClick(it) },
+                onMenuClick = { onMenuClick(it) }
             )
             Divider()
         }
@@ -65,16 +65,16 @@ fun NicoVideoList(
  * 動画一覧表示で使う、一つ一つの部品
  *
  * @param nicoVideoData 動画情報
- * @param onClickVideo 押したとき
- * @param onClickMenu メニュー押したとき
+ * @param onVideoClick 押したとき
+ * @param onMenuClick メニュー押したとき
  * */
 @Composable
 fun NicoVideoListItem(
     nicoVideoData: NicoVideoData,
-    onClickVideo: (NicoVideoData) -> Unit,
-    onClickMenu: (NicoVideoData) -> Unit
+    onVideoClick: (NicoVideoData) -> Unit,
+    onMenuClick: (NicoVideoData) -> Unit
 ) {
-    Surface(modifier = Modifier.clickable { onClickVideo(nicoVideoData) }) {
+    Surface(modifier = Modifier.clickable { onVideoClick(nicoVideoData) }) {
         Row(
             modifier = Modifier.padding(5.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -127,7 +127,7 @@ fun NicoVideoListItem(
                 )
             }
             // メニューボタン
-            IconButton(onClick = { onClickMenu(nicoVideoData) }) {
+            IconButton(onClick = { onMenuClick(nicoVideoData) }) {
                 Icon(painter = painterResource(id = R.drawable.ic_more_vert_24px), contentDescription = "メニュー")
             }
 

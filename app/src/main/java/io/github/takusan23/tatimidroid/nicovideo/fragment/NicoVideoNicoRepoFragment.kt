@@ -4,14 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoDataClass
-import io.github.takusan23.tatimidroid.nicovideo.adapter.NicoRepoAdapter
+import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.takusan23.tatimidroid.nicovideo.compose.screen.NicoRepoScreen
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoRepoViewModelFactory
-import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoRepoViewModel
-import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoNicorepoBinding
 
 /**
  * ニコレポFragment
@@ -23,75 +20,15 @@ import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoNicorepoBind
  * */
 class NicoVideoNicoRepoFragment : Fragment() {
 
-    /** データ取得とか保持とかのViewModel */
-    private lateinit var nicoRepoViewModel: NicoRepoViewModel
-
-    /** RecyclerViewへ渡す配列 */
-    private val recyclerViewList = arrayListOf<NicoRepoDataClass>()
-
-    /** RecyclerViewにセットするAdapter */
-    private val nicoRepoAdapter = NicoRepoAdapter(recyclerViewList)
-
-    /** findViewById駆逐 */
-    private val viewBinding by lazy { FragmentNicovideoNicorepoBinding.inflate(layoutInflater) }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return viewBinding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        val userId = arguments?.getString("userId")
-        nicoRepoViewModel = ViewModelProvider(this, NicoRepoViewModelFactory(requireActivity().application, userId)).get(NicoRepoViewModel::class.java)
-
-        // RecyclerView初期化
-        initRecyclerView()
-
-        // 読み込みLiveDataうけとり
-        nicoRepoViewModel.loadingLiveData.observe(viewLifecycleOwner) { isLoading ->
-            viewBinding.fragmentNicovideoNicorepoSwipe.isRefreshing = isLoading
-        }
-
-        // 配列受け取り
-        nicoRepoViewModel.nicoRepoDataListLiveData.observe(viewLifecycleOwner) { parseList ->
-            recyclerViewList.clear()
-            recyclerViewList.addAll(parseList)
-            nicoRepoAdapter.notifyDataSetChanged()
-        }
-
-        // ひっぱって更新
-        viewBinding.fragmentNicovideoNicorepoSwipe.setOnRefreshListener {
-            // データ消す
-            recyclerViewList.clear()
-            nicoRepoViewModel.getNicoRepo()
-        }
-
-        // そーと
-        viewBinding.fragmentNicovideoNicorepoFilterLiveChip.setOnCheckedChangeListener { buttonView, isChecked ->
-            nicoRepoViewModel.apply {
-                isShowLive = isChecked
-                filterAndPostLiveData()
+        return ComposeView(requireContext()).apply {
+            setContent {
+                val userId = arguments?.getString("userId")
+                NicoRepoScreen(
+                    viewModel = viewModel(factory = NicoRepoViewModelFactory(requireActivity().application, userId)),
+                    onClickNicoRepo = { }
+                )
             }
-        }
-        viewBinding.fragmentNicovideoNicorepoFilterVideoChip.setOnCheckedChangeListener { buttonView, isChecked ->
-            nicoRepoViewModel.apply {
-                isShowVideo = isChecked
-                filterAndPostLiveData()
-            }
-        }
-
-        // argumentの値を適用する
-        viewBinding.fragmentNicovideoNicorepoFilterLiveChip.isChecked = arguments?.getBoolean("show_live", true) ?: true
-        viewBinding.fragmentNicovideoNicorepoFilterVideoChip.isChecked = arguments?.getBoolean("show_video", true) ?: true
-    }
-
-    // RecyclerViewを初期化
-    private fun initRecyclerView() {
-        viewBinding.fragmentNicovideoNicorepoRecyclerview.apply {
-            setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(context)
-            adapter = nicoRepoAdapter
         }
     }
 
