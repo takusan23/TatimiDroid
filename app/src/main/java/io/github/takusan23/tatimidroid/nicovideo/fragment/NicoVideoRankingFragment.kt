@@ -20,8 +20,8 @@ class NicoVideoRankingFragment : Fragment() {
             setContent {
                 NicoVideoRankingScreen(
                     viewModel = viewModel(),
-                    onClickVideo = { (requireActivity() as? MainActivity)?.setNicovideoFragment(it.videoId, it.isCache, false, true) },
-                    onClickMenu = { }
+                    onVideoClick = { (requireActivity() as? MainActivity)?.setNicovideoFragment(it.videoId, it.isCache, false, true) },
+                    onMenuClick = { }
                 )
             }
         }

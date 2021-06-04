@@ -19,13 +19,13 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoRankingViewM
  * ニコ動ランキング画面。Composeでできている
  *
  * @param viewModel ランキングViewModel
- * @param onClickVideo 動画押したときに呼ばれる
+ * @param onVideoClick 動画押したときに呼ばれる
  * */
 @Composable
 fun NicoVideoRankingScreen(
     viewModel: NicoVideoRankingViewModel,
-    onClickVideo: (NicoVideoData) -> Unit,
-    onClickMenu: (NicoVideoData) -> Unit
+    onVideoClick: (NicoVideoData) -> Unit,
+    onMenuClick: (NicoVideoData) -> Unit
 ) {
 
     // 関連タグ一覧
@@ -56,8 +56,8 @@ fun NicoVideoRankingScreen(
         if (videoList.value != null) {
             NicoVideoList(
                 list = videoList.value!!,
-                onVideoClick = { onClickVideo(it) },
-                onMenuClick = { onClickMenu(it) }
+                onVideoClick = { onVideoClick(it) },
+                onMenuClick = { onMenuClick(it) }
             )
         }
     }

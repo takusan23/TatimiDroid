@@ -66,6 +66,8 @@ fun NicoUserProfileScreen(viewModel: NicoAccountViewModel) {
  * ヘッダー部分。
  *
  * @param userData ニコ動ユーザーデータクラス
+ * @param isFollowing フォロー中ならtrue
+ * @param isMyUserProfile 自分のアカウントならtrue。フォローボタンを出しません
  * */
 @Composable
 private fun NicoUserProfileHeader(userData: UserData, isMyUserProfile: Boolean, isFollowing: Boolean) {
@@ -91,8 +93,8 @@ private fun NicoUserProfileHeader(userData: UserData, isMyUserProfile: Boolean, 
         // フォローボタン。自分の場合は隠す
         if (!isMyUserProfile) {
             Button(onClick = { }, Modifier.align(alignment = Alignment.CenterHorizontally)) {
-                Icon(painter = if (userData.isFollowing) painterResource(id = R.drawable.ic_baseline_done_24) else painterResource(id = R.drawable.ic_outline_star_border_24), contentDescription = null)
-                Text(text = if (userData.isFollowing) "フォロー中" else "フォローする")
+                Icon(painter = if (isFollowing) painterResource(id = R.drawable.ic_baseline_done_24) else painterResource(id = R.drawable.ic_outline_star_border_24), contentDescription = null)
+                Text(text = if (isFollowing) "フォロー中" else "フォローする")
             }
         }
         // HtmlをサポートするためAndroidViewでTextViewを使う

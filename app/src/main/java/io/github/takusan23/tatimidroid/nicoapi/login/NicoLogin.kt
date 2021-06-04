@@ -5,8 +5,8 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.activity.TwoFactorAuthLoginActivity
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicologin.TwoFactorAuthLoginActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Headers
@@ -47,6 +47,8 @@ object NicoLogin {
 
     /**
      * 二段階認証対応版。本当は通信とUIは別の関数にすべきなんだけどちょっと複雑すぎんよ。
+     *
+     * 二段階認証が必要な場合はContextを利用して二段階認証遂行Activityを表示させます
      *
      * SharedPreferenceに値が保存されている必要があるので、初回時は[saveMailPassPreference]を呼んで端末内にメアド、パスワードを保存してください。
      * @param context [android.content.SharedPreferences]を利用するため。

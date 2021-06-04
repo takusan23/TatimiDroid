@@ -51,25 +51,27 @@ fun SimpleBackdrop(
         frontLayerContent = {
             Column {
                 // ここを押して展開ボタン
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { if (scaffoldState.isRevealed) openMenu() else closeMenu() }
-                ) {
-                    // 棒
-                    Box(
+                Surface(modifier = Modifier.clickable { if (scaffoldState.isRevealed) openMenu() else closeMenu() }) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .width(100.dp)
-                            .height(20.dp)
-                            .padding(bottom = 5.dp, top = 5.dp)
-                            .background(color = MaterialTheme.colors.primary, shape = RoundedCornerShape(50))
-                    )
-                    Text(
-                        text = openText,
-                        textAlign = TextAlign.Center
-                    )
+                            .fillMaxWidth()
+                            .padding(10.dp)
+                    ) {
+                        // 棒
+                        Box(
+                            modifier = Modifier
+                                .width(100.dp)
+                                .height(20.dp)
+                                .padding(bottom = 5.dp, top = 5.dp)
+                                .background(color = MaterialTheme.colors.primary, shape = RoundedCornerShape(50))
+                        )
+                        Text(
+                            text = openText,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
                 frontLayerContent()
             }

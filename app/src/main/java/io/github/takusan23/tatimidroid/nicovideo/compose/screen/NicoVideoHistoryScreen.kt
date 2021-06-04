@@ -11,14 +11,14 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoHistoryViewM
  * ニコ動の視聴履歴画面。Composeでできている
  *
  * @param viewModel 履歴ViewModel
- * @param onClickVideo 動画押したときに呼ばれる
- * @param onClickMenu メニュー押したときに呼ばれる
+ * @param onVideoClick 動画押したときに呼ばれる
+ * @param onMenuClick メニュー押したときに呼ばれる
  * */
 @Composable
 fun NicoVideoHistoryScreen(
     viewModel: NicoVideoHistoryViewModel,
-    onClickVideo: (NicoVideoData) -> Unit,
-    onClickMenu: (NicoVideoData) -> Unit
+    onVideoClick: (NicoVideoData) -> Unit,
+    onMenuClick: (NicoVideoData) -> Unit
 ) {
     // 読み込み中
     val isLoading = viewModel.loadingLiveData.observeAsState(initial = true)
@@ -32,8 +32,8 @@ fun NicoVideoHistoryScreen(
         // 履歴一覧
         NicoVideoList(
             list = videoList.value!!,
-            onVideoClick = { onClickVideo(it) },
-            onMenuClick = { onClickMenu(it) }
+            onVideoClick = { onVideoClick(it) },
+            onMenuClick = { onMenuClick(it) }
         )
     }
 }

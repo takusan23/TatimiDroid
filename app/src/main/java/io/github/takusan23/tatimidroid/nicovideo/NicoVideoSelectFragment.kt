@@ -1,24 +1,21 @@
 package io.github.takusan23.tatimidroid.nicovideo
 
-import android.content.SharedPreferences
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.addCallback
-import androidx.constraintlayout.motion.widget.MotionLayout
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.Fragment
-import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.R
-import io.github.takusan23.tatimidroid.databinding.FragmentNicovideoListBinding
-import io.github.takusan23.tatimidroid.nicovideo.fragment.*
-import io.github.takusan23.tatimidroid.tool.DarkModeSupport
-import io.github.takusan23.tatimidroid.tool.getThemeColor
-import io.github.takusan23.tatimidroid.tool.isConnectionInternet
-import io.github.takusan23.tatimidroid.tool.isNotLoginMode
+import io.github.takusan23.tatimidroid.MainActivity
+import io.github.takusan23.tatimidroid.nicovideo.bottomfragment.NicoVideoListMenuBottomFragment
+import io.github.takusan23.tatimidroid.nicovideo.compose.DarkColors
+import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
+import io.github.takusan23.tatimidroid.nicovideo.compose.NicoVideoListScreen
+import io.github.takusan23.tatimidroid.tool.isDarkMode
 
 /**
  * ランキング、マイリスト等を表示するFragmentを乗せるFragment。
@@ -26,102 +23,32 @@ import io.github.takusan23.tatimidroid.tool.isNotLoginMode
  * */
 class NicoVideoSelectFragment : Fragment() {
 
-    lateinit var prefSetting: SharedPreferences
-
-    /** findViewById駆逐 */
-    private val viewBinding by lazy { FragmentNicovideoListBinding.inflate(layoutInflater) }
-
+    @ExperimentalMaterialApi
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return viewBinding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // ダークモード
-        setDarkMode()
-
-        prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
-
-        // インターネット接続確認
-        // 何らかの方法でインターネットにはつながっている
-        if (isConnectionInternet(context)) {
-            // とりあえずランキング
-            if (savedInstanceState == null) {
-                // 画面回転時に回転前のFragmentをそのまま残しておくにはsavedInstanceStateがnullのときだけFragmentを生成する必要がある。
-                setFragment(NicoVideoRankingFragment())
-            }
-        }
-
-        // 未ログインで利用する場合
-        if (isNotLoginMode(context)) {
-            // ログインが必要なやつを非表示に
-            viewBinding.fragmentNicovideoListMenu.menu.apply {
-                findItem(R.id.nicovideo_select_menu_post).isVisible = false
-                findItem(R.id.nicovideo_select_menu_mylist).isVisible = false
-                findItem(R.id.nicovideo_select_menu_history).isVisible = false
-                findItem(R.id.nicovideo_select_menu_nicorepo).isVisible = false
-                findItem(R.id.nicovideo_select_menu_account).isVisible = false
-            }
-        }
-
-        // メニュー押したとき
-        viewBinding.fragmentNicovideoListMenu.setNavigationItemSelectedListener {
-            when (it.itemId) {
-                R.id.nicovideo_select_menu_ranking -> setFragment(NicoVideoRankingFragment())
-                R.id.nicovideo_select_menu_mylist -> setFragment(NicoVideoMyListFragment())
-                R.id.nicovideo_select_menu_history -> setFragment(NicoVideoHistoryFragment())
-                R.id.nicovideo_select_menu_search -> setFragment(NicoVideoSearchFragment())
-                R.id.nicovideo_select_menu_nicorepo -> setFragment(NicoVideoNicoRepoFragment())
-                R.id.nicovideo_select_menu_account -> setFragment(NicoAccountFragment())
-                R.id.nicovideo_select_menu_post -> {
-                    setFragment(NicoVideoUploadVideoFragment().apply {
-                        arguments = Bundle().apply {
-                            putBoolean("my", true)
-                        }
-                    })
-                }
-            }
-            true
-        }
-
-        // 戻るキー押したとき。アカウントFragmentから他Fragmentへ遷移した際、戻るキーでもとのFragmentに戻るために使う
-        requireActivity().onBackPressedDispatcher.addCallback(this) {
-            if (childFragmentManager.backStackEntryCount > 0) {
-                // Fragmentが積み上がっている場合は戻す
-                childFragmentManager.popBackStack()
-            } else {
-                // コールバック消す
-                this.remove()
-            }
-        }
-
-    }
-
-    private fun setDarkMode() {
-        val darkModeSupport = DarkModeSupport(requireContext())
-        viewBinding.fragmentVideoListLinearlayout.background = ColorDrawable(getThemeColor(darkModeSupport.context))
-        viewBinding.fragmentVideoBar?.background?.setTint(getThemeColor(requireContext()))
-    }
-
-    /**
-     * Fragmentを設置、置き換える関数
-     * @param fragment Fragment
-     * @param popbackstack バックキーで戻れるように。適当な値を引数に入れると戻れるようになります。
-     * */
-    fun setFragment(fragment: Fragment, popbackstack: String? = null) {
-        // Handler(UIスレッド指定)で実行するとダークモード、画面切り替えに耐えるアプリが作れる。
-        Handler(Looper.getMainLooper()).post {
-            if (isAdded) {
-                // 縦画面時親はMotionLayoutになるんだけど、横画面時はLinearLayoutなのでキャストが必要
-                (viewBinding.fragmentNicovideoListMotionlayout as? MotionLayout)?.transitionToStart()
-                childFragmentManager.beginTransaction().apply {
-                    replace(viewBinding.fragmentVideoListLinearlayout.id, fragment)
-                    // fragmentを積み上げる。
-                    if (popbackstack != null) {
-                        addToBackStack(popbackstack)
+        return ComposeView(requireContext()).apply {
+            setContent {
+                MaterialTheme(colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors) {
+                    Surface {
+                        NicoVideoListScreen(
+                            application = requireActivity().application,
+                            onVideoClick = { nicoVideoData ->
+                                (requireActivity() as MainActivity).setNicovideoFragment(nicoVideoData.videoId, nicoVideoData.isCache)
+                            },
+                            onMenuClick = { nicoVideoData ->
+                                val menuBottomSheet = NicoVideoListMenuBottomFragment()
+                                // データ渡す
+                                val bundle = Bundle()
+                                bundle.putString("video_id", nicoVideoData.videoId)
+                                bundle.putBoolean("is_cache", nicoVideoData.isCache)
+                                bundle.putSerializable("data", nicoVideoData)
+                                // bundle.putSerializable("video_list", nicoVideoDataList)
+                                menuBottomSheet.arguments = bundle
+                                (requireActivity() as MainActivity).currentFragment()?.apply {
+                                    menuBottomSheet.show(this.childFragmentManager, "menu")
+                                }
+                            }
+                        )
                     }
-                    commit()
                 }
             }
         }

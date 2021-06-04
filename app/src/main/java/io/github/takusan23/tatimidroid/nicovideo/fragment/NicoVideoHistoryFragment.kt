@@ -18,8 +18,8 @@ class NicoVideoHistoryFragment : Fragment() {
             setContent {
                 NicoVideoHistoryScreen(
                     viewModel = viewModel(),
-                    onClickVideo = { (requireActivity() as? MainActivity)?.setNicovideoFragment(it.videoId, it.isCache) },
-                    onClickMenu = { }
+                    onVideoClick = { (requireActivity() as? MainActivity)?.setNicovideoFragment(it.videoId, it.isCache) },
+                    onMenuClick = { }
                 )
             }
         }

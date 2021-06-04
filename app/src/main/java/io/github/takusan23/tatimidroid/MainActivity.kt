@@ -20,7 +20,7 @@ import io.github.takusan23.searchpreferencefragment.SearchPreferenceChildFragmen
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
 import io.github.takusan23.tatimidroid.bottomfragment.NicoHistoryBottomFragment
 import io.github.takusan23.tatimidroid.databinding.ActivityMainBinding
-import io.github.takusan23.tatimidroid.fragment.LoginFragment
+import io.github.takusan23.tatimidroid.nicologin.LoginFragment
 import io.github.takusan23.tatimidroid.fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData

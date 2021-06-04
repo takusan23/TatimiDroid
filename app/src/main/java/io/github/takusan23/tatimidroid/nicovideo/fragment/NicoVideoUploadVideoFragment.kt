@@ -48,8 +48,8 @@ class NicoVideoUploadVideoFragment : Fragment() {
             setContent {
                 NicoVideoUploadScreen(
                     viewModel = viewModel(factory = NicoVideoUploadVideoViewModelFactory(requireActivity().application, userId)),
-                    onClickVideo = { (requireActivity() as? MainActivity)?.setNicovideoFragment(it.videoId, it.isCache, false, true) },
-                    onClickMenu = { }
+                    onVideoClick = { (requireActivity() as? MainActivity)?.setNicovideoFragment(it.videoId, it.isCache, false, true) },
+                    onMenuClick = { }
                 )
             }
         }

@@ -35,8 +35,8 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoSearchViewMo
 @Composable
 fun NicoVideoSearchScreen(
     viewModel: NicoVideoSearchViewModel,
-    onClickVideo: (NicoVideoData) -> Unit,
-    onClickMenu: (NicoVideoData) -> Unit
+    onVideoClick: (NicoVideoData) -> Unit,
+    onMenuClick: (NicoVideoData) -> Unit
 ) {
 
     // 読み込み中かどうか
@@ -98,8 +98,8 @@ fun NicoVideoSearchScreen(
             if (searchResultVideoList.value != null) {
                 NicoVideoList(
                     list = searchResultVideoList.value!!,
-                    onVideoClick = { onClickVideo(it) },
-                    onMenuClick = { onClickMenu(it) },
+                    onVideoClick = { onVideoClick(it) },
+                    onMenuClick = { onMenuClick(it) },
                     onLastScroll = { search(viewModel.currentSearchPage + 1) }
                 )
             }

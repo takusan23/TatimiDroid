@@ -21,7 +21,7 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".activity.TwoFactorAuthLoginActivity"
+            android:name=".nicologin.TwoFactorAuthLoginActivity"
             android:label="@string/two_factor_auth" />
 
         <meta-data

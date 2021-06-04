@@ -25,8 +25,8 @@ class NicoVideoSearchFragment : Fragment() {
             setContent {
                 NicoVideoSearchScreen(
                     viewModel = viewModel(),
-                    onClickMenu = {},
-                    onClickVideo = { (requireActivity() as? MainActivity)?.setNicovideoFragment(it.videoId, it.isCache, false, true) },
+                    onMenuClick = {},
+                    onVideoClick = { (requireActivity() as? MainActivity)?.setNicovideoFragment(it.videoId, it.isCache, false, true) },
                 )
             }
         }

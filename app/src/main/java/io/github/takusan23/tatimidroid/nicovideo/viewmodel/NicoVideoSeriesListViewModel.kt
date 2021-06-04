@@ -6,16 +6,16 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoSeriesData
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoSeriesAPI
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoSeriesAPI
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoSeriesData
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * [io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoSeriesListFragment]で使うViewModel
+ * シリーズ一覧で使うViewModel
  *
  * @param userId ユーザーID。nullなら自分のを取ってきます
  * */

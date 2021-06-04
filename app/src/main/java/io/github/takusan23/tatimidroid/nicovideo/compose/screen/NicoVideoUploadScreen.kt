@@ -16,8 +16,8 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoUploadVideoV
 @Composable
 fun NicoVideoUploadScreen(
     viewModel: NicoVideoUploadVideoViewModel,
-    onClickVideo: (NicoVideoData) -> Unit,
-    onClickMenu: (NicoVideoData) -> Unit
+    onVideoClick: (NicoVideoData) -> Unit,
+    onMenuClick: (NicoVideoData) -> Unit
 ) {
     // 動画一覧
     val videoList = viewModel.nicoVideoDataListLiveData.observeAsState()
@@ -29,8 +29,8 @@ fun NicoVideoUploadScreen(
     } else {
         NicoVideoList(
             list = videoList.value!!,
-            onVideoClick = { onClickVideo(it) },
-            onMenuClick = { onClickMenu(it) }
+            onVideoClick = { onVideoClick(it) },
+            onMenuClick = { onMenuClick(it) }
         )
     }
 
