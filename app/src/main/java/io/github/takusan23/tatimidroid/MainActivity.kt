@@ -3,24 +3,31 @@ package io.github.takusan23.tatimidroid
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.KeyEvent
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.preference.PreferenceManager
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceChildFragment
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
+import io.github.takusan23.tatimidroid.activity.SettingActivity
 import io.github.takusan23.tatimidroid.bottomfragment.NicoHistoryBottomFragment
+import io.github.takusan23.tatimidroid.compose.MainActivityIDInput
+import io.github.takusan23.tatimidroid.compose.MainActivityNavigation
 import io.github.takusan23.tatimidroid.databinding.ActivityMainBinding
-import io.github.takusan23.tatimidroid.nicologin.LoginFragment
 import io.github.takusan23.tatimidroid.fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
@@ -28,9 +35,14 @@ import io.github.takusan23.tatimidroid.nicolive.CommentFragment
 import io.github.takusan23.tatimidroid.nicolive.ProgramListFragment
 import io.github.takusan23.tatimidroid.nicolive.compose.JCNicoLiveCommentOnlyFragment
 import io.github.takusan23.tatimidroid.nicolive.compose.JCNicoLiveFragment
+import io.github.takusan23.tatimidroid.nicolive.compose.NicoLiveProgramListScreen
+import io.github.takusan23.tatimidroid.nicologin.LoginFragment
+import io.github.takusan23.tatimidroid.nicologin.TwoFactorAuthLoginActivity
+import io.github.takusan23.tatimidroid.nicologin.compose.NicoLoginScreen
 import io.github.takusan23.tatimidroid.nicovideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.nicovideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.nicovideo.compose.*
+import io.github.takusan23.tatimidroid.nicovideo.compose.screen.NicoVideoCacheListScreen
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.service.startLivePlayService
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
@@ -90,48 +102,67 @@ class MainActivity : AppCompatActivity() {
         super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
     }
 
+    @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val darkModeSupport = DarkModeSupport(this)
-        darkModeSupport.setMainActivityTheme(this)
+        // val darkModeSupport = DarkModeSupport(this)
+        // darkModeSupport.setMainActivityTheme(this)
 
-/*
+        supportActionBar?.hide()
+
+        val font = CustomFont(this)
+
         // Jetpack Compose
         setContent {
-            MaterialTheme(colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors) {
+            MaterialTheme(
+                colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
+                typography = if (font.typeface != null) Typography(defaultFontFamily = FontFamily(font.typeface!!)) else Typography()
+            ) {
                 // ナビゲーション
                 val navController = rememberNavController()
 
                 Scaffold(
                     topBar = { MainActivityIDInput(onClickHistoryButton = {}, onClickPlayButton = {}) }, // ID入力欄
-                    bottomBar = { MainActivityNavigation { route -> navController.navigate(route) } } // 下のBottomNavigation
+                    bottomBar = {
+                        MainActivityNavigation { route ->
+                            if (route == "setting") {
+                                startActivity(Intent(this, SettingActivity::class.java))
+                            } else {
+                                navController.navigate(route)
+                            }
+                        }
+                    }
                 ) {
                     // 画面切り替え
                     NavHost(
                         navController = navController,
                         startDestination = "cache",
                     ) {
-                        composable("nicolive") { JCNicoLiveListScreen() }
-                        composable("nicovideo") { JCNicoVideoListScreen() }
-                        composable("cache") { Text(text = "cache") }
-                        composable("login") { Text(text = "login") }
-                        composable("setting") { Text(text = "setting") }
+                        composable("nicolive") { NicoLiveProgramListScreen(onClickMenu = {}, onClickProgram = { showToast(it.programId) }) }
+                        composable("nicovideo") { NicoVideoListScreen(application, onMenuClick = {}, onVideoClick = { showToast(it.videoId) }) }
+                        composable("cache") { NicoVideoCacheListScreen(viewModel = viewModel(), onMenuClick = { }, onVideoClick = { showToast(it.videoId) }) }
+                        composable("login") {
+                            NicoLoginScreen(
+                                viewModel = viewModel(),
+                                onTwoFactorLogin = { nicoLoginDataClass ->
+                                    // 二段階認証画面へ飛ばす
+                                    val twoFactorAuthLoginActivity = Intent(this@MainActivity, TwoFactorAuthLoginActivity::class.java).apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                        putExtra("login", nicoLoginDataClass)
+                                    }
+                                    startActivity(twoFactorAuthLoginActivity)
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
         return
-*/
 
         setContentView(viewBinding.root)
         setSupportActionBar(viewBinding.activityMainToolBar)
-
-        //ダークモード対応
-        if (isDarkMode(this)) {
-            viewBinding.mainActivityBottomNavigationView.backgroundTintList = ColorStateList.valueOf(getThemeColor(darkModeSupport.context))
-            supportActionBar?.setBackgroundDrawable(ColorDrawable(getThemeColor(darkModeSupport.context)))
-        }
 
         /**
          * 共有から起動した
@@ -273,6 +304,7 @@ class MainActivity : AppCompatActivity() {
      * @param _videoList 連続再生が決定している場合は[NicoVideoData]の配列を入れてください。なおFragment生成後でも連続再生が可能です。
      * */
     fun setNicovideoFragment(videoId: String, isCache: Boolean? = null, isEco: Boolean? = null, useInternet: Boolean? = null, startFullScreen: Boolean? = null, _videoList: ArrayList<NicoVideoData>? = null, startPos: Int? = null) {
+        println(videoId)
         val fragment: Fragment = when {
             prefSetting.getBoolean("setting_nicovideo_comment_only", false) -> JCNicoVideoCommentOnlyFragment()// コメントのみ表示
             prefSetting.getBoolean("setting_nicovideo_use_old_ui", true) -> NicoVideoFragment() // 旧UI。JetpackCompose、 Android 7 以前で表示が乱れる

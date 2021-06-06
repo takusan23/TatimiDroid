@@ -21,6 +21,10 @@
         android:theme="@style/AppTheme">
 
         <activity
+            android:name=".activity.SettingActivity"
+            android:label="@string/setting"
+            android:exported="true" />
+        <activity
             android:name=".nicologin.TwoFactorAuthLoginActivity"
             android:label="@string/two_factor_auth" />
 
@@ -42,9 +46,7 @@
         <activity android:name=".activity.LicenceActivity" />
         <activity
             android:name=".activity.KotehanListActivity"
-            android:label="@string/kotehan_list" />
-
-        <!-- ニコレポウイジェット -->
+            android:label="@string/kotehan_list" /> <!-- ニコレポウイジェット -->
         <receiver
             android:name=".homewidget.NicoRepoHomeWidget"
             android:label="@string/home_widget_nicorepo">
@@ -71,8 +73,7 @@
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
-        </service>
-        <!-- これ書かないと通知から操作一生こない -->
+        </service> <!-- これ書かないと通知から操作一生こない -->
         <receiver android:name="androidx.media.session.MediaButtonReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
@@ -84,13 +85,16 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
             <!-- 共有を受け取る labelが共有するときのアプリの名前になる（TwitterとかだとTwiiterじゃなくてツイートになってる部分。あれ） -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="text/*" />
             </intent-filter>
 
@@ -126,8 +130,7 @@
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/app_shortcut" />
-        </activity>
-        <!-- おまけ -->
+        </activity> <!-- おまけ -->
         <service
             android:name=".service.NicoVersionHistoryDeviceControl"
             android:label="@string/nico_version_history"

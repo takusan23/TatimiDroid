@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -40,6 +41,7 @@ class NicoVideoUploadVideoFragment : Fragment() {
     /** findViewById駆逐 */
     private val viewBinding by lazy { FragmentNicovideoPostBinding.inflate(layoutInflater) }
 
+    @ExperimentalMaterialApi
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return ComposeView(requireContext()).apply {
 

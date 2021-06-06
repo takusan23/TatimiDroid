@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.nicovideo.compose.screen
 
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import io.github.takusan23.tatimidroid.compose.FillLoadingScreen
@@ -10,6 +11,7 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoSeriesViewMo
 /**
  * シリーズの動画一覧画面。Composeでできている
  * */
+@ExperimentalMaterialApi
 @Composable
 fun NicoVideoSeriesVideoListScreen(
     viewModel: NicoVideoSeriesViewModel,

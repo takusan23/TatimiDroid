@@ -494,4 +494,5 @@
     <string name="nicovideo_search_history_keyword">キーワード検索</string>
     <string name="nicolive_timeshift_mode">（実験的）タイムシフト再生を始めます</string>
     <string name="nicolive_timeshift_premium">プレミアム会員じゃないと使えません</string>
+    <string name="nicovideo_cache_music_mode">キャッシュ用音楽モード</string>
 </resources>

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +22,7 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoRankingViewM
  * @param viewModel ランキングViewModel
  * @param onVideoClick 動画押したときに呼ばれる
  * */
+@ExperimentalMaterialApi
 @Composable
 fun NicoVideoRankingScreen(
     viewModel: NicoVideoRankingViewModel,

@@ -147,7 +147,7 @@ class NicoVideoCacheFilterBottomFragment : BottomSheetDialogFragment() {
     private fun initResetButton() {
         viewBinding.bottomFragmentCacheFilterResetButton.setOnClickListener {
             dismiss()
-            nicoVideoCacheFragment.filterDeleteMessageShow() // 本当に消していい？
+            //nicoVideoCacheFragment.filterDeleteMessageShow() // 本当に消していい？
         }
     }
 

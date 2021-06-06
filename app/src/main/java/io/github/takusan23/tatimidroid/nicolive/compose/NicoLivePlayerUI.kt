@@ -14,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.isFocused
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -37,8 +36,6 @@ import kotlinx.coroutines.delay
  * @param isMiniPlayer ミニプレイヤー時ならtrue
  * @param isConnectedWiFi Wi-Fi接続時はtrue。右上のネットワーク状態アイコンで使う
  * @param isShowCommentCanvas コメントを描画している場合はtrue。アイコンで使う
- * @param programCurrentTime 現在の時間
- * @param programEndTime 番組終了時刻
  * @param onClickBackgroundPlayer バックグラウンド再生を押したときに呼ばれる
  * @param onClickCommentDraw コメントを描画する、しないボタンを押したときに呼ばれる
  * @param onClickCommentPost コメント投稿ボタン（全画面UIのみ）を押したときに呼ばれる

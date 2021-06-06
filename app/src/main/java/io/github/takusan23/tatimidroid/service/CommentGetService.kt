@@ -9,9 +9,9 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoLegacyAPI
-import io.github.takusan23.tatimidroid.nicoapi.XMLCommentJSON
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.XMLCommentJSON
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoLegacyAPI
 import io.github.takusan23.tatimidroid.tool.LanguageTool
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -92,7 +92,7 @@ class CommentGetService : Service() {
                 delay(1000)
 
                 // 一番古い時間でコメント取得
-                val time = commentList.minBy { commentJSONParse -> commentJSONParse.date.toLong() }
+                val time = commentList.minByOrNull { commentJSONParse -> commentJSONParse.date.toLong() }
                 val responseComment =
                     xmlComment.getXMLComment(userSession, threadId, userId, threadKey, wayBackKey, time?.date)
                         .await() ?: return@launch

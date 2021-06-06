@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +28,7 @@ import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveKonomiTagViewM
  * @param onClickProgram 番組押したときに呼ばれる。引数は番組のデータクラス
  * @param onClickMenu メニュー押したときに呼ばれる
  * */
+@ExperimentalMaterialApi
 @Composable
 fun NicoLiveKonomiTagScreen(
     onClickProgram: (NicoLiveProgramData) -> Unit,

@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.isFocused
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -32,6 +31,7 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoSearchViewMo
 /**
  * ニコ動検索画面。Composeでできている
  * */
+@ExperimentalMaterialApi
 @Composable
 fun NicoVideoSearchScreen(
     viewModel: NicoVideoSearchViewModel,

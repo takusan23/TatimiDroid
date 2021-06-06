@@ -20,6 +20,10 @@ import io.github.takusan23.tatimidroid.R
 
 /**
  * MainActivityで使うID入力用TextField
+ *
+ * @param idText 入力中ID
+ * @param onClickHistoryButton 履歴押したときに呼ばれる
+ * @param onClickPlayButton 再生ボタン押したら呼ばれる
  * */
 @Composable
 fun MainActivityIDInput(
@@ -30,7 +34,7 @@ fun MainActivityIDInput(
     val id = remember { mutableStateOf(idText) }
 
     Card(
-        modifier = Modifier.padding(10.dp),
+        modifier = Modifier.padding(5.dp),
         elevation = 10.dp,
         shape = RoundedCornerShape(5.dp)
     ) {

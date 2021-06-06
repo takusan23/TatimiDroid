@@ -1,5 +1,6 @@
 package io.github.takusan23.tatimidroid.nicovideo.compose.screen
 
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import io.github.takusan23.tatimidroid.compose.FillLoadingScreen
@@ -14,6 +15,7 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoHistoryViewM
  * @param onVideoClick 動画押したときに呼ばれる
  * @param onMenuClick メニュー押したときに呼ばれる
  * */
+@ExperimentalMaterialApi
 @Composable
 fun NicoVideoHistoryScreen(
     viewModel: NicoVideoHistoryViewModel,

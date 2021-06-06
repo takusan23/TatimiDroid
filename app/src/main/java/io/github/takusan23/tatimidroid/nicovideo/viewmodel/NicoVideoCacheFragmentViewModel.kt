@@ -4,10 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
 import io.github.takusan23.tatimidroid.nicoapi.cache.CacheJSON
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
-import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
-import io.github.takusan23.tatimidroid.R
 import kotlinx.coroutines.launch
 import okhttp3.internal.format
 
@@ -29,13 +28,13 @@ class NicoVideoCacheFragmentViewModel(application: Application) : AndroidViewMod
     val cacheVideoList = MutableLiveData<ArrayList<NicoVideoData>>()
 
     /** RecyclerViewにわたす配列。フィルターした後 */
-    val recyclerViewList = MutableLiveData<ArrayList<NicoVideoData>>()
+    val filteredCacheVideoList = MutableLiveData<ArrayList<NicoVideoData>>()
 
     /** キャッシュ利用合計容量 */
     val totalUsedStorageGB = MutableLiveData<String>()
 
-    /** 保存先LiveData */
-    val storageMessage = MutableLiveData<String>()
+    /** 保存先が端末ならtrue。SDカードならfalse */
+    val isCacheFolderFromDeviceStorage = !(nicoVideoCache.isEnableUseSDCard() && nicoVideoCache.canUseSDCard())
 
     init {
         init()
@@ -49,23 +48,11 @@ class NicoVideoCacheFragmentViewModel(application: Application) : AndroidViewMod
                 list.add(it)
             }
             cacheVideoList.value = list
-            recyclerViewList.value = list
+            filteredCacheVideoList.value = list
             // フィルター適用する
             applyFilter()
-            // 保存先をLiveDataで送信する
-            sendStorageMessage()
             // 合計サイズ
             initStorageSpace()
-        }
-    }
-
-    /** 保存先メッセージをLiveDataで送信する */
-    private fun sendStorageMessage() {
-        storageMessage.value = if (nicoVideoCache.isEnableUseSDCard() && nicoVideoCache.canUseSDCard()) {
-            // SDカードを利用 で SDカードが利用可能
-            context.getString(R.string.nicovideo_cache_storage_sd_card)
-        } else {
-            context.getString(R.string.nicovideo_cache_storage_device)
         }
     }
 
@@ -75,7 +62,7 @@ class NicoVideoCacheFragmentViewModel(application: Application) : AndroidViewMod
         if (filter != null && cacheVideoList.value != null) {
             val list = nicoVideoCache.getCacheFilterList(cacheVideoList.value!!, filter)
             // LiveData更新
-            recyclerViewList.postValue(list)
+            filteredCacheVideoList.postValue(list)
         }
     }
 

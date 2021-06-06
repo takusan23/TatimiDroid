@@ -2,7 +2,6 @@ package io.github.takusan23.tatimidroid.nicovideo.compose
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,6 +31,7 @@ import io.github.takusan23.tatimidroid.tool.TimeFormatTool
  * @param onVideoClick 押したとき
  * @param onMenuClick メニュー押したとき
  * */
+@ExperimentalMaterialApi
 @Composable
 fun NicoVideoList(
     list: List<NicoVideoData>,
@@ -52,7 +52,7 @@ fun NicoVideoList(
     LazyColumn(state = state) {
         items(list) { data ->
             NicoVideoListItem(
-                data,
+                nicoVideoData = data,
                 onVideoClick = { onVideoClick(it) },
                 onMenuClick = { onMenuClick(it) }
             )
@@ -68,13 +68,14 @@ fun NicoVideoList(
  * @param onVideoClick 押したとき
  * @param onMenuClick メニュー押したとき
  * */
+@ExperimentalMaterialApi
 @Composable
 fun NicoVideoListItem(
     nicoVideoData: NicoVideoData,
     onVideoClick: (NicoVideoData) -> Unit,
     onMenuClick: (NicoVideoData) -> Unit
 ) {
-    Surface(modifier = Modifier.clickable { onVideoClick(nicoVideoData) }) {
+    Surface(onClick = { onVideoClick(nicoVideoData) }) {
         Row(
             modifier = Modifier.padding(5.dp),
             verticalAlignment = Alignment.CenterVertically,
