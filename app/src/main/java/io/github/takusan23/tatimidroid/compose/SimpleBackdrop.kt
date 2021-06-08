@@ -1,7 +1,6 @@
 package io.github.takusan23.tatimidroid.compose
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -51,7 +50,7 @@ fun SimpleBackdrop(
         frontLayerContent = {
             Column {
                 // ここを押して展開ボタン
-                Surface(modifier = Modifier.clickable { if (scaffoldState.isRevealed) openMenu() else closeMenu() }) {
+                Surface(onClick =  { if (scaffoldState.isRevealed) openMenu() else closeMenu() }) {
                     Column(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,

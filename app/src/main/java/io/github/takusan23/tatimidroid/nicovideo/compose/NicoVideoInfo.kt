@@ -39,7 +39,6 @@ import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoTagItemDat
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoHTMLSeriesData
 import io.github.takusan23.tatimidroid.nicoapi.user.UserData
-import io.github.takusan23.tatimidroid.nicovideo.adapter.NicoVideoListAdapter
 import io.github.takusan23.tatimidroid.tool.*
 import kotlinx.coroutines.launch
 
@@ -65,7 +64,6 @@ val parentCardElevation = 3.dp
  * @param isOffline キャッシュ再生用。trueにするといいねボタンを非表示にします。
  * @param description 動画説明文
  * @param onLikeClick いいね押したときに呼ばっる
- * @param scaffoldState Snackbar表示で使う。[_root_ide_package_.androidx.compose.material.Scaffold]を使おう
  * @param descriptionClick 動画説明文のリンクを押した時。[NicoVideoDescriptionText.DESCRIPTION_TYPE_MYLIST]等参照
  * */
 @ExperimentalMaterialApi
@@ -75,7 +73,6 @@ fun NicoVideoInfoCard(
     isLiked: Boolean,
     onLikeClick: () -> Unit,
     isOffline: Boolean,
-    scaffoldState: ScaffoldState,
     description: String,
     descriptionClick: (id: String, type: String) -> Unit,
 ) {
@@ -205,28 +202,37 @@ fun NicoVideoCountText(
 ) {
     // マイリスト数とかコメント数とか
     Row {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_play_arrow_24px),
                 contentDescription = stringResource(id = R.string.view_count)
             )
-            Text(text = viewCount.toString())
+            Text(
+                text = viewCount.toString(),
+                fontSize = 14.sp
+            )
         }
         Spacer(modifier = Modifier.width(10.dp))
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_outline_comment_24px),
                 contentDescription = stringResource(id = R.string.comment_count)
             )
-            Text(text = commentCount.toString())
+            Text(
+                text = commentCount.toString(),
+                fontSize = 14.sp
+            )
         }
         Spacer(modifier = Modifier.width(10.dp))
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
                 contentDescription = stringResource(id = R.string.mylist_count)
             )
-            Text(text = mylistCount.toString())
+            Text(
+                text = mylistCount.toString(),
+                fontSize = 14.sp
+            )
         }
     }
 }
@@ -241,7 +247,7 @@ fun NicoVideoCountText(
  * */
 @ExperimentalMaterialApi
 @Composable
-fun NicoVideoLikeButton(
+private fun NicoVideoLikeButton(
     isLiked: Boolean,
     onLikeClick: () -> Unit,
 ) {
@@ -268,6 +274,7 @@ fun NicoVideoLikeButton(
  *
  * @param nicoVideoDataList [NicoVideoData]の配列
  * */
+@ExperimentalMaterialApi
 @Composable
 fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
     Card(
@@ -285,6 +292,12 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
                 Text(text = stringResource(id = R.string.recommend_video))
             }
             // 一覧表示。RecyclerViewを使い回す
+            NicoVideoList(
+                list = nicoVideoDataList,
+                onVideoClick = { },
+                onMenuClick = { }
+            )
+/*
             AndroidView(
                 modifier = Modifier.fillMaxWidth(),
                 factory = { context ->
@@ -296,6 +309,7 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
                     }
                 }
             )
+*/
         }
     }
 }

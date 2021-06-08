@@ -26,7 +26,7 @@ class NicoVideoNicoRepoFragment : Fragment() {
                 val userId = arguments?.getString("userId")
                 NicoRepoScreen(
                     viewModel = viewModel(factory = NicoRepoViewModelFactory(requireActivity().application, userId)),
-                    onClickNicoRepo = { }
+                    onNicoRepoClick = { }
                 )
             }
         }

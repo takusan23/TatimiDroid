@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.takusan23.tatimidroid.R
@@ -115,7 +113,7 @@ fun NicoLiveProgramListItem(
                     color = lifecycleColor
                 )
                 Text(text = nicoLiveProgramData.title, maxLines = 2, fontWeight = FontWeight.Bold)
-                Text(text = nicoLiveProgramData.communityName, fontSize = 12.sp)
+                Text(text = nicoLiveProgramData.communityName, fontSize = 14.sp)
             }
             // メニューボタン
             IconButton(onClick = { onClickMenu(nicoLiveProgramData) }) {
@@ -123,12 +121,4 @@ fun NicoLiveProgramListItem(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun BasicTextFieldSample() {
-    BasicTextField(value = "Hello World", onValueChange = {
-
-    })
 }

@@ -43,22 +43,22 @@ import kotlinx.coroutines.delay
  * @param isPlaying 再生中はtrue
  * @param currentPosition 動画の現在の位置
  * @param duration 動画の時間
- * @param onClickMiniPlayer ミニプレイヤーボタンを押したときに呼ばれる
- * @param onClickFullScreen 全画面ボタン押したら呼ばれる
- * @param onClickNetwork ネットワーク状態ボタンを押したときに呼ばれる
- * @param onClickRepeat リピートモード押したときに呼ばれる
- * @param onClickPlayType 再生の種類を押したときに呼ばれる
- * @param onClickCommentDraw コメント描画ON、OFF押したときに呼ばれる
- * @param onClickPopUpPlayer ポップアップ再生ボタンを押したときに呼ばれる
- * @param onClickBackgroundPlayer バックグラウンド再生ボタンを押したときに呼ばれる
- * @param onClickPicture 画像として保存を押したときに呼ばれる
- * @param onClickPauseOrPlay 一時停止ボタンを押したときに呼ばれる
- * @param onClickPrev 連続再生時のみ、前の動画に戻るボタンを押したら呼ばれる
- * @param onClickNext 連続再生時のみ、次の動画に進むボタンを押したら呼ばれる
- * @param onDoubleClickSeek ダブルクリックでできるシークを行ったときに呼ばれる。trueで戻るシーク
+ * @param onMiniPlayerClick ミニプレイヤーボタンを押したときに呼ばれる
+ * @param onFullScreenClick 全画面ボタン押したら呼ばれる
+ * @param onNetworkClick ネットワーク状態ボタンを押したときに呼ばれる
+ * @param onRepeatClick リピートモード押したときに呼ばれる
+ * @param onCommentDrawClick コメント描画ON、OFF押したときに呼ばれる
+ * @param onPopupPlayerClick ポップアップ再生ボタンを押したときに呼ばれる
+ * @param onBackgroundPlayerClick バックグラウンド再生ボタンを押したときに呼ばれる
+ * @param onPictureClick 画像として保存を押したときに呼ばれる
+ * @param onPauseOrPlayClick 一時停止ボタンを押したときに呼ばれる
+ * @param onPrevClick 連続再生時のみ、前の動画に戻るボタンを押したら呼ばれる
+ * @param onNextClick 連続再生時のみ、次の動画に進むボタンを押したら呼ばれる
+ * @param onSeekDoubleClick ダブルクリックでできるシークを行ったときに呼ばれる。trueで戻るシーク
  * @param onSeek シークバーいじったら呼ばれる
  * @param onTouchingSeek シークバーを操作中ならtrue。離したらfalse
  * */
+@ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
 fun NicoVideoPlayerUI(
@@ -76,18 +76,18 @@ fun NicoVideoPlayerUI(
     isPlaying: Boolean = false,
     currentPosition: Long = 0L,
     duration: Long = 0L,
-    onClickMiniPlayer: () -> Unit,
-    onClickFullScreen: () -> Unit,
-    onClickNetwork: () -> Unit,
-    onClickRepeat: () -> Unit,
-    onClickCommentDraw: () -> Unit,
-    onClickPopUpPlayer: () -> Unit,
-    onClickBackgroundPlayer: () -> Unit,
-    onClickPicture: () -> Unit,
-    onClickPauseOrPlay: () -> Unit,
-    onClickPrev: () -> Unit,
-    onClickNext: () -> Unit,
-    onDoubleClickSeek: (isPrev: Boolean) -> Unit,
+    onMiniPlayerClick: () -> Unit,
+    onFullScreenClick: () -> Unit,
+    onNetworkClick: () -> Unit,
+    onRepeatClick: () -> Unit,
+    onCommentDrawClick: () -> Unit,
+    onPopupPlayerClick: () -> Unit,
+    onBackgroundPlayerClick: () -> Unit,
+    onPictureClick: () -> Unit,
+    onPauseOrPlayClick: () -> Unit,
+    onPrevClick: () -> Unit,
+    onNextClick: () -> Unit,
+    onSeekDoubleClick: (isPrev: Boolean) -> Unit,
     onSeek: (Long) -> Unit,
     onTouchingSeek: (Boolean) -> Unit,
 ) {
@@ -122,11 +122,11 @@ fun NicoVideoPlayerUI(
         Surface(
             contentColor = Color.White, // アイコンとかテキストの色をまとめて指定
             color = Color.Transparent,
+            onClick = { isShowPlayerUI.value = !isShowPlayerUI.value },
             modifier = Modifier
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onTap = { isShowPlayerUI.value = !isShowPlayerUI.value },
-                        onDoubleTap = { onDoubleClickSeek(clickXPos.value < (maxWidth.value / 2)) }
+                        onDoubleTap = { onSeekDoubleClick(clickXPos.value < (maxWidth.value / 2)) }
                     )
                 }
                 .pointerInteropFilter { motionEvent ->
@@ -157,7 +157,7 @@ fun NicoVideoPlayerUI(
                     ) {
                         // タイトル、閉じるボタン
                         Row {
-                            IconButton(onClick = { onClickMiniPlayer() }) {
+                            IconButton(onClick = { onMiniPlayerClick() }) {
                                 Icon(
                                     painter = when {
                                         isDisableMiniPlayerMode -> painterResource(id = R.drawable.ic_arrow_back_black_24dp)
@@ -187,32 +187,32 @@ fun NicoVideoPlayerUI(
                                 horizontalArrangement = Arrangement.End,
                             ) {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    IconButton(onClick = { onClickPicture() }) {
+                                    IconButton(onClick = { onPictureClick() }) {
                                         Icon(
                                             painter = painterResource(id = R.drawable.screen_shot_icon),
                                             contentDescription = "スクショ"
                                         )
                                     }
                                 }
-                                IconButton(onClick = { onClickBackgroundPlayer() }) {
+                                IconButton(onClick = { onBackgroundPlayerClick() }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_background_icon_black),
                                         contentDescription = "バッググラウンド"
                                     )
                                 }
-                                IconButton(onClick = { onClickPopUpPlayer() }) {
+                                IconButton(onClick = { onPopupPlayerClick() }) {
                                     Icon(
                                         painter = painterResource(R.drawable.ic_popup_icon_black),
                                         contentDescription = "ポップアップ"
                                     )
                                 }
-                                IconButton(onClick = { onClickCommentDraw() }) {
+                                IconButton(onClick = { onCommentDrawClick() }) {
                                     Icon(
                                         painter = if (isShowCommentCanvas) painterResource(id = R.drawable.ic_comment_on) else painterResource(id = R.drawable.ic_comment_off),
                                         contentDescription = "コメント描画ON"
                                     )
                                 }
-                                IconButton(onClick = { onClickNetwork() }) {
+                                IconButton(onClick = { onNetworkClick() }) {
                                     Icon(
                                         painter = when {
                                             isCachePlay -> painterResource(id = R.drawable.ic_cache_icon_list)
@@ -222,13 +222,13 @@ fun NicoVideoPlayerUI(
                                         contentDescription = "海鮮"
                                     )
                                 }
-                                IconButton(onClick = { onClickRepeat() }) {
+                                IconButton(onClick = { onRepeatClick() }) {
                                     Icon(
                                         painter = if (isRepeat) painterResource(id = R.drawable.ic_repeat_one_24px) else painterResource(id = R.drawable.ic_repeat_black_24dp),
                                         contentDescription = "リピートモード"
                                     )
                                 }
-                                IconButton(onClick = { onClickFullScreen() }) {
+                                IconButton(onClick = { onFullScreenClick() }) {
                                     Icon(
                                         painter = if (isFullScreen) painterResource(id = R.drawable.ic_fullscreen_exit_black_24dp) else painterResource(id = R.drawable.ic_fullscreen_black_24dp),
                                         contentDescription = "全画面"
@@ -258,7 +258,7 @@ fun NicoVideoPlayerUI(
                                             .clickable(
                                                 interactionSource = remember { MutableInteractionSource() },
                                                 indication = rememberRipple(bounded = false, radius = 30.dp),
-                                                onClick = { onClickPrev() }
+                                                onClick = { onPrevClick() }
                                             ),
                                         painter = painterResource(id = R.drawable.ic_skip_previous_black_24dp),
                                         contentDescription = "前の動画"
@@ -271,7 +271,7 @@ fun NicoVideoPlayerUI(
                                         .clickable(
                                             interactionSource = remember { MutableInteractionSource() },
                                             indication = rememberRipple(bounded = false, radius = 50.dp),
-                                            onClick = { onClickPauseOrPlay() }
+                                            onClick = { onPauseOrPlayClick() }
                                         ),
                                     painter = painterResource(id = if (isPlaying) R.drawable.ic_pause_black_24dp else R.drawable.ic_play_arrow_24px),
                                     contentDescription = "一時停止、再生"
@@ -284,7 +284,7 @@ fun NicoVideoPlayerUI(
                                             .clickable(
                                                 interactionSource = remember { MutableInteractionSource() },
                                                 indication = rememberRipple(bounded = false, radius = 30.dp),
-                                                onClick = { onClickNext() }
+                                                onClick = { onNextClick() }
                                             ),
                                         painter = painterResource(id = R.drawable.ic_skip_next_black_24dp),
                                         contentDescription = "次の動画"

@@ -8,7 +8,10 @@ import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.*
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.core.net.toUri
@@ -29,6 +32,7 @@ import io.github.takusan23.tatimidroid.compose.MainActivityIDInput
 import io.github.takusan23.tatimidroid.compose.MainActivityNavigation
 import io.github.takusan23.tatimidroid.databinding.ActivityMainBinding
 import io.github.takusan23.tatimidroid.fragment.SettingsFragment
+import io.github.takusan23.tatimidroid.nicoapi.login.NicoLoginDataClass
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicolive.CommentFragment
@@ -43,7 +47,9 @@ import io.github.takusan23.tatimidroid.nicovideo.NicoVideoFragment
 import io.github.takusan23.tatimidroid.nicovideo.NicoVideoSelectFragment
 import io.github.takusan23.tatimidroid.nicovideo.compose.*
 import io.github.takusan23.tatimidroid.nicovideo.compose.screen.NicoVideoCacheListScreen
+import io.github.takusan23.tatimidroid.nicovideo.compose.screen.NicoVideoPlayerScreen
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoCacheFragment
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoViewModelFactory
 import io.github.takusan23.tatimidroid.service.startLivePlayService
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
 import io.github.takusan23.tatimidroid.tool.*
@@ -102,6 +108,7 @@ class MainActivity : AppCompatActivity() {
         super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
     }
 
+    @ExperimentalFoundationApi
     @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,44 +126,49 @@ class MainActivity : AppCompatActivity() {
                 colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors,
                 typography = if (font.typeface != null) Typography(defaultFontFamily = FontFamily(font.typeface!!)) else Typography()
             ) {
+                // ContentId
+                val contentId = remember { mutableStateOf("") }
                 // ナビゲーション
                 val navController = rememberNavController()
-
+                // プレイヤーナビゲーション
+                val playerNavController = rememberNavController()
                 Scaffold(
                     topBar = { MainActivityIDInput(onClickHistoryButton = {}, onClickPlayButton = {}) }, // ID入力欄
                     bottomBar = {
                         MainActivityNavigation { route ->
                             if (route == "setting") {
-                                startActivity(Intent(this, SettingActivity::class.java))
+                                startActivity(Intent(this@MainActivity, SettingActivity::class.java))
                             } else {
                                 navController.navigate(route)
                             }
                         }
-                    }
-                ) {
-                    // 画面切り替え
-                    NavHost(
-                        navController = navController,
-                        startDestination = "cache",
-                    ) {
-                        composable("nicolive") { NicoLiveProgramListScreen(onClickMenu = {}, onClickProgram = { showToast(it.programId) }) }
-                        composable("nicovideo") { NicoVideoListScreen(application, onMenuClick = {}, onVideoClick = { showToast(it.videoId) }) }
-                        composable("cache") { NicoVideoCacheListScreen(viewModel = viewModel(), onMenuClick = { }, onVideoClick = { showToast(it.videoId) }) }
-                        composable("login") {
-                            NicoLoginScreen(
-                                viewModel = viewModel(),
-                                onTwoFactorLogin = { nicoLoginDataClass ->
-                                    // 二段階認証画面へ飛ばす
-                                    val twoFactorAuthLoginActivity = Intent(this@MainActivity, TwoFactorAuthLoginActivity::class.java).apply {
-                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                        putExtra("login", nicoLoginDataClass)
-                                    }
-                                    startActivity(twoFactorAuthLoginActivity)
-                                }
-                            )
+                    },
+                    content = {
+                        // 画面切り替え
+                        NavHost(
+                            navController = navController,
+                            startDestination = "cache",
+                        ) {
+                            composable("nicolive") { NicoLiveProgramListScreen(onClickMenu = {}, onClickProgram = { showToast(it.programId) }) }
+                            composable("nicovideo") { NicoVideoListScreen(application, onMenuClick = {}, onVideoClick = { showToast(it.videoId) }) }
+                            composable("cache") { NicoVideoCacheListScreen(viewModel = viewModel(), onMenuClick = { }, onVideoClick = { playerNavController.navigate("nicovideo/${it.videoId}") }) }
+                            composable("login") { NicoLoginScreen(viewModel = viewModel(), onTwoFactorLogin = { nicoLoginDataClass -> startTwoFactorAuthActivity(nicoLoginDataClass) }) }
                         }
                     }
+                )
+
+                // プレイヤー部分
+                NavHost(navController = playerNavController, startDestination = "empty") {
+                    composable("empty") {}
+                    composable("nicovideo/{id}") { entry ->
+                        val videoId = entry.arguments?.getString("id")
+                        NicoVideoPlayerScreen(
+                            nicoVideoViewModel = viewModel(factory = NicoVideoViewModelFactory(application, videoId, false, false, false, false, null, null)),
+                            onDestroy = { playerNavController.popBackStack("empty", true) },
+                        )
+                    }
                 }
+
             }
         }
         return
@@ -254,6 +266,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    /** 二段階認証開始画面へ遷移する */
+    private fun startTwoFactorAuthActivity(nicoLoginDataClass: NicoLoginDataClass) {
+        // 二段階認証画面へ飛ばす
+        val twoFactorAuthLoginActivity = Intent(this@MainActivity, TwoFactorAuthLoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            putExtra("login", nicoLoginDataClass)
+        }
+        startActivity(twoFactorAuthLoginActivity)
     }
 
     /** クラッシュレポートを回収する */

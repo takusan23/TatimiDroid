@@ -152,13 +152,11 @@ class JCNicoVideoInfoFragment : Fragment() {
                                                     }
                                                 },
                                                 isOffline = viewModel.isOfflinePlay.value ?: false,
-                                                scaffoldState = state,
-                                                description = descroption.value,
-                                                descriptionClick = { link, type ->
-                                                    // 押した時
-                                                    descriptionClick(type, link)
-                                                }
-                                            )
+                                                description = descroption.value
+                                            ) { link, type ->
+                                                // 押した時
+                                                descriptionClick(type, link)
+                                            }
                                         }
 
                                         // シリーズ

@@ -32,12 +32,12 @@ import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoRepoViewModel
  * ニコレポ画面。Composeでできている
  *
  * @param viewModel ニコレポViewModel
- * @param onClickNicoRepo ニコレポ押したら呼ばれる
+ * @param onNicoRepoClick ニコレポ押したら呼ばれる
  * */
 @Composable
 fun NicoRepoScreen(
     viewModel: NicoRepoViewModel,
-    onClickNicoRepo: (NicoRepoDataClass) -> Unit
+    onNicoRepoClick: (NicoRepoDataClass) -> Unit
 ) {
     // ニコレポデータ
     val isLoading = viewModel.loadingLiveData.observeAsState(initial = true)
@@ -59,7 +59,7 @@ fun NicoRepoScreen(
             // 一覧表示
             NicoRepoList(
                 list = nicorepoDataList.value!!,
-                onClickNicoRepo = { onClickNicoRepo(it) }
+                onClickNicoRepo = { onNicoRepoClick(it) }
             )
         }
 

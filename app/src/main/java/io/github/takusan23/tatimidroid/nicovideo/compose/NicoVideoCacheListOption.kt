@@ -58,7 +58,7 @@ fun NicoVideoCacheListOption(
         Row {
             NicoVideoCacheListOptionCard(
                 modifier = Modifier.weight(1f),
-                text = "${stringResource(id = R.string.cache_usage)} : $usingGB GB",
+                text = "${stringResource(id = R.string.cache_usage)}\n$usingGB GB",
                 icon = painterResource(id = R.drawable.ic_data_usage_black_24dp)
             )
             NicoVideoCacheListOptionCard(
@@ -88,10 +88,16 @@ private fun NicoVideoCacheListOptionCard(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(10.dp)
         ) {
-            Icon(painter = icon, contentDescription = null)
-            Text(text = text)
+            Icon(
+                painter = icon,
+                contentDescription = null,
+                modifier = Modifier.padding(5.dp)
+            )
+            Text(
+                text = text,
+                modifier = Modifier.padding(5.dp)
+            )
         }
     }
 }

@@ -16,10 +16,12 @@ import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.compose.MenuItem
 import io.github.takusan23.tatimidroid.compose.SimpleBackdrop
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
+import io.github.takusan23.tatimidroid.nicovideo.compose.screen.NicoRepoScreen
 import io.github.takusan23.tatimidroid.nicovideo.compose.screen.NicoUserProfileScreen
 import io.github.takusan23.tatimidroid.nicovideo.compose.screen.NicoVideoHistoryScreen
 import io.github.takusan23.tatimidroid.nicovideo.compose.screen.NicoVideoSearchScreen
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoAccountViewModelFactory
+import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoRepoViewModelFactory
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoMyListViewModelFactory
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.factory.NicoVideoUploadVideoViewModelFactory
 import kotlinx.coroutines.launch
@@ -56,6 +58,15 @@ fun NicoVideoListScreen(
                 text = stringResource(id = R.string.ranking),
                 isSelected = currentPage.value == stringResource(id = R.string.ranking),
                 painter = painterResource(id = R.drawable.ic_format_list_numbered_black_24dp),
+                onClick = { menu ->
+                    closeMenu()
+                    currentPage.value = menu
+                }
+            )
+            MenuItem(
+                text = stringResource(id = R.string.nicorepo),
+                isSelected = currentPage.value == stringResource(id = R.string.nicorepo),
+                painter = painterResource(id = R.drawable.ic_outline_people_outline_24px),
                 onClick = { menu ->
                     closeMenu()
                     currentPage.value = menu
@@ -114,6 +125,12 @@ fun NicoVideoListScreen(
                         viewModel = viewModel(),
                         onVideoClick = { onVideoClick(it) },
                         onMenuClick = { onMenuClick(it) }
+                    )
+                }
+                stringResource(id = R.string.nicorepo) -> {
+                    NicoRepoScreen(
+                        viewModel = viewModel(factory = NicoRepoViewModelFactory(application, null)),
+                        onNicoRepoClick = { }
                     )
                 }
                 stringResource(id = R.string.post_video) -> {

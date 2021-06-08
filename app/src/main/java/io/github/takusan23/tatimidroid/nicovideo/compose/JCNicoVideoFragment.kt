@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -102,6 +103,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList, startPos)).get(NicoVideoViewModel::class.java)
     }
 
+    @ExperimentalMaterialApi
     @ExperimentalFoundationApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -433,6 +435,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     }
 
     /** プレイヤーFrameLayoutにUIを追加する */
+    @ExperimentalMaterialApi
     @ExperimentalFoundationApi
     @SuppressLint("ClickableViewAccessibility")
     private fun setPlayerUI() {
@@ -480,27 +483,27 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                             isPlaying = isPlaying.value,
                             currentPosition = currentPosition.value.toLong() / 1000,
                             duration = duration.value.toLong() / 1000,
-                            onClickMiniPlayer = {
+                            onMiniPlayerClick = {
                                 if (isMiniPlayerMode()) {
                                     toDefaultPlayer()
                                 } else {
                                     toMiniPlayer()
                                 }
                             },
-                            onClickFullScreen = {
+                            onFullScreenClick = {
                                 if (viewModel.isFullScreenMode) {
                                     setDefaultScreen()
                                 } else {
                                     setFullScreen()
                                 }
                             },
-                            onClickNetwork = { showNetworkTypeMessage() },
-                            onClickRepeat = { viewModel.playerIsRepeatMode.postValue(!viewModel.playerIsRepeatMode.value!!) },
-                            onClickCommentDraw = {
+                            onNetworkClick = { showNetworkTypeMessage() },
+                            onRepeatClick = { viewModel.playerIsRepeatMode.postValue(!viewModel.playerIsRepeatMode.value!!) },
+                            onCommentDrawClick = {
                                 nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible = !nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible;
                                 isShowDrawComment.value = nicovideoPlayerUIBinding.includeNicovideoPlayerCommentCanvas.isVisible
                             },
-                            onClickPopUpPlayer = {
+                            onPopupPlayerClick = {
                                 startVideoPlayService(
                                     context = requireContext(),
                                     mode = "popup",
@@ -514,7 +517,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                                 // Fragment閉じる
                                 finishFragment()
                             },
-                            onClickBackgroundPlayer = {
+                            onBackgroundPlayerClick = {
                                 startVideoPlayService(
                                     context = requireContext(),
                                     mode = "background",
@@ -528,11 +531,11 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
                                 // Fragment閉じる
                                 finishFragment()
                             },
-                            onClickPicture = { showComememoBottomFragment() },
-                            onClickPauseOrPlay = { viewModel.playerIsPlaying.postValue(!viewModel.playerIsPlaying.value!!) },
-                            onClickPrev = { viewModel.prevVideo() },
-                            onClickNext = { viewModel.nextVideo() },
-                            onDoubleClickSeek = { isPrev ->
+                            onPictureClick = { showComememoBottomFragment() },
+                            onPauseOrPlayClick = { viewModel.playerIsPlaying.postValue(!viewModel.playerIsPlaying.value!!) },
+                            onPrevClick = { viewModel.prevVideo() },
+                            onNextClick = { viewModel.nextVideo() },
+                            onSeekDoubleClick = { isPrev ->
                                 val seekValue = prefSetting.getString("nicovideo_skip_sec", "5")?.toLongOrNull() ?: 5
                                 val seekMs = if (isPrev) {
                                     viewModel.currentPosition - (seekValue * 1000)
