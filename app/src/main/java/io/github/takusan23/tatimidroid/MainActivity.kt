@@ -149,8 +149,8 @@ class MainActivity : AppCompatActivity() {
                             navController = navController,
                             startDestination = "cache",
                         ) {
-                            composable("nicolive") { NicoLiveProgramListScreen(onClickMenu = {}, onClickProgram = { showToast(it.programId) }) }
-                            composable("nicovideo") { NicoVideoListScreen(application, onMenuClick = {}, onVideoClick = { showToast(it.videoId) }) }
+                            composable("nicolive") { NicoLiveProgramListScreen(onMenuClick = {}, onProgramClick = { showToast(it.programId) }) }
+                            composable("nicovideo") { NicoVideoListScreen(application, onMenuClick = {}, onVideoClick = { playerNavController.navigate("nicovideo/${it.videoId}") }) }
                             composable("cache") { NicoVideoCacheListScreen(viewModel = viewModel(), onMenuClick = { }, onVideoClick = { playerNavController.navigate("nicovideo/${it.videoId}") }) }
                             composable("login") { NicoLoginScreen(viewModel = viewModel(), onTwoFactorLogin = { nicoLoginDataClass -> startTwoFactorAuthActivity(nicoLoginDataClass) }) }
                         }

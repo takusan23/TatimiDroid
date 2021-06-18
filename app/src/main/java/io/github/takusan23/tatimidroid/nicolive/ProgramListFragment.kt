@@ -36,10 +36,10 @@ class ProgramListFragment : Fragment() {
                 MaterialTheme(colors = if (isDarkMode(LocalContext.current)) DarkColors else LightColors) {
                     Surface {
                         NicoLiveProgramListScreen(
-                            onClickProgram = { nicoLiveProgramData ->
+                            onProgramClick = { nicoLiveProgramData ->
                                 (requireActivity() as MainActivity).setNicoliveFragment(nicoLiveProgramData.programId, nicoLiveProgramData.isOfficial, false)
                             },
-                            onClickMenu = { nicoLiveProgramData ->
+                            onMenuClick = { nicoLiveProgramData ->
                                 // とりあえず
                                 ProgramMenuBottomSheet().apply {
                                     arguments = Bundle().apply { putString("liveId", nicoLiveProgramData.programId) }

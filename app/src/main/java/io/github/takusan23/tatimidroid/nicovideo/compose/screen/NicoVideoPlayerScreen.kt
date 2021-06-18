@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.preference.PreferenceManager
+import io.github.takusan23.tatimidroid.compose.ComposeCommentCanvas
 import io.github.takusan23.tatimidroid.compose.ComposeExoPlayer
 import io.github.takusan23.tatimidroid.compose.MiniPlayerCompose
 import io.github.takusan23.tatimidroid.compose.MiniPlayerState
@@ -125,10 +126,10 @@ private fun NicoVideoDetailScreen(viewModel: NicoVideoViewModel) {
                 }
             )
         }
-        // 関連動画表示Card
-        if (recommendList.value != null) {
-            NicoVideoRecommendCard(recommendList.value!!)
-        }
+        // // 関連動画表示Card
+        // if (recommendList.value != null) {
+        //     NicoVideoRecommendCard(recommendList.value!!)
+        // }
     }
 }
 
@@ -161,6 +162,8 @@ fun NicoVideoPlayerScreen(viewModel: NicoVideoViewModel) {
     val isLoading = viewModel.playerIsLoading.observeAsState(initial = false)
     // 動画URL
     val contentUrl = viewModel.contentUrl.observeAsState()
+    // コメント一覧
+    val commentList = viewModel.commentList.observeAsState()
     // Preference
     val prefSetting = PreferenceManager.getDefaultSharedPreferences(context)
     // シーク
@@ -168,6 +171,7 @@ fun NicoVideoPlayerScreen(viewModel: NicoVideoViewModel) {
 
     // 時間
     if (videoData.value != null) {
+
         // ExoPlayer
         if (contentUrl.value != null) {
             ComposeExoPlayer(
@@ -179,6 +183,14 @@ fun NicoVideoPlayerScreen(viewModel: NicoVideoViewModel) {
                     viewModel.currentPosition = currentPos
                     viewModel.playerCurrentPositionMsLiveData.postValue(currentPos)
                 }
+            )
+        }
+        if (commentList.value != null && duration.value > 0) {
+            ComposeCommentCanvas(
+                commentList = commentList.value!!,
+                currentPosition = currentPosition.value,
+                isPlaying = isPlaying.value,
+                videoDuration = duration.value
             )
         }
         // プレイヤー

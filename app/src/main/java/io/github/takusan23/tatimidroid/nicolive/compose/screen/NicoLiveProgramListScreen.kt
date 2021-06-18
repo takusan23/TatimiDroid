@@ -26,12 +26,12 @@ import kotlinx.coroutines.launch
  *
  * BottomNavigationの生放送押したら開くやつ
  *
- * @param onClickProgram 番組押したら呼ばれる関数。予約枠の場合は呼ばれない
- * @param onClickMenu メニュー押したときに呼ばれる
+ * @param onProgramClick 番組押したら呼ばれる関数。予約枠の場合は呼ばれない
+ * @param onMenuClick メニュー押したときに呼ばれる
  * */
 @ExperimentalMaterialApi
 @Composable
-fun NicoLiveProgramListScreen(onClickProgram: (NicoLiveProgramData) -> Unit, onClickMenu: (NicoLiveProgramData) -> Unit) {
+fun NicoLiveProgramListScreen(onProgramClick: (NicoLiveProgramData) -> Unit, onMenuClick: (NicoLiveProgramData) -> Unit) {
     // Jetpack ComposeでViewModel使うなって話、Activityに近いComposeなら別にいいんだよね？
     val viewModel = viewModel<NicoLiveProgramListViewModel>()
     val scope = rememberCoroutineScope()
@@ -174,8 +174,8 @@ fun NicoLiveProgramListScreen(onClickProgram: (NicoLiveProgramData) -> Unit, onC
                 stringResource(id = R.string.nicolive_menu_konomi_tag) -> {
                     // 好みタグだけ特殊なので
                     NicoLiveKonomiTagScreen(
-                        onClickProgram = { onClickProgram(it) },
-                        onClickMenu = { onClickMenu(it) }
+                        onClickProgram = { onProgramClick(it) },
+                        onClickMenu = { onMenuClick(it) }
                     )
                 }
                 else -> {
@@ -189,12 +189,12 @@ fun NicoLiveProgramListScreen(onClickProgram: (NicoLiveProgramData) -> Unit, onC
                             onClickProgram = { nicoLiveProgramData ->
                                 // 視聴画面へ
                                 if (nicoLiveProgramData.lifeCycle != "RELEASED") {
-                                    onClickProgram(nicoLiveProgramData)
+                                    onProgramClick(nicoLiveProgramData)
                                 }
                             },
                             onClickMenu = { nicoLiveProgramData ->
                                 // メニュー画面へ
-                                onClickMenu(nicoLiveProgramData)
+                                onMenuClick(nicoLiveProgramData)
                             },
                         )
                     }
