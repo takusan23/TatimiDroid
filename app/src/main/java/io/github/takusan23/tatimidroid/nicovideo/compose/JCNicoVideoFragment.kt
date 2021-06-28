@@ -13,6 +13,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -103,6 +104,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
         ViewModelProvider(this, NicoVideoViewModelFactory(requireActivity().application, videoId, isCache, isEconomy, useInternet, isStartFullScreen, videoList, startPos)).get(NicoVideoViewModel::class.java)
     }
 
+    @ExperimentalComposeUiApi
     @ExperimentalMaterialApi
     @ExperimentalFoundationApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -435,6 +437,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
     }
 
     /** プレイヤーFrameLayoutにUIを追加する */
+    @ExperimentalComposeUiApi
     @ExperimentalMaterialApi
     @ExperimentalFoundationApi
     @SuppressLint("ClickableViewAccessibility")

@@ -150,7 +150,7 @@ class ReCommentCanvas(ctx: Context, attributeSet: AttributeSet?) : View(ctx, att
     init {
         // コメントを動かす
         commentDrawTimer.schedule(commentUpdateMs, commentUpdateMs) {
-            if (isPlaying) {
+            if (isPlaying==true) {
                 // 画面外のコメントは描画しない
                 for (reDrawCommentData in drawNakaCommentList.toList()
                     .filter { reDrawCommentData -> reDrawCommentData?.rect?.right ?: 0 > -reDrawCommentData.measure }) {

@@ -63,10 +63,8 @@ fun ComposeExoPlayer(
         }
     }
     // 外部の情報を反映
-    LaunchedEffect(seek, isPlaying) {
-        exoPlayer.seekTo(seek)
-        exoPlayer.playWhenReady = isPlaying
-    }
+    remember(seek) { exoPlayer.seekTo(seek) }
+    remember(isPlaying) { exoPlayer.playWhenReady = isPlaying }
     // SurfaceView
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(

@@ -1,28 +1,45 @@
 package io.github.takusan23.tatimidroid.nicovideo.compose.screen
 
+import android.view.Gravity
+import android.view.SurfaceView
+import android.widget.FrameLayout
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.edit
+import androidx.core.net.toUri
+import androidx.lifecycle.Observer
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.compose.ComposeCommentCanvas
-import io.github.takusan23.tatimidroid.compose.ComposeExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
+import io.github.takusan23.tatimidroid.ReCommentCanvas
 import io.github.takusan23.tatimidroid.compose.MiniPlayerCompose
 import io.github.takusan23.tatimidroid.compose.MiniPlayerState
 import io.github.takusan23.tatimidroid.nicovideo.compose.*
 import io.github.takusan23.tatimidroid.nicovideo.viewmodel.NicoVideoViewModel
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
 import io.github.takusan23.tatimidroid.tool.isConnectionWiFiInternet
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 /**
  * ニコニコ動画プレイヤー
@@ -30,12 +47,13 @@ import io.github.takusan23.tatimidroid.tool.isConnectionWiFiInternet
  * @param nicoVideoViewModel ニコ動ViewModel
  * @param onDestroy 終了時に呼ばれる
  * */
+@ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
 fun NicoVideoPlayerScreen(
     nicoVideoViewModel: NicoVideoViewModel,
-    onDestroy: () -> Unit
+    onDestroy: () -> Unit,
 ) {
 
     MiniPlayerCompose(
@@ -137,6 +155,7 @@ private fun NicoVideoDetailScreen(viewModel: NicoVideoViewModel) {
  * プレイヤー部分
  * @param viewModel ViewModel
  * */
+@ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @Composable
@@ -172,27 +191,9 @@ fun NicoVideoPlayerScreen(viewModel: NicoVideoViewModel) {
     // 時間
     if (videoData.value != null) {
 
-        // ExoPlayer
-        if (contentUrl.value != null) {
-            ComposeExoPlayer(
-                contentUrl = contentUrl.value!!,
-                isPlaying = isPlaying.value,
-                seek = seek.value,
-                onVideoDuration = { viewModel.playerDurationMs.postValue(it) },
-                onUpdate = { currentPos, _ ->
-                    viewModel.currentPosition = currentPos
-                    viewModel.playerCurrentPositionMsLiveData.postValue(currentPos)
-                }
-            )
-        }
-        if (commentList.value != null && duration.value > 0) {
-            ComposeCommentCanvas(
-                commentList = commentList.value!!,
-                currentPosition = currentPosition.value,
-                isPlaying = isPlaying.value,
-                videoDuration = duration.value
-            )
-        }
+        // ExoPlayerとコメント描画
+        NicoVideoPlayerExoPlayerAndCommentCanvas(viewModel = viewModel)
+
         // プレイヤー
         NicoVideoPlayerUI(
             videoTitle = videoData.value!!.title,
@@ -260,4 +261,177 @@ fun NicoVideoPlayerScreen(viewModel: NicoVideoViewModel) {
             onTouchingSeek = { },
         )
     }
+}
+
+/**
+ * コメント描画とExoPlayerは既存のViewを使う
+ *
+ * @param viewModel ニコ動ViewModel
+ * */
+@Composable
+fun NicoVideoPlayerExoPlayerAndCommentCanvas(viewModel: NicoVideoViewModel) {
+    val composeContext = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
+    // ExoPlayer
+    val exoPlayer = remember {
+        val exoPlayer = SimpleExoPlayer.Builder(composeContext).build()
+        // ExoPlayerのイベント
+        exoPlayer.addListener(object : Player.EventListener {
+            override fun onPlaybackStateChanged(state: Int) {
+                super.onPlaybackStateChanged(state)
+                // 動画時間をセットする
+                viewModel.playerDurationMs.postValue(exoPlayer.duration)
+                // くるくる
+                if (state == Player.STATE_READY || state == Player.STATE_ENDED) {
+                    viewModel.playerIsLoading.postValue(false)
+                } else {
+                    viewModel.playerIsLoading.postValue(true)
+                }
+                // 動画おわった。連続再生時なら次の曲へ
+                if (state == Player.STATE_ENDED && exoPlayer.playWhenReady) {
+                    viewModel.nextVideo()
+                }
+            }
+        })
+        return@remember exoPlayer
+    }
+    // Preference
+    val prefSetting = remember { PreferenceManager.getDefaultSharedPreferences(composeContext) }
+
+    /** ExoPlayerで動画を再生する */
+    fun playExoPlayer(contentUrl: String) {
+        // キャッシュ再生と分ける
+        when {
+            // キャッシュを優先的に利用する　もしくは　キャッシュ再生時
+            viewModel.isOfflinePlay.value ?: false -> {
+                // キャッシュ再生
+                val dataSourceFactory = DefaultDataSourceFactory(composeContext, "TatimiDroid;@takusan_23")
+                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.Builder().setUri(contentUrl.toUri()).setMediaId(viewModel.playingVideoId.value).build())
+                exoPlayer.setMediaSource(videoSource)
+            }
+            // それ以外：インターネットで取得
+            else -> {
+                // SmileサーバーはCookieつけないと見れないため
+                val dataSourceFactory = DefaultHttpDataSourceFactory("TatimiDroid;@takusan_23", null)
+                dataSourceFactory.defaultRequestProperties.set("Cookie", viewModel.nicoHistory)
+                val videoSource = ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.Builder().setUri(contentUrl.toUri()).setMediaId(viewModel.playingVideoId.value).build())
+                exoPlayer.setMediaSource(videoSource)
+            }
+        }
+        // 準備と再生
+        exoPlayer.prepare()
+        exoPlayer.playWhenReady = true
+    }
+
+    AndroidView(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1.7f),
+        factory = { context ->
+
+            val surfaceView = SurfaceView(context)
+            val reCommentCanvas = ReCommentCanvas(context, null)
+
+            /**
+             * いい感じに書けそうに無いので今まで通りLiveDataを受け取る
+             * */
+
+            // コメント
+            viewModel.commentList.observe(lifecycleOwner) { commentList ->
+                // ついでに動画の再生時間を取得する。非同期
+                viewModel.playerDurationMs.observe(lifecycleOwner, object : Observer<Long> {
+                    override fun onChanged(t: Long?) {
+                        if (t != null && t > 0) {
+                            reCommentCanvas.initCommentList(commentList, t)
+                            // 一回取得したらコールバック無効化。SAM変換をするとthisの指すものが変わってしまう
+                            viewModel.playerDurationMs.removeObserver(this)
+                        }
+                    }
+                })
+            }
+            // 動画再生
+            viewModel.contentUrl.observe(lifecycleOwner) { contentUrl ->
+                val oldPosition = exoPlayer.currentPosition
+                playExoPlayer(contentUrl)
+                // 画質変更時は途中から再生。動画IDが一致してないとだめ
+                if (oldPosition > 0 && exoPlayer.currentMediaItem?.mediaId == viewModel.playingVideoId.value) {
+                    exoPlayer.seekTo(oldPosition)
+                }
+                exoPlayer.setVideoSurfaceView(surfaceView)
+            }
+            // 一時停止、再生になったとき
+            viewModel.playerIsPlaying.observe(lifecycleOwner) { isPlaying ->
+                exoPlayer.playWhenReady = isPlaying
+                reCommentCanvas.isPlaying = isPlaying
+            }
+            // シークしたとき
+            viewModel.playerSetSeekMs.observe(lifecycleOwner) { seekPos ->
+                if (0 <= seekPos) {
+                    viewModel.playerCurrentPositionMs = seekPos
+                    exoPlayer.seekTo(seekPos)
+                } else {
+                    // 負の値に突入するので０
+                    viewModel.playerCurrentPositionMs = 0
+                }
+                // シークさせる
+                reCommentCanvas.currentPos = seekPos
+                reCommentCanvas.seekComment()
+            }
+            // リピートモードが変わったとき
+            viewModel.playerIsRepeatMode.observe(lifecycleOwner) { isRepeatMode ->
+                exoPlayer.repeatMode = if (isRepeatMode) {
+                    // リピート有効時
+                    Player.REPEAT_MODE_ONE
+                } else {
+                    // リピート無効時
+                    Player.REPEAT_MODE_OFF
+                }
+                prefSetting.edit { putBoolean("nicovideo_repeat_on", isRepeatMode) }
+            }
+            // 音量調整
+            viewModel.volumeControlLiveData.observe(lifecycleOwner) { volume ->
+                exoPlayer.volume = volume
+            }
+
+            // 100msごとに再生位置を外部に公開
+            scope.launch {
+                while (isActive) {
+                    delay(100)
+                    // 再生時間をコメント描画Canvasへ入れ続ける
+                    reCommentCanvas.currentPos = viewModel.playerCurrentPositionMs
+                    // 再生中かどうか
+                    reCommentCanvas.isPlaying = if (viewModel.isNotPlayVideoMode.value == false) {
+                        // 動画バッファー中かも？
+                        exoPlayer.isPlaying
+                    } else {
+                        viewModel.playerIsPlaying.value!!
+                    }
+                    // 再生中のみ
+                    if (viewModel.playerIsPlaying.value == true) {
+                        // ExoPlayerが利用できる場合は再生時間をViewModelへ渡す
+                        if (viewModel.isNotPlayVideoMode.value == false) {
+                            viewModel.playerCurrentPositionMs = exoPlayer.currentPosition
+                        }
+                    }
+                }
+            }
+
+            FrameLayout(context).apply {
+                layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+                this.foregroundGravity = Gravity.CENTER
+
+                addView(surfaceView)
+                addView(reCommentCanvas)
+            }
+        }
+    )
+
+    // Composeの世界のonDestroy。
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
 }

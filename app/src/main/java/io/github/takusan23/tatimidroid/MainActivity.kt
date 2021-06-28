@@ -9,9 +9,12 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.core.net.toUri
@@ -108,6 +111,7 @@ class MainActivity : AppCompatActivity() {
         super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
     }
 
+    @ExperimentalComposeUiApi
     @ExperimentalFoundationApi
     @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -159,12 +163,19 @@ class MainActivity : AppCompatActivity() {
 
                 // プレイヤー部分
                 NavHost(navController = playerNavController, startDestination = "empty") {
-                    composable("empty") {}
+                    composable("empty") {
+                        // Navigation、初期値が必要らしいので適当に透明なUIでも
+                        Box(
+                            modifier = Modifier
+                               // .background(Color.Red.copy(0.2f))
+                               // .fillMaxSize()
+                        )
+                    }
                     composable("nicovideo/{id}") { entry ->
                         val videoId = entry.arguments?.getString("id")
                         NicoVideoPlayerScreen(
                             nicoVideoViewModel = viewModel(factory = NicoVideoViewModelFactory(application, videoId, false, false, false, false, null, null)),
-                            onDestroy = { playerNavController.popBackStack("empty", true) },
+                            onDestroy = { playerNavController.popBackStack("empty", false) },
                         )
                     }
                 }

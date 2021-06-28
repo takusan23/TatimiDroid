@@ -29,11 +29,10 @@ fun ComposeCommentCanvas(
 
     AndroidView(
         factory = {
+            println("初期化")
             ReCommentCanvas(it, null).apply {
                 initCommentList(commentList, videoDuration)
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                currentPos = currentPosition
-                this.isPlaying = isPlaying
             }
         },
         update = {
