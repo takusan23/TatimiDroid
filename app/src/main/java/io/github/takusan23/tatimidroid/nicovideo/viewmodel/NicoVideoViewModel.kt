@@ -207,6 +207,9 @@ class NicoVideoViewModel(application: Application, videoId: String? = null, isCa
     /** 動画の高さ。同じくExoPlayerで取得して入れておいて */
     var videoHeight = 9
 
+    /** アスペクト比通知用LiveData */
+    val videoAspectRateLiveData = MutableLiveData(1.7f)
+
     /** コメント一覧表示してくれ～LiveData */
     val commentListShowLiveData = MutableLiveData(false)
 
