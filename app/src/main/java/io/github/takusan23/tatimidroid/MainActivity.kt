@@ -174,7 +174,16 @@ class MainActivity : AppCompatActivity() {
                     composable("nicovideo/{id}") { entry ->
                         val videoId = entry.arguments?.getString("id")
                         NicoVideoPlayerScreen(
-                            nicoVideoViewModel = viewModel(factory = NicoVideoViewModelFactory(application, videoId, false, false, false, false, null, null)),
+                            nicoVideoViewModel = viewModel(factory = NicoVideoViewModelFactory(
+                                application = application,
+                                videoId = videoId,
+                                isCache = false,
+                                isEco = false,
+                                useInternet = false,
+                                startFullScreen = false,
+                                videoList = null,
+                                startPos = null
+                            )),
                             onDestroy = { playerNavController.popBackStack("empty", false) },
                         )
                     }
