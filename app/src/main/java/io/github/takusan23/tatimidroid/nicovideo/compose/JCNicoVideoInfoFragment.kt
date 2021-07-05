@@ -161,16 +161,16 @@ class JCNicoVideoInfoFragment : Fragment() {
 
                                         // シリーズ
                                         if (seriesHTMLLiveData.value != null) {
-                                            NicoVideoSeriesCard(
+                                            NicoVideoSeriesUI(
                                                 nicoVideoHTMLSeriesData = seriesHTMLLiveData.value!!,
-                                                onClickStartSeriesPlay = {
+                                                onStartSeriesPlayClick = {
                                                     // シリーズ連続再生押した時
                                                     viewModel.addSeriesPlaylist(seriesId = seriesDataLiveData.value!!.seriesId)
                                                 },
                                                 // 後３つはそれぞれ動画再生関数を呼ぶ
-                                                onClickFirstVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
-                                                onClickNextVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
-                                                onClickPrevVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) }
+                                                onFirstVideoPlayClick = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
+                                                onNextVideoPlayClick = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
+                                                onPrevVideoPlayClick = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) }
                                             )
                                         }
 
@@ -178,11 +178,11 @@ class JCNicoVideoInfoFragment : Fragment() {
                                         if (tagList.value != null) {
                                             NicoVideoTagCard(
                                                 tagItemDataList = tagList.value!!,
-                                                onClickTag = { data ->
+                                                onTagClick = { data ->
                                                     // タグ押した時
                                                     setTagSearchFragment(data.tagName)
                                                 },
-                                                onClickNicoPedia = { url ->
+                                                onNicoPediaClick = { url ->
                                                     openBrowser(url)
                                                 }
                                             )
@@ -190,7 +190,7 @@ class JCNicoVideoInfoFragment : Fragment() {
 
                                         // ユーザー情報
                                         if (userData.value != null) {
-                                            NicoVideoUserCard(
+                                            NicoVideoUserUI(
                                                 userData = userData.value!!,
                                                 onUserOpenClick = {
                                                     if (userData.value!!.isChannel) {

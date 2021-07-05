@@ -19,10 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -58,6 +60,163 @@ val parentCardShape = RoundedCornerShape(3.dp)
 val parentCardElevation = 3.dp
 
 /**
+ * Composeリメイクに合わせてちょっとUIも変更。
+ *
+ * Android 12みたいに丸くしてみた？
+ *
+ * @param nicoVideoData ニコ動データクラス。
+ * @param isLiked いいねしたかどうか。
+ * @param isOffline キャッシュ再生用。trueにするといいねボタンを非表示にします。
+ * @param description 動画説明文
+ * @param onLikeClick いいね押したときに呼ばっる
+ * @param descriptionClick 動画説明文のリンクを押した時。[NicoVideoDescriptionText.DESCRIPTION_TYPE_MYLIST]等参照
+ * */
+@ExperimentalMaterialApi
+@Composable
+fun NicoVideoInfoCardReEditioN(
+    nicoVideoData: NicoVideoData,
+    columnSpace: @Composable ColumnScope.() -> Unit,
+    isLiked: Boolean,
+    isOffline: Boolean,
+    description: String,
+    onLikeClick: () -> Unit,
+    descriptionClick: (id: String, type: String) -> Unit,
+) {
+    // 動画説明文表示状態
+    val expanded = remember { mutableStateOf(false) }
+
+    Surface(
+        shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomEnd = 20.dp, bottomStart = 20.dp),
+        color = MaterialTheme.colors.primary.copy(alpha = 0.2f)
+    ) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+        ) {
+
+            // 真ん中にする
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+
+                Column(modifier = Modifier.weight(1f)) {
+                    // タイトル
+                    Text(
+                        text = nicoVideoData.title,
+                        fontSize = 20.sp,
+                    )
+                    // 動画ID表示
+                    Text(
+                        text = nicoVideoData.videoId,
+                        fontSize = 12.sp,
+                    )
+                }
+                // 展開ボタン。動画説明文の表示を切り替える
+                IconButton(onClick = { expanded.value = !expanded.value }) {
+                    Icon(
+                        painter = if (expanded.value) painterResource(id = R.drawable.ic_expand_less_black_24dp) else painterResource(id = R.drawable.ic_expand_more_24px),
+                        contentDescription = stringResource(id = R.string.nicovideo_info)
+                    )
+                }
+            }
+
+            // 再生数や、いいねボタンのやつ
+            Row {
+                Column(modifier = Modifier.weight(1f)) {
+                    // マイリスト数とかコメント数とか
+                    NicoVideoCountText(
+                        viewCount = nicoVideoData.viewCount.toInt(),
+                        commentCount = nicoVideoData.commentCount.toInt(),
+                        mylistCount = nicoVideoData.mylistCount.toInt()
+                    )
+                    // 投稿日時
+                    NicoVideoUploadText(
+                        uploadDateUnixTime = nicoVideoData.date,
+                        isCountDown = true
+                    )
+                }
+                // いいねぼたん
+                if (!isOffline) {
+                    NicoVideoLikeButton(
+                        isLiked = isLiked,
+                        onLikeClick = onLikeClick,
+                    )
+                }
+            }
+
+            // 詳細表示
+            if (expanded.value) {
+                Column {
+                    // 区切り線
+                    Divider(modifier = Modifier.padding(5.dp))
+                    /** 多分HTMLを表示する機能はないので従来のTextView登場 */
+                    AndroidView(
+                        factory = { context ->
+                            TextView(context).apply {
+                                // リンク押せるように
+                                NicoVideoDescriptionText.setLinkText(text = HtmlCompat.fromHtml(description, HtmlCompat.FROM_HTML_MODE_COMPACT), this, descriptionClick)
+                            }
+                        }
+                    )
+                }
+            }
+
+            Column(content = columnSpace)
+
+        }
+    }
+
+}
+
+/**
+ * ニコ動メニュー。キャッシュ取得ボタンとか
+ * */
+@ExperimentalMaterialApi
+@Composable
+fun NicoVideoMenuButtonGroup() {
+    Surface(
+        modifier = Modifier.padding(5.dp),
+        color = MaterialTheme.colors.primary.copy(0.2f),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Row(modifier = Modifier.padding(5.dp)) {
+            NicoVideoMenuButton(Modifier.weight(1f), painterResource(id = R.drawable.ic_folder_open_black_24dp), stringResource(id = R.string.mylist), onClick = {})
+            NicoVideoMenuButton(Modifier.weight(1f), painterResource(id = R.drawable.ic_outline_menu_24), stringResource(id = R.string.menu), onClick = {})
+            NicoVideoMenuButton(Modifier.weight(1f), painterResource(id = R.drawable.ic_share), stringResource(id = R.string.share), onClick = {})
+            NicoVideoMenuButton(Modifier.weight(1f), painterResource(id = R.drawable.ic_cache_progress_icon), stringResource(id = R.string.cache), onClick = {})
+        }
+    }
+}
+
+/**
+ * [NicoVideoMenuButtonGroup]の各ボタン
+ * @param icon アイコン
+ * @param text テキスト
+ * @param onClick 押したときに呼ばれる
+ * */
+@ExperimentalMaterialApi
+@Composable
+fun NicoVideoMenuButton(modifier: Modifier, icon: Painter, text: String, onClick: () -> Unit) {
+    Surface(
+        modifier = modifier
+            .padding(5.dp),
+        color = MaterialTheme.colors.primary.copy(0.5f),
+        shape = RoundedCornerShape(10.dp),
+        onClick = onClick,
+    ) {
+        Column(
+            modifier = modifier
+                .padding(start = 2.dp, top = 10.dp, bottom = 10.dp, end = 2.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(painter = icon, contentDescription = null, modifier = Modifier.size(30.dp))
+            Text(text = text, textAlign = TextAlign.Center)
+        }
+    }
+}
+
+/**
  * 動画説明、タイトルCard
  * @param nicoVideoData ニコ動データクラス。
  * @param isLiked いいねしたかどうか。
@@ -79,50 +238,13 @@ fun NicoVideoInfoCard(
     // 動画説明文表示状態
     val expanded = remember { mutableStateOf(false) }
 
-    Card(
-        modifier = parentCardModifier,
-        // border = BorderStroke(1.dp, Color.Black),
-        shape = parentCardShape,
-        // backgroundColor = Color.Transparent,
-        elevation = parentCardElevation,
+    Surface(
+        shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomEnd = 10.dp, bottomStart = 10.dp),
+        color = MaterialTheme.colors.primary.copy(alpha = 0.2f)
     ) {
-
         Column(
             modifier = Modifier.padding(10.dp),
         ) {
-
-            // お祝いメッセージ機能。お誕生日
-            val anniversary = calcAnniversary(nicoVideoData?.date ?: 0L) // AnniversaryDateクラス みて
-            // たんおめ
-            val isBirthday = !(anniversary == 0) && anniversary != -1
-            if (isBirthday) {
-                Text(
-                    text = AnniversaryDate.makeAnniversaryMessage(anniversary),
-                    color = Color.Red,
-                )
-            }
-
-            // 投稿日時
-            Row {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_event_available_24px),
-                    contentDescription = null,
-                )
-                Text(
-                    text = "${stringResource(id = R.string.post_date)}：${toFormatTime(nicoVideoData?.date ?: 0L)}",
-                )
-            }
-            Row {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_history_24px),
-                    contentDescription = null,
-                )
-                Text(
-                    text = "今日から ${calcDayCount(toFormatTime(nicoVideoData?.date ?: 0L))} 日前に投稿",
-                )
-            }
-            // 区切り線
-            Divider(modifier = Modifier.padding(5.dp))
 
             // 真ん中にする
             Row(
@@ -143,16 +265,8 @@ fun NicoVideoInfoCard(
                         fontSize = 12.sp,
                     )
                 }
-                // いいねぼたん
-                if (!isOffline) {
-                    NicoVideoLikeButton(
-                        isLiked = isLiked,
-                        onLikeClick = onLikeClick,
-                    )
-                }
                 // 展開ボタン。動画説明文の表示を切り替える
                 IconButton(onClick = { expanded.value = !expanded.value }) {
-                    // アイコンコード一行で召喚できる。npmのmdiみたいだな！
                     Icon(
                         painter = if (expanded.value) painterResource(id = R.drawable.ic_expand_less_black_24dp) else painterResource(id = R.drawable.ic_expand_more_24px),
                         contentDescription = stringResource(id = R.string.nicovideo_info)
@@ -160,12 +274,28 @@ fun NicoVideoInfoCard(
                 }
             }
 
-            // マイリスト数とかコメント数とか
-            NicoVideoCountText(
-                viewCount = nicoVideoData?.viewCount?.toInt() ?: 0,
-                commentCount = nicoVideoData?.commentCount?.toInt() ?: 0,
-                mylistCount = nicoVideoData?.mylistCount?.toInt() ?: 0
-            )
+            Row {
+                Column(modifier = Modifier.weight(1f)) {
+                    // マイリスト数とかコメント数とか
+                    NicoVideoCountText(
+                        viewCount = nicoVideoData?.viewCount?.toInt() ?: 0,
+                        commentCount = nicoVideoData?.commentCount?.toInt() ?: 0,
+                        mylistCount = nicoVideoData?.mylistCount?.toInt() ?: 0
+                    )
+                    // 投稿日時
+                    NicoVideoUploadText(
+                        uploadDateUnixTime = nicoVideoData?.date!!,
+                        isCountDown = true
+                    )
+                }
+                // いいねぼたん
+                if (!isOffline) {
+                    NicoVideoLikeButton(
+                        isLiked = isLiked,
+                        onLikeClick = onLikeClick,
+                    )
+                }
+            }
 
             // 詳細表示
             if (expanded.value) {
@@ -182,6 +312,52 @@ fun NicoVideoInfoCard(
                         }
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * 投稿日を表示するやつ
+ *
+ * @param uploadDateUnixTime 投稿日。UnixTime
+ * @param isCountDown 今日から何日前を表示する場合はtrue
+ * */
+@Composable
+fun NicoVideoUploadText(uploadDateUnixTime: Long, isCountDown: Boolean = false) {
+    Column {
+        // お祝いメッセージ機能。お誕生日
+        val anniversary = calcAnniversary(uploadDateUnixTime) // AnniversaryDateクラス みて
+        // たんおめ
+        val isBirthday = !(anniversary == 0) && anniversary != -1
+        if (isBirthday) {
+            Text(
+                text = AnniversaryDate.makeAnniversaryMessage(anniversary),
+                color = Color.Red,
+                fontSize = 14.sp,
+            )
+        }
+        // 投稿日時
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_event_available_24px),
+                contentDescription = null,
+            )
+            Text(
+                text = "${toFormatTime(uploadDateUnixTime)} ${stringResource(id = R.string.post)}",
+                fontSize = 14.sp,
+            )
+        }
+        if (isCountDown) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_history_24px),
+                    contentDescription = null,
+                )
+                Text(
+                    text = "今日から ${calcDayCount(toFormatTime(uploadDateUnixTime))} 日前に投稿",
+                    fontSize = 14.sp,
+                )
             }
         }
     }
@@ -270,33 +446,45 @@ private fun NicoVideoLikeButton(
 
 
 /**
- * 関連動画表示Card。従来のRecyclerViewを置いてる。使い回せるGJ
+ * 関連動画表示Card
  *
  * @param nicoVideoDataList [NicoVideoData]の配列
  * */
 @ExperimentalMaterialApi
 @Composable
-fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
-    Card(
-        modifier = parentCardModifier.fillMaxWidth(),
-        shape = parentCardShape,
-        elevation = parentCardElevation,
+fun NicoVideoRecommendCard(nicoVideoDataList: List<NicoVideoData>) {
+    Surface(
+        modifier = Modifier.padding(5.dp),
+        color = MaterialTheme.colors.primary.copy(0.2f),
+        shape = RoundedCornerShape(20.dp),
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             // 関連動画
-            Row {
+            Row(Modifier.padding(5.dp)) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_local_movies_24px),
                     contentDescription = null
                 )
                 Text(text = stringResource(id = R.string.recommend_video))
             }
-            // 一覧表示。RecyclerViewを使い回す
+/*
+            // 一覧表示
             NicoVideoList(
                 list = nicoVideoDataList,
                 onVideoClick = { },
                 onMenuClick = { }
             )
+*/
+/*
+            // 一覧表示
+            nicoVideoDataList.forEach { data ->
+                NicoVideoListItem(
+                    nicoVideoData = data,
+                    onVideoClick = { },
+                    onMenuClick = { }
+                )
+            }
+*/
         }
     }
 }
@@ -307,14 +495,14 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
  * @param onUserOpenClick ユーザー情報詳細ボタン押した時に呼ばれる
  * */
 @Composable
-fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
-    Card(
-        modifier = parentCardModifier,
-        shape = parentCardShape,
-        elevation = parentCardElevation,
+fun NicoVideoUserUI(userData: UserData, onUserOpenClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.padding(5.dp),
+        color = MaterialTheme.colors.primary.copy(0.5f),
+        shape = RoundedCornerShape(10.dp)
     ) {
         Row(
-            modifier = Modifier.padding(5.dp),
+            modifier = Modifier.padding(start = 10.dp, top = 5.dp, bottom = 5.dp, end = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             val bitmap = getBitmapCompose(url = userData.largeIcon)
@@ -331,7 +519,7 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
                     .weight(1f)
                     .padding(5.dp)
             )
-            OutlinedButton(onClick = { onUserOpenClick() }) {
+            IconButton(onClick = { onUserOpenClick() }) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_outline_open_in_browser_24px),
                     contentDescription = stringResource(id = R.string.open_browser)
@@ -344,64 +532,62 @@ fun NicoVideoUserCard(userData: UserData, onUserOpenClick: () -> Unit) {
 /**
  * タグ一覧表示Card
  * @param tagItemDataList [NicoTagItemData]配列
- * @param onClickTag 押したときに呼ばれる。
- * @param onClickNicoPedia ニコニコ大百科ボタンを押したときに呼ばれる
+ * @param onTagClick 押したときに呼ばれる。
+ * @param onNicoPediaClick ニコニコ大百科ボタンを押したときに呼ばれる
  * */
 @Composable
 fun NicoVideoTagCard(
     tagItemDataList: ArrayList<NicoTagItemData>,
-    onClickTag: (NicoTagItemData) -> Unit,
-    onClickNicoPedia: (String) -> Unit
+    onTagClick: (NicoTagItemData) -> Unit,
+    onNicoPediaClick: (String) -> Unit
 ) {
     // 展開状態かどうか
     val isShowAll = remember { mutableStateOf(false) }
-    Card(
-        modifier = parentCardModifier
-            .fillMaxWidth(),
-        shape = parentCardShape,
-        elevation = parentCardElevation,
+
+    Surface(
+        modifier = Modifier.padding(5.dp),
+        color = MaterialTheme.colors.primary.copy(0.5f),
+        shape = RoundedCornerShape(10.dp),
     ) {
-        Column {
-            // 関連動画
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 5.dp, end = 5.dp),
-            ) {
+        Column(modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_local_offer_24px),
-                    contentDescription = null,
+                    contentDescription = "タグ"
                 )
-                Text(text = stringResource(id = R.string.tag), modifier = Modifier.weight(1f))
+                Text(
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    text = "${stringResource(id = R.string.tag)}：${tagItemDataList.subList(0, 3).joinToString(separator = "/", postfix = "...") { it.tagName }}"
+                )
                 // 展開ボタン
                 IconButton(onClick = { isShowAll.value = !isShowAll.value }) {
                     if (isShowAll.value) {
-                        Icon(painter = painterResource(id = R.drawable.ic_expand_less_black_24dp), contentDescription = "格納")
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_expand_less_black_24dp),
+                            contentDescription = "格納"
+                        )
                     } else {
-                        Icon(painter = painterResource(id = R.drawable.ic_expand_more_24px), contentDescription = "展開")
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_expand_more_24px),
+                            contentDescription = "展開"
+                        )
                     }
                 }
             }
-            // --- キリトリセン ---
-            Divider(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .padding(start = 5.dp, end = 5.dp)
-            )
-            // 折り返すレイアウト
-            OrigamiLayout(
-                modifier = Modifier
-                    .padding(start = 5.dp, end = 5.dp)
-                    .wrapContentHeight(),
-                isExpended = isShowAll.value,
-                minHeight = 200
-            ) {
-                tagItemDataList.forEach { data ->
-                    // タグのボタン設置
-                    TagButton(
-                        data = data,
-                        onClickTag = { onClickTag(it) },
-                        onClickNicoPedia = { onClickNicoPedia(it) }
-                    )
+            if (isShowAll.value) {
+                OrigamiLayout(
+                    modifier = Modifier.padding(bottom = 10.dp),
+                    isExpended = true
+                ) {
+                    tagItemDataList.forEach { data ->
+                        // タグのボタン設置
+                        TagButton(
+                            data = data,
+                            onClickTag = { onTagClick(it) },
+                            onClickNicoPedia = { onNicoPediaClick(it) }
+                        )
+                    }
                 }
             }
         }
@@ -412,18 +598,18 @@ fun NicoVideoTagCard(
  * シリーズが設定されてる場合は表示する
  *
  * @param nicoVideoHTMLSeriesData シリーズ情報データクラス。次の動画とかを表示するため
- * @param onClickStartSeriesPlay 連続再生押した時
- * @param onClickFirstVideoPlay シリーズの最初の動画を再生するボタンを押した時
- * @param onClickNextVideoPlay 次の動画を再生するボタンを押した時
- * @param onClickPrevVideoPlay 前の動画を再生するボタンを押した時
+ * @param onStartSeriesPlayClick 連続再生押した時
+ * @param onFirstVideoPlayClick シリーズの最初の動画を再生するボタンを押した時
+ * @param onNextVideoPlayClick 次の動画を再生するボタンを押した時
+ * @param onPrevVideoPlayClick 前の動画を再生するボタンを押した時
  * */
 @Composable
-fun NicoVideoSeriesCard(
+fun NicoVideoSeriesUI(
     nicoVideoHTMLSeriesData: NicoVideoHTMLSeriesData,
-    onClickStartSeriesPlay: () -> Unit,
-    onClickFirstVideoPlay: (NicoVideoData) -> Unit,
-    onClickNextVideoPlay: (NicoVideoData) -> Unit,
-    onClickPrevVideoPlay: (NicoVideoData) -> Unit,
+    onStartSeriesPlayClick: () -> Unit,
+    onFirstVideoPlayClick: (NicoVideoData) -> Unit,
+    onNextVideoPlayClick: (NicoVideoData) -> Unit,
+    onPrevVideoPlayClick: (NicoVideoData) -> Unit,
 ) {
 
     /**
@@ -433,19 +619,12 @@ fun NicoVideoSeriesCard(
      * */
     val expanded = remember { mutableStateOf(false) }
 
-    Card(
-        modifier = parentCardModifier,
-        shape = parentCardShape,
-        elevation = parentCardElevation,
+    Surface(
+        modifier = Modifier.padding(5.dp),
+        color = MaterialTheme.colors.primary.copy(0.5f),
+        shape = RoundedCornerShape(10.dp),
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
-            Row {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_folder_open_black_24dp),
-                    contentDescription = stringResource(id = R.string.series)
-                )
-                Text(text = stringResource(id = R.string.series))
-            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // さむね
                 val bitmap = getBitmapCompose(url = nicoVideoHTMLSeriesData.seriesData.thumbUrl)
@@ -461,7 +640,7 @@ fun NicoVideoSeriesCard(
                 }
                 // タイトル
                 Text(
-                    text = nicoVideoHTMLSeriesData.seriesData.title,
+                    text = "${stringResource(id = R.string.series)} : ${nicoVideoHTMLSeriesData.seriesData.title}",
                     modifier = Modifier
                         .weight(1f)
                         .padding(5.dp)
@@ -479,7 +658,7 @@ fun NicoVideoSeriesCard(
                     // 区切り
                     Divider()
                     // 連続再生開始などのメニュー
-                    TextButton(onClick = { onClickStartSeriesPlay() }) {
+                    TextButton(onClick = { onStartSeriesPlayClick() }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_play_arrow_24px),
                             contentDescription = stringResource(id = R.string.nicovideo_playlist_start)
@@ -488,7 +667,7 @@ fun NicoVideoSeriesCard(
                     }
                     // 最初から再生
                     if (nicoVideoHTMLSeriesData.firstVideoData != null) {
-                        TextButton(onClick = { onClickFirstVideoPlay(nicoVideoHTMLSeriesData.firstVideoData) }, modifier = Modifier.fillMaxWidth()) {
+                        TextButton(onClick = { onFirstVideoPlayClick(nicoVideoHTMLSeriesData.firstVideoData) }, modifier = Modifier.fillMaxWidth()) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_outline_filter_1_24),
                                 contentDescription = stringResource(id = R.string.nicovideo_series_first_video)
@@ -498,7 +677,7 @@ fun NicoVideoSeriesCard(
                     }
                     // 前の動画
                     if (nicoVideoHTMLSeriesData.prevVideoData != null) {
-                        TextButton(onClick = { onClickPrevVideoPlay(nicoVideoHTMLSeriesData.prevVideoData) }, modifier = Modifier.fillMaxWidth()) {
+                        TextButton(onClick = { onPrevVideoPlayClick(nicoVideoHTMLSeriesData.prevVideoData) }, modifier = Modifier.fillMaxWidth()) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_arrow_back_black_24dp),
                                 contentDescription = stringResource(id = R.string.nicovideo_series_prev_video)
@@ -508,7 +687,7 @@ fun NicoVideoSeriesCard(
                     }
                     // 次の動画
                     if (nicoVideoHTMLSeriesData.nextVideoData != null) {
-                        TextButton(onClick = { onClickNextVideoPlay(nicoVideoHTMLSeriesData.nextVideoData) }, modifier = Modifier.fillMaxWidth()) {
+                        TextButton(onClick = { onNextVideoPlayClick(nicoVideoHTMLSeriesData.nextVideoData) }, modifier = Modifier.fillMaxWidth()) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_outline_arrow_forward_24),
                                 contentDescription = stringResource(id = R.string.nicovideo_series_next_video)

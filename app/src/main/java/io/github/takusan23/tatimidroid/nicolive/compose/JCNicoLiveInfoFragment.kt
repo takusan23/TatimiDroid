@@ -32,7 +32,7 @@ import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
 import io.github.takusan23.tatimidroid.nicovideo.NicoAccountFragment
 import io.github.takusan23.tatimidroid.nicovideo.compose.DarkColors
 import io.github.takusan23.tatimidroid.nicovideo.compose.LightColors
-import io.github.takusan23.tatimidroid.nicovideo.compose.NicoVideoUserCard
+import io.github.takusan23.tatimidroid.nicovideo.compose.NicoVideoUserUI
 import io.github.takusan23.tatimidroid.tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.tool.isDarkMode
 
@@ -99,7 +99,7 @@ class JCNicoLiveInfoFragment : Fragment() {
                                     }
                                     // ユーザー情報。ニコ動用のがそのまま使えた
                                     if (userData.value != null) {
-                                        NicoVideoUserCard(userData = userData.value!!, onUserOpenClick = {
+                                        NicoVideoUserUI(userData = userData.value!!, onUserOpenClick = {
                                             setAccountFragment(userData.value!!.userId)
                                         })
                                     }

@@ -29,7 +29,7 @@ import io.github.takusan23.tatimidroid.compose.MiniPlayerCompose
 import io.github.takusan23.tatimidroid.compose.MiniPlayerState
 import io.github.takusan23.tatimidroid.nicolive.compose.*
 import io.github.takusan23.tatimidroid.nicolive.viewmodel.NicoLiveViewModel
-import io.github.takusan23.tatimidroid.nicovideo.compose.NicoVideoUserCard
+import io.github.takusan23.tatimidroid.nicovideo.compose.NicoVideoUserUI
 import io.github.takusan23.tatimidroid.service.startLivePlayService
 import io.github.takusan23.tatimidroid.tool.NicoVideoDescriptionText
 import io.github.takusan23.tatimidroid.tool.isConnectionWiFiInternet
@@ -126,7 +126,7 @@ fun NicoLiveDetailUI(viewModel: NicoLiveViewModel) {
         }
         // ユーザー情報。ニコ動用のがそのまま使えた
         if (userData.value != null) {
-            NicoVideoUserCard(
+            NicoVideoUserUI(
                 userData = userData.value!!,
                 onUserOpenClick = {
                 }

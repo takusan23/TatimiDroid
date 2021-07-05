@@ -99,50 +99,59 @@ fun NicoVideoDetailUI(viewModel: NicoVideoViewModel) {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // 動画情報表示Card
+
+        // 動画情報表示
         if (videoData.value != null) {
-            NicoVideoInfoCard(
-                nicoVideoData = videoData.value,
+            NicoVideoInfoCardReEditioN(
+                nicoVideoData = videoData.value!!,
                 isLiked = isLiked.value,
                 onLikeClick = { },
                 isOffline = isOfflinePlayLiveData.value,
                 description = description.value,
-                descriptionClick = { link, type -> } // 押した時
-            )
-        }
-        // シリーズ
-        if (seriesHTMLLiveData.value != null) {
-            NicoVideoSeriesCard(
-                nicoVideoHTMLSeriesData = seriesHTMLLiveData.value!!,
-                onClickStartSeriesPlay = { },
-                // 後３つはそれぞれ動画再生関数を呼ぶ
-                onClickFirstVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
-                onClickNextVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) },
-                onClickPrevVideoPlay = { viewModel.load(it.videoId, it.isCache, viewModel.isEco, viewModel.useInternet) }
-            )
-        }
-        // タグ
-        if (tagList.value != null) {
-            NicoVideoTagCard(
-                tagItemDataList = tagList.value!!,
-                onClickTag = { data -> },
-                onClickNicoPedia = { url -> }
-            )
-        }
-        // ユーザー情報
-        if (userData.value != null) {
-            NicoVideoUserCard(
-                userData = userData.value!!,
-                onUserOpenClick = {
-                    if (userData.value!!.isChannel) {
+                descriptionClick = { link, type -> }, // 押した時
+                columnSpace = {
 
-                    } else {
+                    // タグ表示
+                    if (tagList.value != null) {
+                        NicoVideoTagCard(
+                            tagList.value!!,
+                            onNicoPediaClick = {},
+                            onTagClick = {}
+                        )
+                    }
 
+                    // シリーズ情報
+                    if (seriesHTMLLiveData.value != null) {
+                        NicoVideoSeriesUI(
+                            nicoVideoHTMLSeriesData = seriesHTMLLiveData.value!!,
+                            onStartSeriesPlayClick = { },
+                            onFirstVideoPlayClick = { },
+                            onNextVideoPlayClick = { },
+                            onPrevVideoPlayClick = { }
+                        )
+                    }
+
+                    // ユーザー情報
+                    if (userData.value != null) {
+                        NicoVideoUserUI(
+                            userData = userData.value!!,
+                            onUserOpenClick = {
+                                if (userData.value!!.isChannel) {
+
+                                } else {
+
+                                }
+                            }
+                        )
                     }
                 }
             )
         }
-        // 関連動画表示Card
+
+        // 共有、メニュー、キャッシュ取得ボタンなど
+        NicoVideoMenuButtonGroup()
+
+        // 関連動画表示
         if (recommendList.value != null) {
             NicoVideoRecommendCard(recommendList.value!!)
         }
