@@ -46,7 +46,6 @@ class ProgramListFragment : Fragment() {
                 R.id.nicolive_program_list_menu_follow -> setCommunityListFragment(CommunityListFragment.FOLLOW)
                 R.id.nicolive_program_list_menu_osusume -> setCommunityListFragment(CommunityListFragment.RECOMMEND)
                 R.id.nicolive_program_list_menu_ranking -> setCommunityListFragment(CommunityListFragment.RANKING)
-                R.id.nicolive_program_list_menu_top -> setCommunityListFragment(CommunityListFragment.CHUMOKU)
                 R.id.nicolive_program_list_menu_korekara -> setCommunityListFragment(CommunityListFragment.KOREKARA)
                 R.id.nicolive_program_list_menu_yoyaku -> setCommunityListFragment(CommunityListFragment.YOYAKU)
                 R.id.nicolive_program_list_menu_rookie -> setCommunityListFragment(CommunityListFragment.ROOKIE)

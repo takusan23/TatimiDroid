@@ -31,13 +31,15 @@ class NicoLiveProgram {
         const val FAVOURITE_PROGRAM = "favoriteProgramListState"
 
         /** あなたへのおすすめ。～歳 無職 みたいなタイトルばっか出てくるのニコ生っぽくて好き */
+        @Deprecated("NicoLiveRecommendProgram クラス参照")
         const val RECOMMEND_PROGRAM = "recommendedProgramListState"
 
-        /** 放送中の注目番組取得。公式放送。トップページの一番上に並んでる奴ら */
-        const val FORCUS_PROGRAM = "focusProgramListState"
+        /** 放送中の注目番組取得。ニコニコニュースがある部分 */
+        @Deprecated("多分なくなった")
+        const val FORCUS_PROGRAM = "organizationProgramListCarouselState"
 
         /** これからの注目番組。*/
-        const val RECENT_JUST_BEFORE_BROADCAST_STATUS_PROGRAM = "recentJustBeforeBroadcastStatusProgramListState"
+        const val RECENT_JUST_BEFORE_BROADCAST_STATUS_PROGRAM = "organizationProgramListCarouselState"
 
         /** 人気の予約されている番組取得。アニメ一挙とか */
         const val POPULAR_BEFORE_OPEN_BROADCAST_STATUS_PROGRAM = "popularBeforeOpenBroadcastStatusProgramListState"

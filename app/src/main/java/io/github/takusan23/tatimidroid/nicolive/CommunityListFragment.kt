@@ -12,16 +12,14 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import io.github.takusan23.tatimidroid.MainActivity
-import io.github.takusan23.tatimidroid.nicoapi.login.NicoLogin
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveGameProgram
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveProgram
-import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveRanking
-import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoAPIX
-import io.github.takusan23.tatimidroid.nicolive.adapter.CommunityRecyclerViewAdapter
 import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.databinding.FragmentNicoliveCommunityBinding
+import io.github.takusan23.tatimidroid.nicoapi.login.NicoLogin
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.*
+import io.github.takusan23.tatimidroid.nicoapi.nicolive.dataclass.NicoLiveProgramData
+import io.github.takusan23.tatimidroid.nicoapi.nicorepo.NicoRepoAPIX
+import io.github.takusan23.tatimidroid.nicoapi.user.UserAPI
+import io.github.takusan23.tatimidroid.nicolive.adapter.CommunityRecyclerViewAdapter
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,7 +88,7 @@ class CommunityListFragment : Fragment() {
         when (pos) {
             FOLLOW -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.FAVOURITE_PROGRAM)
             NICOREPO -> getProgramDataFromNicorepo()
-            RECOMMEND -> getProgramDataFromNicoLiveTopPage(NicoLiveProgram.RECOMMEND_PROGRAM)
+            RECOMMEND -> getRecommendProgram()
             RANKING -> getRanking()
             GAME_MATCHING -> getProgramFromNicoNamaGame(NicoLiveGameProgram.NICONAMA_GAME_MATCHING)
             GAME_PLAYING -> getProgramFromNicoNamaGame(NicoLiveGameProgram.NICONAMA_GAME_PLAYING)
@@ -209,6 +207,52 @@ class CommunityListFragment : Fragment() {
     }
 
     /**
+     * あなたへのおすすめ番組を取得する
+     * */
+    private fun getRecommendProgram() {
+        recyclerViewList.clear()
+        viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = true
+        // APIクラス
+        val userAPI = UserAPI()
+        val nicoLiveRecommendProgramAPI = NicoLiveRecommendProgramAPI()
+        // 例外を捕まえる。これでtry/catchをそれぞれ書かなくても済む？
+        val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            // エラー
+            showToast("${getString(R.string.error)}\n${throwable}")
+        }
+        // コルーチン実行
+        lifecycleScope.launch(errorHandler) {
+            withContext(Dispatchers.Default) {
+                // 自分のIDを出す
+                val userDataResponse = userAPI.getMyAccountUserData(userSession)
+                if (!userDataResponse.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${userDataResponse.code}")
+                    return@withContext
+                }
+                // パース
+                val userData = userAPI.parseUserData(userDataResponse.body?.string()!!)
+                // おすすめ番組取得
+                val userId = userData.userId
+                val recommendProgram = nicoLiveRecommendProgramAPI.getNicoLiveRecommendProgram(userId)
+                if (!recommendProgram.isSuccessful) {
+                    // 失敗時
+                    showToast("${getString(R.string.error)}\n${recommendProgram.code}")
+                    return@withContext
+                }
+                // パース
+                val programList = nicoLiveRecommendProgramAPI.parseNicoLiveRecommendProgram(recommendProgram.body?.string()!!)
+                recyclerViewList.addAll(programList)
+            }
+            // 反映
+            withContext(Dispatchers.Main) {
+                communityRecyclerViewAdapter.notifyDataSetChanged()
+                viewBinding.fragmentNicoliveCommunitySwipe.isRefreshing = false
+            }
+        }
+    }
+
+    /**
      * ニコレポを取得してRecyclerViewに入れる関数
      * */
     private fun getProgramDataFromNicorepo() {
@@ -301,6 +345,7 @@ class CommunityListFragment : Fragment() {
         const val GAME_PLAYING = 5
 
         /** 放送中の注目番組 */
+        @Deprecated("多分なくなった")
         const val CHUMOKU = 7
 
         /** 人気の予約されている番組 */
