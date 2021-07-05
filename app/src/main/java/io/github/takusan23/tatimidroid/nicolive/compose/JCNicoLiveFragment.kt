@@ -133,7 +133,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                 val isWatchingTS = viewModel.isWatchingTimeShiftLiveData.observeAsState(initial = false)
 
                 if (programData.value != null) {
-                    NicoLivePlayerUI(
+                    NicoLivePlayerControlUI(
                         liveTitle = programData.value!!.title,
                         liveId = programData.value!!.programId,
                         isMiniPlayer = isMiniPlayerMode.value,
@@ -143,20 +143,20 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                         isShowCommentCanvas = isShowDrawComment.value,
                         isAudioOnlyMode = viewModel.currentQuality == "audio_high",
                         isTimeShiftMode = isWatchingTS.value,
-                        onClickMiniPlayer = {
+                        onMiniPlayerClick = {
                             when {
                                 isDisableMiniPlayerMode -> finishFragment()
                                 isMiniPlayerMode.value -> toDefaultPlayer()
                                 else -> toMiniPlayer()
                             }
                         },
-                        onClickFullScreen = { if (viewModel.isFullScreenMode) setDefaultScreen() else setFullScreen() },
-                        onClickNetwork = { showNetworkTypeMessage() },
-                        onClickCommentDraw = {
+                        onFullScreenClick = { if (viewModel.isFullScreenMode) setDefaultScreen() else setFullScreen() },
+                        onNetworkClick = { showNetworkTypeMessage() },
+                        onCommentDrawClick = {
                             nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible = !nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
                             isShowDrawComment.value = nicolivePlayerUIBinding.includeNicolivePlayerCommentCanvas.isVisible
                         },
-                        onClickPopUpPlayer = {
+                        onPopUpPlayerClick = {
                             startLivePlayService(
                                 context = requireContext(),
                                 mode = "popup",
@@ -166,7 +166,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                             )
                             finishFragment()
                         },
-                        onClickBackgroundPlayer = {
+                        onBackgroundPlayerClick = {
                             startLivePlayService(
                                 context = requireContext(),
                                 mode = "background",
@@ -176,7 +176,7 @@ class JCNicoLiveFragment : PlayerBaseFragment() {
                             )
                             finishFragment()
                         },
-                        onClickCommentPost = { comment -> viewModel.sendComment(comment) },
+                        onCommentPostClick = { comment -> viewModel.sendComment(comment) },
                         currentPosition = currentPosSec.value,
                         duration = duration.value,
                         onTsSeek = { viewModel.tsSeekPosition(it) } // TS再生時のシークバー

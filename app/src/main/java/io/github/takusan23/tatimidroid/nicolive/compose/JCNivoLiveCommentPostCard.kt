@@ -3,9 +3,7 @@ package io.github.takusan23.tatimidroid.nicolive.compose
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -93,6 +92,8 @@ fun NicoLiveCommentInputButton(
     onHideCommentInputLayoutChange(isHideCommentLayout.value)
     // コマンドパネル表示するか
     val isShowCommandPanel = remember { mutableStateOf(false) }
+    // テキストボックスにフォーカスがあたっているか
+    val isFocusTextBox = remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -148,31 +149,40 @@ fun NicoLiveCommentInputButton(
                         }
                     }
                     // コメント入力
-                    OutlinedTextField(
+                    Box(
                         modifier = Modifier
                             .weight(1f)
-                            .align(Alignment.CenterVertically),
-                        value = comment,
-                        onValueChange = { onCommentChange(it) },
-                        label = {
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        // フォーカスがあたっていない場合はコメント投稿テキストボックスだよ文字列を
+                        if (!isFocusTextBox.value) {
                             Text(
+                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 10.dp),
                                 text = if (is184) {
                                     stringResource(id = R.string.comment)
                                 } else {
                                     // 生IDで投稿する旨を表示
                                     "${stringResource(id = R.string.comment)} ${stringResource(id = R.string.disabled_tokumei_comment)}"
-                                }
+                                },
+                                color = LocalTextStyle.current.color.copy(alpha = 0.5f)
                             )
-                        },
-                        textStyle = TextStyle(color = Color.White),
-                        colors = getWhiteColorOutlinedTextField(),
-                        // 複数行投稿が無効な場合はEnterキーを送信、そうじゃない場合は改行へ
-                        keyboardOptions = if (!isMultiLine) KeyboardOptions(imeAction = ImeAction.Send) else KeyboardOptions.Default,
-                        keyboardActions = KeyboardActions(onSend = {
-                            // 送信！
-                            onPostClick()
-                        })
-                    )
+                        }
+                        TextField(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { isFocusTextBox.value = it.isFocused },
+                            value = comment,
+                            onValueChange = { onCommentChange(it) },
+                            textStyle = TextStyle(color = Color.White),
+                            colors = getWhiteColorOutlinedTextField(),
+                            // 複数行投稿が無効な場合はEnterキーを送信、そうじゃない場合は改行へ
+                            keyboardOptions = if (!isMultiLine) KeyboardOptions(imeAction = ImeAction.Send) else KeyboardOptions.Default,
+                            keyboardActions = KeyboardActions(onSend = {
+                                // 送信！
+                                onPostClick()
+                            })
+                        )
+                    }
                     // 投稿ボタン
                     IconButton(onClick = { onPostClick() }) {
                         Icon(

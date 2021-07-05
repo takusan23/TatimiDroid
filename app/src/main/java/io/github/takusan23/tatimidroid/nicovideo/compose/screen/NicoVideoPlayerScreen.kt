@@ -59,11 +59,11 @@ fun NicoVideoPlayerScreen(
         backgroundContent = { },
         playerContent = {
             // 動画再生部分
-            NicoVideoPlayerScreen(nicoVideoViewModel)
+            NicoVideoPlayerUI(nicoVideoViewModel)
         },
         detailContent = {
             // 動画情報部分
-            NicoVideoDetailScreen(nicoVideoViewModel)
+            NicoVideoDetailUI(nicoVideoViewModel)
         },
     )
 }
@@ -74,7 +74,7 @@ fun NicoVideoPlayerScreen(
  * */
 @ExperimentalMaterialApi
 @Composable
-private fun NicoVideoDetailScreen(viewModel: NicoVideoViewModel) {
+fun NicoVideoDetailUI(viewModel: NicoVideoViewModel) {
     val context = LocalContext.current
     // 動画情報
     val videoData = viewModel.nicoVideoData.observeAsState()
@@ -142,10 +142,10 @@ private fun NicoVideoDetailScreen(viewModel: NicoVideoViewModel) {
                 }
             )
         }
-        // // 関連動画表示Card
-        // if (recommendList.value != null) {
-        //     NicoVideoRecommendCard(recommendList.value!!)
-        // }
+        // 関連動画表示Card
+        if (recommendList.value != null) {
+            NicoVideoRecommendCard(recommendList.value!!)
+        }
     }
 }
 
@@ -153,11 +153,11 @@ private fun NicoVideoDetailScreen(viewModel: NicoVideoViewModel) {
  * プレイヤー部分
  * @param viewModel ViewModel
  * */
-@ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @ExperimentalMaterialApi
+@ExperimentalComposeUiApi
 @Composable
-fun NicoVideoPlayerScreen(viewModel: NicoVideoViewModel) {
+fun NicoVideoPlayerUI(viewModel: NicoVideoViewModel) {
     val context = LocalContext.current
     // 動画情報
     val videoData = viewModel.nicoVideoData.observeAsState()
@@ -193,7 +193,7 @@ fun NicoVideoPlayerScreen(viewModel: NicoVideoViewModel) {
         NicoVideoPlayerExoPlayerAndCommentCanvas(viewModel = viewModel)
 
         // プレイヤー
-        NicoVideoPlayerUI(
+        NicoVideoPlayerControlUI(
             videoTitle = videoData.value!!.title,
             videoId = videoData.value!!.videoId,
             isMiniPlayer = isMiniPlayerMode.value,

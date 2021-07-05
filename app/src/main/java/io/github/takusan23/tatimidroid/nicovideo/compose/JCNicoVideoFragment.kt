@@ -471,7 +471,7 @@ class JCNicoVideoFragment : PlayerBaseFragment() {
 
                     // 時間
                     if (videoData.value != null) {
-                        NicoVideoPlayerUI(
+                        NicoVideoPlayerControlUI(
                             videoTitle = videoData.value!!.title,
                             videoId = videoData.value!!.videoId,
                             isMiniPlayer = isMiniPlayerMode.value,

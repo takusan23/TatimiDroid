@@ -8,6 +8,7 @@ import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.*
@@ -43,6 +44,8 @@ import io.github.takusan23.tatimidroid.nicolive.ProgramListFragment
 import io.github.takusan23.tatimidroid.nicolive.compose.JCNicoLiveCommentOnlyFragment
 import io.github.takusan23.tatimidroid.nicolive.compose.JCNicoLiveFragment
 import io.github.takusan23.tatimidroid.nicolive.compose.NicoLiveProgramListScreen
+import io.github.takusan23.tatimidroid.nicolive.compose.screen.NicoLivePlayerScreen
+import io.github.takusan23.tatimidroid.nicolive.viewmodel.factory.NicoLiveViewModelFactory
 import io.github.takusan23.tatimidroid.nicologin.LoginFragment
 import io.github.takusan23.tatimidroid.nicologin.TwoFactorAuthLoginActivity
 import io.github.takusan23.tatimidroid.nicologin.compose.NicoLoginScreen
@@ -111,6 +114,7 @@ class MainActivity : AppCompatActivity() {
         super.attachBaseContext(LanguageTool.setLanguageContext(newBase))
     }
 
+    @ExperimentalAnimationApi
     @ExperimentalComposeUiApi
     @ExperimentalFoundationApi
     @ExperimentalMaterialApi
@@ -153,8 +157,8 @@ class MainActivity : AppCompatActivity() {
                             navController = navController,
                             startDestination = "cache",
                         ) {
-                            composable("nicolive") { NicoLiveProgramListScreen(onMenuClick = {}, onProgramClick = { showToast(it.programId) }) }
-                            composable("nicovideo") { NicoVideoListScreen(application, onMenuClick = {}, onVideoClick = { playerNavController.navigate("nicovideo/${it.videoId}") }) }
+                            composable("nicolive") { NicoLiveProgramListScreen(onMenuClick = {}, onProgramClick = { playerNavController.navigate("nicolive/${it.programId}") }) }
+                            composable("nicovideo") { NicoVideoListScreen(application = application, onMenuClick = {}, onVideoClick = { playerNavController.navigate("nicovideo/${it.videoId}") }) }
                             composable("cache") { NicoVideoCacheListScreen(viewModel = viewModel(), onMenuClick = { }, onVideoClick = { playerNavController.navigate("nicovideo/${it.videoId}") }) }
                             composable("login") { NicoLoginScreen(viewModel = viewModel(), onTwoFactorLogin = { nicoLoginDataClass -> startTwoFactorAuthActivity(nicoLoginDataClass) }) }
                         }
@@ -167,24 +171,39 @@ class MainActivity : AppCompatActivity() {
                         // Navigation、初期値が必要らしいので適当に透明なUIでも
                         Box(
                             modifier = Modifier
-                               // .background(Color.Red.copy(0.2f))
-                               // .fillMaxSize()
+                            // .background(Color.Red.copy(0.2f))
+                            // .fillMaxSize()
                         )
                     }
                     composable("nicovideo/{id}") { entry ->
                         val videoId = entry.arguments?.getString("id")
                         NicoVideoPlayerScreen(
-                            nicoVideoViewModel = viewModel(factory = NicoVideoViewModelFactory(
-                                application = application,
-                                videoId = videoId,
-                                isCache = false,
-                                isEco = false,
-                                useInternet = false,
-                                startFullScreen = false,
-                                videoList = null,
-                                startPos = null
-                            )),
+                            nicoVideoViewModel = viewModel(
+                                factory = NicoVideoViewModelFactory(
+                                    application = application,
+                                    videoId = videoId,
+                                    isCache = false,
+                                    isEco = false,
+                                    useInternet = false,
+                                    startFullScreen = false,
+                                    videoList = null,
+                                    startPos = null
+                                )
+                            ),
                             onDestroy = { playerNavController.popBackStack("empty", false) },
+                        )
+                    }
+                    composable("nicolive/{id}") { entry ->
+                        val liveId = entry.arguments?.getString("id")!!
+                        NicoLivePlayerScreen(
+                            viewModel = viewModel(
+                                factory = NicoLiveViewModelFactory(
+                                    application = application,
+                                    liveId = liveId,
+                                    isLoginMode = true,
+                                )
+                            ),
+                            onDestroy = { playerNavController.popBackStack("empty", false) }
                         )
                     }
                 }

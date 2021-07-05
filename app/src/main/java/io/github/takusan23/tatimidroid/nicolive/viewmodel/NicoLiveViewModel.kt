@@ -368,6 +368,8 @@ class NicoLiveViewModel(application: Application, val liveIdOrCommunityId: Strin
         if (nicoLiveHTML.getTagList(jsonObject).tagList.any { nicoTagItemData -> nicoTagItemData.tagName == "ニコニコ実況" }) {
             // LiveDataにjk1とかを送信。有志ならコミュID
             isNicoJKLiveData.postValue(nicoLiveHTML.getNicoJKIdFromChannelId(nicoLiveHTML.communityId) ?: nicoLiveHTML.communityId)
+            // 映像を受信しないモードへ
+            isNotReceiveLive.postValue(true)
         }
     }
 

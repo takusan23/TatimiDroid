@@ -63,7 +63,7 @@ import kotlinx.coroutines.delay
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
-fun NicoVideoPlayerUI(
+fun NicoVideoPlayerControlUI(
     videoTitle: String,
     videoId: String,
     isMiniPlayer: Boolean,

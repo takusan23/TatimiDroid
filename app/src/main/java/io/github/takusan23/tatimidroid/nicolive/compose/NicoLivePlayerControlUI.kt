@@ -36,13 +36,13 @@ import kotlinx.coroutines.delay
  * @param isMiniPlayer ミニプレイヤー時ならtrue
  * @param isConnectedWiFi Wi-Fi接続時はtrue。右上のネットワーク状態アイコンで使う
  * @param isShowCommentCanvas コメントを描画している場合はtrue。アイコンで使う
- * @param onClickBackgroundPlayer バックグラウンド再生を押したときに呼ばれる
- * @param onClickCommentDraw コメントを描画する、しないボタンを押したときに呼ばれる
- * @param onClickCommentPost コメント投稿ボタン（全画面UIのみ）を押したときに呼ばれる
- * @param onClickFullScreen 全画面ボタンを押したときに呼ばれる
- * @param onClickMiniPlayer ミニプレイヤー遷移ボタン、[isDisableMiniPlayerMode]のときは矢印ボタンを押したときに呼ばれる
- * @param onClickNetwork ネットワーク状態ボタンを押したときに呼ばれる
- * @param onClickPopUpPlayer ポップアップ再生ボタンを押したときに呼ばれる
+ * @param onBackgroundPlayerClick バックグラウンド再生を押したときに呼ばれる
+ * @param onCommentDrawClick コメントを描画する、しないボタンを押したときに呼ばれる
+ * @param onCommentPostClick コメント投稿ボタン（全画面UIのみ）を押したときに呼ばれる
+ * @param onFullScreenClick 全画面ボタンを押したときに呼ばれる
+ * @param onMiniPlayerClick ミニプレイヤー遷移ボタン、[isDisableMiniPlayerMode]のときは矢印ボタンを押したときに呼ばれる
+ * @param onNetworkClick ネットワーク状態ボタンを押したときに呼ばれる
+ * @param onPopUpPlayerClick ポップアップ再生ボタンを押したときに呼ばれる
  * @param isAudioOnlyMode 音声のみの再生時はtrueにしてね
  * @param isTimeShiftMode タイムシフト再生時はtrueにしてね。シークバーを出します
  * @param currentPosition 番組経過時間。番組開始時間から数えて
@@ -50,7 +50,7 @@ import kotlinx.coroutines.delay
  * @param duration タイムシフト再生時のみ。番組の時間。秒で
  * */
 @Composable
-fun NicoLivePlayerUI(
+fun NicoLivePlayerControlUI(
     liveTitle: String,
     liveId: String,
     isMiniPlayer: Boolean,
@@ -62,13 +62,13 @@ fun NicoLivePlayerUI(
     isTimeShiftMode: Boolean = false,
     currentPosition: Long = 0L,
     duration: Long = 0L,
-    onClickMiniPlayer: () -> Unit,
-    onClickFullScreen: () -> Unit,
-    onClickNetwork: () -> Unit,
-    onClickCommentDraw: () -> Unit,
-    onClickPopUpPlayer: () -> Unit,
-    onClickBackgroundPlayer: () -> Unit,
-    onClickCommentPost: (String) -> Unit,
+    onMiniPlayerClick: () -> Unit,
+    onFullScreenClick: () -> Unit,
+    onNetworkClick: () -> Unit,
+    onCommentDrawClick: () -> Unit,
+    onPopUpPlayerClick: () -> Unit,
+    onBackgroundPlayerClick: () -> Unit,
+    onCommentPostClick: (String) -> Unit,
     onTsSeek: (Long) -> Unit = { },
 ) {
 
@@ -137,7 +137,7 @@ fun NicoLivePlayerUI(
                 ) {
                     // タイトル、閉じるボタン
                     Row {
-                        IconButton(onClick = { onClickMiniPlayer() }) {
+                        IconButton(onClick = { onMiniPlayerClick() }) {
                             Icon(
                                 painter = when {
                                     isDisableMiniPlayerMode -> painterResource(id = R.drawable.ic_arrow_back_black_24dp)
@@ -166,31 +166,31 @@ fun NicoLivePlayerUI(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End,
                         ) {
-                            IconButton(onClick = { onClickBackgroundPlayer() }) {
+                            IconButton(onClick = { onBackgroundPlayerClick() }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_background_icon_black),
                                     contentDescription = "バッググラウンド"
                                 )
                             }
-                            IconButton(onClick = { onClickPopUpPlayer() }) {
+                            IconButton(onClick = { onPopUpPlayerClick() }) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_popup_icon_black),
                                     contentDescription = "ポップアップ"
                                 )
                             }
-                            IconButton(onClick = { onClickCommentDraw() }) {
+                            IconButton(onClick = { onCommentDrawClick() }) {
                                 Icon(
                                     painter = if (isShowCommentCanvas) painterResource(id = R.drawable.ic_comment_on) else painterResource(id = R.drawable.ic_comment_off),
                                     contentDescription = "コメント描画ON"
                                 )
                             }
-                            IconButton(onClick = { onClickNetwork() }) {
+                            IconButton(onClick = { onNetworkClick() }) {
                                 Icon(
                                     painter = if (isConnectedWiFi) painterResource(id = R.drawable.ic_wifi_black_24dp) else painterResource(id = R.drawable.ic_signal_cellular_alt_black_24dp),
                                     contentDescription = "ミニプレイヤーへ"
                                 )
                             }
-                            IconButton(onClick = { onClickFullScreen() }) {
+                            IconButton(onClick = { onFullScreenClick() }) {
                                 Icon(
                                     painter = if (isFullScreen) painterResource(id = R.drawable.ic_fullscreen_exit_black_24dp) else painterResource(id = R.drawable.ic_fullscreen_black_24dp),
                                     contentDescription = "全画面"
@@ -253,13 +253,13 @@ fun NicoLivePlayerUI(
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                             keyboardActions = KeyboardActions(onSend = {
                                 // 送信！
-                                onClickCommentPost(commentPostText.value)
+                                onCommentPostClick(commentPostText.value)
                                 commentPostText.value = ""
                             }),
                             trailingIcon = {
                                 // 送信ボタン
                                 IconButton(onClick = {
-                                    onClickCommentPost(commentPostText.value)
+                                    onCommentPostClick(commentPostText.value)
                                     commentPostText.value = ""
                                 }) {
                                     Icon(painter = painterResource(id = R.drawable.ic_send_black), contentDescription = "送信")

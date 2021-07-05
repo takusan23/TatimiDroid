@@ -297,19 +297,6 @@ fun NicoVideoRecommendCard(nicoVideoDataList: ArrayList<NicoVideoData>) {
                 onVideoClick = { },
                 onMenuClick = { }
             )
-/*
-            AndroidView(
-                modifier = Modifier.fillMaxWidth(),
-                factory = { context ->
-                    RecyclerView(context).apply {
-                        setHasFixedSize(true)
-                        isNestedScrollingEnabled = false // これしないと関連動画スクロールした状態でミニプレイヤーに遷移できない
-                        layoutManager = LinearLayoutManager(context)
-                        adapter = NicoVideoListAdapter(nicoVideoDataList, isUseComposeAndroidView = true)
-                    }
-                }
-            )
-*/
         }
     }
 }
