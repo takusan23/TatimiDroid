@@ -87,10 +87,10 @@ class NicoLiveProgram {
             val communityName = programJSONObject.getJSONObject("socialGroup").getString("name")
             val liveNow = programJSONObject.getString("liveCycle") //放送中か？
             val official = programJSONObject.getString("providerType") == "official" // community / channel は false
-            val liveScreenShot = programJSONObject.getJSONObject("screenshotThumbnail").getString("liveScreenshotThumbnailUrl")
             // サムネ。放送中はスクショを取得するけどそれ以外はアイコン取得？
+            val hasLiveScreenshotUrl = programJSONObject.getJSONObject("screenshotThumbnail").has("liveScreenshotThumbnailUrl") && programJSONObject.getJSONObject("screenshotThumbnail").getString("liveScreenshotThumbnailUrl") != "null"
             val thumb = when {
-                liveScreenShot == "null" -> programJSONObject.getString("thumbnailUrl")
+                !hasLiveScreenshotUrl -> programJSONObject.getString("thumbnailUrl")
                 liveNow == "ON_AIR" -> programJSONObject.getJSONObject("screenshotThumbnail").getString("liveScreenshotThumbnailUrl")
                 else -> programJSONObject.getString("thumbnailUrl")
             }
