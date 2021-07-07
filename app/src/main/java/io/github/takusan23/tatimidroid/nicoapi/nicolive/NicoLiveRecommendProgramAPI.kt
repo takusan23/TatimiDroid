@@ -20,12 +20,13 @@ class NicoLiveRecommendProgramAPI {
      * ニコ生のあなたへのおすすめを取得するAPIを叩く
      *
      * @param userId ユーザーのId
+     * @param userSession ユーザーセッション
      * @return OkHttpのレスポンス
      * */
-    suspend fun getNicoLiveRecommendProgram(userId: String) = withContext(Dispatchers.IO) {
+    suspend fun getNicoLiveRecommendProgram(userSession: String, userId: String) = withContext(Dispatchers.IO) {
         val request = Request.Builder().apply {
             url("https://live2.nicovideo.jp/front/api/v1/recommend-contents?content_meta=true&site=nicolive&recipe=live_top&v=1&user_id=$userId")
-            header("x-frontend-id", "6")
+            addHeader("Cookie", "user_session=$userSession")
             header("User-Agent", "TatimiDroid;@takusan_23")
             get()
         }.build()

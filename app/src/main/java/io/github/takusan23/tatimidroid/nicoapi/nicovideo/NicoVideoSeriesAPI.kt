@@ -3,6 +3,7 @@ package io.github.takusan23.tatimidroid.nicoapi.nicovideo
 import android.os.Build
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoSeriesData
+import io.github.takusan23.tatimidroid.tool.IDRegex
 import io.github.takusan23.tatimidroid.tool.OkHttpClientSingleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -91,39 +92,33 @@ class NicoVideoSeriesAPI {
         // HTMLスクレイピング
         val document = Jsoup.parse(responseHTML)
         // mapって便利やな
-        val titleList = document.getElementsByClass("VideoMediaObject-title").map {
-            it.getElementsByTag("a")[0].text()
-        }
-        val videoIdList = document.getElementsByClass("VideoMediaObject-title").map {
-            it.getElementsByTag("a")[0].attr("href").replace("/watch/", "")
-        }
-        val thumbUrlList = document.getElementsByClass("Thumbnail-image").map {
-            it.getElementsByClass("Thumbnail-image").attr("data-background-image")
-        }
-        val dateList = document.getElementsByClass("SeriesVideoListContainer-videoRegisteredAt").map {
+        val titleList = document.getElementsByClass("NC-VideoMediaObject-title").map { it.text() }
+        val videoIdList = document.getElementsByClass("NC-Link NC-MediaObject-contents").map { IDRegex(it.attr("href"))!! }
+        val thumbUrlList = document.getElementsByClass("NC-Thumbnail-image").map { it.attr("data-background-image") }
+        val dateList = document.getElementsByClass("NC-VideoMediaObject-metaAdditionalRegisteredAt").map {
             val calendar = Calendar.getInstance()
             when {
-                it.text().contains("分前 投稿") -> {
+                it.text().contains("分前") -> {
                     // 時間操作だるすぎ
-                    calendar.add(Calendar.MINUTE, -it.text().replace("分前 投稿", "").toInt())
+                    calendar.add(Calendar.MINUTE, -it.text().replace("分前", "").toInt())
                     calendar.timeInMillis
                 }
-                it.text().contains("時間前 投稿") -> {
+                it.text().contains("時間前") -> {
                     // 大体の値。スクレイピングだとこの処理がきついがJSONだとなんか取れない
-                    calendar.add(Calendar.HOUR_OF_DAY, -it.text().replace("時間前 投稿", "").toInt())
+                    calendar.add(Calendar.HOUR_OF_DAY, -it.text().replace("時間前", "").toInt())
                     calendar.timeInMillis
                 }
                 else -> {
                     // こっちが良いのにね
-                    val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm 投稿")
+                    val simpleDateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm")
                     simpleDateFormat.parse(it.text()).time
                 }
             }
         }
-        val viewCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-view").map { it.text() }
-        val mylistCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-mylist").map { it.text() }
-        val commentCountList = document.getElementsByClass("VideoMetaCount VideoMetaCount-comment").map { it.text() }
-        val durationList = document.getElementsByClass("VideoLength").map {
+        val viewCountList = document.getElementsByClass("NC-VideoMetaCount NC-VideoMetaCount_view").map { it.text() }
+        val mylistCountList = document.getElementsByClass("NC-VideoMetaCount NC-VideoMetaCount_mylist").map { it.text() }
+        val commentCountList = document.getElementsByClass("NC-VideoMetaCount NC-VideoMetaCount_comment").map { it.text() }
+        val durationList = document.getElementsByClass("NC-VideoLength").map {
             // SimpleDataFormatで(mm:ss)をパースしたい場合はタイムゾーンをUTCにすればいけます。これで動画時間を秒に変換できる
             val simpleDateFormat = SimpleDateFormat("mm:ss").apply {
                 timeZone = TimeZone.getTimeZone("UTC")
@@ -137,7 +132,7 @@ class NicoVideoSeriesAPI {
                 isMylist = false,
                 title = titleList[i],
                 videoId = videoIdList[i],
-                thum = thumbUrlList[i + 1], // 余分なのが先頭に入ってる
+                thum = thumbUrlList[i],
                 date = dateList[i],
                 viewCount = viewCountList[i],
                 commentCount = commentCountList[i],

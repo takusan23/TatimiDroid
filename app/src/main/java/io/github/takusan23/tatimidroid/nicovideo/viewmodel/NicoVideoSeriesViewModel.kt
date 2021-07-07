@@ -6,9 +6,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
-import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoSeriesAPI
 import io.github.takusan23.tatimidroid.R
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.NicoVideoSeriesAPI
+import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,6 +45,7 @@ class NicoVideoSeriesViewModel(application: Application, private val seriesId: S
     fun getSeriesVideoList() {
         // エラー時
         val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            throwable.printStackTrace()
             showToast("${context.getString(R.string.error)}\n${throwable}")
         }
         viewModelScope.launch(errorHandler + Dispatchers.IO) {

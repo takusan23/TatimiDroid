@@ -234,7 +234,7 @@ class CommunityListFragment : Fragment() {
                 val userData = userAPI.parseUserData(userDataResponse.body?.string()!!)
                 // おすすめ番組取得
                 val userId = userData.userId
-                val recommendProgram = nicoLiveRecommendProgramAPI.getNicoLiveRecommendProgram(userId)
+                val recommendProgram = nicoLiveRecommendProgramAPI.getNicoLiveRecommendProgram(userSession, userId)
                 if (!recommendProgram.isSuccessful) {
                     // 失敗時
                     showToast("${getString(R.string.error)}\n${recommendProgram.code}")
