@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.fragment.setting
+package io.github.takusan23.tatimidroid.setting
 
 import android.content.SharedPreferences
 import android.net.Uri

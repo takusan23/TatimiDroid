@@ -424,8 +424,8 @@
     <string name="nicolive_jk_program_official">official</string>
     <string name="nicolive_jk_program_tag">Nico Nico live tag (volunteer)</string>
     <string name="nico_pedia">Nico pedia</string>
-    <string name="setting_database_title">Database takeover</string>
-    <string name="setting_database_description">Please handle with care. It is in zip format.</string>
+    <string name="setting_database_title">Database settings</string>
+    <string name="setting_database_description">Please handle with care. Backup and restore are in zip format.</string>
     <string name="setting_database_backup_title">Database export (backup)</string>
     <string name="setting_database_backup_description">Did you forget anything?</string>
     <string name="setting_database_restore_title">Database import (restore)</string>

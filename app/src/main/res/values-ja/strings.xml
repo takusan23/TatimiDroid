@@ -424,8 +424,8 @@
     <string name="nicolive_jk_program_official">公式</string>
     <string name="nicolive_jk_program_tag">ニコニコ実況タグ（有志）</string>
     <string name="nico_pedia">二コ百</string>
-    <string name="setting_database_title">データベースの引き継ぎ</string>
-    <string name="setting_database_description">取り扱いには気をつけてください。zip形式になっています。あなたは展開派？それとも解凍派？</string>
+    <string name="setting_database_title">データベースの設定</string>
+    <string name="setting_database_description">取り扱いには気をつけてください。バックアップ、リストアはzip形式になっています。あなたは展開派？それとも解凍派？</string>
     <string name="setting_database_backup_title">データベースの書き出し（バックアップ）</string>
     <string name="setting_database_backup_description">忘れ物はない？</string>
     <string name="setting_database_restore_title">データベースの取り込み（リストア）</string>

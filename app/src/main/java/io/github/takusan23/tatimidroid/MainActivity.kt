@@ -16,12 +16,9 @@ import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import io.github.takusan23.searchpreferencefragment.SearchPreferenceChildFragment
-import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
 import io.github.takusan23.tatimidroid.bottomfragment.NicoHistoryBottomFragment
 import io.github.takusan23.tatimidroid.databinding.ActivityMainBinding
 import io.github.takusan23.tatimidroid.fragment.LoginFragment
-import io.github.takusan23.tatimidroid.fragment.SettingsFragment
 import io.github.takusan23.tatimidroid.nicoapi.nicolive.NicoLiveHTML
 import io.github.takusan23.tatimidroid.nicoapi.nicovideo.dataclass.NicoVideoData
 import io.github.takusan23.tatimidroid.nicolive.CommentFragment
@@ -35,6 +32,7 @@ import io.github.takusan23.tatimidroid.nicovideo.compose.JCNicoVideoFragment
 import io.github.takusan23.tatimidroid.nicovideo.fragment.NicoVideoCacheFragment
 import io.github.takusan23.tatimidroid.service.startLivePlayService
 import io.github.takusan23.tatimidroid.service.startVideoPlayService
+import io.github.takusan23.tatimidroid.setting.SettingsFragment
 import io.github.takusan23.tatimidroid.tool.*
 import kotlinx.coroutines.*
 import java.util.*
@@ -150,12 +148,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.menu_setting -> {
                     // 自作ライブラリ https://github.com/takusan23/SearchPreferenceFragment
                     val searchSettingsFragment = SettingsFragment()
-                    searchSettingsFragment.arguments = Bundle().apply {
-                        // 階層化されている場合
-                        val hashMap = hashMapOf<String, Int>()
-                        putSerializable(SearchPreferenceFragment.PREFERENCE_XML_FRAGMENT_NAME_HASH_MAP, hashMap)
-                        putInt(SearchPreferenceChildFragment.PREFERENCE_XML_RESOURCE_ID, R.xml.preferences)
-                    }
                     setFragment(searchSettingsFragment)
                 }
                 R.id.menu_nicovideo -> {

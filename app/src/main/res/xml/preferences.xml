@@ -53,7 +53,7 @@
             android:title="@string/setting_scroll_tab_hide_title" />
 
         <Preference
-            android:fragment="io.github.takusan23.tatimidroid.fragment.setting.FontSettingFragment"
+            android:fragment="io.github.takusan23.tatimidroid.setting.FontSettingFragment"
             android:icon="@drawable/ic_font_download_24px"
             android:key="font_preference"
             android:summary="@string/setting_font_description"
@@ -405,15 +405,22 @@
 
         <Preference
             android:icon="@drawable/ic_backup_icon"
-            android:key="history_db_backup"
+            android:key="database_backup"
             android:summary="@string/setting_database_backup_description"
             android:title="@string/setting_database_backup_title" />
 
         <Preference
             android:icon="@drawable/ic_restore_icon"
-            android:key="history_db_restore"
+            android:key="database_restore"
             android:summary="@string/setting_database_restore_description"
             android:title="@string/setting_database_restore_title" />
+
+        <Preference
+            android:fragment="io.github.takusan23.tatimidroid.setting.dbclear.DatabaseClearFragment"
+            android:icon="@drawable/ic_outline_delete_24px"
+            android:key="database_clear"
+            android:summary="端末内履歴、検索履歴を削除できます。"
+            android:title="データベースの削除" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/deprecated">
@@ -466,18 +473,13 @@
 
     </PreferenceCategory>
 
-    <Preference
-        android:icon="@drawable/ic_outline_delete_24px"
-        android:key="delete_history"
-        android:title="@string/delete_history_db_title" />
-
     <PreferenceCategory
         android:summary="フリとかじゃなくて"
         android:title="開発者用設定"
         app:initialExpandedChildrenCount="0">
 
         <Preference
-            android:fragment="io.github.takusan23.tatimidroid.fragment.setting.DevSettingFragment"
+            android:fragment="io.github.takusan23.tatimidroid.setting.DevSettingFragment"
             android:icon="@drawable/ic_policy_black"
             android:title="実験的" />
 

@@ -1,6 +1,5 @@
-package io.github.takusan23.tatimidroid.fragment.setting
+package io.github.takusan23.tatimidroid.setting
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -8,12 +7,11 @@ import android.view.View
 import android.widget.Toast
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.service.CommentGetService
 import kotlinx.coroutines.runBlocking
-import java.io.File
 
 class DevSettingFragment : PreferenceFragmentCompat() {
 
@@ -79,72 +77,6 @@ class DevSettingFragment : PreferenceFragmentCompat() {
             false
         }
 
-        // 履歴DBバックアップと復元
-        initHistoryDB()
-
-    }
-
-    private fun initHistoryDB() {
-        // 履歴DB
-        val historyDBBackup = findPreference<Preference>("dev_setting_history_db_backup")
-        val historyDBRestore = findPreference<Preference>("dev_setting_history_db_restore")
-        historyDBBackup?.setOnPreferenceClickListener {
-            // コピーするファイル作成
-            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                type = "*/*"
-                putExtra(Intent.EXTRA_TITLE, "NicoHistory.db")
-            }
-            startActivityForResult(intent, CREATE_BACKUP_FILE_RESULT_CODE)
-            false
-        }
-        historyDBRestore?.setOnPreferenceClickListener {
-            // 復元するDBのファイルもらう
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                type = "*/*"
-            }
-            startActivityForResult(intent, SELECT_RESTORE_FILE_REQUEST_CODE)
-            false
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK) {
-            // データベースのファイルの場所
-            val dbFile = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                File("${context?.dataDir?.path}/databases/NicoHistory.db") // getDataDir()がヌガー以降じゃないと使えない
-            } else {
-                File("/data/user/0/io.github.takusan23.tatimidroid/databases/NicoHistory.db") // ハードコート大丈夫か・・？
-            }
-            when (requestCode) {
-                CREATE_BACKUP_FILE_RESULT_CODE -> {
-                    // コピー作成
-                    data?.data?.let { uri ->
-                        if (!dbFile.exists()) {
-                            showToast("ないよ")
-                            return // なければ終了
-                        }
-                        // 書き込む
-                        val dbFileByteArray = dbFile.readBytes()
-                        context?.contentResolver?.openOutputStream(uri)?.write(dbFileByteArray)
-                        showToast("バックアップが生成されました。")
-                    }
-                }
-                SELECT_RESTORE_FILE_REQUEST_CODE -> {
-                    data?.data?.let { uri ->
-                        // データベースなければ作る
-                        if (!dbFile.exists()) {
-                            dbFile.createNewFile()
-                        }
-                        // 取り出す
-                        context?.contentResolver?.openInputStream(uri)?.readBytes()?.let { byteArray ->
-                            dbFile.writeBytes(byteArray)
-                            showToast("復元しました。")
-                        }
-                    }
-                }
-            }
-        }
     }
 
     /** トースト表示 */

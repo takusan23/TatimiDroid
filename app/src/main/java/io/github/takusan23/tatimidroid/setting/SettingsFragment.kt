@@ -1,4 +1,4 @@
-package io.github.takusan23.tatimidroid.fragment
+package io.github.takusan23.tatimidroid.setting
 
 import android.content.Intent
 import android.graphics.Color
@@ -7,11 +7,13 @@ import android.view.View
 import android.widget.EditText
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
+import io.github.takusan23.searchpreferencefragment.SearchPreferenceChildFragment
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.activity.KonoApp
 import io.github.takusan23.tatimidroid.activity.LicenceActivity
+import io.github.takusan23.tatimidroid.fragment.DialogBottomSheet
 import io.github.takusan23.tatimidroid.nicoapi.NicoVideoCache
-import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.room.init.NicoHistoryDBInit
 import io.github.takusan23.tatimidroid.tool.RoomDBExporter
 import io.github.takusan23.tatimidroid.tool.RoomDBImporter
@@ -41,6 +43,13 @@ class SettingsFragment : SearchPreferenceFragment() {
     }
 
     init {
+
+        arguments = Bundle().apply {
+            // 階層化されている場合
+            val hashMap = hashMapOf<String, Int>()
+            putSerializable(PREFERENCE_XML_FRAGMENT_NAME_HASH_MAP, hashMap)
+            putInt(SearchPreferenceChildFragment.PREFERENCE_XML_RESOURCE_ID, R.xml.preferences)
+        }
 
         /**
          * Preferenceを押したときに呼ばれるやつ
@@ -100,11 +109,11 @@ class SettingsFragment : SearchPreferenceFragment() {
                         }
                     }.show(getParentFragmentManager(), "delete")
                 }
-                "history_db_backup" -> {
+                "database_backup" -> {
                     // SAFを開く
                     startBackup()
                 }
-                "history_db_restore" -> {
+                "database_restore" -> {
                     // SAFを開く
                     roomDBImporter.start()
                 }
