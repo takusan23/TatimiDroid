@@ -2,6 +2,7 @@ package io.github.takusan23.tatimidroid.setting.dbclear
 
 import android.content.Context
 import androidx.room.RoomDatabase
+import io.github.takusan23.tatimidroid.R
 import io.github.takusan23.tatimidroid.room.init.*
 
 /**
@@ -25,12 +26,12 @@ data class DatabaseClearData(
          * */
         fun getDatabaseList(context: Context): List<DatabaseClearData> {
             return listOf(
-                DatabaseClearData(KotehanDBInit.getInstance(context), "コテハンデータベース", false),
-                DatabaseClearData(NGDBInit.getInstance(context),"NGユーザーデータベース",false),
-                DatabaseClearData(NGUploaderUserIdDBInit.getInstance(context),"NG投稿者データベース",false),
-                DatabaseClearData(NGUploaderVideoIdDBInit.getInstance(context),"NG投稿者が投稿した動画データベース",false),
-                DatabaseClearData(NicoHistoryDBInit.getInstance(context),"端末内履歴データベース",false),
-                DatabaseClearData(SearchHistoryDBInit.getInstance(context),"検索履歴データベース",false),
+                DatabaseClearData(KotehanDBInit.getInstance(context), context.getString(R.string.database_kotehan), false),
+                DatabaseClearData(NGDBInit.getInstance(context), context.getString(R.string.database_ng_user), false),
+                DatabaseClearData(NGUploaderUserIdDBInit.getInstance(context), context.getString(R.string.database_ng_uploader), false),
+                DatabaseClearData(NGUploaderVideoIdDBInit.getInstance(context), context.getString(R.string.database_ng_video), false),
+                DatabaseClearData(NicoHistoryDBInit.getInstance(context), context.getString(R.string.database_local_history), false),
+                DatabaseClearData(SearchHistoryDBInit.getInstance(context), context.getString(R.string.database_search_history), false),
             )
         }
 

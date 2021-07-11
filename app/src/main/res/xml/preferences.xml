@@ -419,8 +419,8 @@
             android:fragment="io.github.takusan23.tatimidroid.setting.dbclear.DatabaseClearFragment"
             android:icon="@drawable/ic_outline_delete_24px"
             android:key="database_clear"
-            android:summary="端末内履歴、検索履歴を削除できます。"
-            android:title="データベースの削除" />
+            android:summary="@string/setting_database_clear_description"
+            android:title="@string/setting_database_clear_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/deprecated">

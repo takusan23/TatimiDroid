@@ -494,4 +494,16 @@ Sorry to trouble you, but please update the video information.\n
     <string name="nicovideo_search_history_keyword">Keyword search</string>
     <string name="nicolive_timeshift_mode">Start (experimental) time-shift playback</string>
     <string name="nicolive_timeshift_premium">Cannot be used unless you are a premium member</string>
+    <string name="setting_database_clear_title">Delete database</string>
+    <string name="setting_database_clear_description">You can delete the history in the terminal, search history, etc.</string>
+    <string name="setting_database_clear_message">Can I really delete it?</string>
+    <string name="setting_database_clear_delete_button">Delete</string>
+    <string name="setting_database_clear_cancel_button">Cancel</string>
+    <string name="setting_database_clear_select">Select the database you want to delete.</string>
+    <string name="database_kotehan">Fixed handle name database</string>
+    <string name="database_ng_uploader">NG contributor database</string>
+    <string name="database_ng_video">Video database posted by NG contributors</string>
+    <string name="database_ng_user">NG user database</string>
+    <string name="database_local_history">Local history database</string>
+    <string name="database_search_history">Search history database</string>
 </resources>

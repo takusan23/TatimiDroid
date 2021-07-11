@@ -494,4 +494,16 @@
     <string name="nicovideo_search_history_keyword">キーワード検索</string>
     <string name="nicolive_timeshift_mode">（実験的）タイムシフト再生を始めます</string>
     <string name="nicolive_timeshift_premium">プレミアム会員じゃないと使えません</string>
+    <string name="setting_database_clear_title">データベースの削除</string>
+    <string name="setting_database_clear_description">端末内履歴、検索履歴等を削除できます(今更ながら)</string>
+    <string name="setting_database_clear_message">本当に削除してもいいですか？</string>
+    <string name="setting_database_clear_delete_button">削除</string>
+    <string name="setting_database_clear_cancel_button">キャンセル</string>
+    <string name="setting_database_clear_select">削除するデータベースを選択してください。</string>
+    <string name="database_kotehan">コテハンデータベース</string>
+    <string name="database_ng_uploader">NG投稿者データベース</string>
+    <string name="database_ng_video">NG投稿者が投稿した動画データベース</string>
+    <string name="database_ng_user">NGユーザーデータベース</string>
+    <string name="database_local_history">端末内履歴データベース</string>
+    <string name="database_search_history">検索履歴データベース</string>
 </resources>

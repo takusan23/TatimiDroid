@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.takusan23.tatimidroid.R
@@ -31,17 +32,19 @@ fun DatabaseClearSettingScreen(onBackClick: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
-    // データベース一覧。どうにかしたい
+    // データベース一覧
     val dbList = remember { mutableStateListOf<DatabaseClearData>().apply { addAll(DatabaseClearData.getDatabaseList(context)) } }
 
     Scaffold(
-        modifier = Modifier.padding(bottom = 56.dp),
+        modifier = Modifier.padding(),
         scaffoldState = scaffoldState,
     ) {
         Column {
             DatabaseClearSettingTitle(onBackClick)
             DatabaseClearSettingDatabaseList(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 10.dp),
                 dbList = dbList,
                 onDeleteCheckChange = { index ->
                     dbList[index] = dbList[index].copy(isDelete = !dbList[index].isDelete)
@@ -53,9 +56,10 @@ fun DatabaseClearSettingScreen(onBackClick: () -> Unit) {
                     // UIスレッド無理なので
                     scope.launch {
                         // 確認。この書き方Win32のMessageBoxみたい
-                        val snackbarResult = scaffoldState.snackbarHostState.showSnackbar("本当に削除しますか？", "削除")
+                        val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(context.getString(R.string.setting_database_clear_message), context.getString(R.string.delete))
                         if (snackbarResult == SnackbarResult.ActionPerformed) {
                             dbList
+                                .filter { it.isDelete }
                                 .map { dbClearItem -> async(Dispatchers.IO) { dbClearItem.database.clearAllTables() } }
                                 .forEach { it.await() }
                             // 通知して戻る
@@ -82,13 +86,13 @@ private fun DatabaseClearSettingButtonGroup(onBackClick: () -> Unit, onDeleteCli
             onClick = onBackClick,
             modifier = Modifier.padding(10.dp)
         ) {
-            Text(text = "キャンセル")
+            Text(text = stringResource(id = R.string.setting_database_clear_cancel_button))
         }
         Button(
             onClick = onDeleteClick,
             modifier = Modifier.padding(10.dp)
         ) {
-            Text(text = "実行")
+            Text(text = stringResource(id = R.string.setting_database_clear_delete_button))
         }
     }
 }
@@ -149,12 +153,12 @@ private fun DatabaseClearSettingTitle(onBackClick: () -> Unit) {
         )
         Text(
             modifier = modifier,
-            text = "データベースの削除",
+            text = stringResource(id = R.string.setting_database_clear_title),
             fontSize = 30.sp
         )
         Text(
             modifier = modifier,
-            text = "削除するデータベースを選択してください。"
+            text = stringResource(id = R.string.setting_database_clear_select)
         )
     }
 }

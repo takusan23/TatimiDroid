@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.EditText
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.appbar.AppBarLayout
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceChildFragment
 import io.github.takusan23.searchpreferencefragment.SearchPreferenceFragment
 import io.github.takusan23.tatimidroid.R
@@ -39,6 +40,8 @@ class SettingsFragment : SearchPreferenceFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val editText = view.findViewById<EditText>(R.id.search_fragment_input)
+        // スクロールすると動くEditTextうざい（お前が作ったんだろ
+        ((editText.parent.parent as View).layoutParams as AppBarLayout.LayoutParams).scrollFlags = 0
         editText.hint = getString(R.string.serch)
     }
 
